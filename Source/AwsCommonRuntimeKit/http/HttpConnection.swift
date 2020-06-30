@@ -305,6 +305,10 @@ public class HttpStream {
     public func updateWindow(incrementBy: Int) {
        aws_http_stream_update_window(httpStream, incrementBy)
     }
+
+    public func activate() {
+        aws_http_stream_activate(httpStream)
+    }
 }
 
 //todo Implement HttpRequestOptions struct tht takes the callbacks starting at lines 162, bind IO::InputStream, bind

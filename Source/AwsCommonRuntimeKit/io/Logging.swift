@@ -30,13 +30,13 @@ private extension LogLevel {
 private extension aws_log_level {
   var logLevel: LogLevel! {
     switch self.rawValue {
-      case AWS_LL_NONE.rawValue:  return .none
-      case AWS_LL_FATAL.rawValue:  return .fatal
-      case AWS_LL_ERROR.rawValue: return .error
-      case AWS_LL_WARN.rawValue: return .warn
-      case AWS_LL_INFO.rawValue: return .info
-      case AWS_LL_DEBUG.rawValue: return .debug
-      case AWS_LL_TRACE.rawValue: return .trace
+      case AWS_LL_NONE.rawValue:  return LogLevel.none
+      case AWS_LL_FATAL.rawValue:  return LogLevel.fatal
+      case AWS_LL_ERROR.rawValue: return LogLevel.error
+      case AWS_LL_WARN.rawValue: return LogLevel.warn
+      case AWS_LL_INFO.rawValue: return LogLevel.info
+      case AWS_LL_DEBUG.rawValue: return LogLevel.debug
+      case AWS_LL_TRACE.rawValue: return LogLevel.trace
       default:
         assertionFailure("Unknown aws_log_level: \(String(describing: self))")
         return nil // <- Makes compiler happy, but we'd have halted right before reaching here

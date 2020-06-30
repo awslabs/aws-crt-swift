@@ -49,6 +49,7 @@ public final class TlsConnectionOptions {
 
   public func setServerName(_ serverName: String) throws {
     var byteCur = serverName.newByteCursor()
+    //print(byteCur.rawValue.toString())
     if (aws_tls_connection_options_set_server_name(&self.rawValue, self.allocator.rawValue, &byteCur.rawValue) != AWS_OP_SUCCESS) {
       throw AwsCommonRuntimeError()
     }

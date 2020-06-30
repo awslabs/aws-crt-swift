@@ -17,6 +17,10 @@ internal final class AwsString {
     return AwsStringByteCursor(self)
   }
 
+  internal func asCStr() -> UnsafePointer<Int8>{
+    return aws_string_c_str(self.rawValue)
+  }
+
   deinit {
     aws_string_destroy(self.rawValue)
   }

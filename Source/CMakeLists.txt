@@ -22,7 +22,7 @@ install(TARGETS ${PROJECT_NAME}
   COMPONENT lib)
 
 
-## ElastiCulr
+## ElastiCurl
 
 add_executable(ElastiCurl "ElastiCurl.swift")
 target_link_libraries(ElastiCurl PRIVATE ${PROJECT_NAME})

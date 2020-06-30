@@ -1,8 +1,6 @@
 import AwsCommonRuntimeKit
 import Foundation
 
-import Foundation
-
 let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
 
 AwsCommonRuntimeKit.initialize(allocator: allocator)
@@ -16,7 +14,7 @@ let port = UInt16(443)
 // BUSINESS!
 
 let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
-try tlsContextOptions.setAlpnList("http/1.1")
+try tlsContextOptions.setAlpnList("h2;http/1.1")
 let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
 
 let tlsConnectionOptions = tlsContext.newConnectionOptions()
@@ -31,6 +29,12 @@ var socketOptions = SocketOptions(socketType: .stream)
 
 let semaphore = DispatchSemaphore(value: 0)
 
+var stream: HttpStream? = nil
+var connection: HttpClientConnection? = nil
+var httpRequest: HttpRequest = HttpRequest(allocator: allocator)
+httpRequest.method = "GET".newByteCursor()
+httpRequest.path = "/".newByteCursor()
+
 var httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
         hostName: hostName,
         initialWindowSize: Int.max,
@@ -38,12 +42,13 @@ var httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
         proxyOptions: nil,
         socketOptions: socketOptions,
         tlsOptions: tlsConnectionOptions,
-        onConnectionSetup: { (connection, errorCode) in
+        onConnectionSetup: { (conn, errorCode) in
             if (errorCode != 0) {
                 print("Connection Setup failed with code \(errorCode)")
                 exit(-1)
             } else {
                 print("Connection succeeded")
+                connection = conn
 
                  let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders =
                      { stream, headerBlock, headers in
@@ -65,12 +70,9 @@ var httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
                      { stream, errorCode in
                      }
 
-                 var httpRequest = HttpRequest(allocator: allocator)
-                 httpRequest.method = "GET".newByteCursor()
-                 httpRequest.path = "/".newByteCursor()
-
                  var requestOptions = HttpRequestOptions(request: httpRequest, onIncomingHeaders: onIncomingHeaders, onIncomingHeadersBlockDone: onBlockDone, onIncomingBody: onBody, onStreamComplete: onComplete)
-                 connection!.newClientStream(requestOptions: requestOptions)
+                 stream = connection!.newClientStream(requestOptions: requestOptions)
+                 stream!.activate()
             }
         },
         onConnectionShutdown: { (connection, errorCode) in
