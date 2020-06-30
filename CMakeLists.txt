@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14.20190522)
 project(AwsCommonRuntimeKit LANGUAGES Swift C)
-option(BUILD_DEPS "Builds aws common runtime dependencies as part of build, only do this if you don't want to control your dependency chain." OFF)
+option(BUILD_DEPS "Builds aws common runtime dependencies as part of build, only do this if you don't want to control your dependency chain." ON)
 
 # place all modules into `swift` in the root of the build tree
 set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)

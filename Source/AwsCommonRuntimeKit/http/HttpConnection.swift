@@ -110,7 +110,7 @@ public class HttpClientConnection {
         let tempHostName = options.hostName.newByteCursor()
 
         var unmanagedConnectionOptions = aws_http_client_connection_options(
-                self_size: MemoryLayout<aws_http_client_connection_options>.size,
+                self_size: 0,
                 allocator: allocator.rawValue,
                 bootstrap: options.clientBootstrap.rawValue,
                 host_name: tempHostName.rawValue,
@@ -122,8 +122,12 @@ public class HttpClientConnection {
                 initial_window_size: options.initialWindowSize,
                 user_data: nil,
                 on_setup: onClientConnectionSetup,
-                on_shutdown: onClientConnectionShutdown
+                on_shutdown: onClientConnectionShutdown,
+                manual_window_management: false,
+                http2_options: nil
         )
+
+        unmanagedConnectionOptions.self_size = MemoryLayout.size(ofValue: unmanagedConnectionOptions)
 
         if let tlsOptions = options.tlsOptions {
             unmanagedConnectionOptions.tls_options = UnsafePointer(&tlsOptions.rawValue)
