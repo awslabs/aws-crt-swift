@@ -5,7 +5,7 @@ file(GLOB_RECURSE AWS_CRT_SOURCES
   "${PROJECT_NAME}/*.swift"
 )
 
-add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES})
+add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES} AwsCommonRuntimeKit/http/HttpHeaderBlock.swift AwsCommonRuntimeKit/http/AWSHttpProxyAuthenticationType.swift AwsCommonRuntimeKit/http/HttpClientConnectionOptions.swift AwsCommonRuntimeKit/http/HttpClientConnectionProxyOptions.swift AwsCommonRuntimeKit/http/HttpStream.swift AwsCommonRuntimeKit/http/HttpRequestOptions.swift AwsCommonRuntimeKit/http/HttpStreamCalback.swift AwsCommonRuntimeKit/http/HttpClientConnectionCallbackData.swift AwsCommonRuntimeKit/http/HttpMessage.swift AwsCommonRuntimeKit/http/HttpResponse.swift AwsCommonRuntimeKit/http/HttpHeader.swift)
 
 target_compile_options(${PROJECT_NAME} PRIVATE
   $<$<BOOL:BUILD_TESTING>:-enable-testing>)

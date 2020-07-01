@@ -1,3 +1,6 @@
+//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+//  SPDX-License-Identifier: Apache-2.0.
+
 import AwsCommonRuntimeKit
 import Foundation
 import AwsCHttp
@@ -42,6 +45,8 @@ let userAgentCur = "User-Agent".newByteCursor()
 let userAgentValCur = "Elasticurl".newByteCursor()
 let acceptHeaderCur = "Accept".newByteCursor()
 let acceptValcur = "*/*".newByteCursor()
+//new header api
+let headers = HttpHeaders()
 
 let hostHeader = HttpHeader(name:  hostHeaderCur.rawValue, value: hostNameValCur.rawValue, compression: AWS_HTTP_HEADER_COMPRESSION_USE_CACHE)
 let userAgentHeader = HttpHeader(name:  userAgentCur.rawValue, value: userAgentValCur.rawValue, compression: AWS_HTTP_HEADER_COMPRESSION_USE_CACHE)
