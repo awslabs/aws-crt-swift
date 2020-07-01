@@ -1,10 +1,12 @@
 import AwsCommonRuntimeKit
 import Foundation
+import AwsCHttp
 
 let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
 
 AwsCommonRuntimeKit.initialize(allocator: allocator)
-let logger = Logger(pipe: stdout, level: LogLevel.trace, allocator: allocator)
+
+//let logger = Logger(pipe: stdout, level: LogLevel.trace, allocator: allocator)
 
 // Pretend we get this from the CLI for now
 
@@ -34,6 +36,41 @@ var connection: HttpClientConnection? = nil
 var httpRequest: HttpRequest = HttpRequest(allocator: allocator)
 httpRequest.method = "GET".newByteCursor()
 httpRequest.path = "/".newByteCursor()
+let hostHeaderCur = "Host".newByteCursor()
+let hostNameValCur = hostName.newByteCursor()
+let userAgentCur = "User-Agent".newByteCursor()
+let userAgentValCur = "Elasticurl".newByteCursor()
+let acceptHeaderCur = "Accept".newByteCursor()
+let acceptValcur = "*/*".newByteCursor()
+
+let hostHeader = HttpHeader(name:  hostHeaderCur.rawValue, value: hostNameValCur.rawValue, compression: AWS_HTTP_HEADER_COMPRESSION_USE_CACHE)
+let userAgentHeader = HttpHeader(name:  userAgentCur.rawValue, value: userAgentValCur.rawValue, compression: AWS_HTTP_HEADER_COMPRESSION_USE_CACHE)
+let acceptHeader = HttpHeader(name: acceptHeaderCur.rawValue, value: acceptValcur.rawValue, compression: AWS_HTTP_HEADER_COMPRESSION_USE_CACHE)
+
+try httpRequest.addHeader(hostHeader)
+try httpRequest.addHeader(userAgentHeader)
+try httpRequest.addHeader(acceptHeader)
+
+let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders =
+        { stream, headerBlock, headers in
+            for header in headers {
+                print(header.name.toString() + " : " + header.value.toString())
+            }
+        }
+
+let onBody: HttpRequestOptions.OnIncomingBody =
+        { stream, bodyChunk in
+            let dataStr = String(decoding: bodyChunk, as: UTF8.self)
+            print(dataStr)
+        }
+
+let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone =
+        { stream, block in
+        }
+
+let onComplete: HttpRequestOptions.OnStreamComplete =
+        { stream, errorCode in
+        }
 
 var httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
         hostName: hostName,
@@ -50,27 +87,7 @@ var httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
                 print("Connection succeeded")
                 connection = conn
 
-                 let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders =
-                     { stream, headerBlock, headers in
-                         for header in headers {
-                             print(header.name.toString() + " : " + header.value.toString())
-                         }
-                     }
-
-                 let onBody: HttpRequestOptions.OnIncomingBody =
-                     { stream, bodyChunk in
-                          print(bodyChunk)
-                     }
-
-                 let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone =
-                     { stream, block in
-                     }
-
-                 let onComplete: HttpRequestOptions.OnStreamComplete =
-                     { stream, errorCode in
-                     }
-
-                 var requestOptions = HttpRequestOptions(request: httpRequest, onIncomingHeaders: onIncomingHeaders, onIncomingHeadersBlockDone: onBlockDone, onIncomingBody: onBody, onStreamComplete: onComplete)
+                 let requestOptions = HttpRequestOptions(request: httpRequest, onIncomingHeaders: onIncomingHeaders, onIncomingHeadersBlockDone: onBlockDone, onIncomingBody: onBody, onStreamComplete: onComplete)
                  stream = connection!.newClientStream(requestOptions: requestOptions)
                  stream!.activate()
             }

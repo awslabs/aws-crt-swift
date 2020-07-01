@@ -160,9 +160,12 @@ public class HttpClientConnection {
         options.on_response_headers = onIncomingHeaders
         options.on_response_header_block_done = onIncomingHeadersBlockDone
         options.on_complete = onStreamCompleted
-        options.user_data = Unmanaged.passRetained(HttpStreamCallbackData(requestOptions: requestOptions)).toOpaque()
+
+        var cbData = HttpStreamCallbackData(requestOptions: requestOptions)
+        options.user_data = Unmanaged.passRetained(cbData).toOpaque()
 
         let stream = HttpStream(httpConnection: self)
+        cbData.stream = stream
         stream.httpStream = aws_http_connection_make_request(self.rawValue, &options)
 
         return stream
@@ -176,7 +179,6 @@ fileprivate func onIncomingHeaders(_ stream: UnsafeMutablePointer<aws_http_strea
     for header in UnsafeBufferPointer(start: headerArray, count: headersCount) {
         headers.append(header)
     }
-
     httpStreamCbData.requestOptions.onIncomingHeaders(httpStreamCbData.stream!, headerBlock.headerBlock, headers)
     return 0
 }
