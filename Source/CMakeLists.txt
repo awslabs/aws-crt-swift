@@ -27,8 +27,6 @@ install(TARGETS ${PROJECT_NAME}
 add_executable(ElastiCurl "ElastiCurl.swift")
 target_link_libraries(ElastiCurl PRIVATE ${PROJECT_NAME})
 
-set(CMAKE_MACOSX_RPATH OFF)
-
 install(TARGETS ElastiCurl
         RUNTIME DESTINATION bin
         )

@@ -28,7 +28,7 @@ public struct HttpHeaders {
     ///
     /// - Parameter header: The `HttpHeader` to update or append.
     public mutating func update(_ header: HttpHeader) {
-        guard let index = headers.index(of: header.name.toString()) else {
+        guard let index = headers.index(of: header.name) else {
             headers.append(header)
             return
         }
@@ -39,7 +39,7 @@ public struct HttpHeaders {
     /// Case-insensitively removes an `HttpHeader`, if it exists, from the instance.
     ///
     /// - Parameter name: The name of the `HttpHeader` to remove.
-    public mutating func remove(name: String) {
+    public mutating func remove(name: aws_byte_cursor) {
         guard let index = headers.index(of: name) else { return }
 
         headers.remove(at: index)
@@ -49,8 +49,8 @@ public struct HttpHeaders {
 
 extension Array where Element == HttpHeader {
     /// Case-insensitively finds the index of an `HttpHeader` with the provided name, if it exists.
-    func index(of name: String) -> Int? {
-        let lowercasedName = name.lowercased()
+    func index(of name: aws_byte_cursor) -> Int? {
+        let lowercasedName = name.toString().lowercased()
         return firstIndex { $0.name.toString().lowercased() == lowercasedName }
     }
 }

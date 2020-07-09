@@ -9,7 +9,7 @@ let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
 
 AwsCommonRuntimeKit.initialize(allocator: allocator)
 
-//let logger = Logger(pipe: stdout, level: LogLevel.trace, allocator: allocator)
+let logger = Logger(pipe: stdout, level: LogLevel.trace, allocator: allocator)
 
 // Pretend we get this from the CLI for now
 
@@ -46,7 +46,7 @@ headers.add(name: "Host", value: hostName)
 headers.add(name: "User-Agent", value: "Elasticurl")
 headers.add(name: "Accept", value: "*/*")
 
-try httpRequest.addHeaders(headers: headers)
+httpRequest.addHeaders(headers: headers)
 
 
 let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders =
