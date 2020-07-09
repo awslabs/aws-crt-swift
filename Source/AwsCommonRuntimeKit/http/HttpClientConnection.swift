@@ -135,7 +135,6 @@ public class HttpClientConnection {
     
 }
 
-
 fileprivate func onIncomingHeaders (_ stream: UnsafeMutablePointer<aws_http_stream>?,  _ headerBlock: aws_http_header_block, _ headerArray: UnsafePointer<aws_http_header>?, _ headersCount: Int,  _ userData: UnsafeMutableRawPointer!) -> Int32 {
     guard let userData = userData else {
         return -1
@@ -149,20 +148,3 @@ fileprivate func onIncomingHeaders (_ stream: UnsafeMutablePointer<aws_http_stre
     httpStreamCbData.requestOptions.onIncomingHeaders(httpStreamCbData.stream!, headerBlock.headerBlock, headers)
     return 0
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

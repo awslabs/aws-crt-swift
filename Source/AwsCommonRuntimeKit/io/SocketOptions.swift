@@ -1,3 +1,6 @@
+//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+//  SPDX-License-Identifier: Apache-2.0.
+
 import AwsCIo
 
 private let defaultSocketTimeMsec = UInt32(3_000)

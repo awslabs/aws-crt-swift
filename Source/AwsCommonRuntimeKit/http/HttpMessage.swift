@@ -4,7 +4,6 @@
 import AwsCHttp
 import AwsCIo
 
-
 public class HttpMessage {
     internal let rawValue: OpaquePointer
     private let owned: Bool
