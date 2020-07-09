@@ -6,7 +6,7 @@ file(GLOB_RECURSE TEST_SRC
 foreach(TEST_FILE ${TEST_SRC})
   string(REPLACE "/" "_" TARGET_NAME ${TEST_FILE})
 
-  add_executable(${TARGET_NAME} ${CMAKE_CURRENT_LIST_DIR}/${TEST_FILE})
+  add_executable(${TARGET_NAME} ${CMAKE_CURRENT_LIST_DIR}/${TEST_FILE} AwsCommonRuntimeKitTests/http/HttpHeaderTests.swift)
 
   set_property(TARGET ${TARGET_NAME} APPEND PROPERTY COMPILE_OPTIONS
     "-Onone"

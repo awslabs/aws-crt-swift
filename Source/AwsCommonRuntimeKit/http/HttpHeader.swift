@@ -9,9 +9,12 @@ public struct HttpHeaders {
 
     public init() { }
     //TODO: if aws_http_headers is exposed we can map it appropriately
-    init(headers: [aws_http_header]) {
+    init(headers: [HttpHeader]) {
         for header in headers {
-            add(name: header.name.toString(), value: header.value.toString())
+            if let name = header.name.toString(),
+                let value = header.value.toString() {
+                add(name: name, value: value)
+            }
         }
     }
 
@@ -39,8 +42,8 @@ public struct HttpHeaders {
     /// Case-insensitively removes an `HttpHeader`, if it exists, from the instance.
     ///
     /// - Parameter name: The name of the `HttpHeader` to remove.
-    public mutating func remove(name: aws_byte_cursor) {
-        guard let index = headers.index(of: name) else { return }
+    public mutating func remove(name: String) {
+        guard let index = headers.index(of: name.awsByteCursor) else { return }
 
         headers.remove(at: index)
     }
@@ -50,8 +53,8 @@ public struct HttpHeaders {
 extension Array where Element == HttpHeader {
     /// Case-insensitively finds the index of an `HttpHeader` with the provided name, if it exists.
     func index(of name: aws_byte_cursor) -> Int? {
-        let lowercasedName = name.toString().lowercased()
-        return firstIndex { $0.name.toString().lowercased() == lowercasedName }
+        let lowercasedName = name.toString()?.lowercased()
+        return firstIndex { $0.name.toString()?.lowercased() == lowercasedName }
     }
 }
 

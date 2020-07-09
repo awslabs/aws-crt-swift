@@ -52,7 +52,10 @@ httpRequest.addHeaders(headers: headers)
 let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders =
         { stream, headerBlock, headers in
             for header in headers {
-                print(header.name.toString() + " : " + header.value.toString())
+                if let name = header.name.toString(),
+                   let value = header.name.toString() {
+                    print(name + " : " + value)
+                }
             }
         }
 
