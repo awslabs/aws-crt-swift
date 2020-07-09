@@ -1,6 +1,9 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
+import AwsCHttp
+import AwsCIo
+
 
 public class HttpMessage {
     internal let rawValue: OpaquePointer
@@ -35,20 +38,21 @@ public class HttpMessage {
         }
     }
 }
-
-// Header handling
+//header handling
 public extension HttpMessage {
     var headerCount: Int {
-        return aws_http_message_get_header_count(self.rawValue)
-    }
-
-    func addHeader(_ header: HttpHeader) throws {
-        if (aws_http_message_add_header(self.rawValue, header) != AWS_OP_SUCCESS) {
-            throw AwsCommonRuntimeError()
+        get {
+           return aws_http_message_get_header_count(self.rawValue)
         }
     }
-
-    func eraseHeader(atIndex index: Int) throws {
+    
+    func addHeaders(headers: HttpHeaders) {
+        for header in headers.headers {
+            aws_http_message_add_header(self.rawValue, header)
+        }
+    }
+    
+    func removeHeader(atIndex index: Int) throws {
         if (aws_http_message_erase_header(self.rawValue, index) != AWS_OP_SUCCESS) {
             throw AwsCommonRuntimeError()
         }
@@ -62,3 +66,4 @@ public extension HttpMessage {
         return header
     }
 }
+

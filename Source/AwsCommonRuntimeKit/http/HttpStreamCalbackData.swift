@@ -3,7 +3,7 @@
 
 import Foundation
 
-private class HttpStreamCallbackData {
+class HttpStreamCallbackData {
     let requestOptions: HttpRequestOptions
     var stream: HttpStream?
 

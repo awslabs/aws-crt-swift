@@ -12,7 +12,7 @@ public struct HttpClientConnectionOptions {
     public let initialWindowSize: Int
     public let port: UInt16
     public let proxyOptions: HttpClientConnectionProxyOptions?
-    public fileprivate(set) var socketOptions: SocketOptions
+    public var socketOptions: SocketOptions
     public let tlsOptions: TlsConnectionOptions?
 
     public let onConnectionSetup: OnConnectionSetup

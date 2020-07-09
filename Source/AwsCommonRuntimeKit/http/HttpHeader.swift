@@ -4,32 +4,31 @@
 import AwsCHttp
 
 public struct HttpHeaders {
-    public var headers: [Header] = []
+  
+    public var headers: [HttpHeader] = []
 
     public init() { }
-
-    /// Creates an instance from a `[String: String]`. Duplicate case-insensitive names are collapsed into the last name
-    /// and value encountered.
-    public init(_ dictionary: [String: String]) {
-        self.init()
-
-        dictionary.forEach { update(Header(name: $0.key, value: $0.value)) }
+    //TODO: if aws_http_headers is exposed we can map it appropriately
+    init(headers: [aws_http_header]) {
+        for header in headers {
+            add(name: header.name.toString(), value: header.value.toString())
+        }
     }
 
-    /// Case-insensitively updates or appends an `HTTPHeader` into the instance using the provided `name` and `value`.
+    /// Case-insensitively updates or appends an `HttpHeader` into the instance using the provided `name` and `value`.
     ///
     /// - Parameters:
-    ///   - name:  The `HTTPHeader` name.
-    ///   - value: The `HTTPHeader value.
+    ///   - name:  The `HttpHeader` name.
+    ///   - value: The `HttpHeader value.
     public mutating func add(name: String, value: String) {
-        update(Header(name: name, value: value))
+        update(HttpHeader(name: name, value: value))
     }
 
-    /// Case-insensitively updates or appends the provided `HTTPHeader` into the instance.
+    /// Case-insensitively updates or appends the provided `HttpHeader` into the instance.
     ///
-    /// - Parameter header: The `HTTPHeader` to update or append.
-    public mutating func update(_ header: Header) {
-        guard let index = headers.index(of: header.name) else {
+    /// - Parameter header: The `HttpHeader` to update or append.
+    public mutating func update(_ header: HttpHeader) {
+        guard let index = headers.index(of: header.name.toString()) else {
             headers.append(header)
             return
         }
@@ -37,29 +36,33 @@ public struct HttpHeaders {
         headers.replaceSubrange(index...index, with: [header])
     }
 
-    /// Case-insensitively removes an `HTTPHeader`, if it exists, from the instance.
+    /// Case-insensitively removes an `HttpHeader`, if it exists, from the instance.
     ///
-    /// - Parameter name: The name of the `HTTPHeader` to remove.
+    /// - Parameter name: The name of the `HttpHeader` to remove.
     public mutating func remove(name: String) {
         guard let index = headers.index(of: name) else { return }
 
         headers.remove(at: index)
     }
+
 }
 
-
-public struct Header {
-    public let name: String
-    public let value: String
-
-    public init(name: String, value: String) {
-        self.name = name
-        self.value = value
+extension Array where Element == HttpHeader {
+    /// Case-insensitively finds the index of an `HttpHeader` with the provided name, if it exists.
+    func index(of name: String) -> Int? {
+        let lowercasedName = name.lowercased()
+        return firstIndex { $0.name.toString().lowercased() == lowercasedName }
     }
 }
 
-extension Header {
-    func toAWSHttpHeader() -> aws_http_header {
 
+public typealias HttpHeader = aws_http_header
+
+public extension HttpHeader {
+    init(name: String, value: String, compression: HttpHeaderCompression = .useCache) {
+        self.init()
+        self.name = name.awsByteCursor
+        self.value = value.awsByteCursor
+        self.compression = compression.rawValue
     }
 }

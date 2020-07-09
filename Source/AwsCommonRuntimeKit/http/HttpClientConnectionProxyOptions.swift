@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 public struct HttpClientConnectionProxyOptions {
-    public let authType: AwsHttpProxyAuthenticationType
+    public let authType: HttpProxyAuthenticationType
     public let basicAuthUsername: String
     public let basicAuthPassword: String
     public let hostName: String

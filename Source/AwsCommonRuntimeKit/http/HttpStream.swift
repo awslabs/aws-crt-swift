@@ -1,11 +1,12 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+import AwsCHttp
 
 public class HttpStream {
     internal var httpStream: UnsafeMutablePointer<aws_http_stream>?
     private let httpConnection: HttpClientConnection
 
-    fileprivate init(httpConnection: HttpClientConnection) {
+    init(httpConnection: HttpClientConnection) {
         self.httpConnection = httpConnection
     }
 

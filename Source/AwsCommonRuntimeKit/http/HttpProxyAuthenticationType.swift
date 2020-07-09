@@ -1,12 +1,13 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+import AwsCHttp
 
-public enum AWSHttpProxyAuthenticationType {
+public enum HttpProxyAuthenticationType {
     case none
     case basic
 }
 
-extension AWSHttpProxyAuthenticationType {
+extension HttpProxyAuthenticationType {
     var rawValue: aws_http_proxy_authentication_type {
         switch self {
         case .none:  return AWS_HPAT_NONE
@@ -16,10 +17,10 @@ extension AWSHttpProxyAuthenticationType {
 }
 
 extension aws_http_proxy_authentication_type {
-    var awsHttpProxyAuthenticationType: AwsHttpProxyAuthenticationType! {
+    var awsHttpProxyAuthenticationType: HttpProxyAuthenticationType! {
         switch self.rawValue {
-        case AWS_HPAT_BASIC.rawValue: return AwsHttpProxyAuthenticationType.basic
-        case AWS_HPAT_NONE.rawValue:  return AwsHttpProxyAuthenticationType.none
+        case AWS_HPAT_BASIC.rawValue: return HttpProxyAuthenticationType.basic
+        case AWS_HPAT_NONE.rawValue:  return HttpProxyAuthenticationType.none
         default:
             assertionFailure("Unknown aws_socket_domain: \(String(describing: self))")
             return nil // <- Makes compiler happy, but we'd have halted right before reaching here

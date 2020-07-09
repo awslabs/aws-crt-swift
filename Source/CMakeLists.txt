@@ -5,7 +5,7 @@ file(GLOB_RECURSE AWS_CRT_SOURCES
   "${PROJECT_NAME}/*.swift"
 )
 
-add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES} AwsCommonRuntimeKit/http/HttpHeaderBlock.swift AwsCommonRuntimeKit/http/AWSHttpProxyAuthenticationType.swift AwsCommonRuntimeKit/http/HttpClientConnectionOptions.swift AwsCommonRuntimeKit/http/HttpClientConnectionProxyOptions.swift AwsCommonRuntimeKit/http/HttpStream.swift AwsCommonRuntimeKit/http/HttpRequestOptions.swift AwsCommonRuntimeKit/http/HttpStreamCalback.swift AwsCommonRuntimeKit/http/HttpClientConnectionCallbackData.swift AwsCommonRuntimeKit/http/HttpMessage.swift AwsCommonRuntimeKit/http/HttpResponse.swift AwsCommonRuntimeKit/http/HttpHeader.swift)
+add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES} AwsCommonRuntimeKit/http/HttpHeaderBlock.swift AwsCommonRuntimeKit/http/HttpProxyAuthenticationType.swift AwsCommonRuntimeKit/http/HttpClientConnectionOptions.swift AwsCommonRuntimeKit/http/HttpClientConnectionProxyOptions.swift AwsCommonRuntimeKit/http/HttpStream.swift AwsCommonRuntimeKit/http/HttpRequestOptions.swift AwsCommonRuntimeKit/http/HttpStreamCalbackData.swift AwsCommonRuntimeKit/http/HttpClientConnectionCallbackData.swift AwsCommonRuntimeKit/http/HttpMessage.swift AwsCommonRuntimeKit/http/HttpResponse.swift AwsCommonRuntimeKit/http/HttpHeader.swift AwsCommonRuntimeKit/http/HttpHeaderCompression.swift)
 
 target_compile_options(${PROJECT_NAME} PRIVATE
   $<$<BOOL:BUILD_TESTING>:-enable-testing>)
@@ -26,6 +26,8 @@ install(TARGETS ${PROJECT_NAME}
 
 add_executable(ElastiCurl "ElastiCurl.swift")
 target_link_libraries(ElastiCurl PRIVATE ${PROJECT_NAME})
+
+set(CMAKE_MACOSX_RPATH OFF)
 
 install(TARGETS ElastiCurl
         RUNTIME DESTINATION bin

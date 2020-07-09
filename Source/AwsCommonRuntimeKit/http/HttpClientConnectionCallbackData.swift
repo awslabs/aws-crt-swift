@@ -3,7 +3,7 @@
 
 import Foundation
 
-private class HttpClientConnectionCallbackData {
+class HttpClientConnectionCallbackData {
     var managedConnection: HttpClientConnection?
     let allocator: Allocator
     var connectionOptions: HttpClientConnectionOptions

@@ -39,22 +39,15 @@ var connection: HttpClientConnection? = nil
 var httpRequest: HttpRequest = HttpRequest(allocator: allocator)
 httpRequest.method = "GET".newByteCursor()
 httpRequest.path = "/".newByteCursor()
-let hostHeaderCur = "Host".newByteCursor()
-let hostNameValCur = hostName.newByteCursor()
-let userAgentCur = "User-Agent".newByteCursor()
-let userAgentValCur = "Elasticurl".newByteCursor()
-let acceptHeaderCur = "Accept".newByteCursor()
-let acceptValcur = "*/*".newByteCursor()
+
 //new header api
-let headers = HttpHeaders()
+var headers = HttpHeaders()
+headers.add(name: "Host", value: hostName)
+headers.add(name: "User-Agent", value: "Elasticurl")
+headers.add(name: "Accept", value: "*/*")
 
-let hostHeader = HttpHeader(name:  hostHeaderCur.rawValue, value: hostNameValCur.rawValue, compression: AWS_HTTP_HEADER_COMPRESSION_USE_CACHE)
-let userAgentHeader = HttpHeader(name:  userAgentCur.rawValue, value: userAgentValCur.rawValue, compression: AWS_HTTP_HEADER_COMPRESSION_USE_CACHE)
-let acceptHeader = HttpHeader(name: acceptHeaderCur.rawValue, value: acceptValcur.rawValue, compression: AWS_HTTP_HEADER_COMPRESSION_USE_CACHE)
+try httpRequest.addHeaders(headers: headers)
 
-try httpRequest.addHeader(hostHeader)
-try httpRequest.addHeader(userAgentHeader)
-try httpRequest.addHeader(acceptHeader)
 
 let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders =
         { stream, headerBlock, headers in

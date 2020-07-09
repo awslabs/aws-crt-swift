@@ -1,6 +1,5 @@
 import AwsCCommon
 import AwsCIo
-
 import Foundation
 
 public enum LogLevel {
