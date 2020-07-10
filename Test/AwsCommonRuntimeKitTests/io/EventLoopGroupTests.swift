@@ -4,12 +4,12 @@
 import AwsCommonRuntimeKit
 import Foundation
 
-fileprivate func assertThat(_ condition: Bool, _ message: @autoclosure () -> String = "Assertion failed", file: StaticString = #file, line: UInt = #line) {
-  if (!condition) {
-    print("Assertion failed: \(message()); \(file):\(line)")
-    exit(-1)
-  }
-}
+//fileprivate func assertThat(_ condition: Bool, _ message: @autoclosure () -> String = "Assertion failed", file: StaticString = #file, line: UInt = #line) {
+//  if (!condition) {
+//    print("Assertion failed: \(message()); \(file):\(line)")
+//    exit(-1)
+//  }
+//}
 
 internal class TracingAllocatorTests {
   private let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)

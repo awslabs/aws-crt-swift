@@ -36,66 +36,68 @@ let semaphore = DispatchSemaphore(value: 0)
 
 var stream: HttpStream? = nil
 var connection: HttpClientConnection? = nil
+
 var httpRequest: HttpRequest = HttpRequest(allocator: allocator)
 httpRequest.method = "GET".newByteCursor()
 httpRequest.path = "/".newByteCursor()
 
 //new header api
-var headers = HttpHeaders()
-headers.add(name: "Host", value: hostName)
-headers.add(name: "User-Agent", value: "Elasticurl")
-headers.add(name: "Accept", value: "*/*")
-
-httpRequest.addHeaders(headers: headers)
+var headers = HttpHeaders(allocator: allocator)
+if headers.add(name: "Host", value: hostName),
+    headers.add(name: "User-Agent", value: "Elasticurl"),
+    headers.add(name: "Accept", value: "*/*") {
+    
+    httpRequest.addHeaders(headers: headers)
+}
 
 
 let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders =
-        { stream, headerBlock, headers in
-            for header in headers {
-                if let name = header.name.toString(),
-                   let value = header.name.toString() {
-                    print(name + " : " + value)
-                }
-            }
+{ stream, headerBlock, headers in
+    for header in headers {
+        if let name = header.name.toString(),
+            let value = header.name.toString() {
+            print(name + " : " + value)
         }
+    }
+}
 
 let onBody: HttpRequestOptions.OnIncomingBody =
-        { stream, bodyChunk in
-            let dataStr = String(decoding: bodyChunk, as: UTF8.self)
-            print(dataStr)
-        }
+{ stream, bodyChunk in
+    let dataStr = String(decoding: bodyChunk, as: UTF8.self)
+    print(dataStr)
+}
 
 let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone =
-        { stream, block in
-        }
+{ stream, block in
+}
 
 let onComplete: HttpRequestOptions.OnStreamComplete =
-        { stream, errorCode in
-        }
+{ stream, errorCode in
+}
 
 var httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
-        hostName: hostName,
-        initialWindowSize: Int.max,
-        port: port,
-        proxyOptions: nil,
-        socketOptions: socketOptions,
-        tlsOptions: tlsConnectionOptions,
-        onConnectionSetup: { (conn, errorCode) in
-            if (errorCode != 0) {
-                print("Connection Setup failed with code \(errorCode)")
-                exit(-1)
-            } else {
-                print("Connection succeeded")
-                connection = conn
-
-                 let requestOptions = HttpRequestOptions(request: httpRequest, onIncomingHeaders: onIncomingHeaders, onIncomingHeadersBlockDone: onBlockDone, onIncomingBody: onBody, onStreamComplete: onComplete)
-                 stream = connection!.newClientStream(requestOptions: requestOptions)
-                 stream!.activate()
-            }
-        },
-        onConnectionShutdown: { (connection, errorCode) in
-             semaphore.signal()
-        })
+                                                    hostName: hostName,
+                                                    initialWindowSize: Int.max,
+                                                    port: port,
+                                                    proxyOptions: nil,
+                                                    socketOptions: socketOptions,
+                                                    tlsOptions: tlsConnectionOptions,
+                                                    onConnectionSetup: { (conn, errorCode) in
+                                                        if (errorCode != 0) {
+                                                            print("Connection Setup failed with code \(errorCode)")
+                                                            exit(-1)
+                                                        } else {
+                                                            print("Connection succeeded")
+                                                            connection = conn
+                                                            
+                                                            let requestOptions = HttpRequestOptions(request: httpRequest, onIncomingHeaders: onIncomingHeaders, onIncomingHeadersBlockDone: onBlockDone, onIncomingBody: onBody, onStreamComplete: onComplete)
+                                                            stream = connection!.newClientStream(requestOptions: requestOptions)
+                                                            stream!.activate()
+                                                        }
+},
+                                                    onConnectionShutdown: { (connection, errorCode) in
+                                                        semaphore.signal()
+})
 
 HttpClientConnection.createConnection(options: &httpClientOptions, allocator: allocator)
 semaphore.wait()

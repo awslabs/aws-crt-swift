@@ -12,6 +12,10 @@ public final class HttpRequest : HttpMessage {
     public init(allocator: Allocator = defaultAllocator) {
         super.init(owningMessage: aws_http_message_new_request(allocator.rawValue))
     }
+    
+    public init(allocator: Allocator = defaultAllocator, headers: HttpHeaders) {
+        super.init(owningMessage: aws_http_message_new_request_with_headers(allocator.rawValue, headers.rawValue))
+    }
 
     public var method: ByteCursor! {
         get {
