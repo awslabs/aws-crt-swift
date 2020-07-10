@@ -51,10 +51,12 @@ public extension HttpMessage {
         }
     }
     
-    func removeHeader(atIndex index: Int) throws {
+    func removeHeader(atIndex index: Int) -> Bool {
         if (aws_http_message_erase_header(self.rawValue, index) != AWS_OP_SUCCESS) {
-            throw AwsCommonRuntimeError()
+            return false
         }
+        
+        return true
     }
 
     func getHeader(atIndex index: Int) -> HttpHeader? {
