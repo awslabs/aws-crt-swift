@@ -1,26 +1,15 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+import XCTest
 
-@testable
-import AwsCommonRuntimeKit
-import Foundation
+@testable import AwsCommonRuntimeKit
 
-class HttpHeaderTests {
-    private let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
-
-    internal init() {
-        AwsCommonRuntimeKit.initialize()
+class HttpHeaderTests : CrtXCBaseTestCase {
+    func testCreateHttpHeaders() throws {
+        let _ = HttpHeaders(allocator: self.allocator)
     }
-
-    internal func testSuite() throws {
-        try testCanCreateHttpHeaders()
-
-        assertThat(allocator.count == 0, "Memory was leaked: \(allocator.bytes) bytes in \(allocator.count) allocations")
-    }
-
-    private func testCanCreateHttpHeaders() throws {
-        let _ = try HttpHeaders(allocator: allocator)
+    
+    func testAnotherCreateHttpHeaders() throws {
+        let _ = HttpHeaders(allocator: self.allocator)
     }
 }
-
-try! HttpHeaderTests().testSuite()

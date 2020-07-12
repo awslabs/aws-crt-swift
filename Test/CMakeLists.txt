@@ -1,26 +1,10 @@
+enable_testing()
+find_package(XCTest REQUIRED)
+
 file(GLOB_RECURSE TEST_SRC
-  RELATIVE ${CMAKE_CURRENT_LIST_DIR}
-  "${PROJECT_NAME}Tests/*.swift"
+        "AwsCommonRuntimeKitTests/http/*.swift"
   )
 
-foreach(TEST_FILE ${TEST_SRC})
-  string(REPLACE "/" "_" TARGET_NAME ${TEST_FILE})
+xctest_add_bundle(AwsCommonRuntimeKitTests AwsCommonRuntimeKit ${TEST_SRC})
 
-  add_executable(${TARGET_NAME} ${CMAKE_CURRENT_LIST_DIR}/${TEST_FILE} AwsCommonRuntimeKitTests/http/HttpHeaderTests.swift AwsCommonRuntimeKitTests/http/HttpHeaderTests.swift AwsCommonRuntimeKitTests/Utility.swift)
-
-  set_property(TARGET ${TARGET_NAME} APPEND PROPERTY COMPILE_OPTIONS
-    "-Onone"
-    )
-
-  target_link_libraries(${TARGET_NAME} PRIVATE
-    ${PROJECT_NAME}
-    )
-
-  add_test(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME})
-
-  set_property(TEST ${TARGET_NAME} PROPERTY ENVIRONMENT
-    "DYLD_LIBRARY_PATH=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}:$ENV{DYLD_LIBRARY_PATH}"
-    )
-
-  unset(TARGET_NAME)
-endforeach()
+xctest_add_test(XCTest.AwsCommonRuntimeKit AwsCommonRuntimeKitTests)
