@@ -64,6 +64,10 @@ public extension HttpMessage {
         return true
     }
 
+    func removeSomething() {
+
+    }
+
     func getHeader(atIndex index: Int) -> HttpHeader? {
         var header = HttpHeader()
         if aws_http_message_get_header(self.rawValue, &header, index) != AWS_OP_SUCCESS {
