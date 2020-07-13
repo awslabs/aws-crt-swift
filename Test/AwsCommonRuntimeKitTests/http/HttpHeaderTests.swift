@@ -7,8 +7,4 @@ class HttpHeaderTests : CrtXCBaseTestCase {
     func testCreateHttpHeaders() throws {
         let _ = HttpHeaders(allocator: self.allocator)
     }
-    
-    func testAnotherCreateHttpHeaders() throws {
-        let _ = HttpHeaders(allocator: self.allocator)
-    }
 }
