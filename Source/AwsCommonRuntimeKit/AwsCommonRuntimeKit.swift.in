@@ -7,5 +7,10 @@ public struct AwsCommonRuntimeKit {
     aws_http_library_init(allocator.rawValue)
   }
 
+  public static func cleanUp() {
+    aws_http_library_clean_up()
+  }
+
   private init() {}
 }
+
