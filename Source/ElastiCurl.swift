@@ -38,8 +38,8 @@ var stream: HttpStream? = nil
 var connection: HttpClientConnection? = nil
 
 var httpRequest: HttpRequest = HttpRequest(allocator: allocator)
-httpRequest.method = "GET".newByteCursor()
-httpRequest.path = "/".newByteCursor()
+httpRequest.method = "GET"
+httpRequest.path = "/"
 
 //new header api
 var headers = HttpHeaders(allocator: allocator)

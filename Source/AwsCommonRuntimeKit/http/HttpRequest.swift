@@ -17,30 +17,30 @@ public final class HttpRequest : HttpMessage {
         super.init(owningMessage: aws_http_message_new_request_with_headers(allocator.rawValue, headers.rawValue))
     }
 
-    public var method: ByteCursor! {
+    public var method: String? {
         get {
             var result = aws_byte_cursor()
             if (aws_http_message_get_request_method(self.rawValue, &result) != AWS_OP_SUCCESS) {
                 return nil
             }
-            return result
+            return result.toString()
         }
         set(value) {
-            aws_http_message_set_request_method(self.rawValue, value.rawValue)
+            aws_http_message_set_request_method(self.rawValue, value?.awsByteCursor ?? "".awsByteCursor)
         }
     }
 
-    public var path: ByteCursor! {
+    public var path: String? {
         get {
             var result = aws_byte_cursor()
             if (aws_http_message_get_request_path(self.rawValue, &result) != AWS_OP_SUCCESS) {
                 return nil
             }
-            return result
+            return result.toString()
         }
         set(value) {
             // TODO: What when this fails?
-            aws_http_message_set_request_path(self.rawValue, value.rawValue)
+            aws_http_message_set_request_path(self.rawValue, value?.awsByteCursor ?? "".awsByteCursor)
         }
     }
 }
