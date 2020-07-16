@@ -34,31 +34,26 @@ extension aws_cli_options_has_arg {
 
 public struct CommandLineParser {
     
-    public static func parseArguments(argc: Int32, arguments: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>, optionString: String, options: [aws_cli_option]) -> [Character] {
-        var optionChars = [Character]()
-        let chars = aws_cli_getopt_long(argc, arguments, optionString.asCStr(), options, nil)
-        optionChars.append(chars.toChar()!)
-//        for argument in arguments {
-//            let bytes = [argument.asCStr()].map { (cString) -> UnsafeMutablePointer<Int8>?  in
-//                return UnsafeMutablePointer<Int8>(mutating: cString)
-//            }
-//
-//            let char = aws_cli_getopt_long(argc, bytes, optionString.asCStr(), options, nil)
-//            if let char = char.toChar() {
-//                optionChars.append(char)
-//            }
-//
-//        }
+    
+    public static func parseArguments(argc: Int32, arguments: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?> , optionString: String, options: [aws_cli_option], optionIndex: inout Int32) -> [String: Any] {
+        
+        var optionChars = [String: Any]()
+  
+        let char = aws_cli_getopt_long(argc, arguments, optionString.asCStr(), options, &optionIndex)
+        if let char = char.toString() {
+            optionChars[char] = aws_cli_optarg
+        }
+
         return optionChars
     }
 }
 
 extension Int32 {
-    func toChar() -> Character? {
+    public func toString() -> String? {
         let u = UnicodeScalar(Int(self))
-        // Convert UnicodeScalar to a Character.
+        // Convert UnicodeScalar to a String.
         if let u = u {
-            return Character(u)
+            return String(u)
         }
         return nil
     }
