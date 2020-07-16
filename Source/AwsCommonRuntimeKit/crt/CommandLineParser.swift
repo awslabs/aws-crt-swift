@@ -41,7 +41,7 @@ public struct CommandLineParser {
   
         let char = aws_cli_getopt_long(argc, arguments, optionString.asCStr(), options, &optionIndex)
         if let char = char.toString() {
-            optionChars[char] = aws_cli_optarg
+            optionChars[char] = String(cString: aws_cli_optarg)
         }
 
         return optionChars

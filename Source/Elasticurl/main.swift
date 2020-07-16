@@ -7,33 +7,66 @@ import Foundation
 import AwsCHttp
 import AwsCCommon
 
+struct Context {
+    //args
+    public var logLevel: LogLevel
+    public var verb: String = "GET"
+    public var caCert: String
+    public var caPath: String
+    public var certificate: String
+    public var connectTimeout: Int = 3000
+    public var headers: [String] = [String]()
+    public var includeHeaders: Bool
+    public var outputFileName: String
+    public var traceFile: String
+    public var insecure: Bool
+    public var url: String
+    public var data: Data
+}
+
 struct Elasticurl {
+
+    private static ctx = Context()
+    
+    static func parseArguments() {
+            //static arrray of possible `aws_cli_option` options that could be passed in
+             let options = [ElasticurlOptions.caCert, ElasticurlOptions.caPath, ElasticurlOptions.cert, ElasticurlOptions.connectTimeout, ElasticurlOptions.data, ElasticurlOptions.dataFile, ElasticurlOptions.get, ElasticurlOptions.head, ElasticurlOptions.header, ElasticurlOptions.help,  ElasticurlOptions.http2,  ElasticurlOptions.http1_1, ElasticurlOptions.include, ElasticurlOptions.insecure, ElasticurlOptions.key, ElasticurlOptions.method, ElasticurlOptions.output, ElasticurlOptions.post, ElasticurlOptions.signingContext, ElasticurlOptions.signingFunc, ElasticurlOptions.signingLib, ElasticurlOptions.trace, ElasticurlOptions.version, ElasticurlOptions.verbose, ElasticurlOptions.lastOption]
+             let argumentsIndexCount = CommandLine.arguments.count - 1
+             var argumentDict = [String: Any]()
+            //parse arguemnts with underlying CRT function
+             for i in stride(from: 1, to: argumentsIndexCount, by: 2) {
+                 
+                 var optionIndex: Int32 = Int32(i)
+                 let newArgument = CommandLineParser.parseArguments(argc: CommandLine.argc, arguments: CommandLine.unsafeArgv, optionString: "a:b:c:e:f:H:d:g:j:l:m:M:GPHiko:t:v:VwWh", options: options, optionIndex: &optionIndex)
+                 print(newArgument)
+                 argumentDict.merge(newArgument) { (current, _) in current }
+             }
+            //looped through parsed arguments and set context
+             for key in argumentDict.keys {
+                let enumKey = ElasticurlOptionsType(rawValue: key)
+                switch enumKey {
+                case .caCert:
+                    ctx.caCert = argumentDict[ElasticurlOptionsType.caCert.rawValue]
+                case .caPath:
+                    ctx.caPath = argumentDict[ElasticurlOptionsType.caPath.rawValue]
+                case .cert:
+                    ctx.certificate = argumentDict[ElasticurlOptionsType.cert.rawValue]
+                case .connectTimeout:
+                    ctx.connectTimeout = argumentDict[ElasticurlOptionsType.connectTimeout.rawValue]
+                case .data:
+                    let stringData = argumentDict[ElasticurlOptionsType.data.rawValue] as String
+                    ctx.data = stringData.data(using: .utf8)
+                
+                }
+             }
+    }
     
     static func run() {
         do {
+            parseArguments()
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
             let logger = Logger(pipe: stdout, level: LogLevel.trace, allocator: allocator)
-            let options = [ElasticurlOptions.caCert, ElasticurlOptions.caPath, ElasticurlOptions.cert, ElasticurlOptions.connectTimeout, ElasticurlOptions.data, ElasticurlOptions.dataFile, ElasticurlOptions.get, ElasticurlOptions.head, ElasticurlOptions.header, ElasticurlOptions.help,  ElasticurlOptions.http2,  ElasticurlOptions.http1_1, ElasticurlOptions.include, ElasticurlOptions.insecure, ElasticurlOptions.key, ElasticurlOptions.method, ElasticurlOptions.output, ElasticurlOptions.post, ElasticurlOptions.signingContext, ElasticurlOptions.signingFunc, ElasticurlOptions.signingLib, ElasticurlOptions.trace, ElasticurlOptions.version, ElasticurlOptions.verbose, ElasticurlOptions.lastOption]
-            var optionIndex: Int32 = 0
-            print("got here")
-            let argumentDict: [String: Any] = CommandLineParser.parseArguments(argc: CommandLine.argc, arguments: CommandLine.unsafeArgv, optionString: "a:b:c:e:f:H:d:g:j:l:m:M:GPHiko:t:v:VwWh", options: options, optionIndex: &optionIndex)
-            print(argumentDict)
 
-            while(argumentDict["-1"] == nil) {
-                for key in argumentDict.keys {
-                    switch key {
-                    case "a":
-                        print(argumentDict["a"])
-                        break
-                    case "H":
-                        print(argumentDict["H"])
-                        break
-                    default:
-                        break
-                    }
-                }
-            }
-            
             
             AwsCommonRuntimeKit.initialize(allocator: allocator)
             
