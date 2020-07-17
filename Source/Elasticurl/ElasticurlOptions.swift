@@ -4,32 +4,32 @@
 import Foundation
 import AwsCCommon
 
-enum ElasticurlOptionsType: String {
-    case caCert = "a"
-    case caPath = "b"
-    case cert = "c"
-    case key = "e"
-    case connectTimeout = "f"
-    case header = "H"
-    case data = "d"
-    case dataFile = "g"
-    case method = "M"
-    case get = "G"
-    case post = "P"
-    case head = "I"
-    case signingLib = "j"
-    case include = "i"
-    case insecure = "k"
-    case signingFunc = "l"
-    case signingContext = "m"
-    case output = "o"
-    case trace = "t"
-    case verbose = "v"
-    case version = "V"
-    case http2 = "w"
-    case http1_1 = "W"
-    case help = "h"
-}
+//enum ElasticurlOptionsType: String {
+//    case caCert = "a"
+//    case caPath = "b"
+//    case cert = "c"
+//    case key = "e"
+//    case connectTimeout = "f"
+//    case header = "H"
+//    case data = "d"
+//    case dataFile = "g"
+//    case method = "M"
+//    case get = "G"
+//    case post = "P"
+//    case head = "I"
+//    case signingLib = "j"
+//    case include = "i"
+//    case insecure = "k"
+//    case signingFunc = "l"
+//    case signingContext = "m"
+//    case output = "o"
+//    case trace = "t"
+//    case verbose = "v"
+//    case version = "V"
+//    case http2 = "w"
+//    case http1_1 = "W"
+//    case help = "h"
+//}
 
 struct ElasticurlOptions {
     static let caCert = aws_cli_option(name: "cacert".asCStr(), has_arg: AWS_CLI_OPTIONS_REQUIRED_ARGUMENT, flag: nil, val: "a".toInt32())
@@ -59,10 +59,6 @@ struct ElasticurlOptions {
     static let lastOption = aws_cli_option(name: nil, has_arg: AWS_CLI_OPTIONS_NO_ARGUMENT, flag: nil, val: 0)
 }
 
-extension String {
-    func toInt32() -> Int32 {
-        return Int32(bitPattern: UnicodeScalar(self)?.value ?? 0)
-    }
-}
+
 
 

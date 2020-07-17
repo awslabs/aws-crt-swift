@@ -8,6 +8,12 @@ import AwsCHttp
 import AwsCCommon
 import Darwin
 
+extension aws_byte_cursor {
+    public func toString() -> String? {
+        return String(bytesNoCopy: self.ptr, length: self.len, encoding: String.Encoding.utf8, freeWhenDone: false)
+    }
+}
+
 struct Context {
     //args
     public var logLevel: LogLevel = .trace
@@ -22,100 +28,103 @@ struct Context {
     public var outputFileName: String?
     public var traceFile: String?
     public var insecure: Bool = false
-    public var url: String?
+    public var url: String = ""
     public var data: Data?
+    public var alpnList: [String] = []
+    
 }
 
 struct Elasticurl {
-
+    private static let version = "0.1.0"
     private static var context = Context()
     
     static func parseArguments() {
-            //static arrray of possible `aws_cli_option` options that could be passed in
-             let options = [ElasticurlOptions.caCert, ElasticurlOptions.caPath, ElasticurlOptions.cert, ElasticurlOptions.connectTimeout, ElasticurlOptions.data, ElasticurlOptions.dataFile, ElasticurlOptions.get, ElasticurlOptions.head, ElasticurlOptions.header, ElasticurlOptions.help,  ElasticurlOptions.http2,  ElasticurlOptions.http1_1, ElasticurlOptions.include, ElasticurlOptions.insecure, ElasticurlOptions.key, ElasticurlOptions.method, ElasticurlOptions.output, ElasticurlOptions.post, ElasticurlOptions.signingContext, ElasticurlOptions.signingFunc, ElasticurlOptions.signingLib, ElasticurlOptions.trace, ElasticurlOptions.version, ElasticurlOptions.verbose, ElasticurlOptions.lastOption]
-             let argumentsIndexCount = CommandLine.arguments.count - 1
-             var argumentDict = [String: String]()
-            //parse arguemnts with underlying CRT function
-             for i in stride(from: 1, to: argumentsIndexCount, by: 2) {
-                 
-                 var optionIndex: Int32 = Int32(i)
-                 let newArgument = CommandLineParser.parseArguments(argc: CommandLine.argc, arguments: CommandLine.unsafeArgv, optionString: "a:b:c:e:f:H:d:g:j:l:m:M:GPHiko:t:v:VwWh", options: options, optionIndex: &optionIndex)
-                 print(newArgument)
-                 argumentDict.merge(newArgument) { (current, _) in current }
-             }
-            //looped through parsed arguments and set context
-             for key in argumentDict.keys {
-                let enumKey = ElasticurlOptionsType(rawValue: key)
-                switch enumKey {
-                case .caCert:
-                    context.caCert = argumentDict[ElasticurlOptionsType.caCert.rawValue]
-                case .caPath:
-                    context.caPath = argumentDict[ElasticurlOptionsType.caPath.rawValue]
-                case .cert:
-                    context.certificate = argumentDict[ElasticurlOptionsType.cert.rawValue]
-                case .connectTimeout:
-                    guard let connectTimeout = argumentDict[ElasticurlOptionsType.connectTimeout.rawValue] else {
-                        continue
-                    }
-                    context.connectTimeout = Int(connectTimeout) ?? 3000
-                case .data:
-                    let stringData = argumentDict[ElasticurlOptionsType.data.rawValue]
-                    context.data = stringData?.data(using: .utf8)
-                case .dataFile:
-                    
-                    guard let pathToFile = argumentDict[ElasticurlOptionsType.dataFile.rawValue],
-                        let url = URL(string: pathToFile) else {
-                        print("path to data file is incorrect or does not exist")
-                        exit(-1)
-                    }
-                    do {
-                    context.data = try Data(contentsOf: url)
-                    }
-                    catch {
-                        exit(-1)
-                    }
-                case .get:
-                    context.verb = "GET"
-                case .head:
-                    context.verb = "HEAD"
-                case .header:
-                    guard let header = argumentDict[ElasticurlOptionsType.header.rawValue] else {
-                        print("header value was empty")
-                        exit(-1)
-                    }
-                    context.headers.append(header)
-                case .help:
-                    showHelp()
-                    exit(0)
-                case .include:
-                    context.includeHeaders = true
-                case .insecure:
-                    context.insecure = true
-                case .key:
-                    context.privateKey = argumentDict[ElasticurlOptionsType.key.rawValue]
-                case .method:
-                    context.verb = argumentDict[ElasticurlOptionsType.method.rawValue] ?? "GET"
-                case .output:
-                    context.outputFileName = argumentDict[ElasticurlOptionsType.output.rawValue]
-                case .post:
-                    context.verb = "POST"
-                case .trace:
-                    context.traceFile = argumentDict[ElasticurlOptionsType.trace.rawValue]
-                case .verbose:
-                    guard let level = argumentDict[ElasticurlOptionsType.verbose.rawValue] else {
-                        continue
-                    }
-                    
-                    let levelAsUInt32 = UInt32(level.toInt32())
-                    //TODO: make sure this level is one of the log levels or throw error and end program
-                    context.logLevel = LogLevel(rawValue: aws_log_level(levelAsUInt32)) ?? LogLevel.trace
-                default:
-                    showHelp()
-                    exit(0)
-                }
-             }
+        
+        let optionString = "a:b:c:e:f:H:d:g:j:l:m:M:GPHiko:t:v:VwWh"
+        
+        let options = [ElasticurlOptions.caCert, ElasticurlOptions.caPath, ElasticurlOptions.cert, ElasticurlOptions.connectTimeout, ElasticurlOptions.data, ElasticurlOptions.dataFile, ElasticurlOptions.get, ElasticurlOptions.head, ElasticurlOptions.header, ElasticurlOptions.help,  ElasticurlOptions.http2,  ElasticurlOptions.http1_1, ElasticurlOptions.include, ElasticurlOptions.insecure, ElasticurlOptions.key, ElasticurlOptions.method, ElasticurlOptions.output, ElasticurlOptions.post, ElasticurlOptions.signingContext, ElasticurlOptions.signingFunc, ElasticurlOptions.signingLib, ElasticurlOptions.trace, ElasticurlOptions.version, ElasticurlOptions.verbose, ElasticurlOptions.lastOption]
+        
+        while(true) {
+            
+            var optionIndex: Int32 = 0
+            
+            let opt = aws_cli_getopt_long(CommandLine.argc, CommandLine.unsafeArgv, optionString.asCStr(), options, &optionIndex)
 
-        context.url = CommandLine.arguments.last
+            if opt == -1 || opt == 0 {
+                break
+            }
+            
+            guard let char = opt.toString() else {
+                print("flag given is unknown")
+                exit(-1)
+            }
+            
+            switch char {
+            case "a":
+                context.caCert = String(cString: aws_cli_optarg)
+            case "b":
+                context.caPath = String(cString: aws_cli_optarg)
+            case "c":
+                context.certificate = String(cString: aws_cli_optarg)
+            case "e":
+                context.privateKey = String(cString: aws_cli_optarg)
+            case "f":
+                context.connectTimeout = Int(String(cString: aws_cli_optarg)) ?? 3000
+            case "H":
+                context.headers.append(String(cString: aws_cli_optarg))
+            case "d":
+                let stringData = String(cString: aws_cli_optarg)
+                context.data = stringData.data(using: .utf8)
+            case "g":
+                guard let url = URL(string: String(cString: aws_cli_optarg)) else {
+                    print("path to data file is incorrect or does not exist")
+                    exit(-1)
+                }
+                do {
+                    context.data = try Data(contentsOf: url)
+                }
+                catch {
+                    exit(-1)
+                }
+            case "M":
+                context.verb = String(cString: aws_cli_optarg)
+            case "G":
+                context.verb = "GET"
+            case "P":
+                context.verb = "POST"
+            case "I":
+                context.verb = "HEAD"
+            case "i":
+                context.includeHeaders = true
+            case "k":
+                context.insecure = true
+            case "o":
+                context.outputFileName = String(cString: aws_cli_optarg)
+            case "t":
+                context.traceFile = String(cString: aws_cli_optarg)
+            case "v":
+                let levelAsUInt32 = UInt32(String(cString: aws_cli_optarg).toInt32())
+                context.logLevel = LogLevel(rawValue: aws_log_level(levelAsUInt32))
+            case "V":
+                print("elasticurl \(version)")
+            case "w", "W":
+                context.alpnList.append(String(cString: aws_cli_optarg))
+            case "h":
+                showHelp()
+                exit(0)
+            default:
+                showHelp()
+                exit(0)
+            }
+        }
+        
+        //make sure a url was given before we do anything else
+        guard let urlString = CommandLine.arguments.last,
+            let url = URL(string: urlString) else {
+                print("Invalid URL: \(CommandLine.arguments.last!)")
+                exit(-1)
+        }
+        context.url = urlString
     }
     
     static func showHelp() {
@@ -144,27 +153,24 @@ struct Elasticurl {
     
     static func run() {
         do {
-            //make sure a url was given before we do anything else
-            guard let url = CommandLine.arguments.last else {
-                print("Invalid URL: \(CommandLine.arguments.last!)")
-                exit(-1)
-            }
             parseArguments()
+            
+            
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
             let logger = Logger(pipe: stdout, level: context.logLevel, allocator: allocator)
-
+            
             
             AwsCommonRuntimeKit.initialize(allocator: allocator)
             
             let port = UInt16(443)
             
             let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
-            try tlsContextOptions.setAlpnList("h2;http/1.1")
+            try tlsContextOptions.setAlpnList(context.alpnList.joined(separator: ";"))
             let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
             
             let tlsConnectionOptions = tlsContext.newConnectionOptions()
-       
-            try tlsConnectionOptions.setServerName(url)
+            
+            try tlsConnectionOptions.setServerName(context.url)
             
             let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
             let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
@@ -181,9 +187,9 @@ struct Elasticurl {
             httpRequest.method = "GET"
             httpRequest.path = "/"
             
-
+            
             var headers = HttpHeaders(allocator: allocator)
-            if headers.add(name: "Host", value: url),
+            if headers.add(name: "Host", value: context.url),
                 headers.add(name: "User-Agent", value: "Elasticurl"),
                 headers.add(name: "Accept", value: "*/*") {
                 
@@ -216,7 +222,7 @@ struct Elasticurl {
             }
             
             var httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
-                                                                hostName: url,
+                                                                hostName: context.url,
                                                                 initialWindowSize: Int.max,
                                                                 port: port,
                                                                 proxyOptions: nil,
@@ -230,7 +236,9 @@ struct Elasticurl {
                                                                         print("Connection succeeded")
                                                                         connection = conn
                                                                         
-                                                                        let requestOptions = HttpRequestOptions(request: httpRequest, onIncomingHeaders: onIncomingHeaders, onIncomingHeadersBlockDone: onBlockDone, onIncomingBody: onBody, onStreamComplete: onComplete)
+                                                                        let requestOptions = HttpRequestOptions(request: httpRequest, onIncomingHeaders: onIncomingHeaders, onIncomingHeadersBlockDone: onBlockDone,
+                                                                                                                onIncomingBody: onBody,
+                                                                                                                onStreamComplete: onComplete)
                                                                         stream = connection!.newClientStream(requestOptions: requestOptions)
                                                                         stream!.activate()
                                                                     }

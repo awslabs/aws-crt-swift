@@ -28,20 +28,7 @@ extension CliOptionsType: RawRepresentable, CaseIterable {
     }
 }
 
-public struct CommandLineParser {
-    
-    public static func parseArguments(argc: Int32, arguments: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?> , optionString: String, options: [aws_cli_option], optionIndex: inout Int32) -> [String: String] {
-        
-        var optionChars = [String: String]()
-  
-        let char = aws_cli_getopt_long(argc, arguments, optionString.asCStr(), options, &optionIndex)
-        if let char = char.toString() {
-            optionChars[char] = String(cString: aws_cli_optarg)
-        }
 
-        return optionChars
-    }
-}
 
 extension Int32 {
     public func toString() -> String? {
@@ -51,5 +38,11 @@ extension Int32 {
             return String(u)
         }
         return nil
+    }
+}
+
+extension String {
+    func toInt32() -> Int32 {
+        return Int32(bitPattern: UnicodeScalar(self)?.value ?? 0)
     }
 }
