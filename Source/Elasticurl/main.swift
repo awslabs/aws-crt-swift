@@ -154,10 +154,10 @@ struct Elasticurl {
     static func enableLogging(allocator: Allocator) {
         if let traceFile = context.traceFile {
             print("enable logging with trace file")
-            let logger = Logger(filePath: traceFile, level: context.logLevel, allocator: allocator)
+            _ = Logger(filePath: traceFile, level: context.logLevel, allocator: allocator)
         } else {
             print("enable logging with stdout")
-            let logger = Logger(pipe: stdout, level: context.logLevel, allocator: allocator)
+            _ = Logger(pipe: stdout, level: context.logLevel, allocator: allocator)
         }
     }
     
@@ -185,19 +185,19 @@ struct Elasticurl {
             let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: hostResolver, allocator: allocator)
             
-            var socketOptions = SocketOptions(socketType: .stream)
+            let socketOptions = SocketOptions(socketType: .stream)
             
             let semaphore = DispatchSemaphore(value: 0)
             
             var stream: HttpStream? = nil
             var connection: HttpClientConnection? = nil
             
-            var httpRequest: HttpRequest = HttpRequest(allocator: allocator)
+            let httpRequest: HttpRequest = HttpRequest(allocator: allocator)
             httpRequest.method = "GET"
             httpRequest.path = "/"
             
             
-            var headers = HttpHeaders(allocator: allocator)
+            let headers = HttpHeaders(allocator: allocator)
             if headers.add(name: "Host", value: context.url),
                 headers.add(name: "User-Agent", value: "Elasticurl"),
                 headers.add(name: "Accept", value: "*/*") {
