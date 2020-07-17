@@ -35,9 +35,9 @@ extension aws_cli_options_has_arg {
 public struct CommandLineParser {
     
     
-    public static func parseArguments(argc: Int32, arguments: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?> , optionString: String, options: [aws_cli_option], optionIndex: inout Int32) -> [String: Any] {
+    public static func parseArguments(argc: Int32, arguments: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?> , optionString: String, options: [aws_cli_option], optionIndex: inout Int32) -> [String: String] {
         
-        var optionChars = [String: Any]()
+        var optionChars = [String: String]()
   
         let char = aws_cli_getopt_long(argc, arguments, optionString.asCStr(), options, &optionIndex)
         if let char = char.toString() {

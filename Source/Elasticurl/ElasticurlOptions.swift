@@ -3,7 +3,6 @@
 
 import Foundation
 import AwsCCommon
-import AwsCommonRuntimeKit
 
 enum ElasticurlOptionsType: String {
     case caCert = "a"
