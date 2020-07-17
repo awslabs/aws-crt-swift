@@ -7,8 +7,15 @@ public enum HttpProxyAuthenticationType {
     case basic
 }
 
-extension HttpProxyAuthenticationType {
-    var rawValue: aws_http_proxy_authentication_type {
+extension HttpProxyAuthenticationType: RawRepresentable, CaseIterable {
+    public static var allCases: [HttpProxyAuthenticationType] {
+        return [.none, .basic]
+    }
+    public init(rawValue: aws_http_proxy_authentication_type) {
+        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        self = value ?? .none
+    }
+    public var rawValue: aws_http_proxy_authentication_type {
         switch self {
         case .none:  return AWS_HPAT_NONE
         case .basic: return AWS_HPAT_BASIC
@@ -16,14 +23,3 @@ extension HttpProxyAuthenticationType {
     }
 }
 
-extension aws_http_proxy_authentication_type {
-    var awsHttpProxyAuthenticationType: HttpProxyAuthenticationType! {
-        switch self.rawValue {
-        case AWS_HPAT_BASIC.rawValue: return HttpProxyAuthenticationType.basic
-        case AWS_HPAT_NONE.rawValue:  return HttpProxyAuthenticationType.none
-        default:
-            assertionFailure("Unknown aws_socket_domain: \(String(describing: self))")
-            return nil // <- Makes compiler happy, but we'd have halted right before reaching here
-        }
-    }
-}

@@ -9,8 +9,17 @@ enum CliOptionsType {
     case required
     case optional
 }
-extension CliOptionsType {
-    var rawValue: aws_cli_options_has_arg {
+extension CliOptionsType: RawRepresentable, CaseIterable {
+    public static var allCases: [CliOptionsType] {
+        return [.none, .required, .optional]
+    }
+    
+    public init(rawValue: aws_cli_options_has_arg){
+        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        self = value ?? .none
+    }
+    
+    public var rawValue: aws_cli_options_has_arg {
         switch self {
         case .none:  return AWS_CLI_OPTIONS_NO_ARGUMENT
         case .required: return AWS_CLI_OPTIONS_REQUIRED_ARGUMENT
@@ -19,21 +28,7 @@ extension CliOptionsType {
     }
 }
 
-extension aws_cli_options_has_arg {
-    var cliOptionsType: CliOptionsType! {
-        switch self.rawValue {
-        case AWS_CLI_OPTIONS_NO_ARGUMENT.rawValue: return CliOptionsType.none
-        case AWS_CLI_OPTIONS_REQUIRED_ARGUMENT.rawValue:  return CliOptionsType.required
-        case AWS_CLI_OPTIONS_OPTIONAL_ARGUMENT.rawValue: return CliOptionsType.optional
-        default:
-            assertionFailure("Unknown aws_cli_options_has_arg: \(String(describing: self))")
-            return nil // <- Makes compiler happy, but we'd have halted right before reaching here
-        }
-    }
-}
-
 public struct CommandLineParser {
-    
     
     public static func parseArguments(argc: Int32, arguments: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?> , optionString: String, options: [aws_cli_option], optionIndex: inout Int32) -> [String: String] {
         

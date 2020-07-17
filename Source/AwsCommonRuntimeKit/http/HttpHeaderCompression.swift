@@ -27,8 +27,15 @@ public enum HttpHeaderCompression {
     case noForwardCache
 }
 
-extension HttpHeaderCompression {
-    var rawValue: aws_http_header_compression {
+extension HttpHeaderCompression: RawRepresentable, CaseIterable {
+    public static var allCases: [HttpHeaderCompression] {
+        return [.useCache, .noCache, .noForwardCache]
+    }
+    public init(rawValue: aws_http_header_compression) {
+        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        self = value ?? .useCache
+    }
+    public var rawValue: aws_http_header_compression {
         switch self {
         case .useCache: return AWS_HTTP_HEADER_COMPRESSION_USE_CACHE
         case .noCache: return AWS_HTTP_HEADER_COMPRESSION_NO_CACHE
@@ -37,16 +44,4 @@ extension HttpHeaderCompression {
     }
 }
 
-extension aws_http_header_compression {
-    var headerCompression : HttpHeaderCompression? {
-        switch self.rawValue {
-        case AWS_HTTP_HEADER_COMPRESSION_USE_CACHE.rawValue: return HttpHeaderCompression.useCache
-        case AWS_HTTP_HEADER_COMPRESSION_NO_CACHE.rawValue:  return HttpHeaderCompression.noCache
-        case AWS_HTTP_HEADER_COMPRESSION_NO_FORWARD_CACHE.rawValue: return HttpHeaderCompression.noForwardCache
-        default:
-            assertionFailure("Unknown aws_http_header_compression: \(String(describing: self))")
-            return nil
-        }
-    }
-}
 
