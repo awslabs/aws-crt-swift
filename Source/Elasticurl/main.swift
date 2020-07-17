@@ -151,14 +151,23 @@ struct Elasticurl {
         print("  -h, --help: Display this message and quit.")
     }
     
+    static func enableLogging(allocator: Allocator) {
+        if let traceFile = context.traceFile {
+            print("enable logging with trace file")
+            let logger = Logger(filePath: traceFile, level: context.logLevel, allocator: allocator)
+        } else {
+            print("enable logging with stdout")
+            let logger = Logger(pipe: stdout, level: context.logLevel, allocator: allocator)
+        }
+    }
+    
     static func run() {
         do {
             parseArguments()
             
-            
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
             let logger = Logger(pipe: stdout, level: context.logLevel, allocator: allocator)
-            
+
             
             AwsCommonRuntimeKit.initialize(allocator: allocator)
             
