@@ -44,4 +44,3 @@ extension HttpHeaderCompression: RawRepresentable, CaseIterable {
     }
 }
 
-

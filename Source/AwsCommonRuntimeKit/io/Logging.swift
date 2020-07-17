@@ -20,7 +20,7 @@ extension LogLevel: RawRepresentable, CaseIterable {
         return [.none, .fatal, .error, .warn, .info, .debug, .trace]
     }
     
-    public init?(rawValue: aws_log_level) {
+    public init(rawValue: aws_log_level) {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})
         self = value ?? .none
     }

@@ -117,7 +117,7 @@ public class HttpClientConnection {
             for header in UnsafeBufferPointer(start: headerArray, count: headersCount) {
                 headers.append(header)
             }
-            httpStreamCbData.requestOptions.onIncomingHeaders(httpStreamCbData.stream!, headerBlock.headerBlock, headers)
+            httpStreamCbData.requestOptions.onIncomingHeaders(httpStreamCbData.stream!, HttpHeaderBlock(rawValue: headerBlock), headers)
             return 0
         }
         options.on_response_header_block_done = {_,headerBlock,userData -> Int32 in
@@ -125,7 +125,7 @@ public class HttpClientConnection {
                 return -1
             }
             let httpStreamCbData: HttpStreamCallbackData = Unmanaged.fromOpaque(userData).takeUnretainedValue()
-            httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(httpStreamCbData.stream!, headerBlock.headerBlock)
+            httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(httpStreamCbData.stream!, HttpHeaderBlock(rawValue:headerBlock))
             return 0
         }
         options.on_complete = {_, errorCode, userData in
