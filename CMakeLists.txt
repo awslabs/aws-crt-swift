@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.14.20190522)
 project(AwsCommonRuntimeKit LANGUAGES Swift C)
 option(BUILD_DEPS "Builds aws common runtime dependencies as part of build, only do this if you don't want to control your dependency chain." ON)
 
-# place all modules into `swift` in the root of the build tree
-set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)
+# place all modules into swift in the root of the build tree
+set(CMAKE_Swift_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/swift")
 set(CMAKE_Swift_LANGUAGE_VERSION 5)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -11,12 +11,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # enable shared libraries by default (Windows, Darwin)
-#
 # Windows does not yet support static libraries in Swift, Darwin no longer
 # supports static libraries after ABI stability.
-if(CMAKE_SYSTEM_NAME STREQUAL Windows OR CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  option(BUILD_SHARED_LIBS "Build shared libraries by default" YES)
-endif()
 
 include(CTest)
 
@@ -79,6 +75,7 @@ if (BUILD_DEPS)
 else()
     include(AwsFindPackage)
     set(IN_SOURCE_BUILD OFF)
+    set(BUILD_SHARED_LIBS ON)
 endif()
 
 include(AwsCFlags)
