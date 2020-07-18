@@ -32,3 +32,14 @@ internal extension String {
     return aws_byte_cursor_from_c_str(self)
   }
 }
+
+public extension Int32 {
+    func toString() -> String? {
+        let u = UnicodeScalar(Int(self))
+        // Convert UnicodeScalar to a String.
+        if let u = u {
+            return String(u)
+        }
+        return nil
+    }
+}

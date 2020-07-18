@@ -47,4 +47,9 @@ extension String {
     public func asCStr() -> UnsafePointer<Int8>{
         return aws_string_c_str(aws_string_new_from_array(defaultAllocator, self, self.count))
     }
+
+    public func toInt32() -> Int32 {
+        return Int32(bitPattern: UnicodeScalar(self)?.value ?? 0)
+    }
+    
 }

@@ -4,7 +4,40 @@
 import Foundation
 import AwsCCommon
 
-struct ElasticurlOptions {
+
+
+
+
+public struct CommandLineParser {
+	static func parseArguments(argc: Int32, arguments: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?> , optionString: String, options: [aws_cli_option]) -> [String: Any] {
+        var argumentsDict = [String: Any] ()
+        
+        while(true) {
+                   
+           var optionIndex: Int32 = 0
+           
+           let opt = aws_cli_getopt_long(argc, arguments, optionString.asCStr(), options, &optionIndex)
+
+           if opt == -1 || opt == 0 {
+               break
+           }
+           
+            if let char = opt.toString() {
+                if aws_cli_optarg != nil {
+                    argumentsDict[char] = String(cString: aws_cli_optarg)
+                } else {
+                    //if argument doesnt have a value just mark it as present in the dictionary
+                    argumentsDict[char] = true
+                }
+           }
+        }
+                   
+        
+        return argumentsDict
+	}
+}
+
+public struct ElasticurlOptions {
     static let caCert = aws_cli_option(name: "cacert".asCStr(), has_arg: AWS_CLI_OPTIONS_REQUIRED_ARGUMENT, flag: nil, val: "a".toInt32())
     static let caPath = aws_cli_option(name: "capath".asCStr(), has_arg: AWS_CLI_OPTIONS_REQUIRED_ARGUMENT, flag: nil, val: "b".toInt32())
     static let cert = aws_cli_option(name: "cert".asCStr(), has_arg: AWS_CLI_OPTIONS_REQUIRED_ARGUMENT, flag: nil, val: "c".toInt32())
@@ -31,7 +64,3 @@ struct ElasticurlOptions {
     static let help = aws_cli_option(name: "help".asCStr(), has_arg: AWS_CLI_OPTIONS_NO_ARGUMENT, flag: nil, val: "h".toInt32())
     static let lastOption = aws_cli_option(name: nil, has_arg: AWS_CLI_OPTIONS_NO_ARGUMENT, flag: nil, val: 0)
 }
-
-
-
-

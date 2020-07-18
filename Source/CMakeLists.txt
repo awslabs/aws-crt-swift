@@ -8,7 +8,7 @@ file(GLOB_RECURSE AWS_CRT_SOURCES
   "AwsCommonRuntimeKit/*.swift"
 )
 
-add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES})
+add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES} AwsCommonRuntimeKit/crt/CommandLine.swift)
 
 target_compile_options(${PROJECT_NAME} PRIVATE
   $<$<BOOL:BUILD_TESTING>:-enable-testing>)
@@ -35,7 +35,7 @@ install(TARGETS ${PROJECT_NAME}
 
 ## ElastiCurl
 
-add_executable(ElastiCurl "Elasticurl/main.swift" "Elasticurl/ElasticurlOptions.swift" "Elasticurl/ElasticurlUtility.swift")
+add_executable(ElastiCurl "Elasticurl/main.swift")
 set(LINK_NAME "${PROJECT_NAME}")
 if (APPLE)
     set(LINK_NAME "-framework ${PROJECT_NAME}")

@@ -4,15 +4,8 @@
 
 import AwsCommonRuntimeKit
 import Foundation
-import AwsCHttp
-import AwsCCommon
 import Darwin
 
-extension aws_byte_cursor {
-    public func toString() -> String? {
-        return String(bytesNoCopy: self.ptr, length: self.len, encoding: String.Encoding.utf8, freeWhenDone: false)
-    }
-}
 
 struct Context {
     //args
@@ -44,78 +37,100 @@ struct Elasticurl {
         
         let options = [ElasticurlOptions.caCert, ElasticurlOptions.caPath, ElasticurlOptions.cert, ElasticurlOptions.connectTimeout, ElasticurlOptions.data, ElasticurlOptions.dataFile, ElasticurlOptions.get, ElasticurlOptions.head, ElasticurlOptions.header, ElasticurlOptions.help,  ElasticurlOptions.http2,  ElasticurlOptions.http1_1, ElasticurlOptions.include, ElasticurlOptions.insecure, ElasticurlOptions.key, ElasticurlOptions.method, ElasticurlOptions.output, ElasticurlOptions.post, ElasticurlOptions.signingContext, ElasticurlOptions.signingFunc, ElasticurlOptions.signingLib, ElasticurlOptions.trace, ElasticurlOptions.version, ElasticurlOptions.verbose, ElasticurlOptions.lastOption]
         
-        while(true) {
-            
-            var optionIndex: Int32 = 0
-            
-            let opt = aws_cli_getopt_long(CommandLine.argc, CommandLine.unsafeArgv, optionString.asCStr(), options, &optionIndex)
-
-            if opt == -1 || opt == 0 {
-                break
-            }
-            
-            guard let char = opt.toString() else {
-                print("flag given is unknown")
+        let argumentDict = CommandLineParser.parseArguments(argc: CommandLine.argc, arguments: CommandLine.unsafeArgv, optionString: optionString, options: options)
+        
+        if let caCert = argumentsDict["a"] as String {
+            context.caCert = caCert
+        }
+        
+        if let caPath = argumentDict["b"] as String {
+            context.caPath = caPath
+        }
+        
+        if let certificate = argumentDict["c"] as String {
+            context.certifcate = certificate
+        }
+        
+        if let privateKey = argumentDict["e"] as String {
+            context.privateKey = privateKey
+        }
+        
+        if let connectTimeout = argumentDict["f"] as Int {
+            context.connectTimeout = connectTimeout
+        }
+        
+        if let headers = argumentDict["H"] as String {
+            context.headers.append(headers)
+        }
+        
+        if let stringData = argumentDict["d"] as String {
+            context.data = stringData.data(using: .utf8)
+        }
+        
+        if let dataFilePath = argumentDict["g"] as String {
+            guard let url = URL(string: dataFilePath) else {
+                print("path to data file is incorrect or does not exist")
                 exit(-1)
             }
-            
-            switch char {
-            case "a":
-                context.caCert = String(cString: aws_cli_optarg)
-            case "b":
-                context.caPath = String(cString: aws_cli_optarg)
-            case "c":
-                context.certificate = String(cString: aws_cli_optarg)
-            case "e":
-                context.privateKey = String(cString: aws_cli_optarg)
-            case "f":
-                context.connectTimeout = Int(String(cString: aws_cli_optarg)) ?? 3000
-            case "H":
-                context.headers.append(String(cString: aws_cli_optarg))
-            case "d":
-                let stringData = String(cString: aws_cli_optarg)
-                context.data = stringData.data(using: .utf8)
-            case "g":
-                guard let url = URL(string: String(cString: aws_cli_optarg)) else {
-                    print("path to data file is incorrect or does not exist")
-                    exit(-1)
-                }
-                do {
-                    context.data = try Data(contentsOf: url)
-                }
-                catch {
-                    exit(-1)
-                }
-            case "M":
-                context.verb = String(cString: aws_cli_optarg)
-            case "G":
-                context.verb = "GET"
-            case "P":
-                context.verb = "POST"
-            case "I":
-                context.verb = "HEAD"
-            case "i":
-                context.includeHeaders = true
-            case "k":
-                context.insecure = true
-            case "o":
-                context.outputFileName = String(cString: aws_cli_optarg)
-            case "t":
-                context.traceFile = String(cString: aws_cli_optarg)
-            case "v":
-                let levelAsUInt32 = UInt32(String(cString: aws_cli_optarg).toInt32())
-                context.logLevel = LogLevel(rawValue: aws_log_level(levelAsUInt32))
-            case "V":
-                print("elasticurl \(version)")
-            case "w", "W":
-                context.alpnList.append(String(cString: aws_cli_optarg))
-            case "h":
-                showHelp()
-                exit(0)
-            default:
-                showHelp()
-                exit(0)
+            do {
+                context.data = try Data(contentsOf: url)
             }
+            catch {
+                exit(-1)
+            }
+        }
+        
+        if let method = argumentDict["M"] as String {
+            context.verb = method
+        }
+        
+        if argumentDict["G"] != nil {
+            context.verb = "GET"
+        }
+        
+        if argumentDict["P"] != nil {
+            context.verb = "POST"
+        }
+        
+        if argumentDict["I"] != nil {
+            context.verb = "HEAD"
+        }
+
+        if argumentDict["i"] != nil {
+            context.includeHeaders = true
+        }
+        
+        if argumentDict["k"] != nil {
+            context.insecure = true
+        }
+        
+        if let fileName = argumentDict["o"] as String {
+            context.outputFileName = fileName
+        }
+        
+        if let traceFile = argumentDict["t"] as String {
+            context.traceFile = traceFile
+        }
+        
+        if let logLevel = argumentDict["v"] as UInt32 {
+            context.logLevel = .trace //fix enum
+        }
+        
+        if argumentDict["V"] != nil {
+            print("elasticurl \(version)")
+        }
+        
+        if let http1 = argumentDict["w"] as String {
+            context.alpnList.append(http1)
+        }
+        
+        if let h2 = argumentDict["W"] as String {
+            context.alpnList.append(h2)
+        }
+        
+        if argumentDict["h"] != nil {
+            showHelp()
+            exit(0)
         }
         
         //make sure a url was given before we do anything else
