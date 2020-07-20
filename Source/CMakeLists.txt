@@ -8,15 +8,14 @@ file(GLOB_RECURSE AWS_CRT_SOURCES
   "AwsCommonRuntimeKit/*.swift"
 )
 
-add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES} AwsCommonRuntimeKit/crt/CommandLine.swift)
+add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES})
 
 target_compile_options(${PROJECT_NAME} PRIVATE
   $<$<BOOL:BUILD_TESTING>:-enable-testing>)
-set_target_properties(${PROJECT_NAME} PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
-  "${CMAKE_Swift_MODULE_DIRECTORY}"
-)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC ${DEP_AWS_LIBS})
+set_target_properties(${PROJECT_NAME} PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
         FRAMEWORK TRUE      # in my experience, this property should be TRUE
@@ -36,13 +35,8 @@ install(TARGETS ${PROJECT_NAME}
 ## ElastiCurl
 
 add_executable(ElastiCurl "Elasticurl/main.swift")
-set(LINK_NAME "${PROJECT_NAME}")
-if (APPLE)
-    set(LINK_NAME "-framework ${PROJECT_NAME}")
-endif()
 
-target_link_libraries(ElastiCurl PUBLIC "-framework ${PROJECT_NAME}")
-
+target_link_libraries(ElastiCurl PUBLIC ${PROJECT_NAME})
 install(TARGETS ElastiCurl
         RUNTIME DESTINATION bin
         )

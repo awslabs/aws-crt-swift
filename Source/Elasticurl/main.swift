@@ -6,7 +6,6 @@ import AwsCommonRuntimeKit
 import Foundation
 import Darwin
 
-
 struct Context {
     //args
     public var logLevel: LogLevel = .trace
