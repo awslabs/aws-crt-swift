@@ -52,7 +52,7 @@ list(APPEND CMAKE_MODULE_PATH ${AWS_MODULE_PATH})
 if (BUILD_DEPS)
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/aws-common-runtime/aws-c-common/cmake")
 
-    set(BUILD_SHARED_LIBS OFF)
+    set(BUILD_SHARED_LIBS ON)
     include(AwsFindPackage)
 
     set(IN_SOURCE_BUILD ON)

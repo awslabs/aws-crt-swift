@@ -2,8 +2,8 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCHttp
-import Foundation
 import AwsCIo
+import Foundation
 
 public class HttpClientConnection {
     private let allocator : Allocator
