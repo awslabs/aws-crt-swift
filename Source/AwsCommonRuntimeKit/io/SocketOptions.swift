@@ -63,9 +63,7 @@ public enum SocketDomain {
 }
 
 extension SocketDomain: RawRepresentable, CaseIterable {
-    public static var allCases: [SocketDomain] {
-        return [.ipv4, .ipv6, .local]
-    }
+
     public init(rawValue: aws_socket_domain) {
         let value = Self.allCases.first { $0.rawValue == rawValue }
         self = value ?? .ipv4
@@ -86,9 +84,7 @@ public enum SocketType {
 }
 
 extension SocketType: RawRepresentable, CaseIterable {
-    public static var allCases: [SocketType] {
-        return [.datagram, .stream]
-    }
+
     public init(rawValue: aws_socket_type) {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})
         self = value ?? .datagram

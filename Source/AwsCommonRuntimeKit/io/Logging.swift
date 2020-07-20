@@ -16,9 +16,6 @@ public enum LogLevel {
 }
 
 extension LogLevel: RawRepresentable, CaseIterable {
-    public static var allCases: [LogLevel] {
-        return [.none, .fatal, .error, .warn, .info, .debug, .trace]
-    }
     
     public init(rawValue: aws_log_level) {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})

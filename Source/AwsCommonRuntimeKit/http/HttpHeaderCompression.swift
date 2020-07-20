@@ -28,9 +28,7 @@ public enum HttpHeaderCompression {
 }
 
 extension HttpHeaderCompression: RawRepresentable, CaseIterable {
-    public static var allCases: [HttpHeaderCompression] {
-        return [.useCache, .noCache, .noForwardCache]
-    }
+
     public init(rawValue: aws_http_header_compression) {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})
         self = value ?? .useCache

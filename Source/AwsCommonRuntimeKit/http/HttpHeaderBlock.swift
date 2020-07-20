@@ -9,9 +9,6 @@ public enum HttpHeaderBlock {
 }
 
 extension HttpHeaderBlock: RawRepresentable, CaseIterable {
-    public static var allCases: [HttpHeaderBlock] {
-        return [.main, .informational, .trailing]
-    }
     
     public init(rawValue: aws_http_header_block) {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})

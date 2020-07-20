@@ -8,9 +8,7 @@ public enum HttpProxyAuthenticationType {
 }
 
 extension HttpProxyAuthenticationType: RawRepresentable, CaseIterable {
-    public static var allCases: [HttpProxyAuthenticationType] {
-        return [.none, .basic]
-    }
+
     public init(rawValue: aws_http_proxy_authentication_type) {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})
         self = value ?? .none
