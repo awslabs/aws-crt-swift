@@ -8,7 +8,7 @@ file(GLOB_RECURSE AWS_CRT_SOURCES
   "AwsCommonRuntimeKit/*.swift"
 )
 
-add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES} AwsCommonRuntimeKit/crt/CommandLine.swift)
+add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES} AwsCommonRuntimeKit/crt/CommandLine.swift AwsCommonRuntimeKit/auth/Credentials.swift)
 
 target_compile_options(${PROJECT_NAME} PRIVATE
   $<$<BOOL:BUILD_TESTING>:-enable-testing>)
