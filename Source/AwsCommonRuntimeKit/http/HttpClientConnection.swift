@@ -21,6 +21,10 @@ public class HttpClientConnection {
 
     public static func createConnection(options: inout HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) {
         let tempHostName = options.hostName.newByteCursor()
+        
+        let socketOptionPointer = UnsafeMutablePointer<aws_socket_options>.allocate(capacity: 1)
+        defer { socketOptionPointer.deallocate() }
+        socketOptionPointer.pointee = options.socketOptions.rawValue
 
         var unmanagedConnectionOptions = aws_http_client_connection_options(
                 self_size: 0,
@@ -28,7 +32,7 @@ public class HttpClientConnection {
                 bootstrap: options.clientBootstrap.rawValue,
                 host_name: tempHostName.rawValue,
                 port: options.port,
-                socket_options: UnsafePointer(&options.socketOptions.rawValue),
+                socket_options: UnsafePointer(socketOptionPointer),
                 tls_options: nil,
                 proxy_options: nil,
                 monitoring_options: nil,
@@ -63,13 +67,18 @@ public class HttpClientConnection {
         unmanagedConnectionOptions.self_size = MemoryLayout.size(ofValue: unmanagedConnectionOptions)
 
         if let tlsOptions = options.tlsOptions {
-            unmanagedConnectionOptions.tls_options = UnsafePointer(&tlsOptions.rawValue)
+            let pointer = UnsafeMutablePointer<aws_tls_connection_options>.allocate(capacity: 1)
+            defer {pointer.deallocate()}
+            pointer.pointee = tlsOptions.rawValue
+            unmanagedConnectionOptions.tls_options = UnsafePointer(pointer)
         }
 
-        //come back to this,
-//        if let proxyOptions = options.proxyOptions {
-//            unmanagedConnectionOptions.proxy_options = UnsafePointer(&proxyOptions.rawValue)
-//        }
+        if let proxyOptions = options.proxyOptions {
+            let pointer = UnsafeMutablePointer<aws_http_proxy_options>.allocate(capacity: 1)
+            defer { pointer.deallocate() }
+            pointer.pointee = proxyOptions.rawValue
+            unmanagedConnectionOptions.proxy_options = UnsafePointer(pointer)
+        }
 
         let callbackData = HttpClientConnectionCallbackData(options: options, allocator: allocator)
         unmanagedConnectionOptions.user_data = Unmanaged.passRetained(callbackData).toOpaque()
