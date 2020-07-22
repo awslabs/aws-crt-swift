@@ -21,6 +21,5 @@ public final class ClientBootstrap {
 
   deinit {
     aws_client_bootstrap_release(self.rawValue)
-    rawValue.deallocate()
   }
 }

@@ -99,6 +99,5 @@ open class AWSCredentialsProvider: CredentialsProvider {
 
     deinit {
         aws_credentials_provider_release(rawValue)
-        rawValue.deallocate()
     }
 }

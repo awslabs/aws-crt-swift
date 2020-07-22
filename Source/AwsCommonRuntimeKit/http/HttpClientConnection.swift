@@ -16,7 +16,6 @@ public class HttpClientConnection {
 
     deinit {
         aws_http_connection_release(rawValue)
-        rawValue.deallocate()
     }
 
     public static func createConnection(options: inout HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) {
