@@ -41,3 +41,10 @@ public extension Int32 {
         return nil
     }
 }
+
+extension UnsafeMutablePointer {
+    func deinitializeAndDeallocate() {
+        self.deinitialize(count: 1)
+        self.deallocate()
+    }
+}
