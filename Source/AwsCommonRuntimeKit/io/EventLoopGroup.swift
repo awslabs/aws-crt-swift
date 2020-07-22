@@ -14,7 +14,7 @@ public final class EventLoopGroup {
   }
 
   deinit {
-    aws_event_loop_group_clean_up(&self.rawValue)
-    zeroStruct(&self.rawValue)
+    aws_event_loop_group_clean_up(&rawValue)
+    zeroStruct(&rawValue)
   }
 }

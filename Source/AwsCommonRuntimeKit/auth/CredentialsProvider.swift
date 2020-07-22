@@ -2,7 +2,14 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import Foundation
+import AwsCAuth
 
-public class CredentialsProvider {
-
+//can only be implemented by a class
+protocol CredentialsProvider: AnyObject {
+    var allocator : Allocator { get set }
+    var rawValue: UnsafeMutablePointer<aws_credentials_provider> {get set}
+    
+    init(connection: UnsafeMutablePointer<aws_credentials_provider>, allocator: Allocator)
+    
+    func getCredentials(credentialCallBackData: CredentialProviderCallbackData) 
 }

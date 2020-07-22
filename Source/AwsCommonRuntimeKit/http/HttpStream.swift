@@ -12,6 +12,7 @@ public class HttpStream {
 
     deinit {
         aws_http_stream_release(httpStream)
+        httpStream?.deallocate()
     }
 
     public func getResponseStatusCode() -> Int32 {

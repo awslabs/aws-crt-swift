@@ -9,13 +9,14 @@ public class HttpClientConnection {
     private let allocator : Allocator
     private let rawValue: UnsafeMutablePointer<aws_http_connection>
 
-    fileprivate init(connection: UnsafeMutablePointer<aws_http_connection>, allocator: Allocator = defaultAllocator) {
+    init(connection: UnsafeMutablePointer<aws_http_connection>, allocator: Allocator = defaultAllocator) {
         self.allocator = allocator
         self.rawValue = connection
     }
 
     deinit {
         aws_http_connection_release(rawValue)
+        rawValue.deallocate()
     }
 
     public static func createConnection(options: inout HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) {

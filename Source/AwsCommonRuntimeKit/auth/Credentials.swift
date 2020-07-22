@@ -7,6 +7,10 @@ public final class Credentials {
     
     let rawValue: OpaquePointer
     
+    public init(rawValue: OpaquePointer) {
+        self.rawValue = rawValue
+    }
+    
     public init(accessKey: String,
                 secret: String,
                 sessionToken: String,
