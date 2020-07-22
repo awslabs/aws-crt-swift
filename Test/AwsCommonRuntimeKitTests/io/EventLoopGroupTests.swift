@@ -6,12 +6,10 @@ import XCTest
 class EventLoopGroupTests: CrtXCBaseTestCase {
 
   func testCanCreateGroup() throws {
-    let _ = try EventLoopGroup(allocator: allocator)
+    _ = try EventLoopGroup(allocator: allocator)
   }
 
   func testCanCreateGroupWithThreads() throws {
-    let _ = try EventLoopGroup(threadCount: 2, allocator: allocator)
+    _ = try EventLoopGroup(threadCount: 2, allocator: allocator)
   }
 }
-
-

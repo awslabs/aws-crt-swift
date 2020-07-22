@@ -4,7 +4,7 @@
 import AwsCIo
 import Foundation
 
-fileprivate var vtable = aws_input_stream_vtable(seek: doSeek, read: doRead, get_status: doGetStatus, get_length: doGetLength, destroy: doDestroy)
+private var vtable = aws_input_stream_vtable(seek: doSeek, read: doRead, get_status: doGetStatus, get_length: doGetLength, destroy: doDestroy)
 
 public class AwsInputStream {
     internal var rawValue: aws_input_stream
@@ -22,7 +22,7 @@ public protocol AwsInputStreamImpl {
     func read(buffer: inout aws_byte_buf) -> Bool
 }
 
-extension FileHandle : AwsInputStreamImpl {
+extension FileHandle: AwsInputStreamImpl {
     @inlinable
     public var status: aws_stream_status {
         // TODO: Is this way to get is_end_of_stream safe?
@@ -88,7 +88,7 @@ private func doGetStatus(_ stream: UnsafeMutablePointer<aws_input_stream>!, _ re
 private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!, _ result: UnsafeMutablePointer<Int64>!) -> Int32 {
     let inputStream = stream.pointee.impl.bindMemory(to: AwsInputStreamImpl.self, capacity: 1).pointee
     let length = inputStream.length
-    if (length >= 0) {
+    if length >= 0 {
         result.pointee = length
         return AWS_OP_SUCCESS
     }
@@ -96,6 +96,6 @@ private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!, _ re
     return AWS_OP_ERR
 }
 
-private func doDestroy(_ stream: UnsafeMutablePointer<aws_input_stream>!) -> Void {
+private func doDestroy(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
     // Nothing to do!
 }

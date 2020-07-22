@@ -19,7 +19,7 @@ internal final class AwsString {
     return AwsStringByteCursor(self)
   }
 
-  internal func asCStr() -> UnsafePointer<Int8>{
+  internal func asCStr() -> UnsafePointer<Int8> {
     return aws_string_c_str(self.rawValue)
   }
 
@@ -28,7 +28,7 @@ internal final class AwsString {
   }
 }
 
-fileprivate struct AwsStringByteCursor : ByteCursor {
+private struct AwsStringByteCursor: ByteCursor {
   private let awsString: AwsString
   public var rawValue: aws_byte_cursor
 
@@ -42,13 +42,13 @@ extension String {
   init?(awsString: UnsafePointer<aws_string>, encoding: String.Encoding = .utf8) {
     self.init(cString: aws_string_c_str(awsString), encoding: encoding)
   }
-    
-    public func asCStr() -> UnsafePointer<Int8>{
+
+    public func asCStr() -> UnsafePointer<Int8> {
         return aws_string_c_str(aws_string_new_from_array(defaultAllocator, self, self.count))
     }
 
     public func toInt32() -> Int32 {
         return Int32(bitPattern: UnicodeScalar(self)?.value ?? 0)
     }
-    
+
 }

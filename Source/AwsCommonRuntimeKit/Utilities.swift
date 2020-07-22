@@ -34,10 +34,9 @@ internal extension String {
 
 public extension Int32 {
     func toString() -> String? {
-        let u = UnicodeScalar(Int(self))
         // Convert UnicodeScalar to a String.
-        if let u = u {
-            return String(u)
+        if let unicodeScalar = UnicodeScalar(Int(self)) {
+            return String(unicodeScalar)
         }
         return nil
     }

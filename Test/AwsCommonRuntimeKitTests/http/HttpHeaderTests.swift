@@ -3,8 +3,8 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-class HttpHeaderTests : CrtXCBaseTestCase {
+class HttpHeaderTests: CrtXCBaseTestCase {
     func testCreateHttpHeaders() throws {
-        let _ = HttpHeaders(allocator: self.allocator)
+        _ = HttpHeaders(allocator: self.allocator)
     }
 }

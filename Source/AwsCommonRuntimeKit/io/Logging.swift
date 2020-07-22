@@ -16,7 +16,7 @@ public enum LogLevel {
 }
 
 extension LogLevel: RawRepresentable, CaseIterable {
-    
+
     public init(rawValue: aws_log_level) {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})
         self = value ?? .none
@@ -36,7 +36,7 @@ extension LogLevel: RawRepresentable, CaseIterable {
 
 public class Logger {
     var logger: aws_logger
-    
+
     public init(pipe: UnsafeMutablePointer<FILE>?, level: LogLevel, allocator: Allocator = defaultAllocator) {
         logger = aws_logger()
         var options = aws_logger_standard_options()
@@ -45,7 +45,7 @@ public class Logger {
         aws_logger_init_standard(&logger, allocator.rawValue, &options)
         aws_logger_set(&logger)
     }
-    
+
     public init(filePath: String, level: LogLevel, allocator: Allocator = defaultAllocator) {
         let filePathCStr = (filePath as NSString).utf8String
         logger = aws_logger()
@@ -55,7 +55,7 @@ public class Logger {
         aws_logger_init_standard(&logger, allocator.rawValue, &options)
         aws_logger_set(&logger)
     }
-    
+
     deinit {
         aws_logger_clean_up(&logger)
     }

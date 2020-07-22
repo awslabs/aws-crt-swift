@@ -8,7 +8,7 @@ struct AWSCredentialsProviderProfileOptions {
     public let configFileNameOverride: String
     public let profileFileNameOverride: String
     public let credentialsFileNameOverride: String
-    
+
     public init(shutdownOptions: AWSCredentialsProviderShutdownOptions,
                 configFileNameOverride: String,
                 profileFileNameOverride: String,

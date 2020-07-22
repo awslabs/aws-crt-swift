@@ -6,7 +6,7 @@ public protocol ByteCursor {
   var rawValue: aws_byte_cursor { get set }
 }
 
-extension aws_byte_cursor : ByteCursor {
+extension aws_byte_cursor: ByteCursor {
   public var rawValue: aws_byte_cursor {
     get { return self }
     set(value) {
@@ -27,7 +27,7 @@ extension String {
   }
 }
 
-fileprivate struct StringByteCursor : ByteCursor {
+private struct StringByteCursor: ByteCursor {
   private let string: ContiguousArray<CChar>
   var rawValue: aws_byte_cursor
 

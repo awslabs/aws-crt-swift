@@ -4,13 +4,13 @@
 import AwsCAuth
 
 public final class Credentials {
-    
+
     let rawValue: OpaquePointer
-    
+
     public init(rawValue: OpaquePointer) {
         self.rawValue = rawValue
     }
-    
+
     public init(accessKey: String,
                 secret: String,
                 sessionToken: String,
@@ -21,7 +21,7 @@ public final class Credentials {
                                             secret.awsByteCursor,
                                             sessionToken.awsByteCursor, UInt64(expirationTimeout))
     }
-    
+
     /// Gets the access key from the `aws_credentials` instance
     ///
     /// - Returns:`String?`: The AWS Access Key Id or nil
@@ -32,7 +32,7 @@ public final class Credentials {
         }
         return accessKeyUnwrapped
     }
-    
+
     /// Gets the secret from the `aws_credentials` instance
     ///
     /// - Returns:`String?`: The AWS Secret or nil
@@ -41,10 +41,10 @@ public final class Credentials {
         guard let secretUnwrapped = secret.toString() else {
             return nil
         }
-        
+
         return secretUnwrapped
     }
-    
+
     /// Gets the session token from the `aws_credentials` instance
     ///
     /// - Returns:`String?`: The AWS Session token or nil
@@ -53,18 +53,17 @@ public final class Credentials {
         guard let tokenUnwrapped = token.toString() else {
             return nil
         }
-        
+
         return tokenUnwrapped
     }
-    
+
     /// Gets the expiration timeout in seconds from the `aws_credentials` instance
     ///
     /// - Returns:`UInt64`: The timeout in seconds of when the credentials expire
     public func getExpirationTimeout() -> UInt64 {
         return aws_credentials_get_expiration_timepoint_seconds(rawValue)
     }
-    
-    
+
     deinit {
         aws_credentials_release(rawValue)
     }

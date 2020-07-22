@@ -13,13 +13,13 @@ class HostResolverTests: CrtXCBaseTestCase {
 
     var addressCount: Int?
     var error: Int32?
-    try resolver.resolve(host: "localhost", onResolved: { (resolver, addresses, errorCode) in
+    try resolver.resolve(host: "localhost", onResolved: { (_, _, _) in
       semaphore.signal()
     })
 
     semaphore.wait()
 
-    try resolver.resolve(host: "localhost", onResolved: { (resolver, addresses, errorCode) in
+    try resolver.resolve(host: "localhost", onResolved: { (_, addresses, errorCode) in
       addressCount = addresses.count
       error = errorCode
 
@@ -31,7 +31,6 @@ class HostResolverTests: CrtXCBaseTestCase {
     XCTAssertNotNil(addressCount)
     XCTAssertEqual(error, 0, "Error (\(String(describing: error)) is blank")
     XCTAssertEqual(addressCount, 0, "Address Count (\(String(describing: addressCount))) is blank")
- 
+
   }
 }
-

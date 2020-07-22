@@ -3,13 +3,11 @@
 import AwsCHttp
 
 public final class HttpHeaders {
-    
+
     let rawValue: OpaquePointer
-    
+
     var count: Int {
-        get {
-            aws_http_headers_count(self.rawValue)
-        }
+        return aws_http_headers_count(self.rawValue)
     }
 
     public init(allocator: Allocator = defaultAllocator) {
@@ -33,9 +31,9 @@ public final class HttpHeaders {
     public func update(_ header: HttpHeader) -> Bool {
         //this function in c will update the header if it exists or create a new one if it's new.
         return aws_http_headers_set(self.rawValue, header.name, header.value) == AWS_OP_SUCCESS
-        
+
     }
-    
+
     /// Gets a header by name from the  `aws_http_headers` instance
     ///
     /// - Parameter name: The name of the header to get.
@@ -47,15 +45,15 @@ public final class HttpHeaders {
         }
         return value.toString()
     }
-    
+
     /// Gets all headers from the `aws_http_headers` instance
     ///
     /// - Returns:`[HttpHeader]`: The array of headers saved
     public func getAll() -> [HttpHeader] {
         var headers = [HttpHeader]()
-        for i in 0...count {
+        for index in 0...count {
             var header = HttpHeader()
-            if aws_http_headers_get_index(self.rawValue, i, &header) == AWS_OP_SUCCESS {
+            if aws_http_headers_get_index(self.rawValue, index, &header) == AWS_OP_SUCCESS {
                 headers.append(header)
             } else {
                 continue
@@ -71,12 +69,12 @@ public final class HttpHeaders {
     public func remove(name: String) -> Bool {
         return aws_http_headers_erase(self.rawValue, name.awsByteCursor) == AWS_OP_SUCCESS
     }
-    
+
     /// Removes all headers from the array
     public func removeAll() {
         aws_http_headers_clear(self.rawValue)
     }
-    
+
     deinit {
         aws_http_headers_release(self.rawValue)
     }

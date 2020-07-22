@@ -56,7 +56,7 @@ internal extension Allocator {
 /**
  * An `Allocator` that traces memory allocations.
  */
-public final class TracingAllocator : Allocator {
+public final class TracingAllocator: Allocator {
   public let rawValue: UnsafeMutablePointer<aws_allocator>
 
   /**
@@ -125,7 +125,7 @@ public final class TracingAllocator : Allocator {
   }
 }
 
-extension UnsafeMutablePointer : Allocator where Pointee == aws_allocator {
+extension UnsafeMutablePointer: Allocator where Pointee == aws_allocator {
   @inlinable
   public var rawValue: UnsafeMutablePointer<Pointee> { return self }
 }

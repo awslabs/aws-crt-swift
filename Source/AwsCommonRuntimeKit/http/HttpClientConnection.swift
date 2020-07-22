@@ -6,7 +6,7 @@ import AwsCIo
 import Foundation
 
 public class HttpClientConnection {
-    private let allocator : Allocator
+    private let allocator: Allocator
     private let rawValue: UnsafeMutablePointer<aws_http_connection>
 
     init(connection: UnsafeMutablePointer<aws_http_connection>, allocator: Allocator = defaultAllocator) {
@@ -21,7 +21,7 @@ public class HttpClientConnection {
 
     public static func createConnection(options: inout HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) {
         let tempHostName = options.hostName.newByteCursor()
-        
+
         let socketOptionPointer = UnsafeMutablePointer<aws_socket_options>.allocate(capacity: 1)
         defer { socketOptionPointer.deallocate() }
         socketOptionPointer.pointee = options.socketOptions.rawValue
@@ -38,7 +38,7 @@ public class HttpClientConnection {
                 monitoring_options: nil,
                 initial_window_size: options.initialWindowSize,
                 user_data: nil,
-                on_setup: { unmanagedConnection,errorCode,userData in
+                on_setup: { unmanagedConnection, errorCode, userData in
                     guard let userData = userData else {
                         return
                     }
@@ -52,7 +52,7 @@ public class HttpClientConnection {
                         callbackData.connectionOptions.onConnectionSetup(nil, errorCode)
                     }
                 },
-                on_shutdown: { unmanagedConnection, errorCode, userData in
+                on_shutdown: { _, errorCode, userData in
                     guard let userData = userData else {
                         return
                     }
@@ -87,20 +87,18 @@ public class HttpClientConnection {
     }
 
     public var isOpen: Bool {
-       return aws_http_connection_is_open(self.rawValue);
+       return aws_http_connection_is_open(self.rawValue)
     }
 
     public func close() {
-        return aws_http_connection_close(self.rawValue);
+        return aws_http_connection_close(self.rawValue)
     }
-    
-
 
     public func newClientStream(requestOptions: HttpRequestOptions) -> HttpStream {
         var options = aws_http_make_request_options()
         options.self_size = MemoryLayout<aws_http_make_request_options>.size
         options.request = requestOptions.request.rawValue
-        options.on_response_body = {_,data,userData -> Int32 in
+        options.on_response_body = {_, data, userData -> Int32 in
             guard let userData = userData else {
                 return -1
             }
@@ -117,7 +115,7 @@ public class HttpClientConnection {
 
             return 0
         }
-        options.on_response_headers = {_,headerBlock,headerArray,headersCount,userData -> Int32 in
+        options.on_response_headers = {_, headerBlock, headerArray, headersCount, userData -> Int32 in
             guard let userData = userData else {
                            return -1
             }
@@ -130,12 +128,12 @@ public class HttpClientConnection {
             httpStreamCbData.requestOptions.onIncomingHeaders(httpStreamCbData.stream!, HttpHeaderBlock(rawValue: headerBlock), headers)
             return 0
         }
-        options.on_response_header_block_done = {_,headerBlock,userData -> Int32 in
+        options.on_response_header_block_done = {_, headerBlock, userData -> Int32 in
             guard let userData = userData else {
                 return -1
             }
             let httpStreamCbData: HttpStreamCallbackData = Unmanaged.fromOpaque(userData).takeUnretainedValue()
-            httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(httpStreamCbData.stream!, HttpHeaderBlock(rawValue:headerBlock))
+            httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(httpStreamCbData.stream!, HttpHeaderBlock(rawValue: headerBlock))
             return 0
         }
         options.on_complete = {_, errorCode, userData in
@@ -155,6 +153,5 @@ public class HttpClientConnection {
 
         return stream
     }
-    
-}
 
+}

@@ -18,7 +18,7 @@ public enum HttpHeaderCompression {
      * Best for unique headers that are unlikely to repeat.
      */
     case noCache
-    
+
     /**
      * Encode header strings literally and forbid all intermediaries from using
      * cache when re-broadcasting.
@@ -41,4 +41,3 @@ extension HttpHeaderCompression: RawRepresentable, CaseIterable {
         }
     }
 }
-

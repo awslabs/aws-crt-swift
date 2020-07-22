@@ -20,4 +20,3 @@ extension HttpProxyAuthenticationType: RawRepresentable, CaseIterable {
         }
     }
 }
-

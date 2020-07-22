@@ -8,8 +8,6 @@ class BootstrapTests: CrtXCBaseTestCase {
   func testCanCreateBootstrap() throws {
     let elg = try EventLoopGroup(allocator: allocator)
     let resolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
-    let _ = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver, allocator: allocator)
+    _ = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver, allocator: allocator)
   }
 }
-
-

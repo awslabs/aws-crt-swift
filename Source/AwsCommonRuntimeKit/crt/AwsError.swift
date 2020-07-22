@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
 
-public enum AwsError : Error {
+public enum AwsError: Error {
   case fileNotFound(String)
   case memoryAllocationFailure
   case stringConversionError(UnsafePointer<aws_string>?)

@@ -3,7 +3,7 @@
 import AwsCHttp
 import AwsCIo
 
-public final class HttpResponse : HttpMessage {
+public final class HttpResponse: HttpMessage {
     internal init(message: OpaquePointer, allocator: Allocator) {
         super.init(owningMessage: aws_http_message_new_response(allocator.rawValue))
     }
@@ -11,7 +11,7 @@ public final class HttpResponse : HttpMessage {
     public var responseCode: Int! {
         get {
             var response: Int32 = 0
-            if (aws_http_message_get_response_status(self.rawValue, &response) != AWS_OP_SUCCESS) {
+            if aws_http_message_get_response_status(self.rawValue, &response) != AWS_OP_SUCCESS {
                 return nil
             }
             return Int(response)
@@ -22,4 +22,3 @@ public final class HttpResponse : HttpMessage {
         }
     }
 }
-
