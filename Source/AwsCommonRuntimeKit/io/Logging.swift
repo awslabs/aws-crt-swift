@@ -21,15 +21,16 @@ extension LogLevel: RawRepresentable, CaseIterable {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})
         self = value ?? .none
     }
+
     public var rawValue: aws_log_level {
         switch self {
-        case .none:  return AWS_LL_NONE
-        case .fatal:  return AWS_LL_FATAL
-        case .error: return AWS_LL_ERROR
-        case .warn: return AWS_LL_WARN
-        case .info: return AWS_LL_INFO
-        case .debug: return AWS_LL_DEBUG
-        case .trace: return AWS_LL_TRACE
+        case .none: return unsafeBitCast(AWS_LOG_LEVEL_NONE, to: aws_log_level.self)
+        case .fatal: return unsafeBitCast(AWS_LOG_LEVEL_FATAL, to: aws_log_level.self)
+        case .error: return unsafeBitCast(AWS_LOG_LEVEL_ERROR, to: aws_log_level.self)
+        case .warn: return unsafeBitCast(AWS_LOG_LEVEL_WARN, to: aws_log_level.self)
+        case .info: return unsafeBitCast(AWS_LOG_LEVEL_INFO, to: aws_log_level.self)
+        case .debug: return unsafeBitCast(AWS_LOG_LEVEL_DEBUG, to: aws_log_level.self)
+        case .trace: return unsafeBitCast(AWS_LOG_LEVEL_TRACE, to: aws_log_level.self)
         }
     }
 }
