@@ -143,6 +143,7 @@ struct Elasticurl {
 
         if argumentsDict["V"] != nil {
             print("elasticurl \(version)")
+            exit(0)
         }
 
         if let http1 = argumentsDict["w"] as? String {
@@ -223,7 +224,9 @@ struct Elasticurl {
 
             let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
             let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
+           
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: hostResolver, allocator: allocator)
+            print("set up bootstrap with host resolver and event loop and allocator")
 
             let socketOptions = SocketOptions(socketType: .stream)
 

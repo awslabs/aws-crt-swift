@@ -30,19 +30,15 @@ public final class HttpHeaders {
     }
     
     public func addArray(headers: [HttpHeader]) {
-        var pointers = [UnsafeMutablePointer<aws_http_header>]()
-        for header in headers {
-            let mutablePointer = UnsafeMutablePointer<aws_http_header>.allocate(capacity: 1)
-            mutablePointer.initialize(to: header.rawValue)
-            pointers.append(mutablePointer)
+        let mutablePointer = UnsafeMutablePointer<aws_http_header>.allocate(capacity: headers.count)
+      
+        for index in 0...(headers.count - 1)  {
+            mutablePointer.advanced(by: index).pointee = headers[index].rawValue
         }
-
-        let pointer = UnsafePointer<aws_http_header>(pointers.first)
+       
+        let pointer = UnsafePointer<aws_http_header>(mutablePointer)
         defer {
-            pointers.forEach { (pointer) in
-                pointer.deinitializeAndDeallocate()
-            }
-            pointer?.deallocate()
+            pointer.deallocate()
         }
         aws_http_headers_add_array(self.rawValue, pointer, headers.count)
     }
