@@ -5,7 +5,7 @@ import Foundation
 import AwsCCommon
 
 public struct CommandLineParser {
-	static func parseArguments(argc: Int32, arguments: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>, optionString: String, options: [aws_cli_option]) -> [String: Any] {
+	public static func parseArguments(argc: Int32, arguments: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>, optionString: String, options: [aws_cli_option]) -> [String: Any] {
         var argumentsDict = [String: Any]()
 
         while true {
