@@ -5,12 +5,13 @@ file(GLOB_RECURSE AWS_CRT_SOURCES
   "AwsCommonRuntimeKit/crt/*.swift"
   "AwsCommonRuntimeKit/http/*.swift"
   "AwsCommonRuntimeKit/io/*.swift"
-  "AwsCommonRuntimeKit/auth/*.swift"
+  "AwsCommonRuntimeKit/auth/credentials/*.swift"
+  "AwsCommonRuntimeKit/auth/signing/*.swift"
   "AwsCommonRuntimeKit/*.swift"
 )
 
 
-add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES})
+add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES} AwsCommonRuntimeKit/auth/signing/SignatureType.swift AwsCommonRuntimeKit/auth/signing/SigningCallbackData.swift AwsCommonRuntimeKit/auth/signing/SignedBodyValueType.swift AwsCommonRuntimeKit/auth/signing/SignedBodyHeaderType.swift AwsCommonRuntimeKit/auth/signing/SigV4HttpRequestSigner.swift)
 
 
 target_compile_options(${PROJECT_NAME} PRIVATE

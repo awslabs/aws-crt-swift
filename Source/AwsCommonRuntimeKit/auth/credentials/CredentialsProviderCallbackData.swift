@@ -3,7 +3,7 @@
 
 import Foundation
 
-class CredentialProviderCallbackData {
+struct CredentialProviderCallbackData {
     public typealias OnCredentialsResolved = (Credentials, Int32) -> Void
     public let onCredentialsResolved: OnCredentialsResolved
     public let provider: CredentialsProvider?

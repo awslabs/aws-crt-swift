@@ -2,6 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCIo
 import Foundation
+import AwsCCommon
 
 @inlinable
 internal func readBinaryFile(_ path: String) throws -> Data {
@@ -46,5 +47,21 @@ extension UnsafeMutablePointer {
     func deinitializeAndDeallocate() {
         self.deinitialize(count: 1)
         self.deallocate()
+    }
+}
+
+extension Date {
+    var awsDateTime: aws_date_time {
+        let datefrom1970 = UInt64(self.timeIntervalSince1970 * 1000)
+        let pointer = UnsafeMutablePointer<aws_date_time>.allocate(capacity: 1)
+        
+        aws_date_time_init_epoch_millis(pointer, datefrom1970)
+        return pointer.pointee
+    }
+}
+
+extension Bool {
+    var uintValue: UInt32 {
+        return self ? 1 : 0
     }
 }

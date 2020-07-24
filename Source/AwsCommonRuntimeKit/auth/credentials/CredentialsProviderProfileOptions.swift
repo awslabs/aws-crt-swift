@@ -3,13 +3,13 @@
 
 import Foundation
 
-struct AWSCredentialsProviderProfileOptions {
-    public let shutdownOptions: AWSCredentialsProviderShutdownOptions
+struct CredentialsProviderProfileOptions {
+    public let shutdownOptions: CredentialsProviderShutdownOptions
     public let configFileNameOverride: String
     public let profileFileNameOverride: String
     public let credentialsFileNameOverride: String
 
-    public init(shutdownOptions: AWSCredentialsProviderShutdownOptions,
+    public init(shutdownOptions: CredentialsProviderShutdownOptions,
                 configFileNameOverride: String,
                 profileFileNameOverride: String,
                 credentialsFileNameOverride: String) {

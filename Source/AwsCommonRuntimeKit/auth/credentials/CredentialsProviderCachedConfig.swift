@@ -3,13 +3,13 @@
 
 import Foundation
 
-struct AWSCredentialsProviderCachedConfig {
+struct CredentialsProviderCachedConfig {
     
-    public let shutDownOptions: AWSCredentialsProviderShutdownOptions
+    public let shutDownOptions: CredentialsProviderShutdownOptions
     public let source: CredentialsProvider
     public let refreshTimeMs: Int64
     
-    public init(shutDownOptions: AWSCredentialsProviderShutdownOptions,
+    public init(shutDownOptions: CredentialsProviderShutdownOptions,
                 source: CredentialsProvider,
                 refreshTimeMs: Int64) {
         self.shutDownOptions = shutDownOptions

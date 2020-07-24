@@ -3,9 +3,9 @@
 
 import Foundation
 
-struct AWSCredentialsProviderX509Config {
+struct CredentialsProviderX509Config {
     
-    public let shutDownOptions: AWSCredentialsProviderShutdownOptions
+    public let shutDownOptions: CredentialsProviderShutdownOptions
     public let bootstrap: ClientBootstrap
     public let tlsConnectionOptions: TlsConnectionOptions
     public let thingName: String
@@ -13,7 +13,7 @@ struct AWSCredentialsProviderX509Config {
     public let endpoint: String
     public let proxyOptions: HttpClientConnectionProxyOptions
     
-    public init(shutDownOptions: AWSCredentialsProviderShutdownOptions,
+    public init(shutDownOptions: CredentialsProviderShutdownOptions,
                 bootstrap: ClientBootstrap,
                 tlsConnectionOptions: TlsConnectionOptions,
                 thingName: String,

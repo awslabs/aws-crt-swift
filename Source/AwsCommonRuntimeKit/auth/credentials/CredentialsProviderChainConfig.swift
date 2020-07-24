@@ -3,11 +3,11 @@
 
 import Foundation
 
-struct AWSCredentialsProviderChainConfig {
-	public let shutDownOptions: AWSCredentialsProviderShutdownOptions
+struct CredentialsProviderChainConfig {
+	public let shutDownOptions: CredentialsProviderShutdownOptions
 	public let providers: [CredentialsProvider]
     
-    public init(shutDownOptions: AWSCredentialsProviderShutdownOptions,
+    public init(shutDownOptions: CredentialsProviderShutdownOptions,
                 providers: [CredentialsProvider]) {
         self.shutDownOptions = shutDownOptions
         self.providers = providers

@@ -27,7 +27,7 @@ open class AWSCredentialsProvider: CredentialsProvider {
             guard let userdata = userdata, let credentials = credentials else {
                 return
             }
-
+            
             let callback = userdata.bindMemory(to: CredentialProviderCallbackData.self, capacity: 1)
             callback.pointee.onCredentialsResolved(Credentials(rawValue: credentials), errorCode)
 
@@ -48,7 +48,7 @@ open class AWSCredentialsProvider: CredentialsProvider {
         return createWrappedProvider(cProvider: provider, allocator: allocator)
     }
 
-    func createCredentialsProviderEnvironment(shutdownOptions: AWSCredentialsProviderShutdownOptions)
+    func createCredentialsProviderEnvironment(shutdownOptions: CredentialsProviderShutdownOptions)
         -> CredentialsProvider? {
         let options = UnsafeMutablePointer<aws_credentials_provider_environment_options>.allocate(capacity: 1)
         let envOptions = aws_credentials_provider_environment_options(shutdown_options: shutdownOptions.rawValue.pointee)
@@ -61,7 +61,7 @@ open class AWSCredentialsProvider: CredentialsProvider {
         return createWrappedProvider(cProvider: provider, allocator: allocator)
     }
 
-    func createCredentialsProviderProfile(profileOptions: AWSCredentialsProviderProfileOptions)
+    func createCredentialsProviderProfile(profileOptions: CredentialsProviderProfileOptions)
         -> CredentialsProvider? {
         let options = UnsafeMutablePointer<aws_credentials_provider_profile_options>.allocate(capacity: 1)
         let profileOptions = aws_credentials_provider_profile_options(shutdown_options: profileOptions.shutdownOptions.rawValue.pointee,
@@ -79,7 +79,7 @@ open class AWSCredentialsProvider: CredentialsProvider {
         return createWrappedProvider(cProvider: provider, allocator: allocator)
     }
 
-    func createCredentialsProviderImds(imdsConfig: AWSCredentialsProviderImdsConfig) -> CredentialsProvider? {
+    func createCredentialsProviderImds(imdsConfig: CredentialsProviderImdsConfig) -> CredentialsProvider? {
         let options = UnsafeMutablePointer<aws_credentials_provider_imds_options>.allocate(capacity: 1)
 
         let imdsOptions = aws_credentials_provider_imds_options(shutdown_options: imdsConfig.shutdownOptions.rawValue.pointee,
@@ -96,7 +96,7 @@ open class AWSCredentialsProvider: CredentialsProvider {
         return createWrappedProvider(cProvider: provider, allocator: allocator)
     }
 
-    func createCredentialsProviderChain(chainConfig: AWSCredentialsProviderChainConfig) -> CredentialsProvider? {
+    func createCredentialsProviderChain(chainConfig: CredentialsProviderChainConfig) -> CredentialsProvider? {
         var vectorBuf : UnsafeMutablePointer<aws_credentials_provider>?
         vectorBuf = UnsafeMutablePointer<aws_credentials_provider>.allocate(capacity: chainConfig.providers.count)
         for index in 0...chainConfig.providers.count {
@@ -121,7 +121,7 @@ open class AWSCredentialsProvider: CredentialsProvider {
         return createWrappedProvider(cProvider: provider, allocator: allocator)
     }
     
-    func createCredentialsProviderCached(cachedConfig: AWSCredentialsProviderCachedConfig) -> CredentialsProvider? {
+    func createCredentialsProviderCached(cachedConfig: CredentialsProviderCachedConfig) -> CredentialsProvider? {
         let cachedOptionsPointer = UnsafeMutablePointer<aws_credentials_provider_cached_options>.allocate(capacity: 1)
         let cachedOptions = aws_credentials_provider_cached_options(shutdown_options: cachedConfig.shutDownOptions.rawValue.pointee, source: cachedConfig.source.rawValue, refresh_time_in_milliseconds: UInt64(cachedConfig.refreshTimeMs), high_res_clock_fn: nil, system_clock_fn: nil)
         cachedOptionsPointer.initialize(to: cachedOptions)
@@ -134,7 +134,7 @@ open class AWSCredentialsProvider: CredentialsProvider {
         return createWrappedProvider(cProvider: provider, allocator: allocator)
     }
     
-    func createCredentialsProviderChainDefault(chainDefaultConfig: AWSCredentialsProviderChainDefaultConfig) -> CredentialsProvider? {
+    func createCredentialsProviderChainDefault(chainDefaultConfig: CredentialsProviderChainDefaultConfig) -> CredentialsProvider? {
         let chainDefaultOptionsPtr = UnsafeMutablePointer<aws_credentials_provider_chain_default_options>.allocate(capacity: 1)
         let chainDefaultOptions = aws_credentials_provider_chain_default_options(shutdown_options: chainDefaultConfig.shutDownOptions.rawValue.pointee, bootstrap: chainDefaultConfig.bootstrap.rawValue)
         chainDefaultOptionsPtr.initialize(to: chainDefaultOptions)
@@ -145,7 +145,7 @@ open class AWSCredentialsProvider: CredentialsProvider {
         return createWrappedProvider(cProvider: provider, allocator: allocator)
     }
     
-    func createCredentialsProviderx509(x509Config: AWSCredentialsProviderX509Config) -> CredentialsProvider? {
+    func createCredentialsProviderx509(x509Config: CredentialsProviderX509Config) -> CredentialsProvider? {
         let tlsOptionsPtr = UnsafeMutablePointer<aws_tls_connection_options>.allocate(capacity: 1)
         tlsOptionsPtr.initialize(to: x509Config.tlsConnectionOptions.rawValue)
         let proxyOptionsPtr = UnsafeMutablePointer<aws_http_proxy_options>.allocate(capacity: 1)
@@ -170,7 +170,6 @@ open class AWSCredentialsProvider: CredentialsProvider {
         guard let provider = aws_credentials_provider_new_x509(allocator.rawValue, x509OptionsPtr) else {
             return nil
         }
-        
         return createWrappedProvider(cProvider: provider, allocator: allocator)
     }
 

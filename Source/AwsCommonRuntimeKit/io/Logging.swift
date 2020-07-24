@@ -2,7 +2,6 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCCommon
-import AwsCIo
 import Foundation
 
 public enum LogLevel {

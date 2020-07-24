@@ -5,12 +5,12 @@ import AwsCAuth
 
 class CredentialsProviderStaticConfigOptions {
     public let rawValue: UnsafeMutablePointer<aws_credentials_provider_static_options>
-    public let shutdownOptions: AWSCredentialsProviderShutdownOptions
+    public let shutdownOptions: CredentialsProviderShutdownOptions
 
     public init(accessKey: String,
                 secret: String,
                 sessionToken: String,
-                shutDownOptions: AWSCredentialsProviderShutdownOptions) {
+                shutDownOptions: CredentialsProviderShutdownOptions) {
         let pointer = UnsafeMutablePointer<aws_credentials_provider_static_options>.allocate(capacity: 1)
         pointer.pointee = aws_credentials_provider_static_options(shutdown_options: shutDownOptions.rawValue.pointee,
                                                                   access_key_id: accessKey.awsByteCursor,
