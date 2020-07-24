@@ -20,6 +20,27 @@ extension LogLevel: RawRepresentable, CaseIterable {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})
         self = value ?? .none
     }
+    
+    public static func fromString(string: String) -> LogLevel {
+        switch string {
+        case "TRACE":
+            return .trace
+        case "INFO":
+            return .info
+        case "WARN":
+            return .warn
+        case "DEBUG":
+            return .debug
+        case "FATAL":
+            return .fatal
+        case "ERROR":
+            return .error
+        case "NONE":
+            return .none
+        default:
+            return .none
+        }
+    }
 
     public var rawValue: aws_log_level {
         switch self {

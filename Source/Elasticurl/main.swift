@@ -137,8 +137,8 @@ struct Elasticurl {
             context.traceFile = traceFile
         }
 
-        if let _ = argumentsDict["v"] as? UInt32 {
-            context.logLevel = LogLevel.trace
+        if let logLevel = argumentsDict["v"] as? String {
+            context.logLevel = LogLevel.fromString(string: logLevel)
         }
 
         if argumentsDict["V"] != nil {
@@ -208,7 +208,7 @@ struct Elasticurl {
 
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
             let logger = Logger(pipe: stdout, level: context.logLevel, allocator: allocator)
-
+            
             AwsCommonRuntimeKit.initialize(allocator: allocator)
 
             let port = UInt16(443)
