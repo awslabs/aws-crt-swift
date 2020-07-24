@@ -95,7 +95,7 @@ public class HttpClientConnection {
         options.self_size = MemoryLayout<aws_http_make_request_options>.size
         options.request = requestOptions.request.rawValue
         options.on_response_body = {_, data, userData -> Int32 in
-            print("got to response body")
+        
             guard let userData = userData else {
                 return -1
             }
@@ -113,7 +113,7 @@ public class HttpClientConnection {
             return 0
         }
         options.on_response_headers = {_, headerBlock, headerArray, headersCount, userData -> Int32 in
-            print("got to response headers")
+     
             guard let userData = userData else {
                 return -1
             }
@@ -134,7 +134,7 @@ public class HttpClientConnection {
             return 0
         }
         options.on_response_header_block_done = {_, headerBlock, userData -> Int32 in
-            print("got to header block done")
+
             guard let userData = userData else {
                 return -1
             }
@@ -143,7 +143,7 @@ public class HttpClientConnection {
             return 0
         }
         options.on_complete = {_, errorCode, userData in
-            print("go to on complete")
+          
             guard let userData = userData else {
                 return
             }

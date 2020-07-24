@@ -261,12 +261,27 @@ struct Elasticurl {
             }
        
             let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone = { stream, block in
-                print("headers block done")
+           
             }
             
             let onComplete: HttpRequestOptions.OnStreamComplete = { stream, errorCode in
-                print("stream complete")
                 print(errorCode)
+            }
+            
+            let connectionReady: HttpClientConnectionOptions.OnConnectionSetup = { conn, errorCode in
+                if errorCode != 0 {
+                    print("Connection Setup failed with code \(errorCode)")
+                    exit(-1)
+                } else {
+                    print("Connection succeeded")
+                    connection = conn
+                    
+                    let requestOptions = HttpRequestOptions(request: httpRequest, onIncomingHeaders: onIncomingHeaders, onIncomingHeadersBlockDone: onBlockDone,
+                                                            onIncomingBody: onBody,
+                                                            onStreamComplete: onComplete)
+                    stream = connection!.newClientStream(requestOptions: requestOptions)
+                    stream!.activate()
+                }
             }
           
             var httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
@@ -276,21 +291,7 @@ struct Elasticurl {
                                                                 proxyOptions: nil,
                                                                 socketOptions: socketOptions,
                                                                 tlsOptions: tlsConnectionOptions,
-                                                                onConnectionSetup: { (conn, errorCode) in
-                                                                    if errorCode != 0 {
-                                                                        print("Connection Setup failed with code \(errorCode)")
-                                                                        exit(-1)
-                                                                    } else {
-                                                                        print("Connection succeeded")
-                                                                        connection = conn
-
-                                                                        let requestOptions = HttpRequestOptions(request: httpRequest, onIncomingHeaders: onIncomingHeaders, onIncomingHeadersBlockDone: onBlockDone,
-                                                                                                                onIncomingBody: onBody,
-                                                                                                                onStreamComplete: onComplete)
-                                                                        stream = connection!.newClientStream(requestOptions: requestOptions)
-                                                                        stream!.activate()
-                                                                    }
-            },
+                                                                onConnectionSetup: connectionReady,
                                                                 onConnectionShutdown: { (conn, errorCode) in
                                                                     print("connection has shut down with error: \(errorCode)" )
                                                                     semaphore.signal()
