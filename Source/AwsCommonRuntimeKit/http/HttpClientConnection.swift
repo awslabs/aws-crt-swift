@@ -20,11 +20,10 @@ public class HttpClientConnection {
 
     public static func createConnection(options: inout HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) {
         let tempHostName = options.hostName.newByteCursor()
-
+      
         let socketOptionPointer = UnsafeMutablePointer<aws_socket_options>.allocate(capacity: 1)
-        defer { socketOptionPointer.deallocate() }
         socketOptionPointer.pointee = options.socketOptions.rawValue
-
+    
         var unmanagedConnectionOptions = aws_http_client_connection_options(
                 self_size: 0,
                 allocator: allocator.rawValue,
@@ -67,14 +66,12 @@ public class HttpClientConnection {
 
         if let tlsOptions = options.tlsOptions {
             let pointer = UnsafeMutablePointer<aws_tls_connection_options>.allocate(capacity: 1)
-            defer {pointer.deallocate()}
             pointer.pointee = tlsOptions.rawValue
             unmanagedConnectionOptions.tls_options = UnsafePointer(pointer)
         }
-
+      
         if let proxyOptions = options.proxyOptions {
             let pointer = UnsafeMutablePointer<aws_http_proxy_options>.allocate(capacity: 1)
-            defer { pointer.deallocate() }
             pointer.pointee = proxyOptions.rawValue
             unmanagedConnectionOptions.proxy_options = UnsafePointer(pointer)
         }
@@ -98,6 +95,7 @@ public class HttpClientConnection {
         options.self_size = MemoryLayout<aws_http_make_request_options>.size
         options.request = requestOptions.request.rawValue
         options.on_response_body = {_, data, userData -> Int32 in
+            print("got to response body")
             guard let userData = userData else {
                 return -1
             }
@@ -115,8 +113,9 @@ public class HttpClientConnection {
             return 0
         }
         options.on_response_headers = {_, headerBlock, headerArray, headersCount, userData -> Int32 in
+            print("got to response headers")
             guard let userData = userData else {
-                           return -1
+                return -1
             }
             let httpStreamCbData: HttpStreamCallbackData = Unmanaged.fromOpaque(userData).takeUnretainedValue()
             
@@ -135,6 +134,7 @@ public class HttpClientConnection {
             return 0
         }
         options.on_response_header_block_done = {_, headerBlock, userData -> Int32 in
+            print("got to header block done")
             guard let userData = userData else {
                 return -1
             }
@@ -143,6 +143,7 @@ public class HttpClientConnection {
             return 0
         }
         options.on_complete = {_, errorCode, userData in
+            print("go to on complete")
             guard let userData = userData else {
                 return
             }

@@ -226,7 +226,7 @@ struct Elasticurl {
             let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
            
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: hostResolver, allocator: allocator)
-            print("set up bootstrap with host resolver and event loop and allocator")
+            
 
             let socketOptions = SocketOptions(socketType: .stream)
 
@@ -238,7 +238,7 @@ struct Elasticurl {
             let httpRequest: HttpRequest = HttpRequest(allocator: allocator)
             httpRequest.method = "GET"
             httpRequest.path = "/"
-
+            
             let headers = HttpHeaders(allocator: allocator)
             if headers.add(name: "Host", value: context.url),
                 headers.add(name: "User-Agent", value: "Elasticurl"),
@@ -246,7 +246,7 @@ struct Elasticurl {
 
                 httpRequest.addHeaders(headers: headers)
             }
-
+         
             let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
                 let allHeaders = headers.getAll()
                 for header in allHeaders {
@@ -254,18 +254,21 @@ struct Elasticurl {
                     
                 }
             }
-
+            
             let onBody: HttpRequestOptions.OnIncomingBody = { stream, bodyChunk in
                 let dataStr = String(decoding: bodyChunk, as: UTF8.self)
                 print(dataStr)
             }
-
+       
             let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone = { stream, block in
+                print("headers block done")
             }
-
+            
             let onComplete: HttpRequestOptions.OnStreamComplete = { stream, errorCode in
+                print("stream complete")
+                print(errorCode)
             }
-
+          
             var httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
                                                                 hostName: context.url,
                                                                 initialWindowSize: Int.max,
@@ -288,10 +291,11 @@ struct Elasticurl {
                                                                         stream!.activate()
                                                                     }
             },
-                                                                onConnectionShutdown: { (_, _) in
+                                                                onConnectionShutdown: { (conn, errorCode) in
+                                                                    print("connection has shut down with error: \(errorCode)" )
                                                                     semaphore.signal()
             })
-
+            
             HttpClientConnection.createConnection(options: &httpClientOptions, allocator: allocator)
             semaphore.wait()
         } catch {
