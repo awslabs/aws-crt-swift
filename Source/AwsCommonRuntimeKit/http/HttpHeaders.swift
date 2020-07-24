@@ -19,31 +19,35 @@ public final class HttpHeaders {
         addArray(headers: fromArray)
     }
 
-    /// Updates or appends an `HttpHeader` into the instance using the provided `name` and `value`.
+    /// Appends a `HttpHeader` into the instance using the provided `name` and `value`.
     ///
     /// - Parameters:
     ///   - name:  The `HttpHeader` name.
     ///   - value: The `HttpHeader value.
     /// - Returns: `Bool`: True on success
     public func add(name: String, value: String) -> Bool {
-        return update(HttpHeader(name: name, value: value))
+        return aws_http_headers_add(self.rawValue, name.awsByteCursor, value.awsByteCursor) == AWS_OP_SUCCESS
     }
     
+    /// Appends an array of `HttpHeaders` into the c instance of headers.
+    ///
+    /// - Parameters:
+    ///   - headers: The array of `HttpHeader` .
     public func addArray(headers: [HttpHeader]) {
-        let mutablePointer = UnsafeMutablePointer<aws_http_header>.allocate(capacity: headers.count)
-      
-        for index in 0...(headers.count - 1)  {
-            mutablePointer.advanced(by: index).pointee = headers[index].rawValue
+        for header in headers {
+            _ = add(name: header.name, value: header.value)
         }
-       
-        let pointer = UnsafePointer<aws_http_header>(mutablePointer)
-        defer {
-            pointer.deallocate()
-        }
-        aws_http_headers_add_array(self.rawValue, pointer, headers.count)
+    }
+    
+    /// Updates a header from the provided `name` with the new `value` in the c instance of headers.
+    ///
+    /// - Parameter header: The `HttpHeader` to update or append.
+    /// - Returns: `Bool`: True on success
+    public func update(name: String, value: String) -> Bool {
+        return update(HttpHeader(name: name, value: value))
     }
 
-    /// Updates or appends the provided `HttpHeader` into the instance.
+    /// Updates or creates a new header from the provided `HttpHeader` into the c instance of headers.
     ///
     /// - Parameter header: The `HttpHeader` to update or append.
     /// - Returns: `Bool`: True on success
