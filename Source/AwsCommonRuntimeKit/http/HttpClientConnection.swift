@@ -119,12 +119,19 @@ public class HttpClientConnection {
                            return -1
             }
             let httpStreamCbData: HttpStreamCallbackData = Unmanaged.fromOpaque(userData).takeUnretainedValue()
-            var headers: [HttpHeader] = []
-
-            for header in UnsafeBufferPointer(start: headerArray, count: headersCount) {
-                headers.append(header)
+            
+            var headers = [HttpHeader]()
+            for cHeader in UnsafeBufferPointer(start: headerArray, count: headersCount) {
+                if let name = cHeader.name.toString(),
+                    let value = cHeader.value.toString() {
+                let swiftHeader = HttpHeader(name: name, value: value)
+                headers.append(swiftHeader)
+                }
             }
-            httpStreamCbData.requestOptions.onIncomingHeaders(httpStreamCbData.stream!, HttpHeaderBlock(rawValue: headerBlock), headers)
+            let headersStruct = HttpHeaders(fromArray: headers)
+            httpStreamCbData.requestOptions.onIncomingHeaders(httpStreamCbData.stream!,
+                                                              HttpHeaderBlock(rawValue: headerBlock),
+                                                              headersStruct)
             return 0
         }
         options.on_response_header_block_done = {_, headerBlock, userData -> Int32 in

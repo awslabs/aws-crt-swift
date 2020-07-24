@@ -11,7 +11,7 @@ file(GLOB_RECURSE AWS_CRT_SOURCES
 )
 
 
-add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES} AwsCommonRuntimeKit/auth/signing/SignatureType.swift AwsCommonRuntimeKit/auth/signing/SigningCallbackData.swift AwsCommonRuntimeKit/auth/signing/SignedBodyValueType.swift AwsCommonRuntimeKit/auth/signing/SignedBodyHeaderType.swift AwsCommonRuntimeKit/auth/signing/SigV4HttpRequestSigner.swift)
+add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES} AwsCommonRuntimeKit/auth/signing/SignatureType.swift AwsCommonRuntimeKit/auth/signing/SigningCallbackData.swift AwsCommonRuntimeKit/auth/signing/SignedBodyValueType.swift AwsCommonRuntimeKit/auth/signing/SignedBodyHeaderType.swift AwsCommonRuntimeKit/auth/signing/SigV4HttpRequestSigner.swift AwsCommonRuntimeKit/http/HttpHeader.swift)
 
 
 target_compile_options(${PROJECT_NAME} PRIVATE

@@ -13,6 +13,11 @@ public final class HttpHeaders {
     public init(allocator: Allocator = defaultAllocator) {
         self.rawValue = aws_http_headers_new(allocator.rawValue)
     }
+    
+    convenience init(allocator: Allocator = defaultAllocator, fromArray: [HttpHeader]) {
+        self.init(allocator: allocator)
+        addArray(headers: fromArray)
+    }
 
     /// Updates or appends an `HttpHeader` into the instance using the provided `name` and `value`.
     ///
@@ -23,6 +28,24 @@ public final class HttpHeaders {
     public func add(name: String, value: String) -> Bool {
         return update(HttpHeader(name: name, value: value))
     }
+    
+    public func addArray(headers: [HttpHeader]) {
+        var pointers = [UnsafeMutablePointer<aws_http_header>]()
+        for header in headers {
+            let mutablePointer = UnsafeMutablePointer<aws_http_header>.allocate(capacity: 1)
+            mutablePointer.initialize(to: header.rawValue)
+            pointers.append(mutablePointer)
+        }
+
+        let pointer = UnsafePointer<aws_http_header>(pointers.first)
+        defer {
+            pointers.forEach { (pointer) in
+                pointer.deinitializeAndDeallocate()
+            }
+            pointer?.deallocate()
+        }
+        aws_http_headers_add_array(self.rawValue, pointer, headers.count)
+    }
 
     /// Updates or appends the provided `HttpHeader` into the instance.
     ///
@@ -30,7 +53,9 @@ public final class HttpHeaders {
     /// - Returns: `Bool`: True on success
     public func update(_ header: HttpHeader) -> Bool {
         //this function in c will update the header if it exists or create a new one if it's new.
-        return aws_http_headers_set(self.rawValue, header.name, header.value) == AWS_OP_SUCCESS
+        return aws_http_headers_set(self.rawValue,
+                                    header.name.awsByteCursor,
+                                    header.value.awsByteCursor) == AWS_OP_SUCCESS
 
     }
 
@@ -52,8 +77,8 @@ public final class HttpHeaders {
     public func getAll() -> [HttpHeader] {
         var headers = [HttpHeader]()
         for index in 0...count {
-            var header = HttpHeader()
-            if aws_http_headers_get_index(self.rawValue, index, &header) == AWS_OP_SUCCESS {
+            var header = HttpHeader(name: "", value: "")
+            if aws_http_headers_get_index(self.rawValue, index, &header.rawValue) == AWS_OP_SUCCESS {
                 headers.append(header)
             } else {
                 continue
@@ -81,13 +106,4 @@ public final class HttpHeaders {
 
 }
 
-public typealias HttpHeader = aws_http_header
 
-public extension HttpHeader {
-    init(name: String, value: String, compression: HttpHeaderCompression = .useCache) {
-        self.init()
-        self.name = name.awsByteCursor
-        self.value = value.awsByteCursor
-        self.compression = compression.rawValue
-    }
-}

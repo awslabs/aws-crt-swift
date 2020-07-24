@@ -62,35 +62,35 @@ struct Elasticurl {
 
         let argumentDict = CommandLineParser.parseArguments(argc: CommandLine.argc, arguments: CommandLine.unsafeArgv, optionString: optionString, options: options)
 
-        if let caCert = argumentsDict["a"] as String {
+        if let caCert = argumentDict["a"] as? String {
             context.caCert = caCert
         }
 
-        if let caPath = argumentDict["b"] as String {
+        if let caPath = argumentDict["b"] as? String {
             context.caPath = caPath
         }
 
-        if let certificate = argumentDict["c"] as String {
-            context.certifcate = certificate
+        if let certificate = argumentDict["c"] as? String {
+            context.certificate = certificate
         }
 
-        if let privateKey = argumentDict["e"] as String {
+        if let privateKey = argumentDict["e"] as? String {
             context.privateKey = privateKey
         }
 
-        if let connectTimeout = argumentDict["f"] as Int {
+        if let connectTimeout = argumentDict["f"] as? Int {
             context.connectTimeout = connectTimeout
         }
 
-        if let headers = argumentDict["H"] as String {
+        if let headers = argumentDict["H"] as? String {
             context.headers.append(headers)
         }
 
-        if let stringData = argumentDict["d"] as String {
+        if let stringData = argumentDict["d"] as? String {
             context.data = stringData.data(using: .utf8)
         }
 
-        if let dataFilePath = argumentDict["g"] as String {
+        if let dataFilePath = argumentDict["g"] as? String {
             guard let url = URL(string: dataFilePath) else {
                 print("path to data file is incorrect or does not exist")
                 exit(-1)
@@ -102,7 +102,7 @@ struct Elasticurl {
             }
         }
 
-        if let method = argumentDict["M"] as String {
+        if let method = argumentDict["M"] as? String {
             context.verb = method
         }
 
@@ -126,15 +126,15 @@ struct Elasticurl {
             context.insecure = true
         }
 
-        if let fileName = argumentDict["o"] as String {
+        if let fileName = argumentDict["o"] as? String {
             context.outputFileName = fileName
         }
 
-        if let traceFile = argumentDict["t"] as String {
+        if let traceFile = argumentDict["t"] as? String {
             context.traceFile = traceFile
         }
 
-        if let logLevel = argumentDict["v"] as UInt32 {
+        if let logLevel = argumentDict["v"] as? UInt32 {
             context.logLevel = .trace //fix enum
         }
 
@@ -142,11 +142,11 @@ struct Elasticurl {
             print("elasticurl \(version)")
         }
 
-        if let http1 = argumentDict["w"] as String {
+        if let http1 = argumentDict["w"] as? String {
             context.alpnList.append(http1)
         }
 
-        if let h2 = argumentDict["W"] as String {
+        if let h2 = argumentDict["W"] as? String {
             context.alpnList.append(h2)
         }
 
@@ -241,11 +241,10 @@ struct Elasticurl {
             }
 
             let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
-                for header in headers {
-                    if let name = header.name.toString(),
-                        let value = header.name.toString() {
-                        print(name + " : " + value)
-                    }
+                let allHeaders = headers.getAll()
+                for header in allHeaders {
+                    print(header.name + " : " + header.value)
+                    
                 }
             }
 
