@@ -5,6 +5,7 @@ file(GLOB TEST_SRC
         "AwsCommonRuntimeKitTests/http/*.swift"
         "AwsCommonRuntimeKitTests/crt/*.swift"
         "AwsCommonRuntimeKitTests/io/*.swift"
+        "AwsCommonRuntimeKitTests/auth/*.swift"
         "AwsCommonRuntimeKitTests/CrtXCBaseTestCase.swift"
   )
 

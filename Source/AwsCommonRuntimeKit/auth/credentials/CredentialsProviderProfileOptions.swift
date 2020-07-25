@@ -4,18 +4,18 @@
 import Foundation
 
 struct CredentialsProviderProfileOptions {
-    public let shutdownOptions: CredentialsProviderShutdownOptions
+    public let shutdownOptions: CredentialsProviderShutdownOptions?
     public let configFileNameOverride: String
     public let profileFileNameOverride: String
     public let credentialsFileNameOverride: String
 
-    public init(shutdownOptions: CredentialsProviderShutdownOptions,
-                configFileNameOverride: String,
+    public init(configFileNameOverride: String,
                 profileFileNameOverride: String,
-                credentialsFileNameOverride: String) {
-        self.shutdownOptions = shutdownOptions
+                credentialsFileNameOverride: String,
+                shutdownOptions: CredentialsProviderShutdownOptions? = nil) {
         self.configFileNameOverride = configFileNameOverride
         self.profileFileNameOverride = profileFileNameOverride
         self.credentialsFileNameOverride = credentialsFileNameOverride
+        self.shutdownOptions = shutdownOptions
     }
 }
