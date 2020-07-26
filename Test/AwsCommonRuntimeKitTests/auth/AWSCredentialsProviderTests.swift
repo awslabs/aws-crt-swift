@@ -8,8 +8,19 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     let secret = "Sekrit"
     let sessionToken = "Token"
     let shutDownOptions = CredentialsProviderShutdownOptions() {
-        print("shut down")
+        XCTAssert(true)
     }
+    let expectation = XCTestExpectation(description: "Credentials received")
+    var callbackData: CredentialProviderCallbackData?
+    
+    func setUpCallbackCredentials(credentialsProvider: CredentialsProvider?){
+        callbackData = CredentialProviderCallbackData(provider: credentialsProvider!, allocator: allocator) { (credentials, errorCode) in
+            XCTAssertNotNil(credentials)
+            XCTAssertEqual(errorCode, 0)
+            self.expectation.fulfill()
+        }
+    }
+    
     func testCreateAWSCredentialsProviderStatic() {
         
         let config = CredentialsProviderStaticConfigOptions(accessKey: accessKey,
@@ -17,26 +28,36 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                             sessionToken: sessionToken,
                                                             shutDownOptions: shutDownOptions)
         let provider = AWSCredentialsProvider(fromStatic: config, allocator: allocator)
-        let callbackData = CredentialProviderCallbackData(provider: provider!) { (credentials, errorCode) in
-            XCTAssertEqual(credentials.getAccessKey(), self.accessKey)
-            XCTAssertNotNil(credentials)
-            XCTAssertEqual(errorCode, 0)
-        }
-        provider?.getCredentials(credentialCallBackData: callbackData)
+        setUpCallbackCredentials(credentialsProvider: provider)
+        provider?.getCredentials(credentialCallBackData: callbackData!)
+        wait(for: [expectation], timeout: 3.0)
     }
     
     func testCreateAWSCredentialsProviderEnv() {
-        _ = AWSCredentialsProvider(fromEnv: shutDownOptions)
+    
+        let provider = AWSCredentialsProvider(fromEnv: shutDownOptions)
+        setUpCallbackCredentials(credentialsProvider: provider)
+        provider?.getCredentials(credentialCallBackData: callbackData!)
+        wait(for: [expectation], timeout: 3.0)
     }
     
     func testCreateAWSCredentialsProviderProfile() {
-        let config = CredentialsProviderProfileOptions(configFileNameOverride: "config",
-                                                       profileFileNameOverride: "nicki",
-                                                       credentialsFileNameOverride: "credentials",
+        
+        let config = CredentialsProviderProfileOptions(configFileNameOverride: "~/.aws/config",
+                                                       profileFileNameOverride: "default",
+                                                       credentialsFileNameOverride: "~/.aws/credentials",
                                                        shutdownOptions: shutDownOptions)
-        _ = AWSCredentialsProvider(fromProfile: config)
+        let provider = AWSCredentialsProvider(fromProfile: config)
+
+        setUpCallbackCredentials(credentialsProvider: provider)
+        provider?.getCredentials(credentialCallBackData: callbackData!)
+        wait(for: [expectation], timeout: 10.0)
     }
     
+
+    
 }
+
+
 
 

@@ -7,7 +7,10 @@ public final class Credentials {
 
     let rawValue: OpaquePointer
 
-    public init(rawValue: OpaquePointer) {
+    public init?(rawValue: OpaquePointer?) {
+        guard let rawValue = rawValue else {
+            return nil
+        }
         self.rawValue = rawValue
     }
 
