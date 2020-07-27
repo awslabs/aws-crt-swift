@@ -3,7 +3,7 @@
 
 import AwsCAuth
 
-class CredentialsProviderShutdownOptions {
+struct CredentialsProviderShutdownOptions {
     typealias ShutDownCallback = () -> Void
    
     public let shutDownCallback: ShutDownCallback

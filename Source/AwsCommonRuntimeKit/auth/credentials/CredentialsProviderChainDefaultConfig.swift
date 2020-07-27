@@ -12,5 +12,4 @@ struct CredentialsProviderChainDefaultConfig {
         self.shutDownOptions = shutDownOptions
         self.bootstrap = bootstrap
     }
-
 }

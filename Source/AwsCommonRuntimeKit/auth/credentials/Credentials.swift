@@ -3,7 +3,7 @@
 
 import AwsCAuth
 
-public final class Credentials {
+public struct Credentials {
 
     let rawValue: OpaquePointer
 
@@ -65,9 +65,5 @@ public final class Credentials {
     /// - Returns:`UInt64`: The timeout in seconds of when the credentials expire
     public func getExpirationTimeout() -> UInt64 {
         return aws_credentials_get_expiration_timepoint_seconds(rawValue)
-    }
-
-    deinit {
-        aws_credentials_release(rawValue)
     }
 }

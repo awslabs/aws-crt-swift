@@ -5,13 +5,13 @@ import Foundation
 
 struct CredentialsProviderProfileOptions {
     public let shutdownOptions: CredentialsProviderShutdownOptions?
-    public let configFileNameOverride: String
-    public let profileFileNameOverride: String
-    public let credentialsFileNameOverride: String
+    public let configFileNameOverride: String?
+    public let profileFileNameOverride: String?
+    public let credentialsFileNameOverride: String?
 
-    public init(configFileNameOverride: String,
-                profileFileNameOverride: String,
-                credentialsFileNameOverride: String,
+    public init(configFileNameOverride: String? = nil,
+                profileFileNameOverride: String? = nil,
+                credentialsFileNameOverride: String? = nil,
                 shutdownOptions: CredentialsProviderShutdownOptions? = nil) {
         self.configFileNameOverride = configFileNameOverride
         self.profileFileNameOverride = profileFileNameOverride

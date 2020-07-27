@@ -28,5 +28,4 @@ struct CredentialsProviderX509Config {
         self.endpoint = endpoint
         self.proxyOptions = proxyOptions
     }
-
 }

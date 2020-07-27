@@ -16,6 +16,4 @@ struct CredentialsProviderCachedConfig {
         self.source = source
         self.refreshTimeMs = refreshTimeMs
     }
-    
-
 }

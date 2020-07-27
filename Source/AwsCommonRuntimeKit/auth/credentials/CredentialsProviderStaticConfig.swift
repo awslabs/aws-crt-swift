@@ -3,25 +3,20 @@
 
 import AwsCAuth
 
-class CredentialsProviderStaticConfigOptions {
-    public let rawValue: UnsafeMutablePointer<aws_credentials_provider_static_options>
-    public let shutdownOptions: CredentialsProviderShutdownOptions?
+struct CredentialsProviderStaticConfigOptions {
+    public let accessKey: String
+    public let secret: String
+    public let sessionToken: String
+    public let shutDownOptions: CredentialsProviderShutdownOptions?
     
     public init(accessKey: String,
                 secret: String,
                 sessionToken: String,
-                shutDownOptions: CredentialsProviderShutdownOptions?) {
-        let pointer = UnsafeMutablePointer<aws_credentials_provider_static_options>.allocate(capacity: 1)
-        let shutDownOptionsC = AWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: shutDownOptions)
-        pointer.pointee = aws_credentials_provider_static_options(shutdown_options: shutDownOptionsC,
-                                                                  access_key_id: accessKey.awsByteCursor,
-                                                                  secret_access_key: secret.awsByteCursor,
-                                                                  session_token: sessionToken.awsByteCursor)
-        self.rawValue = pointer
-        self.shutdownOptions = shutDownOptions
-    }
-    
-    deinit {
-        rawValue.deinitializeAndDeallocate()
+                shutDownOptions: CredentialsProviderShutdownOptions? = nil) {
+        self.accessKey = accessKey
+        self.secret = secret
+        self.sessionToken = sessionToken
+        self.shutDownOptions = shutDownOptions
     }
 }
+

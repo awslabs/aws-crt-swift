@@ -9,18 +9,28 @@ class AWSCredentialsProvider: CredentialsProvider {
     public var allocator: Allocator
     public var rawValue: UnsafeMutablePointer<aws_credentials_provider>
     
-    required public init(connection: UnsafeMutablePointer<aws_credentials_provider>,
-                         allocator: Allocator = defaultAllocator) {
+    required internal init(connection: UnsafeMutablePointer<aws_credentials_provider>,
+                         allocator: Allocator) {
         self.allocator = allocator
         self.rawValue = connection
     }
     
     convenience init?(fromStatic config: CredentialsProviderStaticConfigOptions,
                       allocator: Allocator = defaultAllocator) {
+        let configOptionsPointer = UnsafeMutablePointer<aws_credentials_provider_static_options>.allocate(capacity: 1)
+        var staticOptions = aws_credentials_provider_static_options()
+        staticOptions.shutdown_options = AWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: config.shutDownOptions)
+        staticOptions.access_key_id = config.accessKey.awsByteCursor
+        staticOptions.secret_access_key = config.secret.awsByteCursor
+        staticOptions.session_token = config.sessionToken.awsByteCursor
+
+        configOptionsPointer.initialize(to: staticOptions)
         guard let provider = aws_credentials_provider_new_static(allocator.rawValue,
-                                                                 config.rawValue) else {
+                                                                 configOptionsPointer) else {
                                                                     return nil
         }
+        defer { configOptionsPointer.deinitializeAndDeallocate() }
+        
         self.init(connection: provider, allocator: allocator)
     }
     
@@ -42,11 +52,14 @@ class AWSCredentialsProvider: CredentialsProvider {
                       allocator: Allocator = defaultAllocator) {
         let options = UnsafeMutablePointer<aws_credentials_provider_profile_options>.allocate(capacity: 1)
        
-        
         var profileOptionsC = aws_credentials_provider_profile_options()
-        profileOptionsC.config_file_name_override = profileOptions.configFileNameOverride.awsByteCursor
-        profileOptionsC.credentials_file_name_override = profileOptions.credentialsFileNameOverride.awsByteCursor
-        profileOptionsC.profile_name_override = profileOptions.profileFileNameOverride.awsByteCursor
+        if let configFileName = profileOptions.configFileNameOverride,
+            let credentialsFileName = profileOptions.credentialsFileNameOverride,
+            let profileName = profileOptions.profileFileNameOverride {
+        profileOptionsC.config_file_name_override = configFileName.awsByteCursor
+        profileOptionsC.credentials_file_name_override = credentialsFileName.awsByteCursor
+        profileOptionsC.profile_name_override = profileName.awsByteCursor
+        }
         profileOptionsC.shutdown_options = AWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: profileOptions.shutdownOptions)
 
         options.initialize(to: profileOptionsC)
@@ -166,33 +179,33 @@ class AWSCredentialsProvider: CredentialsProvider {
     }
     
     func getCredentials(credentialCallBackData: CredentialProviderCallbackData) {
-        let data = Unmanaged.passRetained(credentialCallBackData).toOpaque()
+        let pointer = UnsafeMutablePointer<CredentialProviderCallbackData>.allocate(capacity: 1)
+        pointer.initialize(to: credentialCallBackData)
         aws_credentials_provider_get_credentials(rawValue, { (credentials, errorCode, userdata) -> Void in
             guard let userdata = userdata else {
                 return
             }
-            let callback: CredentialProviderCallbackData = Unmanaged.fromOpaque(userdata).takeRetainedValue()
+            let pointer = userdata.assumingMemoryBound(to: CredentialProviderCallbackData.self)
+            defer { pointer.deinitializeAndDeallocate() }
+            pointer.pointee.onCredentialsResolved(Credentials(rawValue: credentials), errorCode)
            
-            callback.onCredentialsResolved(Credentials(rawValue: credentials), errorCode)
-
-        }, data)
-        
+        }, pointer)
     }
     
     static func setUpShutDownOptions(shutDownOptions: CredentialsProviderShutdownOptions?) -> aws_credentials_provider_shutdown_options {
         let shutDownOptionsC: aws_credentials_provider_shutdown_options?
         if let shutDownOptions = shutDownOptions {
-            let shutDownOptionsData = Unmanaged.passRetained(shutDownOptions).toOpaque()
+            let pointer = UnsafeMutablePointer<CredentialsProviderShutdownOptions>.allocate(capacity: 1)
+            pointer.initialize(to: shutDownOptions)
             shutDownOptionsC = aws_credentials_provider_shutdown_options(shutdown_callback: { userData in
                 guard let userData = userData else {
                     return
                 }
+                let pointer = userData.assumingMemoryBound(to: CredentialsProviderShutdownOptions.self)
+                defer {pointer.deinitializeAndDeallocate()}
+                pointer.pointee.shutDownCallback()
                 
-                let shutDownOptions: CredentialsProviderShutdownOptions = Unmanaged.fromOpaque(userData).takeRetainedValue()
-
-                shutDownOptions.shutDownCallback()
-                
-            }, shutdown_user_data: shutDownOptionsData)
+            }, shutdown_user_data: pointer)
         } else {
             shutDownOptionsC = aws_credentials_provider_shutdown_options()
         }

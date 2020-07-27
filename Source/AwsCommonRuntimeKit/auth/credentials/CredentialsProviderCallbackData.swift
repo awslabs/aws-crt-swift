@@ -3,16 +3,13 @@
 
 import Foundation
 
-class CredentialProviderCallbackData {
+struct CredentialProviderCallbackData {
     public typealias OnCredentialsResolved = (Credentials?, Int32) -> Void
     public let onCredentialsResolved: OnCredentialsResolved
-    public let provider: CredentialsProvider?
     public let allocator: Allocator
 
-    public init(provider: CredentialsProvider,
-                allocator: Allocator,
+    public init(allocator: Allocator,
                 onCredentialsResolved: @escaping OnCredentialsResolved) {
-        self.provider = provider
         self.onCredentialsResolved = onCredentialsResolved
         self.allocator = allocator
     }
