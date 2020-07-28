@@ -11,7 +11,7 @@ file(GLOB_RECURSE AWS_CRT_SOURCES
 )
 
 
-add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES})
+add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES} AwsCommonRuntimeKit/io/ClientBootstrapCallbackData.swift)
 
 
 target_compile_options(${PROJECT_NAME} PRIVATE

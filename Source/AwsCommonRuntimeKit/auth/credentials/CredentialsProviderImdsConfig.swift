@@ -5,11 +5,11 @@ import AwsCAuth
 
 struct CredentialsProviderImdsConfig {
     public let bootstrap: ClientBootstrap
-    public let shutdownOptions: CredentialsProviderShutdownOptions
+    public let shutdownOptions: CredentialsProviderShutdownOptions?
     public let imdsVersion: aws_imds_protocol_version
 
     public init(bootstrap: ClientBootstrap,
-                shutdownOptions: CredentialsProviderShutdownOptions,
+                shutdownOptions: CredentialsProviderShutdownOptions? = nil,
                 imdsVersion: aws_imds_protocol_version = IMDS_PROTOCOL_V2) {
         self.bootstrap = bootstrap
         self.shutdownOptions = shutdownOptions

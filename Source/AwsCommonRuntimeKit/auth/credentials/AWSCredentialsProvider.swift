@@ -77,11 +77,10 @@ class AWSCredentialsProvider: CredentialsProvider {
     convenience init?(fromImds imdsConfig: CredentialsProviderImdsConfig,
                       allocator: Allocator = defaultAllocator) {
         let options = UnsafeMutablePointer<aws_credentials_provider_imds_options>.allocate(capacity: 1)
-        let shutDownOptions = AWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: imdsConfig.shutdownOptions)
-        let imdsOptions = aws_credentials_provider_imds_options(shutdown_options: shutDownOptions,
-                                                                bootstrap: imdsConfig.bootstrap.rawValue,
-                                                                imds_version: imdsConfig.imdsVersion,
-                                                                function_table: nil)
+        var imdsOptions = aws_credentials_provider_imds_options()
+        imdsOptions.bootstrap = imdsConfig.bootstrap.rawValue
+        imdsOptions.shutdown_options = AWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: imdsConfig.shutdownOptions)
+
         options.initialize(to: imdsOptions)
         guard let provider = aws_credentials_provider_new_imds(allocator.rawValue, options) else {return nil}
         
@@ -192,7 +191,7 @@ class AWSCredentialsProvider: CredentialsProvider {
         }, pointer)
     }
     
-    static func setUpShutDownOptions(shutDownOptions: CredentialsProviderShutdownOptions?) -> aws_credentials_provider_shutdown_options {
+    static private func setUpShutDownOptions(shutDownOptions: CredentialsProviderShutdownOptions?) -> aws_credentials_provider_shutdown_options {
         let shutDownOptionsC: aws_credentials_provider_shutdown_options?
         if let shutDownOptions = shutDownOptions {
             let pointer = UnsafeMutablePointer<CredentialsProviderShutdownOptions>.allocate(capacity: 1)
