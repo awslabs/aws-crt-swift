@@ -4,9 +4,9 @@
 
 public typealias OnRequestSigningComplete = (HttpRequest, Int) -> Void
 
-struct SigningCallbackData {
+class SigningCallbackData {
     public let allocator: Allocator
-    public let request: HttpRequest
+    public unowned var request: HttpRequest
     public let onRequestSigningComplete: OnRequestSigningComplete
     
     public init(allocator: Allocator = defaultAllocator,
@@ -15,6 +15,10 @@ struct SigningCallbackData {
         self.allocator = allocator
         self.request = request
         self.onRequestSigningComplete = onRequestSigningComplete
+    }
+    
+    deinit {
+        print("callback data deinitialized")
     }
 }
 

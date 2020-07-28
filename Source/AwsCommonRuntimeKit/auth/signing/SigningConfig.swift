@@ -24,26 +24,26 @@ struct SigningConfig {
     public init(credentials: Credentials?,
                 credentialsProvider: CredentialsProvider?,
                 expiration: Int64,
-                signedBodyHeader: SignedBodyHeaderType,
-                signedBodyValue: SignedBodyValueType,
-                flags: Flags,
-                shouldSignHeader: ShouldSignHeader?,
                 date: Date,
                 service: String,
                 region: String,
-                signatureType: SignatureType,
-                signingAlgorithm: SigningAlgorithmType,
-                configType: SigningConfigType) {
+                signedBodyHeader: SignedBodyHeaderType = .contentSha256,
+                signedBodyValue: SignedBodyValueType = .empty,
+                flags: Flags = Flags(),
+                shouldSignHeader: ShouldSignHeader? = .none,
+                signatureType: SignatureType = .requestChunk,
+                signingAlgorithm: SigningAlgorithmType = .signingV4,
+                configType: SigningConfigType = .aws) {
         self.credentials = credentials
         self.credentialsProvider = credentialsProvider
         self.expiration = expiration
+        self.date = date
+        self.service = service
+        self.region = region
         self.signedBodyHeader = signedBodyHeader
         self.signedBodyValue = signedBodyValue
         self.flags = flags
         self.shouldSignHeader = shouldSignHeader
-        self.date = date
-        self.service = service
-        self.region = region
         self.signatureType = signatureType
         self.signingAlgorithm = signingAlgorithm
         self.configType = configType
