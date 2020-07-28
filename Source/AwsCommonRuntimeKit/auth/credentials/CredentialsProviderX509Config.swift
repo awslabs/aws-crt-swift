@@ -5,7 +5,7 @@ import Foundation
 
 struct CredentialsProviderX509Config {
     
-    public let shutDownOptions: CredentialsProviderShutdownOptions
+    public let shutDownOptions: CredentialsProviderShutdownOptions?
     public let bootstrap: ClientBootstrap
     public let tlsConnectionOptions: TlsConnectionOptions
     public let thingName: String
@@ -13,19 +13,19 @@ struct CredentialsProviderX509Config {
     public let endpoint: String
     public let proxyOptions: HttpClientConnectionProxyOptions
     
-    public init(shutDownOptions: CredentialsProviderShutdownOptions,
-                bootstrap: ClientBootstrap,
+    public init(bootstrap: ClientBootstrap,
                 tlsConnectionOptions: TlsConnectionOptions,
                 thingName: String,
                 roleAlias: String,
                 endpoint: String,
-                proxyOptions: HttpClientConnectionProxyOptions) {
-        self.shutDownOptions = shutDownOptions
+                proxyOptions: HttpClientConnectionProxyOptions,
+                shutDownOptions: CredentialsProviderShutdownOptions? = nil) {
         self.bootstrap = bootstrap
         self.tlsConnectionOptions = tlsConnectionOptions
         self.thingName = thingName
         self.roleAlias = roleAlias
         self.endpoint = endpoint
         self.proxyOptions = proxyOptions
+        self.shutDownOptions = shutDownOptions
     }
 }

@@ -9,10 +9,10 @@ struct CredentialsProviderImdsConfig {
     public let imdsVersion: aws_imds_protocol_version
 
     public init(bootstrap: ClientBootstrap,
-                shutdownOptions: CredentialsProviderShutdownOptions? = nil,
-                imdsVersion: aws_imds_protocol_version = IMDS_PROTOCOL_V2) {
+                imdsVersion: aws_imds_protocol_version = IMDS_PROTOCOL_V2,
+                shutdownOptions: CredentialsProviderShutdownOptions? = nil) {
         self.bootstrap = bootstrap
-        self.shutdownOptions = shutdownOptions
         self.imdsVersion = imdsVersion
+        self.shutdownOptions = shutdownOptions
     }
 }

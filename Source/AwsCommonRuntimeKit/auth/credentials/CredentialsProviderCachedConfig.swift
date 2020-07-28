@@ -4,16 +4,15 @@
 import Foundation
 
 struct CredentialsProviderCachedConfig {
-    
-    public let shutDownOptions: CredentialsProviderShutdownOptions
+    public let shutDownOptions: CredentialsProviderShutdownOptions?
     public let source: CredentialsProvider
     public let refreshTimeMs: Int64
     
-    public init(shutDownOptions: CredentialsProviderShutdownOptions,
-                source: CredentialsProvider,
-                refreshTimeMs: Int64) {
-        self.shutDownOptions = shutDownOptions
+    public init(source: CredentialsProvider,
+                refreshTimeMs: Int64,
+                shutDownOptions: CredentialsProviderShutdownOptions? = nil) {
         self.source = source
         self.refreshTimeMs = refreshTimeMs
+        self.shutDownOptions = shutDownOptions
     }
 }

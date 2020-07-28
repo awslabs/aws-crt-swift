@@ -4,12 +4,12 @@
 import Foundation
 
 struct CredentialsProviderChainConfig {
-	public let shutDownOptions: CredentialsProviderShutdownOptions
+	public let shutDownOptions: CredentialsProviderShutdownOptions?
 	public let providers: [CredentialsProvider]
     
-    public init(shutDownOptions: CredentialsProviderShutdownOptions,
-                providers: [CredentialsProvider]) {
-        self.shutDownOptions = shutDownOptions
+    public init(providers: [CredentialsProvider],
+                shutDownOptions: CredentialsProviderShutdownOptions? = nil) {
         self.providers = providers
+        self.shutDownOptions = shutDownOptions
     }
 }

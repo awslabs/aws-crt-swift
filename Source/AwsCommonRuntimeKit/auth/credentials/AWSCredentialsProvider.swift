@@ -105,10 +105,11 @@ class AWSCredentialsProvider: CredentialsProvider {
             providers.deinitializeAndDeallocate()
         }
         let options = UnsafeMutablePointer<aws_credentials_provider_chain_options>.allocate(capacity: 1)
-        let shutDownOptions = AWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: chainConfig.shutDownOptions)
-        let chainOptions = aws_credentials_provider_chain_options(shutdown_options: shutDownOptions,
-                                                                  providers:providers,
-                                                                  provider_count: chainConfig.providers.count)
+        var chainOptions = aws_credentials_provider_chain_options()
+        chainOptions.shutdown_options = AWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: chainConfig.shutDownOptions)
+        chainOptions.providers = providers
+        chainOptions.provider_count = chainConfig.providers.count
+
         options.initialize(to: chainOptions)
         defer { options.deinitializeAndDeallocate() }
         guard let provider = aws_credentials_provider_new_chain(allocator.rawValue,
@@ -119,12 +120,11 @@ class AWSCredentialsProvider: CredentialsProvider {
     convenience init?(fromCached cachedConfig: CredentialsProviderCachedConfig,
                       allocator: Allocator = defaultAllocator) {
         let cachedOptionsPointer = UnsafeMutablePointer<aws_credentials_provider_cached_options>.allocate(capacity: 1)
-        let shutDownOptions = AWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: cachedConfig.shutDownOptions)
-        let cachedOptions = aws_credentials_provider_cached_options(shutdown_options: shutDownOptions,
-                                                                    source: cachedConfig.source.rawValue,
-                                                                    refresh_time_in_milliseconds: UInt64(cachedConfig.refreshTimeMs),
-                                                                    high_res_clock_fn: nil,
-                                                                    system_clock_fn: nil)
+        var cachedOptions = aws_credentials_provider_cached_options()
+        cachedOptions.shutdown_options = AWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: cachedConfig.shutDownOptions)
+        cachedOptions.source = cachedConfig.source.rawValue
+        cachedOptions.refresh_time_in_milliseconds = UInt64(cachedConfig.refreshTimeMs)
+
         cachedOptionsPointer.initialize(to: cachedOptions)
         defer { cachedOptionsPointer.deinitializeAndDeallocate() }
         
@@ -136,9 +136,10 @@ class AWSCredentialsProvider: CredentialsProvider {
     
     convenience init?(fromChainDefault chainDefaultConfig: CredentialsProviderChainDefaultConfig, allocator: Allocator = defaultAllocator) {
         let chainDefaultOptionsPtr = UnsafeMutablePointer<aws_credentials_provider_chain_default_options>.allocate(capacity: 1)
-        let shutDownOptions = AWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: chainDefaultConfig.shutDownOptions)
-        let chainDefaultOptions = aws_credentials_provider_chain_default_options(shutdown_options: shutDownOptions,
-                                                                                 bootstrap: chainDefaultConfig.bootstrap.rawValue)
+        var chainDefaultOptions = aws_credentials_provider_chain_default_options()
+        chainDefaultOptions.shutdown_options = AWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: chainDefaultConfig.shutDownOptions)
+        chainDefaultOptions.bootstrap = chainDefaultConfig.bootstrap.rawValue
+
         chainDefaultOptionsPtr.initialize(to: chainDefaultOptions)
         defer { chainDefaultOptionsPtr.deinitializeAndDeallocate() }
         guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue, chainDefaultOptionsPtr) else {
@@ -154,15 +155,15 @@ class AWSCredentialsProvider: CredentialsProvider {
         let proxyOptionsPtr = UnsafeMutablePointer<aws_http_proxy_options>.allocate(capacity: 1)
         proxyOptionsPtr.initialize(to: x509Config.proxyOptions.rawValue)
         let x509OptionsPtr = UnsafeMutablePointer<aws_credentials_provider_x509_options>.allocate(capacity: 1)
-        let shutDownOptions = AWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: x509Config.shutDownOptions)
-        let x509Options = aws_credentials_provider_x509_options(shutdown_options: shutDownOptions,
-                                                                bootstrap: x509Config.bootstrap.rawValue,
-                                                                tls_connection_options: UnsafePointer(tlsOptionsPtr),
-                                                                thing_name: x509Config.thingName.awsByteCursor,
-                                                                role_alias: x509Config.roleAlias.awsByteCursor,
-                                                                endpoint: x509Config.endpoint.awsByteCursor,
-                                                                proxy_options: UnsafePointer(proxyOptionsPtr),
-                                                                function_table: nil)
+        var x509Options = aws_credentials_provider_x509_options()
+        x509Options.shutdown_options = AWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: x509Config.shutDownOptions)
+        x509Options.bootstrap = x509Config.bootstrap.rawValue
+        x509Options.tls_connection_options = UnsafePointer(tlsOptionsPtr)
+        x509Options.thing_name = x509Config.thingName.awsByteCursor
+        x509Options.role_alias = x509Config.roleAlias.awsByteCursor
+        x509Options.endpoint = x509Config.endpoint.awsByteCursor
+        x509Options.proxy_options = UnsafePointer(proxyOptionsPtr)
+
         x509OptionsPtr.initialize(to: x509Options)
         
         defer {
@@ -176,21 +177,7 @@ class AWSCredentialsProvider: CredentialsProvider {
         }
         self.init(connection: provider, allocator: allocator)
     }
-    
-    func getCredentials(credentialCallBackData: CredentialProviderCallbackData) {
-        let pointer = UnsafeMutablePointer<CredentialProviderCallbackData>.allocate(capacity: 1)
-        pointer.initialize(to: credentialCallBackData)
-        aws_credentials_provider_get_credentials(rawValue, { (credentials, errorCode, userdata) -> Void in
-            guard let userdata = userdata else {
-                return
-            }
-            let pointer = userdata.assumingMemoryBound(to: CredentialProviderCallbackData.self)
-            defer { pointer.deinitializeAndDeallocate() }
-            pointer.pointee.onCredentialsResolved(Credentials(rawValue: credentials), errorCode)
-           
-        }, pointer)
-    }
-    
+
     static private func setUpShutDownOptions(shutDownOptions: CredentialsProviderShutdownOptions?) -> aws_credentials_provider_shutdown_options {
         let shutDownOptionsC: aws_credentials_provider_shutdown_options?
         if let shutDownOptions = shutDownOptions {
