@@ -29,7 +29,7 @@ internal extension Data {
 internal extension String {
   @inlinable
   var awsByteCursor: aws_byte_cursor {
-    return aws_byte_cursor_from_c_str(self)
+    return aws_byte_cursor_from_c_str(self.asCStr())
   }
 }
 

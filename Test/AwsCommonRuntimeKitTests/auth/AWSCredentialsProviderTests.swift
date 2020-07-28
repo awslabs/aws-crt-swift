@@ -74,8 +74,6 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     
     func testCreateAWSCredentialsProviderImds() {
         do {
-            let logger = Logger(pipe: stdout, level: .trace, allocator: allocator)
-            
             let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
             let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: hostResolver, allocator: allocator)
@@ -95,8 +93,6 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     
     func testCreateAWSCredentialsProviderChain() {
         do {
-            let logger = Logger(pipe: stdout, level: .trace, allocator: allocator)
-            
             let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
             let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: hostResolver, allocator: allocator)

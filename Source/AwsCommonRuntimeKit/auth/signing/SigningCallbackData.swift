@@ -1,10 +1,9 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-
 public typealias OnRequestSigningComplete = (HttpRequest, Int) -> Void
 
-class SigningCallbackData {
+struct SigningCallbackData {
     public let allocator: Allocator
     public unowned var request: HttpRequest
     public let onRequestSigningComplete: OnRequestSigningComplete
@@ -15,10 +14,6 @@ class SigningCallbackData {
         self.allocator = allocator
         self.request = request
         self.onRequestSigningComplete = onRequestSigningComplete
-    }
-    
-    deinit {
-        print("callback data deinitialized")
     }
 }
 

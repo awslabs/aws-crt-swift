@@ -51,7 +51,6 @@ struct SigningConfig {
         if let shouldSignHeader = shouldSignHeader {
             pointer.initialize(to: shouldSignHeader)
         }
-        defer { pointer.deinitializeAndDeallocate() }
         self.rawValue = aws_signing_config_aws(config_type: configType.rawValue,
                                                algorithm: signingAlgorithm.rawValue,
                                                signature_type: signatureType.rawValue,
@@ -60,12 +59,19 @@ struct SigningConfig {
                                                date: date.awsDateTime,
                                                should_sign_header: { (name, userData) -> Bool in
                                                 
-                                                guard let userData = userData, let name = name?.pointee.toString() else {
+                                                guard let userData = userData,
+                                                    let name = name,
+                                                    let nameAsString = name.pointee.toString() else {
                                                     return false
                                                 }
                                                 
                                                 let callback = userData.bindMemory(to: ShouldSignHeader.self, capacity: 1)
-                                                return callback.pointee(name)
+                                                defer {
+                                                    callback.deinitializeAndDeallocate()
+                                                    name.deallocate()
+                                                
+                                                }
+                                                return callback.pointee(nameAsString)
                                                 },
                                                should_sign_header_ud: pointer,
                                                flags: flags.rawValue,

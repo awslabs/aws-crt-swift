@@ -20,9 +20,10 @@ class SigV4HttpRequestSigner {
             throw AwsCommonRuntimeError()
         }
         
-        let callbackData = SigningCallbackData(request: request, onRequestSigningComplete: callback)
+        let callbackData = SigningCallbackData(allocator: allocator.rawValue, request: request, onRequestSigningComplete: callback)
         
         let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
+        
         let configPointer = UnsafeMutablePointer<aws_signing_config_aws>.allocate(capacity: 1)
         configPointer.initialize(to: config.rawValue)
         let base = unsafeBitCast(configPointer, to: UnsafeMutablePointer<aws_signing_config_base>.self)
@@ -32,9 +33,8 @@ class SigV4HttpRequestSigner {
         callbackPointer.initialize(to: callbackData)
         
         defer{
-            //signable?.deallocate()
-            configPointer.deinitializeAndDeallocate()
-            destroySignable(signable: signable!)
+            aws_signable_destroy(signable)
+            base.deinitializeAndDeallocate()
         }
         
         if aws_sign_request_aws(allocator.rawValue,
@@ -51,6 +51,7 @@ class SigV4HttpRequestSigner {
                                                                                      signingResult)
                                         }
                                         defer {
+                                            
                                             callback.deinitializeAndDeallocate()
                                             signingResult?.deinitializeAndDeallocate()
                                         }
@@ -61,11 +62,7 @@ class SigV4HttpRequestSigner {
         }
     }
     
-    func destroySignable(signable: UnsafeMutablePointer<aws_signable>) {
-         aws_signable_destroy(signable)
-    }
-    
     deinit {
-       
+        print("signer deinitilized")
     }
 }

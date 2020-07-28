@@ -4,7 +4,7 @@ import AwsCHttp
 
 public final class HttpHeaders {
 
-    let rawValue: OpaquePointer
+    var rawValue: OpaquePointer
 
     var count: Int {
         return aws_http_headers_count(self.rawValue)
@@ -26,7 +26,9 @@ public final class HttpHeaders {
     ///   - value: The `HttpHeader value.
     /// - Returns: `Bool`: True on success
     public func add(name: String, value: String) -> Bool {
-        return aws_http_headers_add(self.rawValue, name.awsByteCursor, value.awsByteCursor) == AWS_OP_SUCCESS
+        let nameByteCursor = name.awsByteCursor
+        let valueByteCursor = value.awsByteCursor
+        return aws_http_headers_add(self.rawValue, nameByteCursor, valueByteCursor) == AWS_OP_SUCCESS
     }
     
     /// Appends an array of `HttpHeaders` into the c instance of headers.
@@ -53,9 +55,11 @@ public final class HttpHeaders {
     /// - Returns: `Bool`: True on success
     public func update(_ header: HttpHeader) -> Bool {
         //this function in c will update the header if it exists or create a new one if it's new.
+        let name = header.name.awsByteCursor
+        let value = header.value.awsByteCursor
         return aws_http_headers_set(self.rawValue,
-                                    header.name.awsByteCursor,
-                                    header.value.awsByteCursor) == AWS_OP_SUCCESS
+                                    name,
+                                    value) == AWS_OP_SUCCESS
 
     }
 
@@ -65,7 +69,8 @@ public final class HttpHeaders {
     /// - Returns: `String?`: The value of the Header
     public func get(name: String) -> String? {
         var value = aws_byte_cursor()
-        if aws_http_headers_get(self.rawValue, name.awsByteCursor, &value) != AWS_OP_SUCCESS {
+        let nameByteCursor = name.awsByteCursor
+        if aws_http_headers_get(self.rawValue, nameByteCursor, &value) != AWS_OP_SUCCESS {
             return nil
         }
         return value.toString()
@@ -92,7 +97,8 @@ public final class HttpHeaders {
     /// - Parameter name: The name of the `HttpHeader` to remove.
     /// - Returns: `Bool`: True on success
     public func remove(name: String) -> Bool {
-        return aws_http_headers_erase(self.rawValue, name.awsByteCursor) == AWS_OP_SUCCESS
+        let nameByteCursor = name.awsByteCursor
+        return aws_http_headers_erase(self.rawValue, nameByteCursor) == AWS_OP_SUCCESS
     }
 
     /// Removes all headers from the array
@@ -103,6 +109,7 @@ public final class HttpHeaders {
     deinit {
         print("headers were deinitialized")
         aws_http_headers_release(self.rawValue)
+       
     }
 
 }

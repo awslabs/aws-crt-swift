@@ -9,7 +9,6 @@ class CrtXCBaseTestCase: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        //let logger = Logger(pipe: stdout, level: .trace, allocator: allocator)
         AwsCommonRuntimeKit.initialize(allocator: self.allocator)
        
     }
