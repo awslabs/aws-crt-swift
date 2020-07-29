@@ -3,7 +3,7 @@
 
 import AwsCAuth
 
-public class Credentials {
+public final class Credentials {
 
     let rawValue: OpaquePointer
 

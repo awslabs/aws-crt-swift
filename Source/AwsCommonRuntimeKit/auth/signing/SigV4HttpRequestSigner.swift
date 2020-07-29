@@ -15,8 +15,7 @@ class SigV4HttpRequestSigner {
             throw AwsCommonRuntimeError()
         }
         
-        guard let _ = config.rawValue.credentials_provider,
-            let _ = config.rawValue.credentials else {
+        if config.rawValue.credentials_provider == nil && config.rawValue.credentials == nil {
             throw AwsCommonRuntimeError()
         }
         
@@ -51,9 +50,7 @@ class SigV4HttpRequestSigner {
                                                                                      signingResult)
                                         }
                                         defer {
-                                            
                                             callback.deinitializeAndDeallocate()
-                                            signingResult?.deinitializeAndDeallocate()
                                         }
                                         callback.pointee.onRequestSigningComplete(callback.pointee.request, Int(errorCode))
         },

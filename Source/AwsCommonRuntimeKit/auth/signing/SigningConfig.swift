@@ -21,8 +21,8 @@ struct SigningConfig {
     public let signingAlgorithm: SigningAlgorithmType
     public let configType: SigningConfigType
     
-    public init(credentials: Credentials?,
-                credentialsProvider: CredentialsProvider?,
+    public init(credentials: Credentials? = nil,
+                credentialsProvider: CredentialsProvider? = nil,
                 expiration: Int64,
                 date: Date,
                 service: String,
@@ -60,18 +60,15 @@ struct SigningConfig {
                                                should_sign_header: { (name, userData) -> Bool in
                                                 
                                                 guard let userData = userData,
-                                                    let name = name,
-                                                    let nameAsString = name.pointee.toString() else {
+                                                    let name = name?.pointee.toString() else {
                                                     return false
                                                 }
                                                 
                                                 let callback = userData.bindMemory(to: ShouldSignHeader.self, capacity: 1)
                                                 defer {
                                                     callback.deinitializeAndDeallocate()
-                                                    name.deallocate()
-                                                
                                                 }
-                                                return callback.pointee(nameAsString)
+                                                return callback.pointee(name)
                                                 },
                                                should_sign_header_ud: pointer,
                                                flags: flags.rawValue,
