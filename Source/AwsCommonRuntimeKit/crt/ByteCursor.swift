@@ -1,6 +1,7 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
+import Foundation
 
 public protocol ByteCursor {
   var rawValue: aws_byte_cursor { get set }
@@ -18,6 +19,10 @@ extension aws_byte_cursor: ByteCursor {
 extension aws_byte_cursor {
     public func toString() -> String? {
          return String(bytesNoCopy: self.ptr, length: self.len, encoding: String.Encoding.utf8, freeWhenDone: false)
+    }
+    
+    public func toData() -> Data {
+        return Data(bytesNoCopy: self.ptr, count: self.len, deallocator: .none)
     }
 }
 

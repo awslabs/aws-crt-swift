@@ -7,6 +7,7 @@ file(GLOB_RECURSE AWS_CRT_SOURCES
   "AwsCommonRuntimeKit/io/*.swift"
   "AwsCommonRuntimeKit/auth/credentials/*.swift"
   "AwsCommonRuntimeKit/auth/signing/*.swift"
+  "AwsCommonRuntimeKit/mqtt/*.swift"
   "AwsCommonRuntimeKit/*.swift"
 )
 

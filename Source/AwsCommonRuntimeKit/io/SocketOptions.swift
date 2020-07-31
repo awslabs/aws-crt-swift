@@ -11,7 +11,7 @@ public struct SocketOptions {
     public init(socketType: SocketType = .stream) {
         self.rawValue = aws_socket_options(
             type: socketType.rawValue,
-            domain: AWS_SOCKET_IPV4,
+            domain: SocketDomain.ipv4.rawValue,
             connect_timeout_ms: defaultSocketTimeMsec,
             keep_alive_interval_sec: 0,
             keep_alive_timeout_sec: 0,
@@ -70,9 +70,9 @@ extension SocketDomain: RawRepresentable, CaseIterable {
     }
     public var rawValue: aws_socket_domain {
         switch self {
-        case .ipv4:  return AWS_SOCKET_IPV4
-        case .ipv6:  return AWS_SOCKET_IPV6
-        case .local: return AWS_SOCKET_LOCAL
+        case .ipv4:  return aws_socket_domain(rawValue: 0)
+        case .ipv6:  return aws_socket_domain(rawValue: 1)
+        case .local: return aws_socket_domain(rawValue: 2)
         }
     }
 }
@@ -90,8 +90,8 @@ extension SocketType: RawRepresentable, CaseIterable {
     }
     public var rawValue: aws_socket_type {
         switch self {
-        case .datagram: return AWS_SOCKET_DGRAM
-        case .stream:   return AWS_SOCKET_STREAM
+        case .datagram: return aws_socket_type(rawValue: 0)
+        case .stream:   return aws_socket_type(rawValue: 1)
         }
     }
 }
