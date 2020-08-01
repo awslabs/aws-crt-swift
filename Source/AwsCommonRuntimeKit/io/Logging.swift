@@ -2,7 +2,6 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCCommon
-import Foundation
 
 public enum LogLevel {
     case none
@@ -69,11 +68,10 @@ public class Logger {
     }
 
     public init(filePath: String, level: LogLevel, allocator: Allocator = defaultAllocator) {
-        let filePathCStr = (filePath as NSString).utf8String
         logger = aws_logger()
         var options = aws_logger_standard_options()
         options.level = level.rawValue
-        options.filename = filePathCStr
+        options.filename = filePath.asCStr()
         aws_logger_init_standard(&logger, allocator.rawValue, &options)
         aws_logger_set(&logger)
     }

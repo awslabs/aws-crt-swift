@@ -283,6 +283,10 @@ public class MqttConnection {
         return Int16(packetId)
     }
     
+    func subscribe() {
+        
+    }
+    
     func unsubscribe(topicFilter: String, onComplete: @escaping OnOperationComplete) -> Int16 {
         let opCallbackData = OpCompleteCallbackData(connection: self, onOperationComplete: onComplete)
         let opCallbackPtr = UnsafeMutablePointer<OpCompleteCallbackData>.allocate(capacity: 1)

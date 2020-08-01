@@ -1,8 +1,6 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-import Foundation
-
 struct CredentialsProviderProfileOptions {
     public let shutdownOptions: CredentialsProviderShutdownOptions?
     public let configFileNameOverride: String?
