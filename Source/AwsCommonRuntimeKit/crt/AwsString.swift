@@ -50,5 +50,4 @@ extension String {
     public func toInt32() -> Int32 {
         return Int32(bitPattern: UnicodeScalar(self)?.value ?? 0)
     }
-
 }

@@ -12,7 +12,7 @@ file(GLOB_RECURSE AWS_CRT_SOURCES
 )
 
 
-add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES} AwsCommonRuntimeKit/crt/AWSDate.swift)
+add_library(${PROJECT_NAME} ${AWS_CRT_SOURCES})
 
 
 target_compile_options(${PROJECT_NAME} PRIVATE

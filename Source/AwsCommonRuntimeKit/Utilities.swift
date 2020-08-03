@@ -65,3 +65,7 @@ extension Bool {
         return self ? 1 : 0
     }
 }
+
+extension Calendar.Component {
+    
+}
