@@ -6,7 +6,7 @@ typealias OnOperationComplete = (MqttConnection, Int16, Int32) -> Void
 struct OpCompleteCallbackData {
     let onOperationComplete: OnOperationComplete
     let topic: String?
-    let connection: MqttConnection
+    unowned var connection: MqttConnection
     
     init(topic: String? = nil, connection: MqttConnection, onOperationComplete: @escaping OnOperationComplete) {
         self.topic = topic

@@ -5,7 +5,7 @@ public typealias OnSubAck = (MqttConnection, Int16, String, MqttQos, Int32) -> V
 
 struct SubAckCallbackData {
     let onSubAck: OnSubAck
-    let connection: MqttConnection
+    unowned var connection: MqttConnection
     let topic: String?
     
     init(onSubAck: @escaping OnSubAck,

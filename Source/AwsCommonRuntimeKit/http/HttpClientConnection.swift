@@ -121,11 +121,11 @@ public class HttpClientConnection {
             
             var headers = [HttpHeader]()
             for cHeader in UnsafeBufferPointer(start: headerArray, count: headersCount) {
-                if let name = cHeader.name.toString(),
-                    let value = cHeader.value.toString() {
+                let name = cHeader.name.toString()
+                let value = cHeader.value.toString()
                 let swiftHeader = HttpHeader(name: name, value: value)
                 headers.append(swiftHeader)
-                }
+                
             }
             let headersStruct = HttpHeaders(fromArray: headers)
             httpStreamCbData.requestOptions.onIncomingHeaders(httpStreamCbData.stream!,

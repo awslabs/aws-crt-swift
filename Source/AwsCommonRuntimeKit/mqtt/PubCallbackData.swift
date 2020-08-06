@@ -6,7 +6,7 @@ public typealias OnPublishReceived = (MqttConnection, String, Data) -> Void
 
 struct PubCallbackData {
     let onPublishReceived: OnPublishReceived
-    let mqttConnection: MqttConnection
+    unowned var mqttConnection: MqttConnection
     
     init(onPublishReceived: @escaping OnPublishReceived,
          mqttConnection: MqttConnection) {

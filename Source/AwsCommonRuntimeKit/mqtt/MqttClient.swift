@@ -27,23 +27,28 @@ class MqttClient {
                        port: Int16,
                        socketOptions: SocketOptions,
                        tlsContext: TlsContext,
-                       useWebSockets: Bool) -> MqttConnection {
+                       useWebSockets: Bool,
+                       allocator: Allocator) -> MqttConnection {
         return MqttConnection(clientPointer: rawValue,
                               host: host,
                               port: port,
                               socketOptions: socketOptions,
-                              useWebSockets: useWebSockets)
+                              tlsContext: tlsContext,
+                              useWebSockets: useWebSockets,
+                              allocator: allocator)
     }
     
     func newConnection(host: String,
                        port: Int16,
                        socketOptions: SocketOptions,
-                       useWebSockets: Bool) -> MqttConnection {
+                       useWebSockets: Bool,
+                       allocator: Allocator) -> MqttConnection {
         return MqttConnection(clientPointer: rawValue,
                               host: host,
                               port: port,
                               socketOptions: socketOptions,
-                              useWebSockets: useWebSockets)
+                              useWebSockets: useWebSockets,
+                              allocator: allocator)
     }
     
     deinit {
