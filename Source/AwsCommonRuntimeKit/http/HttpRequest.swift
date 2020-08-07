@@ -4,7 +4,7 @@ import AwsCHttp
 import AwsCIo
 
 public final class HttpRequest: HttpMessage {
-    internal init(message: OpaquePointer) {
+    init(message: OpaquePointer) {
         super.init(borrowingMessage: message)
     }
 
@@ -25,7 +25,9 @@ public final class HttpRequest: HttpMessage {
             return result.toString()
         }
         set(value) {
-            aws_http_message_set_request_method(self.rawValue, value?.awsByteCursor ?? "".awsByteCursor)
+            if aws_http_message_set_request_method(self.rawValue, value?.awsByteCursor ?? "".awsByteCursor) != AWS_OP_SUCCESS {
+                self.method = nil
+            }
         }
     }
 
@@ -38,8 +40,9 @@ public final class HttpRequest: HttpMessage {
             return result.toString()
         }
         set(value) {
-            // TODO: What when this fails?
-            aws_http_message_set_request_path(self.rawValue, value?.awsByteCursor ?? "".awsByteCursor)
+            if aws_http_message_set_request_path(self.rawValue, value?.awsByteCursor ?? "".awsByteCursor) != AWS_OP_SUCCESS {
+                self.path = nil
+            }
         }
     }
 }

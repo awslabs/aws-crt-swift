@@ -74,14 +74,4 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!
   options.onResolved(options.resolver, addresses, errorCode)
 }
 
-private class ResolverOptions {
-  let host: AwsString
-  let resolver: HostResolver
-  let onResolved: OnHostResolved
 
-  init(resolver: HostResolver, host: AwsString, onResolved: @escaping OnHostResolved) {
-    self.host = host
-    self.onResolved = onResolved
-    self.resolver = resolver
-  }
-}

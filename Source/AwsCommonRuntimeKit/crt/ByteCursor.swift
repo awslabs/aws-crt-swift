@@ -17,9 +17,8 @@ extension aws_byte_cursor: ByteCursor {
 }
 
 extension aws_byte_cursor {
-    public func toString() -> String {
-        return String(cString: self.ptr)
-//        return String(cString: self.ptr)
+    public func toString() -> String? {
+        return String(bytesNoCopy: self.ptr, length: self.len, encoding: .utf8, freeWhenDone: false)
     }
     
     public func toData() -> Data {

@@ -4,7 +4,7 @@ import AwsCHttp
 import AwsCIo
 
 public class HttpMessage {
-    internal let rawValue: OpaquePointer
+    let rawValue: OpaquePointer
     private let owned: Bool
 
     public var body: AwsInputStream? {
@@ -17,12 +17,12 @@ public class HttpMessage {
         }
     }
 
-    internal init(owningMessage message: OpaquePointer) {
+    init(owningMessage message: OpaquePointer) {
         self.owned = true
         self.rawValue = message
     }
 
-    internal init(borrowingMessage message: OpaquePointer) {
+    init(borrowingMessage message: OpaquePointer) {
         self.owned = false
         self.rawValue = message
     }

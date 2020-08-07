@@ -7,9 +7,9 @@ import Foundation
 private var vtable = aws_input_stream_vtable(seek: doSeek, read: doRead, get_status: doGetStatus, get_length: doGetLength, destroy: doDestroy)
 
 public class AwsInputStream {
-    internal var rawValue: aws_input_stream
+    var rawValue: aws_input_stream
 
-    internal init(_ impl: inout AwsInputStreamImpl, allocator: Allocator) {
+    init(_ impl: inout AwsInputStreamImpl, allocator: Allocator) {
         self.rawValue = aws_input_stream(allocator: allocator.rawValue, impl: &impl, vtable: &vtable)
     }
 }

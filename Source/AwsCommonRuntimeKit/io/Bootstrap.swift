@@ -5,7 +5,7 @@ import Foundation
 
 public final class ClientBootstrap {
   let rawValue: UnsafeMutablePointer<aws_client_bootstrap>
-  public var enableBlockingShutdown: Bool = false
+  var enableBlockingShutdown: Bool = false
   let shutDownSemaphore: DispatchSemaphore
 
   public init(eventLoopGroup elg: EventLoopGroup,

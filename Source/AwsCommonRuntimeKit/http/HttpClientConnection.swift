@@ -17,8 +17,12 @@ public class HttpClientConnection {
     deinit {
         aws_http_connection_release(rawValue)
     }
-
-    public static func createConnection(options: inout HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) {
+    
+    /// Creates an http connection to the host given via the `HttpClientConnectionOptions`
+    /// - Parameters:
+    ///   - options: An options object of type `HttpClientConnectionOptions` to send in all options for connectiing via http
+    ///   - allocator: The allocator to use to allocate memory. If no allocator is passed in the `defaultAllocator` will be used.
+    public static func createConnection(options: HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) {
         let tempHostName = options.hostName.newByteCursor()
       
         let socketOptionPointer = UnsafeMutablePointer<aws_socket_options>.allocate(capacity: 1)
@@ -85,11 +89,15 @@ public class HttpClientConnection {
     public var isOpen: Bool {
        return aws_http_connection_is_open(self.rawValue)
     }
-
+    
+    /// Close the http connection
     public func close() {
         return aws_http_connection_close(self.rawValue)
     }
-
+    
+    /// Creates a new http stream from the `HttpRequestOptions` given.
+    /// - Parameter requestOptions: An `HttpRequestOptions` struct containing callbacks on the different events from the stream
+    /// - Returns: An `HttpStream` containing the `HttpClientConnection`
     public func newClientStream(requestOptions: HttpRequestOptions) -> HttpStream {
         var options = aws_http_make_request_options()
         options.self_size = MemoryLayout<aws_http_make_request_options>.size
@@ -121,10 +129,11 @@ public class HttpClientConnection {
             
             var headers = [HttpHeader]()
             for cHeader in UnsafeBufferPointer(start: headerArray, count: headersCount) {
-                let name = cHeader.name.toString()
-                let value = cHeader.value.toString()
+                if let name = cHeader.name.toString(),
+                    let value = cHeader.value.toString() {
                 let swiftHeader = HttpHeader(name: name, value: value)
                 headers.append(swiftHeader)
+                }
                 
             }
             let headersStruct = HttpHeaders(fromArray: headers)

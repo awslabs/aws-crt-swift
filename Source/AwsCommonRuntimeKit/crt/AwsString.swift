@@ -43,7 +43,7 @@ extension String {
     self.init(cString: aws_string_c_str(awsString), encoding: encoding)
   }
 
-    public func asCStr() -> UnsafePointer<Int8> {
+    public func asCStr() -> UnsafePointer<Int8>? {
         return aws_string_c_str(aws_string_new_from_array(defaultAllocator, self, self.count))
     }
 

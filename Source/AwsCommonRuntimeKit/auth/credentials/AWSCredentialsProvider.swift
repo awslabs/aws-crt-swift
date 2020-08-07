@@ -15,6 +15,11 @@ class AWSCredentialsProvider: CredentialsProvider {
         self.rawValue = connection
     }
     
+    /// Creates a credentials provider containing a fixed set of credentials.
+    ///
+    /// - Parameters:
+    ///   - config:  The `CredentialsProviderStaticConfigOptions` config object.
+    /// - Returns: `AWSCredentialsProvider`
     convenience init?(fromStatic config: CredentialsProviderStaticConfigOptions,
                       allocator: Allocator = defaultAllocator) {
         let configOptionsPointer = UnsafeMutablePointer<aws_credentials_provider_static_options>.allocate(capacity: 1)
@@ -34,6 +39,14 @@ class AWSCredentialsProvider: CredentialsProvider {
         self.init(connection: provider, allocator: allocator)
     }
     
+    /// Creates a credentials provider from environment variables:
+    /// - `AWS_ACCESS_KEY_ID`
+    /// - `AWS_SECRET_ACCESS_KEY`
+    /// - `AWS_SESSION_TOKEN`
+    ///
+    /// - Parameters:
+    ///   - shutdownOptions:  The `CredentialsProviderShutdownOptions`options object.
+    /// - Returns: `AWSCredentialsProvider`
     convenience init?(fromEnv shutdownOptions: CredentialsProviderShutdownOptions?,
                       allocator: Allocator = defaultAllocator) {
         let options = UnsafeMutablePointer<aws_credentials_provider_environment_options>.allocate(capacity: 1)
@@ -48,6 +61,12 @@ class AWSCredentialsProvider: CredentialsProvider {
         self.init(connection: provider, allocator: allocator)
     }
     
+    /// Creates a credentials provider that sources credentials from key-value profiles loaded from the aws credentials
+    /// file ("~/.aws/credentials" by default) and the aws config file ("~/.aws/config" by default
+    ///
+    /// - Parameters:
+    ///   - profileOptions:  The `CredentialsProviderProfileOptions`options object.
+    /// - Returns: `AWSCredentialsProvider`
     convenience init?(fromProfile profileOptions: CredentialsProviderProfileOptions,
                       allocator: Allocator = defaultAllocator) {
         let options = UnsafeMutablePointer<aws_credentials_provider_profile_options>.allocate(capacity: 1)
@@ -74,6 +93,11 @@ class AWSCredentialsProvider: CredentialsProvider {
         self.init(connection: provider, allocator: allocator)
     }
     
+    /// Creates a credentials provider from the ec2 instance metadata service
+    ///
+    /// - Parameters:
+    ///   - imdsConfig:  The `CredentialsProviderImdsConfig`options object.
+    /// - Returns: `AWSCredentialsProvider`
     convenience init?(fromImds imdsConfig: CredentialsProviderImdsConfig,
                       allocator: Allocator = defaultAllocator) {
         let options = UnsafeMutablePointer<aws_credentials_provider_imds_options>.allocate(capacity: 1)
@@ -90,6 +114,12 @@ class AWSCredentialsProvider: CredentialsProvider {
         self.init(connection: provider, allocator: allocator)
     }
     
+    /// Creates a credentials provider that sources credentials from an ordered sequence of providers, with the overall result
+    /// being from the first provider to return a valid set of credentials
+    ///
+    /// - Parameters:
+    ///   - chainConfig:  The `CredentialsProviderChainConfig`options object.
+    /// - Returns: `AWSCredentialsProvider`
     convenience init?(fromChain chainConfig: CredentialsProviderChainConfig,
                       allocator: Allocator = defaultAllocator) {
         var vectorBuf : UnsafeMutablePointer<aws_credentials_provider>?
@@ -117,6 +147,11 @@ class AWSCredentialsProvider: CredentialsProvider {
         self.init(connection: provider, allocator: allocator)
     }
     
+    /// Creates a credentials provider that functions as a caching decorating of another provider.
+    ///
+    /// - Parameters:
+    ///   - cachedConfig:  The `CredentialsProviderCachedConfig`options object.
+    /// - Returns: `AWSCredentialsProvider`
     convenience init?(fromCached cachedConfig: CredentialsProviderCachedConfig,
                       allocator: Allocator = defaultAllocator) {
         let cachedOptionsPointer = UnsafeMutablePointer<aws_credentials_provider_cached_options>.allocate(capacity: 1)
@@ -134,6 +169,18 @@ class AWSCredentialsProvider: CredentialsProvider {
         self.init(connection: provider, allocator: allocator)
     }
     
+    /// Creates the default provider chain used by most AWS SDKs.
+    ///
+    /// Generally:
+    /// - Environment
+    /// - Profile
+    /// - (conditional, off by default) ECS
+    /// - (conditional, on by default) EC2 Instance Metadata
+    /// Support for environmental control of the default provider chain is not yet implemented.
+    ///
+    /// - Parameters:
+    ///   - chainDefaultConfig:  The `CredentialsProviderChainDefaultConfig`options object.
+    /// - Returns: `AWSCredentialsProvider`
     convenience init?(fromChainDefault chainDefaultConfig: CredentialsProviderChainDefaultConfig, allocator: Allocator = defaultAllocator) {
         let chainDefaultOptionsPtr = UnsafeMutablePointer<aws_credentials_provider_chain_default_options>.allocate(capacity: 1)
         var chainDefaultOptions = aws_credentials_provider_chain_default_options()
@@ -148,6 +195,11 @@ class AWSCredentialsProvider: CredentialsProvider {
         self.init(connection: provider, allocator: allocator)
     }
     
+    /// Creates a credentials provider that sources credentials from IoT Core.
+    ///
+    /// - Parameters:
+    ///   - x509Config:  The `CredentialsProviderX509Config`options object.
+    /// - Returns: `AWSCredentialsProvider`
     convenience init?(fromx509 x509Config: CredentialsProviderX509Config,
                       allocator: Allocator = defaultAllocator) {
         let tlsOptionsPtr = UnsafeMutablePointer<aws_tls_connection_options>.allocate(capacity: 1)

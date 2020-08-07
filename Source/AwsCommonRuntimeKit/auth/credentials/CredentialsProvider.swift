@@ -10,13 +10,17 @@ protocol CredentialsProvider: AnyObject {
     
     init(connection: UnsafeMutablePointer<aws_credentials_provider>, allocator: Allocator)
     
-    func getCredentials(credentialCallBackData: CredentialProviderCallbackData)
+    func getCredentials(credentialCallbackData: CredentialProviderCallbackData)
 }
 
 extension CredentialsProvider {
-    func getCredentials(credentialCallBackData: CredentialProviderCallbackData) {
+    /// Retrieves credentials from a provider and returns them to the callback passed in.
+    ///
+    /// - Parameters:
+    ///   - credentialCallbackData:  The `CredentialProviderCallbackData`options object.
+    func getCredentials(credentialCallbackData: CredentialProviderCallbackData) {
         let pointer = UnsafeMutablePointer<CredentialProviderCallbackData>.allocate(capacity: 1)
-        pointer.initialize(to: credentialCallBackData)
+        pointer.initialize(to: credentialCallbackData)
         aws_credentials_provider_get_credentials(rawValue, { (credentials, errorCode, userdata) -> Void in
             guard let userdata = userdata else {
                 return

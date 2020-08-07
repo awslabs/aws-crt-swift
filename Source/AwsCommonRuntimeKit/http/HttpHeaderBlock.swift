@@ -3,8 +3,12 @@
 import AwsCHttp
 
 public enum HttpHeaderBlock {
+  
+    /// Main header block sent with request or response.
     case main
+    /// Header block for 1xx informational (interim) responses.
     case informational
+    /// Headers sent after the body of a request or response.
     case trailing
 }
 

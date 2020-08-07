@@ -5,6 +5,13 @@ import Foundation
 import AwsCCommon
 
 public struct CommandLineParser {
+    /// A function to parse command line arguments
+    /// - Parameters:
+    ///   - argc: The number of arguments
+    ///   - arguments: A pointer to a string pointer of the arguments
+    ///   - optionString: a `String` with all the possible options that could be passed in
+    ///   - options: An array of `[aws_cli_option]` containing all the possible option keys as objects with additional metadata
+    /// - Returns: A dictionary of`[String: Any] ` with `String` as the name of the flag and `Any` as the value passed in
 	public static func parseArguments(argc: Int32, arguments: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>, optionString: String, options: [aws_cli_option]) -> [String: Any] {
         var argumentsDict = [String: Any]()
 

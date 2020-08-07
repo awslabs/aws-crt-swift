@@ -3,7 +3,7 @@
 
 import AwsCMqtt
 
-class MqttClient {
+public final class MqttClient {
     
     let rawValue: UnsafeMutablePointer<aws_mqtt_client>
     
@@ -23,6 +23,15 @@ class MqttClient {
         }
     }
     
+    /// Creates a new mqtt connection to the host on the port given using TLS
+    /// - Parameters:
+    ///   - host: The host to connection i.e. www.example.com as a `String`
+    ///   - port: The port number to connect on i.e. 443
+    ///   - socketOptions: Socket options  such as keep alive time in a `SocketOptions` object
+    ///   - tlsContext: TLS context configuration as `TlsContext`
+    ///   - useWebSockets: Set to `True` to connect over web sockets
+    ///   - allocator: The allocator instance to allocate memory on
+    /// - Returns: `MqttConnection`
     func newConnection(host: String,
                        port: Int16,
                        socketOptions: SocketOptions,
@@ -33,11 +42,19 @@ class MqttClient {
                               host: host,
                               port: port,
                               socketOptions: socketOptions,
-                              tlsContext: tlsContext,
                               useWebSockets: useWebSockets,
+                              tlsContext: tlsContext,
                               allocator: allocator)
     }
     
+    /// Creaets a new mqtt connection to the host on the port given without TLS (not recommended).
+    /// - Parameters:
+    ///   - host: The host to connection i.e. www.example.com as a `String`
+    ///   - port: The port number to connect on i.e. 443
+    ///   - socketOptions: Socket options  such as keep alive time in a `SocketOptions` object
+    ///   - useWebSockets: Set to `True` to connect over web sockets
+    ///   - allocator: The allocator instance to allocate memory on
+    /// - Returns: `MqttConnection`
     func newConnection(host: String,
                        port: Int16,
                        socketOptions: SocketOptions,

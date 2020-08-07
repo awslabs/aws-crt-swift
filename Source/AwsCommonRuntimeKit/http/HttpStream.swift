@@ -3,7 +3,7 @@
 import AwsCHttp
 
 public class HttpStream {
-    internal var httpStream: UnsafeMutablePointer<aws_http_stream>?
+    var httpStream: UnsafeMutablePointer<aws_http_stream>?
     private let httpConnection: HttpClientConnection
 
     init(httpConnection: HttpClientConnection) {

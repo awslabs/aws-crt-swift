@@ -23,8 +23,6 @@ public struct HttpHeader {
         self.rawValue = aws_http_header(name: name.awsByteCursor,
                                         value: value.awsByteCursor,
                                         compression: compression.rawValue)
-
     }
-    
 }
 

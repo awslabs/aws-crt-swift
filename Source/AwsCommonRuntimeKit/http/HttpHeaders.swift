@@ -107,11 +107,8 @@ public final class HttpHeaders {
     }
 
     deinit {
-        print("headers were deinitialized")
         aws_http_headers_release(self.rawValue)
-       
     }
-
 }
 
 

@@ -1,11 +1,13 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCIo
-import Foundation
+import struct Foundation.Date
+import struct Foundation.Data
+import class Foundation.FileHandle
 import AwsCCommon
 
 @inlinable
-internal func readBinaryFile(_ path: String) throws -> Data {
+func readBinaryFile(_ path: String) throws -> Data {
   guard let handle = FileHandle(forReadingAtPath: path) else {
     throw AwsError.fileNotFound(path)
   }
@@ -13,11 +15,11 @@ internal func readBinaryFile(_ path: String) throws -> Data {
 }
 
 @inlinable
-internal func zeroStruct<T>(_ ptr: UnsafeMutablePointer<T>) {
+func zeroStruct<T>(_ ptr: UnsafeMutablePointer<T>) {
   memset(ptr, 0x00, MemoryLayout<T>.size)
 }
 
-internal extension Data {
+extension Data {
   @inlinable
   var awsByteCursor: aws_byte_cursor {
     return withUnsafeBytes { (rawPtr: UnsafeRawBufferPointer) -> aws_byte_cursor in
@@ -26,7 +28,7 @@ internal extension Data {
   }
 }
 
-internal extension String {
+extension String {
   @inlinable
   var awsByteCursor: aws_byte_cursor {
     return aws_byte_cursor_from_c_str(self.asCStr())
@@ -64,8 +66,4 @@ extension Bool {
     var uintValue: UInt32 {
         return self ? 1 : 0
     }
-}
-
-extension Calendar.Component {
-    
 }

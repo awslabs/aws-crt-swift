@@ -2,7 +2,6 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCAuth
-import Foundation
 
 struct SigningConfig {
     public typealias ShouldSignHeader = (String) -> Bool
@@ -14,7 +13,7 @@ struct SigningConfig {
     public let signedBodyValue: SignedBodyValueType
     public let flags: Flags
     public let shouldSignHeader: ShouldSignHeader?
-    public let date: Date
+    public let date: AWSDate
     public let service: String
     public let region: String
     public let signatureType: SignatureType
@@ -24,7 +23,7 @@ struct SigningConfig {
     public init(credentials: Credentials? = nil,
                 credentialsProvider: CredentialsProvider? = nil,
                 expiration: Int64,
-                date: Date,
+                date: AWSDate,
                 service: String,
                 region: String,
                 signedBodyHeader: SignedBodyHeaderType = .contentSha256,
@@ -56,7 +55,7 @@ struct SigningConfig {
                                                signature_type: signatureType.rawValue,
                                                region: region.awsByteCursor,
                                                service: service.awsByteCursor,
-                                               date: date.awsDateTime,
+                                               date: date.rawValue.pointee,
                                                should_sign_header: { (name, userData) -> Bool in
                                                 
                                                 guard let userData = userData,
