@@ -5,7 +5,7 @@ import AwsCIo
 
 public final class TlsContextOptions {
     var rawValue = aws_tls_ctx_options()
-    
+
 	public static func isAlpnSupported() -> Bool {
 		return aws_tls_is_alpn_available()
 	}

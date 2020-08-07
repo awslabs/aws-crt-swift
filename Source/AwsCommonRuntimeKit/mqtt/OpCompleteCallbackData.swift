@@ -7,7 +7,7 @@ struct OpCompleteCallbackData {
     let onOperationComplete: OnOperationComplete
     let topic: String?
     unowned var connection: MqttConnection
-    
+
     init(topic: String? = nil, connection: MqttConnection, onOperationComplete: @escaping OnOperationComplete) {
         self.topic = topic
         self.connection = connection

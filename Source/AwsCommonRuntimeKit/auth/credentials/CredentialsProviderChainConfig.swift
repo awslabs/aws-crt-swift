@@ -4,7 +4,7 @@
 struct CredentialsProviderChainConfig {
 	public let shutDownOptions: CredentialsProviderShutdownOptions?
 	public let providers: [CredentialsProvider]
-    
+
     public init(providers: [CredentialsProvider],
                 shutDownOptions: CredentialsProviderShutdownOptions? = nil) {
         self.providers = providers

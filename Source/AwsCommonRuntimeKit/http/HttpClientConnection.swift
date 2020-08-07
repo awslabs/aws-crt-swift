@@ -17,17 +17,17 @@ public class HttpClientConnection {
     deinit {
         aws_http_connection_release(rawValue)
     }
-    
+
     /// Creates an http connection to the host given via the `HttpClientConnectionOptions`
     /// - Parameters:
     ///   - options: An options object of type `HttpClientConnectionOptions` to send in all options for connectiing via http
     ///   - allocator: The allocator to use to allocate memory. If no allocator is passed in the `defaultAllocator` will be used.
     public static func createConnection(options: HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) {
         let tempHostName = options.hostName.newByteCursor()
-      
+
         let socketOptionPointer = UnsafeMutablePointer<aws_socket_options>.allocate(capacity: 1)
         socketOptionPointer.pointee = options.socketOptions.rawValue
-    
+
         var unmanagedConnectionOptions = aws_http_client_connection_options(
                 self_size: 0,
                 allocator: allocator.rawValue,
@@ -73,7 +73,7 @@ public class HttpClientConnection {
             pointer.pointee = tlsOptions.rawValue
             unmanagedConnectionOptions.tls_options = UnsafePointer(pointer)
         }
-      
+
         if let proxyOptions = options.proxyOptions {
             let pointer = UnsafeMutablePointer<aws_http_proxy_options>.allocate(capacity: 1)
             pointer.pointee = proxyOptions.rawValue
@@ -89,12 +89,12 @@ public class HttpClientConnection {
     public var isOpen: Bool {
        return aws_http_connection_is_open(self.rawValue)
     }
-    
+
     /// Close the http connection
     public func close() {
         return aws_http_connection_close(self.rawValue)
     }
-    
+
     /// Creates a new http stream from the `HttpRequestOptions` given.
     /// - Parameter requestOptions: An `HttpRequestOptions` struct containing callbacks on the different events from the stream
     /// - Returns: An `HttpStream` containing the `HttpClientConnection`
@@ -103,7 +103,7 @@ public class HttpClientConnection {
         options.self_size = MemoryLayout<aws_http_make_request_options>.size
         options.request = requestOptions.request.rawValue
         options.on_response_body = {_, data, userData -> Int32 in
-        
+
             guard let userData = userData else {
                 return -1
             }
@@ -121,12 +121,12 @@ public class HttpClientConnection {
             return 0
         }
         options.on_response_headers = {_, headerBlock, headerArray, headersCount, userData -> Int32 in
-     
+
             guard let userData = userData else {
                 return -1
             }
             let httpStreamCbData: HttpStreamCallbackData = Unmanaged.fromOpaque(userData).takeUnretainedValue()
-            
+
             var headers = [HttpHeader]()
             for cHeader in UnsafeBufferPointer(start: headerArray, count: headersCount) {
                 if let name = cHeader.name.toString(),
@@ -134,7 +134,7 @@ public class HttpClientConnection {
                 let swiftHeader = HttpHeader(name: name, value: value)
                 headers.append(swiftHeader)
                 }
-                
+
             }
             let headersStruct = HttpHeaders(fromArray: headers)
             httpStreamCbData.requestOptions.onIncomingHeaders(httpStreamCbData.stream!,
@@ -152,7 +152,7 @@ public class HttpClientConnection {
             return 0
         }
         options.on_complete = {_, errorCode, userData in
-          
+
             guard let userData = userData else {
                 return
             }

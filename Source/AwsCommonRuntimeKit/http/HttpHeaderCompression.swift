@@ -17,7 +17,7 @@ public enum HttpHeaderCompression {
      Best for unique headers that are unlikely to repeat.
      */
     case noCache
-    
+
     /**
      Encode header strings literally and forbid all intermediaries from using
      cache when re-broadcasting.
@@ -27,7 +27,7 @@ public enum HttpHeaderCompression {
 }
 
 extension HttpHeaderCompression: RawRepresentable, CaseIterable {
-    
+
     public init(rawValue: aws_http_header_compression) {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})
         self = value ?? .useCache

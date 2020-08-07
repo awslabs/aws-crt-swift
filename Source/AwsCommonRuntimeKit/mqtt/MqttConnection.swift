@@ -16,10 +16,10 @@ public class MqttConnection {
     var onConnectionInterrupted: OnConnectionInterrupted = {(connectionPtr, errorCode) in }
     var onConnectionResumed: OnConnectionResumed = {(connectionPtr, returnCode, retain) in }
     var onDisconnect: OnDisconnect = {(connectionPtr) in }
-    var onConnectionComplete:OnConnectionComplete = {(connectionPtr, errorCode, returnCode, retain) in}
-    var onWebSocketHandshakeIntercept: OnWebSocketHandshakeIntercept? = nil
-    var onWebSocketHandshakeInterceptComplete: OnWebSocketHandshakeInterceptComplete? = nil
-    
+    var onConnectionComplete: OnConnectionComplete = {(connectionPtr, errorCode, returnCode, retain) in}
+    var onWebSocketHandshakeIntercept: OnWebSocketHandshakeIntercept?
+    var onWebSocketHandshakeInterceptComplete: OnWebSocketHandshakeInterceptComplete?
+
     private var allocator: Allocator
     private var clientPointer: UnsafeMutablePointer<aws_mqtt_client>
     let rawValue: UnsafeMutablePointer<aws_mqtt_client_connection>
@@ -28,9 +28,9 @@ public class MqttConnection {
     let socketOptions: SocketOptions
     let useWebSockets: Bool
     let tlsContext: TlsContext?
-    var proxyOptions: HttpClientConnectionProxyOptions? = nil
-    var pubCallbackData: UnsafeMutablePointer<PubCallbackData>? = nil
-    
+    var proxyOptions: HttpClientConnectionProxyOptions?
+    var pubCallbackData: UnsafeMutablePointer<PubCallbackData>?
+
     init(clientPointer: UnsafeMutablePointer<aws_mqtt_client>,
          host: String,
          port: Int16,
@@ -46,34 +46,33 @@ public class MqttConnection {
         self.socketOptions = socketOptions
         self.tlsContext = tlsContext
         self.rawValue = aws_mqtt_client_connection_new(clientPointer)
-        
+
         setUpCallbackData()
     }
-    
+
     private func setUpCallbackData() {
 
         aws_mqtt_client_connection_set_connection_interruption_handlers(rawValue, { (clientConnectionPointer, errorCode, userData) in
             guard let userData = userData else {
                 return
             }
-            
+
             let pointer = userData.assumingMemoryBound(to: MqttConnection.self)
-            
+
             pointer.pointee.onConnectionInterrupted(pointer.pointee.rawValue, errorCode)
-            
-            
-        }, rawValue, { (clientConnectionPointer, connectReturnCode, sessionPresent, userData) in
+
+        }, rawValue, { (_, connectReturnCode, sessionPresent, userData) in
             guard let userData = userData else {
                 return
             }
-            
+
             let pointer = userData.assumingMemoryBound(to: MqttConnection.self)
-            
+
             pointer.pointee.onConnectionResumed(pointer.pointee.rawValue, MqttReturnCode(rawValue: connectReturnCode), sessionPresent)
-            
+
         }, rawValue)
     }
-    
+
     /// Sets the will message to send with the CONNECT packet.
     /// - Parameters:
     ///   - topic: The topic to publish the will on
@@ -88,7 +87,7 @@ public class MqttConnection {
 
         return aws_mqtt_client_connection_set_will(rawValue, pointers, qos.rawValue, retain, pointers.advanced(by: 1)) == AWS_OP_SUCCESS
     }
-    
+
     /// Sets the username and/or password to send with the CONNECT packet.
     /// - Parameters:
     ///   - username: Username to send over as `String`
@@ -100,7 +99,7 @@ public class MqttConnection {
         pointers.advanced(by: 1).initialize(to: password.awsByteCursor)
         return aws_mqtt_client_connection_set_login(rawValue, pointers, pointers.advanced(by: 1)) == AWS_OP_SUCCESS
     }
-    
+
     /// Opens the actual connection defined this class. Once the connection is opened, `OnConnectionComplete` will be called.
     /// - Parameters:
     ///   - clientId: The ClientId to place in the CONNECT packet.
@@ -118,11 +117,11 @@ public class MqttConnection {
         socketOptionsPtr.initialize(to: socketOptions.rawValue)
         var tlsOptionsPtr: UnsafeMutablePointer<aws_tls_connection_options>?
         if let tlsContext = tlsContext {
-        
+
         tlsOptionsPtr = UnsafeMutablePointer<aws_tls_connection_options>.allocate(capacity: 1)
         tlsOptionsPtr?.initialize(to: tlsContext.newConnectionOptions().rawValue)
         }
-        
+
         var mqttOptions = aws_mqtt_connection_options()
         mqttOptions.host_name = host.awsByteCursor
         mqttOptions.port = UInt16(port)
@@ -136,12 +135,12 @@ public class MqttConnection {
         connectionPtr.initialize(to: self)
         let ptr = UnsafeMutableRawPointer(connectionPtr)
         mqttOptions.user_data = ptr
-        
+
         mqttOptions.on_connection_complete = { (connectionPtr, errorCode, returnCode, sessionPresent, userData) in
             guard let userData = userData else {
                 return
             }
-           
+
             let callbackPtr = userData.assumingMemoryBound(to: MqttConnection.self)
             defer {
                 callbackPtr.deinitializeAndDeallocate()
@@ -149,7 +148,7 @@ public class MqttConnection {
             callbackPtr.pointee.onConnectionComplete(callbackPtr.pointee.rawValue, errorCode,
                                                          MqttReturnCode(rawValue: returnCode), sessionPresent)
         }
-        
+
         if useWebSockets {
             if let _ = onWebSocketHandshakeIntercept {
 
@@ -160,7 +159,7 @@ public class MqttConnection {
                     }
                     let ptr = userData.assumingMemoryBound(to: MqttConnection.self)
 
-                    let onInterceptComplete: OnWebSocketHandshakeInterceptComplete = {request,errorCode in
+                    let onInterceptComplete: OnWebSocketHandshakeInterceptComplete = {request, errorCode in
                         completeFn!(httpRequest, errorCode, completeUserData)
                     }
                     //can unwrap here with ! because we know its not nil at this point
@@ -173,9 +172,9 @@ public class MqttConnection {
                     return false
                 }
             }
-            
+
             if let proxyOptions = proxyOptions {
-                
+
                 var pOptions = aws_http_proxy_options()
                 pOptions.auth_username = proxyOptions.basicAuthUsername.awsByteCursor
                 pOptions.auth_password = proxyOptions.basicAuthPassword.awsByteCursor
@@ -187,16 +186,16 @@ public class MqttConnection {
                 pOptions.auth_type = proxyOptions.authType.rawValue
                 pOptions.host = proxyOptions.hostName.awsByteCursor
                 pOptions.port = proxyOptions.port
-                
+
                 let ptr = UnsafeMutablePointer<aws_http_proxy_options>.allocate(capacity: 1)
                 ptr.initialize(to: pOptions)
-                
+
                 if aws_mqtt_client_connection_set_websocket_proxy_options(rawValue, ptr) == AWS_OP_SUCCESS {
                     return false
                 }
             }
         }
-        
+
         let mqttOptionsPtr = UnsafeMutablePointer<aws_mqtt_connection_options>.allocate(capacity: 1)
         mqttOptionsPtr.initialize(to: mqttOptions)
         defer {
@@ -204,14 +203,14 @@ public class MqttConnection {
             tlsOptionsPtr?.deinitializeAndDeallocate()
             socketOptionsPtr.deinitializeAndDeallocate()
         }
-        
+
         return aws_mqtt_client_connection_connect(rawValue, mqttOptionsPtr) == AWS_OP_SUCCESS
     }
-    
+
     /// Closes the connection asyncronously, calls the `OnDisconnect` callback, and destroys the connection object.
     /// - Returns: A `Bool` of True if the connection is open and is being shut down.
     func disconnect() -> Bool {
-       
+
        return aws_mqtt_client_connection_disconnect(rawValue, { (connectionPtr, userData) in
             guard let userData = userData else {
                 return
@@ -221,29 +220,28 @@ public class MqttConnection {
         connectionPtr.pointee.onDisconnect(connectionPtr.pointee.rawValue)
         }, rawValue) == AWS_OP_SUCCESS
     }
-    
-    
+
     /// Sets the callback to call whenever ANY publish packet is received.
     /// - Parameter onPublishReceived: The function to call when a publish is received
     /// - Returns: A `Bool` of True if the callback was set successfully
     func setOnMessageHandler(onPublishReceived: @escaping OnPublishReceived) -> Bool {
         let pubCallbackData = PubCallbackData(onPublishReceived: onPublishReceived,
                                               mqttConnection: self)
-        
+
         let ptr = UnsafeMutablePointer<PubCallbackData>.allocate(capacity: 1)
         ptr.initialize(to: pubCallbackData)
-        
-        if aws_mqtt_client_connection_set_on_any_publish_handler(rawValue, { (connectionPtr, topic, payload, userData) in
+
+        if aws_mqtt_client_connection_set_on_any_publish_handler(rawValue, { (_, topic, payload, userData) in
             guard let userData = userData, let topic = topic?.pointee.toString(), let payload = payload else {
                 return
             }
-            
+
             let pubCallbackPtr = userData.assumingMemoryBound(to: PubCallbackData.self)
             defer {
                 pubCallbackPtr.deinitializeAndDeallocate()
             }
             pubCallbackPtr.pointee.onPublishReceived(pubCallbackPtr.pointee.mqttConnection, topic, payload.pointee.toData())
-            
+
         }, ptr) == AWS_OP_SUCCESS {
             self.pubCallbackData = ptr
             return true
@@ -253,7 +251,7 @@ public class MqttConnection {
         }
         return false
     }
-    
+
     /// Subscribe to a single topic filter. `OnPublishReceived` will be called when a PUBLISH matching `topicFilter` is received.
     /// - Parameters:
     ///   - topicFilter: The topic filter to subscribe on.  This resource must persist until `OnSubAck` is called.
@@ -265,7 +263,7 @@ public class MqttConnection {
                    qos: MqttQos,
                    onPublishReceived: @escaping OnPublishReceived,
                    onSubAck: @escaping OnSubAck) -> UInt16 {
-       
+
         let pubCallbackData = PubCallbackData(onPublishReceived: onPublishReceived, mqttConnection: self)
         let pubCallbackPtr = UnsafeMutablePointer<PubCallbackData>.allocate(capacity: 1)
         pubCallbackPtr.initialize(to: pubCallbackData)
@@ -281,7 +279,7 @@ public class MqttConnection {
             let ptr = userData.assumingMemoryBound(to: PubCallbackData.self)
             defer {ptr.deinitializeAndDeallocate()}
             ptr.pointee.onPublishReceived(ptr.pointee.mqttConnection, topic, payload.pointee.toData())
-        }, pubCallbackPtr, nil, { (connectionPtr, packetId, topic, qos, errorCode, userData) in
+        }, pubCallbackPtr, nil, { (_, packetId, topic, qos, errorCode, userData) in
             guard let userData = userData, let topic = topic?.pointee.toString() else {
                 return
             }
@@ -289,10 +287,10 @@ public class MqttConnection {
             defer {ptr.deinitializeAndDeallocate()}
             ptr.pointee.onSubAck(ptr.pointee.connection, Int16(packetId), topic, MqttQos(rawValue: qos), errorCode)
         }, subAckCallbackPtr)
-        
+
         return packetId
     }
-    
+
     /// Subscribe to topic filters. `onMultiSubAck` will be called when a PUBLISH matching each `topicFilter`is received.
     /// - Parameters:
     ///   - topicFilters: An array of topic filters describing the requests
@@ -300,26 +298,26 @@ public class MqttConnection {
     /// - Returns: The packet id of the subscribe packet if successfully sent, otherwise 0.
     func subscribe(topicFilters: [String],
                    onMultiSubAck: @escaping OnMultiSubAck) -> UInt16 {
- 
+
         let subAckCallbackData = MultiSubAckCallbackData(onMultiSubAck: onMultiSubAck, connection: self, topics: topicFilters)
         let subAckCallbackPtr = UnsafeMutablePointer<MultiSubAckCallbackData>.allocate(capacity: 1)
         subAckCallbackPtr.initialize(to: subAckCallbackData)
-        
+
         let stringPointers = UnsafeMutablePointer<String>.allocate(capacity: topicFilters.count)
 
         for index in 0...topicFilters.count {
             stringPointers.advanced(by: index).initialize(to: topicFilters[index])
         }
-        
+
         let untypedPointers = UnsafeMutableRawPointer(stringPointers)
-        
+
         var awsArray = aws_array_list()
         awsArray.current_size = topicFilters.count
         awsArray.item_size = MemoryLayout.size(ofValue: String.self)
         awsArray.data = untypedPointers
         let arrayPointer = UnsafeMutablePointer<aws_array_list>.allocate(capacity: 1)
-        
-        let packetId = aws_mqtt_client_connection_subscribe_multiple(rawValue, arrayPointer, { (connectionPtr, packetId, topicPointers, errorCode, userData) in
+
+        let packetId = aws_mqtt_client_connection_subscribe_multiple(rawValue, arrayPointer, { (_, packetId, topicPointers, errorCode, userData) in
             guard let userData = userData, let topicPointers = topicPointers else {
                 return
             }
@@ -331,13 +329,13 @@ public class MqttConnection {
                 let swiftString = pointer.assumingMemoryBound(to: String.self)
                 topics.append(swiftString.pointee)
             }
-            
+
             ptr.pointee.onMultiSubAck(ptr.pointee.connection, Int16(packetId), topics, errorCode)
         }, subAckCallbackPtr)
-        
+
         return packetId
     }
-    
+
     /// Unsubscribe to a topic filter.
     /// - Parameters:
     ///   - topicFilter: The topic filter to unsubscribe on. This resource must persist until `onComplete`.
@@ -349,7 +347,7 @@ public class MqttConnection {
         opCallbackPtr.initialize(to: opCallbackData)
         let topicPtr = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
         topicPtr.initialize(to: topicFilter.awsByteCursor)
-        let packetId = aws_mqtt_client_connection_unsubscribe(rawValue, topicPtr, { (connectionPtr, packetId, errorCode, userData) in
+        let packetId = aws_mqtt_client_connection_unsubscribe(rawValue, topicPtr, { (_, packetId, errorCode, userData) in
             guard let userData = userData else {
                 return
             }
@@ -361,7 +359,7 @@ public class MqttConnection {
         }, opCallbackPtr)
         return packetId
     }
-    
+
     /// Send a PUBLSIH packet over connection.
     /// - Parameters:
     ///   - topic: The topic to publish on.
@@ -377,8 +375,8 @@ public class MqttConnection {
         let pointers = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 2)
         pointers.initialize(to: topic.awsByteCursor)
         pointers.advanced(by: 1).initialize(to: payload.awsByteCursor)
-        
-        let packetId = aws_mqtt_client_connection_publish(rawValue, pointers, qos.rawValue, retain, pointers.advanced(by: 1), { (connectionPtr, packetId, errorCode, userData) in
+
+        let packetId = aws_mqtt_client_connection_publish(rawValue, pointers, qos.rawValue, retain, pointers.advanced(by: 1), { (_, packetId, errorCode, userData) in
             guard let userData = userData else {
                 return
             }
@@ -386,14 +384,14 @@ public class MqttConnection {
             defer { ptr.deinitializeAndDeallocate()}
             ptr.pointee.onOperationComplete(ptr.pointee.connection, Int16(packetId), errorCode)
         }, opCallbackPtr)
-        
+
         defer {
             pointers.deinitializeAndDeallocate()
         }
-        
+
         return packetId
     }
-    
+
     deinit {
         aws_mqtt_client_connection_destroy(rawValue)
         if let pubCallbackData = pubCallbackData {

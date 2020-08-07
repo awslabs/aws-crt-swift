@@ -103,7 +103,6 @@ struct Elasticurl {
             }
         }
 
-
         if let method = argumentsDict["M"] as? String {
 
             context.verb = method
@@ -209,7 +208,7 @@ struct Elasticurl {
 
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
             let logger = Logger(pipe: stdout, level: context.logLevel, allocator: allocator)
-            
+
             AwsCommonRuntimeKit.initialize(allocator: allocator)
 
             let port = UInt16(443)
@@ -224,9 +223,8 @@ struct Elasticurl {
 
             let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
             let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
-           
+
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: hostResolver, allocator: allocator)
-            
 
             let socketOptions = SocketOptions(socketType: .stream)
 
@@ -238,7 +236,7 @@ struct Elasticurl {
             let httpRequest: HttpRequest = HttpRequest(allocator: allocator)
             httpRequest.method = "GET"
             httpRequest.path = "/"
-            
+
             let headers = HttpHeaders(allocator: allocator)
             if headers.add(name: "Host", value: context.url),
                 headers.add(name: "User-Agent", value: "Elasticurl"),
@@ -246,28 +244,28 @@ struct Elasticurl {
 
                 httpRequest.addHeaders(headers: headers)
             }
-         
+
             let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
                 let allHeaders = headers.getAll()
                 for header in allHeaders {
                     print(header.name + " : " + header.value)
-                    
+
                 }
             }
-            
+
             let onBody: HttpRequestOptions.OnIncomingBody = { stream, bodyChunk in
                 let dataStr = String(decoding: bodyChunk, as: UTF8.self)
                 print(dataStr)
             }
-       
+
             let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone = { stream, block in
-           
+
             }
-            
+
             let onComplete: HttpRequestOptions.OnStreamComplete = { stream, errorCode in
                 print(errorCode)
             }
-            
+
             let connectionReady: HttpClientConnectionOptions.OnConnectionSetup = { conn, errorCode in
                 if errorCode != 0 {
                     print("Connection Setup failed with code \(errorCode)")
@@ -275,7 +273,7 @@ struct Elasticurl {
                 } else {
                     print("Connection succeeded")
                     connection = conn
-                    
+
                     let requestOptions = HttpRequestOptions(request: httpRequest, onIncomingHeaders: onIncomingHeaders, onIncomingHeadersBlockDone: onBlockDone,
                                                             onIncomingBody: onBody,
                                                             onStreamComplete: onComplete)
@@ -283,7 +281,7 @@ struct Elasticurl {
                     stream!.activate()
                 }
             }
-          
+
             var httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
                                                                 hostName: context.url,
                                                                 initialWindowSize: Int.max,
@@ -292,11 +290,11 @@ struct Elasticurl {
                                                                 socketOptions: socketOptions,
                                                                 tlsOptions: tlsConnectionOptions,
                                                                 onConnectionSetup: connectionReady,
-                                                                onConnectionShutdown: { (conn, errorCode) in
+                                                                onConnectionShutdown: { (_, errorCode) in
                                                                     print("connection has shut down with error: \(errorCode)" )
                                                                     semaphore.signal()
             })
-            
+
             HttpClientConnection.createConnection(options: &httpClientOptions, allocator: allocator)
             semaphore.wait()
         } catch {

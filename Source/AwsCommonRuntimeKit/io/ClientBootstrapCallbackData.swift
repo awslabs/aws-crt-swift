@@ -7,7 +7,7 @@ struct ClientBootstrapCallbackData {
     typealias OnShutDownComplete = () -> Void
     let onShutDownComplete: OnShutDownComplete?
     let shutDownSemaphore: DispatchSemaphore
-    
+
     init(onShutDownComplete: OnShutDownComplete? = nil,
          shutDownSemaphore: DispatchSemaphore) {
         self.onShutDownComplete = onShutDownComplete

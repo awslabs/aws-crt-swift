@@ -57,7 +57,7 @@ public final class Credentials {
     public func getExpirationTimeout() -> UInt64 {
         return aws_credentials_get_expiration_timepoint_seconds(rawValue)
     }
-    
+
     deinit {
         aws_credentials_release(rawValue)
     }

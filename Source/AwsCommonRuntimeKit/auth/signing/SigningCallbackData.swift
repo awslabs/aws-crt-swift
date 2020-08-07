@@ -7,7 +7,7 @@ struct SigningCallbackData {
     public let allocator: Allocator
     public unowned var request: HttpRequest
     public let onRequestSigningComplete: OnRequestSigningComplete
-    
+
     public init(allocator: Allocator = defaultAllocator,
                 request: HttpRequest,
                 onRequestSigningComplete: @escaping OnRequestSigningComplete) {
@@ -16,4 +16,3 @@ struct SigningCallbackData {
         self.onRequestSigningComplete = onRequestSigningComplete
     }
 }
-

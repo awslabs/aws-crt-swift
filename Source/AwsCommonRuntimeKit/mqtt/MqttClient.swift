@@ -4,17 +4,17 @@
 import AwsCMqtt
 
 public final class MqttClient {
-    
+
     let rawValue: UnsafeMutablePointer<aws_mqtt_client>
-    
+
     init(rawValue: UnsafeMutablePointer<aws_mqtt_client>, clientBootstrap: ClientBootstrap) {
         self.rawValue = rawValue
         aws_mqtt_client_init(rawValue, defaultAllocator, clientBootstrap.rawValue)
     }
-    
+
     init(clientBootstrap: ClientBootstrap, allocator: Allocator = defaultAllocator) throws {
         let clientPtr = UnsafeMutablePointer<aws_mqtt_client>.allocate(capacity: 1)
-        
+
         if aws_mqtt_client_init(clientPtr, allocator.rawValue, clientBootstrap.rawValue) == AWS_OP_SUCCESS {
             self.rawValue = clientPtr
         } else {
@@ -22,7 +22,7 @@ public final class MqttClient {
             throw AwsCommonRuntimeError()
         }
     }
-    
+
     /// Creates a new mqtt connection to the host on the port given using TLS
     /// - Parameters:
     ///   - host: The host to connection i.e. www.example.com as a `String`
@@ -46,7 +46,7 @@ public final class MqttClient {
                               tlsContext: tlsContext,
                               allocator: allocator)
     }
-    
+
     /// Creaets a new mqtt connection to the host on the port given without TLS (not recommended).
     /// - Parameters:
     ///   - host: The host to connection i.e. www.example.com as a `String`
@@ -67,7 +67,7 @@ public final class MqttClient {
                               useWebSockets: useWebSockets,
                               allocator: allocator)
     }
-    
+
     deinit {
         aws_mqtt_client_clean_up(rawValue)
     }

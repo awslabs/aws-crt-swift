@@ -13,7 +13,7 @@ public final class HttpHeaders {
     public init(allocator: Allocator = defaultAllocator) {
         self.rawValue = aws_http_headers_new(allocator.rawValue)
     }
-    
+
     convenience init(allocator: Allocator = defaultAllocator, fromArray: [HttpHeader]) {
         self.init(allocator: allocator)
         addArray(headers: fromArray)
@@ -30,7 +30,7 @@ public final class HttpHeaders {
         let valueByteCursor = value.awsByteCursor
         return aws_http_headers_add(self.rawValue, nameByteCursor, valueByteCursor) == AWS_OP_SUCCESS
     }
-    
+
     /// Appends an array of `HttpHeaders` into the c instance of headers.
     ///
     /// - Parameters:
@@ -40,7 +40,7 @@ public final class HttpHeaders {
             _ = add(name: header.name, value: header.value)
         }
     }
-    
+
     /// Updates a header from the provided `name` with the new `value` in the c instance of headers.
     ///
     /// - Parameter header: The `HttpHeader` to update or append.
@@ -110,5 +110,3 @@ public final class HttpHeaders {
         aws_http_headers_release(self.rawValue)
     }
 }
-
-

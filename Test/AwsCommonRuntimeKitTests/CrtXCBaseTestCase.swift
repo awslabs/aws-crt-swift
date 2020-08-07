@@ -10,7 +10,7 @@ class CrtXCBaseTestCase: XCTestCase {
     override func setUp() {
         super.setUp()
         AwsCommonRuntimeKit.initialize(allocator: self.allocator)
-       
+
     }
 
     override func tearDown() {

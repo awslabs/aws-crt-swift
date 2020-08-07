@@ -4,22 +4,19 @@
 import AwsCAuth
 
 enum SignedBodyValueType {
-    
+
     /// Use the SHA-256 of the empty string.
     case empty
-    
+
     /// Use the SHA-256 of the actual (request/chunk/event) payload.
     case payload
-    
-    
+
     /// Use the literal string 'UNSIGNED-PAYLOAD'
     case unsignedPayload
-    
-    
+
     /// Use the literal string 'STREAMING-AWS4-HMAC-SHA256-PAYLOAD'
     case streamingSha256Payload
-    
-    
+
     /// Use the literal string 'STREAMING-AWS4-HMAC-SHA256-EVENTS'
     /// Event signing is not yet supported
     case streamingSha256Events

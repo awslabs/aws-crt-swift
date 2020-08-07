@@ -3,11 +3,11 @@
 
 struct CredentialsProviderShutdownOptions {
     typealias ShutDownCallback = () -> Void
-   
+
     public let shutDownCallback: ShutDownCallback
 
     public init(shutDownCallback: @escaping ShutDownCallback) {
         self.shutDownCallback = shutDownCallback
-        
+
     }
 }

@@ -6,7 +6,7 @@ struct CredentialsProviderStaticConfigOptions {
     public let secret: String
     public let sessionToken: String
     public let shutDownOptions: CredentialsProviderShutdownOptions?
-    
+
     public init(accessKey: String,
                 secret: String,
                 sessionToken: String,
@@ -17,4 +17,3 @@ struct CredentialsProviderStaticConfigOptions {
         self.shutDownOptions = shutDownOptions
     }
 }
-

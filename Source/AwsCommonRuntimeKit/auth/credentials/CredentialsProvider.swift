@@ -7,9 +7,9 @@ import AwsCAuth
 protocol CredentialsProvider: AnyObject {
     var allocator: Allocator { get set }
     var rawValue: UnsafeMutablePointer<aws_credentials_provider> {get set}
-    
-    init(connection: UnsafeMutablePointer<aws_credentials_provider>, allocator: Allocator)
-    
+
+    init(credentialsProvider: UnsafeMutablePointer<aws_credentials_provider>, allocator: Allocator)
+
     func getCredentials(credentialCallbackData: CredentialProviderCallbackData)
 }
 
@@ -28,7 +28,7 @@ extension CredentialsProvider {
             let pointer = userdata.assumingMemoryBound(to: CredentialProviderCallbackData.self)
             defer { pointer.deinitializeAndDeallocate() }
             pointer.pointee.onCredentialsResolved(Credentials(rawValue: credentials), errorCode)
-            
+
         }, pointer)
     }
 }

@@ -7,16 +7,16 @@ public struct HttpHeader {
     public var rawValue: aws_http_header
     public var name: String {
         return rawValue.name.toString() ?? ""
-        
+
     }
     public var value: String {
             return rawValue.value.toString() ?? ""
-        
+
     }
     public var compression: HttpHeaderCompression {
         return HttpHeaderCompression(rawValue: rawValue.compression)
     }
-    
+
     init(name: String,
          value: String,
          compression: HttpHeaderCompression = .useCache) {
@@ -25,4 +25,3 @@ public struct HttpHeader {
                                         compression: compression.rawValue)
     }
 }
-

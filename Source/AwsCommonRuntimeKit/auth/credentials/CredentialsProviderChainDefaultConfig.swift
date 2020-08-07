@@ -4,7 +4,7 @@
 struct CredentialsProviderChainDefaultConfig {
     public let shutDownOptions: CredentialsProviderShutdownOptions?
     public let bootstrap: ClientBootstrap
-    
+
     public init(bootstrap: ClientBootstrap,
                 shutDownOptions: CredentialsProviderShutdownOptions? = nil) {
         self.bootstrap = bootstrap

@@ -7,7 +7,7 @@ struct MultiSubAckCallbackData {
     let onMultiSubAck: OnMultiSubAck
     unowned var connection: MqttConnection
     let topics: [String]?
-    
+
     init(onMultiSubAck: @escaping OnMultiSubAck,
          connection: MqttConnection,
          topics: [String]?) {

@@ -11,29 +11,28 @@ public final class ClientBootstrap {
   public init(eventLoopGroup elg: EventLoopGroup,
               hostResolver: HostResolver,
               allocator: Allocator = defaultAllocator) throws {
-  
+
     var elgPointer: UnsafeMutablePointer<aws_event_loop_group>?
     elgPointer = UnsafeMutablePointer<aws_event_loop_group>.allocate(capacity: 1)
-    elgPointer?.initialize(to: elg.rawValue)
-    
+    elgPointer?.initialize(to: elg.rawValue.pointee)
+
     let hostResolverPointer = UnsafeMutablePointer<aws_host_resolver>.allocate(capacity: 1)
     hostResolverPointer.initialize(to: hostResolver.rawValue)
-    
+
     let hostResolverConfigPointer = UnsafeMutablePointer<aws_host_resolution_config>.allocate(capacity: 1)
     hostResolverConfigPointer.initialize(to: hostResolver.config)
     shutDownSemaphore = DispatchSemaphore(value: 1)
     let clientBootstrapCallbackData = ClientBootstrapCallbackData(shutDownSemaphore: shutDownSemaphore)
-    
+
     let callbackDataPointer = UnsafeMutablePointer<ClientBootstrapCallbackData>.allocate(capacity: 1)
     callbackDataPointer.initialize(to: clientBootstrapCallbackData)
 
-    
     var options = aws_client_bootstrap_options(
             event_loop_group: elgPointer,
             host_resolver: hostResolverPointer,
             host_resolution_config: hostResolverConfigPointer,
             on_shutdown_complete: { userData in
-                
+
                 let pointer = userData?.assumingMemoryBound(to: ClientBootstrapCallbackData.self)
                 defer { pointer?.deinitializeAndDeallocate() }
                 pointer?.pointee.shutDownSemaphore.signal()
@@ -49,7 +48,7 @@ public final class ClientBootstrap {
 
     self.rawValue = rawValue
   }
-    
+
     func enableBlockingShutDown() {
         enableBlockingShutdown = true
     }

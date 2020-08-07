@@ -54,7 +54,3 @@ public struct SocketOptions {
         set(value) { self.rawValue.type = value.rawValue }
     }
 }
-
-
-
-

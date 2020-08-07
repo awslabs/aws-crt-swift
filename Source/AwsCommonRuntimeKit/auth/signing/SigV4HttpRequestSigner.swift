@@ -9,7 +9,7 @@ class SigV4HttpRequestSigner {
     public init(allocator: Allocator = defaultAllocator) {
         self.allocator = allocator
     }
-    
+
     /// Signs an HttpRequest via the SigV4 algorithm.
     /// Do not add the following headers to requests before signing:
     ///   - x-amz-content-sha256,
@@ -34,32 +34,33 @@ class SigV4HttpRequestSigner {
         if config.configType != .aws {
             throw AwsCommonRuntimeError()
         }
-        
+
         if config.rawValue.credentials_provider == nil && config.rawValue.credentials == nil {
             throw AwsCommonRuntimeError()
         }
-        
+
         let callbackData = SigningCallbackData(allocator: allocator.rawValue, request: request, onRequestSigningComplete: callback)
-        
+
         let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
-        
+
         let configPointer = UnsafeMutablePointer<aws_signing_config_aws>.allocate(capacity: 1)
         configPointer.initialize(to: config.rawValue)
-        let base = unsafeBitCast(configPointer, to: UnsafeMutablePointer<aws_signing_config_base>.self)
+        let base = configPointer.withMemoryRebound(to: aws_signing_config_base.self, capacity: 1) { (configPointer) -> UnsafeMutablePointer<aws_signing_config_base> in
+            return configPointer
+        }
         let configPtr = UnsafePointer(base)
-        
+
         let callbackPointer = UnsafeMutablePointer<SigningCallbackData>.allocate(capacity: 1)
         callbackPointer.initialize(to: callbackData)
-        
-        defer{
+
+        defer {
             aws_signable_destroy(signable)
             base.deinitializeAndDeallocate()
         }
-        
+
         if aws_sign_request_aws(allocator.rawValue,
                                     signable,
-                                    configPtr,
-                                    { (signingResult, errorCode, userData) -> Void in
+                                    configPtr, { (signingResult, errorCode, userData) -> Void in
                                         guard let userData = userData else {
                                             return
                                         }
@@ -77,9 +78,5 @@ class SigV4HttpRequestSigner {
                                     callbackPointer) != AWS_OP_SUCCESS {
             throw AwsCommonRuntimeError()
         }
-    }
-    
-    deinit {
-        print("signer deinitilized")
     }
 }

@@ -20,7 +20,7 @@ extension aws_byte_cursor {
     public func toString() -> String? {
         return String(bytesNoCopy: self.ptr, length: self.len, encoding: .utf8, freeWhenDone: false)
     }
-    
+
     public func toData() -> Data {
         return Data(bytesNoCopy: self.ptr, count: self.len, deallocator: .none)
     }

@@ -30,4 +30,3 @@ public final class TlsContext {
         return TlsConnectionOptions(self, allocator: self.allocator)
     }
 }
-

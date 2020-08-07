@@ -6,19 +6,6 @@ import struct Foundation.Data
 import class Foundation.FileHandle
 import AwsCCommon
 
-@inlinable
-func readBinaryFile(_ path: String) throws -> Data {
-  guard let handle = FileHandle(forReadingAtPath: path) else {
-    throw AwsError.fileNotFound(path)
-  }
-  return handle.readDataToEndOfFile()
-}
-
-@inlinable
-func zeroStruct<T>(_ ptr: UnsafeMutablePointer<T>) {
-  memset(ptr, 0x00, MemoryLayout<T>.size)
-}
-
 extension Data {
   @inlinable
   var awsByteCursor: aws_byte_cursor {
@@ -56,7 +43,7 @@ extension Date {
     var awsDateTime: aws_date_time {
         let datefrom1970 = UInt64(self.timeIntervalSince1970 * 1000)
         let pointer = UnsafeMutablePointer<aws_date_time>.allocate(capacity: 1)
-        
+
         aws_date_time_init_epoch_millis(pointer, datefrom1970)
         return pointer.pointee
     }
