@@ -3,7 +3,7 @@
 import AwsCHttp
 
 public struct HttpClientConnectionProxyOptions {
-    internal var rawValue = aws_http_proxy_options()
+    var rawValue = aws_http_proxy_options()
 
     public let authType: HttpProxyAuthenticationType
     public let basicAuthUsername: String
