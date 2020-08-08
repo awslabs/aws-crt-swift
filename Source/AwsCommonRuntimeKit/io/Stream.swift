@@ -10,6 +10,7 @@ public class AwsInputStream {
     var rawValue: aws_input_stream
 
     init(_ impl: inout AwsInputStreamImpl, allocator: Allocator) {
+        
         self.rawValue = aws_input_stream(allocator: allocator.rawValue, impl: &impl, vtable: &vtable)
     }
 }

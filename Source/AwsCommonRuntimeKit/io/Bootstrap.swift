@@ -12,9 +12,8 @@ public final class ClientBootstrap {
               hostResolver: HostResolver,
               allocator: Allocator = defaultAllocator) throws {
 
-    var elgPointer: UnsafeMutablePointer<aws_event_loop_group>?
-    elgPointer = UnsafeMutablePointer<aws_event_loop_group>.allocate(capacity: 1)
-    elgPointer?.initialize(to: elg.rawValue.pointee)
+    let elgPointer = UnsafeMutablePointer<aws_event_loop_group>.allocate(capacity: 1)
+    elgPointer.initialize(to: elg.rawValue)
 
     let hostResolverPointer = UnsafeMutablePointer<aws_host_resolver>.allocate(capacity: 1)
     hostResolverPointer.initialize(to: hostResolver.rawValue)

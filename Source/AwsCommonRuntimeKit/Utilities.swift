@@ -6,6 +6,11 @@ import struct Foundation.Data
 import class Foundation.FileHandle
 import AwsCCommon
 
+@inlinable
+func zeroStruct<T>(_ ptr: UnsafeMutablePointer<T>) {
+  memset(ptr, 0x00, MemoryLayout<T>.size)
+}
+
 extension Data {
   @inlinable
   var awsByteCursor: aws_byte_cursor {

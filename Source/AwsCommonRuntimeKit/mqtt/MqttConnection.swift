@@ -187,24 +187,18 @@ public class MqttConnection {
                 pOptions.host = proxyOptions.hostName.awsByteCursor
                 pOptions.port = proxyOptions.port
 
-                let ptr = UnsafeMutablePointer<aws_http_proxy_options>.allocate(capacity: 1)
-                ptr.initialize(to: pOptions)
-
-                if aws_mqtt_client_connection_set_websocket_proxy_options(rawValue, ptr) == AWS_OP_SUCCESS {
+                if aws_mqtt_client_connection_set_websocket_proxy_options(rawValue, &pOptions) == AWS_OP_SUCCESS {
                     return false
                 }
             }
         }
 
-        let mqttOptionsPtr = UnsafeMutablePointer<aws_mqtt_connection_options>.allocate(capacity: 1)
-        mqttOptionsPtr.initialize(to: mqttOptions)
         defer {
-            mqttOptionsPtr.deinitializeAndDeallocate()
             tlsOptionsPtr?.deinitializeAndDeallocate()
             socketOptionsPtr.deinitializeAndDeallocate()
         }
 
-        return aws_mqtt_client_connection_connect(rawValue, mqttOptionsPtr) == AWS_OP_SUCCESS
+        return aws_mqtt_client_connection_connect(rawValue, &mqttOptions) == AWS_OP_SUCCESS
     }
 
     /// Closes the connection asyncronously, calls the `OnDisconnect` callback, and destroys the connection object.
@@ -315,9 +309,8 @@ public class MqttConnection {
         awsArray.current_size = topicFilters.count
         awsArray.item_size = MemoryLayout.size(ofValue: String.self)
         awsArray.data = untypedPointers
-        let arrayPointer = UnsafeMutablePointer<aws_array_list>.allocate(capacity: 1)
-
-        let packetId = aws_mqtt_client_connection_subscribe_multiple(rawValue, arrayPointer, { (_, packetId, topicPointers, errorCode, userData) in
+       
+        let packetId = aws_mqtt_client_connection_subscribe_multiple(rawValue, &awsArray, { (_, packetId, topicPointers, errorCode, userData) in
             guard let userData = userData, let topicPointers = topicPointers else {
                 return
             }

@@ -21,7 +21,7 @@ public final class DefaultHostResolver: HostResolver {
   public init(eventLoopGroup elg: EventLoopGroup, maxHosts: Int, maxTTL: Int, allocator: Allocator = defaultAllocator) throws {
     self.allocator = allocator
 
-    if aws_host_resolver_init_default(&self.rawValue, allocator.rawValue, maxHosts, elg.rawValue) != AWS_OP_SUCCESS {
+    if aws_host_resolver_init_default(&self.rawValue, allocator.rawValue, maxHosts, &elg.rawValue) != AWS_OP_SUCCESS {
       throw AwsCommonRuntimeError()
     }
 

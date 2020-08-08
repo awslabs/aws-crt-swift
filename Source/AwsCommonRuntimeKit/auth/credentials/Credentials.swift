@@ -47,7 +47,6 @@ public final class Credentials {
     /// - Returns:`String?`: The AWS Session token or nil
     public func getSessionToken() -> String? {
         let token = aws_credentials_get_session_token(rawValue)
-
         return token.toString()
     }
 
