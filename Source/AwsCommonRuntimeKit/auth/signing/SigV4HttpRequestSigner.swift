@@ -30,7 +30,7 @@ class SigV4HttpRequestSigner {
     ///    - `config`: The `SigningConfig` to use when signing.
     ///    - `callback`: The `OnRequestSigningComplete` will be called when requst has been signed.
     /// - `Throws`: An error of type `AwsCommonRuntimeError` which will pull last error found in the CRT
-    public func signRequest(request: HttpRequest, config: SigningConfig, callback: @escaping OnRequestSigningComplete) throws {
+    public func signRequest(request: HttpRequest, config: SigningConfig, callback: @escaping OnSigningComplete) throws {
         if config.configType != .aws {
             throw AwsCommonRuntimeError()
         }
@@ -39,7 +39,7 @@ class SigV4HttpRequestSigner {
             throw AwsCommonRuntimeError()
         }
 
-        let callbackData = SigningCallbackData(allocator: allocator.rawValue, request: request, onRequestSigningComplete: callback)
+        let callbackData = SigningCallbackData(allocator: allocator.rawValue, request: request, onSigningComplete: callback)
 
         let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
 
@@ -65,17 +65,22 @@ class SigV4HttpRequestSigner {
                                             return
                                         }
                                         let callback = userData.assumingMemoryBound(to: SigningCallbackData.self)
-                                        if errorCode == AWS_OP_SUCCESS {
-                                            aws_apply_signing_result_to_http_request(callback.pointee.request.rawValue,
-                                                                                     callback.pointee.allocator.rawValue,
-                                                                                     signingResult)
-                                        }
                                         defer {
                                             callback.deinitializeAndDeallocate()
                                         }
-                                        callback.pointee.onRequestSigningComplete(callback.pointee.request, Int(errorCode))
+                                        callback.pointee.onSigningComplete(SigningResult(rawValue: signingResult), callback.pointee.request, Int(errorCode))
         },
                                     callbackPointer) != AWS_OP_SUCCESS {
+            throw AwsCommonRuntimeError()
+        }
+    }
+    
+    public func applySigningResult(signingResult: SigningResult, request: HttpRequest) throws -> HttpRequest {
+        if aws_apply_signing_result_to_http_request(request.rawValue,
+                                                    allocator.rawValue,
+                                                    signingResult.rawValue) == AWS_OP_SUCCESS {
+            return request
+        } else {
             throw AwsCommonRuntimeError()
         }
     }
