@@ -22,11 +22,8 @@ public class HttpClientConnection {
     /// - Parameters:
     ///   - options: An options object of type `HttpClientConnectionOptions` to send in all options for connectiing via http
     ///   - allocator: The allocator to use to allocate memory. If no allocator is passed in the `defaultAllocator` will be used.
-    public static func createConnection(options: HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) {
+    public static func createConnection(options: inout HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) {
         let tempHostName = options.hostName.newByteCursor()
-
-        let socketOptionPointer = UnsafeMutablePointer<aws_socket_options>.allocate(capacity: 1)
-        socketOptionPointer.pointee = options.socketOptions.rawValue
 
         var unmanagedConnectionOptions = aws_http_client_connection_options(
                 self_size: 0,
@@ -34,7 +31,7 @@ public class HttpClientConnection {
                 bootstrap: options.clientBootstrap.rawValue,
                 host_name: tempHostName.rawValue,
                 port: options.port,
-                socket_options: UnsafePointer(socketOptionPointer),
+                socket_options: UnsafePointer(&options.socketOptions.rawValue),
                 tls_options: nil,
                 proxy_options: nil,
                 monitoring_options: nil,
@@ -68,16 +65,12 @@ public class HttpClientConnection {
 
         unmanagedConnectionOptions.self_size = MemoryLayout.size(ofValue: unmanagedConnectionOptions)
 
-        if let tlsOptions = options.tlsOptions {
-            let pointer = UnsafeMutablePointer<aws_tls_connection_options>.allocate(capacity: 1)
-            pointer.pointee = tlsOptions.rawValue
-            unmanagedConnectionOptions.tls_options = UnsafePointer(pointer)
+        if var tlsOptions = options.tlsOptions {
+            unmanagedConnectionOptions.tls_options = UnsafePointer(&tlsOptions.rawValue)
         }
 
-        if let proxyOptions = options.proxyOptions {
-            let pointer = UnsafeMutablePointer<aws_http_proxy_options>.allocate(capacity: 1)
-            pointer.pointee = proxyOptions.rawValue
-            unmanagedConnectionOptions.proxy_options = UnsafePointer(pointer)
+        if var proxyOptions = options.proxyOptions {
+            unmanagedConnectionOptions.proxy_options = UnsafePointer(&proxyOptions.rawValue)
         }
 
         let callbackData = HttpClientConnectionCallbackData(options: options, allocator: allocator)

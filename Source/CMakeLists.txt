@@ -39,7 +39,7 @@ install(TARGETS ${PROJECT_NAME}
 
 ## ElastiCurl
 
-add_executable(ElastiCurl "Elasticurl/main.swift")
+add_executable(ElastiCurl "Elasticurl/main.swift" "Elasticurl/ElasticurlOptions.swift")
 
 target_link_libraries(ElastiCurl PUBLIC ${PROJECT_NAME})
 install(TARGETS ElastiCurl
