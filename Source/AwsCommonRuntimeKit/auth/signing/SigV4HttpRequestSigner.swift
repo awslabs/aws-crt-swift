@@ -38,10 +38,9 @@ class SigV4HttpRequestSigner {
         if config.rawValue.credentials_provider == nil && config.rawValue.credentials == nil {
             throw AwsCommonRuntimeError()
         }
-
-        let callbackData = SigningCallbackData(allocator: allocator.rawValue, request: request, onSigningComplete: callback)
-
         let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
+
+        let callbackData = SigningCallbackData(allocator: allocator.rawValue, request: request, signable: signable, onSigningComplete: callback)
 
         let configPointer = UnsafeMutablePointer<aws_signing_config_aws>.allocate(capacity: 1)
         configPointer.initialize(to: config.rawValue)
@@ -54,7 +53,6 @@ class SigV4HttpRequestSigner {
         callbackPointer.initialize(to: callbackData)
 
         defer {
-            aws_signable_destroy(signable)
             base.deinitializeAndDeallocate()
         }
 
@@ -66,6 +64,7 @@ class SigV4HttpRequestSigner {
                                         }
                                         let callback = userData.assumingMemoryBound(to: SigningCallbackData.self)
                                         defer {
+                                            aws_signable_destroy(callback.pointee.signable)
                                             callback.deinitializeAndDeallocate()
                                         }
                                         callback.pointee.onSigningComplete(SigningResult(rawValue: signingResult), callback.pointee.request, Int(errorCode))

@@ -47,10 +47,8 @@ extension UnsafeMutablePointer {
 extension Date {
     var awsDateTime: aws_date_time {
         let datefrom1970 = UInt64(self.timeIntervalSince1970 * 1000)
-        let pointer = UnsafeMutablePointer<aws_date_time>.allocate(capacity: 1)
-
-        aws_date_time_init_epoch_millis(pointer, datefrom1970)
-        return pointer.pointee
+        let dateTime = AWSDate(epochMs: datefrom1970)
+        return dateTime.rawValue.pointee
     }
 }
 

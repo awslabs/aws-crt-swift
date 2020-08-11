@@ -28,7 +28,6 @@ public class HttpMessage {
     }
 
     deinit {
-        print("request was deinitialized")
         if let oldStream = aws_http_message_get_body_stream(self.rawValue) {
             aws_input_stream_destroy(oldStream)
         }

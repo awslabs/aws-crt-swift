@@ -17,7 +17,8 @@ public final class HttpResponse: HttpMessage {
             return Int(response)
         }
         set(value) {
-            if aws_http_message_set_response_status(self.rawValue, Int32(value!)) != AWS_OP_SUCCESS {
+            guard let value = value else { return }
+            if aws_http_message_set_response_status(self.rawValue, Int32(value)) != AWS_OP_SUCCESS {
                 self.responseCode = nil
             }
         }

@@ -82,20 +82,20 @@ struct AWSDate: Comparable {
 
     static func -(lhs: Self, rhs: Self) -> Self {
         var currentTime = aws_date_time_as_millis(lhs.rawValue)
-        let subtractedTime = aws_date_time_as_millis(rhs.rawValue)
-        currentTime -= subtractedTime
+        let timeToSubtractBy = aws_date_time_as_millis(rhs.rawValue)
+        currentTime -= timeToSubtractBy
         return AWSDate(epochMs: currentTime)
     }
 
     static func +(lhs: Self, rhs: Self) -> Self {
         var currentTime = aws_date_time_as_millis(lhs.rawValue)
-        let subtractedTime = aws_date_time_as_millis(rhs.rawValue)
-        currentTime += subtractedTime
+        let timeToAdd = aws_date_time_as_millis(rhs.rawValue)
+        currentTime += timeToAdd
         return AWSDate(epochMs: currentTime)
     }
 
-    func now() {
-        aws_date_time_init_now(rawValue)
+    static func now() -> AWSDate {
+        return AWSDate()
     }
 }
 
