@@ -3,10 +3,10 @@
 
 struct CredentialsProviderCachedConfig {
     public let shutDownOptions: CredentialsProviderShutdownOptions?
-    public let source: CredentialsProvider
+    public var source: AWSCredentialsProvider
     public let refreshTimeMs: Int64
 
-    public init(source: CredentialsProvider,
+    public init(source: AWSCredentialsProvider,
                 refreshTimeMs: Int64,
                 shutDownOptions: CredentialsProviderShutdownOptions? = nil) {
         self.source = source

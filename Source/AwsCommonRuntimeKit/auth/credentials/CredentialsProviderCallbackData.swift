@@ -1,13 +1,13 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-struct CredentialProviderCallbackData {
+public struct CredentialsProviderCallbackData {
     public typealias OnCredentialsResolved = (Credentials?, Int32) -> Void
-    public let onCredentialsResolved: OnCredentialsResolved
+    public var onCredentialsResolved: OnCredentialsResolved?
     public let allocator: Allocator
 
     public init(allocator: Allocator,
-                onCredentialsResolved: @escaping OnCredentialsResolved) {
+                onCredentialsResolved: OnCredentialsResolved? = nil) {
         self.onCredentialsResolved = onCredentialsResolved
         self.allocator = allocator
     }

@@ -7,7 +7,7 @@ struct SigningConfig {
     public typealias ShouldSignHeader = (String) -> Bool
     public let rawValue: aws_signing_config_aws
     public let credentials: Credentials?
-    public let credentialsProvider: CredentialsProvider?
+    public let credentialsProvider: AWSCredentialsProvider?
     public let expiration: Int64
     public let signedBodyHeader: SignedBodyHeaderType
     public let signedBodyValue: SignedBodyValueType
@@ -21,7 +21,7 @@ struct SigningConfig {
     public let configType: SigningConfigType
 
     public init(credentials: Credentials? = nil,
-                credentialsProvider: CredentialsProvider? = nil,
+                credentialsProvider: AWSCredentialsProvider? = nil,
                 expiration: Int64,
                 date: AWSDate,
                 service: String,
@@ -50,6 +50,7 @@ struct SigningConfig {
         if let shouldSignHeader = shouldSignHeader {
             pointer.initialize(to: shouldSignHeader)
         }
+
         self.rawValue = aws_signing_config_aws(config_type: configType.rawValue,
                                                algorithm: signingAlgorithm.rawValue,
                                                signature_type: signatureType.rawValue,
@@ -74,7 +75,7 @@ struct SigningConfig {
                                                signed_body_value: signedBodyValue.rawValue,
                                                signed_body_header: signedBodyHeader.rawValue,
                                                credentials: credentials?.rawValue,
-                                               credentials_provider: credentialsProvider?.rawValue,
+                                               credentials_provider:credentialsProvider?.rawValue,
                                                expiration_in_seconds: UInt64(expiration))
     }
 }

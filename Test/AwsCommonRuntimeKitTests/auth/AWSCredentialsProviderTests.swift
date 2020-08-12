@@ -10,7 +10,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 
     let expectation = XCTestExpectation(description: "Credentials received")
     let expectation2 = XCTestExpectation(description: "Shutdown callback was called")
-    var callbackData: CredentialProviderCallbackData?
+    var callbackData: CredentialsProviderCallbackData?
     var shutDownOptions: CredentialsProviderShutdownOptions?
 
     override func setUp() {
@@ -30,8 +30,8 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         }
     }
 
-    func setUpCallbackCredentials(credentialsProvider: CredentialsProvider?) {
-        callbackData = CredentialProviderCallbackData(allocator: allocator) { (_, errorCode) in
+    func setUpCallbackCredentials() {
+        callbackData = CredentialsProviderCallbackData(allocator: allocator) { (_, errorCode) in
 
            //test that we got here successfully but not if we have credentials as we can't
            //test all uses cases i.e. some need to be on ec2 instance, etc
@@ -47,7 +47,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                             sessionToken: sessionToken,
                                                             shutDownOptions: shutDownOptions)
         let provider = try AWSCredentialsProvider(fromStatic: config, allocator: allocator)
-        setUpCallbackCredentials(credentialsProvider: provider)
+        setUpCallbackCredentials()
         provider.getCredentials(credentialCallbackData: callbackData!)
         wait(for: [expectation], timeout: 3.0)
         } catch {
@@ -58,7 +58,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     func testCreateAWSCredentialsProviderEnv() {
         do {
         let provider = try AWSCredentialsProvider(fromEnv: shutDownOptions)
-        setUpCallbackCredentials(credentialsProvider: provider)
+        setUpCallbackCredentials()
         provider.getCredentials(credentialCallbackData: callbackData!)
         wait(for: [expectation], timeout: 3.0)
         } catch {
@@ -73,7 +73,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 
         let provider = try AWSCredentialsProvider(fromProfile: config)
 
-        setUpCallbackCredentials(credentialsProvider: provider)
+        setUpCallbackCredentials()
         provider.getCredentials(credentialCallbackData: callbackData!)
 
         wait(for: [expectation], timeout: 5.0)
@@ -92,7 +92,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             let config = CredentialsProviderImdsConfig(bootstrap: bootstrap, shutdownOptions: shutDownOptions)
             let provider = try AWSCredentialsProvider(fromImds: config, allocator: allocator)
 
-            setUpCallbackCredentials(credentialsProvider: provider)
+            setUpCallbackCredentials()
             provider.getCredentials(credentialCallbackData: callbackData!)
 
             wait(for: [expectation], timeout: 5.0)
@@ -111,7 +111,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             let config = CredentialsProviderChainDefaultConfig(bootstrap: bootstrap, shutDownOptions: shutDownOptions)
 
             let provider = try AWSCredentialsProvider(fromChainDefault: config)
-            setUpCallbackCredentials(credentialsProvider: provider)
+            setUpCallbackCredentials()
             provider.getCredentials(credentialCallbackData: callbackData!)
 
             wait(for: [expectation], timeout: 3.0)

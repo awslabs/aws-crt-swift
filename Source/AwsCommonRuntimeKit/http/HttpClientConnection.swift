@@ -43,7 +43,7 @@ public class HttpClientConnection {
                     }
                     if let unmanagedConnection = unmanagedConnection,
                         errorCode == 0 {
-                        let callbackData: HttpClientConnectionCallbackData = Unmanaged.fromOpaque(userData).takeUnretainedValue()
+                        let callbackData: HttpClientConnectionCallbackData = Unmanaged.fromOpaque(userData).takeRetainedValue()
                         callbackData.managedConnection = HttpClientConnection(connection: unmanagedConnection, allocator: callbackData.allocator)
                         callbackData.connectionOptions.onConnectionSetup(callbackData.managedConnection, errorCode)
                     } else {
