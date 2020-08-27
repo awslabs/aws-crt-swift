@@ -65,7 +65,7 @@ public class HttpClientConnection {
 
         unmanagedConnectionOptions.self_size = MemoryLayout.size(ofValue: unmanagedConnectionOptions)
 
-        if var tlsOptions = options.tlsOptions {
+        if let tlsOptions = options.tlsOptions {
             unmanagedConnectionOptions.tls_options = UnsafePointer(&tlsOptions.rawValue)
         }
 

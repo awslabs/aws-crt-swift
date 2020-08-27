@@ -14,6 +14,7 @@ public final class TlsContextOptions {
 		aws_tls_ctx_options_init_default_client(&self.rawValue, allocator.rawValue)
 	}
 
+    #if os(macOS)
 	public init(clientWithMtlsCertificatePath certPath: String, keyPath: String, allocator: Allocator = defaultAllocator) throws {
 		if aws_tls_ctx_options_init_client_mtls_from_path(&self.rawValue, allocator.rawValue, certPath, keyPath) != AWS_OP_SUCCESS {
 			throw AwsCommonRuntimeError()
@@ -25,6 +26,7 @@ public final class TlsContextOptions {
 			throw AwsCommonRuntimeError()
 		}
 	}
+    #endif
 
 	#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
 	public init(clientWithMtlsPkcs12Path path: String, password: String, allocator: Allocator = defaultAllocator) throws {
