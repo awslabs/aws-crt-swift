@@ -38,10 +38,11 @@ install(TARGETS ${PROJECT_NAME}
 
 
 ## ElastiCurl
+if (NOT CMAKE_CROSSCOMPILING)
+  add_executable(ElastiCurl "Elasticurl/main.swift" "Elasticurl/ElasticurlOptions.swift")
 
-add_executable(ElastiCurl "Elasticurl/main.swift" "Elasticurl/ElasticurlOptions.swift")
-
-target_link_libraries(ElastiCurl PUBLIC ${PROJECT_NAME})
-install(TARGETS ElastiCurl
-        RUNTIME DESTINATION bin
-        )
+  target_link_libraries(ElastiCurl PUBLIC ${PROJECT_NAME})
+  install(TARGETS ElastiCurl
+          RUNTIME DESTINATION bin
+          )
+endif()
