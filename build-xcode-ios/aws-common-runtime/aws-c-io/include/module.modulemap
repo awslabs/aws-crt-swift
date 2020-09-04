@@ -1,0 +1,38 @@
+module AwsCIo {
+  requires c99
+
+  config_macros AWS_NO_STATIC_IMPL, AWS_UNSTABLE_TESTING_API
+
+  use AwsCCommon
+
+  header "aws/io/channel.h"
+  header "aws/io/channel_bootstrap.h"
+  header "aws/io/event_loop.h"
+  header "aws/io/exports.h"
+  header "aws/io/file_utils.h"
+  header "aws/io/host_resolver.h"
+  header "aws/io/io.h"
+  header "aws/io/logging.h"
+  header "aws/io/message_pool.h"
+  header "aws/io/pipe.h"
+  header "aws/io/pki_utils.h"
+  header "aws/io/shared_library.h"
+  header "aws/io/socket.h"
+  header "aws/io/socket_channel_handler.h"
+  header "aws/io/statistics.h"
+  header "aws/io/stream.h"
+  header "aws/io/tls_channel_handler.h"
+  header "aws/io/uri.h"
+
+  private header "aws/io/private/tls_channel_handler_shared.h"
+
+  explicit module Testing {
+    textual header "aws/testing/io_testing_channel.h"
+
+    export *
+  }
+
+  export *
+
+  link "aws-c-io"
+}

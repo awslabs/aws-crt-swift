@@ -4,6 +4,7 @@
 import AwsCAuth
 
 private func getCredentialsFn(_ credentialsProviderPtr: UnsafeMutablePointer<aws_credentials_provider>?, _ callbackFn: (@convention(c)(OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?, userData: UnsafeMutableRawPointer?) -> Int32 {
+    
     guard let credentialsProvider = userData?.assumingMemoryBound(to: CredentialsProvider.self) else {
         return 1
     }
@@ -52,10 +53,10 @@ class WrappedCredentialsProvider {
     }
     
 
-    
     static func setUpShutDownOptions(shutDownOptions: CredentialsProviderShutdownOptions?) -> aws_credentials_provider_shutdown_options {
         let shutDownOptionsC: aws_credentials_provider_shutdown_options?
         if let shutDownOptions = shutDownOptions {
+           
             let pointer = UnsafeMutablePointer<CredentialsProviderShutdownOptions>.allocate(capacity: 1)
             pointer.initialize(to: shutDownOptions)
             shutDownOptionsC = aws_credentials_provider_shutdown_options(shutdown_callback: { userData in

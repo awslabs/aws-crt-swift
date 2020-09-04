@@ -1,0 +1,14 @@
+### Swift dependencies file v0 ###
+provides-top-level:
+provides-nominal:
+provides-member:
+provides-dynamic-lookup:
+depends-top-level:
+- "StringLiteralType"
+- "print"
+depends-member:
+depends-nominal:
+depends-dynamic-lookup:
+depends-external:
+- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/Swift.swiftmodule/arm64.swiftmodule"
+interface-hash: "6b62deb41e93c2c856f7f31077910138"

@@ -176,8 +176,10 @@ public class MqttConnection {
             if let proxyOptions = proxyOptions {
 
                 var pOptions = aws_http_proxy_options()
-                pOptions.auth_username = proxyOptions.basicAuthUsername.awsByteCursor
-                pOptions.auth_password = proxyOptions.basicAuthPassword.awsByteCursor
+                if let username = proxyOptions.basicAuthUsername?.awsByteCursor, let password = proxyOptions.basicAuthPassword?.awsByteCursor {
+                    pOptions.auth_username = username
+                    pOptions.auth_password = password
+                }
                 if let tlsOptions = proxyOptions.tlsOptions?.rawValue {
                     let tlsPtr = UnsafeMutablePointer<aws_tls_connection_options>.allocate(capacity: 1)
                     tlsPtr.initialize(to: tlsOptions)

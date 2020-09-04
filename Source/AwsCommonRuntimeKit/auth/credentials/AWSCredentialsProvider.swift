@@ -151,7 +151,7 @@ final class AWSCredentialsProvider {
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
-    
+    #if os(macOS)
     /// Creates a credentials provider that sources credentials from IoT Core.
     ///
     /// - Parameters:
@@ -183,6 +183,7 @@ final class AWSCredentialsProvider {
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
+    #endif
     
     /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to the callback passed in.
     ///

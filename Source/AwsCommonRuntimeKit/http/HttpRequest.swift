@@ -25,7 +25,8 @@ public final class HttpRequest: HttpMessage {
             return result.toString()
         }
         set(value) {
-            if aws_http_message_set_request_method(self.rawValue, value?.awsByteCursor ?? "".awsByteCursor) != AWS_OP_SUCCESS {
+            guard let value = value else { return }
+            if aws_http_message_set_request_method(self.rawValue, value.awsByteCursor) != AWS_OP_SUCCESS {
                 self.method = nil
             }
         }

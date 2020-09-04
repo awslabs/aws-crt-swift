@@ -1,0 +1,1161 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		20E0D942DDCC4AA58C5DF8D3 /* ZERO_CHECK */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 6D60AFD681A54C20B39E61BD /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */;
+			buildPhases = (
+				E7F064A5E28846029B6134F6 /* CMake Rules */,
+			);
+			dependencies = (
+			);
+			name = ZERO_CHECK;
+			productName = ZERO_CHECK;
+		};
+		4F714F44510F4053B6157EB4 /* install */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = D5BD1A2173CB4E50BDFE5BD5 /* Build configuration list for PBXAggregateTarget "install" */;
+			buildPhases = (
+				AC78E6A2935A4C8DAF8B8C5E /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+				5D09ADFDA5214848B7BE277C /* PBXTargetDependency */,
+			);
+			name = install;
+			productName = install;
+		};
+		B9AA4A9FF2FE4A3FA1BA59E7 /* ALL_BUILD */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 4EED5100969B44AB96A7C170 /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */;
+			buildPhases = (
+				A7716F87A68848C6AA603338 /* CMake Rules */,
+			);
+			dependencies = (
+				89A8D49C3E2C4D7DA606056C /* PBXTargetDependency */,
+				0922711D2D7B4652BAC1E449 /* PBXTargetDependency */,
+			);
+			name = ALL_BUILD;
+			productName = ALL_BUILD;
+		};
+		F631349ED166407D9618D08A /* RUN_TESTS */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = D720CFC7C2054D62BC6A5E2B /* Build configuration list for PBXAggregateTarget "RUN_TESTS" */;
+			buildPhases = (
+				46C93B69D20B4197A1BCE687 /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+			);
+			name = RUN_TESTS;
+			productName = RUN_TESTS;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		134EFC4B2D61458186183C6A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_impl.h */ = {isa = PBXBuildFile; fileRef = 880C049643434664BC5A4A4E /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_impl.h */; };
+		21F4C43425AD4BBCAE9FF853 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_decoder.h */ = {isa = PBXBuildFile; fileRef = E990AE54069D4C9DAA8DD2E1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_decoder.h */; };
+		2445D94AA5D34FDBA493A18B /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_connection.c */ = {isa = PBXBuildFile; fileRef = 85EA3100DB05459F81081ED0 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_connection.c */; };
+		30977E0B11A44D8CAC1FD359 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/connection.c */ = {isa = PBXBuildFile; fileRef = C280623297904356B7BD3861 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/connection.c */; };
+		3775F26AA294437DAF18B5D9 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_connection.c */ = {isa = PBXBuildFile; fileRef = A24E11124B0543BEA0231AEA /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_connection.c */; };
+		3910578EF1284CA4B1ACF364 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/statistics.c */ = {isa = PBXBuildFile; fileRef = 7ADF83C9E536480990CAF739 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/statistics.c */; };
+		431B136AD1B1420280FA679F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/connection_manager.c */ = {isa = PBXBuildFile; fileRef = 0C0942076C82402A954198E6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/connection_manager.c */; };
+		50E8FADF58D34CA3A9985A0F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/exports.h */ = {isa = PBXBuildFile; fileRef = 9784CBE3DDC443BDBE0D3069 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/exports.h */; };
+		526418E4E7054FCFBFB0DA75 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_decoder.h */ = {isa = PBXBuildFile; fileRef = 356959609191446B89CF31A2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_decoder.h */; };
+		5AE1399D90DC4AF68626F589 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_encoder.c */ = {isa = PBXBuildFile; fileRef = 306794C5A9B2424C9C23899F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_encoder.c */; };
+		5C13AE2676FB473FB055D768 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_stream.h */ = {isa = PBXBuildFile; fileRef = EF6A8069C62347FD84449358 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_stream.h */; };
+		5C17159693374140B3625F95 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/http.h */ = {isa = PBXBuildFile; fileRef = 873B419374324FA1B22FDC24 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/http.h */; };
+		5F1932F448A6489AAAE8D3D2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/hpack.h */ = {isa = PBXBuildFile; fileRef = B830D3FD36EF4FC3B99BEC98 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/hpack.h */; };
+		60A0C5B32BEC4FFFBA2F7F2A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket_decoder.c */ = {isa = PBXBuildFile; fileRef = 7CC372186DD34810B7E17ED2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket_decoder.c */; };
+		635C41683B454B07807DF786 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_connection.h */ = {isa = PBXBuildFile; fileRef = DC584190C7F34DDA9E33E8BE /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_connection.h */; };
+		65570CAD933548949F76227A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_encoder.h */ = {isa = PBXBuildFile; fileRef = 181E81ABE7FB4B16BEB7D6F2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_encoder.h */; };
+		6593770F1EE1432BA6DCE7A3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/statistics.h */ = {isa = PBXBuildFile; fileRef = D40759247F674DA9BAEE4191 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/statistics.h */; };
+		6788FD1D529D43B0A9930338 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/hpack_huffman_static.c */ = {isa = PBXBuildFile; fileRef = 0A6BF4ACBCC345439488E2BB /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/hpack_huffman_static.c */; };
+		6DBE36CBDF694B0C832177C7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/request_response_impl.h */ = {isa = PBXBuildFile; fileRef = 7F9CEE8F121042A48ACA3920 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/request_response_impl.h */; };
+		71C9AE6583AD407A98D918BF /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_decoder.c */ = {isa = PBXBuildFile; fileRef = 8402ED15F614499685541F3F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_decoder.c */; };
+		723E9416FA6B4F118E1A7691 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/connection.h */ = {isa = PBXBuildFile; fileRef = 162AAD1AD401408DA1C788C3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/connection.h */; };
+		7DCC397707CE496DB7011E2A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket_bootstrap.c */ = {isa = PBXBuildFile; fileRef = 09543C7B65FB4C26AE969F36 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket_bootstrap.c */; };
+		81700002E9104C008BAA9D40 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket_encoder.c */ = {isa = PBXBuildFile; fileRef = 2619D5ABFCFA4910961D35DF /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket_encoder.c */; };
+		87001518A8584636BC4BCFA8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/connection_manager_system_vtable.h */ = {isa = PBXBuildFile; fileRef = 005D818624F2467E89B97FE3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/connection_manager_system_vtable.h */; };
+		876394312DBF4DBC9B25649A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/proxy_impl.h */ = {isa = PBXBuildFile; fileRef = CE0768FFEFD846C4BADC387B /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/proxy_impl.h */; };
+		88AEE0A9C254412DB6C48B30 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = E1C2BF7C810A4BDD97EDF164 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/CMakeLists.txt */; };
+		88C31E5187214A4D9D14DB6B /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/connection_monitor.c */ = {isa = PBXBuildFile; fileRef = 936CB212160A4335957EB173 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/connection_monitor.c */; };
+		8B243B6E80B14A63A963EBF7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_stream.h */ = {isa = PBXBuildFile; fileRef = 06CCCAE9B158459CA65B96C1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_stream.h */; };
+		8B31D7D7C1B94B829290461A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_decoder.c */ = {isa = PBXBuildFile; fileRef = 78C04FDBF5B241B0B347B506 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_decoder.c */; };
+		8B52201BBD3C4BDF93C86502 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/http_impl.h */ = {isa = PBXBuildFile; fileRef = 8CDC5D18BE814588B628F9B2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/http_impl.h */; };
+		91CB49C055884556B782D67F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket.c */ = {isa = PBXBuildFile; fileRef = 5F89EE09ECD644DB9F554BDB /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket.c */; };
+		93622E6E480C4FF884A1A6F3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/proxy_connection.c */ = {isa = PBXBuildFile; fileRef = 13D8515A8B58428EBD1B1EBD /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/proxy_connection.c */; };
+		95B1B571224841DD9D3A55EC /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_connection.h */ = {isa = PBXBuildFile; fileRef = A35006E34A5746C19D912597 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_connection.h */; };
+		983983E8CFB64E06993D2B19 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/request_response.c */ = {isa = PBXBuildFile; fileRef = CBF5050C0B0248A6A21A58B1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/request_response.c */; };
+		98DD1187484B405C8466ED38 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_frames.c */ = {isa = PBXBuildFile; fileRef = 3F7C37F17DC842BA817EB75C /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_frames.c */; };
+		A03107E1594B451187078DB5 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/http.c */ = {isa = PBXBuildFile; fileRef = E0028606A1BA45029B2B9989 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/http.c */; };
+		A09584E60F384067BEB63639 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_frames.h */ = {isa = PBXBuildFile; fileRef = A1872F1AE7C545AEAA56F4ED /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_frames.h */; };
+		A20CAD2F3B28424F8F949AF2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_encoder.h */ = {isa = PBXBuildFile; fileRef = 56D06ECBE0884441BA1BE84A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_encoder.h */; };
+		A54C213CBE3E4C0B9DF9F4D4 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_decoder.h */ = {isa = PBXBuildFile; fileRef = 267E7666681B48BF87171D6F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_decoder.h */; };
+		B471BFC12DB2473E8CF6851E /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/status_code.h */ = {isa = PBXBuildFile; fileRef = 21244F5F103C4029B8A884DA /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/status_code.h */; };
+		BA328BB1C3DB46CF8167BDAF /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/strutil.c */ = {isa = PBXBuildFile; fileRef = 39DE36A373E043BAA82BDCAD /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/strutil.c */; };
+		C281690815794B6C9C5D232A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/websocket.h */ = {isa = PBXBuildFile; fileRef = B83AD1A6930E4B4AB7E9FA31 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/websocket.h */; };
+		C3A4456DA14946308887EA59 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/hpack.c */ = {isa = PBXBuildFile; fileRef = 7D2584BB91B14B9E82E95B50 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/hpack.c */; };
+		CF93F537E73040F98743501D /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_stream.c */ = {isa = PBXBuildFile; fileRef = 2FD12F2FD9564C1E816552E1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_stream.c */; };
+		D00A6405F2E64CF898A1C059 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/server.h */ = {isa = PBXBuildFile; fileRef = 72BDA4AF09054C4382F25640 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/server.h */; };
+		D1C24692A02345C4A4E528E6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/request_response.h */ = {isa = PBXBuildFile; fileRef = DD407FF56E6B4E21AB865591 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/request_response.h */; };
+		DD722745B51649C3A9520A80 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/connection_monitor.h */ = {isa = PBXBuildFile; fileRef = 5D89AB68370A43B4B409B580 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/connection_monitor.h */; };
+		E3DB3FA423A04BEE9F93F9CB /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/connection_impl.h */ = {isa = PBXBuildFile; fileRef = 811968E3FBD74B86B97828D0 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/connection_impl.h */; };
+		E537AB9EE53A45F399E2E1AE /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/connection_manager.h */ = {isa = PBXBuildFile; fileRef = 54BB086E295A49C9873BA6ED /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/connection_manager.h */; };
+		F0FED6560DDF4F3FB4089F74 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/CMakeFiles/aws-c-http.dir/Info.plist */ = {isa = PBXBuildFile; fileRef = DD2CB168609D4A81BEFFAD4A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/CMakeFiles/aws-c-http.dir/Info.plist */; };
+		FB98B8CB61E4459595CDED00 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/strutil.h */ = {isa = PBXBuildFile; fileRef = DE84392A86924DE19716B72F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/strutil.h */; };
+		FD53C323E70E4A9E8BE7F0C6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_stream.c */ = {isa = PBXBuildFile; fileRef = 3A07E01D870C478C919FFD6F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_stream.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXBuildStyle section */
+		1BF3EF21A26C401AB8FC8CC6 /* MinSizeRel */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = MinSizeRel;
+		};
+		275224CFA1BD4F339FACBF6D /* Release */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Release;
+		};
+		91A6273923384475B42B5190 /* Debug */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Debug;
+		};
+		9C87F67F23A84AC9A507E9EF /* RelWithDebInfo */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = RelWithDebInfo;
+		};
+/* End PBXBuildStyle section */
+
+/* Begin PBXContainerItemProxy section */
+		69EBE1A6F9A6440ABE3DE720 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 64B468B2C55049B5867E4465 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B9AA4A9FF2FE4A3FA1BA59E7;
+			remoteInfo = ALL_BUILD;
+		};
+		8FC9883C6CC7445AB5DA339F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 64B468B2C55049B5867E4465 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 765E495DFE564597B40C8B67;
+			remoteInfo = "aws-c-http";
+		};
+		A2E505A676254206AEAD962B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 64B468B2C55049B5867E4465 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 20E0D942DDCC4AA58C5DF8D3;
+			remoteInfo = ZERO_CHECK;
+		};
+		D21A9DC8CCAC4C61AC2B6C8F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 64B468B2C55049B5867E4465 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 20E0D942DDCC4AA58C5DF8D3;
+			remoteInfo = ZERO_CHECK;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		005D818624F2467E89B97FE3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/connection_manager_system_vtable.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = connection_manager_system_vtable.h; path = include/aws/http/private/connection_manager_system_vtable.h; sourceTree = SOURCE_ROOT; };
+		06CCCAE9B158459CA65B96C1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_stream.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = h1_stream.h; path = include/aws/http/private/h1_stream.h; sourceTree = SOURCE_ROOT; };
+		09543C7B65FB4C26AE969F36 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket_bootstrap.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = websocket_bootstrap.c; path = source/websocket_bootstrap.c; sourceTree = SOURCE_ROOT; };
+		0A6BF4ACBCC345439488E2BB /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/hpack_huffman_static.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = hpack_huffman_static.c; path = source/hpack_huffman_static.c; sourceTree = SOURCE_ROOT; };
+		0C0942076C82402A954198E6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/connection_manager.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = connection_manager.c; path = source/connection_manager.c; sourceTree = SOURCE_ROOT; };
+		13D8515A8B58428EBD1B1EBD /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/proxy_connection.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = proxy_connection.c; path = source/proxy_connection.c; sourceTree = SOURCE_ROOT; };
+		162AAD1AD401408DA1C788C3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/connection.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = connection.h; path = include/aws/http/connection.h; sourceTree = SOURCE_ROOT; };
+		181E81ABE7FB4B16BEB7D6F2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_encoder.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = websocket_encoder.h; path = include/aws/http/private/websocket_encoder.h; sourceTree = SOURCE_ROOT; };
+		21244F5F103C4029B8A884DA /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/status_code.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = status_code.h; path = include/aws/http/status_code.h; sourceTree = SOURCE_ROOT; };
+		2619D5ABFCFA4910961D35DF /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket_encoder.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = websocket_encoder.c; path = source/websocket_encoder.c; sourceTree = SOURCE_ROOT; };
+		267E7666681B48BF87171D6F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_decoder.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = websocket_decoder.h; path = include/aws/http/private/websocket_decoder.h; sourceTree = SOURCE_ROOT; };
+		2FD12F2FD9564C1E816552E1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_stream.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = h1_stream.c; path = source/h1_stream.c; sourceTree = SOURCE_ROOT; };
+		306794C5A9B2424C9C23899F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_encoder.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = h1_encoder.c; path = source/h1_encoder.c; sourceTree = SOURCE_ROOT; };
+		356959609191446B89CF31A2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_decoder.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = h1_decoder.h; path = include/aws/http/private/h1_decoder.h; sourceTree = SOURCE_ROOT; };
+		39DE36A373E043BAA82BDCAD /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/strutil.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = strutil.c; path = source/strutil.c; sourceTree = SOURCE_ROOT; };
+		3A07E01D870C478C919FFD6F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_stream.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = h2_stream.c; path = source/h2_stream.c; sourceTree = SOURCE_ROOT; };
+		3F7C37F17DC842BA817EB75C /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_frames.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = h2_frames.c; path = source/h2_frames.c; sourceTree = SOURCE_ROOT; };
+		54BB086E295A49C9873BA6ED /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/connection_manager.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = connection_manager.h; path = include/aws/http/connection_manager.h; sourceTree = SOURCE_ROOT; };
+		56D06ECBE0884441BA1BE84A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_encoder.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = h1_encoder.h; path = include/aws/http/private/h1_encoder.h; sourceTree = SOURCE_ROOT; };
+		5D89AB68370A43B4B409B580 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/connection_monitor.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = connection_monitor.h; path = include/aws/http/private/connection_monitor.h; sourceTree = SOURCE_ROOT; };
+		5F89EE09ECD644DB9F554BDB /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = websocket.c; path = source/websocket.c; sourceTree = SOURCE_ROOT; };
+		72BDA4AF09054C4382F25640 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/server.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = server.h; path = include/aws/http/server.h; sourceTree = SOURCE_ROOT; };
+		78C04FDBF5B241B0B347B506 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_decoder.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = h1_decoder.c; path = source/h1_decoder.c; sourceTree = SOURCE_ROOT; };
+		7ADF83C9E536480990CAF739 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/statistics.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = statistics.c; path = source/statistics.c; sourceTree = SOURCE_ROOT; };
+		7CC372186DD34810B7E17ED2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket_decoder.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = websocket_decoder.c; path = source/websocket_decoder.c; sourceTree = SOURCE_ROOT; };
+		7D2584BB91B14B9E82E95B50 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/hpack.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = hpack.c; path = source/hpack.c; sourceTree = SOURCE_ROOT; };
+		7F9CEE8F121042A48ACA3920 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/request_response_impl.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = request_response_impl.h; path = include/aws/http/private/request_response_impl.h; sourceTree = SOURCE_ROOT; };
+		811968E3FBD74B86B97828D0 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/connection_impl.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = connection_impl.h; path = include/aws/http/private/connection_impl.h; sourceTree = SOURCE_ROOT; };
+		8402ED15F614499685541F3F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_decoder.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = h2_decoder.c; path = source/h2_decoder.c; sourceTree = SOURCE_ROOT; };
+		85EA3100DB05459F81081ED0 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_connection.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = h1_connection.c; path = source/h1_connection.c; sourceTree = SOURCE_ROOT; };
+		873B419374324FA1B22FDC24 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/http.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = http.h; path = include/aws/http/http.h; sourceTree = SOURCE_ROOT; };
+		880C049643434664BC5A4A4E /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_impl.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = websocket_impl.h; path = include/aws/http/private/websocket_impl.h; sourceTree = SOURCE_ROOT; };
+		8CDC5D18BE814588B628F9B2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/http_impl.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = http_impl.h; path = include/aws/http/private/http_impl.h; sourceTree = SOURCE_ROOT; };
+		936CB212160A4335957EB173 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/connection_monitor.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = connection_monitor.c; path = source/connection_monitor.c; sourceTree = SOURCE_ROOT; };
+		9784CBE3DDC443BDBE0D3069 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/exports.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = exports.h; path = include/aws/http/exports.h; sourceTree = SOURCE_ROOT; };
+		A1872F1AE7C545AEAA56F4ED /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_frames.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = h2_frames.h; path = include/aws/http/private/h2_frames.h; sourceTree = SOURCE_ROOT; };
+		A24E11124B0543BEA0231AEA /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_connection.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = h2_connection.c; path = source/h2_connection.c; sourceTree = SOURCE_ROOT; };
+		A35006E34A5746C19D912597 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_connection.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = h1_connection.h; path = include/aws/http/private/h1_connection.h; sourceTree = SOURCE_ROOT; };
+		AF6F0F896DE64F978D2625D9 /* aws-c-http */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; path = "libaws-c-http.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B830D3FD36EF4FC3B99BEC98 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/hpack.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = hpack.h; path = include/aws/http/private/hpack.h; sourceTree = SOURCE_ROOT; };
+		B83AD1A6930E4B4AB7E9FA31 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/websocket.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = websocket.h; path = include/aws/http/websocket.h; sourceTree = SOURCE_ROOT; };
+		C280623297904356B7BD3861 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/connection.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = connection.c; path = source/connection.c; sourceTree = SOURCE_ROOT; };
+		CBF5050C0B0248A6A21A58B1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/request_response.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = request_response.c; path = source/request_response.c; sourceTree = SOURCE_ROOT; };
+		CE0768FFEFD846C4BADC387B /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/proxy_impl.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = proxy_impl.h; path = include/aws/http/private/proxy_impl.h; sourceTree = SOURCE_ROOT; };
+		D40759247F674DA9BAEE4191 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/statistics.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = statistics.h; path = include/aws/http/statistics.h; sourceTree = SOURCE_ROOT; };
+		DC584190C7F34DDA9E33E8BE /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_connection.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = h2_connection.h; path = include/aws/http/private/h2_connection.h; sourceTree = SOURCE_ROOT; };
+		DD2CB168609D4A81BEFFAD4A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/CMakeFiles/aws-c-http.dir/Info.plist */ = {isa = PBXFileReference; explicitFileType = sourcecode.text.plist; fileEncoding = 4; name = Info.plist; path = "../../build-xcode-ios/aws-common-runtime/aws-c-http/CMakeFiles/aws-c-http.dir/Info.plist"; sourceTree = SOURCE_ROOT; };
+		DD407FF56E6B4E21AB865591 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/request_response.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = request_response.h; path = include/aws/http/request_response.h; sourceTree = SOURCE_ROOT; };
+		DE84392A86924DE19716B72F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/strutil.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = strutil.h; path = include/aws/http/private/strutil.h; sourceTree = SOURCE_ROOT; };
+		E0028606A1BA45029B2B9989 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/http.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = http.c; path = source/http.c; sourceTree = SOURCE_ROOT; };
+		E1C2BF7C810A4BDD97EDF164 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		E990AE54069D4C9DAA8DD2E1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_decoder.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = h2_decoder.h; path = include/aws/http/private/h2_decoder.h; sourceTree = SOURCE_ROOT; };
+		EF6A8069C62347FD84449358 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_stream.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = h2_stream.h; path = include/aws/http/private/h2_stream.h; sourceTree = SOURCE_ROOT; };
+		F206C1CF399E476D9CAB8CA9 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		005D691751754E37B27DFBA3 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				DD2CB168609D4A81BEFFAD4A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/CMakeFiles/aws-c-http.dir/Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		08F1BE345E6B48FB91BD25E4 /* ALL_BUILD */ = {
+			isa = PBXGroup;
+			children = (
+				480F6CF7A0F74B0F98A4135F /* CMake Rules */,
+				F206C1CF399E476D9CAB8CA9 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/CMakeLists.txt */,
+			);
+			name = ALL_BUILD;
+			sourceTree = "<group>";
+		};
+		2E7571861D2547FBA676D7EF = {
+			isa = PBXGroup;
+			children = (
+				EF98535862DD498BB83632C8 /* aws-c-http */,
+				08F1BE345E6B48FB91BD25E4 /* ALL_BUILD */,
+				C8219D4D77844622893DCABC /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		480F6CF7A0F74B0F98A4135F /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		C543B143D2974962A19BB432 /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				C280623297904356B7BD3861 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/connection.c */,
+				0C0942076C82402A954198E6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/connection_manager.c */,
+				936CB212160A4335957EB173 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/connection_monitor.c */,
+				85EA3100DB05459F81081ED0 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_connection.c */,
+				78C04FDBF5B241B0B347B506 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_decoder.c */,
+				306794C5A9B2424C9C23899F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_encoder.c */,
+				2FD12F2FD9564C1E816552E1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_stream.c */,
+				A24E11124B0543BEA0231AEA /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_connection.c */,
+				8402ED15F614499685541F3F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_decoder.c */,
+				3F7C37F17DC842BA817EB75C /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_frames.c */,
+				3A07E01D870C478C919FFD6F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_stream.c */,
+				7D2584BB91B14B9E82E95B50 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/hpack.c */,
+				0A6BF4ACBCC345439488E2BB /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/hpack_huffman_static.c */,
+				E0028606A1BA45029B2B9989 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/http.c */,
+				13D8515A8B58428EBD1B1EBD /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/proxy_connection.c */,
+				CBF5050C0B0248A6A21A58B1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/request_response.c */,
+				7ADF83C9E536480990CAF739 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/statistics.c */,
+				39DE36A373E043BAA82BDCAD /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/strutil.c */,
+				5F89EE09ECD644DB9F554BDB /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket.c */,
+				09543C7B65FB4C26AE969F36 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket_bootstrap.c */,
+				7CC372186DD34810B7E17ED2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket_decoder.c */,
+				2619D5ABFCFA4910961D35DF /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket_encoder.c */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		C8219D4D77844622893DCABC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AF6F0F896DE64F978D2625D9 /* aws-c-http */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E262669C41854946AC622430 /* Header Files */ = {
+			isa = PBXGroup;
+			children = (
+				162AAD1AD401408DA1C788C3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/connection.h */,
+				54BB086E295A49C9873BA6ED /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/connection_manager.h */,
+				9784CBE3DDC443BDBE0D3069 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/exports.h */,
+				873B419374324FA1B22FDC24 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/http.h */,
+				811968E3FBD74B86B97828D0 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/connection_impl.h */,
+				005D818624F2467E89B97FE3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/connection_manager_system_vtable.h */,
+				5D89AB68370A43B4B409B580 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/connection_monitor.h */,
+				A35006E34A5746C19D912597 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_connection.h */,
+				356959609191446B89CF31A2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_decoder.h */,
+				56D06ECBE0884441BA1BE84A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_encoder.h */,
+				06CCCAE9B158459CA65B96C1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_stream.h */,
+				DC584190C7F34DDA9E33E8BE /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_connection.h */,
+				E990AE54069D4C9DAA8DD2E1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_decoder.h */,
+				A1872F1AE7C545AEAA56F4ED /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_frames.h */,
+				EF6A8069C62347FD84449358 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_stream.h */,
+				B830D3FD36EF4FC3B99BEC98 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/hpack.h */,
+				8CDC5D18BE814588B628F9B2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/http_impl.h */,
+				CE0768FFEFD846C4BADC387B /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/proxy_impl.h */,
+				7F9CEE8F121042A48ACA3920 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/request_response_impl.h */,
+				DE84392A86924DE19716B72F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/strutil.h */,
+				267E7666681B48BF87171D6F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_decoder.h */,
+				181E81ABE7FB4B16BEB7D6F2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_encoder.h */,
+				880C049643434664BC5A4A4E /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_impl.h */,
+				DD407FF56E6B4E21AB865591 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/request_response.h */,
+				72BDA4AF09054C4382F25640 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/server.h */,
+				D40759247F674DA9BAEE4191 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/statistics.h */,
+				21244F5F103C4029B8A884DA /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/status_code.h */,
+				B83AD1A6930E4B4AB7E9FA31 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/websocket.h */,
+			);
+			name = "Header Files";
+			sourceTree = "<group>";
+		};
+		EF98535862DD498BB83632C8 /* aws-c-http */ = {
+			isa = PBXGroup;
+			children = (
+				E262669C41854946AC622430 /* Header Files */,
+				C543B143D2974962A19BB432 /* Source Files */,
+				005D691751754E37B27DFBA3 /* Resources */,
+				E1C2BF7C810A4BDD97EDF164 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/CMakeLists.txt */,
+			);
+			name = "aws-c-http";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		765E495DFE564597B40C8B67 /* aws-c-http */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 930B8C97CD6A481D8B30B8FE /* Build configuration list for PBXNativeTarget "aws-c-http" */;
+			buildPhases = (
+				4696ED06BFE54060B8432211 /* Sources */,
+				365604D75425456F837E550C /* CMake PostBuild Rules */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				03D56FB9590343459E342B70 /* PBXTargetDependency */,
+			);
+			name = "aws-c-http";
+			productName = "aws-c-http";
+			productReference = AF6F0F896DE64F978D2625D9 /* aws-c-http */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		64B468B2C55049B5867E4465 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1160;
+			};
+			buildConfigurationList = E81E87B9A5EF48B081401224 /* Build configuration list for PBXProject "aws-c-http" */;
+			buildSettings = {
+			};
+			buildStyles = (
+				91A6273923384475B42B5190 /* Debug */,
+				275224CFA1BD4F339FACBF6D /* Release */,
+				1BF3EF21A26C401AB8FC8CC6 /* MinSizeRel */,
+				9C87F67F23A84AC9A507E9EF /* RelWithDebInfo */,
+			);
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 0;
+			mainGroup = 2E7571861D2547FBA676D7EF;
+			projectDirPath = "../../../aws-common-runtime/aws-c-http";
+			projectRoot = "";
+			targets = (
+				B9AA4A9FF2FE4A3FA1BA59E7 /* ALL_BUILD */,
+				F631349ED166407D9618D08A /* RUN_TESTS */,
+				20E0D942DDCC4AA58C5DF8D3 /* ZERO_CHECK */,
+				765E495DFE564597B40C8B67 /* aws-c-http */,
+				4F714F44510F4053B6157EB4 /* install */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1DE4FC549CC543D1AC65435A = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		365604D75425456F837E550C /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http -f /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/CMakeScripts/aws-c-http_postBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		46C93B69D20B4197A1BCE687 /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http -f /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/CMakeScripts/RUN_TESTS_postBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		560E40B445C54A0090EDF04A = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		750277A0E72C4078B69FED17 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		A7716F87A68848C6AA603338 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http -f /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/CMakeScripts/ALL_BUILD_cmakeRulesBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		AC78E6A2935A4C8DAF8B8C5E /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http -f /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/CMakeScripts/install_postBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		C67FCECBFF49454896A62A6F = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		E7F064A5E28846029B6134F6 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http -f /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/CMakeScripts/ZERO_CHECK_cmakeRulesBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4696ED06BFE54060B8432211 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				30977E0B11A44D8CAC1FD359 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/connection.c */,
+				431B136AD1B1420280FA679F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/connection_manager.c */,
+				88C31E5187214A4D9D14DB6B /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/connection_monitor.c */,
+				2445D94AA5D34FDBA493A18B /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_connection.c */,
+				8B31D7D7C1B94B829290461A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_decoder.c */,
+				5AE1399D90DC4AF68626F589 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_encoder.c */,
+				CF93F537E73040F98743501D /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h1_stream.c */,
+				3775F26AA294437DAF18B5D9 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_connection.c */,
+				71C9AE6583AD407A98D918BF /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_decoder.c */,
+				98DD1187484B405C8466ED38 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_frames.c */,
+				FD53C323E70E4A9E8BE7F0C6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/h2_stream.c */,
+				C3A4456DA14946308887EA59 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/hpack.c */,
+				6788FD1D529D43B0A9930338 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/hpack_huffman_static.c */,
+				A03107E1594B451187078DB5 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/http.c */,
+				93622E6E480C4FF884A1A6F3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/proxy_connection.c */,
+				983983E8CFB64E06993D2B19 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/request_response.c */,
+				3910578EF1284CA4B1ACF364 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/statistics.c */,
+				BA328BB1C3DB46CF8167BDAF /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/strutil.c */,
+				91CB49C055884556B782D67F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket.c */,
+				7DCC397707CE496DB7011E2A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket_bootstrap.c */,
+				60A0C5B32BEC4FFFBA2F7F2A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket_decoder.c */,
+				81700002E9104C008BAA9D40 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/source/websocket_encoder.c */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		03D56FB9590343459E342B70 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 20E0D942DDCC4AA58C5DF8D3 /* ZERO_CHECK */;
+			targetProxy = A2E505A676254206AEAD962B /* PBXContainerItemProxy */;
+		};
+		0922711D2D7B4652BAC1E449 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 765E495DFE564597B40C8B67 /* aws-c-http */;
+			targetProxy = 8FC9883C6CC7445AB5DA339F /* PBXContainerItemProxy */;
+		};
+		5D09ADFDA5214848B7BE277C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B9AA4A9FF2FE4A3FA1BA59E7 /* ALL_BUILD */;
+			targetProxy = 69EBE1A6F9A6440ABE3DE720 /* PBXContainerItemProxy */;
+		};
+		89A8D49C3E2C4D7DA606056C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 20E0D942DDCC4AA58C5DF8D3 /* ZERO_CHECK */;
+			targetProxy = D21A9DC8CCAC4C61AC2B6C8F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1E37C6F6A70B43B5AA383803 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		1E683287A95E4A0ABE8F3B7F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Debug";
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = 1.0.0;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",aws_c_http_EXPORTS,HAVE_SYSCONF,AWS_HTTP_USE_IMPORT_EXPORT,AWS_HTTP_EXPORTS,AWS_IO_USE_IMPORT_EXPORT,AWS_USE_KQUEUE,AWS_COMMON_USE_IMPORT_EXPORT,AWS_COMPRESSION_USE_IMPORT_EXPORT);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-io/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/generated/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/include");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "   -fPIC -Wall -Werror -Wstrict-prototypes -Wextra -pedantic -Wno-long-long -fPIC -Wgnu -Wno-gnu-zero-variadic-macro-arguments '-fvisibility=hidden' '-std=gnu99'  ";
+				OTHER_LDFLAGS = " -dynamiclib -Wl,-headerpad_max_install_names -install_name /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Debug/libaws-c-http.0unstable.dylib  /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Debug/libaws-c-io.1.0.0.dylib /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Debug/libaws-c-compression.1.0.0.dylib -framework Security /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Debug/libaws-c-common.1.0.0.dylib  -framework CoreFoundation";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "aws-c-http.1.0.0";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		21D9622A05944B948031F0E4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		2242D60C81964B348D764119 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		263E6FCB1698462F8AB56E38 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		2CA6EEF86A5D4F74BDC9A463 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		5BDCAF9573564CACB759528F /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		612DAB7032AC4CC09BD2BE3B /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/RelWithDebInfo";
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = 1.0.0;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",aws_c_http_EXPORTS,HAVE_SYSCONF,AWS_HTTP_USE_IMPORT_EXPORT,AWS_HTTP_EXPORTS,AWS_IO_USE_IMPORT_EXPORT,AWS_USE_KQUEUE,AWS_COMMON_USE_IMPORT_EXPORT,AWS_COMPRESSION_USE_IMPORT_EXPORT);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-io/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/generated/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/include");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "       -DNDEBUG -fPIC -Wall -Werror -Wstrict-prototypes -Wextra -pedantic -Wno-long-long -fPIC -Wgnu -Wno-gnu-zero-variadic-macro-arguments '-fvisibility=hidden' '-std=gnu99'  ";
+				OTHER_LDFLAGS = " -dynamiclib -Wl,-headerpad_max_install_names -install_name /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/RelWithDebInfo/libaws-c-http.0unstable.dylib  /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/RelWithDebInfo/libaws-c-io.1.0.0.dylib /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/RelWithDebInfo/libaws-c-compression.1.0.0.dylib -framework Security /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/RelWithDebInfo/libaws-c-common.1.0.0.dylib  -framework CoreFoundation";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "aws-c-http.1.0.0";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		7258302941AA44FEBE0DE3D2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		78F80EBBA4C84B4FA86D8601 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Release";
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = 1.0.0;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",aws_c_http_EXPORTS,HAVE_SYSCONF,AWS_HTTP_USE_IMPORT_EXPORT,AWS_HTTP_EXPORTS,AWS_IO_USE_IMPORT_EXPORT,AWS_USE_KQUEUE,AWS_COMMON_USE_IMPORT_EXPORT,AWS_COMPRESSION_USE_IMPORT_EXPORT);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-io/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/generated/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/include");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "    -DNDEBUG -fPIC -Wall -Werror -Wstrict-prototypes -Wextra -pedantic -Wno-long-long -fPIC -Wgnu -Wno-gnu-zero-variadic-macro-arguments '-fvisibility=hidden' '-std=gnu99'  ";
+				OTHER_LDFLAGS = " -dynamiclib -Wl,-headerpad_max_install_names -install_name /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Release/libaws-c-http.0unstable.dylib  /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Release/libaws-c-io.1.0.0.dylib /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Release/libaws-c-compression.1.0.0.dylib -framework Security /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Release/libaws-c-common.1.0.0.dylib  -framework CoreFoundation";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "aws-c-http.1.0.0";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		7AB65397ABF340AB8A81C09E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		7F5C344296AF4F8F8D426CE6 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		849A4B81B442495893E6CC46 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		A11BFE054C364322924A5884 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		A818BC8934074F6EADD34919 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "arm64 x86_64";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk;
+				SWIFT_VERSION = 5;
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/build";
+			};
+			name = MinSizeRel;
+		};
+		A8877041801748A39C02353A /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		B61F739670FB4B6E9A9520D0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "arm64 x86_64";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk;
+				SWIFT_VERSION = 5;
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/build";
+			};
+			name = Release;
+		};
+		C50276AAE8114E34A4497CED /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "arm64 x86_64";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk;
+				SWIFT_VERSION = 5;
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/build";
+			};
+			name = RelWithDebInfo;
+		};
+		C6D6EC6C16A740929D4F72BA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		D4385AD2E8A94FB1A7150103 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		DBC4B17790254026A7BC59A2 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/MinSizeRel";
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = 1.0.0;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",aws_c_http_EXPORTS,HAVE_SYSCONF,AWS_HTTP_USE_IMPORT_EXPORT,AWS_HTTP_EXPORTS,AWS_IO_USE_IMPORT_EXPORT,AWS_USE_KQUEUE,AWS_COMMON_USE_IMPORT_EXPORT,AWS_COMPRESSION_USE_IMPORT_EXPORT);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-io/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/generated/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/include");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "    -DNDEBUG -fPIC -Wall -Werror -Wstrict-prototypes -Wextra -pedantic -Wno-long-long -fPIC -Wgnu -Wno-gnu-zero-variadic-macro-arguments '-fvisibility=hidden' '-std=gnu99'  ";
+				OTHER_LDFLAGS = " -dynamiclib -Wl,-headerpad_max_install_names -install_name /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/MinSizeRel/libaws-c-http.0unstable.dylib  /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/MinSizeRel/libaws-c-io.1.0.0.dylib /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/MinSizeRel/libaws-c-compression.1.0.0.dylib -framework Security /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/MinSizeRel/libaws-c-common.1.0.0.dylib  -framework CoreFoundation";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "aws-c-http.1.0.0";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		E33422195CAC4C82BFA5DEB9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "arm64 x86_64";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk;
+				SWIFT_VERSION = 5;
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/build";
+			};
+			name = Debug;
+		};
+		E62FC4B285E144FF8243E46B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		FB29F86C4B4E4D7D8DF4CC27 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4EED5100969B44AB96A7C170 /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				849A4B81B442495893E6CC46 /* Debug */,
+				21D9622A05944B948031F0E4 /* Release */,
+				7F5C344296AF4F8F8D426CE6 /* MinSizeRel */,
+				2242D60C81964B348D764119 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		6D60AFD681A54C20B39E61BD /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C6D6EC6C16A740929D4F72BA /* Debug */,
+				7258302941AA44FEBE0DE3D2 /* Release */,
+				5BDCAF9573564CACB759528F /* MinSizeRel */,
+				1E37C6F6A70B43B5AA383803 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		930B8C97CD6A481D8B30B8FE /* Build configuration list for PBXNativeTarget "aws-c-http" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1E683287A95E4A0ABE8F3B7F /* Debug */,
+				78F80EBBA4C84B4FA86D8601 /* Release */,
+				DBC4B17790254026A7BC59A2 /* MinSizeRel */,
+				612DAB7032AC4CC09BD2BE3B /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D5BD1A2173CB4E50BDFE5BD5 /* Build configuration list for PBXAggregateTarget "install" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2CA6EEF86A5D4F74BDC9A463 /* Debug */,
+				E62FC4B285E144FF8243E46B /* Release */,
+				A11BFE054C364322924A5884 /* MinSizeRel */,
+				FB29F86C4B4E4D7D8DF4CC27 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D720CFC7C2054D62BC6A5E2B /* Build configuration list for PBXAggregateTarget "RUN_TESTS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				263E6FCB1698462F8AB56E38 /* Debug */,
+				7AB65397ABF340AB8A81C09E /* Release */,
+				D4385AD2E8A94FB1A7150103 /* MinSizeRel */,
+				A8877041801748A39C02353A /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E81E87B9A5EF48B081401224 /* Build configuration list for PBXProject "aws-c-http" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E33422195CAC4C82BFA5DEB9 /* Debug */,
+				B61F739670FB4B6E9A9520D0 /* Release */,
+				A818BC8934074F6EADD34919 /* MinSizeRel */,
+				C50276AAE8114E34A4497CED /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 64B468B2C55049B5867E4465 /* Project object */;
+}

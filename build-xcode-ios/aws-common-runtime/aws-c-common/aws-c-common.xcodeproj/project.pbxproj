@@ -1,0 +1,1161 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		20E0D942DDCC4AA58C5DF8D3 /* ZERO_CHECK */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 865430CDB399445F8A6232C9 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */;
+			buildPhases = (
+				C428E2CC4FB84204A15052D0 /* CMake Rules */,
+			);
+			dependencies = (
+			);
+			name = ZERO_CHECK;
+			productName = ZERO_CHECK;
+		};
+		4F714F44510F4053B6157EB4 /* install */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 48BE350CB7414217BCB13AA0 /* Build configuration list for PBXAggregateTarget "install" */;
+			buildPhases = (
+				399DEF2B3C56443D8934E98A /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+				615C29CC5FDF472282B0C4B4 /* PBXTargetDependency */,
+			);
+			name = install;
+			productName = install;
+		};
+		B9AA4A9FF2FE4A3FA1BA59E7 /* ALL_BUILD */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 11380885D1BC4F2A8280328B /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */;
+			buildPhases = (
+				2AE3CD4C74554260A38A9CDB /* CMake Rules */,
+			);
+			dependencies = (
+				E5DFB1509CC4459FA5EFC67F /* PBXTargetDependency */,
+				6A03187A5CE042F6A58A7506 /* PBXTargetDependency */,
+			);
+			name = ALL_BUILD;
+			productName = ALL_BUILD;
+		};
+		F631349ED166407D9618D08A /* RUN_TESTS */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 3B8045341B89430E9C4361FF /* Build configuration list for PBXAggregateTarget "RUN_TESTS" */;
+			buildPhases = (
+				8A084409FFEE4798B09102E9 /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+			);
+			name = RUN_TESTS;
+			productName = RUN_TESTS;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		0042BC1E395F43368EDF16B5 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/ring_buffer.c */ = {isa = PBXBuildFile; fileRef = 5867E8770376409ABCAA4C68 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/ring_buffer.c */; };
+		01AE40F65DDF43819FB07F0D /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/lifo_cache.c */ = {isa = PBXBuildFile; fileRef = 45F70879772E4198B21FDA35 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/lifo_cache.c */; };
+		099FD68E38B7461EBC9F6299 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/byte_buf.c */ = {isa = PBXBuildFile; fileRef = 8070EDCEC56E40979D26E4A6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/byte_buf.c */; };
+		148311EF23AC4E65ADC278D8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/allocator_sba.c */ = {isa = PBXBuildFile; fileRef = C1621F063EB64E7B9B1A51D8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/allocator_sba.c */; };
+		15935FB6833E47619D929521 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/condition_variable.c */ = {isa = PBXBuildFile; fileRef = BE81B4C15211439D980B45B5 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/condition_variable.c */; };
+		16C63746695F440BAFD33D29 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/common.c */ = {isa = PBXBuildFile; fileRef = 68F547E9174847559C102C39 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/common.c */; };
+		223DBFD692B14DF7B6A145C5 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/device_random.c */ = {isa = PBXBuildFile; fileRef = 5316A2058B7D42498A16E873 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/device_random.c */; };
+		24FFD0EF30D044CDBFDE2BD8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/rw_lock.c */ = {isa = PBXBuildFile; fileRef = C50B56F01FFD410F9829BCF1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/rw_lock.c */; };
+		26100816E4534C23B92A591A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/uuid.c */ = {isa = PBXBuildFile; fileRef = B5A8065F3D1A44B49D7649CC /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/uuid.c */; };
+		274306226CDB480D831460FA /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/priority_queue.c */ = {isa = PBXBuildFile; fileRef = 4B793216FD7149FD81C4977A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/priority_queue.c */; };
+		28BC1210471347BD99C34578 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/hash_table.c */ = {isa = PBXBuildFile; fileRef = 388D6F4B2495433884BD107A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/hash_table.c */; };
+		2BF436762D954492B8E818C2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/system_info.c */ = {isa = PBXBuildFile; fileRef = 6898464744E24EF1B7976308 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/system_info.c */; };
+		32061CA63F9C4CA9992376E8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/codegen.c */ = {isa = PBXBuildFile; fileRef = 1EB3A36B233542A6B42007F3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/codegen.c */; };
+		34277D32C471430F8B868370 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/process_common.c */ = {isa = PBXBuildFile; fileRef = 51C956DFE92A469683238E29 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/process_common.c */; };
+		345D126C6CED4D71B6652D2A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/array_list.c */ = {isa = PBXBuildFile; fileRef = 8066B979D08B4B969E0A77B1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/array_list.c */; };
+		4041DF5D46DE4270A441F5B7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/device_random.c */ = {isa = PBXBuildFile; fileRef = 2A03F8FE92A747089216BB21 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/device_random.c */; };
+		487CD52A16684B1D8CB9AC58 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/condition_variable.c */ = {isa = PBXBuildFile; fileRef = 14363ECF1ED641A19CD89A89 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/condition_variable.c */; };
+		4B635DF37D994814A5A23CBC /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/fifo_cache.c */ = {isa = PBXBuildFile; fileRef = 11504D68F45C43CDBA83CD8D /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/fifo_cache.c */; };
+		4F19090E06154095AAAD1454 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/log_formatter.c */ = {isa = PBXBuildFile; fileRef = A8BC38017FB045E29A97F152 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/log_formatter.c */; };
+		4F99B4BA499E487DBA098C18 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/process.c */ = {isa = PBXBuildFile; fileRef = 8C2A32164BBE46D4837568CB /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/process.c */; };
+		5252DCEFB71B4E3294F07145 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/assert.c */ = {isa = PBXBuildFile; fileRef = 7DDA72A4EC0A4600BB8D1198 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/assert.c */; };
+		5AB0B569642E4282BC6B0A9C /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/arch/generic/cpuid.c */ = {isa = PBXBuildFile; fileRef = 4123027D7DA94213B85C690A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/arch/generic/cpuid.c */; };
+		5D585C2AFB8F46D0B5F4397B /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/time.c */ = {isa = PBXBuildFile; fileRef = 19898E4894C1417EAE28F417 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/time.c */; };
+		685E99EDB0E942659C428E7A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/clock.c */ = {isa = PBXBuildFile; fileRef = 4C6D613C4E0A407F96A03FA0 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/clock.c */; };
+		6B93E0E55B7E42BF85191BA3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/task_scheduler.c */ = {isa = PBXBuildFile; fileRef = BF4F0B2457FD4B4C8B041C19 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/task_scheduler.c */; };
+		6F07FB5F19164E6D81EC5022 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/environment.c */ = {isa = PBXBuildFile; fileRef = 82F684300C2044A981821269 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/environment.c */; };
+		72DC61B7272D44B0AC1FACBC /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/xml_parser.c */ = {isa = PBXBuildFile; fileRef = 19A639E21C994EB7BF453D37 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/xml_parser.c */; };
+		7D0A52A335994FC69B3FF126 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/lru_cache.c */ = {isa = PBXBuildFile; fileRef = 7EDDA9078F3349D0A5BF6C57 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/lru_cache.c */; };
+		81B2015068F8465C9362D108 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/thread.c */ = {isa = PBXBuildFile; fileRef = 5E92823BF12A45A182576CA7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/thread.c */; };
+		87A983EA700242C48DE5198E /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/linked_hash_table.c */ = {isa = PBXBuildFile; fileRef = 6D464FF3191C4BD484255854 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/linked_hash_table.c */; };
+		8D0A3C44F52443A5AFAF509D /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/allocator.c */ = {isa = PBXBuildFile; fileRef = 3009921860ED4E2B94417AE9 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/allocator.c */; };
+		8D63C995A3B646E481ACCA6A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/date_time.c */ = {isa = PBXBuildFile; fileRef = 2519065127BF4E7086E5A7E8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/date_time.c */; };
+		93A909692E2040F391694FC6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/log_channel.c */ = {isa = PBXBuildFile; fileRef = F8297C58EB2D4F2391D66AF5 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/log_channel.c */; };
+		9814EFFA9F914861B4741CCF /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 3B05CF732EA0411B8C14F0A6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/CMakeLists.txt */; };
+		9D10EC64E6A14358AED580E0 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/error.c */ = {isa = PBXBuildFile; fileRef = CFEF8D837B8D4A849F404C91 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/error.c */; };
+		A486A301286B44EABFB1CA9C /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/mutex.c */ = {isa = PBXBuildFile; fileRef = E301390C4D924363A8D377F7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/mutex.c */; };
+		A566B2FA3D8049309D660735 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/encoding.c */ = {isa = PBXBuildFile; fileRef = 0295DD3D9D3847D48F2CA3D5 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/encoding.c */; };
+		AD690791289642EDA71233C2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/memtrace.c */ = {isa = PBXBuildFile; fileRef = 457211C78FAB4CCC984AD1EF /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/memtrace.c */; };
+		B97F67B1B5814B5F950F7965 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/CMakeFiles/aws-c-common.dir/Info.plist */ = {isa = PBXBuildFile; fileRef = 41B8FA78377A41ADABA75347 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/CMakeFiles/aws-c-common.dir/Info.plist */; };
+		C1DEDBDAF94B4098A5C71C55 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/statistics.c */ = {isa = PBXBuildFile; fileRef = 2713DF11BE334C5CB06361B3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/statistics.c */; };
+		CADDE2ED7B374504BEDC0633 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/resource_name.c */ = {isa = PBXBuildFile; fileRef = 2FEC816BBBBF4F35B010F23A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/resource_name.c */; };
+		CE7C9CA177894CB488D97633 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/math.c */ = {isa = PBXBuildFile; fileRef = 74BF1FB494AA4F7B958E441A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/math.c */; };
+		D812703DE154447097879FD6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/cache.c */ = {isa = PBXBuildFile; fileRef = C9EAABC86D9242A18AFE29D8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/cache.c */; };
+		D89899EFAE774A81B975B9FA /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/command_line_parser.c */ = {isa = PBXBuildFile; fileRef = E43F4857B43A4505A86747B4 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/command_line_parser.c */; };
+		E22FCAF042AC4C72AEB20DE9 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/logging.c */ = {isa = PBXBuildFile; fileRef = 4CFD4DD1163E46FC98B27835 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/logging.c */; };
+		E7A20651AD504D7DA96D9D63 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/log_writer.c */ = {isa = PBXBuildFile; fileRef = 6E0BFFC51E47444C9CE9F9E7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/log_writer.c */; };
+		FD82F412C6804EADAF75DB44 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/string.c */ = {isa = PBXBuildFile; fileRef = 26A6F5E2AEA74C30BE3E3DD4 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/string.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXBuildStyle section */
+		3C35798148AA4AE2AB53A388 /* RelWithDebInfo */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = RelWithDebInfo;
+		};
+		64148D4955EE4E3FB2F51585 /* MinSizeRel */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = MinSizeRel;
+		};
+		6BF2E1CE13964C8DA806E546 /* Debug */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Debug;
+		};
+		BF72AD6D637A49879BFD7109 /* Release */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Release;
+		};
+/* End PBXBuildStyle section */
+
+/* Begin PBXContainerItemProxy section */
+		95468056A90245F5A46637B6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DC1C25227B4F4182A3E626FC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B9AA4A9FF2FE4A3FA1BA59E7;
+			remoteInfo = ALL_BUILD;
+		};
+		BA844B274EBC4F8B83310DF4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DC1C25227B4F4182A3E626FC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AD24B145EF73434ABEF52516;
+			remoteInfo = "aws-c-common";
+		};
+		E5D7427E30AC4A15BA86A2BE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DC1C25227B4F4182A3E626FC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 20E0D942DDCC4AA58C5DF8D3;
+			remoteInfo = ZERO_CHECK;
+		};
+		F5BABC32EC034FDB98F8BBA8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DC1C25227B4F4182A3E626FC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 20E0D942DDCC4AA58C5DF8D3;
+			remoteInfo = ZERO_CHECK;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0295DD3D9D3847D48F2CA3D5 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/encoding.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = encoding.c; path = source/encoding.c; sourceTree = SOURCE_ROOT; };
+		03337E6BDC8D47D4A006F9E5 /* aws-c-common */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; path = "libaws-c-common.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
+		11504D68F45C43CDBA83CD8D /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/fifo_cache.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = fifo_cache.c; path = source/fifo_cache.c; sourceTree = SOURCE_ROOT; };
+		14363ECF1ED641A19CD89A89 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/condition_variable.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = condition_variable.c; path = source/condition_variable.c; sourceTree = SOURCE_ROOT; };
+		19898E4894C1417EAE28F417 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/time.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = time.c; path = source/posix/time.c; sourceTree = SOURCE_ROOT; };
+		19A639E21C994EB7BF453D37 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/xml_parser.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = xml_parser.c; path = source/xml_parser.c; sourceTree = SOURCE_ROOT; };
+		1EB3A36B233542A6B42007F3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/codegen.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = codegen.c; path = source/codegen.c; sourceTree = SOURCE_ROOT; };
+		2519065127BF4E7086E5A7E8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/date_time.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = date_time.c; path = source/date_time.c; sourceTree = SOURCE_ROOT; };
+		26A6F5E2AEA74C30BE3E3DD4 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/string.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = string.c; path = source/string.c; sourceTree = SOURCE_ROOT; };
+		2713DF11BE334C5CB06361B3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/statistics.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = statistics.c; path = source/statistics.c; sourceTree = SOURCE_ROOT; };
+		2A03F8FE92A747089216BB21 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/device_random.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = device_random.c; path = source/device_random.c; sourceTree = SOURCE_ROOT; };
+		2FEC816BBBBF4F35B010F23A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/resource_name.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = resource_name.c; path = source/resource_name.c; sourceTree = SOURCE_ROOT; };
+		3009921860ED4E2B94417AE9 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/allocator.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = allocator.c; path = source/allocator.c; sourceTree = SOURCE_ROOT; };
+		388D6F4B2495433884BD107A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/hash_table.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = hash_table.c; path = source/hash_table.c; sourceTree = SOURCE_ROOT; };
+		3B05CF732EA0411B8C14F0A6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		4123027D7DA94213B85C690A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/arch/generic/cpuid.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = cpuid.c; path = source/arch/generic/cpuid.c; sourceTree = SOURCE_ROOT; };
+		41B8FA78377A41ADABA75347 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/CMakeFiles/aws-c-common.dir/Info.plist */ = {isa = PBXFileReference; explicitFileType = sourcecode.text.plist; fileEncoding = 4; name = Info.plist; path = "../../build-xcode-ios/aws-common-runtime/aws-c-common/CMakeFiles/aws-c-common.dir/Info.plist"; sourceTree = SOURCE_ROOT; };
+		457211C78FAB4CCC984AD1EF /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/memtrace.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = memtrace.c; path = source/memtrace.c; sourceTree = SOURCE_ROOT; };
+		45F70879772E4198B21FDA35 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/lifo_cache.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = lifo_cache.c; path = source/lifo_cache.c; sourceTree = SOURCE_ROOT; };
+		4B793216FD7149FD81C4977A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/priority_queue.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = priority_queue.c; path = source/priority_queue.c; sourceTree = SOURCE_ROOT; };
+		4C6D613C4E0A407F96A03FA0 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/clock.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = clock.c; path = source/posix/clock.c; sourceTree = SOURCE_ROOT; };
+		4CFD4DD1163E46FC98B27835 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/logging.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = logging.c; path = source/logging.c; sourceTree = SOURCE_ROOT; };
+		51C956DFE92A469683238E29 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/process_common.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = process_common.c; path = source/process_common.c; sourceTree = SOURCE_ROOT; };
+		5316A2058B7D42498A16E873 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/device_random.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = device_random.c; path = source/posix/device_random.c; sourceTree = SOURCE_ROOT; };
+		5867E8770376409ABCAA4C68 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/ring_buffer.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = ring_buffer.c; path = source/ring_buffer.c; sourceTree = SOURCE_ROOT; };
+		5E92823BF12A45A182576CA7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/thread.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = thread.c; path = source/posix/thread.c; sourceTree = SOURCE_ROOT; };
+		6898464744E24EF1B7976308 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/system_info.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = system_info.c; path = source/posix/system_info.c; sourceTree = SOURCE_ROOT; };
+		68F547E9174847559C102C39 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/common.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = common.c; path = source/common.c; sourceTree = SOURCE_ROOT; };
+		6D464FF3191C4BD484255854 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/linked_hash_table.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = linked_hash_table.c; path = source/linked_hash_table.c; sourceTree = SOURCE_ROOT; };
+		6E0BFFC51E47444C9CE9F9E7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/log_writer.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = log_writer.c; path = source/log_writer.c; sourceTree = SOURCE_ROOT; };
+		74BF1FB494AA4F7B958E441A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/math.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = math.c; path = source/math.c; sourceTree = SOURCE_ROOT; };
+		7DDA72A4EC0A4600BB8D1198 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/assert.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = assert.c; path = source/assert.c; sourceTree = SOURCE_ROOT; };
+		7EDDA9078F3349D0A5BF6C57 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/lru_cache.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = lru_cache.c; path = source/lru_cache.c; sourceTree = SOURCE_ROOT; };
+		8066B979D08B4B969E0A77B1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/array_list.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = array_list.c; path = source/array_list.c; sourceTree = SOURCE_ROOT; };
+		8070EDCEC56E40979D26E4A6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/byte_buf.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = byte_buf.c; path = source/byte_buf.c; sourceTree = SOURCE_ROOT; };
+		82F684300C2044A981821269 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/environment.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = environment.c; path = source/posix/environment.c; sourceTree = SOURCE_ROOT; };
+		8C2A32164BBE46D4837568CB /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/process.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = process.c; path = source/posix/process.c; sourceTree = SOURCE_ROOT; };
+		A8BC38017FB045E29A97F152 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/log_formatter.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = log_formatter.c; path = source/log_formatter.c; sourceTree = SOURCE_ROOT; };
+		B5A8065F3D1A44B49D7649CC /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/uuid.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = uuid.c; path = source/uuid.c; sourceTree = SOURCE_ROOT; };
+		BE81B4C15211439D980B45B5 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/condition_variable.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = condition_variable.c; path = source/posix/condition_variable.c; sourceTree = SOURCE_ROOT; };
+		BF4F0B2457FD4B4C8B041C19 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/task_scheduler.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = task_scheduler.c; path = source/task_scheduler.c; sourceTree = SOURCE_ROOT; };
+		C1621F063EB64E7B9B1A51D8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/allocator_sba.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = allocator_sba.c; path = source/allocator_sba.c; sourceTree = SOURCE_ROOT; };
+		C50B56F01FFD410F9829BCF1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/rw_lock.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = rw_lock.c; path = source/posix/rw_lock.c; sourceTree = SOURCE_ROOT; };
+		C9EAABC86D9242A18AFE29D8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/cache.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = cache.c; path = source/cache.c; sourceTree = SOURCE_ROOT; };
+		CFEF8D837B8D4A849F404C91 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/error.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = error.c; path = source/error.c; sourceTree = SOURCE_ROOT; };
+		E301390C4D924363A8D377F7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/mutex.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = mutex.c; path = source/posix/mutex.c; sourceTree = SOURCE_ROOT; };
+		E43F4857B43A4505A86747B4 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/command_line_parser.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = command_line_parser.c; path = source/command_line_parser.c; sourceTree = SOURCE_ROOT; };
+		F8297C58EB2D4F2391D66AF5 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/log_channel.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = log_channel.c; path = source/log_channel.c; sourceTree = SOURCE_ROOT; };
+		FB62E71E00F44C68BEFDB4BD /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		2B4EDC6517B94F2C84E4574E /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				3009921860ED4E2B94417AE9 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/allocator.c */,
+				C1621F063EB64E7B9B1A51D8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/allocator_sba.c */,
+				4123027D7DA94213B85C690A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/arch/generic/cpuid.c */,
+				8066B979D08B4B969E0A77B1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/array_list.c */,
+				7DDA72A4EC0A4600BB8D1198 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/assert.c */,
+				8070EDCEC56E40979D26E4A6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/byte_buf.c */,
+				C9EAABC86D9242A18AFE29D8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/cache.c */,
+				1EB3A36B233542A6B42007F3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/codegen.c */,
+				E43F4857B43A4505A86747B4 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/command_line_parser.c */,
+				68F547E9174847559C102C39 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/common.c */,
+				14363ECF1ED641A19CD89A89 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/condition_variable.c */,
+				2519065127BF4E7086E5A7E8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/date_time.c */,
+				2A03F8FE92A747089216BB21 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/device_random.c */,
+				0295DD3D9D3847D48F2CA3D5 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/encoding.c */,
+				CFEF8D837B8D4A849F404C91 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/error.c */,
+				11504D68F45C43CDBA83CD8D /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/fifo_cache.c */,
+				388D6F4B2495433884BD107A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/hash_table.c */,
+				45F70879772E4198B21FDA35 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/lifo_cache.c */,
+				6D464FF3191C4BD484255854 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/linked_hash_table.c */,
+				F8297C58EB2D4F2391D66AF5 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/log_channel.c */,
+				A8BC38017FB045E29A97F152 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/log_formatter.c */,
+				6E0BFFC51E47444C9CE9F9E7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/log_writer.c */,
+				4CFD4DD1163E46FC98B27835 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/logging.c */,
+				7EDDA9078F3349D0A5BF6C57 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/lru_cache.c */,
+				74BF1FB494AA4F7B958E441A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/math.c */,
+				457211C78FAB4CCC984AD1EF /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/memtrace.c */,
+				4C6D613C4E0A407F96A03FA0 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/clock.c */,
+				BE81B4C15211439D980B45B5 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/condition_variable.c */,
+				5316A2058B7D42498A16E873 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/device_random.c */,
+				82F684300C2044A981821269 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/environment.c */,
+				E301390C4D924363A8D377F7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/mutex.c */,
+				8C2A32164BBE46D4837568CB /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/process.c */,
+				C50B56F01FFD410F9829BCF1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/rw_lock.c */,
+				6898464744E24EF1B7976308 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/system_info.c */,
+				5E92823BF12A45A182576CA7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/thread.c */,
+				19898E4894C1417EAE28F417 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/time.c */,
+				4B793216FD7149FD81C4977A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/priority_queue.c */,
+				51C956DFE92A469683238E29 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/process_common.c */,
+				2FEC816BBBBF4F35B010F23A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/resource_name.c */,
+				5867E8770376409ABCAA4C68 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/ring_buffer.c */,
+				2713DF11BE334C5CB06361B3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/statistics.c */,
+				26A6F5E2AEA74C30BE3E3DD4 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/string.c */,
+				BF4F0B2457FD4B4C8B041C19 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/task_scheduler.c */,
+				B5A8065F3D1A44B49D7649CC /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/uuid.c */,
+				19A639E21C994EB7BF453D37 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/xml_parser.c */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		3DCD014850DE4C0688C75BBC = {
+			isa = PBXGroup;
+			children = (
+				8253DB2A458F4A41A4B9D99C /* aws-c-common */,
+				BFAA44B156CE487BBDE32C0B /* ALL_BUILD */,
+				85263EEABEC34F2E859B75AB /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4F18C641225B44BF853185B0 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				41B8FA78377A41ADABA75347 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/CMakeFiles/aws-c-common.dir/Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		8253DB2A458F4A41A4B9D99C /* aws-c-common */ = {
+			isa = PBXGroup;
+			children = (
+				2B4EDC6517B94F2C84E4574E /* Source Files */,
+				4F18C641225B44BF853185B0 /* Resources */,
+				3B05CF732EA0411B8C14F0A6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/CMakeLists.txt */,
+			);
+			name = "aws-c-common";
+			sourceTree = "<group>";
+		};
+		85263EEABEC34F2E859B75AB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				03337E6BDC8D47D4A006F9E5 /* aws-c-common */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B5972A1D5EB84690AEF6B78B /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		BFAA44B156CE487BBDE32C0B /* ALL_BUILD */ = {
+			isa = PBXGroup;
+			children = (
+				B5972A1D5EB84690AEF6B78B /* CMake Rules */,
+				FB62E71E00F44C68BEFDB4BD /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/CMakeLists.txt */,
+			);
+			name = ALL_BUILD;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AD24B145EF73434ABEF52516 /* aws-c-common */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C7F1EF9262124638AABAFBC0 /* Build configuration list for PBXNativeTarget "aws-c-common" */;
+			buildPhases = (
+				E2FEDD4D15FE44CBADB332D1 /* Sources */,
+				85BBECE8B105443899DC1533 /* CMake PostBuild Rules */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2541A712C50744B0BB928A19 /* PBXTargetDependency */,
+			);
+			name = "aws-c-common";
+			productName = "aws-c-common";
+			productReference = 03337E6BDC8D47D4A006F9E5 /* aws-c-common */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		DC1C25227B4F4182A3E626FC /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1160;
+			};
+			buildConfigurationList = C2B0358C511641C180A7BF7C /* Build configuration list for PBXProject "aws-c-common" */;
+			buildSettings = {
+			};
+			buildStyles = (
+				6BF2E1CE13964C8DA806E546 /* Debug */,
+				BF72AD6D637A49879BFD7109 /* Release */,
+				64148D4955EE4E3FB2F51585 /* MinSizeRel */,
+				3C35798148AA4AE2AB53A388 /* RelWithDebInfo */,
+			);
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 0;
+			mainGroup = 3DCD014850DE4C0688C75BBC;
+			projectDirPath = "../../../aws-common-runtime/aws-c-common";
+			projectRoot = "";
+			targets = (
+				B9AA4A9FF2FE4A3FA1BA59E7 /* ALL_BUILD */,
+				F631349ED166407D9618D08A /* RUN_TESTS */,
+				20E0D942DDCC4AA58C5DF8D3 /* ZERO_CHECK */,
+				AD24B145EF73434ABEF52516 /* aws-c-common */,
+				4F714F44510F4053B6157EB4 /* install */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		136746071ACC46908808BB65 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		2A88B778A3B544739B21A538 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		2AE3CD4C74554260A38A9CDB /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common -f /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/CMakeScripts/ALL_BUILD_cmakeRulesBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		399DEF2B3C56443D8934E98A /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common -f /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/CMakeScripts/install_postBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		5CCE51E3E8F44A89BEE733BD = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		85BBECE8B105443899DC1533 /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common -f /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/CMakeScripts/aws-c-common_postBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		8A084409FFEE4798B09102E9 /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common -f /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/CMakeScripts/RUN_TESTS_postBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		BD189A7FD5464FDEB96F1651 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		C428E2CC4FB84204A15052D0 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common -f /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/CMakeScripts/ZERO_CHECK_cmakeRulesBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E2FEDD4D15FE44CBADB332D1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D0A3C44F52443A5AFAF509D /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/allocator.c */,
+				148311EF23AC4E65ADC278D8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/allocator_sba.c */,
+				5AB0B569642E4282BC6B0A9C /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/arch/generic/cpuid.c */,
+				345D126C6CED4D71B6652D2A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/array_list.c */,
+				5252DCEFB71B4E3294F07145 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/assert.c */,
+				099FD68E38B7461EBC9F6299 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/byte_buf.c */,
+				D812703DE154447097879FD6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/cache.c */,
+				32061CA63F9C4CA9992376E8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/codegen.c */,
+				D89899EFAE774A81B975B9FA /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/command_line_parser.c */,
+				16C63746695F440BAFD33D29 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/common.c */,
+				487CD52A16684B1D8CB9AC58 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/condition_variable.c */,
+				8D63C995A3B646E481ACCA6A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/date_time.c */,
+				4041DF5D46DE4270A441F5B7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/device_random.c */,
+				A566B2FA3D8049309D660735 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/encoding.c */,
+				9D10EC64E6A14358AED580E0 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/error.c */,
+				4B635DF37D994814A5A23CBC /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/fifo_cache.c */,
+				28BC1210471347BD99C34578 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/hash_table.c */,
+				01AE40F65DDF43819FB07F0D /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/lifo_cache.c */,
+				87A983EA700242C48DE5198E /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/linked_hash_table.c */,
+				93A909692E2040F391694FC6 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/log_channel.c */,
+				4F19090E06154095AAAD1454 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/log_formatter.c */,
+				E7A20651AD504D7DA96D9D63 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/log_writer.c */,
+				E22FCAF042AC4C72AEB20DE9 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/logging.c */,
+				7D0A52A335994FC69B3FF126 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/lru_cache.c */,
+				CE7C9CA177894CB488D97633 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/math.c */,
+				AD690791289642EDA71233C2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/memtrace.c */,
+				685E99EDB0E942659C428E7A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/clock.c */,
+				15935FB6833E47619D929521 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/condition_variable.c */,
+				223DBFD692B14DF7B6A145C5 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/device_random.c */,
+				6F07FB5F19164E6D81EC5022 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/environment.c */,
+				A486A301286B44EABFB1CA9C /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/mutex.c */,
+				4F99B4BA499E487DBA098C18 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/process.c */,
+				24FFD0EF30D044CDBFDE2BD8 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/rw_lock.c */,
+				2BF436762D954492B8E818C2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/system_info.c */,
+				81B2015068F8465C9362D108 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/thread.c */,
+				5D585C2AFB8F46D0B5F4397B /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/posix/time.c */,
+				274306226CDB480D831460FA /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/priority_queue.c */,
+				34277D32C471430F8B868370 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/process_common.c */,
+				CADDE2ED7B374504BEDC0633 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/resource_name.c */,
+				0042BC1E395F43368EDF16B5 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/ring_buffer.c */,
+				C1DEDBDAF94B4098A5C71C55 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/statistics.c */,
+				FD82F412C6804EADAF75DB44 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/string.c */,
+				6B93E0E55B7E42BF85191BA3 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/task_scheduler.c */,
+				26100816E4534C23B92A591A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/uuid.c */,
+				72DC61B7272D44B0AC1FACBC /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/source/xml_parser.c */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		2541A712C50744B0BB928A19 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 20E0D942DDCC4AA58C5DF8D3 /* ZERO_CHECK */;
+			targetProxy = E5D7427E30AC4A15BA86A2BE /* PBXContainerItemProxy */;
+		};
+		615C29CC5FDF472282B0C4B4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B9AA4A9FF2FE4A3FA1BA59E7 /* ALL_BUILD */;
+			targetProxy = 95468056A90245F5A46637B6 /* PBXContainerItemProxy */;
+		};
+		6A03187A5CE042F6A58A7506 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AD24B145EF73434ABEF52516 /* aws-c-common */;
+			targetProxy = BA844B274EBC4F8B83310DF4 /* PBXContainerItemProxy */;
+		};
+		E5DFB1509CC4459FA5EFC67F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 20E0D942DDCC4AA58C5DF8D3 /* ZERO_CHECK */;
+			targetProxy = F5BABC32EC034FDB98F8BBA8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0479456010E341F290FF28FD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		114594C305CD4A1F99347C8E /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		1333AF32EDFA4D729ABAC885 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Debug";
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = 1.0.0;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",aws_c_common_EXPORTS,HAVE_SYSCONF,AWS_COMMON_USE_IMPORT_EXPORT,AWS_COMMON_EXPORTS);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/generated/include");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "   -fPIC -Wall -Werror -Wstrict-prototypes -pedantic -Wno-long-long -fPIC -Wgnu -Wno-gnu-zero-variadic-macro-arguments '-fvisibility=hidden' '-std=gnu99'  ";
+				OTHER_LDFLAGS = " -dynamiclib -Wl,-headerpad_max_install_names -install_name /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Debug/libaws-c-common.0unstable.dylib   -framework CoreFoundation";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "aws-c-common.1.0.0";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		1E2D9357660142DAB514227F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		225730667A2546BCA388AA05 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "arm64 x86_64";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk;
+				SWIFT_VERSION = 5;
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/build";
+			};
+			name = Debug;
+		};
+		37D50662526A411F9C1FF4C0 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "arm64 x86_64";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk;
+				SWIFT_VERSION = 5;
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/build";
+			};
+			name = MinSizeRel;
+		};
+		3B83461B65634CD3871B2AB8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		48CD9C75825746FBA8D1508D /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		4EA253E15D244545825BA60E /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "arm64 x86_64";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk;
+				SWIFT_VERSION = 5;
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/build";
+			};
+			name = RelWithDebInfo;
+		};
+		56BCA97D24D54CD5BB63F84B /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		5E67321C347540BBBA70DB9E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		661B0E1355B5417C803B32C7 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		69360CDA3BB343A984A75205 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		95542A06F3B3443593F627A7 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		98D4D82685984D35BDC88F95 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Release";
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = 1.0.0;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",aws_c_common_EXPORTS,HAVE_SYSCONF,AWS_COMMON_USE_IMPORT_EXPORT,AWS_COMMON_EXPORTS);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/generated/include");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "    -DNDEBUG -fPIC -Wall -Werror -Wstrict-prototypes -pedantic -Wno-long-long -fPIC -Wgnu -Wno-gnu-zero-variadic-macro-arguments '-fvisibility=hidden' '-std=gnu99'  ";
+				OTHER_LDFLAGS = " -dynamiclib -Wl,-headerpad_max_install_names -install_name /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Release/libaws-c-common.0unstable.dylib   -framework CoreFoundation";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "aws-c-common.1.0.0";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		A866105CA3EA4BC0B320F809 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		B61BA8B047FB49ECA023A0EC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		B9AC13936809434995AB6B1A /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		C10F1139E20A4BB4BE35C547 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "arm64 x86_64";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk;
+				SWIFT_VERSION = 5;
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/build";
+			};
+			name = Release;
+		};
+		C3CD4BFFF37047B5B138941D /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/MinSizeRel";
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = 1.0.0;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",aws_c_common_EXPORTS,HAVE_SYSCONF,AWS_COMMON_USE_IMPORT_EXPORT,AWS_COMMON_EXPORTS);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/generated/include");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "    -DNDEBUG -fPIC -Wall -Werror -Wstrict-prototypes -pedantic -Wno-long-long -fPIC -Wgnu -Wno-gnu-zero-variadic-macro-arguments '-fvisibility=hidden' '-std=gnu99'  ";
+				OTHER_LDFLAGS = " -dynamiclib -Wl,-headerpad_max_install_names -install_name /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/MinSizeRel/libaws-c-common.0unstable.dylib   -framework CoreFoundation";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "aws-c-common.1.0.0";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		C6364AAFE03446C9B0788D36 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		D595F3E657A44054A8AD85C7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		E78E0DA39A75412AA2142DB9 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		FE9F066145E34907B3D5BAF5 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/RelWithDebInfo";
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = 1.0.0;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",aws_c_common_EXPORTS,HAVE_SYSCONF,AWS_COMMON_USE_IMPORT_EXPORT,AWS_COMMON_EXPORTS);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/generated/include");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "       -DNDEBUG -fPIC -Wall -Werror -Wstrict-prototypes -pedantic -Wno-long-long -fPIC -Wgnu -Wno-gnu-zero-variadic-macro-arguments '-fvisibility=hidden' '-std=gnu99'  ";
+				OTHER_LDFLAGS = " -dynamiclib -Wl,-headerpad_max_install_names -install_name /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/RelWithDebInfo/libaws-c-common.0unstable.dylib   -framework CoreFoundation";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "aws-c-common.1.0.0";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		11380885D1BC4F2A8280328B /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				69360CDA3BB343A984A75205 /* Debug */,
+				D595F3E657A44054A8AD85C7 /* Release */,
+				B9AC13936809434995AB6B1A /* MinSizeRel */,
+				48CD9C75825746FBA8D1508D /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		3B8045341B89430E9C4361FF /* Build configuration list for PBXAggregateTarget "RUN_TESTS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B61BA8B047FB49ECA023A0EC /* Debug */,
+				3B83461B65634CD3871B2AB8 /* Release */,
+				C6364AAFE03446C9B0788D36 /* MinSizeRel */,
+				E78E0DA39A75412AA2142DB9 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		48BE350CB7414217BCB13AA0 /* Build configuration list for PBXAggregateTarget "install" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A866105CA3EA4BC0B320F809 /* Debug */,
+				5E67321C347540BBBA70DB9E /* Release */,
+				661B0E1355B5417C803B32C7 /* MinSizeRel */,
+				114594C305CD4A1F99347C8E /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		865430CDB399445F8A6232C9 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1E2D9357660142DAB514227F /* Debug */,
+				0479456010E341F290FF28FD /* Release */,
+				95542A06F3B3443593F627A7 /* MinSizeRel */,
+				56BCA97D24D54CD5BB63F84B /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C2B0358C511641C180A7BF7C /* Build configuration list for PBXProject "aws-c-common" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				225730667A2546BCA388AA05 /* Debug */,
+				C10F1139E20A4BB4BE35C547 /* Release */,
+				37D50662526A411F9C1FF4C0 /* MinSizeRel */,
+				4EA253E15D244545825BA60E /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C7F1EF9262124638AABAFBC0 /* Build configuration list for PBXNativeTarget "aws-c-common" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1333AF32EDFA4D729ABAC885 /* Debug */,
+				98D4D82685984D35BDC88F95 /* Release */,
+				C3CD4BFFF37047B5B138941D /* MinSizeRel */,
+				FE9F066145E34907B3D5BAF5 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = DC1C25227B4F4182A3E626FC /* Project object */;
+}

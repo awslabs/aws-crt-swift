@@ -1,0 +1,387 @@
+Performing C SOURCE FILE Test AWS_ARCH_INTEL failed with the following output:
+Change Dir: /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/xcodebuild -project CMAKE_TRY_COMPILE.xcodeproj build -target cmTC_e9e34 -configuration Debug -hideShellScriptEnvironment && Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project CMAKE_TRY_COMPILE.xcodeproj build -target cmTC_e9e34 -configuration Debug -hideShellScriptEnvironment
+
+User defaults from command line:
+    HideShellScriptEnvironment = YES
+
+Prepare build
+note: Using legacy build system
+=== BUILD TARGET cmTC_e9e34 OF PROJECT CMAKE_TRY_COMPILE WITH CONFIGURATION Debug ===
+
+Check dependencies
+Code Signing Warning: "cmTC_e9e34" isn't code signed but requires entitlements. It is not possible to add entitlements to a binary without signing it.
+
+Write auxiliary files
+/bin/mkdir -p /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_e9e34.build/Objects-normal/arm64
+write-file /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_e9e34.build/Objects-normal/arm64/cmTC_e9e34.LinkFileList
+
+Create product structure
+/bin/mkdir -p /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/cmTC_e9e34.app
+
+ProcessInfoPlistFile Debug/cmTC_e9e34.app/Info.plist CMakeFiles/cmTC_e9e34.dir/Info.plist
+    cd /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp
+    builtin-infoPlistUtility /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_e9e34.dir/Info.plist -genpkginfo /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/cmTC_e9e34.app/PkgInfo -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/cmTC_e9e34.app/Info.plist
+
+CompileC CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_e9e34.build/Objects-normal/arm64/src.o src.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler
+    cd /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x c -target arm64-apple-ios13.0 -fmessage-length=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit=0 -Wno-trigraphs -fpascal-strings -O0 -Wno-missing-field-initializers -Wno-missing-prototypes -Wno-return-type -Wno-missing-braces -Wparentheses -Wswitch -Wno-unused-function -Wno-unused-label -Wno-unused-parameter -Wno-unused-variable -Wunused-value -Wno-empty-body -Wno-uninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wno-constant-conversion -Wno-int-conversion -Wno-bool-conversion -Wno-enum-conversion -Wno-float-conversion -Wno-non-literal-null-conversion -Wno-objc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -DCMAKE_INTDIR=\"Debug-iphoneos\" -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk -fstrict-aliasing -Wdeprecated-declarations -g -Wno-sign-conversion -Wno-infinite-recursion -Wno-comma -Wno-block-capture-autoreleasing -Wno-strict-prototypes -Wno-semicolon-before-method-body -fembed-bitcode-marker -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/include -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_e9e34.build/DerivedSources-normal/arm64 -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_e9e34.build/DerivedSources/arm64 -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_e9e34.build/DerivedSources -F/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug -DAWS_ARCH_INTEL -MMD -MT dependencies -MF /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_e9e34.build/Objects-normal/arm64/src.d --serialize-diagnostics /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_e9e34.build/Objects-normal/arm64/src.dia -c /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/src.c -o /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_e9e34.build/Objects-normal/arm64/src.o
+/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/src.c:4:6: error: "not intel"
+#    error "not intel"
+     ^
+1 error generated.
+
+** BUILD FAILED **
+
+
+The following build commands failed:
+	CompileC CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_e9e34.build/Objects-normal/arm64/src.o src.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler
+(1 failure)
+
+
+Source file was:
+
+    int main() {
+#if !(defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86))
+#    error "not intel"
+#endif
+        return 0;
+    }
+
+Performing C SOURCE FILE Test HAVE_AVX2_INTRINSICS failed with the following output:
+Change Dir: /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/xcodebuild -project CMAKE_TRY_COMPILE.xcodeproj build -target cmTC_ad640 -configuration Debug -hideShellScriptEnvironment && Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project CMAKE_TRY_COMPILE.xcodeproj build -target cmTC_ad640 -configuration Debug -hideShellScriptEnvironment
+
+User defaults from command line:
+    HideShellScriptEnvironment = YES
+
+Prepare build
+note: Using legacy build system
+=== BUILD TARGET cmTC_ad640 OF PROJECT CMAKE_TRY_COMPILE WITH CONFIGURATION Debug ===
+
+Check dependencies
+Code Signing Warning: "cmTC_ad640" isn't code signed but requires entitlements. It is not possible to add entitlements to a binary without signing it.
+
+Write auxiliary files
+/bin/mkdir -p /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_ad640.build/Objects-normal/arm64
+write-file /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_ad640.build/Objects-normal/arm64/cmTC_ad640.LinkFileList
+
+Create product structure
+/bin/mkdir -p /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/cmTC_ad640.app
+
+ProcessInfoPlistFile Debug/cmTC_ad640.app/Info.plist CMakeFiles/cmTC_ad640.dir/Info.plist
+    cd /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp
+    builtin-infoPlistUtility /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_ad640.dir/Info.plist -genpkginfo /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/cmTC_ad640.app/PkgInfo -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/cmTC_ad640.app/Info.plist
+
+CompileC CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_ad640.build/Objects-normal/arm64/src.o src.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler
+    cd /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x c -target arm64-apple-ios13.0 -fmessage-length=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit=0 -Wno-trigraphs -fpascal-strings -O0 -Wno-missing-field-initializers -Wno-missing-prototypes -Wno-return-type -Wno-missing-braces -Wparentheses -Wswitch -Wno-unused-function -Wno-unused-label -Wno-unused-parameter -Wno-unused-variable -Wunused-value -Wno-empty-body -Wno-uninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wno-constant-conversion -Wno-int-conversion -Wno-bool-conversion -Wno-enum-conversion -Wno-float-conversion -Wno-non-literal-null-conversion -Wno-objc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -DCMAKE_INTDIR=\"Debug-iphoneos\" -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk -fstrict-aliasing -Wdeprecated-declarations -g -Wno-sign-conversion -Wno-infinite-recursion -Wno-comma -Wno-block-capture-autoreleasing -Wno-strict-prototypes -Wno-semicolon-before-method-body -fembed-bitcode-marker -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/include -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_ad640.build/DerivedSources-normal/arm64 -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_ad640.build/DerivedSources/arm64 -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_ad640.build/DerivedSources -F/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug -DHAVE_AVX2_INTRINSICS -mavx -mavx2 -MMD -MT dependencies -MF /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_ad640.build/Objects-normal/arm64/src.d --serialize-diagnostics /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_ad640.build/Objects-normal/arm64/src.dia -c /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/src.c -o /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_ad640.build/Objects-normal/arm64/src.o
+clang: warning: argument unused during compilation: '-mavx' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-mavx2' [-Wunused-command-line-argument]
+In file included from /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/src.c:2:
+In file included from /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/immintrin.h:14:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:50:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_vec_init_v2si(__i, 0);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:129:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_packsswb((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:159:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_packssdw((__v2si)__m1, (__v2si)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:189:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_packuswb((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:216:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_punpckhbw((__v8qi)__m1, (__v8qi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:239:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_punpckhwd((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:260:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_punpckhdq((__v2si)__m1, (__v2si)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:287:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_punpcklbw((__v8qi)__m1, (__v8qi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:310:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_punpcklwd((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:331:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_punpckldq((__v2si)__m1, (__v2si)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:352:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_paddb((__v8qi)__m1, (__v8qi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:373:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_paddw((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:394:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_paddd((__v2si)__m1, (__v2si)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:416:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_paddsb((__v8qi)__m1, (__v8qi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:439:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_paddsw((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:461:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_paddusb((__v8qi)__m1, (__v8qi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:483:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_paddusw((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:504:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_psubb((__v8qi)__m1, (__v8qi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:525:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_psubw((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.
+
+** BUILD FAILED **
+
+
+The following build commands failed:
+	CompileC CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_ad640.build/Objects-normal/arm64/src.o src.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler
+(1 failure)
+
+
+Source file was:
+
+#include <immintrin.h>
+#include <emmintrin.h>
+#include <string.h>
+
+int main() {
+    __m256i vec;
+    memset(&vec, 0, sizeof(vec));
+
+    _mm256_shuffle_epi8(vec, vec);
+    _mm256_set_epi32(1,2,3,4,5,6,7,8);
+    _mm256_permutevar8x32_epi32(vec, vec);
+
+    return 0;
+}
+Performing C SOURCE FILE Test HAVE_MM256_EXTRACT_EPI64 failed with the following output:
+Change Dir: /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/xcodebuild -project CMAKE_TRY_COMPILE.xcodeproj build -target cmTC_77f65 -configuration Debug -hideShellScriptEnvironment && Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project CMAKE_TRY_COMPILE.xcodeproj build -target cmTC_77f65 -configuration Debug -hideShellScriptEnvironment
+
+User defaults from command line:
+    HideShellScriptEnvironment = YES
+
+Prepare build
+note: Using legacy build system
+=== BUILD TARGET cmTC_77f65 OF PROJECT CMAKE_TRY_COMPILE WITH CONFIGURATION Debug ===
+
+Check dependencies
+Code Signing Warning: "cmTC_77f65" isn't code signed but requires entitlements. It is not possible to add entitlements to a binary without signing it.
+
+Write auxiliary files
+/bin/mkdir -p /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_77f65.build/Objects-normal/arm64
+write-file /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_77f65.build/Objects-normal/arm64/cmTC_77f65.LinkFileList
+
+Create product structure
+/bin/mkdir -p /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/cmTC_77f65.app
+
+ProcessInfoPlistFile Debug/cmTC_77f65.app/Info.plist CMakeFiles/cmTC_77f65.dir/Info.plist
+    cd /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp
+    builtin-infoPlistUtility /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_77f65.dir/Info.plist -genpkginfo /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/cmTC_77f65.app/PkgInfo -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/cmTC_77f65.app/Info.plist
+
+CompileC CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_77f65.build/Objects-normal/arm64/src.o src.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler
+    cd /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x c -target arm64-apple-ios13.0 -fmessage-length=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit=0 -Wno-trigraphs -fpascal-strings -O0 -Wno-missing-field-initializers -Wno-missing-prototypes -Wno-return-type -Wno-missing-braces -Wparentheses -Wswitch -Wno-unused-function -Wno-unused-label -Wno-unused-parameter -Wno-unused-variable -Wunused-value -Wno-empty-body -Wno-uninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wno-constant-conversion -Wno-int-conversion -Wno-bool-conversion -Wno-enum-conversion -Wno-float-conversion -Wno-non-literal-null-conversion -Wno-objc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -DCMAKE_INTDIR=\"Debug-iphoneos\" -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk -fstrict-aliasing -Wdeprecated-declarations -g -Wno-sign-conversion -Wno-infinite-recursion -Wno-comma -Wno-block-capture-autoreleasing -Wno-strict-prototypes -Wno-semicolon-before-method-body -fembed-bitcode-marker -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/include -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_77f65.build/DerivedSources-normal/arm64 -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_77f65.build/DerivedSources/arm64 -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_77f65.build/DerivedSources -F/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug -DHAVE_MM256_EXTRACT_EPI64 -mavx -mavx2 -MMD -MT dependencies -MF /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_77f65.build/Objects-normal/arm64/src.d --serialize-diagnostics /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_77f65.build/Objects-normal/arm64/src.dia -c /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/src.c -o /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_77f65.build/Objects-normal/arm64/src.o
+clang: warning: argument unused during compilation: '-mavx' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-mavx2' [-Wunused-command-line-argument]
+In file included from /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/src.c:2:
+In file included from /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/immintrin.h:14:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:50:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_vec_init_v2si(__i, 0);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:129:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_packsswb((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:159:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_packssdw((__v2si)__m1, (__v2si)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:189:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_packuswb((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:216:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_punpckhbw((__v8qi)__m1, (__v8qi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:239:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_punpckhwd((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:260:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_punpckhdq((__v2si)__m1, (__v2si)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:287:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_punpcklbw((__v8qi)__m1, (__v8qi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:310:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_punpcklwd((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:331:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_punpckldq((__v2si)__m1, (__v2si)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:352:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_paddb((__v8qi)__m1, (__v8qi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:373:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_paddw((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:394:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_paddd((__v2si)__m1, (__v2si)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:416:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_paddsb((__v8qi)__m1, (__v8qi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:439:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_paddsw((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:461:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_paddusb((__v8qi)__m1, (__v8qi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:483:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_paddusw((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:504:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_psubb((__v8qi)__m1, (__v8qi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.3/include/mmintrin.h:525:12: error: invalid conversion between vector type '__m64' (vector of 1 'long long' value) and integer type 'int' of different size
+    return (__m64)__builtin_ia32_psubw((__v4hi)__m1, (__v4hi)__m2);
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.
+
+** BUILD FAILED **
+
+
+The following build commands failed:
+	CompileC CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_77f65.build/Objects-normal/arm64/src.o src.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler
+(1 failure)
+
+
+Source file was:
+
+#include <immintrin.h>
+#include <string.h>
+
+int main() {
+    __m256i vec;
+    memset(&vec, 0, sizeof(vec));
+    return (int)_mm256_extract_epi64(vec, 2);
+}
+Performing C SOURCE FILE Test AWS_ARCH_ARM32 failed with the following output:
+Change Dir: /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/xcodebuild -project CMAKE_TRY_COMPILE.xcodeproj build -target cmTC_462a6 -configuration Debug -hideShellScriptEnvironment && Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project CMAKE_TRY_COMPILE.xcodeproj build -target cmTC_462a6 -configuration Debug -hideShellScriptEnvironment
+
+User defaults from command line:
+    HideShellScriptEnvironment = YES
+
+Prepare build
+note: Using legacy build system
+=== BUILD TARGET cmTC_462a6 OF PROJECT CMAKE_TRY_COMPILE WITH CONFIGURATION Debug ===
+
+Check dependencies
+Code Signing Warning: "cmTC_462a6" isn't code signed but requires entitlements. It is not possible to add entitlements to a binary without signing it.
+
+Write auxiliary files
+/bin/mkdir -p /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_462a6.build/Objects-normal/arm64
+write-file /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_462a6.build/Objects-normal/arm64/cmTC_462a6.LinkFileList
+
+Create product structure
+/bin/mkdir -p /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/cmTC_462a6.app
+
+ProcessInfoPlistFile Debug/cmTC_462a6.app/Info.plist CMakeFiles/cmTC_462a6.dir/Info.plist
+    cd /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp
+    builtin-infoPlistUtility /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_462a6.dir/Info.plist -genpkginfo /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/cmTC_462a6.app/PkgInfo -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/cmTC_462a6.app/Info.plist
+
+CompileC CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_462a6.build/Objects-normal/arm64/src.o src.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler
+    cd /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x c -target arm64-apple-ios13.0 -fmessage-length=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit=0 -Wno-trigraphs -fpascal-strings -O0 -Wno-missing-field-initializers -Wno-missing-prototypes -Wno-return-type -Wno-missing-braces -Wparentheses -Wswitch -Wno-unused-function -Wno-unused-label -Wno-unused-parameter -Wno-unused-variable -Wunused-value -Wno-empty-body -Wno-uninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wno-constant-conversion -Wno-int-conversion -Wno-bool-conversion -Wno-enum-conversion -Wno-float-conversion -Wno-non-literal-null-conversion -Wno-objc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -DCMAKE_INTDIR=\"Debug-iphoneos\" -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk -fstrict-aliasing -Wdeprecated-declarations -g -Wno-sign-conversion -Wno-infinite-recursion -Wno-comma -Wno-block-capture-autoreleasing -Wno-strict-prototypes -Wno-semicolon-before-method-body -fembed-bitcode-marker -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/include -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_462a6.build/DerivedSources-normal/arm64 -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_462a6.build/DerivedSources/arm64 -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_462a6.build/DerivedSources -F/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug -DAWS_ARCH_ARM32 -MMD -MT dependencies -MF /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_462a6.build/Objects-normal/arm64/src.d --serialize-diagnostics /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_462a6.build/Objects-normal/arm64/src.dia -c /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/src.c -o /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_462a6.build/Objects-normal/arm64/src.o
+/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/src.c:4:6: error: "not arm"
+#    error "not arm"
+     ^
+1 error generated.
+
+** BUILD FAILED **
+
+
+The following build commands failed:
+	CompileC CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_462a6.build/Objects-normal/arm64/src.o src.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler
+(1 failure)
+
+
+Source file was:
+
+    int main() {
+#if !(defined(__arm__) || defined(_M_ARM))
+#    error "not arm"
+#endif
+        return 0;
+    }
+
+Performing C SOURCE FILE Test AWS_HAVE_AUXV failed with the following output:
+Change Dir: /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/xcodebuild -project CMAKE_TRY_COMPILE.xcodeproj build -target cmTC_0d92c -configuration Debug -hideShellScriptEnvironment && Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project CMAKE_TRY_COMPILE.xcodeproj build -target cmTC_0d92c -configuration Debug -hideShellScriptEnvironment
+
+User defaults from command line:
+    HideShellScriptEnvironment = YES
+
+Prepare build
+note: Using legacy build system
+=== BUILD TARGET cmTC_0d92c OF PROJECT CMAKE_TRY_COMPILE WITH CONFIGURATION Debug ===
+
+Check dependencies
+Code Signing Warning: "cmTC_0d92c" isn't code signed but requires entitlements. It is not possible to add entitlements to a binary without signing it.
+
+Write auxiliary files
+/bin/mkdir -p /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_0d92c.build/Objects-normal/arm64
+write-file /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_0d92c.build/Objects-normal/arm64/cmTC_0d92c.LinkFileList
+
+Create product structure
+/bin/mkdir -p /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/cmTC_0d92c.app
+
+ProcessInfoPlistFile Debug/cmTC_0d92c.app/Info.plist CMakeFiles/cmTC_0d92c.dir/Info.plist
+    cd /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp
+    builtin-infoPlistUtility /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMakeFiles/cmTC_0d92c.dir/Info.plist -genpkginfo /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/cmTC_0d92c.app/PkgInfo -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/cmTC_0d92c.app/Info.plist
+
+CompileC CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_0d92c.build/Objects-normal/arm64/src.o src.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler
+    cd /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x c -target arm64-apple-ios13.0 -fmessage-length=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit=0 -Wno-trigraphs -fpascal-strings -O0 -Wno-missing-field-initializers -Wno-missing-prototypes -Wno-return-type -Wno-missing-braces -Wparentheses -Wswitch -Wno-unused-function -Wno-unused-label -Wno-unused-parameter -Wno-unused-variable -Wunused-value -Wno-empty-body -Wno-uninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wno-constant-conversion -Wno-int-conversion -Wno-bool-conversion -Wno-enum-conversion -Wno-float-conversion -Wno-non-literal-null-conversion -Wno-objc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -DCMAKE_INTDIR=\"Debug-iphoneos\" -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk -fstrict-aliasing -Wdeprecated-declarations -g -Wno-sign-conversion -Wno-infinite-recursion -Wno-comma -Wno-block-capture-autoreleasing -Wno-strict-prototypes -Wno-semicolon-before-method-body -fembed-bitcode-marker -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug/include -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_0d92c.build/DerivedSources-normal/arm64 -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_0d92c.build/DerivedSources/arm64 -I/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_0d92c.build/DerivedSources -F/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/Debug -DAWS_HAVE_AUXV -MMD -MT dependencies -MF /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_0d92c.build/Objects-normal/arm64/src.d --serialize-diagnostics /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_0d92c.build/Objects-normal/arm64/src.dia -c /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/src.c -o /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_0d92c.build/Objects-normal/arm64/src.o
+/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/CMakeTmp/src.c:2:10: fatal error: 'sys/auxv.h' file not found
+#include <sys/auxv.h>
+         ^~~~~~~~~~~~
+1 error generated.
+
+** BUILD FAILED **
+
+
+The following build commands failed:
+	CompileC CMAKE_TRY_COMPILE.build/Debug-iphoneos/cmTC_0d92c.build/Objects-normal/arm64/src.o src.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler
+(1 failure)
+
+
+Source file was:
+
+#include <sys/auxv.h>
+int main() {
+#ifdef __linux__
+    getauxval(AT_HWCAP);
+    getauxval(AT_HWCAP2);
+#endif
+    return 0;
+}

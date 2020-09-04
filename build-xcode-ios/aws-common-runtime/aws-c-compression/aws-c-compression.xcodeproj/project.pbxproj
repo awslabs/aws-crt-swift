@@ -1,0 +1,1012 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		20E0D942DDCC4AA58C5DF8D3 /* ZERO_CHECK */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 9DDCF4E8F4BD483E9037D626 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */;
+			buildPhases = (
+				379DB550C867472F9569EE38 /* CMake Rules */,
+			);
+			dependencies = (
+			);
+			name = ZERO_CHECK;
+			productName = ZERO_CHECK;
+		};
+		4F714F44510F4053B6157EB4 /* install */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = BE6FAED19883480392B60EB4 /* Build configuration list for PBXAggregateTarget "install" */;
+			buildPhases = (
+				6C8444163CA849A5B01FC3F4 /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+				50B1FAFD31F6470EA0398172 /* PBXTargetDependency */,
+			);
+			name = install;
+			productName = install;
+		};
+		B9AA4A9FF2FE4A3FA1BA59E7 /* ALL_BUILD */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 829C03F2FC034DB4A75D2EAA /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */;
+			buildPhases = (
+				9A8E737CDFFA4F808190ACCC /* CMake Rules */,
+			);
+			dependencies = (
+				D4F9F752C8B54AFFB07E09EB /* PBXTargetDependency */,
+				7BAB7C9CBB9C462CAD67E998 /* PBXTargetDependency */,
+			);
+			name = ALL_BUILD;
+			productName = ALL_BUILD;
+		};
+		F631349ED166407D9618D08A /* RUN_TESTS */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = E80875E702AF42D68D9FE011 /* Build configuration list for PBXAggregateTarget "RUN_TESTS" */;
+			buildPhases = (
+				635B422C2F944084B8118557 /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+			);
+			name = RUN_TESTS;
+			productName = RUN_TESTS;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		0117F9C334DD47158F94CE50 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/compression/huffman.h */ = {isa = PBXBuildFile; fileRef = 38BA3B65846041C3B71315C1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/compression/huffman.h */; };
+		2CF1EED4AE3D4D2CB9B4BF5F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/compression/exports.h */ = {isa = PBXBuildFile; fileRef = EFF811C06DC240208DFA0D2A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/compression/exports.h */; };
+		51D98C271D8548D49BF5EE1F /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/compression/compression.h */ = {isa = PBXBuildFile; fileRef = 47E1BE9D31B24890A0274E89 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/compression/compression.h */; };
+		51F301CC1CB747BE8F5AD14C /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/CMakeFiles/aws-c-compression.dir/Info.plist */ = {isa = PBXBuildFile; fileRef = 2E4BC59278414C9CB5BE2AEE /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/CMakeFiles/aws-c-compression.dir/Info.plist */; };
+		6F49433C0DB449098A558E8B /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/source/compression.c */ = {isa = PBXBuildFile; fileRef = 8200BD6FACD54B63848477AD /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/source/compression.c */; };
+		91A3FA981F9E453A921B0C94 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/source/huffman.c */ = {isa = PBXBuildFile; fileRef = ED8EA652BA004024AD8FBB10 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/source/huffman.c */; };
+		BDEA3A55A10542AE93611270 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/testing/compression/huffman.h */ = {isa = PBXBuildFile; fileRef = DB43961B11924D5EBAB8D3C7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/testing/compression/huffman.h */; };
+		BECA2D1FC6974150854723E2 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/testing/compression/huffman.inl */ = {isa = PBXBuildFile; fileRef = E75A9E1206B54AB5BF5E4E19 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/testing/compression/huffman.inl */; };
+		D70DA5568F7A41FD88901156 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 084098FABB564B37B5EC5342 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/CMakeLists.txt */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXBuildStyle section */
+		10F1B025E6104D6C8C8BA72D /* Debug */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Debug;
+		};
+		6B877F07D34746D3AFFCD001 /* Release */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Release;
+		};
+		8C561AEB50C949BDBB30ACCB /* RelWithDebInfo */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = RelWithDebInfo;
+		};
+		AE100BECDDAE4C9C8599F68C /* MinSizeRel */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = MinSizeRel;
+		};
+/* End PBXBuildStyle section */
+
+/* Begin PBXContainerItemProxy section */
+		053FC2D920C341DDAF8AE126 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 68AD1FDCDE054E60843E09D2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 20E0D942DDCC4AA58C5DF8D3;
+			remoteInfo = ZERO_CHECK;
+		};
+		128F2B6C17814094BF24BDE7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 68AD1FDCDE054E60843E09D2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B9AA4A9FF2FE4A3FA1BA59E7;
+			remoteInfo = ALL_BUILD;
+		};
+		5DC697BF36854C65AAF014CE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 68AD1FDCDE054E60843E09D2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 20E0D942DDCC4AA58C5DF8D3;
+			remoteInfo = ZERO_CHECK;
+		};
+		F4C91030D2814AF491A863EB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 68AD1FDCDE054E60843E09D2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7449C052B9214A3E84E93A13;
+			remoteInfo = "aws-c-compression";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		084098FABB564B37B5EC5342 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		2552B05642D34BF7B57E9B79 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		2E4BC59278414C9CB5BE2AEE /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/CMakeFiles/aws-c-compression.dir/Info.plist */ = {isa = PBXFileReference; explicitFileType = sourcecode.text.plist; fileEncoding = 4; name = Info.plist; path = "../../build-xcode-ios/aws-common-runtime/aws-c-compression/CMakeFiles/aws-c-compression.dir/Info.plist"; sourceTree = SOURCE_ROOT; };
+		38BA3B65846041C3B71315C1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/compression/huffman.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = huffman.h; path = include/aws/compression/huffman.h; sourceTree = SOURCE_ROOT; };
+		47E1BE9D31B24890A0274E89 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/compression/compression.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = compression.h; path = include/aws/compression/compression.h; sourceTree = SOURCE_ROOT; };
+		7690E184690648B1B719BC80 /* aws-c-compression */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; path = "libaws-c-compression.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8200BD6FACD54B63848477AD /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/source/compression.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = compression.c; path = source/compression.c; sourceTree = SOURCE_ROOT; };
+		DB43961B11924D5EBAB8D3C7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/testing/compression/huffman.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = huffman.h; path = include/aws/testing/compression/huffman.h; sourceTree = SOURCE_ROOT; };
+		E75A9E1206B54AB5BF5E4E19 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/testing/compression/huffman.inl */ = {isa = PBXFileReference; explicitFileType = sourcecode; fileEncoding = 4; name = huffman.inl; path = include/aws/testing/compression/huffman.inl; sourceTree = SOURCE_ROOT; };
+		ED8EA652BA004024AD8FBB10 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/source/huffman.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = huffman.c; path = source/huffman.c; sourceTree = SOURCE_ROOT; };
+		EFF811C06DC240208DFA0D2A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/compression/exports.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = exports.h; path = include/aws/compression/exports.h; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		3BE4F3407FF64533AA0190A6 /* ALL_BUILD */ = {
+			isa = PBXGroup;
+			children = (
+				8421D053730F4B0FA7561BC3 /* CMake Rules */,
+				2552B05642D34BF7B57E9B79 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/CMakeLists.txt */,
+			);
+			name = ALL_BUILD;
+			sourceTree = "<group>";
+		};
+		5A5267857E9E45AF9D232965 /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				8200BD6FACD54B63848477AD /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/source/compression.c */,
+				ED8EA652BA004024AD8FBB10 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/source/huffman.c */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		6CA16F5BD45C42F581E56EDA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7690E184690648B1B719BC80 /* aws-c-compression */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8421D053730F4B0FA7561BC3 /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		886D30DFFCEC4446A6B5AE23 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				2E4BC59278414C9CB5BE2AEE /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/CMakeFiles/aws-c-compression.dir/Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		99E53EE629A5488699F8547C /* aws-c-compression */ = {
+			isa = PBXGroup;
+			children = (
+				DC9C2D1ACE9D48D2A45D84D0 /* Header Files */,
+				5A5267857E9E45AF9D232965 /* Source Files */,
+				886D30DFFCEC4446A6B5AE23 /* Resources */,
+				084098FABB564B37B5EC5342 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/CMakeLists.txt */,
+			);
+			name = "aws-c-compression";
+			sourceTree = "<group>";
+		};
+		DC9C2D1ACE9D48D2A45D84D0 /* Header Files */ = {
+			isa = PBXGroup;
+			children = (
+				47E1BE9D31B24890A0274E89 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/compression/compression.h */,
+				EFF811C06DC240208DFA0D2A /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/compression/exports.h */,
+				38BA3B65846041C3B71315C1 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/compression/huffman.h */,
+				DB43961B11924D5EBAB8D3C7 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/testing/compression/huffman.h */,
+				E75A9E1206B54AB5BF5E4E19 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include/aws/testing/compression/huffman.inl */,
+			);
+			name = "Header Files";
+			sourceTree = "<group>";
+		};
+		E9623DCFD8AE4849913C9248 = {
+			isa = PBXGroup;
+			children = (
+				99E53EE629A5488699F8547C /* aws-c-compression */,
+				3BE4F3407FF64533AA0190A6 /* ALL_BUILD */,
+				6CA16F5BD45C42F581E56EDA /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7449C052B9214A3E84E93A13 /* aws-c-compression */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7B43CEF7C91E4D7B87EF1B65 /* Build configuration list for PBXNativeTarget "aws-c-compression" */;
+			buildPhases = (
+				A1A7C7D2B0524ABDAA187A94 /* Sources */,
+				931F27D1E1CD46618B389D37 /* CMake PostBuild Rules */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DA87DAEC0A9C48378360CB66 /* PBXTargetDependency */,
+			);
+			name = "aws-c-compression";
+			productName = "aws-c-compression";
+			productReference = 7690E184690648B1B719BC80 /* aws-c-compression */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		68AD1FDCDE054E60843E09D2 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1160;
+			};
+			buildConfigurationList = F14473ED105847F09E8D2F64 /* Build configuration list for PBXProject "aws-c-compression" */;
+			buildSettings = {
+			};
+			buildStyles = (
+				10F1B025E6104D6C8C8BA72D /* Debug */,
+				6B877F07D34746D3AFFCD001 /* Release */,
+				AE100BECDDAE4C9C8599F68C /* MinSizeRel */,
+				8C561AEB50C949BDBB30ACCB /* RelWithDebInfo */,
+			);
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 0;
+			mainGroup = E9623DCFD8AE4849913C9248;
+			projectDirPath = "../../../aws-common-runtime/aws-c-compression";
+			projectRoot = "";
+			targets = (
+				B9AA4A9FF2FE4A3FA1BA59E7 /* ALL_BUILD */,
+				F631349ED166407D9618D08A /* RUN_TESTS */,
+				20E0D942DDCC4AA58C5DF8D3 /* ZERO_CHECK */,
+				7449C052B9214A3E84E93A13 /* aws-c-compression */,
+				4F714F44510F4053B6157EB4 /* install */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		379DB550C867472F9569EE38 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression -f /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/CMakeScripts/ZERO_CHECK_cmakeRulesBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		58385A16DCFA475F981B8BFD = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		635B422C2F944084B8118557 /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression -f /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/CMakeScripts/RUN_TESTS_postBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		6C8444163CA849A5B01FC3F4 /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression -f /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/CMakeScripts/install_postBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		931F27D1E1CD46618B389D37 /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression -f /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/CMakeScripts/aws-c-compression_postBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		966C831D7FAC4CAA95C5E8C9 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		9A8E737CDFFA4F808190ACCC /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression -f /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/CMakeScripts/ALL_BUILD_cmakeRulesBuildPhase.make$CONFIGURATION OBJDIR=$(basename \"$OBJECT_FILE_DIR_normal\") all";
+			showEnvVarsInLog = 0;
+		};
+		A1061DD7EF2A4A3CAB3A914F = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		EB60E5AA0C8C4D0E9AC14FA1 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A1A7C7D2B0524ABDAA187A94 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6F49433C0DB449098A558E8B /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/source/compression.c */,
+				91A3FA981F9E453A921B0C94 /* /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/source/huffman.c */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		50B1FAFD31F6470EA0398172 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B9AA4A9FF2FE4A3FA1BA59E7 /* ALL_BUILD */;
+			targetProxy = 128F2B6C17814094BF24BDE7 /* PBXContainerItemProxy */;
+		};
+		7BAB7C9CBB9C462CAD67E998 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7449C052B9214A3E84E93A13 /* aws-c-compression */;
+			targetProxy = F4C91030D2814AF491A863EB /* PBXContainerItemProxy */;
+		};
+		D4F9F752C8B54AFFB07E09EB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 20E0D942DDCC4AA58C5DF8D3 /* ZERO_CHECK */;
+			targetProxy = 5DC697BF36854C65AAF014CE /* PBXContainerItemProxy */;
+		};
+		DA87DAEC0A9C48378360CB66 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 20E0D942DDCC4AA58C5DF8D3 /* ZERO_CHECK */;
+			targetProxy = 053FC2D920C341DDAF8AE126 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		009B2918D0364A12A8D684CE /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		1BB85889F42B43E99506B5A3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "arm64 x86_64";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk;
+				SWIFT_VERSION = 5;
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/build";
+			};
+			name = Debug;
+		};
+		2088E0492EF84AD58854565E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Debug";
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = 1.0.0;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",aws_c_compression_EXPORTS,HAVE_SYSCONF,AWS_COMPRESSION_USE_IMPORT_EXPORT,AWS_COMPRESSION_EXPORTS,AWS_COMMON_USE_IMPORT_EXPORT);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/generated/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "   -fPIC -Wall -Werror -Wstrict-prototypes -Wextra -pedantic -Wno-long-long -fPIC -Wgnu -Wno-gnu-zero-variadic-macro-arguments '-fvisibility=hidden' '-std=gnu99'  ";
+				OTHER_LDFLAGS = " -dynamiclib -Wl,-headerpad_max_install_names -install_name /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Debug/libaws-c-compression.0unstable.dylib  /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Debug/libaws-c-common.1.0.0.dylib  -framework CoreFoundation";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "aws-c-compression.1.0.0";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		238739DE124145C49C5AAF2E /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "arm64 x86_64";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk;
+				SWIFT_VERSION = 5;
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/build";
+			};
+			name = RelWithDebInfo;
+		};
+		268C74D100714EB78110440C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		2E8097B3A4BF40399D6C068E /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		356F0F5A162C485A9489E892 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		3DDC0AC12EA94F98B767FFCF /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/MinSizeRel";
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = 1.0.0;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",aws_c_compression_EXPORTS,HAVE_SYSCONF,AWS_COMPRESSION_USE_IMPORT_EXPORT,AWS_COMPRESSION_EXPORTS,AWS_COMMON_USE_IMPORT_EXPORT);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/generated/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "    -DNDEBUG -fPIC -Wall -Werror -Wstrict-prototypes -Wextra -pedantic -Wno-long-long -fPIC -Wgnu -Wno-gnu-zero-variadic-macro-arguments '-fvisibility=hidden' '-std=gnu99'  ";
+				OTHER_LDFLAGS = " -dynamiclib -Wl,-headerpad_max_install_names -install_name /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/MinSizeRel/libaws-c-compression.0unstable.dylib  /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/MinSizeRel/libaws-c-common.1.0.0.dylib  -framework CoreFoundation";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "aws-c-compression.1.0.0";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		53EA3463A7DE42D78AEA2D9E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "arm64 x86_64";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk;
+				SWIFT_VERSION = 5;
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/build";
+			};
+			name = Release;
+		};
+		55A06F54A2FE48978D669D93 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		76994970324644F4A02E8779 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		7BB433A7A1AF4F22AFD6B89D /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "arm64 x86_64";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.6.sdk;
+				SWIFT_VERSION = 5;
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/build";
+			};
+			name = MinSizeRel;
+		};
+		8D35A2604E4544DF91BFD50B /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		928E12C67AE743CE98C3F46A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		95E5FE84288540A0A5C8994F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		96E57FA95C6F4D64A6DAF597 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Release";
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = 1.0.0;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",aws_c_compression_EXPORTS,HAVE_SYSCONF,AWS_COMPRESSION_USE_IMPORT_EXPORT,AWS_COMPRESSION_EXPORTS,AWS_COMMON_USE_IMPORT_EXPORT);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/generated/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "    -DNDEBUG -fPIC -Wall -Werror -Wstrict-prototypes -Wextra -pedantic -Wno-long-long -fPIC -Wgnu -Wno-gnu-zero-variadic-macro-arguments '-fvisibility=hidden' '-std=gnu99'  ";
+				OTHER_LDFLAGS = " -dynamiclib -Wl,-headerpad_max_install_names -install_name /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Release/libaws-c-compression.0unstable.dylib  /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/Release/libaws-c-common.1.0.0.dylib  -framework CoreFoundation";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "aws-c-compression.1.0.0";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		A29014477DE341C9BCE476D9 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		AB9D57EF09D04274BC4C6851 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/RelWithDebInfo";
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = 1.0.0;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .dylib;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",aws_c_compression_EXPORTS,HAVE_SYSCONF,AWS_COMPRESSION_USE_IMPORT_EXPORT,AWS_COMPRESSION_EXPORTS,AWS_COMMON_USE_IMPORT_EXPORT);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-compression/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/generated/include","/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include");
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_STYLE = DYNAMIC;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "       -DNDEBUG -fPIC -Wall -Werror -Wstrict-prototypes -Wextra -pedantic -Wno-long-long -fPIC -Wgnu -Wno-gnu-zero-variadic-macro-arguments '-fvisibility=hidden' '-std=gnu99'  ";
+				OTHER_LDFLAGS = " -dynamiclib -Wl,-headerpad_max_install_names -install_name /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/RelWithDebInfo/libaws-c-compression.0unstable.dylib  /Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/lib/RelWithDebInfo/libaws-c-common.1.0.0.dylib  -framework CoreFoundation";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "aws-c-compression.1.0.0";
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		AED2C9F0C52E4A479A0C6EB9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		C0133155F283490B99953F7C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Release;
+		};
+		C5D3F9E9E7794567A78FBD08 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		C951B814D04A40858C8CE057 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+		D2FC502687C2467093A8C4C6 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		E139F27229B546AAA6645ADA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (arm64,x86_64);
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("$(inherited)");
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7B43CEF7C91E4D7B87EF1B65 /* Build configuration list for PBXNativeTarget "aws-c-compression" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2088E0492EF84AD58854565E /* Debug */,
+				96E57FA95C6F4D64A6DAF597 /* Release */,
+				3DDC0AC12EA94F98B767FFCF /* MinSizeRel */,
+				AB9D57EF09D04274BC4C6851 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		829C03F2FC034DB4A75D2EAA /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C951B814D04A40858C8CE057 /* Debug */,
+				C0133155F283490B99953F7C /* Release */,
+				A29014477DE341C9BCE476D9 /* MinSizeRel */,
+				C5D3F9E9E7794567A78FBD08 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9DDCF4E8F4BD483E9037D626 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AED2C9F0C52E4A479A0C6EB9 /* Debug */,
+				95E5FE84288540A0A5C8994F /* Release */,
+				55A06F54A2FE48978D669D93 /* MinSizeRel */,
+				009B2918D0364A12A8D684CE /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		BE6FAED19883480392B60EB4 /* Build configuration list for PBXAggregateTarget "install" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				76994970324644F4A02E8779 /* Debug */,
+				268C74D100714EB78110440C /* Release */,
+				2E8097B3A4BF40399D6C068E /* MinSizeRel */,
+				356F0F5A162C485A9489E892 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E80875E702AF42D68D9FE011 /* Build configuration list for PBXAggregateTarget "RUN_TESTS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E139F27229B546AAA6645ADA /* Debug */,
+				928E12C67AE743CE98C3F46A /* Release */,
+				D2FC502687C2467093A8C4C6 /* MinSizeRel */,
+				8D35A2604E4544DF91BFD50B /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F14473ED105847F09E8D2F64 /* Build configuration list for PBXProject "aws-c-compression" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1BB85889F42B43E99506B5A3 /* Debug */,
+				53EA3463A7DE42D78AEA2D9E /* Release */,
+				7BB433A7A1AF4F22AFD6B89D /* MinSizeRel */,
+				238739DE124145C49C5AAF2E /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 68AD1FDCDE054E60843E09D2 /* Project object */;
+}

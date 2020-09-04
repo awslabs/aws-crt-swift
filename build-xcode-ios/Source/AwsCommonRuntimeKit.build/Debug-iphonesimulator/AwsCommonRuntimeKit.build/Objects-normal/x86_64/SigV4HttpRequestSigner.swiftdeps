@@ -1,0 +1,441 @@
+### Swift dependencies file v0 ###
+provides-top-level:
+- "SigV4HttpRequestSigner"
+provides-nominal:
+- "19AwsCommonRuntimeKit22SigV4HttpRequestSignerC"
+provides-member:
+- ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", ""]
+provides-dynamic-lookup:
+- "allocator"
+- "applySigningResult"
+- "signRequest"
+depends-top-level:
+- !private "!="
+- !private "&&"
+- !private "=="
+- !private "AWS_OP_SUCCESS"
+- "Allocator"
+- "AssignmentPrecedence"
+- !private "AwsCommonRuntimeError"
+- !private "FloatLiteralType"
+- "HttpRequest"
+- !private "Int"
+- !private "IntegerLiteralType"
+- "OnSigningComplete"
+- "SigV4HttpRequestSigner"
+- !private "SigningCallbackData"
+- "SigningConfig"
+- "SigningResult"
+- !private "UnsafeMutablePointer"
+- !private "UnsafePointer"
+- !private "Void"
+- !private "aws_apply_signing_result_to_http_request"
+- !private "aws_sign_request_aws"
+- !private "aws_signable_destroy"
+- !private "aws_signable_new_http_request"
+- !private "aws_signing_config_aws"
+- !private "aws_signing_config_base"
+- !private "defaultAllocator"
+depends-member:
+- !private ["s18AdditiveArithmeticP", "init"]
+- !private ["19AwsCommonRuntimeKit9AllocatorP", "allocate"]
+- !private ["19AwsCommonRuntimeKit9AllocatorP", "deinitializeAndDeallocate"]
+- !private ["19AwsCommonRuntimeKit9AllocatorP", "initialize"]
+- !private ["19AwsCommonRuntimeKit9AllocatorP", "pointee"]
+- !private ["19AwsCommonRuntimeKit9AllocatorP", "rawValue"]
+- !private ["19AwsCommonRuntimeKit9AllocatorP", "withMemoryRebound"]
+- !private ["19AwsCommonRuntimeKit0abC5ErrorV", "deinit"]
+- !private ["19AwsCommonRuntimeKit0abC5ErrorV", "init"]
+- !private ["Sz", "init"]
+- !private ["s7CVarArgP", "allocate"]
+- !private ["s7CVarArgP", "deinitializeAndDeallocate"]
+- !private ["s7CVarArgP", "init"]
+- !private ["s7CVarArgP", "initialize"]
+- !private ["s7CVarArgP", "pointee"]
+- !private ["s7CVarArgP", "withMemoryRebound"]
+- !private ["s12CaseIterableP", "aws"]
+- !private ["SL", "allocate"]
+- !private ["SL", "assumingMemoryBound"]
+- !private ["SL", "deinitializeAndDeallocate"]
+- !private ["SL", "init"]
+- !private ["SL", "initialize"]
+- !private ["SL", "pointee"]
+- !private ["SL", "withMemoryRebound"]
+- !private ["s28CustomDebugStringConvertibleP", "allocate"]
+- !private ["s28CustomDebugStringConvertibleP", "assumingMemoryBound"]
+- !private ["s28CustomDebugStringConvertibleP", "deinitializeAndDeallocate"]
+- !private ["s28CustomDebugStringConvertibleP", "init"]
+- !private ["s28CustomDebugStringConvertibleP", "initialize"]
+- !private ["s28CustomDebugStringConvertibleP", "pointee"]
+- !private ["s28CustomDebugStringConvertibleP", "withMemoryRebound"]
+- !private ["s17CustomReflectableP", "allocate"]
+- !private ["s17CustomReflectableP", "assumingMemoryBound"]
+- !private ["s17CustomReflectableP", "deinitializeAndDeallocate"]
+- !private ["s17CustomReflectableP", "init"]
+- !private ["s17CustomReflectableP", "initialize"]
+- !private ["s17CustomReflectableP", "pointee"]
+- !private ["s17CustomReflectableP", "withMemoryRebound"]
+- !private ["s23CustomStringConvertibleP", "init"]
+- !private ["Se", "init"]
+- !private ["SE", "init"]
+- !private ["SQ", "allocate"]
+- !private ["SQ", "assumingMemoryBound"]
+- !private ["SQ", "aws"]
+- !private ["SQ", "deinitializeAndDeallocate"]
+- !private ["SQ", "init"]
+- !private ["SQ", "initialize"]
+- !private ["SQ", "pointee"]
+- !private ["SQ", "withMemoryRebound"]
+- !private ["s5ErrorP", "init"]
+- !private ["s27ExpressibleByIntegerLiteralP", "init"]
+- !private ["s17FixedWidthIntegerP", "init"]
+- !private ["SH", "allocate"]
+- !private ["SH", "assumingMemoryBound"]
+- !private ["SH", "aws"]
+- !private ["SH", "deinitializeAndDeallocate"]
+- !private ["SH", "init"]
+- !private ["SH", "initialize"]
+- !private ["SH", "pointee"]
+- !private ["SH", "withMemoryRebound"]
+- !private ["19AwsCommonRuntimeKit11HttpMessageC", "rawValue"]
+- !private ["19AwsCommonRuntimeKit11HttpRequestC", "rawValue"]
+- !private ["Si", "init"]
+- !private ["s25LosslessStringConvertibleP", "init"]
+- !private ["s10MirrorPathP", "init"]
+- !private ["Sj", "init"]
+- !private ["SY", "aws"]
+- !private ["s10SIMDScalarP", "init"]
+- !private ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "AWS_OP_SUCCESS"]
+- ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "Allocator"]
+- !private ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "AwsCommonRuntimeError"]
+- ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "HttpRequest"]
+- !private ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "Int"]
+- ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "OnSigningComplete"]
+- !private ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "SigningCallbackData"]
+- ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "SigningConfig"]
+- ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "SigningResult"]
+- !private ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "UnsafeMutablePointer"]
+- !private ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "UnsafePointer"]
+- !private ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "Void"]
+- ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "allocator"]
+- ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "applySigningResult"]
+- !private ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "aws_apply_signing_result_to_http_request"]
+- !private ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "aws_sign_request_aws"]
+- !private ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "aws_signable_destroy"]
+- !private ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "aws_signable_new_http_request"]
+- !private ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "aws_signing_config_aws"]
+- !private ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "aws_signing_config_base"]
+- !private ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "defaultAllocator"]
+- ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "deinit"]
+- ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "init"]
+- ["19AwsCommonRuntimeKit22SigV4HttpRequestSignerC", "signRequest"]
+- !private ["SZ", "init"]
+- !private ["s13SignedNumericP", "init"]
+- !private ["19AwsCommonRuntimeKit19SigningCallbackDataV", "init"]
+- !private ["19AwsCommonRuntimeKit19SigningCallbackDataV", "onSigningComplete"]
+- !private ["19AwsCommonRuntimeKit19SigningCallbackDataV", "request"]
+- !private ["19AwsCommonRuntimeKit19SigningCallbackDataV", "signable"]
+- !private ["19AwsCommonRuntimeKit13SigningConfigV", "configType"]
+- !private ["19AwsCommonRuntimeKit13SigningConfigV", "rawValue"]
+- !private ["19AwsCommonRuntimeKit17SigningConfigTypeO", "aws"]
+- !private ["19AwsCommonRuntimeKit17SigningConfigTypeO", "deinit"]
+- !private ["19AwsCommonRuntimeKit13SigningResultV", "init"]
+- !private ["19AwsCommonRuntimeKit13SigningResultV", "rawValue"]
+- !private ["Sx", "allocate"]
+- !private ["Sx", "assumingMemoryBound"]
+- !private ["Sx", "deinitializeAndDeallocate"]
+- !private ["Sx", "init"]
+- !private ["Sx", "initialize"]
+- !private ["Sx", "pointee"]
+- !private ["Sx", "withMemoryRebound"]
+- !private ["Sp", "allocate"]
+- !private ["Sp", "deinit"]
+- !private ["Sp", "deinitializeAndDeallocate"]
+- !private ["Sp", "initialize"]
+- !private ["Sp", "pointee"]
+- !private ["Sp", "withMemoryRebound"]
+- !private ["Sv", "assumingMemoryBound"]
+- !private ["SP", "init"]
+- !private ["s30_CustomPlaygroundQuickLookableP", "allocate"]
+- !private ["s30_CustomPlaygroundQuickLookableP", "assumingMemoryBound"]
+- !private ["s30_CustomPlaygroundQuickLookableP", "deinitializeAndDeallocate"]
+- !private ["s30_CustomPlaygroundQuickLookableP", "init"]
+- !private ["s30_CustomPlaygroundQuickLookableP", "initialize"]
+- !private ["s30_CustomPlaygroundQuickLookableP", "pointee"]
+- !private ["s30_CustomPlaygroundQuickLookableP", "withMemoryRebound"]
+- !private ["s35_ExpressibleByBuiltinIntegerLiteralP", "init"]
+- !private ["s35_HasCustomAnyHashableRepresentationP", "init"]
+- !private ["s21_ObjectiveCBridgeableP", "init"]
+- !private ["s8_PointerP", "allocate"]
+- !private ["s8_PointerP", "assumingMemoryBound"]
+- !private ["s8_PointerP", "deinitializeAndDeallocate"]
+- !private ["s8_PointerP", "init"]
+- !private ["s8_PointerP", "initialize"]
+- !private ["s8_PointerP", "pointee"]
+- !private ["s8_PointerP", "withMemoryRebound"]
+- !private ["So019aws_signing_config_A0V", "credentials"]
+- !private ["So019aws_signing_config_A0V", "credentials_provider"]
+depends-nominal:
+- !private "s18AdditiveArithmeticP"
+- !private "19AwsCommonRuntimeKit9AllocatorP"
+- !private "19AwsCommonRuntimeKit0abC5ErrorV"
+- !private "Sz"
+- !private "s7CVarArgP"
+- !private "s12CaseIterableP"
+- !private "SL"
+- !private "s28CustomDebugStringConvertibleP"
+- !private "s17CustomReflectableP"
+- !private "s23CustomStringConvertibleP"
+- !private "Se"
+- !private "SE"
+- !private "SQ"
+- !private "s5ErrorP"
+- !private "s27ExpressibleByIntegerLiteralP"
+- !private "s17FixedWidthIntegerP"
+- !private "SH"
+- !private "19AwsCommonRuntimeKit11HttpMessageC"
+- !private "19AwsCommonRuntimeKit11HttpRequestC"
+- !private "Si"
+- !private "s25LosslessStringConvertibleP"
+- !private "s10MirrorPathP"
+- !private "Sj"
+- !private "SY"
+- !private "s10SIMDScalarP"
+- "19AwsCommonRuntimeKit22SigV4HttpRequestSignerC"
+- !private "SZ"
+- !private "s13SignedNumericP"
+- !private "19AwsCommonRuntimeKit19SigningCallbackDataV"
+- !private "19AwsCommonRuntimeKit13SigningConfigV"
+- !private "19AwsCommonRuntimeKit17SigningConfigTypeO"
+- !private "19AwsCommonRuntimeKit13SigningResultV"
+- !private "Sx"
+- !private "Sp"
+- !private "Sv"
+- !private "SP"
+- !private "s30_CustomPlaygroundQuickLookableP"
+- !private "s35_ExpressibleByBuiltinIntegerLiteralP"
+- !private "s35_HasCustomAnyHashableRepresentationP"
+- !private "s21_ObjectiveCBridgeableP"
+- !private "s8_PointerP"
+- !private "So019aws_signing_config_A0V"
+depends-dynamic-lookup:
+depends-external:
+- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator/prebuilt-modules/ObjectiveC.swiftmodule/x86_64.swiftmodule"
+- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator/prebuilt-modules/Dispatch.swiftmodule/x86_64.swiftmodule"
+- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator/prebuilt-modules/Darwin.swiftmodule/x86_64.swiftmodule"
+- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator/prebuilt-modules/Foundation.swiftmodule/x86_64.swiftmodule"
+- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator/prebuilt-modules/CoreFoundation.swiftmodule/x86_64.swiftmodule"
+- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator/prebuilt-modules/CoreGraphics.swiftmodule/x86_64.swiftmodule"
+- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator/prebuilt-modules/Swift.swiftmodule/x86_64.swiftmodule"
+- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator/prebuilt-modules/Combine.swiftmodule/x86_64-apple-ios-simulator.swiftmodule"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-auth/include/aws/auth/external/cJSON.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/thread.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/thread.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/private/tls_channel_handler_shared.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/uuid.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-mqtt/include/aws/mqtt/private/topic_tree.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-mqtt/include/aws/mqtt/private/topic_tree.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/package.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/package.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/cache.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/fifo_cache.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/lru_cache.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/condition_variable.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-auth/include/aws/auth/signable.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/hash_table.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/hash_table.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/linked_hash_table.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/connection_manager_system_vtable.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-auth/include/aws/auth/private/aws_profile.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/time.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/date_time.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/date_time.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/pipe.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/request_response.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/request_response.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/priority_queue.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/priority_queue.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/private/byte_buf.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/byte_buf.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/byte_buf.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/generated/include/aws/common/config.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-auth/include/aws/auth/signing_config.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-auth/include/aws/auth/signing_config.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/encoding.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/encoding.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/logging.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/logging.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/logging.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-io/include/aws/io/logging.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-auth/include/aws/auth/signing.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-auth/include/aws/auth/signing.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-auth/include/aws/auth/private/aws_signing.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/string.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/string.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/math.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/math.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-auth/include/aws/auth/auth.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-auth/include/aws/auth/auth.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/uri.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/hpack.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/rw_lock.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/clock.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/clock.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/channel.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-io/include/aws/io/channel.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/log_channel.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/strutil.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/stdbool.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/stdbool.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/message_pool.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-io/include/aws/io/message_pool.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/private/hash_table_impl.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/request_response_impl.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/request_response_impl.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/connection_impl.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/connection_impl.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/http_impl.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/http_impl.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_impl.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_impl.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-mqtt/include/aws/mqtt/private/client_impl.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/proxy_impl.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/stream.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/h1_stream.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/h2_stream.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/device_random.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/platform.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/connection.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/connection.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/h1_connection.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/h2_connection.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/common.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/common.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/system_info.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/io.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-io/include/aws/io/io.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/zero.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/zero.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/channel_bootstrap.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-io/include/aws/io/channel_bootstrap.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/event_loop.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-io/include/aws/io/event_loop.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/http.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/http.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-mqtt/include/aws/mqtt/private/fixed_header.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-mqtt/include/aws/mqtt/private/fixed_header.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/h1_decoder.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/h2_decoder.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_decoder.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/h1_encoder.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h1_encoder.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/websocket_encoder.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/byte_order.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/byte_order.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/ring_buffer.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/ring_buffer.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/connection_manager.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/connection_manager.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/tls_channel_handler.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-io/include/aws/io/tls_channel_handler.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/socket_channel_handler.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/task_scheduler.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/task_scheduler.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/command_line_parser.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-auth/include/aws/auth/private/xml_parser.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/log_writer.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/log_formatter.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/host_resolver.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-io/include/aws/io/host_resolver.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/server.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/server.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/error.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/error.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/allocator.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/allocator.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/connection_monitor.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/atomics.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/atomics.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/statistics.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/statistics.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/statistics.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-io/include/aws/io/statistics.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/statistics.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/private/h2_frames.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/private/h2_frames.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/predicates.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/predicates.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-auth/include/aws/auth/credentials.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-auth/include/aws/auth/credentials.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/file_utils.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/pki_utils.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-auth/include/aws/auth/private/credentials_utils.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/macros.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/macros.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/process.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-mqtt/include/aws/mqtt/private/packets.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-mqtt/include/aws/mqtt/private/packets.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-auth/include/aws/auth/exports.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-auth/include/aws/auth/exports.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/exports.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/exports.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/exports.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-io/include/aws/io/exports.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/exports.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/exports.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-mqtt/include/aws/mqtt/exports.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-mqtt/include/aws/mqtt/exports.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/socket.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-io/include/aws/io/socket.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/aws/http/websocket.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-http/include/aws/http/websocket.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-auth/include/aws/auth/signing_result.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-auth/include/aws/auth/signing_result.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-mqtt/include/aws/mqtt/client.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-mqtt/include/aws/mqtt/client.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/environment.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/stdint.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/stdint.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/assert.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/assert.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-auth/include/aws/auth/private/sigv4_http_request.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/linked_list.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/linked_list.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/private/array_list.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/array_list.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/array_list.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-mqtt/include/aws/mqtt/mqtt.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-mqtt/include/aws/mqtt/mqtt.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/mutex.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/mutex.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/aws/io/shared_library.h"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/aws/common/private/lookup3.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/encoding.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/string.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/math.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/atomics_fallback.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/clock.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/math.gcc_x64_asm.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/math.gcc_builtin.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/zero.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/byte_order.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/ring_buffer.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/error.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/atomics.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/linked_list.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/array_list.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/aws-common-runtime/aws-c-common/include/aws/common/atomics_gnu.inl"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-auth/include/module.modulemap"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-cal/include/module.modulemap"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-compression/include/module.modulemap"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-common/include/module.modulemap"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-io/include/module.modulemap"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-http/include/module.modulemap"
+- "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/aws-common-runtime/aws-c-mqtt/include/module.modulemap"
+- "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator13.6.sdk/usr/include/objc/ObjectiveC.apinotes"
+- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/apinotes/Dispatch.apinotes"
+- "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator13.6.sdk/usr/include/Darwin.apinotes"
+- "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator13.6.sdk/System/Library/Frameworks/Foundation.framework/Headers/Foundation.apinotes"
+- "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator13.6.sdk/System/Library/Frameworks/CoreGraphics.framework/Headers/CoreGraphics.apinotes"
+- "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator13.6.sdk/System/Library/Frameworks/Security.framework/Headers/Security.apinotes"
+interface-hash: "1f3382c6564d58aa5aabce836e2f7992"

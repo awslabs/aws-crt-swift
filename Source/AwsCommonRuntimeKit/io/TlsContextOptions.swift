@@ -16,13 +16,15 @@ public final class TlsContextOptions {
 
     #if os(macOS)
 	public init(clientWithMtlsCertificatePath certPath: String, keyPath: String, allocator: Allocator = defaultAllocator) throws {
-		if aws_tls_ctx_options_init_client_mtls_from_path(&self.rawValue, allocator.rawValue, certPath, keyPath) != AWS_OP_SUCCESS {
+        let ptr = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
+        ptr.initialize(to: keyPath.awsByteCursor)
+        if aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(&self.rawValue, allocator.rawValue, certPath, ptr) != AWS_OP_SUCCESS {
 			throw AwsCommonRuntimeError()
 		}
 	}
 
 	public init(clientWithMtlsCert cert: inout ByteCursor, key: inout ByteCursor, allocator: Allocator = defaultAllocator) throws {
-		if aws_tls_ctx_options_init_client_mtls(&self.rawValue, allocator.rawValue, &cert.rawValue, &key.rawValue) != AWS_OP_SUCCESS {
+        if aws_tls_ctx_options_init_client_mtls_pkcs12(&self.rawValue, allocator.rawValue, &cert.rawValue, &key.rawValue) != AWS_OP_SUCCESS {
 			throw AwsCommonRuntimeError()
 		}
 	}

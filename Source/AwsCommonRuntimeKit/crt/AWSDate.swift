@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
 
-struct AWSDate: Comparable {
+class AWSDate: Comparable {
     let rawValue: UnsafeMutablePointer<aws_date_time>
 
     var year: UInt16 {
@@ -60,34 +60,34 @@ struct AWSDate: Comparable {
         aws_date_time_init_from_str_cursor(rawValue, pointer, DateFormat.autoDetect.rawValue)
     }
 
-    static func == (lhs: Self, rhs: Self) -> Bool {
+    static func == (lhs: AWSDate, rhs: AWSDate) -> Bool {
         return aws_date_time_diff(lhs.rawValue, rhs.rawValue) == 0
     }
 
-    static func < (lhs: Self, rhs: Self) -> Bool {
+    static func < (lhs: AWSDate, rhs: AWSDate) -> Bool {
         return aws_date_time_diff(lhs.rawValue, rhs.rawValue) < 0
     }
 
-    static func > (lhs: Self, rhs: Self) -> Bool {
+    static func > (lhs: AWSDate, rhs: AWSDate) -> Bool {
         return aws_date_time_diff(lhs.rawValue, rhs.rawValue) > 0
     }
 
-    static func <= (lhs: Self, rhs: Self) -> Bool {
+    static func <= (lhs: AWSDate, rhs: AWSDate) -> Bool {
         return aws_date_time_diff(lhs.rawValue, rhs.rawValue) <= 0
     }
 
-    static func >= (lhs: Self, rhs: Self) -> Bool {
+    static func >= (lhs: AWSDate, rhs: AWSDate) -> Bool {
         return aws_date_time_diff(lhs.rawValue, rhs.rawValue) >= 0
     }
 
-    static func -(lhs: Self, rhs: Self) -> Self {
+    static func -(lhs: AWSDate, rhs: AWSDate) -> AWSDate {
         var currentTime = aws_date_time_as_millis(lhs.rawValue)
         let timeToSubtractBy = aws_date_time_as_millis(rhs.rawValue)
         currentTime -= timeToSubtractBy
         return AWSDate(epochMs: currentTime)
     }
 
-    static func +(lhs: Self, rhs: Self) -> Self {
+    static func +(lhs: AWSDate, rhs: AWSDate) -> AWSDate {
         var currentTime = aws_date_time_as_millis(lhs.rawValue)
         let timeToAdd = aws_date_time_as_millis(rhs.rawValue)
         currentTime += timeToAdd
@@ -96,6 +96,10 @@ struct AWSDate: Comparable {
 
     static func now() -> AWSDate {
         return AWSDate()
+    }
+    
+    deinit {
+        rawValue.deinitializeAndDeallocate()
     }
 }
 
