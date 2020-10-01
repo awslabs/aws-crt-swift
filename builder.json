@@ -1,0 +1,24 @@
+{
+  "name": "aws-crt-swift",
+  "enabled": true,
+  "build_steps": [
+    "swift build -c release"
+  ],
+  "test_steps": [
+    "swift test"
+  ],
+  "hosts": {
+    "ubuntu": {},
+    "macos": {},
+    "al2": {},
+    "al2012": {
+      "enabled": false
+    },
+    "alpine": {
+      "enabled": false
+    },
+    "windows": {
+      "enabled": false
+    }
+  }
+}
