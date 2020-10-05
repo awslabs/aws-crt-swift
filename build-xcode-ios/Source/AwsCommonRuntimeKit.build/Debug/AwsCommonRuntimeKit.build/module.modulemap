@@ -1,4 +1,0 @@
-framework module AwsCommonRuntimeKit {
-    header "AwsCommonRuntimeKit-Swift.h"
-    requires objc
-}

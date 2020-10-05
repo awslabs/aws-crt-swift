@@ -1,5 +1,0 @@
-version: "Apple Swift version 5.2.4 (swiftlang-1103.0.32.9 clang-1103.0.32.53)"
-options: "895c9309dfbcfbfc7bd89d71f6322104"
-build_time: [1598560375, 139999000]
-inputs:
-  "/Users/nickik/Projects/Amplify/SmithyCodeGenProject/aws-crt-swift/build-xcode-ios/CMakeFiles/3.17.3/CompilerIdSwift/CompilerId/main.swift": [1598560373, 84497177]
