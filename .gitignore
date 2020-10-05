@@ -1,5 +1,6 @@
 .idea
 build
 build-xcode
+build-xcode-ios
 cmake-build-debug
 .DS_Store
