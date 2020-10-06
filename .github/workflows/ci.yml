@@ -28,7 +28,7 @@ jobs:
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u awslabs --password-stdin
           export DOCKER_IMAGE=docker.pkg.github.com/awslabs/aws-crt-builder/aws-crt/${{ matrix.image }}:${{ env.BUILDER_VERSION }}
           docker pull $DOCKER_IMAGE
-          docker run --env GITHUB_REF $DOCKER_IMAGE build -p ${{ env.PACKAGE_NAME }} --build-dir=ci-build --spec=downstream
+          docker run --env GITHUB_REF $DOCKER_IMAGE build -p ${{ env.PACKAGE_NAME }} --spec=downstream
   al2:
     runs-on: ubuntu-latest
     strategy:
@@ -42,7 +42,7 @@ jobs:
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u awslabs --password-stdin
           export DOCKER_IMAGE=docker.pkg.github.com/awslabs/aws-crt-builder/aws-crt/${{ matrix.image }}:${{ env.BUILDER_VERSION }}
           docker pull $DOCKER_IMAGE
-          docker run --env GITHUB_REF $DOCKER_IMAGE build -p ${{ env.PACKAGE_NAME }} --build-dir=ci-build --spec=downstream
+          docker run --env GITHUB_REF $DOCKER_IMAGE build -p ${{ env.PACKAGE_NAME }} --spec=downstream
   centos:
     runs-on: ubuntu-latest
     strategy:
@@ -56,7 +56,7 @@ jobs:
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u awslabs --password-stdin
           export DOCKER_IMAGE=docker.pkg.github.com/awslabs/aws-crt-builder/aws-crt/${{ matrix.image }}:${{ env.BUILDER_VERSION }}
           docker pull $DOCKER_IMAGE
-          docker run --env GITHUB_REF $DOCKER_IMAGE build -p ${{ env.PACKAGE_NAME }} --build-dir=ci-build --spec=downstream --compiler=clang-${{ matrix.version }}
+          docker run --env GITHUB_REF $DOCKER_IMAGE build -p ${{ env.PACKAGE_NAME }} --spec=downstream --compiler=clang-${{ matrix.version }}
   osx:
     runs-on: macos-latest
     steps:
@@ -66,4 +66,4 @@ jobs:
         run: |
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
           chmod a+x builder
-          ./builder build -p ${{ env.PACKAGE_NAME }} --build-dir=ci-build --spec=downstream
+          ./builder build -p ${{ env.PACKAGE_NAME }} --spec=downstream
