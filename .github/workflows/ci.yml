@@ -20,7 +20,7 @@ jobs:
     strategy:
       matrix:
         image:
-          - swift-5-ubuntu-16-x64
+          - aws-crt-swift-5-ubuntu-16-x64
     steps:
       # We can't use the `uses: docker://image` version yet, GitHub lacks authentication for actions -> packages
       - name: Build ${{ env.PACKAGE_NAME }}
@@ -34,7 +34,7 @@ jobs:
     strategy:
       matrix:
         image:
-          - swift-5-al2-x64
+          - aws-crt-swift-5-al2-x64
     steps:
       # We can't use the `uses: docker://image` version yet, GitHub lacks authentication for actions -> packages
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
@@ -48,7 +48,7 @@ jobs:
     strategy:
       matrix:
         image:
-          - swift-5-centos-x64
+          - aws-crt-swift-5-centos-x64
     steps:
       # We can't use the `uses: docker://image` version yet, GitHub lacks authentication for actions -> packages
       - name: Build ${{ env.PACKAGE_NAME }}
