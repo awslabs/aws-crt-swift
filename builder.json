@@ -2,6 +2,7 @@
   "name": "aws-crt-swift",
   "enabled": true,
   "build_steps": [
+    "build",
     "swift build -c release"
   ],
   "test_steps": [
@@ -19,6 +20,14 @@
     },
     "windows": {
       "enabled": false
+    }
+  },
+  "targets": {
+    "ios": {
+      "pre_build_steps": [
+        "cmake -H. -Bxcode-build -GXcode -DBUILD_DEPS=ON -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES=\"arm64;x86_64\" -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0",
+        "xcodebuild build -project xcode-build/AwsCommonRuntimeKit.xcodeproj -scheme AwsCommonRuntimeKit -sdk iphonesimulator"
+      ]
     }
   }
 }

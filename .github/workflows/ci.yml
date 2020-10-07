@@ -20,43 +20,49 @@ jobs:
     strategy:
       matrix:
         image:
-          - swift-5-ubuntu-16-x64
+          - aws-crt-swift-5-ubuntu-16-x64
     steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v2
       # We can't use the `uses: docker://image` version yet, GitHub lacks authentication for actions -> packages
       - name: Build ${{ env.PACKAGE_NAME }}
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u awslabs --password-stdin
-          export DOCKER_IMAGE=docker.pkg.github.com/awslabs/aws-crt-builder/aws-crt/${{ matrix.image }}:${{ env.BUILDER_VERSION }}
+          export DOCKER_IMAGE=docker.pkg.github.com/awslabs/aws-crt-builder/${{ matrix.image }}:${{ env.BUILDER_VERSION }}
           docker pull $DOCKER_IMAGE
-          docker run --env GITHUB_REF $DOCKER_IMAGE build -p ${{ env.PACKAGE_NAME }} --spec=downstream
+          docker run --mount type=bind,source=$(pwd),target=/root/${{ env.PACKAGE_NAME }} --env GITHUB_REF $DOCKER_IMAGE build -p ${{ env.PACKAGE_NAME }} --build-dir=/root/${{ env.PACKAGE_NAME }} --spec=downstream
   al2:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         image:
-          - swift-5-al2-x64
+          - aws-crt-swift-5-al2-x64
     steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v2
       # We can't use the `uses: docker://image` version yet, GitHub lacks authentication for actions -> packages
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u awslabs --password-stdin
-          export DOCKER_IMAGE=docker.pkg.github.com/awslabs/aws-crt-builder/aws-crt/${{ matrix.image }}:${{ env.BUILDER_VERSION }}
+          export DOCKER_IMAGE=docker.pkg.github.com/awslabs/aws-crt-builder/${{ matrix.image }}:${{ env.BUILDER_VERSION }}
           docker pull $DOCKER_IMAGE
-          docker run --env GITHUB_REF $DOCKER_IMAGE build -p ${{ env.PACKAGE_NAME }} --spec=downstream
+          docker run --mount type=bind,source=$(pwd),target=/root/${{ env.PACKAGE_NAME }} --env GITHUB_REF $DOCKER_IMAGE build -p ${{ env.PACKAGE_NAME }} --build-dir=/root/${{ env.PACKAGE_NAME }} --spec=downstream
   centos:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         image:
-          - swift-5-centos-x64
+          - aws-crt-swift-5-centos-x64
     steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v2
       # We can't use the `uses: docker://image` version yet, GitHub lacks authentication for actions -> packages
       - name: Build ${{ env.PACKAGE_NAME }}
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u awslabs --password-stdin
-          export DOCKER_IMAGE=docker.pkg.github.com/awslabs/aws-crt-builder/aws-crt/${{ matrix.image }}:${{ env.BUILDER_VERSION }}
+          export DOCKER_IMAGE=docker.pkg.github.com/awslabs/aws-crt-builder/${{ matrix.image }}:${{ env.BUILDER_VERSION }}
           docker pull $DOCKER_IMAGE
-          docker run --env GITHUB_REF $DOCKER_IMAGE build -p ${{ env.PACKAGE_NAME }} --spec=downstream --compiler=clang-${{ matrix.version }}
+          docker run --mount type=bind,source=$(pwd),target=/root/${{ env.PACKAGE_NAME }} --env GITHUB_REF $DOCKER_IMAGE build -p ${{ env.PACKAGE_NAME }} --build-dir=/root/${{ env.PACKAGE_NAME }} --spec=downstream --compiler=clang-${{ matrix.version }}
   osx:
     runs-on: macos-latest
     steps:
