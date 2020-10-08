@@ -24,7 +24,12 @@
   },
   "targets": {
     "ios": {
+      "cmake_flags": [
+        "-Bxcode-build",
+        "-H."
+      ],
       "build_steps": [
+        "build",
         "xcodebuild build -project xcode-build/AwsCommonRuntimeKit.xcodeproj -scheme AwsCommonRuntimeKit -sdk iphonesimulator"
       ]
     }
