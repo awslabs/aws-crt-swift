@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
+        with:
+          submodules: true
       # We can't use the `uses: docker://image` version yet, GitHub lacks authentication for actions -> packages
       - name: Build ${{ env.PACKAGE_NAME }}
         run: |
@@ -40,6 +42,8 @@ jobs:
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
+        with:
+          submodules: true
       # We can't use the `uses: docker://image` version yet, GitHub lacks authentication for actions -> packages
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
@@ -56,6 +60,8 @@ jobs:
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
+        with:
+          submodules: true
       # We can't use the `uses: docker://image` version yet, GitHub lacks authentication for actions -> packages
       - name: Build ${{ env.PACKAGE_NAME }}
         run: |
@@ -68,6 +74,8 @@ jobs:
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
+        with:
+          submodules: true
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
@@ -78,6 +86,8 @@ jobs:
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
+        with:
+          submodules: true
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
