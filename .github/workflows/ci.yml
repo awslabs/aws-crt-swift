@@ -7,8 +7,8 @@ on:
       - '!master'
 
 env:
-  BUILDER_VERSION: v0.6.17
-  BUILDER_SOURCE: releases
+  BUILDER_VERSION: ios
+  BUILDER_SOURCE: channels
   BUILDER_HOST: https://d19elf31gohf1l.cloudfront.net
   PACKAGE_NAME: aws-crt-swift
   LINUX_BASE_IMAGE: ubuntu-16-x64
@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
+        with:
+          submodules: true
       # We can't use the `uses: docker://image` version yet, GitHub lacks authentication for actions -> packages
       - name: Build ${{ env.PACKAGE_NAME }}
         run: |
@@ -40,6 +42,8 @@ jobs:
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
+        with:
+          submodules: true
       # We can't use the `uses: docker://image` version yet, GitHub lacks authentication for actions -> packages
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
@@ -56,6 +60,8 @@ jobs:
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
+        with:
+          submodules: true
       # We can't use the `uses: docker://image` version yet, GitHub lacks authentication for actions -> packages
       - name: Build ${{ env.PACKAGE_NAME }}
         run: |
@@ -68,6 +74,8 @@ jobs:
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
+        with:
+          submodules: true
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
@@ -78,8 +86,10 @@ jobs:
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
+        with:
+          submodules: true
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
           chmod a+x builder
-          ./builder build -p ${{ env.PACKAGE_NAME }} --spec=downstream --target=ios
+          ./builder build -p ${{ env.PACKAGE_NAME }} --spec=downstream --target=ios-armv8

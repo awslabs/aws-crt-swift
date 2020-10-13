@@ -25,6 +25,7 @@
   "targets": {
     "ios": {
       "build_steps": [
+        "build",
         "xcodebuild -scheme AwsCrt -destination 'generic/platform=iOS'"
       ]
     }
