@@ -25,7 +25,7 @@
   "targets": {
     "ios": {
       "build_steps": [
-        "xcodebuild build -project xcode-build/AwsCommonRuntimeKit.xcodeproj -scheme AwsCommonRuntimeKit -sdk iphonesimulator"
+        "xcodebuild -scheme AwsCrt -destination 'generic/platform=iOS'"
       ]
     }
   }
