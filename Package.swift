@@ -71,7 +71,7 @@ awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
 #endif
 
-var awsCCompressionPlatformExcludes = ["include", "tests", "cmake", "codebuild"]
+var awsCCompressionPlatformExcludes = ["include", "tests", "cmake", "codebuild", "source/huffman_generator/"]
 var awsCHttpPlatformExcludes = ["include", "tests", "bin", "integration-testing", "continuous-delivery", "cmake", "codebuild"]
 var awsCAuthPlatformExcludes = ["include", "tests"]
 var awsCMqttPlatformExcludes = ["include", "tests", "cmake"]
@@ -119,7 +119,7 @@ package.targets = ( [
         dependencies: ["AwsCCommon"],
         path: "aws-common-runtime/aws-c-compression",
         exclude: awsCCompressionPlatformExcludes,
-        publicHeadersPath: "include",
+       // publicHeadersPath: "include",
         cSettings: [
             .headerSearchPath("include/"),
             .headerSearchPath("../../platform_config/osx/x86_64/"),
@@ -134,6 +134,7 @@ package.targets = ( [
         exclude: awsCHttpPlatformExcludes,
         publicHeadersPath: "include",
         cSettings: [
+            .headerSearchPath("../aws-c-compression/include/"),
             .headerSearchPath("include/"),
             .headerSearchPath("../../platform_config/osx/x86_64/"),
             //do this to avoid having problems with the test header module export
