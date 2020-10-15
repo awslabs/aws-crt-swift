@@ -119,7 +119,7 @@ package.targets = ( [
         dependencies: ["AwsCCommon"],
         path: "aws-common-runtime/aws-c-compression",
         exclude: awsCCompressionPlatformExcludes,
-       // publicHeadersPath: "include",
+        publicHeadersPath: "include",
         cSettings: [
             .headerSearchPath("include/"),
             .headerSearchPath("../../platform_config/osx/x86_64/"),
@@ -134,7 +134,6 @@ package.targets = ( [
         exclude: awsCHttpPlatformExcludes,
         publicHeadersPath: "include",
         cSettings: [
-            .headerSearchPath("../aws-c-compression/include/"),
             .headerSearchPath("include/"),
             .headerSearchPath("../../platform_config/osx/x86_64/"),
             //do this to avoid having problems with the test header module export
