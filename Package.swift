@@ -178,11 +178,19 @@ package.targets = ( [
     .testTarget(
         name: "AwsCommonRuntimeKitTests",
         dependencies: ["AwsCommonRuntimeKit"],
-        path: "Test"
+        path: "Test",
+        cSettings: [
+            .headerSearchPath("../platform_config/osx/x86_64/"),
+            .define("AWS_UNSTABLE_TESTING_API"),
+        ]
     ),
     .target(
         name: "Elasticurl",
         dependencies: ["AwsCommonRuntimeKit"],
-        path: "Source/Elasticurl"
+        path: "Source/Elasticurl",
+        cSettings: [
+            .headerSearchPath("../../platform_config/osx/x86_64/"),
+            .define("AWS_UNSTABLE_TESTING_API"),
+        ]
     )
 ] )

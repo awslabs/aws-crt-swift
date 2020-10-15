@@ -2,7 +2,7 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-@_implementationOnly import AwsCommonRuntimeKit
+import AwsCommonRuntimeKit
 import Foundation
 import Darwin
 
