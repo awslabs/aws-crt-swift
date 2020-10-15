@@ -35,32 +35,32 @@ public class HttpClientConnection {
                 tls_options: nil,
                 proxy_options: nil,
                 monitoring_options: nil,
-                initial_window_size: options.initialWindowSize,
-                user_data: nil,
-                on_setup: { unmanagedConnection, errorCode, userData in
-                    guard let userData = userData else {
-                        return
-                    }
-                    if let unmanagedConnection = unmanagedConnection,
-                        errorCode == 0 {
-                        let callbackData: HttpClientConnectionCallbackData = Unmanaged.fromOpaque(userData).takeRetainedValue()
-                        callbackData.managedConnection = HttpClientConnection(connection: unmanagedConnection, allocator: callbackData.allocator)
-                        callbackData.connectionOptions.onConnectionSetup(callbackData.managedConnection, errorCode)
-                    } else {
-                        let callbackData: HttpClientConnectionCallbackData = Unmanaged.fromOpaque(userData).takeRetainedValue()
-                        callbackData.connectionOptions.onConnectionSetup(nil, errorCode)
-                    }
-                },
-                on_shutdown: { _, errorCode, userData in
-                    guard let userData = userData else {
-                        return
-                    }
+            manual_window_management: false, initial_window_size: options.initialWindowSize,
+            user_data: nil,
+            on_setup: { unmanagedConnection, errorCode, userData in
+                guard let userData = userData else {
+                    return
+                }
+                if let unmanagedConnection = unmanagedConnection,
+                   errorCode == 0 {
                     let callbackData: HttpClientConnectionCallbackData = Unmanaged.fromOpaque(userData).takeRetainedValue()
-
-                    callbackData.connectionOptions.onConnectionShutdown(callbackData.managedConnection, errorCode)
-                },
-                manual_window_management: false,
-                http2_options: nil
+                    callbackData.managedConnection = HttpClientConnection(connection: unmanagedConnection, allocator: callbackData.allocator)
+                    callbackData.connectionOptions.onConnectionSetup(callbackData.managedConnection, errorCode)
+                } else {
+                    let callbackData: HttpClientConnectionCallbackData = Unmanaged.fromOpaque(userData).takeRetainedValue()
+                    callbackData.connectionOptions.onConnectionSetup(nil, errorCode)
+                }
+            },
+            on_shutdown: { _, errorCode, userData in
+                guard let userData = userData else {
+                    return
+                }
+                let callbackData: HttpClientConnectionCallbackData = Unmanaged.fromOpaque(userData).takeRetainedValue()
+                
+                callbackData.connectionOptions.onConnectionShutdown(callbackData.managedConnection, errorCode)
+            },
+            http1_options: nil,
+            http2_options: nil
         )
 
         unmanagedConnectionOptions.self_size = MemoryLayout.size(ofValue: unmanagedConnectionOptions)

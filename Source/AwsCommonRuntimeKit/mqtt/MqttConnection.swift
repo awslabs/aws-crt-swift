@@ -181,8 +181,9 @@ public class MqttConnection {
                     pOptions.auth_password = password
                 }
                 if let tlsOptions = proxyOptions.tlsOptions?.rawValue {
-                    let tlsPtr = UnsafeMutablePointer<aws_tls_connection_options>.allocate(capacity: 1)
-                    tlsPtr.initialize(to: tlsOptions)
+                    let tlsMutablePtr = UnsafeMutablePointer<aws_tls_connection_options>.allocate(capacity: 1)
+                    tlsMutablePtr.initialize(to: tlsOptions)
+                    let tlsPtr = UnsafePointer<aws_tls_connection_options>(tlsMutablePtr)
                     pOptions.tls_options = tlsPtr
                 }
                 pOptions.auth_type = proxyOptions.authType.rawValue

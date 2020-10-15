@@ -8,22 +8,20 @@ public typealias HostAddress = aws_host_address
 public typealias OnHostResolved = (HostResolver, [HostAddress], Int32) -> Void
 
 public protocol HostResolver: class {
-  var rawValue: aws_host_resolver { get set }
+  var rawValue: UnsafeMutablePointer<aws_host_resolver> { get set }
   var config: aws_host_resolution_config { get }
   func resolve(host: String, onResolved: @escaping OnHostResolved) throws
 }
 
 public final class DefaultHostResolver: HostResolver {
-  public var rawValue = aws_host_resolver()
+  public var rawValue: UnsafeMutablePointer<aws_host_resolver>
   public var config: aws_host_resolution_config
   private let allocator: Allocator
 
   public init(eventLoopGroup elg: EventLoopGroup, maxHosts: Int, maxTTL: Int, allocator: Allocator = defaultAllocator) throws {
     self.allocator = allocator
-
-    if aws_host_resolver_init_default(&self.rawValue, allocator.rawValue, maxHosts, &elg.rawValue) != AWS_OP_SUCCESS {
-      throw AwsCommonRuntimeError()
-    }
+    
+    self.rawValue = aws_host_resolver_new_default(allocator.rawValue, maxHosts, elg.rawValue, nil)
 
     self.config = aws_host_resolution_config(
       impl: aws_default_dns_resolve,
@@ -33,7 +31,7 @@ public final class DefaultHostResolver: HostResolver {
   }
 
   deinit {
-    aws_host_resolver_clean_up(&self.rawValue)
+    aws_host_resolver_release(self.rawValue)
   }
 
   public func resolve(host: String, onResolved callback: @escaping OnHostResolved) throws {
@@ -42,7 +40,7 @@ public final class DefaultHostResolver: HostResolver {
                                   onResolved: callback)
     let unmanagedOptions = Unmanaged.passRetained(options)
 
-    if aws_host_resolver_resolve_host(&self.rawValue,
+    if aws_host_resolver_resolve_host(self.rawValue,
                                        options.host.rawValue,
                                        onHostResolved,
                                        &self.config,

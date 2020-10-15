@@ -12,11 +12,8 @@ public final class ClientBootstrap {
               hostResolver: HostResolver,
               allocator: Allocator = defaultAllocator) throws {
 
-    let elgPointer = UnsafeMutablePointer<aws_event_loop_group>.allocate(capacity: 1)
-    elgPointer.initialize(to: elg.rawValue)
-
     let hostResolverPointer = UnsafeMutablePointer<aws_host_resolver>.allocate(capacity: 1)
-    hostResolverPointer.initialize(to: hostResolver.rawValue)
+    hostResolverPointer.initialize(to: hostResolver.rawValue.pointee)
 
     let hostResolverConfigPointer = UnsafeMutablePointer<aws_host_resolution_config>.allocate(capacity: 1)
     hostResolverConfigPointer.initialize(to: hostResolver.config)
@@ -27,7 +24,7 @@ public final class ClientBootstrap {
     callbackDataPointer.initialize(to: clientBootstrapCallbackData)
 
     var options = aws_client_bootstrap_options(
-            event_loop_group: elgPointer,
+        event_loop_group: elg.rawValue,
             host_resolver: hostResolverPointer,
             host_resolution_config: hostResolverConfigPointer,
             on_shutdown_complete: { userData in

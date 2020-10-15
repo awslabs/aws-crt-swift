@@ -4,17 +4,14 @@ import AwsCCommon
 import AwsCIo
 
 public final class EventLoopGroup {
-  public var rawValue = aws_event_loop_group()
+    public var rawValue: UnsafeMutablePointer<aws_event_loop_group>
 
   public init(threadCount: UInt16 = 0, allocator: Allocator = defaultAllocator) throws {
-    zeroStruct(&self.rawValue)
-    if aws_event_loop_group_default_init(&self.rawValue, allocator.rawValue, threadCount) != AWS_OP_SUCCESS {
-      throw AwsCommonRuntimeError()
-    }
+    
+    self.rawValue = aws_event_loop_group_new_default(allocator.rawValue, threadCount, nil)
   }
 
   deinit {
-    aws_event_loop_group_clean_up(&rawValue)
-    zeroStruct(&rawValue)
+    aws_event_loop_group_release(rawValue)
   }
 }
