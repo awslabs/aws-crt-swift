@@ -13,12 +13,10 @@ public final class MqttClient {
     }
 
     init(clientBootstrap: ClientBootstrap, allocator: Allocator = defaultAllocator) throws {
-        let clientPtr = UnsafeMutablePointer<aws_mqtt_client>.allocate(capacity: 1)
+        self.rawValue = UnsafeMutablePointer<aws_mqtt_client>.allocate(capacity: 1)
 
-        if aws_mqtt_client_init(clientPtr, allocator.rawValue, clientBootstrap.rawValue) == AWS_OP_SUCCESS {
-            self.rawValue = clientPtr
-        } else {
-            clientPtr.deinitializeAndDeallocate()
+        if aws_mqtt_client_init(rawValue, allocator.rawValue, clientBootstrap.rawValue) != AWS_OP_SUCCESS {
+            rawValue.deinitializeAndDeallocate()
             throw AwsCommonRuntimeError()
         }
     }

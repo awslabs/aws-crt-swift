@@ -28,7 +28,15 @@ class MqttClientTests: CrtXCBaseTestCase {
                                                allocator: allocator,
                                                shutDownOptions: resolverShutDownOptions)
         
-        let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver, allocator: allocator)
+        let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
+            sempahore.signal()
+        }
+        
+        let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg,
+                                                  hostResolver: resolver,
+                                                  callbackData: clientBootstrapCallbackData,
+                                                  allocator: allocator)
+        
         clientBootstrap.enableBlockingShutdown = true
 
         let mqttClient = try MqttClient(clientBootstrap: clientBootstrap, allocator: allocator)
@@ -53,7 +61,7 @@ class MqttClientTests: CrtXCBaseTestCase {
 
         let onMessageSucceeded = connection.setOnMessageHandler { (_, _, _) in }
         XCTAssertTrue(onMessageSucceeded)
-    
+
         wait(for: [connectExpectation], timeout: 5.0)
     }
 }

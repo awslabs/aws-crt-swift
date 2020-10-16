@@ -12,10 +12,6 @@ public final class TlsConnectionOptions {
 		aws_tls_connection_options_init_from_ctx(&self.rawValue, context.rawValue)
 	}
 
-	deinit {
-		aws_tls_connection_options_clean_up(&self.rawValue)
-	}
-
 	public func setAlpnList(_ alpnList: String) throws {
 		if aws_tls_connection_options_set_alpn_list(&self.rawValue, self.allocator.rawValue, alpnList) != AWS_OP_SUCCESS {
 			throw AwsCommonRuntimeError()
@@ -28,4 +24,8 @@ public final class TlsConnectionOptions {
 			throw AwsCommonRuntimeError()
 		}
 	}
+    
+    deinit {
+        aws_tls_connection_options_clean_up(&rawValue)
+    }
 }

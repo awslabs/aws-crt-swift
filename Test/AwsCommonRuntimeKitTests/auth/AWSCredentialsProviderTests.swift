@@ -86,7 +86,13 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         do {
             let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
             let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
-            let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: hostResolver, allocator: allocator)
+            let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
+                sempahore.signal()
+            }
+            let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
+                                                hostResolver: hostResolver,
+                                                callbackData: clientBootstrapCallbackData,
+                                                allocator: allocator)
             bootstrap.enableBlockingShutDown()
 
             let config = CredentialsProviderChainDefaultConfig(bootstrap: bootstrap, shutDownOptions: shutDownOptions)

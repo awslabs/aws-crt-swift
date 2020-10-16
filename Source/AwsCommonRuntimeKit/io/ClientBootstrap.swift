@@ -6,10 +6,11 @@ import Foundation
 public final class ClientBootstrap {
   let rawValue: UnsafeMutablePointer<aws_client_bootstrap>
   var enableBlockingShutdown: Bool = false
-  let shutDownSemaphore: DispatchSemaphore
+  let callbackData: ClientBootstrapCallbackData
 
   public init(eventLoopGroup elg: EventLoopGroup,
               hostResolver: HostResolver,
+              callbackData: ClientBootstrapCallbackData,
               allocator: Allocator = defaultAllocator) throws {
 
     let hostResolverPointer = UnsafeMutablePointer<aws_host_resolver>.allocate(capacity: 1)
@@ -18,24 +19,22 @@ public final class ClientBootstrap {
 
     let hostResolverConfigPointer = UnsafeMutablePointer<aws_host_resolution_config>.allocate(capacity: 1)
     hostResolverConfigPointer.initialize(to: hostResolver.config)
-    shutDownSemaphore = DispatchSemaphore(value: 1)
-    let clientBootstrapCallbackData = ClientBootstrapCallbackData(shutDownSemaphore: shutDownSemaphore)
-
+    
+    self.callbackData = callbackData
     let callbackDataPointer = UnsafeMutablePointer<ClientBootstrapCallbackData>.allocate(capacity: 1)
-    callbackDataPointer.initialize(to: clientBootstrapCallbackData)
-
+    callbackDataPointer.initialize(to: callbackData)
+    
     var options = aws_client_bootstrap_options(
         event_loop_group: elg.rawValue,
             host_resolver: hostResolverPointer,
             host_resolution_config: hostResolverConfigPointer,
             on_shutdown_complete: { userData in
+                guard let userData = userData else { return }
 
-                let pointer = userData?.assumingMemoryBound(to: ClientBootstrapCallbackData.self)
-                defer { pointer?.deinitializeAndDeallocate() }
-                pointer?.pointee.shutDownSemaphore.signal()
-                if let shutDownComplete = pointer?.pointee.onShutDownComplete {
-                    shutDownComplete()
-                }
+                let pointer = userData.assumingMemoryBound(to: ClientBootstrapCallbackData.self)
+                defer { pointer.deinitializeAndDeallocate() }
+                pointer.pointee.onShutDownComplete(pointer.pointee.shutDownSemaphore)
+                
             },
             user_data: callbackDataPointer
     )
@@ -53,7 +52,7 @@ public final class ClientBootstrap {
   deinit {
     aws_client_bootstrap_release(self.rawValue)
     if enableBlockingShutdown {
-        shutDownSemaphore.wait()
+        callbackData.shutDownSemaphore.wait()
     }
   }
 }

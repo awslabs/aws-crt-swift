@@ -3,14 +3,13 @@
 
 import Foundation
 
-struct ClientBootstrapCallbackData {
-    typealias OnShutDownComplete = () -> Void
-    let onShutDownComplete: OnShutDownComplete?
+public struct ClientBootstrapCallbackData {
+    public typealias OnShutDownComplete = (DispatchSemaphore) -> Void
+    let onShutDownComplete: OnShutDownComplete
     let shutDownSemaphore: DispatchSemaphore
 
-    init(onShutDownComplete: OnShutDownComplete? = nil,
-         shutDownSemaphore: DispatchSemaphore) {
+    public init(onShutDownComplete: @escaping OnShutDownComplete) {
         self.onShutDownComplete = onShutDownComplete
-        self.shutDownSemaphore = shutDownSemaphore
+        self.shutDownSemaphore = DispatchSemaphore(value: 0)
     }
 }

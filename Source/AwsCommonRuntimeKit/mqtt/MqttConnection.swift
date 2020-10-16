@@ -58,6 +58,8 @@ public class MqttConnection {
             }
 
             let pointer = userData.assumingMemoryBound(to: MqttConnection.self)
+            
+            defer{ pointer.deinitializeAndDeallocate()}
 
             pointer.pointee.onConnectionInterrupted(pointer.pointee.rawValue, errorCode)
 
@@ -67,6 +69,8 @@ public class MqttConnection {
             }
 
             let pointer = userData.assumingMemoryBound(to: MqttConnection.self)
+            
+            defer{ pointer.deinitializeAndDeallocate()}
 
             pointer.pointee.onConnectionResumed(pointer.pointee.rawValue, MqttReturnCode(rawValue: connectReturnCode), sessionPresent)
 
@@ -121,6 +125,11 @@ public class MqttConnection {
         tlsOptionsPtr = UnsafeMutablePointer<aws_tls_connection_options>.allocate(capacity: 1)
         tlsOptionsPtr?.initialize(to: tlsContext.newConnectionOptions().rawValue)
         }
+        
+        defer {
+            tlsOptionsPtr?.deinitializeAndDeallocate()
+            socketOptionsPtr.deinitializeAndDeallocate()
+        }
 
         var mqttOptions = aws_mqtt_connection_options()
         mqttOptions.host_name = host.awsByteCursor
@@ -148,7 +157,7 @@ public class MqttConnection {
             callbackPtr.pointee.onConnectionComplete(callbackPtr.pointee.rawValue, errorCode,
                                                          MqttReturnCode(rawValue: returnCode), sessionPresent)
         }
-
+        
         if useWebSockets {
             if let _ = onWebSocketHandshakeIntercept {
 
@@ -162,6 +171,7 @@ public class MqttConnection {
                     let onInterceptComplete: OnWebSocketHandshakeInterceptComplete = {request, errorCode in
                         completeFn!(httpRequest, errorCode, completeUserData)
                     }
+                    defer { ptr.deinitializeAndDeallocate()}
                     //can unwrap here with ! because we know its not nil at this point
                     ptr.pointee.onWebSocketHandshakeIntercept!(HttpRequest(message: httpRequest), onInterceptComplete)
                 }, rawValue, nil, nil) == AWS_OP_SUCCESS {
@@ -196,11 +206,6 @@ public class MqttConnection {
             }
         }
 
-        defer {
-            tlsOptionsPtr?.deinitializeAndDeallocate()
-            socketOptionsPtr.deinitializeAndDeallocate()
-        }
-
         return aws_mqtt_client_connection_connect(rawValue, &mqttOptions) == AWS_OP_SUCCESS
     }
 
@@ -213,6 +218,7 @@ public class MqttConnection {
                 return
             }
             let connectionPtr = userData.assumingMemoryBound(to: MqttConnection.self)
+            defer{ connectionPtr.deinitializeAndDeallocate()}
 
         connectionPtr.pointee.onDisconnect(connectionPtr.pointee.rawValue)
         }, rawValue) == AWS_OP_SUCCESS
@@ -234,18 +240,14 @@ public class MqttConnection {
             }
 
             let pubCallbackPtr = userData.assumingMemoryBound(to: PubCallbackData.self)
-            defer {
-                pubCallbackPtr.deinitializeAndDeallocate()
-            }
+
             pubCallbackPtr.pointee.onPublishReceived(pubCallbackPtr.pointee.mqttConnection, topic, payload.pointee.toData())
 
         }, ptr) == AWS_OP_SUCCESS {
             self.pubCallbackData = ptr
             return true
         }
-        defer {
-            ptr.deinitializeAndDeallocate()
-        }
+
         return false
     }
 
@@ -325,7 +327,7 @@ public class MqttConnection {
                 let swiftString = pointer.assumingMemoryBound(to: String.self)
                 topics.append(swiftString.pointee)
             }
-
+    
             ptr.pointee.onMultiSubAck(ptr.pointee.connection, Int16(packetId), topics, errorCode)
         }, subAckCallbackPtr)
 
