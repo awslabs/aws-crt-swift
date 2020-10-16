@@ -6,13 +6,25 @@ import XCTest
 class HostResolverTests: CrtXCBaseTestCase {
 
   func testCanResolveHosts() throws {
-    let elg = try EventLoopGroup(allocator: allocator)
-    let resolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 5, allocator: allocator)
-
-    let semaphore = DispatchSemaphore(value: 0)
+    let shutDownOptions = ShutDownCallbackOptions() { semaphore in
+        semaphore.signal()
+    }
+    
+    let resolverShutDownOptions = ShutDownCallbackOptions() { semaphore in
+        semaphore.signal()
+    }
+   
+    let elg = try EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
+    
+    let resolver = try DefaultHostResolver(eventLoopGroup: elg,
+                                           maxHosts: 8,
+                                           maxTTL: 5,
+                                           allocator: allocator,
+                                           shutDownOptions: resolverShutDownOptions)
 
     var addressCount: Int?
     var error: Int32?
+    let semaphore = DispatchSemaphore(value: 0)
     try resolver.resolve(host: "localhost", onResolved: { (_, _, _) in
       semaphore.signal()
     })
@@ -31,6 +43,5 @@ class HostResolverTests: CrtXCBaseTestCase {
     XCTAssertNotNil(addressCount)
     XCTAssertEqual(error, 0, "Error (\(String(describing: error)) is blank")
     XCTAssertEqual(addressCount, 0, "Address Count (\(String(describing: addressCount))) is blank")
-
   }
 }

@@ -82,25 +82,6 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         }
     }
 
-    func testCreateAWSCredentialsProviderImds() {
-        do {
-            let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
-            let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
-            let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: hostResolver, allocator: allocator)
-            bootstrap.enableBlockingShutDown()
-
-            let config = CredentialsProviderImdsConfig(bootstrap: bootstrap, shutdownOptions: shutDownOptions)
-            let provider = try AWSCredentialsProvider(fromImds: config, allocator: allocator)
-
-            setUpCallbackCredentials()
-            provider.getCredentials(credentialCallbackData: callbackData!)
-
-            wait(for: [expectation], timeout: 5.0)
-        } catch {
-            XCTFail()
-        }
-    }
-
     func testCreateAWSCredentialsProviderChain() {
         do {
             let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)

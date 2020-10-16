@@ -17,11 +17,33 @@ public final class DefaultHostResolver: HostResolver {
   public var rawValue: UnsafeMutablePointer<aws_host_resolver>
   public var config: aws_host_resolution_config
   private let allocator: Allocator
+  public let shutDownOptions: ShutDownCallbackOptions?
 
-  public init(eventLoopGroup elg: EventLoopGroup, maxHosts: Int, maxTTL: Int, allocator: Allocator = defaultAllocator) throws {
+  public init(eventLoopGroup elg: EventLoopGroup,
+              maxHosts: Int,
+              maxTTL: Int,
+              allocator: Allocator = defaultAllocator,
+              shutDownOptions: ShutDownCallbackOptions? = nil) throws {
     self.allocator = allocator
     
-    self.rawValue = aws_host_resolver_new_default(allocator.rawValue, maxHosts, elg.rawValue, nil)
+    var ptr: UnsafePointer<aws_shutdown_callback_options>?
+    if let shutDownOptions = shutDownOptions {
+        let shutDownPtr = UnsafeMutablePointer<ShutDownCallbackOptions>.allocate(capacity: 1)
+        shutDownPtr.initialize(to: shutDownOptions)
+        var options = aws_shutdown_callback_options(shutdown_callback_fn: { (userData) in
+            guard let userdata = userData else {
+                return
+            }
+            let pointer = userdata.assumingMemoryBound(to: ShutDownCallbackOptions.self)
+            defer { pointer.deinitializeAndDeallocate() }
+            pointer.pointee.shutDownCallback(pointer.pointee.semaphore)
+            
+        }, shutdown_callback_user_data: shutDownPtr)
+        
+        ptr = UnsafePointer(&options)
+    }
+    self.shutDownOptions = shutDownOptions
+    self.rawValue = aws_host_resolver_new_default(allocator.rawValue, maxHosts, elg.rawValue, ptr)
 
     self.config = aws_host_resolution_config(
       impl: aws_default_dns_resolve,
@@ -31,7 +53,10 @@ public final class DefaultHostResolver: HostResolver {
   }
 
   deinit {
-    aws_host_resolver_release(self.rawValue)
+    aws_host_resolver_release(rawValue)
+    if let shutDownOptions = shutDownOptions {
+        shutDownOptions.semaphore.wait()
+    }
   }
 
   public func resolve(host: String, onResolved callback: @escaping OnHostResolved) throws {

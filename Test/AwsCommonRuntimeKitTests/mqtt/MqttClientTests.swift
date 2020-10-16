@@ -2,6 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import XCTest
+import Foundation
 @testable import AwsCommonRuntimeKit
 
 class MqttClientTests: CrtXCBaseTestCase {
@@ -11,10 +12,22 @@ class MqttClientTests: CrtXCBaseTestCase {
         let context = try TlsContext(options: options, mode: .client, allocator: allocator)
 
         let socketOptions = SocketOptions(socketType: .datagram)
+        
+        let shutDownOptions = ShutDownCallbackOptions() { semaphore in
+            semaphore.signal()
+        }
+        
+        let resolverShutDownOptions = ShutDownCallbackOptions() { semaphore in
+            semaphore.signal()
+        }
 
-        let elg = try EventLoopGroup(allocator: allocator)
-        let resolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 5, allocator: allocator)
-
+        let elg = try EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
+        let resolver = try DefaultHostResolver(eventLoopGroup: elg,
+                                               maxHosts: 8,
+                                               maxTTL: 5,
+                                               allocator: allocator,
+                                               shutDownOptions: resolverShutDownOptions)
+        
         let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver, allocator: allocator)
         clientBootstrap.enableBlockingShutdown = true
 
@@ -40,7 +53,7 @@ class MqttClientTests: CrtXCBaseTestCase {
 
         let onMessageSucceeded = connection.setOnMessageHandler { (_, _, _) in }
         XCTAssertTrue(onMessageSucceeded)
-
+    
         wait(for: [connectExpectation], timeout: 5.0)
     }
 }

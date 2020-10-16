@@ -14,6 +14,7 @@ public final class ClientBootstrap {
 
     let hostResolverPointer = UnsafeMutablePointer<aws_host_resolver>.allocate(capacity: 1)
     hostResolverPointer.initialize(to: hostResolver.rawValue.pointee)
+    
 
     let hostResolverConfigPointer = UnsafeMutablePointer<aws_host_resolution_config>.allocate(capacity: 1)
     hostResolverConfigPointer.initialize(to: hostResolver.config)

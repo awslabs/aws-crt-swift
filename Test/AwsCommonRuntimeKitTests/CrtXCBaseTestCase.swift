@@ -10,12 +10,12 @@ class CrtXCBaseTestCase: XCTestCase {
     override func setUp() {
         super.setUp()
         AwsCommonRuntimeKit.initialize(allocator: self.allocator)
-
     }
 
     override func tearDown() {
         AwsCommonRuntimeKit.cleanUp()
         allocator.dump()
+        
         XCTAssertEqual(allocator.count, 0,
                        "Memory was leaked: \(allocator.bytes) bytes in \(allocator.count) allocations")
         super.tearDown()
