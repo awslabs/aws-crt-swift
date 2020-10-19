@@ -11,9 +11,9 @@ public final class TlsContext {
         let context: UnsafeMutablePointer<aws_tls_ctx>?
         switch mode {
         case .client:
-            context = aws_tls_client_ctx_new(allocator.rawValue, &options.rawValue)
+            context = aws_tls_client_ctx_new(allocator.rawValue, options.rawValue)
         case .server:
-            context = aws_tls_server_ctx_new(allocator.rawValue, &options.rawValue)
+            context = aws_tls_server_ctx_new(allocator.rawValue, options.rawValue)
         }
         guard let rawValue = context else {
             throw AwsCommonRuntimeError()

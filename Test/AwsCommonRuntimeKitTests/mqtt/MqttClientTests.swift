@@ -9,8 +9,9 @@ class MqttClientTests: CrtXCBaseTestCase {
 
     func testMqttClientResourceSafety() throws {
         let options = TlsContextOptions(defaultClientWithAllocator: allocator)
+        try options.setAlpnList("")
         let context = try TlsContext(options: options, mode: .client, allocator: allocator)
-
+     
         let socketOptions = SocketOptions(socketType: .datagram)
         
         let shutDownOptions = ShutDownCallbackOptions() { semaphore in
@@ -62,6 +63,6 @@ class MqttClientTests: CrtXCBaseTestCase {
         let onMessageSucceeded = connection.setOnMessageHandler { (_, _, _) in }
         XCTAssertTrue(onMessageSucceeded)
 
-        wait(for: [connectExpectation], timeout: 5.0)
+        wait(for: [connectExpectation], timeout: 8.0)
     }
 }

@@ -119,15 +119,8 @@ public class MqttConnection {
     func connect(clientId: String, cleanSession: Bool, keepAliveTime: Int16, requestTimeoutMs: Int32) -> Bool {
         let socketOptionsPtr = UnsafeMutablePointer<aws_socket_options>.allocate(capacity: 1)
         socketOptionsPtr.initialize(to: socketOptions.rawValue)
-        var tlsOptionsPtr: UnsafeMutablePointer<aws_tls_connection_options>?
-        if let tlsContext = tlsContext {
-
-        tlsOptionsPtr = UnsafeMutablePointer<aws_tls_connection_options>.allocate(capacity: 1)
-        tlsOptionsPtr?.initialize(to: tlsContext.newConnectionOptions().rawValue)
-        }
         
         defer {
-            tlsOptionsPtr?.deinitializeAndDeallocate()
             socketOptionsPtr.deinitializeAndDeallocate()
         }
 
@@ -135,7 +128,9 @@ public class MqttConnection {
         mqttOptions.host_name = host.awsByteCursor
         mqttOptions.port = UInt16(port)
         mqttOptions.socket_options = socketOptionsPtr
-        mqttOptions.tls_options = tlsOptionsPtr
+        let tlsOptions = tlsContext?.newConnectionOptions()
+        mqttOptions.tls_options = tlsOptions?.rawValue
+
         mqttOptions.client_id = clientId.awsByteCursor
         mqttOptions.keep_alive_time_secs = UInt16(keepAliveTime)
         mqttOptions.ping_timeout_ms = UInt32(requestTimeoutMs)
@@ -191,9 +186,8 @@ public class MqttConnection {
                     pOptions.auth_password = password
                 }
                 if let tlsOptions = proxyOptions.tlsOptions?.rawValue {
-                    let tlsMutablePtr = UnsafeMutablePointer<aws_tls_connection_options>.allocate(capacity: 1)
-                    tlsMutablePtr.initialize(to: tlsOptions)
-                    let tlsPtr = UnsafePointer<aws_tls_connection_options>(tlsMutablePtr)
+                    
+                    let tlsPtr = UnsafePointer<aws_tls_connection_options>(tlsOptions)
                     pOptions.tls_options = tlsPtr
                 }
                 pOptions.auth_type = proxyOptions.authType.rawValue
@@ -205,6 +199,7 @@ public class MqttConnection {
                 }
             }
         }
+        
 
         return aws_mqtt_client_connection_connect(rawValue, &mqttOptions) == AWS_OP_SUCCESS
     }
@@ -271,19 +266,25 @@ public class MqttConnection {
         subAckCallbackPtr.initialize(to: subAckCallbackData)
         let topicPtr = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
         topicPtr.initialize(to: topicFilter.awsByteCursor)
-        let packetId = aws_mqtt_client_connection_subscribe(rawValue, topicPtr, qos.rawValue, { (connectionPtr, topic, payload, userData) in
-            guard let userData = userData, let topic = topic?.pointee.toString(), let payload = payload else {
+        let packetId = aws_mqtt_client_connection_subscribe(rawValue, topicPtr, qos.rawValue, { (connectionPtr, topicPtr, payload, userData) in
+            guard let userData = userData, let topic = topicPtr?.pointee.toString(), let payload = payload else {
                 return
             }
             let ptr = userData.assumingMemoryBound(to: PubCallbackData.self)
-            defer {ptr.deinitializeAndDeallocate()}
+            defer {
+                ptr.deinitializeAndDeallocate()
+                topicPtr?.deallocate()
+            }
             ptr.pointee.onPublishReceived(ptr.pointee.mqttConnection, topic, payload.pointee.toData())
-        }, pubCallbackPtr, nil, { (_, packetId, topic, qos, errorCode, userData) in
-            guard let userData = userData, let topic = topic?.pointee.toString() else {
+        }, pubCallbackPtr, nil, { (_, packetId, topicPtr, qos, errorCode, userData) in
+            guard let userData = userData, let topic = topicPtr?.pointee.toString() else {
                 return
             }
             let ptr = userData.assumingMemoryBound(to: SubAckCallbackData.self)
-            defer {ptr.deinitializeAndDeallocate()}
+            defer {
+                ptr.deinitializeAndDeallocate()
+                topicPtr?.deallocate()
+            }
             ptr.pointee.onSubAck(ptr.pointee.connection, Int16(packetId), topic, MqttQos(rawValue: qos), errorCode)
         }, subAckCallbackPtr)
 
@@ -325,9 +326,12 @@ public class MqttConnection {
             for index in 0...topicPointers.pointee.current_size {
                 let pointer = topicPointers.pointee.data.advanced(by: index)
                 let swiftString = pointer.assumingMemoryBound(to: String.self)
+                defer {
+                    pointer.deallocate()
+                }
                 topics.append(swiftString.pointee)
             }
-    
+            
             ptr.pointee.onMultiSubAck(ptr.pointee.connection, Int16(packetId), topics, errorCode)
         }, subAckCallbackPtr)
 

@@ -163,7 +163,7 @@ final class AWSCredentialsProvider {
         var x509Options = aws_credentials_provider_x509_options()
         x509Options.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(shutDownOptions: x509Config.shutDownOptions)
         x509Options.bootstrap = x509Config.bootstrap.rawValue
-        x509Options.tls_connection_options = UnsafePointer(&x509Config.tlsConnectionOptions.rawValue)
+        x509Options.tls_connection_options = UnsafePointer(x509Config.tlsConnectionOptions.rawValue)
         x509Options.thing_name = x509Config.thingName.awsByteCursor
         x509Options.role_alias = x509Config.roleAlias.awsByteCursor
         x509Options.endpoint = x509Config.endpoint.awsByteCursor
