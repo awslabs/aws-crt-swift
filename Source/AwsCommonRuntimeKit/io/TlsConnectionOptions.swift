@@ -10,8 +10,8 @@ public final class TlsConnectionOptions {
 	init(_ context: TlsContext, allocator: Allocator) {
 		self.allocator = allocator
         let connectionOptionsPtr = UnsafeMutablePointer<aws_tls_connection_options>.allocate(capacity: 1)
+        //initialize pointer to empty connection options struct
         zeroStruct(connectionOptionsPtr)
-        //connectionOptionsPtr.initialize(to: aws_tls_connection_options())
         self.rawValue = connectionOptionsPtr
 		aws_tls_connection_options_init_from_ctx(rawValue, context.rawValue)
 	}
