@@ -8,7 +8,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     let secret = "Sekrit"
     let sessionToken = "Token"
 
-    let expectation = XCTestExpectation(description: "Credentials received")
+    let expectation = XCTestExpectation(description: "Credentials callback was called")
     let expectation2 = XCTestExpectation(description: "Shutdown callback was called")
     var callbackData: CredentialsProviderCallbackData?
     var shutDownOptions: CredentialsProviderShutdownOptions?
@@ -20,7 +20,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 
     override func tearDown() {
         super.tearDown()
-        wait(for: [expectation2], timeout: 2.0)
+        wait(for: [expectation2], timeout: 3.0)
     }
 
     func setUpShutDownOptions() {
@@ -49,7 +49,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         let provider = try AWSCredentialsProvider(fromStatic: config, allocator: allocator)
         setUpCallbackCredentials()
         provider.getCredentials(credentialCallbackData: callbackData!)
-        wait(for: [expectation], timeout: 3.0)
+        wait(for: [expectation], timeout: 5.0)
         } catch {
             XCTFail()
         }
@@ -60,7 +60,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         let provider = try AWSCredentialsProvider(fromEnv: shutDownOptions)
         setUpCallbackCredentials()
         provider.getCredentials(credentialCallbackData: callbackData!)
-        wait(for: [expectation], timeout: 3.0)
+        wait(for: [expectation], timeout: 5.0)
         } catch {
             XCTFail()
         }
@@ -84,8 +84,21 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 
     func testCreateAWSCredentialsProviderChain() {
         do {
-            let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
-            let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
+            let elgShutDownOptions = ShutDownCallbackOptions() { semaphore in
+                semaphore.signal()
+            }
+            
+            let resolverShutDownOptions = ShutDownCallbackOptions() { semaphore in
+                semaphore.signal()
+            }
+            let elg = try EventLoopGroup(threadCount: 0, allocator: allocator, shutDownOptions: elgShutDownOptions)
+            let hostResolver = try DefaultHostResolver(eventLoopGroup: elg,
+                                                       maxHosts: 8,
+                                                       maxTTL: 30,
+                                                       allocator: allocator,
+                                                       shutDownOptions: resolverShutDownOptions)
+            
+            
             let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
                 sempahore.signal()
             }
@@ -101,7 +114,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             setUpCallbackCredentials()
             provider.getCredentials(credentialCallbackData: callbackData!)
 
-            wait(for: [expectation], timeout: 3.0)
+            wait(for: [expectation], timeout: 5.0)
         } catch {
             XCTFail()
         }

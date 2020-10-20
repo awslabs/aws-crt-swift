@@ -63,6 +63,6 @@ class MqttClientTests: CrtXCBaseTestCase {
         let onMessageSucceeded = connection.setOnMessageHandler { (_, _, _) in }
         XCTAssertTrue(onMessageSucceeded)
 
-        wait(for: [connectExpectation], timeout: 8.0)
+        wait(for: [connectExpectation], timeout: 5.0)
     }
 }
