@@ -9,13 +9,13 @@ public typealias OnHostResolved = (HostResolver, [HostAddress], Int32) -> Void
 
 public protocol HostResolver: class {
   var rawValue: UnsafeMutablePointer<aws_host_resolver> { get set }
-  var config: aws_host_resolution_config { get }
+  var config: UnsafeMutablePointer<aws_host_resolution_config> { get }
   func resolve(host: String, onResolved: @escaping OnHostResolved) throws
 }
 
 public final class DefaultHostResolver: HostResolver {
   public var rawValue: UnsafeMutablePointer<aws_host_resolver>
-  public var config: aws_host_resolution_config
+  public var config: UnsafeMutablePointer<aws_host_resolution_config>
   private let allocator: Allocator
   public let shutDownOptions: ShutDownCallbackOptions?
 
@@ -30,7 +30,7 @@ public final class DefaultHostResolver: HostResolver {
     if let shutDownOptions = shutDownOptions {
         let shutDownPtr = UnsafeMutablePointer<ShutDownCallbackOptions>.allocate(capacity: 1)
         shutDownPtr.initialize(to: shutDownOptions)
-        var options = aws_shutdown_callback_options(shutdown_callback_fn: { (userData) in
+        let options = aws_shutdown_callback_options(shutdown_callback_fn: { (userData) in
             guard let userdata = userData else {
                 return
             }
@@ -40,19 +40,29 @@ public final class DefaultHostResolver: HostResolver {
             
         }, shutdown_callback_user_data: shutDownPtr)
         
-        ptr = UnsafePointer(&options)
+        let mutablePtr = UnsafeMutablePointer<aws_shutdown_callback_options>.allocate(capacity: 1)
+        mutablePtr.initialize(to: options)
+        
+        ptr = UnsafePointer(mutablePtr)
     }
+    defer {ptr?.deallocate()}
     self.shutDownOptions = shutDownOptions
     self.rawValue = aws_host_resolver_new_default(allocator.rawValue, maxHosts, elg.rawValue, ptr)
-
-    self.config = aws_host_resolution_config(
+    
+    let config = aws_host_resolution_config(
       impl: aws_default_dns_resolve,
       max_ttl: maxTTL,
       impl_data: nil
     )
+    
+    let hostResolverConfigPointer = UnsafeMutablePointer<aws_host_resolution_config>.allocate(capacity: 1)
+    hostResolverConfigPointer.initialize(to: config)
+    self.config = hostResolverConfigPointer
+    
   }
 
   deinit {
+    config.deinitializeAndDeallocate()
     aws_host_resolver_release(rawValue)
     if let shutDownOptions = shutDownOptions {
         shutDownOptions.semaphore.wait()
@@ -68,7 +78,7 @@ public final class DefaultHostResolver: HostResolver {
     if aws_host_resolver_resolve_host(self.rawValue,
                                        options.host.rawValue,
                                        onHostResolved,
-                                       &self.config,
+                                       self.config,
                                        unmanagedOptions.toOpaque()) != AWS_OP_SUCCESS {
       // We have an unbalanced retain on unmanagedOptions, need to release it!
       defer { unmanagedOptions.release() }

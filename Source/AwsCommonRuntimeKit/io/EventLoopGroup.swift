@@ -14,7 +14,7 @@ public final class EventLoopGroup {
         if let shutDownOptions = shutDownOptions {
             let shutDownPtr = UnsafeMutablePointer<ShutDownCallbackOptions>.allocate(capacity: 1)
             shutDownPtr.initialize(to: shutDownOptions)
-            var options = aws_shutdown_callback_options(shutdown_callback_fn: { (userData) in
+            let options = aws_shutdown_callback_options(shutdown_callback_fn: { (userData) in
                 guard let userdata = userData else {
                     return
                 }
@@ -24,9 +24,13 @@ public final class EventLoopGroup {
                 
             }, shutdown_callback_user_data: shutDownPtr)
             
-            ptr = UnsafePointer(&options)
+            let mutablePtr = UnsafeMutablePointer<aws_shutdown_callback_options>.allocate(capacity: 1)
+            mutablePtr.initialize(to: options)
+            ptr = UnsafePointer(mutablePtr)
         }
+        defer {ptr?.deallocate()}
         self.shutDownOptions = shutDownOptions
+    
         self.rawValue = aws_event_loop_group_new_default(allocator.rawValue, threadCount, ptr)
     }
     

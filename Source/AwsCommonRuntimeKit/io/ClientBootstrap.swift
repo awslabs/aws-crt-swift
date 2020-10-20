@@ -4,55 +4,48 @@ import AwsCIo
 import Foundation
 
 public final class ClientBootstrap {
-  let rawValue: UnsafeMutablePointer<aws_client_bootstrap>
-  var enableBlockingShutdown: Bool = false
-  let callbackData: ClientBootstrapCallbackData
-
-  public init(eventLoopGroup elg: EventLoopGroup,
-              hostResolver: HostResolver,
-              callbackData: ClientBootstrapCallbackData,
-              allocator: Allocator = defaultAllocator) throws {
-
-    let hostResolverPointer = UnsafeMutablePointer<aws_host_resolver>.allocate(capacity: 1)
-    hostResolverPointer.initialize(to: hostResolver.rawValue.pointee)
+    let rawValue: UnsafeMutablePointer<aws_client_bootstrap>
+    var enableBlockingShutdown: Bool = false
+    let callbackData: ClientBootstrapCallbackData
     
-
-    let hostResolverConfigPointer = UnsafeMutablePointer<aws_host_resolution_config>.allocate(capacity: 1)
-    hostResolverConfigPointer.initialize(to: hostResolver.config)
-    
-    self.callbackData = callbackData
-    let callbackDataPointer = UnsafeMutablePointer<ClientBootstrapCallbackData>.allocate(capacity: 1)
-    callbackDataPointer.initialize(to: callbackData)
-    
-    var options = aws_client_bootstrap_options(
-        event_loop_group: elg.rawValue,
-            host_resolver: hostResolverPointer,
-            host_resolution_config: hostResolverConfigPointer,
+    public init(eventLoopGroup elg: EventLoopGroup,
+                hostResolver: HostResolver,
+                callbackData: ClientBootstrapCallbackData,
+                allocator: Allocator = defaultAllocator) throws {
+        
+        self.callbackData = callbackData
+        let callbackDataPointer = UnsafeMutablePointer<ClientBootstrapCallbackData>.allocate(capacity: 1)
+        callbackDataPointer.initialize(to: callbackData)
+        
+        var options = aws_client_bootstrap_options(
+            event_loop_group: elg.rawValue,
+            host_resolver: hostResolver.rawValue,
+            host_resolution_config: hostResolver.config,
             on_shutdown_complete: { userData in
                 guard let userData = userData else { return }
-
+                
                 let pointer = userData.assumingMemoryBound(to: ClientBootstrapCallbackData.self)
                 defer { pointer.deinitializeAndDeallocate() }
                 pointer.pointee.onShutDownComplete(pointer.pointee.shutDownSemaphore)
                 
             },
             user_data: callbackDataPointer
-    )
-    guard let rawValue = aws_client_bootstrap_new(allocator.rawValue, &options) else {
-      throw AwsCommonRuntimeError()
+        )
+        guard let rawValue = aws_client_bootstrap_new(allocator.rawValue, &options) else {
+            throw AwsCommonRuntimeError()
+        }
+        
+        self.rawValue = rawValue
     }
-
-    self.rawValue = rawValue
-  }
-
+    
     func enableBlockingShutDown() {
         enableBlockingShutdown = true
     }
-
-  deinit {
-    aws_client_bootstrap_release(self.rawValue)
-    if enableBlockingShutdown {
-        callbackData.shutDownSemaphore.wait()
+    
+    deinit {
+        aws_client_bootstrap_release(rawValue)
+        if enableBlockingShutdown {
+            callbackData.shutDownSemaphore.wait()
+        }
     }
-  }
 }
