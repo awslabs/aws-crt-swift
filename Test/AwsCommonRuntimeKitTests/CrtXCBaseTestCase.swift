@@ -21,3 +21,17 @@ class CrtXCBaseTestCase: XCTestCase {
         super.tearDown()
     }
 }
+
+extension XCTestCase {
+   func skipIfiOS() throws {
+      if #available(iOS 10, *)  {
+         throw XCTSkip("Skipping test on iOS")
+      }
+   }
+    
+    func skipifmacOS() throws {
+        if #available(macOS 10.14, *) {
+            throw XCTSkip("Skipping test on macOS")
+        }
+    }
+}

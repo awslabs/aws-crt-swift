@@ -20,7 +20,9 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 
     override func tearDown() {
         super.tearDown()
+        if(!name.contains("testCreateAWSCredentialsProviderProfile")) {
         wait(for: [expectation2], timeout: 3.0)
+        }
     }
 
     func setUpShutDownOptions() {
@@ -66,8 +68,10 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         }
     }
     
-    #if !os(iOS)
-    func testCreateAWSCredentialsProviderProfile() {
+    func testCreateAWSCredentialsProviderProfile() throws {
+        //skip this test if it is running on macosx or on iOS
+        try skipIfiOS()
+        try skipifmacOS()
         //uses default paths to credentials and config
         do {
         let config = CredentialsProviderProfileOptions(shutdownOptions: shutDownOptions)
@@ -82,7 +86,6 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             XCTFail()
         }
     }
-    #endif
     
     func testCreateAWSCredentialsProviderChain() {
         do {
