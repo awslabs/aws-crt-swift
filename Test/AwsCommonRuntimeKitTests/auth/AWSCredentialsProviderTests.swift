@@ -65,7 +65,8 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             XCTFail()
         }
     }
-
+    
+    #if !os(iOS)
     func testCreateAWSCredentialsProviderProfile() {
         //uses default paths to credentials and config
         do {
@@ -81,7 +82,8 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             XCTFail()
         }
     }
-
+    #endif
+    
     func testCreateAWSCredentialsProviderChain() {
         do {
             let elgShutDownOptions = ShutDownCallbackOptions() { semaphore in
