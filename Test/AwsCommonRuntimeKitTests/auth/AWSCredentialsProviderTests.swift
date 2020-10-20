@@ -57,7 +57,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 
     func testCreateAWSCredentialsProviderEnv() {
         do {
-        let provider = try AWSCredentialsProvider(fromEnv: shutDownOptions)
+        let provider = try AWSCredentialsProvider(fromEnv: shutDownOptions, allocator: allocator)
         setUpCallbackCredentials()
         provider.getCredentials(credentialCallbackData: callbackData!)
         wait(for: [expectation], timeout: 5.0)
@@ -71,7 +71,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         do {
         let config = CredentialsProviderProfileOptions(shutdownOptions: shutDownOptions)
 
-        let provider = try AWSCredentialsProvider(fromProfile: config)
+        let provider = try AWSCredentialsProvider(fromProfile: config, allocator: allocator)
 
         setUpCallbackCredentials()
         provider.getCredentials(credentialCallbackData: callbackData!)

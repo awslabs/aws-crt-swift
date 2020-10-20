@@ -64,7 +64,7 @@ final class AWSCredentialsProvider {
     }
     
     /// Creates a credentials provider that sources credentials from key-value profiles loaded from the aws credentials
-    /// file ("~/.aws/credentials" by default) and the aws config file ("~/.aws/config" by default
+    /// file ("~/.aws/credentials" by default) and the aws config file ("~/.aws/config" by default)
     ///
     /// - Parameters:
     ///   - profileOptions:  The `CredentialsProviderProfileOptions`options object.
