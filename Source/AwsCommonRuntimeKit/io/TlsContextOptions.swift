@@ -12,7 +12,7 @@ public final class TlsContextOptions {
 
 	public init(defaultClientWithAllocator allocator: Allocator = defaultAllocator) {
         let optionsPtr = UnsafeMutablePointer<aws_tls_ctx_options>.allocate(capacity: 1)
-        optionsPtr.initialize(to: aws_tls_ctx_options())
+        zeroStruct(optionsPtr)
         self.rawValue = optionsPtr
 		aws_tls_ctx_options_init_default_client(rawValue, allocator.rawValue)
 	}
@@ -22,7 +22,7 @@ public final class TlsContextOptions {
         let ptr = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
         ptr.initialize(to: keyPath.awsByteCursor)
         let optionsPtr = UnsafeMutablePointer<aws_tls_ctx_options>.allocate(capacity: 1)
-        optionsPtr.initialize(to: aws_tls_ctx_options())
+        zeroStruct(optionsPtr)
         self.rawValue = optionsPtr
         if aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue, allocator.rawValue, certPath, ptr) != AWS_OP_SUCCESS {
 			throw AwsCommonRuntimeError()
@@ -32,7 +32,7 @@ public final class TlsContextOptions {
 
 	public init(clientWithMtlsCert cert: inout ByteCursor, key: inout ByteCursor, allocator: Allocator = defaultAllocator) throws {
         let optionsPtr = UnsafeMutablePointer<aws_tls_ctx_options>.allocate(capacity: 1)
-        optionsPtr.initialize(to: aws_tls_ctx_options())
+        zeroStruct(optionsPtr)
         self.rawValue = optionsPtr
         if aws_tls_ctx_options_init_client_mtls_pkcs12(rawValue, allocator.rawValue, &cert.rawValue, &key.rawValue) != AWS_OP_SUCCESS {
 			throw AwsCommonRuntimeError()
@@ -43,7 +43,7 @@ public final class TlsContextOptions {
 	#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
 	public init(clientWithMtlsPkcs12Path path: String, password: String, allocator: Allocator = defaultAllocator) throws {
         let optionsPtr = UnsafeMutablePointer<aws_tls_ctx_options>.allocate(capacity: 1)
-        optionsPtr.initialize(to: aws_tls_ctx_options())
+        zeroStruct(optionsPtr)
         self.rawValue = optionsPtr
 		var passwordCursor = password.newByteCursor()
 		if aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue, allocator.rawValue, path, &passwordCursor.rawValue) != AWS_OP_SUCCESS {

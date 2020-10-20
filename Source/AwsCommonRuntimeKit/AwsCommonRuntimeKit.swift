@@ -12,8 +12,8 @@ public struct AwsCommonRuntimeKit {
   }
 
   public static func cleanUp() {
-    aws_mqtt_library_clean_up()
     aws_auth_library_clean_up()
+    aws_mqtt_library_clean_up()
     aws_http_library_clean_up()
   }
 

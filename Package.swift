@@ -55,6 +55,7 @@ awsCIoPlatformExcludes.append("source/darwin")
 #else
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/s2n")
+awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
 #endif
 
