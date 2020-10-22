@@ -17,9 +17,10 @@ public class Future<Value> {
     }
     
     public func get() throws -> Value? {
-        waiter.wait()
         if let value = self._value {
             return try value.get()
+        } else {
+            waiter.wait()
         }
         
         return nil
