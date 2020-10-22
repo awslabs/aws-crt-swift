@@ -12,7 +12,7 @@ class MqttClientTests: CrtXCBaseTestCase {
         try options.setAlpnList("")
         let context = try TlsContext(options: options, mode: .client, allocator: allocator)
      
-        let socketOptions = SocketOptions(socketType: .datagram)
+        let socketOptions = SocketOptions(socketType: .stream)
         
         let shutDownOptions = ShutDownCallbackOptions() { semaphore in
             semaphore.signal()

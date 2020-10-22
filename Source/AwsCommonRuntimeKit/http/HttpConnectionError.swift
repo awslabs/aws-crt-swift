@@ -6,7 +6,6 @@ enum HttpConnectionError: Error {
     case failure
 }
 
-
 extension HttpConnectionError: RawRepresentable {
     var rawValue: Int32 {
         switch self {

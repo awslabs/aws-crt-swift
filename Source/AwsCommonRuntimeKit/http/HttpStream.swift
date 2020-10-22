@@ -15,7 +15,6 @@ public class HttpStream {
         httpStream?.deallocate()
     }
     
-    
     /// Retrieves the Http Response Status Code
     /// - Returns: The status code as `Int32`
     public func getResponseStatusCode() -> Int32 {
