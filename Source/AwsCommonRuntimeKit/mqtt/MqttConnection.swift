@@ -28,7 +28,7 @@ public class MqttConnection {
     let socketOptions: SocketOptions
     let useWebSockets: Bool
     let tlsContext: TlsContext?
-    var proxyOptions: HttpClientConnectionProxyOptions?
+    var proxyOptions: HttpProxyOptions?
     var pubCallbackData: UnsafeMutablePointer<PubCallbackData>?
 
     init(clientPointer: UnsafeMutablePointer<aws_mqtt_client>,
@@ -117,17 +117,11 @@ public class MqttConnection {
     ///     than `keepAliveTime`.
     /// - Returns: A `Bool`of True  if operation to connect has been successfully initated.
     func connect(clientId: String, cleanSession: Bool, keepAliveTime: Int16, requestTimeoutMs: Int32) -> Bool {
-        let socketOptionsPtr = UnsafeMutablePointer<aws_socket_options>.allocate(capacity: 1)
-        socketOptionsPtr.initialize(to: socketOptions.rawValue)
-        
-        defer {
-            socketOptionsPtr.deinitializeAndDeallocate()
-        }
 
         var mqttOptions = aws_mqtt_connection_options()
         mqttOptions.host_name = host.awsByteCursor
         mqttOptions.port = UInt16(port)
-        mqttOptions.socket_options = socketOptionsPtr
+        mqttOptions.socket_options = socketOptions.rawValue
         let tlsOptions = tlsContext?.newConnectionOptions()
         mqttOptions.tls_options = tlsOptions?.rawValue
 

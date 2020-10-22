@@ -5,9 +5,16 @@ class HttpClientConnectionCallbackData {
     var managedConnection: HttpClientConnection?
     let allocator: Allocator
     var connectionOptions: HttpClientConnectionOptions
+    let onConnectionSetup: OnConnectionSetup
+    let onConnectionShutdown: OnConnectionShutdown
 
-    init(options: HttpClientConnectionOptions, allocator: Allocator) {
+    init(options: HttpClientConnectionOptions,
+         onConnectionSetup: @escaping OnConnectionSetup,
+         onConnectionShutdown: @escaping OnConnectionShutdown,
+         allocator: Allocator) {
         self.connectionOptions = options
+        self.onConnectionSetup = onConnectionSetup
+        self.onConnectionShutdown = onConnectionShutdown
         self.allocator = allocator
     }
 }

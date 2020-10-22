@@ -237,9 +237,6 @@ struct Elasticurl {
 
             let semaphore = DispatchSemaphore(value: 0)
 
-            var stream: HttpStream?
-            var connection: HttpClientConnection?
-
             let httpRequest: HttpRequest = HttpRequest(allocator: allocator)
             httpRequest.method = "GET"
             httpRequest.path = "/"
@@ -273,36 +270,31 @@ struct Elasticurl {
                 print(errorCode)
             }
 
-            let connectionReady: HttpClientConnectionOptions.OnConnectionSetup = { conn, errorCode in
-                if errorCode != 0 {
-                    print("Connection Setup failed with code \(errorCode)")
-                    exit(-1)
-                } else {
-                    print("Connection succeeded")
-                    connection = conn
 
-                    let requestOptions = HttpRequestOptions(request: httpRequest, onIncomingHeaders: onIncomingHeaders, onIncomingHeadersBlockDone: onBlockDone,
-                                                            onIncomingBody: onBody,
-                                                            onStreamComplete: onComplete)
-                    stream = connection!.newClientStream(requestOptions: requestOptions)
-                    stream!.activate()
-                }
-            }
-
-            var httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
+            let httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
                                                                 hostName: context.url,
                                                                 initialWindowSize: Int.max,
                                                                 port: port,
                                                                 proxyOptions: nil,
                                                                 socketOptions: socketOptions,
-                                                                tlsOptions: tlsConnectionOptions,
-                                                                onConnectionSetup: connectionReady,
-                                                                onConnectionShutdown: { (_, errorCode) in
-                                                                    print("connection has shut down with error: \(errorCode)" )
-                                                                    semaphore.signal()
-            })
+                                                                tlsOptions: tlsConnectionOptions)
 
-            HttpClientConnection.createConnection(options: &httpClientOptions, allocator: allocator)
+            
+            HttpClientConnectionManager.create(options: httpClientOptions).then { result in
+                switch result {
+                case .success (let connection):
+                    print("Connection succeeded")
+
+                    let requestOptions = HttpRequestOptions(request: httpRequest, onIncomingHeaders: onIncomingHeaders, onIncomingHeadersBlockDone: onBlockDone,
+                                                            onIncomingBody: onBody,
+                                                            onStreamComplete: onComplete)
+                    let stream = connection.newClientStream(requestOptions: requestOptions)
+                    stream.activate()
+                case .failure (let error):
+                    print("connection has shut down with error: \(error.localizedDescription)" )
+                    semaphore.signal()
+                }
+            }
             semaphore.wait()
         } catch {
             showHelp()

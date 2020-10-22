@@ -167,15 +167,9 @@ final class AWSCredentialsProvider {
         x509Options.thing_name = x509Config.thingName.awsByteCursor
         x509Options.role_alias = x509Config.roleAlias.awsByteCursor
         x509Options.endpoint = x509Config.endpoint.awsByteCursor
-        var proxyOptionsPtr:UnsafeMutablePointer<aws_http_proxy_options>?
+    
         if let proxyOptions = x509Config.proxyOptions?.rawValue {
-            proxyOptionsPtr = try allocator.allocate()
-            proxyOptionsPtr?.initialize(to: proxyOptions)
-            x509Options.proxy_options = UnsafePointer(proxyOptionsPtr)
-        }
-        
-        defer {
-            proxyOptionsPtr?.deinitializeAndDeallocate()
+            x509Options.proxy_options = UnsafePointer(proxyOptions)
         }
         
         guard let provider = aws_credentials_provider_new_x509(allocator.rawValue, &x509Options) else {

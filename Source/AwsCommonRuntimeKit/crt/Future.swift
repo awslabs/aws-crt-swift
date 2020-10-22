@@ -14,7 +14,6 @@ public class Future<Value> {
     
     public init(value: FutureResult? = nil) {
         self._value = value
-        
     }
     
     public func get() throws -> Value? {

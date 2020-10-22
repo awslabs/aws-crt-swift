@@ -9,14 +9,14 @@ struct CredentialsProviderX509Config {
     public let thingName: String
     public let roleAlias: String
     public let endpoint: String
-    public let proxyOptions: HttpClientConnectionProxyOptions?
+    public let proxyOptions: HttpProxyOptions?
 
     public init(bootstrap: ClientBootstrap,
                 tlsConnectionOptions: TlsConnectionOptions,
                 thingName: String,
                 roleAlias: String,
                 endpoint: String,
-                proxyOptions: HttpClientConnectionProxyOptions? = nil,
+                proxyOptions: HttpProxyOptions? = nil,
                 shutDownOptions: CredentialsProviderShutdownOptions? = nil) {
         self.bootstrap = bootstrap
         self.tlsConnectionOptions = tlsConnectionOptions

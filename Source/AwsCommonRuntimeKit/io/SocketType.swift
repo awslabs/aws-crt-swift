@@ -22,8 +22,8 @@ extension SocketType: RawRepresentable, CaseIterable {
 	}
 	public var rawValue: aws_socket_type {
 		switch self {
-		case .datagram: return aws_socket_type(rawValue: 0)
-		case .stream:   return aws_socket_type(rawValue: 1)
+        case .stream:   return aws_socket_type(rawValue: 0)
+		case .datagram: return aws_socket_type(rawValue: 1)
 		}
 	}
 }
