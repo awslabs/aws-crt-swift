@@ -208,7 +208,7 @@ struct Elasticurl {
 
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
             let logger = Logger(pipe: stdout, level: context.logLevel, allocator: allocator)
-
+            
             AwsCommonRuntimeKit.initialize(allocator: allocator)
 
             let port = UInt16(443)
@@ -279,8 +279,8 @@ struct Elasticurl {
                                                                 socketOptions: socketOptions,
                                                                 tlsOptions: tlsConnectionOptions)
 
-            
-            HttpClientConnectionManager.create(options: httpClientOptions).then { result in
+            let connectionManager = HttpClientConnectionManager(options: httpClientOptions)
+            connectionManager.acquireConnection().then { result in
                 switch result {
                 case .success (let connection):
                     print("Connection succeeded")
@@ -302,4 +302,5 @@ struct Elasticurl {
         }
     }
 }
+
 Elasticurl.run()

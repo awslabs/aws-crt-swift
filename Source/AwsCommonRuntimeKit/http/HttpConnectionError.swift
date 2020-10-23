@@ -1,25 +1,22 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-enum HttpConnectionError: Error {
-    case success
-    case failure
-}
+import AwsCCommon
 
-extension HttpConnectionError: RawRepresentable {
-    var rawValue: Int32 {
-        switch self {
-        case .success: return 0
-        case .failure: return 1
+public struct HttpConnectionError: Error {
+    
+    private let errorCode: Int
+    
+    let errorMessage: String?
+    
+    public init(errorCode: Int) {
+        self.errorCode = errorCode
+        let stringPtr = aws_error_str(Int32(errorCode))
+        if let stringPtr = stringPtr {
+            self.errorMessage = String(cString: stringPtr)
+        } else {
+            self.errorMessage = nil
         }
     }
     
-    init(rawValue: Int32) {
-        switch rawValue {
-        case 0: self = .success
-        case 1: self = .failure
-        default:
-            self = .failure
-        }
-    }
 }

@@ -3,13 +3,19 @@
 
 public struct HttpClientConnectionOptions {
 
-    
+    /// The client bootstrap instance to use to create the pool's connections
     public let clientBootstrap: ClientBootstrap
+    /// The host name to use for connections in the connection pool
     public let hostName: String
+    /// The IO channel window size to use for connections in the connection pool
     public let initialWindowSize: Int
+    /// The port to connect to for connections in the connection pool
     public let port: UInt16
+    /// The proxy options for connections in the connection pool
     public let proxyOptions: HttpProxyOptions?
+    /// The socket options to use for connections in the connection pool
     public var socketOptions: SocketOptions
+    /// The tls options to use for connections in the connection pool
     public let tlsOptions: TlsConnectionOptions?
     /**
      If set to true, then the TCP read back pressure mechanism will be enabled. You should
