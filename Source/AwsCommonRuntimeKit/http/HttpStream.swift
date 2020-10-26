@@ -12,7 +12,6 @@ public class HttpStream {
     
     deinit {
         aws_http_stream_release(httpStream)
-        httpStream?.deallocate()
     }
     
     /// Retrieves the Http Response Status Code

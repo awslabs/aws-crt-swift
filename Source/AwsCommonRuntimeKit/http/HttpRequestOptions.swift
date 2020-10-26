@@ -6,7 +6,7 @@ public struct HttpRequestOptions {
     public typealias OnIncomingHeaders = (_ stream: HttpStream, _ headerBlock: HttpHeaderBlock, _ headers: HttpHeaders) -> Void
     public typealias OnIncomingHeadersBlockDone = (_ stream: HttpStream, _ headerBlock: HttpHeaderBlock) -> Void
     public typealias OnIncomingBody = (_ stream: HttpStream, _ bodyChunk: Data) -> Void
-    public typealias OnStreamComplete = (_ stream: HttpStream, _ errorCode: Int32) -> Void
+    public typealias OnStreamComplete = (_ stream: HttpStream?, _ errorCode: Int32) -> Void
 
     let request: HttpRequest
     public let onIncomingHeaders: OnIncomingHeaders

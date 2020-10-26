@@ -15,9 +15,9 @@ public class HttpClientConnectionManager {
         self.options = options
     }
     
-//    public static func create(options: HttpClientConnectionOptions) -> HttpClientConnectionManager {
-//        return HttpClientConnectionManager(options: options)
-//    }
+    public static func create(options: HttpClientConnectionOptions) -> HttpClientConnectionManager {
+        return HttpClientConnectionManager(options: options)
+    }
     
     public func acquireConnection() -> Future<HttpClientConnection> {
         let future = Future<HttpClientConnection>()
@@ -36,12 +36,14 @@ public class HttpClientConnectionManager {
             future.complete(.failure(error))
         }
         
-
+        queue.async {
+            
+        
         HttpClientConnection.createConnection(options: self.options,
                                                   onConnectionSetup: onConnectionSetup,
                                                   onConnectionShutdown: onConnectionShutDown)
         
-        
+        }
         return future
     }
     
