@@ -28,7 +28,7 @@ public final class TlsConnectionOptions {
 			throw AwsCommonRuntimeError()
 		}
 	}
-    
+
     deinit {
         aws_tls_connection_options_clean_up(rawValue)
         rawValue.deallocate()

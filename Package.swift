@@ -86,7 +86,7 @@ package.targets = ( [
             .headerSearchPath("include/"),
             .headerSearchPath("../../platform_config/osx/x86_64/"),
             //do this to avoid having problems with the test header module export
-            .define("AWS_UNSTABLE_TESTING_API=1"),
+            .define("AWS_UNSTABLE_TESTING_API=1")
             //.unsafeFlags(unsafeFlagsArray),
         ]),
     .target(
@@ -172,7 +172,7 @@ package.targets = ( [
         path: "Source/AwsCommonRuntimeKit",
         cSettings: [
             .headerSearchPath("../../platform_config/osx/x86_64/"),
-            .define("AWS_UNSTABLE_TESTING_API"),
+            .define("AWS_UNSTABLE_TESTING_API")
         ]
     ),
     .testTarget(
@@ -181,7 +181,7 @@ package.targets = ( [
         path: "Test",
         cSettings: [
             .headerSearchPath("../platform_config/osx/x86_64/"),
-            .define("AWS_UNSTABLE_TESTING_API"),
+            .define("AWS_UNSTABLE_TESTING_API")
         ]
     ),
     .target(
@@ -190,7 +190,7 @@ package.targets = ( [
         path: "Source/Elasticurl",
         cSettings: [
             .headerSearchPath("../../platform_config/osx/x86_64/"),
-            .define("AWS_UNSTABLE_TESTING_API"),
+            .define("AWS_UNSTABLE_TESTING_API")
         ]
     )
 ] )

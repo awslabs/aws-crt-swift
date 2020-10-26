@@ -56,8 +56,8 @@ public class SocketOptions {
         get { return SocketType(rawValue: self.rawValue.pointee.type) }
         set(value) { self.rawValue.pointee.type = value.rawValue }
     }
-    
-    deinit{
+
+    deinit {
         rawValue.deinitializeAndDeallocate()
     }
 }

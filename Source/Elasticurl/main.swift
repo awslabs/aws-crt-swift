@@ -208,7 +208,7 @@ struct Elasticurl {
 
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
             let logger = Logger(pipe: stdout, level: context.logLevel, allocator: allocator)
-            
+
             AwsCommonRuntimeKit.initialize(allocator: allocator)
 
             let port = UInt16(443)
@@ -223,11 +223,11 @@ struct Elasticurl {
 
             let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
             let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
-            
+
             let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
                 sempahore.signal()
             }
-            
+
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                                 hostResolver: hostResolver,
                                                 callbackData: clientBootstrapCallbackData,
@@ -239,7 +239,7 @@ struct Elasticurl {
 
             var stream: HttpStream?
             var connection: HttpClientConnection?
-            
+
             let httpRequest: HttpRequest = HttpRequest(allocator: allocator)
             httpRequest.method = "GET"
             httpRequest.path = "/"
@@ -272,7 +272,6 @@ struct Elasticurl {
             let onComplete: HttpRequestOptions.OnStreamComplete = { stream, errorCode in
                 print(errorCode)
             }
-
 
             let httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
                                                                 hostName: context.url,

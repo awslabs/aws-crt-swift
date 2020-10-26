@@ -12,7 +12,7 @@ extension AWSCredentialsProviderTests {
         ("testCreateAWSCredentialsProviderEnv", testCreateAWSCredentialsProviderEnv),
         ("testCreateAWSCredentialsProviderImds", testCreateAWSCredentialsProviderImds),
         ("testCreateAWSCredentialsProviderProfile", testCreateAWSCredentialsProviderProfile),
-        ("testCreateAWSCredentialsProviderStatic", testCreateAWSCredentialsProviderStatic),
+        ("testCreateAWSCredentialsProviderStatic", testCreateAWSCredentialsProviderStatic)
     ]
 }
 
@@ -21,7 +21,7 @@ extension BootstrapTests {
     //   `swift test --generate-linuxmain`
     // to regenerate.
     static let __allTests__BootstrapTests = [
-        ("testCanCreateBootstrap", testCanCreateBootstrap),
+        ("testCanCreateBootstrap", testCanCreateBootstrap)
     ]
 }
 
@@ -31,7 +31,7 @@ extension EventLoopGroupTests {
     // to regenerate.
     static let __allTests__EventLoopGroupTests = [
         ("testCanCreateGroup", testCanCreateGroup),
-        ("testCanCreateGroupWithThreads", testCanCreateGroupWithThreads),
+        ("testCanCreateGroupWithThreads", testCanCreateGroupWithThreads)
     ]
 }
 
@@ -40,7 +40,7 @@ extension HostResolverTests {
     //   `swift test --generate-linuxmain`
     // to regenerate.
     static let __allTests__HostResolverTests = [
-        ("testCanResolveHosts", testCanResolveHosts),
+        ("testCanResolveHosts", testCanResolveHosts)
     ]
 }
 
@@ -54,7 +54,7 @@ extension HttpHeaderTests {
         ("testDeleteAllHttpHeaders", testDeleteAllHttpHeaders),
         ("testDeleteHttpHeaders", testDeleteHttpHeaders),
         ("testGetAllHttpHeaders", testGetAllHttpHeaders),
-        ("testGetHttpHeaders", testGetHttpHeaders),
+        ("testGetHttpHeaders", testGetHttpHeaders)
     ]
 }
 
@@ -63,7 +63,7 @@ extension MqttClientTests {
     //   `swift test --generate-linuxmain`
     // to regenerate.
     static let __allTests__MqttClientTests = [
-        ("testMqttClientResourceSafety", testMqttClientResourceSafety),
+        ("testMqttClientResourceSafety", testMqttClientResourceSafety)
     ]
 }
 
@@ -74,7 +74,7 @@ extension SigV4SigningTests {
     static let __allTests__SigV4SigningTests = [
         ("testCreateSigV4Signer", testCreateSigV4Signer),
         ("testSimpleSigningWithCredentials", testSimpleSigningWithCredentials),
-        ("testSimpleSigningWithCredentialsProvider", testSimpleSigningWithCredentialsProvider),
+        ("testSimpleSigningWithCredentialsProvider", testSimpleSigningWithCredentialsProvider)
     ]
 }
 
@@ -83,7 +83,7 @@ extension TlsContextTests {
     //   `swift test --generate-linuxmain`
     // to regenerate.
     static let __allTests__TlsContextTests = [
-        ("testCreateTlsContextWithOptions", testCreateTlsContextWithOptions),
+        ("testCreateTlsContextWithOptions", testCreateTlsContextWithOptions)
     ]
 }
 
@@ -92,7 +92,7 @@ extension TracingAllocatorTests {
     //   `swift test --generate-linuxmain`
     // to regenerate.
     static let __allTests__TracingAllocatorTests = [
-        ("testTracingAllocatorCorrectlyTracesAllocations", testTracingAllocatorCorrectlyTracesAllocations),
+        ("testTracingAllocatorCorrectlyTracesAllocations", testTracingAllocatorCorrectlyTracesAllocations)
     ]
 }
 
@@ -106,7 +106,7 @@ public func __allTests() -> [XCTestCaseEntry] {
         testCase(MqttClientTests.__allTests__MqttClientTests),
         testCase(SigV4SigningTests.__allTests__SigV4SigningTests),
         testCase(TlsContextTests.__allTests__TlsContextTests),
-        testCase(TracingAllocatorTests.__allTests__TracingAllocatorTests),
+        testCase(TracingAllocatorTests.__allTests__TracingAllocatorTests)
     ]
 }
 #endif

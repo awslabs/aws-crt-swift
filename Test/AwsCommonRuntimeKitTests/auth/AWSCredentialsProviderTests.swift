@@ -20,7 +20,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 
     override func tearDown() {
         super.tearDown()
-        if(!name.contains("testCreateAWSCredentialsProviderProfile")) {
+        if !name.contains("testCreateAWSCredentialsProviderProfile") {
         wait(for: [expectation2], timeout: 3.0)
         }
     }
@@ -67,7 +67,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             XCTFail()
         }
     }
-    
+
     func testCreateAWSCredentialsProviderProfile() throws {
         //skip this test if it is running on macosx or on iOS
         try skipIfiOS()
@@ -86,14 +86,14 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             XCTFail()
         }
     }
-    
+
     func testCreateAWSCredentialsProviderChain() {
         do {
-            let elgShutDownOptions = ShutDownCallbackOptions() { semaphore in
+            let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
                 semaphore.signal()
             }
-            
-            let resolverShutDownOptions = ShutDownCallbackOptions() { semaphore in
+
+            let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
                 semaphore.signal()
             }
             let elg = try EventLoopGroup(threadCount: 0, allocator: allocator, shutDownOptions: elgShutDownOptions)
@@ -102,8 +102,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                        maxTTL: 30,
                                                        allocator: allocator,
                                                        shutDownOptions: resolverShutDownOptions)
-            
-            
+
             let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
                 sempahore.signal()
             }

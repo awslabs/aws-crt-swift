@@ -11,14 +11,14 @@ class MqttClientTests: CrtXCBaseTestCase {
         let options = TlsContextOptions(defaultClientWithAllocator: allocator)
         try options.setAlpnList("")
         let context = try TlsContext(options: options, mode: .client, allocator: allocator)
-     
+
         let socketOptions = SocketOptions(socketType: .stream)
-        
-        let shutDownOptions = ShutDownCallbackOptions() { semaphore in
+
+        let shutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
-        
-        let resolverShutDownOptions = ShutDownCallbackOptions() { semaphore in
+
+        let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
 
@@ -28,16 +28,16 @@ class MqttClientTests: CrtXCBaseTestCase {
                                                maxTTL: 5,
                                                allocator: allocator,
                                                shutDownOptions: resolverShutDownOptions)
-        
+
         let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
             sempahore.signal()
         }
-        
+
         let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                                   hostResolver: resolver,
                                                   callbackData: clientBootstrapCallbackData,
                                                   allocator: allocator)
-        
+
         clientBootstrap.enableBlockingShutdown = true
 
         let mqttClient = try MqttClient(clientBootstrap: clientBootstrap, allocator: allocator)

@@ -8,7 +8,7 @@ public struct ShutDownCallbackOptions {
     public typealias ShutDownCallback = (DispatchSemaphore) -> Void
 
     public let shutDownCallback: ShutDownCallback
-    
+
     public let semaphore: DispatchSemaphore
 
     public init(shutDownCallback: @escaping ShutDownCallback) {

@@ -75,7 +75,7 @@ struct SigningConfig {
                                                signed_body_value: signedBodyValue.awsByteCursor,
                                                signed_body_header: signedBodyHeader.rawValue,
                                                credentials: credentials?.rawValue,
-                                               credentials_provider:credentialsProvider?.rawValue,
+                                               credentials_provider: credentialsProvider?.rawValue,
                                                expiration_in_seconds: UInt64(expiration))
     }
 }
@@ -105,7 +105,7 @@ extension SigningConfig {
             self.omitSessionToken = omitSessionToken
             self.rawValue = aws_signing_config_aws.__Unnamed_struct_flags(use_double_uri_encode:
                 useDoubleURIEncode.uintValue, should_normalize_uri_path:
-                shouldNormalizeURIPath.uintValue,omit_session_token:
+                shouldNormalizeURIPath.uintValue, omit_session_token:
                 omitSessionToken.uintValue)
         }
      }

@@ -73,7 +73,7 @@ class SigV4HttpRequestSigner {
             throw AwsCommonRuntimeError()
         }
     }
-    
+
     public func applySigningResult(signingResult: SigningResult, request: HttpRequest) throws -> HttpRequest {
         if aws_apply_signing_result_to_http_request(request.rawValue,
                                                     allocator.rawValue,

@@ -22,7 +22,7 @@ internal extension Allocator {
         }
         return result.bindMemory(to: T.self, capacity: 1)
     }
-    
+
     /**
      * Allocates memory on the heap.
      *
@@ -38,7 +38,7 @@ internal extension Allocator {
         }
         return result.bindMemory(to: T.self, capacity: capacity)
     }
-    
+
     /**
      * Releases memory allocated by this allocator.
      *
@@ -49,11 +49,10 @@ internal extension Allocator {
     }
 }
 
-
 /// An `Allocator` that traces memory allocations.
 public final class TracingAllocator: Allocator {
     public let rawValue: UnsafeMutablePointer<aws_allocator>
-    
+
     /**
      Creates an `Allocator` that doesn't track anything.
      
@@ -62,7 +61,7 @@ public final class TracingAllocator: Allocator {
     public convenience init(_ allocator: Allocator = defaultAllocator) {
         self.init(allocator, level: .none, framesPerStack: 0)
     }
-    
+
     /**
      * Creates an `Allocator` that counts allocated bytes and total allocation.
      *
@@ -71,7 +70,7 @@ public final class TracingAllocator: Allocator {
     public convenience init(tracingBytesOf allocator: Allocator) {
         self.init(allocator, level: .bytes, framesPerStack: 0)
     }
-    
+
     /**
      * Creates an `Allocator` that captures stack traces of all allocations.
      *
@@ -82,25 +81,25 @@ public final class TracingAllocator: Allocator {
     public convenience init(tracingStacksOf allocator: Allocator, framesPerStack: Int = 8) {
         self.init(allocator, level: .stacks, framesPerStack: framesPerStack)
     }
-    
+
     private init(_ allocator: Allocator, level: TracingLevel, framesPerStack: Int) {
         self.rawValue = aws_mem_tracer_new(allocator.rawValue, nil, aws_mem_trace_level(level.rawValue), framesPerStack)
     }
-    
+
     deinit {
         aws_mem_tracer_destroy(self.rawValue)
     }
-    
+
     /// The current number of bytes in outstanding allocations.
     public var bytes: Int {
         return aws_mem_tracer_bytes(self.rawValue)
     }
-    
+
     /// The current number of outstanding allocations.
     public var count: Int {
         return aws_mem_tracer_count(self.rawValue)
     }
-    
+
     /**
       If there are outstanding allocations, dumps them to log, along with any
       information gathered based on the trace level set when this instance was
@@ -109,7 +108,7 @@ public final class TracingAllocator: Allocator {
     public func dump() {
         aws_mem_tracer_dump(self.rawValue)
     }
-    
+
     private enum TracingLevel: UInt32 {
         /// No tracing
         case none = 0

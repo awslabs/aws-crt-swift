@@ -26,7 +26,7 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                                        shouldSignHeader: shouldSignHeader,
                                        signatureType: .requestHeaders)
             let expectation = XCTestExpectation(description: "Signing complete")
-            try signer.signRequest(request: request, config: config) {signingResult, httpRequest,errorCode in
+            try signer.signRequest(request: request, config: config) {signingResult, httpRequest, _ in
                 guard let signingResult = signingResult else {
                     XCTFail()
                     return
@@ -59,7 +59,7 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                                        shouldSignHeader: shouldSignHeader,
                                        signatureType: .requestHeaders)
             let expectation = XCTestExpectation(description: "Signing complete")
-            try signer.signRequest(request: request, config: config) {signingResult, httpRequest, errorCode in
+            try signer.signRequest(request: request, config: config) {signingResult, httpRequest, _ in
                 guard let signingResult = signingResult else {
                     XCTFail()
                     return

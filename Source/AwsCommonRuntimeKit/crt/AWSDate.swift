@@ -97,7 +97,7 @@ class AWSDate: Comparable {
     static func now() -> AWSDate {
         return AWSDate()
     }
-    
+
     deinit {
         rawValue.deinitializeAndDeallocate()
     }

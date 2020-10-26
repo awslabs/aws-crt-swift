@@ -6,16 +6,16 @@ import XCTest
 class HostResolverTests: CrtXCBaseTestCase {
 
   func testCanResolveHosts() throws {
-    let shutDownOptions = ShutDownCallbackOptions() { semaphore in
+    let shutDownOptions = ShutDownCallbackOptions { semaphore in
         semaphore.signal()
     }
-    
-    let resolverShutDownOptions = ShutDownCallbackOptions() { semaphore in
+
+    let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
         semaphore.signal()
     }
-   
+
     let elg = try EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
-    
+
     let resolver = try DefaultHostResolver(eventLoopGroup: elg,
                                            maxHosts: 8,
                                            maxTTL: 5,

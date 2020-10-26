@@ -4,11 +4,11 @@
 import AwsCCommon
 
 public struct HttpConnectionError: Error {
-    
+
     private let errorCode: Int
-    
+
     let errorMessage: String?
-    
+
     public init(errorCode: Int) {
         self.errorCode = errorCode
         let stringPtr = aws_error_str(Int32(errorCode))
@@ -18,5 +18,5 @@ public struct HttpConnectionError: Error {
             self.errorMessage = nil
         }
     }
-    
+
 }

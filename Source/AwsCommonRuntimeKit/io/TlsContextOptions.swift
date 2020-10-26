@@ -27,7 +27,7 @@ public final class TlsContextOptions {
         if aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue, allocator.rawValue, certPath, ptr) != AWS_OP_SUCCESS {
 			throw AwsCommonRuntimeError()
 		}
-    
+
 	}
 
 	public init(clientWithMtlsCert cert: inout ByteCursor, key: inout ByteCursor, allocator: Allocator = defaultAllocator) throws {

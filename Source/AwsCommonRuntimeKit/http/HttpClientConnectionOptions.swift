@@ -27,7 +27,7 @@ public struct HttpClientConnectionOptions {
      Will true if manual window management is used, but defaults to false
      */
     public let enableManualWindowManagement: Bool
-    
+
     public init(clientBootstrap bootstrap: ClientBootstrap,
                 hostName: String,
                 initialWindowSize: Int = Int.max,
