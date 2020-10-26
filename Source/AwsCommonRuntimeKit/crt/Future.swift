@@ -1,7 +1,7 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-import Foundation
+import Dispatch
 
 public class Future<Value> {
     public typealias FutureResult = Result<Value, Error>

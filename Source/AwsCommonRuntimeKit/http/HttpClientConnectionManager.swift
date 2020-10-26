@@ -7,7 +7,7 @@ typealias OnConnectionShutdown = (HttpClientConnection?, Int32) -> Void
 
 public class HttpClientConnectionManager {
     
-    let queue: DispatchQueue = DispatchQueue.global(qos: .userInitiated)
+    var queue: Queue<Future<HttpClientConnection>> = Queue<Future<HttpClientConnection>>()
     
     let options: HttpClientConnectionOptions
     
@@ -22,6 +22,10 @@ public class HttpClientConnectionManager {
     public func acquireConnection() -> Future<HttpClientConnection> {
         let future = Future<HttpClientConnection>()
         let onConnectionSetup: OnConnectionSetup = { connection, errorCode in
+            guard let future = self.queue.dequeue() else {
+                //this should never happen
+                return
+            }
             guard let connection = connection else {
                 let error = HttpConnectionError(errorCode: Int(errorCode))
                 future.complete(.failure(error))
@@ -32,24 +36,26 @@ public class HttpClientConnectionManager {
         }
         
         let onConnectionShutDown: OnConnectionShutdown = { connection, errorCode in
+            guard let future = self.queue.dequeue() else {
+                //this should never happen
+                return
+            }
             let error = HttpConnectionError(errorCode: Int(errorCode))
             future.complete(.failure(error))
         }
         
-        queue.async {
-            
-        
         HttpClientConnection.createConnection(options: self.options,
-                                                  onConnectionSetup: onConnectionSetup,
-                                                  onConnectionShutdown: onConnectionShutDown)
-        
-        }
+                                              onConnectionSetup: onConnectionSetup,
+                                              onConnectionShutdown: onConnectionShutDown)
+        queue.enqueue(future)
         return future
     }
     
     public func closePendingConnections() {
-        queue.suspend()
-       
+        while !queue.isEmpty {
+            if let future = queue.dequeue() {
+                future.complete(.failure(HttpConnectionError(errorCode: -1)))
+            }
+        }
     }
-    
 }
