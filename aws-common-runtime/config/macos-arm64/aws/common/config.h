@@ -16,5 +16,6 @@
 #define AWS_HAVE_GCC_INLINE_ASM
 /* #undef AWS_HAVE_MSVC_MULX */
 #define AWS_HAVE_EXECINFO
+#define AWS_UNSTABLE_TESTING_API 1
 
 #endif

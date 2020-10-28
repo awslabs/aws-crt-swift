@@ -99,93 +99,55 @@ package.targets = ( [
         name: "AwsCCommon",
         dependencies: ["AwsCPlatformConfig"],
         path: "aws-common-runtime/aws-c-common",
-        exclude: awsCCommonPlatformExcludes,
-        cSettings: [
-            //do this to avoid having problems with the test header module export
-            .define("AWS_UNSTABLE_TESTING_API=1")
-            //.unsafeFlags(unsafeFlagsArray),
-        ]),
+        exclude: awsCCommonPlatformExcludes),
     .target(
         name: "AwsCIo",
         dependencies: ["AwsCCommon"],
         path: "aws-common-runtime/aws-c-io",
-        exclude: awsCIoPlatformExcludes,
-        cSettings: [
-            //do this to avoid having problems with the test header module export
-            .define("AWS_UNSTABLE_TESTING_API=1")
-        ]),
+        exclude: awsCIoPlatformExcludes),
     .target(
         name: "AwsCCal",
         dependencies: ["AwsCCommon"],
         path: "aws-common-runtime/aws-c-cal",
-        exclude: awsCCalPlatformExcludes,
-        cSettings: [
-            //do this to avoid having problems with the test header module export
-            .define("AWS_UNSTABLE_TESTING_API=1")
-        ]
+        exclude: awsCCalPlatformExcludes
     ),
     .target(
         name: "AwsCCompression",
         dependencies: ["AwsCCommon"],
         path: "aws-common-runtime/aws-c-compression",
-        exclude: awsCCompressionPlatformExcludes,
-        cSettings: [
-            //do this to avoid having problems with the test header module export
-            .define("AWS_UNSTABLE_TESTING_API=1")
-        ]
+        exclude: awsCCompressionPlatformExcludes
     ),
     .target(
         name: "AwsCHttp",
         dependencies: ["AwsCCompression", "AwsCIo", "AwsCCommon"],
         path: "aws-common-runtime/aws-c-http",
-        exclude: awsCHttpPlatformExcludes,
-        cSettings: [
-            //do this to avoid having problems with the test header module export
-            .define("AWS_UNSTABLE_TESTING_API=1")
-        ]
+        exclude: awsCHttpPlatformExcludes
     ),
     .target(
         name: "AwsCAuth",
         dependencies: ["AwsCHttp", "AwsCCompression", "AwsCCal", "AwsCIo", "AwsCCommon"],
         path: "aws-common-runtime/aws-c-auth",
-        exclude: awsCAuthPlatformExcludes,
-        cSettings: [
-            //do this to avoid having problems with the test header module export
-            .define("AWS_UNSTABLE_TESTING_API=1")
-        ]
+        exclude: awsCAuthPlatformExcludes
     ),
     .target(
         name: "AwsCMqtt",
         dependencies: ["AwsCHttp", "AwsCCompression", "AwsCIo", "AwsCCommon"],
         path: "aws-common-runtime/aws-c-mqtt",
-        exclude: awsCMqttPlatformExcludes,
-        cSettings: [
-            //do this to avoid having problems with the test header module export
-            .define("AWS_UNSTABLE_TESTING_API=1")
-        ]
+        exclude: awsCMqttPlatformExcludes
     ),
     .target(
         name: "AwsCommonRuntimeKit",
         dependencies: [ "AwsCMqtt", "AwsCAuth", "AwsCHttp", "AwsCCal", "AwsCCompression", "AwsCIo", "AwsCCommon"],
-        path: "Source/AwsCommonRuntimeKit",
-        cSettings: [
-            .define("AWS_UNSTABLE_TESTING_API")
-        ]
+        path: "Source/AwsCommonRuntimeKit"
     ),
     .testTarget(
         name: "AwsCommonRuntimeKitTests",
         dependencies: ["AwsCommonRuntimeKit"],
-        path: "Test",
-        cSettings: [
-            .define("AWS_UNSTABLE_TESTING_API")
-        ]
+        path: "Test"
     ),
     .target(
         name: "Elasticurl",
         dependencies: ["AwsCommonRuntimeKit"],
-        path: "Source/Elasticurl",
-        cSettings: [
-            .define("AWS_UNSTABLE_TESTING_API")
-        ]
+        path: "Source/Elasticurl"
     )
 ] )
