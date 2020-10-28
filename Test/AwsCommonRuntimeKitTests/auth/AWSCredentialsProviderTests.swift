@@ -121,7 +121,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             let callbackData = setUpCallbackCredentials()
             provider.getCredentials(credentialCallbackData: callbackData)
 
-            wait(for: [expectation], timeout: 5.0)
+            wait(for: [expectation], timeout: 10.0)
         } catch {
             XCTFail()
         }
