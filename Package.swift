@@ -1,5 +1,4 @@
 // swift-tools-version:5.1
-
 import PackageDescription
 
 var package = Package(name: "AwsCrt",
