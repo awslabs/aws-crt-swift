@@ -1,50 +1,49 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-import Dispatch
+import Foundation
 
-public class Future<Value> {
+public final class Future<Value> {
     public typealias FutureResult = Result<Value, Error>
     
-    private var _value: FutureResult? {
-        get {
-            queue.sync { [weak self] in
-                guard let strongSelf = self else { return nil }
-                return strongSelf._value
-            }
-        }
-        set(value) {
-            queue.async(flags: .barrier) { [weak self] in
-                guard let strongSelf = self else { return }
-                strongSelf._value = value
-            }
-        }
-    }
+    private var _value: FutureResult? //nil when pending
     
-    private let queue = DispatchQueue(label: "atomicValue", qos: .default, attributes: .concurrent)
+    private var waiter = DispatchSemaphore(value: 0)
     
-    var waiter = DispatchSemaphore(value: 0)
-    
-    private var _observers = [((FutureResult) -> Void)]()
+    private var _observers: [((FutureResult) -> Void)] = []
     
     public init(value: FutureResult? = nil) {
         self._value = value
     }
     
-    public func get() throws -> Value {
-        if let value = self._value {
-            return try value.get()
+    public func get() throws -> Value? {
+        switch _value {
+        // Throw/return the result immediately if available.
+        case .failure(let error):
+          throw error
+        case .success(let value):
+          return value
+        // Wait for the future if no result has been fulfilled.
+        case nil:
+            waiter.wait()
         }
-        
-        waiter.wait()
-        //can force unwrap here cuz if wait was lifted, future has completed
-        return try self._value!.get()
+        return nil
     }
     
-    public func complete(_ value: FutureResult) {
-        self._value = value
-        self._observers.forEach { $0(value) }
-        waiter.signal()
+    public func fulfill(_ value: Value) {
+        precondition(self._value == nil, "can only be fulfilled once")
+        let result = FutureResult.success(value)
+        self._value = result
+        _observers.forEach { $0(result) }
+        _observers = []
+    }
+    
+    public func fail(_ error: Error) {
+        precondition(self._value == nil, "can only be fulfilled once")
+        let result = FutureResult.failure(error)
+        self._value = result
+        _observers.forEach { $0(result) }
+        _observers = []
     }
     
     public func then(_ block: @escaping (FutureResult) -> Void) {
@@ -67,7 +66,12 @@ extension Future {
             let future = closure(result)
             
             future.then { result in
-                promise.complete(result)
+                switch result {
+                case .failure(let error):
+                    promise.fail(error)
+                case .success(let value):
+                    promise.fulfill(value)
+                }
             }
         }
         

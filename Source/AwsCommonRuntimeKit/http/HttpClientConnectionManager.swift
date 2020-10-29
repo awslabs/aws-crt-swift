@@ -28,11 +28,11 @@ public class HttpClientConnectionManager {
             }
             guard let connection = connection else {
                 let error = HttpConnectionError(errorCode: Int(errorCode))
-                future.complete(.failure(error))
+                future.fail(error)
                 return
             }
 
-            future.complete(.success(connection))
+            future.fulfill(connection)
         }
 
         let onConnectionShutDown: OnConnectionShutdown = { connection, errorCode in
@@ -41,7 +41,7 @@ public class HttpClientConnectionManager {
                 return
             }
             let error = HttpConnectionError(errorCode: Int(errorCode))
-            future.complete(.failure(error))
+            future.fail(error)
         }
 
         HttpClientConnection.createConnection(options: self.options,
@@ -54,7 +54,7 @@ public class HttpClientConnectionManager {
     public func closePendingConnections() {
         while !queue.isEmpty {
             if let future = queue.dequeue() {
-                future.complete(.failure(HttpConnectionError(errorCode: -1)))
+                future.fail(HttpConnectionError(errorCode: -1))
             }
         }
     }
