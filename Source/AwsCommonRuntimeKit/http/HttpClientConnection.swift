@@ -7,79 +7,15 @@ import Foundation
 
 public class HttpClientConnection {
     private let allocator: Allocator
-    private let rawValue: UnsafeMutablePointer<aws_http_connection>
+    let rawValue: UnsafeMutablePointer<aws_http_connection>
+    let manager: HttpClientConnectionManager
 
-    init(connection: UnsafeMutablePointer<aws_http_connection>, allocator: Allocator = defaultAllocator) {
+    init(manager: HttpClientConnectionManager,
+         connection: UnsafeMutablePointer<aws_http_connection>,
+         allocator: Allocator = defaultAllocator) {
+        self.manager = manager
         self.allocator = allocator
         self.rawValue = connection
-    }
-
-    /// Creates an http connection to the host given via the `HttpClientConnectionOptions`
-    /// - Parameters:
-    ///   - options: An options object of type `HttpClientConnectionOptions` to send in all options for connectiing via http
-    ///   - allocator: The allocator to use to allocate memory. If no allocator is passed in the `defaultAllocator` will be used.
-    static func createConnection(options: HttpClientConnectionOptions,
-                                 onConnectionSetup: @escaping OnConnectionSetup,
-                                 onConnectionShutdown: @escaping OnConnectionShutdown,
-                                 allocator: Allocator = defaultAllocator) {
-        let tempHostName = options.hostName.newByteCursor()
-
-        var unmanagedConnectionOptions = aws_http_client_connection_options(
-            self_size: 0,
-            allocator: allocator.rawValue,
-            bootstrap: options.clientBootstrap.rawValue,
-            host_name: tempHostName.rawValue,
-            port: options.port,
-            socket_options: UnsafePointer(options.socketOptions.rawValue),
-            tls_options: nil,
-            proxy_options: nil,
-            monitoring_options: nil,
-            manual_window_management: options.enableManualWindowManagement,
-            initial_window_size: options.initialWindowSize,
-            user_data: nil,
-            on_setup: { unmanagedConnection, errorCode, userData in
-                guard let userData = userData else {
-                    return
-                }
-
-                let callbackData: HttpClientConnectionCallbackData = Unmanaged.fromOpaque(userData).takeRetainedValue()
-                if let unmanagedConnection = unmanagedConnection {
-
-                    callbackData.managedConnection = HttpClientConnection(connection: unmanagedConnection, allocator: callbackData.allocator)
-                }
-                callbackData.onConnectionSetup(callbackData.managedConnection, errorCode)
-            },
-            on_shutdown: { _, errorCode, userData in
-                guard let userData = userData else {
-                    return
-                }
-
-                let callbackData: HttpClientConnectionCallbackData = Unmanaged.fromOpaque(userData).takeRetainedValue()
-
-                callbackData.onConnectionShutdown(callbackData.managedConnection, errorCode)
-            },
-            http1_options: nil,
-            http2_options: nil
-        )
-
-        unmanagedConnectionOptions.self_size = MemoryLayout.size(ofValue: unmanagedConnectionOptions)
-
-        if let tlsOptions = options.tlsOptions {
-            unmanagedConnectionOptions.tls_options = UnsafePointer(tlsOptions.rawValue)
-        }
-
-        if let proxyOptions = options.proxyOptions {
-            unmanagedConnectionOptions.proxy_options = UnsafePointer(proxyOptions.rawValue)
-        }
-
-        let callbackData = HttpClientConnectionCallbackData(options: options,
-                                                            onConnectionSetup: onConnectionSetup,
-                                                            onConnectionShutdown: onConnectionShutdown,
-                                                            allocator: allocator)
-        unmanagedConnectionOptions.user_data = Unmanaged.passRetained(callbackData).toOpaque()
-
-        aws_http_client_connect(&unmanagedConnectionOptions)
-
     }
 
     public var isOpen: Bool {
@@ -88,13 +24,13 @@ public class HttpClientConnection {
 
     /// Close the http connection
     public func close() {
-        return aws_http_connection_close(rawValue)
+        manager.releaseConnection(connection: self)
     }
 
     /// Creates a new http stream from the `HttpRequestOptions` given.
     /// - Parameter requestOptions: An `HttpRequestOptions` struct containing callbacks on the different events from the stream
     /// - Returns: An `HttpStream` containing the `HttpClientConnection`
-    public func newClientStream(requestOptions: HttpRequestOptions) -> HttpStream {
+    public func makeRequest(requestOptions: HttpRequestOptions) -> HttpStream {
         var options = aws_http_make_request_options()
         options.self_size = MemoryLayout<aws_http_make_request_options>.size
         options.request = requestOptions.request.rawValue

@@ -24,9 +24,21 @@ public struct HttpClientConnectionOptions {
      usage is bounded (e.g. reactive streams).
      If this is enabled, you must call HttpStream.updateWindow() for every
      byte read from the OnIncomingBody callback.
-     Will true if manual window management is used, but defaults to false
+     Will be true if manual window management is used, but defaults to false
      */
     public let enableManualWindowManagement: Bool
+    
+    /// Max connections the manager can contain
+    public let maxConnections: Int
+    
+    /// Add a shut down callback using these options
+    public let shutDownOptions: ShutDownCallbackOptions?
+    
+    /// If set to a non-zero value, then connections that stay in the pool longer than the specified
+    /// timeout will be closed automatically.
+    public let maxConnectionIdleMs: UInt64
+    
+    public let monitoringOptions: HttpMonitoringOptions?
 
     public init(clientBootstrap bootstrap: ClientBootstrap,
                 hostName: String,
@@ -35,7 +47,11 @@ public struct HttpClientConnectionOptions {
                 proxyOptions: HttpProxyOptions?,
                 socketOptions: SocketOptions,
                 tlsOptions: TlsConnectionOptions?,
-                enableManualWindowManagement: Bool = false) {
+                monitoringOptions: HttpMonitoringOptions?,
+                maxConnections: Int = 2,
+                enableManualWindowManagement: Bool = false,
+                maxConnectionIdleMs: UInt64 = 0,
+                shutDownOptions: ShutDownCallbackOptions? = nil) {
 
         self.clientBootstrap = bootstrap
         self.hostName = hostName
@@ -44,6 +60,10 @@ public struct HttpClientConnectionOptions {
         self.proxyOptions = proxyOptions
         self.socketOptions = socketOptions
         self.tlsOptions = tlsOptions
+        self.monitoringOptions = monitoringOptions
+        self.maxConnections = maxConnections
         self.enableManualWindowManagement = enableManualWindowManagement
+        self.maxConnectionIdleMs = maxConnectionIdleMs
+        self.shutDownOptions = shutDownOptions
     }
 }

@@ -16,18 +16,14 @@ public final class Future<Value> {
         self._value = value
     }
     
-    public func get() throws -> Value? {
-        switch _value {
-        // Throw/return the result immediately if available.
-        case .failure(let error):
-          throw error
-        case .success(let value):
-          return value
-        // Wait for the future if no result has been fulfilled.
-        case nil:
-            waiter.wait()
+    public func get() throws -> Value {
+        if let value = self._value {
+            return try value.get()
         }
-        return nil
+
+        waiter.wait()
+        //can force unwrap here cuz if wait was lifted, future has completed
+        return try self._value!.get()
     }
     
     public func fulfill(_ value: Value) {
@@ -36,6 +32,7 @@ public final class Future<Value> {
         self._value = result
         _observers.forEach { $0(result) }
         _observers = []
+        waiter.signal()
     }
     
     public func fail(_ error: Error) {
@@ -44,6 +41,7 @@ public final class Future<Value> {
         self._value = result
         _observers.forEach { $0(result) }
         _observers = []
+        waiter.signal()
     }
     
     public func then(_ block: @escaping (FutureResult) -> Void) {

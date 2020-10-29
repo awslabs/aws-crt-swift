@@ -1,20 +1,16 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-class HttpClientConnectionCallbackData {
-    var managedConnection: HttpClientConnection?
+struct HttpClientConnectionCallbackData {
+    let connectionManager: HttpClientConnectionManager
     let allocator: Allocator
-    var connectionOptions: HttpClientConnectionOptions
-    let onConnectionSetup: OnConnectionSetup
-    let onConnectionShutdown: OnConnectionShutdown
+    let onConnectionAcquired: OnConnectionAcquired
 
-    init(options: HttpClientConnectionOptions,
-         onConnectionSetup: @escaping OnConnectionSetup,
-         onConnectionShutdown: @escaping OnConnectionShutdown,
+    init(onConnectionAcquired: @escaping OnConnectionAcquired,
+         connectionManager: HttpClientConnectionManager,
          allocator: Allocator) {
-        self.connectionOptions = options
-        self.onConnectionSetup = onConnectionSetup
-        self.onConnectionShutdown = onConnectionShutdown
+        self.onConnectionAcquired = onConnectionAcquired
+        self.connectionManager = connectionManager
         self.allocator = allocator
     }
 }
