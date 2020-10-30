@@ -64,7 +64,7 @@ extension InputStream: AwsInputStreamImpl {
         } else {
             targetOffset = length - Int64(offset)
         }
-        try! self.readData(maxLength: Int(targetOffset))
+        _ = try! self.readData(maxLength: Int(targetOffset))
         return true
     }
 
@@ -87,9 +87,9 @@ extension InputStream: AwsInputStreamImpl {
         if result < 0 {
             throw self.streamError ?? POSIXError(.EIO)
         } else {
+            close()
             return Data(buffer.prefix(result))
         }
-        close()
     }
 }
 
