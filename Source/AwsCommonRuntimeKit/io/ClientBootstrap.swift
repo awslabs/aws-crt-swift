@@ -6,16 +6,18 @@ import Foundation
 public final class ClientBootstrap {
     let rawValue: UnsafeMutablePointer<aws_client_bootstrap>
     var enableBlockingShutdown: Bool = false
-    let callbackData: ClientBootstrapCallbackData
+    let callbackData: ClientBootstrapCallbackData?
 
     public init(eventLoopGroup elg: EventLoopGroup,
                 hostResolver: HostResolver,
-                callbackData: ClientBootstrapCallbackData,
+                callbackData: ClientBootstrapCallbackData? = nil,
                 allocator: Allocator = defaultAllocator) throws {
 
         self.callbackData = callbackData
         let callbackDataPointer = UnsafeMutablePointer<ClientBootstrapCallbackData>.allocate(capacity: 1)
+        if let callbackData = callbackData {
         callbackDataPointer.initialize(to: callbackData)
+        }
 
         var options = aws_client_bootstrap_options(
             event_loop_group: elg.rawValue,
@@ -45,7 +47,7 @@ public final class ClientBootstrap {
     deinit {
         aws_client_bootstrap_release(rawValue)
         if enableBlockingShutdown {
-            callbackData.shutDownSemaphore.wait()
+            callbackData?.shutDownSemaphore.wait()
         }
     }
 }

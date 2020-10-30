@@ -23,7 +23,7 @@ public final class DefaultHostResolver: HostResolver {
               maxHosts: Int,
               maxTTL: Int,
               allocator: Allocator = defaultAllocator,
-              shutDownOptions: ShutDownCallbackOptions? = nil) throws {
+              shutDownOptions: ShutDownCallbackOptions? = nil) {
     self.allocator = allocator
 
     var ptr: UnsafePointer<aws_shutdown_callback_options>?
