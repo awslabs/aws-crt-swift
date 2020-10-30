@@ -8,8 +8,11 @@ private var vtable = aws_input_stream_vtable(seek: doSeek, read: doRead, get_sta
 
 public class AwsInputStream {
     var rawValue: aws_input_stream
+    public var length: Int64
 
     public init(_ impl: AwsInputStreamImpl, allocator: Allocator = defaultAllocator) {
+        let tempLength = impl.length
+        self.length = tempLength
         let ptr = UnsafeMutablePointer<AwsInputStreamImpl>.allocate(capacity: 1)
         ptr.initialize(to: impl)
         defer {ptr.deinitializeAndDeallocate()}
@@ -28,20 +31,28 @@ public protocol AwsInputStreamImpl {
 extension InputStream: AwsInputStreamImpl {
     @inlinable
     public var status: aws_stream_status {
-    
         return aws_stream_status(is_end_of_stream: self.streamStatus == .atEnd, is_valid: true)
     }
 
     @inlinable
     public var length: Int64 {
-        var i = 1 //read 1 byte at first
-        var resultingLength: Int64 = 0 //set length to be zero
+        open()
+        var data = Data()
+        let bufferSize = 1024
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
         while hasBytesAvailable {
-            let data = try! readData(maxLength: 1)
-            i+=1
-            resultingLength += Int64(data.count)
+            let read = self.read(buffer, maxLength: bufferSize)
+            if (read == 0) {
+                break  // added
+            }
+            data.append(buffer, count: read)
         }
-        return resultingLength
+        defer{
+            buffer.deallocate()
+        }
+
+        close()
+        return Int64(data.count)
     }
 
     @inlinable
@@ -70,6 +81,7 @@ extension InputStream: AwsInputStreamImpl {
     }
     
     public func readData(maxLength length: Int) throws -> Data {
+        open()
         var buffer = [UInt8](repeating: 0, count: length)
         let result = self.read(&buffer, maxLength: buffer.count)
         if result < 0 {
@@ -77,6 +89,7 @@ extension InputStream: AwsInputStreamImpl {
         } else {
             return Data(buffer.prefix(result))
         }
+        close()
     }
 }
 
