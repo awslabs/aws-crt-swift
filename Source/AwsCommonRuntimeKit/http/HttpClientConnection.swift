@@ -88,7 +88,7 @@ public class HttpClientConnection {
             guard let userData = userData else {
                 return
             }
-            let httpStreamCbData: HttpStreamCallbackData = Unmanaged.fromOpaque(userData).takeRetainedValue()
+            let httpStreamCbData: HttpStreamCallbackData = Unmanaged.fromOpaque(userData).takeUnretainedValue()
             httpStreamCbData.requestOptions.onStreamComplete!(httpStreamCbData.stream!, errorCode)
         }
 

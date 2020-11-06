@@ -55,7 +55,7 @@ public extension HttpMessage {
     }
 
     func addHeaders(headers: HttpHeaders) {
-        for index in 0...headerCount {
+        for index in 0...headers.count {
             var header = HttpHeader(name: "", value: "")
             if aws_http_headers_get_index(headers.rawValue, index, &header.rawValue) == AWS_OP_SUCCESS {
                 aws_http_message_add_header(rawValue, header.rawValue)
