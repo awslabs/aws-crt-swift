@@ -5,7 +5,7 @@
     "swift build -c release"
   ],
   "test_steps": [
-    "./integ_test.sh"
+    "swift test"
   ],
   "hosts": {
     "ubuntu": {},
@@ -25,6 +25,11 @@
     "ios": {
       "build_steps": [
         "xcodebuild -scheme AwsCrt -destination 'generic/platform=iOS'"
+      ]
+    },
+    "osx": {
+      "test_steps": [
+        "./integ_test.sh"
       ]
     }
   }
