@@ -39,7 +39,7 @@ final class AWSCredentialsProvider {
         staticOptions.session_token = config.sessionToken.awsByteCursor
 
         guard let provider = aws_credentials_provider_new_static(allocator.rawValue,
-                                                                 &staticOptions) else { throw AwsCommonRuntimeError() }
+                                                                 &staticOptions) else { throw AWSCommonRuntimeError() }
 
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -59,7 +59,7 @@ final class AWSCredentialsProvider {
         envOptions.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(shutDownOptions: shutdownOptions)
 
         guard let provider = aws_credentials_provider_new_environment(allocator.rawValue,
-                                                                      &envOptions) else { throw AwsCommonRuntimeError() }
+                                                                      &envOptions) else { throw AWSCommonRuntimeError() }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 
@@ -84,7 +84,7 @@ final class AWSCredentialsProvider {
 
         guard let provider = aws_credentials_provider_new_profile(allocator.rawValue,
                                                                   &profileOptionsC) else {
-                                                                    throw AwsCommonRuntimeError()
+                                                                    throw AWSCommonRuntimeError()
 
         }
 
@@ -103,7 +103,7 @@ final class AWSCredentialsProvider {
         imdsOptions.bootstrap = imdsConfig.bootstrap.rawValue
         imdsOptions.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(shutDownOptions: imdsConfig.shutdownOptions)
 
-        guard let provider = aws_credentials_provider_new_imds(allocator.rawValue, &imdsOptions) else {throw AwsCommonRuntimeError() }
+        guard let provider = aws_credentials_provider_new_imds(allocator.rawValue, &imdsOptions) else {throw AWSCommonRuntimeError() }
 
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -123,7 +123,7 @@ final class AWSCredentialsProvider {
         cachedOptions.refresh_time_in_milliseconds = UInt64(cachedConfig.refreshTimeMs)
 
         guard let provider = aws_credentials_provider_new_cached(allocator.rawValue, &cachedOptions) else {
-            throw AwsCommonRuntimeError()
+            throw AWSCommonRuntimeError()
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -147,7 +147,7 @@ final class AWSCredentialsProvider {
         chainDefaultOptions.bootstrap = chainDefaultConfig.bootstrap.rawValue
 
         guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue, &chainDefaultOptions) else {
-            throw AwsCommonRuntimeError()
+            throw AWSCommonRuntimeError()
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -173,7 +173,7 @@ final class AWSCredentialsProvider {
         }
 
         guard let provider = aws_credentials_provider_new_x509(allocator.rawValue, &x509Options) else {
-            throw AwsCommonRuntimeError()
+            throw AWSCommonRuntimeError()
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -192,8 +192,9 @@ final class AWSCredentialsProvider {
             }
             let pointer = userdata.assumingMemoryBound(to: CredentialsProviderCallbackData.self)
             defer { pointer.deinitializeAndDeallocate() }
+            let error = AWSError(errorCode: errorCode)
             if let onCredentialsResolved = pointer.pointee.onCredentialsResolved {
-               onCredentialsResolved(Credentials(rawValue: credentials), errorCode)
+                onCredentialsResolved(Credentials(rawValue: credentials), CRTError.crtError(error))
             }
         }, pointer)
     }

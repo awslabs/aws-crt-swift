@@ -17,7 +17,7 @@ public final class MqttClient {
 
         if aws_mqtt_client_init(rawValue, allocator.rawValue, clientBootstrap.rawValue) != AWS_OP_SUCCESS {
             rawValue.deinitializeAndDeallocate()
-            throw AwsCommonRuntimeError()
+            throw AWSCommonRuntimeError()
         }
     }
 

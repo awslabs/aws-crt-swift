@@ -32,11 +32,11 @@ class SigV4HttpRequestSigner {
     /// - `Throws`: An error of type `AwsCommonRuntimeError` which will pull last error found in the CRT
     public func signRequest(request: HttpRequest, config: SigningConfig, callback: @escaping OnSigningComplete) throws {
         if config.configType != .aws {
-            throw AwsCommonRuntimeError()
+            throw AWSCommonRuntimeError()
         }
 
         if config.rawValue.credentials_provider == nil && config.rawValue.credentials == nil {
-            throw AwsCommonRuntimeError()
+            throw AWSCommonRuntimeError()
         }
         let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
 
@@ -67,10 +67,11 @@ class SigV4HttpRequestSigner {
                                             aws_signable_destroy(callback.pointee.signable)
                                             callback.deinitializeAndDeallocate()
                                         }
-                                        callback.pointee.onSigningComplete(SigningResult(rawValue: signingResult), callback.pointee.request, Int(errorCode))
+                                        let error = AWSError(errorCode: errorCode)
+                                        callback.pointee.onSigningComplete(SigningResult(rawValue: signingResult), callback.pointee.request, CRTError.crtError(error))
         },
                                     callbackPointer) != AWS_OP_SUCCESS {
-            throw AwsCommonRuntimeError()
+            throw AWSCommonRuntimeError()
         }
     }
 
@@ -80,7 +81,7 @@ class SigV4HttpRequestSigner {
                                                     signingResult.rawValue) == AWS_OP_SUCCESS {
             return request
         } else {
-            throw AwsCommonRuntimeError()
+            throw AWSCommonRuntimeError()
         }
     }
 }

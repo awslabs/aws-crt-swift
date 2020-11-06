@@ -5,12 +5,12 @@ import AwsCMqtt
 import AwsCHttp
 import Foundation
 
-public typealias OnConnectionInterrupted =  (UnsafeMutablePointer<aws_mqtt_client_connection>, Int32) -> Void
+public typealias OnConnectionInterrupted =  (UnsafeMutablePointer<aws_mqtt_client_connection>, CRTError) -> Void
 public typealias OnConnectionResumed = (UnsafeMutablePointer<aws_mqtt_client_connection>, MqttReturnCode, Bool) -> Void
 public typealias OnDisconnect = (UnsafeMutablePointer<aws_mqtt_client_connection>) -> Void
-public typealias OnConnectionComplete = (UnsafeMutablePointer<aws_mqtt_client_connection>, Int32, MqttReturnCode, Bool) -> Void
+public typealias OnConnectionComplete = (UnsafeMutablePointer<aws_mqtt_client_connection>, CRTError, MqttReturnCode, Bool) -> Void
 public typealias OnWebSocketHandshakeIntercept = (HttpRequest, OnWebSocketHandshakeInterceptComplete?) -> Void
-public typealias OnWebSocketHandshakeInterceptComplete = (HttpRequest, Int32) -> Void
+public typealias OnWebSocketHandshakeInterceptComplete = (HttpRequest, CRTError) -> Void
 
 public class MqttConnection {
     var onConnectionInterrupted: OnConnectionInterrupted = {(connectionPtr, errorCode) in }
@@ -60,8 +60,10 @@ public class MqttConnection {
             let pointer = userData.assumingMemoryBound(to: MqttConnection.self)
 
             defer { pointer.deinitializeAndDeallocate()}
+            
+            let error = AWSError(errorCode: errorCode)
 
-            pointer.pointee.onConnectionInterrupted(pointer.pointee.rawValue, errorCode)
+            pointer.pointee.onConnectionInterrupted(pointer.pointee.rawValue, CRTError.crtError(error))
 
         }, rawValue, { (_, connectReturnCode, sessionPresent, userData) in
             guard let userData = userData else {
@@ -143,7 +145,9 @@ public class MqttConnection {
             defer {
                 callbackPtr.deinitializeAndDeallocate()
             }
-            callbackPtr.pointee.onConnectionComplete(callbackPtr.pointee.rawValue, errorCode,
+            
+            let error = AWSError(errorCode: errorCode)
+            callbackPtr.pointee.onConnectionComplete(callbackPtr.pointee.rawValue, CRTError.crtError(error),
                                                          MqttReturnCode(rawValue: returnCode), sessionPresent)
         }
 
@@ -157,8 +161,10 @@ public class MqttConnection {
                     }
                     let ptr = userData.assumingMemoryBound(to: MqttConnection.self)
 
-                    let onInterceptComplete: OnWebSocketHandshakeInterceptComplete = {request, errorCode in
-                        completeFn!(httpRequest, errorCode, completeUserData)
+                    let onInterceptComplete: OnWebSocketHandshakeInterceptComplete = {request, crtError in
+                        if case let CRTError.crtError(error) = crtError {
+                            completeFn!(httpRequest, error.errorCode, completeUserData)
+                        }
                     }
                     defer { ptr.deinitializeAndDeallocate()}
                     //can unwrap here with ! because we know its not nil at this point
@@ -278,7 +284,8 @@ public class MqttConnection {
                 ptr.deinitializeAndDeallocate()
                 topicPtr?.deallocate()
             }
-            ptr.pointee.onSubAck(ptr.pointee.connection, Int16(packetId), topic, MqttQos(rawValue: qos), errorCode)
+            let error = AWSError(errorCode: errorCode)
+            ptr.pointee.onSubAck(ptr.pointee.connection, Int16(packetId), topic, MqttQos(rawValue: qos), CRTError.crtError(error))
         }, subAckCallbackPtr)
 
         return packetId
@@ -324,8 +331,8 @@ public class MqttConnection {
                 }
                 topics.append(swiftString.pointee)
             }
-
-            ptr.pointee.onMultiSubAck(ptr.pointee.connection, Int16(packetId), topics, errorCode)
+            let error = AWSError(errorCode: errorCode)
+            ptr.pointee.onMultiSubAck(ptr.pointee.connection, Int16(packetId), topics, CRTError.crtError(error))
         }, subAckCallbackPtr)
 
         return packetId
@@ -350,7 +357,8 @@ public class MqttConnection {
             defer {
                 ptr.deinitializeAndDeallocate()
             }
-            ptr.pointee.onOperationComplete(ptr.pointee.connection, Int16(packetId), errorCode)
+            let error = AWSError(errorCode: errorCode)
+            ptr.pointee.onOperationComplete(ptr.pointee.connection, Int16(packetId), CRTError.crtError(error))
         }, opCallbackPtr)
         return packetId
     }
@@ -377,7 +385,8 @@ public class MqttConnection {
             }
             let ptr = userData.assumingMemoryBound(to: OpCompleteCallbackData.self)
             defer { ptr.deinitializeAndDeallocate()}
-            ptr.pointee.onOperationComplete(ptr.pointee.connection, Int16(packetId), errorCode)
+            let error = AWSError(errorCode: errorCode)
+            ptr.pointee.onOperationComplete(ptr.pointee.connection, Int16(packetId), CRTError.crtError(error))
         }, opCallbackPtr)
 
         defer {

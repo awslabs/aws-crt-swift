@@ -25,7 +25,7 @@ public final class TlsContextOptions {
         zeroStruct(optionsPtr)
         self.rawValue = optionsPtr
         if aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue, allocator.rawValue, certPath, ptr) != AWS_OP_SUCCESS {
-			throw AwsCommonRuntimeError()
+			throw AWSCommonRuntimeError()
 		}
 
 	}
@@ -35,7 +35,7 @@ public final class TlsContextOptions {
         zeroStruct(optionsPtr)
         self.rawValue = optionsPtr
         if aws_tls_ctx_options_init_client_mtls_pkcs12(rawValue, allocator.rawValue, &cert.rawValue, &key.rawValue) != AWS_OP_SUCCESS {
-			throw AwsCommonRuntimeError()
+			throw AWSCommonRuntimeError()
 		}
 	}
     #endif
@@ -47,26 +47,26 @@ public final class TlsContextOptions {
         self.rawValue = optionsPtr
 		var passwordCursor = password.newByteCursor()
 		if aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue, allocator.rawValue, path, &passwordCursor.rawValue) != AWS_OP_SUCCESS {
-			throw AwsCommonRuntimeError()
+			throw AWSCommonRuntimeError()
 		}
 	}
 	#endif
 
 	public func overrideDefaultTrustStore(caPath: String, caFile: String) throws {
 		if aws_tls_ctx_options_override_default_trust_store_from_path(rawValue, caPath, caFile) != AWS_OP_SUCCESS {
-			throw AwsCommonRuntimeError()
+			throw AWSCommonRuntimeError()
 		}
 	}
 
 	public func overrideDefaultTrustStore(cert: inout ByteCursor) throws {
 		if aws_tls_ctx_options_override_default_trust_store(rawValue, &cert.rawValue) != AWS_OP_SUCCESS {
-			throw AwsCommonRuntimeError()
+			throw AWSCommonRuntimeError()
 		}
 	}
 
 	public func setAlpnList(_ alpnList: String) throws {
 		if aws_tls_ctx_options_set_alpn_list(rawValue, alpnList) != AWS_OP_SUCCESS {
-			throw AwsCommonRuntimeError()
+			throw AWSCommonRuntimeError()
 		}
 	}
 

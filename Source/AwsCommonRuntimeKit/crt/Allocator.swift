@@ -18,7 +18,7 @@ public protocol Allocator {
 internal extension Allocator {
     func allocate<T>() throws -> UnsafeMutablePointer<T> {
         guard let result = aws_mem_acquire(self.rawValue, MemoryLayout<T>.size) else {
-            throw CrtError.memoryAllocationFailure
+            throw CRTError.memoryAllocationFailure
         }
         return result.bindMemory(to: T.self, capacity: 1)
     }
@@ -34,7 +34,7 @@ internal extension Allocator {
      */
     func allocate<T>(capacity: Int) throws -> UnsafeMutablePointer<T> {
         guard let result = aws_mem_calloc(self.rawValue, capacity, MemoryLayout<T>.size) else {
-            throw CrtError.memoryAllocationFailure
+            throw CRTError.memoryAllocationFailure
         }
         return result.bindMemory(to: T.self, capacity: capacity)
     }

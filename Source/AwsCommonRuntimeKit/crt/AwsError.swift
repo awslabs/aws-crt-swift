@@ -2,19 +2,19 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
 
-public enum CrtError: Error {
-  case fileNotFound(String)
-  case memoryAllocationFailure
-  case stringConversionError(UnsafePointer<aws_string>?)
-  case crtError(AwsError)
-}
-
-
-public struct AwsError {
-    let errorMessage: String
+public struct AWSError {
     
+    let errorCode: Int32
+
+    public let errorMessage: String?
+
     public init(errorCode: Int32) {
-        let cString = aws_error_str(errorCode)
-        errorMessage = String(cString: cString!)
+        self.errorCode = errorCode
+        let stringPtr = aws_error_str(errorCode)
+        if let stringPtr = stringPtr {
+            self.errorMessage = String(cString: stringPtr)
+        } else {
+            self.errorMessage = nil
+        }
     }
 }

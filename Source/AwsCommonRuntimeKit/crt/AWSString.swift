@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
 
-final class AwsString {
+final class AWSString {
     let string: String
     let rawValue: UnsafeMutablePointer<aws_string>
 
@@ -16,7 +16,7 @@ final class AwsString {
     }
 
     func newByteCursor() -> ByteCursor {
-        return AwsStringByteCursor(self)
+        return AWSStringByteCursor(self)
     }
 
     func asCStr() -> UnsafePointer<Int8> {
@@ -28,11 +28,11 @@ final class AwsString {
     }
 }
 
-private struct AwsStringByteCursor: ByteCursor {
-    private let awsString: AwsString
+private struct AWSStringByteCursor: ByteCursor {
+    private let awsString: AWSString
     public var rawValue: aws_byte_cursor
 
-    init(_ awsString: AwsString) {
+    init(_ awsString: AWSString) {
         self.awsString = awsString
         self.rawValue = aws_byte_cursor_from_string(awsString.rawValue)
     }

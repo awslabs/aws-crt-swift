@@ -52,8 +52,8 @@ public class HttpClientConnectionManager {
                 return
             }
             guard let connection = connection else {
-                let error = HttpConnectionError(errorCode: Int(errorCode))
-                future.fail(error)
+                let error = AWSError(errorCode: errorCode)
+                future.fail(CRTError.crtError(error))
                 return
             }
 
@@ -83,7 +83,8 @@ public class HttpClientConnectionManager {
     public func closePendingConnections() {
         while !queue.isEmpty {
             if let future = queue.dequeue() {
-                future.fail(HttpConnectionError(errorCode: -1))
+                let error = AWSError(errorCode: -1)
+                future.fail(CRTError.crtError(error))
             }
         }
     }

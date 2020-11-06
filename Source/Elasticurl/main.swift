@@ -221,8 +221,8 @@ struct Elasticurl {
             
             try tlsConnectionOptions.setServerName(context.url)
             
-            let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-            let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
+            let elg = EventLoopGroup(threadCount: 1, allocator: allocator)
+            let hostResolver = DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
             
             let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
                 sempahore.signal()
