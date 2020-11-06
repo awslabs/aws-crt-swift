@@ -5,7 +5,7 @@
     "swift build -c release"
   ],
   "test_steps": [
-    "swift test"
+    "./integ_test.sh"
   ],
   "hosts": {
     "ubuntu": {},
