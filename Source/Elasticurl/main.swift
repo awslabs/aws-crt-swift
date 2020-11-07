@@ -20,7 +20,7 @@ struct Context {
     public var outputFileName: String?
     public var traceFile: String?
     public var insecure: Bool = false
-    public var url: String = ""
+    public var url: URL = URL(fileURLWithPath: "")
     public var data: Data?
     public var alpnList: [String] = []
     
@@ -161,11 +161,11 @@ struct Elasticurl {
         
         //make sure a url was given before we do anything else
         guard let urlString = CommandLine.arguments.last,
-              let _ = URL(string: urlString) else {
+              let url = URL(string: urlString) else {
             print("Invalid URL: \(CommandLine.arguments.last!)")
             exit(-1)
         }
-        context.url = urlString
+        context.url = url
     }
     
     static func showHelp() {
@@ -219,7 +219,7 @@ struct Elasticurl {
             
             let tlsConnectionOptions = tlsContext.newConnectionOptions()
             
-            try tlsConnectionOptions.setServerName(context.url)
+            try tlsConnectionOptions.setServerName(context.url.host!)
             
             let elg = EventLoopGroup(threadCount: 1, allocator: allocator)
             let hostResolver = DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
@@ -242,10 +242,10 @@ struct Elasticurl {
             
             let httpRequest: HttpRequest = HttpRequest(allocator: allocator)
             httpRequest.method = "GET"
-            httpRequest.path = "/"
+            httpRequest.path = context.url.path
             
             let headers = HttpHeaders(allocator: allocator)
-            if headers.add(name: "Host", value: context.url),
+            if headers.add(name: "Host", value: context.url.absoluteString),
                headers.add(name: "User-Agent", value: "Elasticurl"),
                headers.add(name: "Accept", value: "*/*") {
                 
@@ -271,10 +271,11 @@ struct Elasticurl {
             
             let onComplete: HttpRequestOptions.OnStreamComplete = { stream, errorCode in
                 print(errorCode)
+                semaphore.signal()
             }
             
             let httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
-                                                                hostName: context.url,
+                                                                hostName: context.url.host!,
                                                                 initialWindowSize: Int.max,
                                                                 port: port,
                                                                 proxyOptions: nil,
