@@ -4,16 +4,7 @@ import PackageDescription
 var package = Package(name: "AwsCrt",
                       platforms: [.iOS(.v11), .macOS(.v10_14)],
                       products: [
-                        .library(name: "AwsCommonRuntimeKit",
-                                 targets: [
-                                    "AwsCCommon",
-                                    "AwsCIo",
-                                    "AwsCCompression",
-                                    "AwsCHttp",
-                                    "AwsCCal",
-                                    "AwsCAuth",
-                                    "AwsCMqtt",
-                                    "AwsCommonRuntimeKit"]),
+                        .library(name: "AwsCommonRuntimeKit",targets: ["AwsCommonRuntimeKit"]),
                         .executable(name: "Elasticurl", targets: ["Elasticurl"])
                       ])
 
@@ -76,27 +67,11 @@ var awsCHttpPlatformExcludes = ["tests", "bin", "integration-testing", "continuo
 var awsCAuthPlatformExcludes = ["tests"]
 var awsCMqttPlatformExcludes = ["tests", "cmake"]
 
-//var platform = "unknown"
-//#if os(macOS)
-//platform = "macos"
-//#elseif os(Windows)
-//platform = "windows"
-//#elseif os(iOS)
-//platform = "ios"
-//#endif
-//
-//var architecture = "unknown"
-//#if arch(x86_64)
-//architecture = "x86_64"
-//#elseif arch(arm64)
-//architecture = "arm64"
-//#endif
-
 package.targets = ( [
     .target(
         name: "AwsCPlatformConfig",
-        path: "aws-common-runtime/config"
-       // publicHeadersPath: "aws"
+        path: "aws-common-runtime/config",
+        publicHeadersPath: "."
     ),
     .target(
         name: "AwsCCommon",
