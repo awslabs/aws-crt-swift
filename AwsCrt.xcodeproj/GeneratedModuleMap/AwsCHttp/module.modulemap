@@ -1,0 +1,4 @@
+module AwsCHttp {
+    umbrella "/Users/nickik/Projects/Amplify/aws-crt-swift/aws-common-runtime/aws-c-http/include"
+    export *
+}

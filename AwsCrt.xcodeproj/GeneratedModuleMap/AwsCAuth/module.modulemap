@@ -1,0 +1,4 @@
+module AwsCAuth {
+    umbrella "/Users/nickik/Projects/Amplify/aws-crt-swift/aws-common-runtime/aws-c-auth/include"
+    export *
+}
