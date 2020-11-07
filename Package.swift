@@ -80,6 +80,8 @@ var platform = "unknown"
 platform = "macos"
 #elseif os(Windows)
 platform = "windows"
+#elseif os(iOS)
+platform = "ios"
 #endif
 
 var architecture = "unknown"
