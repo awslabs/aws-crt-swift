@@ -241,7 +241,7 @@ struct Elasticurl {
             //var connection: HttpClientConnection?
             
             let httpRequest: HttpRequest = HttpRequest(allocator: allocator)
-            httpRequest.method = "GET"
+            httpRequest.method = context.verb
             httpRequest.path = context.url.path
             
             let headers = HttpHeaders(allocator: allocator)
@@ -269,8 +269,8 @@ struct Elasticurl {
                 
             }
             
-            let onComplete: HttpRequestOptions.OnStreamComplete = { stream, errorCode in
-                print(errorCode)
+            let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
+                print(error.localizedDescription)
                 semaphore.signal()
             }
             
