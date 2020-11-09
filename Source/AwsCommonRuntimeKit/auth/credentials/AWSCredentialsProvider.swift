@@ -33,7 +33,8 @@ final class AWSCredentialsProvider {
                      allocator: Allocator = defaultAllocator) throws {
 
         var staticOptions = aws_credentials_provider_static_options()
-        staticOptions.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(shutDownOptions: config.shutDownOptions)
+        staticOptions.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(
+            shutDownOptions: config.shutDownOptions)
         staticOptions.access_key_id = config.accessKey.awsByteCursor
         staticOptions.secret_access_key = config.secret.awsByteCursor
         staticOptions.session_token = config.sessionToken.awsByteCursor
@@ -59,7 +60,8 @@ final class AWSCredentialsProvider {
         envOptions.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(shutDownOptions: shutdownOptions)
 
         guard let provider = aws_credentials_provider_new_environment(allocator.rawValue,
-                                                                      &envOptions) else { throw AWSCommonRuntimeError() }
+                                                                      &envOptions)
+        else { throw AWSCommonRuntimeError() }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 
@@ -80,7 +82,8 @@ final class AWSCredentialsProvider {
             profileOptionsC.credentials_file_name_override = credentialsFileName.awsByteCursor
             profileOptionsC.profile_name_override = profileName.awsByteCursor
         }
-        profileOptionsC.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(shutDownOptions: profileOptions.shutdownOptions)
+        profileOptionsC.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(
+            shutDownOptions: profileOptions.shutdownOptions)
 
         guard let provider = aws_credentials_provider_new_profile(allocator.rawValue,
                                                                   &profileOptionsC) else {
@@ -101,9 +104,11 @@ final class AWSCredentialsProvider {
 
         var imdsOptions = aws_credentials_provider_imds_options()
         imdsOptions.bootstrap = imdsConfig.bootstrap.rawValue
-        imdsOptions.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(shutDownOptions: imdsConfig.shutdownOptions)
+        imdsOptions.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(
+            shutDownOptions: imdsConfig.shutdownOptions)
 
-        guard let provider = aws_credentials_provider_new_imds(allocator.rawValue, &imdsOptions) else {throw AWSCommonRuntimeError() }
+        guard let provider = aws_credentials_provider_new_imds(allocator.rawValue,
+                                                               &imdsOptions) else {throw AWSCommonRuntimeError() }
 
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -117,7 +122,8 @@ final class AWSCredentialsProvider {
                      allocator: Allocator = defaultAllocator) throws {
 
         var cachedOptions = aws_credentials_provider_cached_options()
-        cachedOptions.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(shutDownOptions: cachedConfig.shutDownOptions)
+        cachedOptions.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(
+            shutDownOptions: cachedConfig.shutDownOptions)
 
         cachedOptions.source = cachedConfig.source.rawValue
         cachedOptions.refresh_time_in_milliseconds = UInt64(cachedConfig.refreshTimeMs)
@@ -140,13 +146,16 @@ final class AWSCredentialsProvider {
     /// - Parameters:
     ///   - chainDefaultConfig:  The `CredentialsProviderChainDefaultConfig`options object.
     /// - Returns: `AWSCredentialsProvider`
-    convenience init(fromChainDefault chainDefaultConfig: CredentialsProviderChainDefaultConfig, allocator: Allocator = defaultAllocator) throws {
+    convenience init(fromChainDefault chainDefaultConfig: CredentialsProviderChainDefaultConfig,
+                     allocator: Allocator = defaultAllocator) throws {
 
         var chainDefaultOptions = aws_credentials_provider_chain_default_options()
-        chainDefaultOptions.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(shutDownOptions: chainDefaultConfig.shutDownOptions)
+        chainDefaultOptions.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(
+            shutDownOptions: chainDefaultConfig.shutDownOptions)
         chainDefaultOptions.bootstrap = chainDefaultConfig.bootstrap.rawValue
 
-        guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue, &chainDefaultOptions) else {
+        guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue,
+                                                                        &chainDefaultOptions) else {
             throw AWSCommonRuntimeError()
         }
         self.init(credentialsProvider: provider, allocator: allocator)
@@ -161,7 +170,8 @@ final class AWSCredentialsProvider {
                      allocator: Allocator = defaultAllocator) throws {
 
         var x509Options = aws_credentials_provider_x509_options()
-        x509Options.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(shutDownOptions: x509Config.shutDownOptions)
+        x509Options.shutdown_options = WrappedCredentialsProvider.setUpShutDownOptions(
+            shutDownOptions: x509Config.shutDownOptions)
         x509Options.bootstrap = x509Config.bootstrap.rawValue
         x509Options.tls_connection_options = UnsafePointer(x509Config.tlsConnectionOptions.rawValue)
         x509Options.thing_name = x509Config.thingName.awsByteCursor
@@ -172,14 +182,16 @@ final class AWSCredentialsProvider {
             x509Options.proxy_options = UnsafePointer(proxyOptions)
         }
 
-        guard let provider = aws_credentials_provider_new_x509(allocator.rawValue, &x509Options) else {
+        guard let provider = aws_credentials_provider_new_x509(allocator.rawValue,
+                                                               &x509Options) else {
             throw AWSCommonRuntimeError()
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
     #endif
 
-    /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to the callback passed in.
+    /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
+    /// the callback passed in.
     ///
     /// - Parameters:
     ///   - credentialCallbackData:  The `CredentialProviderCallbackData`options object.

@@ -28,7 +28,8 @@ public class HttpClientConnection {
     }
 
     /// Creates a new http stream from the `HttpRequestOptions` given.
-    /// - Parameter requestOptions: An `HttpRequestOptions` struct containing callbacks on the different events from the stream
+    /// - Parameter requestOptions: An `HttpRequestOptions` struct containing callbacks on
+    /// the different events from the stream
     /// - Returns: An `HttpStream` containing the `HttpClientConnection`
     public func makeRequest(requestOptions: HttpRequestOptions) -> HttpStream {
         var options = aws_http_make_request_options()
@@ -80,7 +81,8 @@ public class HttpClientConnection {
                 return -1
             }
             let httpStreamCbData: HttpStreamCallbackData = Unmanaged.fromOpaque(userData).takeUnretainedValue()
-            httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(httpStreamCbData.stream!, HttpHeaderBlock(rawValue: headerBlock))
+            httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(httpStreamCbData.stream!,
+                                                                       HttpHeaderBlock(rawValue: headerBlock))
             return 0
         }
         options.on_complete = {_, errorCode, userData in

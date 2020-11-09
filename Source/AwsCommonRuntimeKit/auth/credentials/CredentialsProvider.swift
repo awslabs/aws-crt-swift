@@ -3,7 +3,9 @@
 
 import AwsCAuth
 
-private func getCredentialsFn(_ credentialsProviderPtr: UnsafeMutablePointer<aws_credentials_provider>?, _ callbackFn: (@convention(c)(OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?, userData: UnsafeMutableRawPointer?) -> Int32 {
+private func getCredentialsFn(_ credentialsProviderPtr: UnsafeMutablePointer<aws_credentials_provider>?,
+                              _ callbackFn: (@convention(c)(OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
+                              userData: UnsafeMutableRawPointer?) -> Int32 {
 
     guard let credentialsProvider = userData?.assumingMemoryBound(to: CredentialsProvider.self) else {
         return 1
@@ -31,8 +33,11 @@ class WrappedCredentialsProvider {
     var rawValue: aws_credentials_provider
     let allocator: Allocator
 
-    init(impl: inout CredentialsProvider, allocator: Allocator, shutDownOptions: CredentialsProviderShutdownOptions? = nil) {
-        var vtable = aws_credentials_provider_vtable(get_credentials: getCredentialsFn, destroy: { (credentialsProviderPtr) in
+    init(impl: inout CredentialsProvider,
+         allocator: Allocator,
+         shutDownOptions: CredentialsProviderShutdownOptions? = nil) {
+        var vtable = aws_credentials_provider_vtable(get_credentials: getCredentialsFn,
+                                                     destroy: { (credentialsProviderPtr) in
             guard let credentialsProviderPtr = credentialsProviderPtr else {
                 return
             }
@@ -53,7 +58,8 @@ class WrappedCredentialsProvider {
 
     }
 
-    static func setUpShutDownOptions(shutDownOptions: CredentialsProviderShutdownOptions?) -> aws_credentials_provider_shutdown_options {
+    static func setUpShutDownOptions(shutDownOptions: CredentialsProviderShutdownOptions?)
+    -> aws_credentials_provider_shutdown_options {
         let shutDownOptionsC: aws_credentials_provider_shutdown_options?
         if let shutDownOptions = shutDownOptions {
 

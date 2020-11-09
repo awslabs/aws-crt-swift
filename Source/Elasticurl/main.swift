@@ -5,6 +5,7 @@ import AwsCommonRuntimeKit
 import Foundation
 import Darwin
 
+//swiftlint:disable cyclomatic_complexity
 struct Context {
     //args
     public var logLevel: LogLevel = .trace
@@ -60,7 +61,9 @@ struct Elasticurl {
                        ElasticurlOptions.verbose.rawValue,
                        ElasticurlOptions.lastOption.rawValue]
 
-        let argumentsDict = CommandLineParser.parseArguments(argc: CommandLine.argc, arguments: CommandLine.unsafeArgv, optionString: optionString, options: options)
+        let argumentsDict = CommandLineParser.parseArguments(argc: CommandLine.argc,
+                                                             arguments: CommandLine.unsafeArgv,
+                                                             optionString: optionString, options: options)
 
         if let caCert = argumentsDict["a"] as? String {
             context.caCert = caCert
@@ -149,9 +152,9 @@ struct Elasticurl {
             context.alpnList.append(http1)
         }
 
-        if let h2 = argumentsDict["W"] as? String {
+        if let http2 = argumentsDict["W"] as? String {
 
-            context.alpnList.append(h2)
+            context.alpnList.append(http2)
         }
 
         if argumentsDict["h"] != nil {
@@ -201,17 +204,17 @@ struct Elasticurl {
             _ = Logger(pipe: stdout, level: context.logLevel, allocator: allocator)
         }
     }
-    
+
     static func createOutputFile() {
         if let fileName = context.outputFileName {
             let fileManager = FileManager.default
             let path = FileManager.default.currentDirectoryPath + "/" + fileName
             print("current directory is:" + path)
-            fileManager.createFile(atPath:path, contents: nil, attributes: nil)
+            fileManager.createFile(atPath: path, contents: nil, attributes: nil)
             context.outputStream = FileHandle(forWritingAtPath: fileName) ?? FileHandle.standardOutput
         }
     }
-    
+
     static func writeData(data: Data) {
         context.outputStream.write(data)
     }
@@ -219,9 +222,9 @@ struct Elasticurl {
     static func run() {
         do {
             parseArguments()
-            
+
             createOutputFile()
-            
+
             guard let host = context.url.host else {
                 print("no proper host was parsed from the url. quitting.")
                 exit(EXIT_FAILURE)
@@ -320,7 +323,7 @@ struct Elasticurl {
 
             semaphore.wait()
             exit(EXIT_SUCCESS)
-        } catch (let err) {
+        } catch let err {
             showHelp()
             print(err)
             exit(EXIT_FAILURE)

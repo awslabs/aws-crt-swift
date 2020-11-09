@@ -9,7 +9,9 @@ public final class EventLoopGroup {
 
     public let shutDownOptions: ShutDownCallbackOptions?
 
-    public init(threadCount: UInt16 = 0, allocator: Allocator = defaultAllocator, shutDownOptions: ShutDownCallbackOptions? = nil) {
+    public init(threadCount: UInt16 = 0,
+                allocator: Allocator = defaultAllocator,
+                shutDownOptions: ShutDownCallbackOptions? = nil) {
         var ptr: UnsafePointer<aws_shutdown_callback_options>?
         if let shutDownOptions = shutDownOptions {
             let shutDownPtr = UnsafeMutablePointer<ShutDownCallbackOptions>.allocate(capacity: 1)

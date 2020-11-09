@@ -9,7 +9,8 @@ var package = Package(name: "AwsCrt",
                       ])
 
 // aws-c-common config
-var awsCCommonPlatformExcludes = ["source/windows", "source/android", "AWSCRTAndroidTestRunner", "cmake", "codebuild", "docker-images", "tests", "verification"]
+var awsCCommonPlatformExcludes = ["source/windows", "source/android", "AWSCRTAndroidTestRunner",
+                                  "cmake", "codebuild", "docker-images", "tests", "verification"]
 //var unsafeFlagsArray: [String] = []
 
 #if arch(i386) || arch(x86_64)

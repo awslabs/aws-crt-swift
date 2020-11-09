@@ -3,28 +3,29 @@
 
 import Foundation
 import AwsCCommon
-
+//swiftlint:disable trailing_whitespace
 public struct CommandLineParser {
     /// A function to parse command line arguments
     /// - Parameters:
     ///   - argc: The number of arguments
     ///   - arguments: A pointer to a string pointer of the arguments
     ///   - optionString: a `String` with all the possible options that could be passed in
-    ///   - options: An array of `[aws_cli_option]` containing all the possible option keys as objects with additional metadata
-    /// - Returns: A dictionary of`[String: Any] ` with `String` as the name of the flag and `Any` as the value passed in
-	public static func parseArguments(argc: Int32, arguments: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>, optionString: String, options: [aws_cli_option]) -> [String: Any] {
+    ///   - options: An array of `[aws_cli_option]` containing all the possible option keys as objects
+    ///   with additional metadata
+    /// - Returns: A dictionary of`[String: Any] ` with `String` as the name of the flag and `Any` as the
+    /// value passed in
+    public static func parseArguments(argc: Int32,
+                                      arguments: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>,
+                                      optionString: String,
+                                      options: [aws_cli_option]) -> [String: Any] {
         var argumentsDict = [String: Any]()
-
         while true {
-
-           var optionIndex: Int32 = 0
-
-           let opt = aws_cli_getopt_long(argc, arguments, optionString.asCStr(), options, &optionIndex)
-
-           if opt == -1 || opt == 0 {
-               break
-           }
-
+            var optionIndex: Int32 = 0
+            let opt = aws_cli_getopt_long(argc, arguments, optionString.asCStr(), options, &optionIndex)
+            if opt == -1 || opt == 0 {
+                break
+            }
+            
             if let char = opt.toString() {
                 if aws_cli_optarg != nil {
                     argumentsDict[char] = String(cString: aws_cli_optarg)
@@ -32,11 +33,11 @@ public struct CommandLineParser {
                     //if argument doesnt have a value just mark it as present in the dictionary
                     argumentsDict[char] = true
                 }
-           }
+            }
         }
-
+        
         return argumentsDict
-	}
+    }
 }
 
 public enum CLIHasArg {
@@ -61,7 +62,7 @@ extension CLIHasArg: RawRepresentable, CaseIterable {
 
 public struct AWSCLIOption {
     public let rawValue: aws_cli_option
-
+    
     public init(name: String, hasArg: CLIHasArg, flag: UnsafeMutablePointer<Int32>? = nil, val: String) {
         self.rawValue = aws_cli_option(name: name.asCStr(), has_arg: hasArg.rawValue, flag: flag, val: val.toInt32())
     }

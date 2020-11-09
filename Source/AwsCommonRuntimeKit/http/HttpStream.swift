@@ -27,9 +27,9 @@ public class HttpStream {
     }
 
     /// Opens the Sliding Read/Write Window by the number of bytes passed as an argument for this HttpStream.
-    /// This function should only be called if the user application previously returned less than the length of the input
-    /// ByteBuffer from a onIncomingBody() call in a HttpRequestOptions, and should be &lt;= to the total number of
-    /// un-acked bytes.
+    /// This function should only be called if the user application previously returned less than the length of the
+    /// input ByteBuffer from a onIncomingBody() call in a HttpRequestOptions, and should be &lt;= to the total
+    /// number of un-acked bytes.
     /// - Parameters:
     ///   - incrementBy:  How many bytes to increment the sliding window by.
     public func updateWindow(incrementBy: Int) {

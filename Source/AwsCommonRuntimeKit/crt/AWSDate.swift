@@ -80,14 +80,14 @@ class AWSDate: Comparable {
         return aws_date_time_diff(lhs.rawValue, rhs.rawValue) >= 0
     }
 
-    static func -(lhs: AWSDate, rhs: AWSDate) -> AWSDate {
+    static func - (lhs: AWSDate, rhs: AWSDate) -> AWSDate {
         var currentTime = aws_date_time_as_millis(lhs.rawValue)
         let timeToSubtractBy = aws_date_time_as_millis(rhs.rawValue)
         currentTime -= timeToSubtractBy
         return AWSDate(epochMs: currentTime)
     }
 
-    static func +(lhs: AWSDate, rhs: AWSDate) -> AWSDate {
+    static func + (lhs: AWSDate, rhs: AWSDate) -> AWSDate {
         var currentTime = aws_date_time_as_millis(lhs.rawValue)
         let timeToAdd = aws_date_time_as_millis(rhs.rawValue)
         currentTime += timeToAdd

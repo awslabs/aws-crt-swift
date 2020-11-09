@@ -38,6 +38,9 @@ private struct StringByteCursor: ByteCursor {
 
     init(_ string: String) {
         self.string = string.utf8CString
-        self.rawValue = aws_byte_cursor_from_array(self.string.withUnsafeBufferPointer { ptr in return ptr.baseAddress }, self.string.count - 1)
+        self.rawValue = aws_byte_cursor_from_array(
+            self.string.withUnsafeBufferPointer { ptr in return ptr.baseAddress },
+            self.string.count - 1
+        )
     }
 }

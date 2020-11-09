@@ -64,7 +64,8 @@ struct SigningConfig {
                                                     return false
                                                 }
 
-                                                let callback = userData.bindMemory(to: ShouldSignHeader.self, capacity: 1)
+                                                let callback = userData.bindMemory(to: ShouldSignHeader.self,
+                                                                                   capacity: 1)
                                                 defer {
                                                     callback.deinitializeAndDeallocate()
                                                 }

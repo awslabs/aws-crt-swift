@@ -41,7 +41,8 @@ public final class HttpRequest: HttpMessage {
             return result.toString()
         }
         set(value) {
-            if aws_http_message_set_request_path(self.rawValue, value?.awsByteCursor ?? "".awsByteCursor) != AWS_OP_SUCCESS {
+            if aws_http_message_set_request_path(self.rawValue,
+                                                 value?.awsByteCursor ?? "".awsByteCursor) != AWS_OP_SUCCESS {
                 self.path = nil
             }
         }

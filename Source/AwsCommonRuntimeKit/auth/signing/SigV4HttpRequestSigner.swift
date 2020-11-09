@@ -23,7 +23,8 @@ class SigV4HttpRequestSigner {
     ///   - X-Amz-Algorithm,
     ///   - X-Amz-SignedHeaders
     ///
-    /// The signing result will tell exactly what header and/or query params to add to the request to become a fully-signed AWS http request.
+    /// The signing result will tell exactly what header and/or query params to add to the request to
+    /// become a fully-signed AWS http request.
     ///
     /// - `Parameters`:
     ///    - `request`:  The `HttpRequest`to be signed.
@@ -40,11 +41,16 @@ class SigV4HttpRequestSigner {
         }
         let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
 
-        let callbackData = SigningCallbackData(allocator: allocator.rawValue, request: request, signable: signable, onSigningComplete: callback)
+        let callbackData = SigningCallbackData(allocator: allocator.rawValue,
+                                               request: request,
+                                               signable: signable,
+                                               onSigningComplete: callback)
 
         let configPointer = UnsafeMutablePointer<aws_signing_config_aws>.allocate(capacity: 1)
         configPointer.initialize(to: config.rawValue)
-        let base = configPointer.withMemoryRebound(to: aws_signing_config_base.self, capacity: 1) { (configPointer) -> UnsafeMutablePointer<aws_signing_config_base> in
+        let base = configPointer.withMemoryRebound(to: aws_signing_config_base.self,
+                                                   capacity: 1) { (configPointer)
+            -> UnsafeMutablePointer<aws_signing_config_base> in
             return configPointer
         }
         let configPtr = UnsafePointer(base)
@@ -68,7 +74,9 @@ class SigV4HttpRequestSigner {
                                             callback.deinitializeAndDeallocate()
                                         }
                                         let error = AWSError(errorCode: errorCode)
-                                        callback.pointee.onSigningComplete(SigningResult(rawValue: signingResult), callback.pointee.request, CRTError.crtError(error))
+                                        callback.pointee.onSigningComplete(SigningResult(rawValue: signingResult),
+                                                                           callback.pointee.request,
+                                                                           CRTError.crtError(error))
         },
                                     callbackPointer) != AWS_OP_SUCCESS {
             throw AWSCommonRuntimeError()
