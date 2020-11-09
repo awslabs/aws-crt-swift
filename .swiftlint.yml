@@ -1,7 +1,9 @@
 # Do not specify an `included` section at this top-level file. Specify the
 # `--config` option pointing to this file, and the `--path` option to the files
 # you wish to lint
-
+disabled_rules:
+    - unused_closure_parameter
+    - closure_parameter_position
 excluded:
     - Test
 
