@@ -1,4 +1,3 @@
-#!/usr/bin/swift
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
@@ -22,18 +21,19 @@ struct Context {
     public var insecure: Bool = false
     public var url: URL = URL(fileURLWithPath: "")
     public var data: Data?
-    public var alpnList: [String] = []
-    
+    public var alpnList: [String] = ["http/1.1"]
+    public var outputStream = FileHandle.standardOutput
+
 }
 
 struct Elasticurl {
     private static let version = "0.1.0"
     private static var context = Context()
-    
+
     static func parseArguments() {
-        
+
         let optionString = "a:b:c:e:f:H:d:g:j:l:m:M:GPHiko:t:v:VwWh"
-        
+
         let options = [ElasticurlOptions.caCert.rawValue,
                        ElasticurlOptions.caPath.rawValue,
                        ElasticurlOptions.cert.rawValue,
@@ -59,39 +59,39 @@ struct Elasticurl {
                        ElasticurlOptions.version.rawValue,
                        ElasticurlOptions.verbose.rawValue,
                        ElasticurlOptions.lastOption.rawValue]
-        
+
         let argumentsDict = CommandLineParser.parseArguments(argc: CommandLine.argc, arguments: CommandLine.unsafeArgv, optionString: optionString, options: options)
-        
+
         if let caCert = argumentsDict["a"] as? String {
             context.caCert = caCert
         }
-        
+
         if let caPath = argumentsDict["b"] as? String {
             context.caPath = caPath
         }
-        
+
         if let certificate = argumentsDict["c"] as? String {
             context.certificate = certificate
         }
-        
+
         if let privateKey = argumentsDict["e"] as? String {
             context.privateKey = privateKey
         }
-        
+
         if let connectTimeout = argumentsDict["f"] as? Int {
             context.connectTimeout = connectTimeout
         }
-        
+
         if let headers = argumentsDict["H"] as? String {
             context.headers.append(headers)
         }
-        
+
         if let stringData = argumentsDict["d"] as? String {
             context.data = stringData.data(using: .utf8)
         }
-        
+
         if let dataFilePath = argumentsDict["g"] as? String {
-            
+
             guard let url = URL(string: dataFilePath) else {
                 print("path to data file is incorrect or does not exist")
                 exit(-1)
@@ -102,63 +102,63 @@ struct Elasticurl {
                 exit(-1)
             }
         }
-        
+
         if let method = argumentsDict["M"] as? String {
-            
+
             context.verb = method
         }
-        
+
         if argumentsDict["G"] != nil {
             context.verb = "GET"
         }
-        
+
         if argumentsDict["P"] != nil {
             context.verb = "POST"
         }
-        
+
         if argumentsDict["I"] != nil {
             context.verb = "HEAD"
         }
-        
+
         if argumentsDict["i"] != nil {
             context.includeHeaders = true
         }
-        
+
         if argumentsDict["k"] != nil {
             context.insecure = true
         }
-        
+
         if let fileName = argumentsDict["o"] as? String {
             context.outputFileName = fileName
         }
-        
+
         if let traceFile = argumentsDict["t"] as? String {
             context.traceFile = traceFile
         }
-        
+
         if let logLevel = argumentsDict["v"] as? String {
             context.logLevel = LogLevel.fromString(string: logLevel)
         }
-        
+
         if argumentsDict["V"] != nil {
             print("elasticurl \(version)")
             exit(0)
         }
-        
+
         if let http1 = argumentsDict["w"] as? String {
             context.alpnList.append(http1)
         }
-        
+
         if let h2 = argumentsDict["W"] as? String {
-            
+
             context.alpnList.append(h2)
         }
-        
+
         if argumentsDict["h"] != nil {
             showHelp()
             exit(0)
         }
-        
+
         //make sure a url was given before we do anything else
         guard let urlString = CommandLine.arguments.last,
               let url = URL(string: urlString) else {
@@ -167,7 +167,7 @@ struct Elasticurl {
         }
         context.url = url
     }
-    
+
     static func showHelp() {
         print("usage: elasticurl [options] url")
         print("url: url to make a request to. The default is a GET request")
@@ -191,7 +191,7 @@ struct Elasticurl {
         print("  -v, --verbose ERROR|INFO|DEBUG|TRACE: log level to configure. Default is none.")
         print("  -h, --help: Display this message and quit.")
     }
-    
+
     static func enableLogging(allocator: Allocator) {
         if let traceFile = context.traceFile {
             print("enable logging with trace file")
@@ -202,78 +202,98 @@ struct Elasticurl {
         }
     }
     
+    static func createOutputFile() {
+        if let fileName = context.outputFileName {
+            let fileManager = FileManager.default
+            let path = FileManager.default.currentDirectoryPath + "/" + fileName
+            print("current directory is:" + path)
+            fileManager.createFile(atPath:path, contents: nil, attributes: nil)
+            context.outputStream = FileHandle(forWritingAtPath: fileName) ?? FileHandle.standardOutput
+        }
+    }
+    
+    static func writeData(data: Data) {
+        context.outputStream.write(data)
+    }
+
     static func run() {
         do {
             parseArguments()
             
+            createOutputFile()
+            
+            guard let host = context.url.host else {
+                print("no proper host was parsed from the url. quitting.")
+                exit(EXIT_FAILURE)
+            }
+
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
             let logger = Logger(pipe: stdout, level: context.logLevel, allocator: allocator)
-            
+
             AwsCommonRuntimeKit.initialize(allocator: allocator)
-            
+
             let port = UInt16(443)
-            
+
             let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
             try tlsContextOptions.setAlpnList(context.alpnList.joined(separator: ";"))
             let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
-            
+
             let tlsConnectionOptions = tlsContext.newConnectionOptions()
-            
-            try tlsConnectionOptions.setServerName(context.url.host!)
-            
+
+            try tlsConnectionOptions.setServerName(host)
+
             let elg = EventLoopGroup(threadCount: 1, allocator: allocator)
             let hostResolver = DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
-            
+
             let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
                 sempahore.signal()
             }
-            
+
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                                 hostResolver: hostResolver,
                                                 callbackData: clientBootstrapCallbackData,
                                                 allocator: allocator)
-            
+
             let socketOptions = SocketOptions(socketType: .stream)
-            
+
             let semaphore = DispatchSemaphore(value: 0)
-            
+
             var stream: HttpStream?
-            //var connection: HttpClientConnection?
-            
+
             let httpRequest: HttpRequest = HttpRequest(allocator: allocator)
             httpRequest.method = context.verb
             httpRequest.path = context.url.path
-            
+
             let headers = HttpHeaders(allocator: allocator)
-            if headers.add(name: "Host", value: context.url.absoluteString),
+            if headers.add(name: "Host", value: host),
                headers.add(name: "User-Agent", value: "Elasticurl"),
                headers.add(name: "Accept", value: "*/*") {
-                
+
                 httpRequest.addHeaders(headers: headers)
             }
-            
+
             let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
                 let allHeaders = headers.getAll()
                 for header in allHeaders {
                     print(header.name + " : " + header.value)
-                    
+
                 }
             }
-            
+
             let onBody: HttpRequestOptions.OnIncomingBody = { stream, bodyChunk in
-                let dataStr = String(decoding: bodyChunk, as: UTF8.self)
-                print(dataStr)
+                print("data was received")
+                writeData(data: bodyChunk)
             }
-            
+
             let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone = { stream, block in
-                
+
             }
-            
+
             let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
                 print(error.localizedDescription)
                 semaphore.signal()
             }
-            
+
             let httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
                                                                 hostName: context.url.host!,
                                                                 initialWindowSize: Int.max,
@@ -282,7 +302,7 @@ struct Elasticurl {
                                                                 socketOptions: socketOptions,
                                                                 tlsOptions: tlsConnectionOptions,
                                                                 monitoringOptions: nil)
-            
+
             let connectionManager = HttpClientConnectionManager(options: httpClientOptions)
             do {
                 let connection = try connectionManager.acquireConnection().get()
@@ -293,16 +313,17 @@ struct Elasticurl {
                                                         onStreamComplete: onComplete)
                 stream = connection.makeRequest(requestOptions: requestOptions)
                 stream!.activate()
-            }
-            catch {
+            } catch {
                 print("connection has shut down with error: \(error.localizedDescription)" )
                 semaphore.signal()
             }
-            
+
             semaphore.wait()
-        } catch {
+            exit(EXIT_SUCCESS)
+        } catch (let err) {
             showHelp()
-            exit(-1)
+            print(err)
+            exit(EXIT_FAILURE)
         }
     }
 }

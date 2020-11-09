@@ -39,7 +39,7 @@ class HostResolverTests: CrtXCBaseTestCase {
     if case let CRTError.crtError(unwrappedError) = error.unsafelyUnwrapped {
         XCTAssertEqual(unwrappedError.errorCode, 0, "Error (\(String(describing: unwrappedError)) is blank")
     }
-   
+
     XCTAssertEqual(addressCount, 2, "Address Count is (\(String(describing: addressCount)))")
   }
 }

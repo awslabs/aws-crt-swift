@@ -27,17 +27,17 @@ public struct HttpClientConnectionOptions {
      Will be true if manual window management is used, but defaults to false
      */
     public let enableManualWindowManagement: Bool
-    
+
     /// Max connections the manager can contain
     public let maxConnections: Int
-    
+
     /// Add a shut down callback using these options
     public let shutDownOptions: ShutDownCallbackOptions?
-    
+
     /// If set to a non-zero value, then connections that stay in the pool longer than the specified
     /// timeout will be closed automatically.
     public let maxConnectionIdleMs: UInt64
-    
+
     public let monitoringOptions: HttpMonitoringOptions?
 
     public init(clientBootstrap bootstrap: ClientBootstrap,

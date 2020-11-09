@@ -4,7 +4,7 @@ import PackageDescription
 var package = Package(name: "AwsCrt",
                       platforms: [.iOS(.v11), .macOS(.v10_14)],
                       products: [
-                        .library(name: "AwsCommonRuntimeKit",targets: ["AwsCommonRuntimeKit"]),
+                        .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
                         .executable(name: "Elasticurl", targets: ["Elasticurl"])
                       ])
 

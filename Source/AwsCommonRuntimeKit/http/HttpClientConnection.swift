@@ -90,7 +90,7 @@ public class HttpClientConnection {
             }
             let httpStreamCbData: HttpStreamCallbackData = Unmanaged.fromOpaque(userData).takeUnretainedValue()
             let error = AWSError(errorCode: errorCode)
-            
+
             httpStreamCbData.requestOptions.onStreamComplete!(httpStreamCbData.stream!, CRTError.crtError(error))
         }
 

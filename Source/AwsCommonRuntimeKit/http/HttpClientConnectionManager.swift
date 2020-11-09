@@ -32,14 +32,14 @@ public class HttpClientConnectionManager {
                                                                 guard let userData = userData else {
                                                                     return
                                                                 }
-                                                                
+
                                                                 let callbackOptions = userData.assumingMemoryBound(to: ShutDownCallbackOptions.self)
                                                                 defer {callbackOptions.deinitializeAndDeallocate()}
                                                                 callbackOptions.pointee.shutDownCallback(callbackOptions.pointee.semaphore)
                                                              },
                                                              enable_read_back_pressure: options.enableManualWindowManagement,
                                                              max_connection_idle_in_milliseconds: options.maxConnectionIdleMs)
-        
+
         self.manager = aws_http_connection_manager_new(allocator.rawValue, &mgrOptions)
     }
 
@@ -69,7 +69,7 @@ public class HttpClientConnectionManager {
             guard let userData = userData, let connection = connection else {
                 return
             }
-            
+
             let callbackData = userData.assumingMemoryBound(to: HttpClientConnectionCallbackData.self)
             defer {callbackData.deinitializeAndDeallocate()}
             let httpConnection = HttpClientConnection(manager: callbackData.pointee.connectionManager, connection: connection)
@@ -88,15 +88,15 @@ public class HttpClientConnectionManager {
             }
         }
     }
-    
+
     ///Releases this HttpClientConnection back into the Connection Pool, and allows another Request to acquire this connection.
     /// - Parameters:
     ///     - connection:  `HttpClientConnection` to release
-   
+
     public func releaseConnection(connection: HttpClientConnection) {
         aws_http_connection_manager_release_connection(manager, connection.rawValue)
     }
-    
+
     deinit {
         aws_http_connection_manager_release(manager)
     }

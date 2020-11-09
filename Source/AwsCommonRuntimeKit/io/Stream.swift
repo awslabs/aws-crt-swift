@@ -42,12 +42,12 @@ extension InputStream: AwsInputStreamImpl {
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
         while hasBytesAvailable {
             let read = self.read(buffer, maxLength: bufferSize)
-            if (read == 0) {
+            if read == 0 {
                 break  // added
             }
             data.append(buffer, count: read)
         }
-        defer{
+        defer {
             buffer.deallocate()
         }
 
@@ -60,7 +60,7 @@ extension InputStream: AwsInputStreamImpl {
         let targetOffset: Int64
         if basis.rawValue == AWS_SSB_BEGIN.rawValue {
             targetOffset = length + Int64(offset)
-            
+
         } else {
             targetOffset = length - Int64(offset)
         }
@@ -79,7 +79,7 @@ extension InputStream: AwsInputStreamImpl {
         }
         return !self.status.is_end_of_stream
     }
-    
+
     public func readData(maxLength length: Int) throws -> Data {
         open()
         var buffer = [UInt8](repeating: 0, count: length)

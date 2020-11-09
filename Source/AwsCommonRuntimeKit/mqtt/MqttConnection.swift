@@ -60,7 +60,7 @@ public class MqttConnection {
             let pointer = userData.assumingMemoryBound(to: MqttConnection.self)
 
             defer { pointer.deinitializeAndDeallocate()}
-            
+
             let error = AWSError(errorCode: errorCode)
 
             pointer.pointee.onConnectionInterrupted(pointer.pointee.rawValue, CRTError.crtError(error))
@@ -145,7 +145,7 @@ public class MqttConnection {
             defer {
                 callbackPtr.deinitializeAndDeallocate()
             }
-            
+
             let error = AWSError(errorCode: errorCode)
             callbackPtr.pointee.onConnectionComplete(callbackPtr.pointee.rawValue, CRTError.crtError(error),
                                                          MqttReturnCode(rawValue: returnCode), sessionPresent)

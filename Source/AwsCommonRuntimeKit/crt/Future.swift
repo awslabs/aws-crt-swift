@@ -5,17 +5,17 @@ import Foundation
 
 public final class Future<Value> {
     public typealias FutureResult = Result<Value, Error>
-    
+
     private var _value: FutureResult? //nil when pending
-    
+
     private var waiter = DispatchSemaphore(value: 0)
-    
+
     private var _observers: [((FutureResult) -> Void)] = []
-    
+
     public init(value: FutureResult? = nil) {
         self._value = value
     }
-    
+
     public func get() throws -> Value {
         if let value = self._value {
             return try value.get()
@@ -25,7 +25,7 @@ public final class Future<Value> {
         //can force unwrap here cuz if wait was lifted, future has completed
         return try self._value!.get()
     }
-    
+
     public func fulfill(_ value: Value) {
         precondition(self._value == nil, "can only be fulfilled once")
         let result = FutureResult.success(value)
@@ -34,7 +34,7 @@ public final class Future<Value> {
         _observers = []
         waiter.signal()
     }
-    
+
     public func fail(_ error: Error) {
         precondition(self._value == nil, "can only be fulfilled once")
         let result = FutureResult.failure(error)
@@ -43,7 +43,7 @@ public final class Future<Value> {
         _observers = []
         waiter.signal()
     }
-    
+
     public func then(_ block: @escaping (FutureResult) -> Void) {
         if let value = self._value {
             block(value)
@@ -58,11 +58,11 @@ extension Future {
         // We'll start by constructing a "wrapper" promise that will be
         // returned from this method:
         let promise = Future<T>()
-        
+
         // Observe the current future:
         then { result in
             let future = closure(result)
-            
+
             future.then { result in
                 switch result {
                 case .failure(let error):
@@ -72,7 +72,7 @@ extension Future {
                 }
             }
         }
-        
+
         return promise
     }
 }

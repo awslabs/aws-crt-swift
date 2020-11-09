@@ -41,7 +41,7 @@ public extension HttpMessage {
     var headerCount: Int {
            return aws_http_message_get_header_count(rawValue)
     }
-    
+
     var headers: [HttpHeader] {
         var headers = [HttpHeader]()
         for index in 0...headerCount {
