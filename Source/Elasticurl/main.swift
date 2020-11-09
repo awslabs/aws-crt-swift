@@ -265,7 +265,9 @@ struct Elasticurl {
 
             let httpRequest: HttpRequest = HttpRequest(allocator: allocator)
             httpRequest.method = context.verb
-            httpRequest.path = context.url.path
+            let path = context.url.path == "" ? "/" : context.url.path
+
+            httpRequest.path = path
 
             let headers = HttpHeaders(allocator: allocator)
             if headers.add(name: "Host", value: host),
