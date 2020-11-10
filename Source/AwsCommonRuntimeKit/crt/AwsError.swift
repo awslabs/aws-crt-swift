@@ -4,7 +4,7 @@ import AwsCCommon
 
 public struct AWSError {
 
-    let errorCode: Int32
+    public let errorCode: Int32
 
     public let errorMessage: String?
 
