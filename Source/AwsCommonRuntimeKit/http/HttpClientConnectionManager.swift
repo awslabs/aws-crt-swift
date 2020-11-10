@@ -70,12 +70,18 @@ public class HttpClientConnectionManager {
         cbData.initialize(to: callbackData)
 
         aws_http_connection_manager_acquire_connection(manager, { (connection, errorCode, userData) in
-            guard let userData = userData, let connection = connection else {
+            guard let userData = userData else {
                 return
             }
 
             let callbackData = userData.assumingMemoryBound(to: HttpClientConnectionCallbackData.self)
             defer {callbackData.deinitializeAndDeallocate()}
+            
+            guard let connection = connection else {
+                callbackData.pointee.onConnectionAcquired(nil, errorCode)
+                return
+            }
+            
             let httpConnection = HttpClientConnection(manager: callbackData.pointee.connectionManager,
                                                       connection: connection)
             callbackData.pointee.onConnectionAcquired(httpConnection, errorCode)
