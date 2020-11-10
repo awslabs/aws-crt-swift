@@ -73,15 +73,12 @@ public class HttpClientConnectionManager {
             guard let userData = userData else {
                 return
             }
-
             let callbackData = userData.assumingMemoryBound(to: HttpClientConnectionCallbackData.self)
             defer {callbackData.deinitializeAndDeallocate()}
-            
             guard let connection = connection else {
                 callbackData.pointee.onConnectionAcquired(nil, errorCode)
                 return
             }
-            
             let httpConnection = HttpClientConnection(manager: callbackData.pointee.connectionManager,
                                                       connection: connection)
             callbackData.pointee.onConnectionAcquired(httpConnection, errorCode)
