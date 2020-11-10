@@ -17,10 +17,10 @@ final class AWSCredentialsProvider {
         self.allocator = allocator
     }
 
-    convenience init(fromProvider impl: inout CredentialsProvider,
+    convenience init(fromProvider impl: CredentialsProvider,
                      shutDownOptions: CredentialsProviderShutdownOptions? = nil,
                      allocator: Allocator = defaultAllocator) {
-        let wrapped = WrappedCredentialsProvider(impl: &impl, allocator: allocator, shutDownOptions: shutDownOptions)
+        let wrapped = WrappedCredentialsProvider(impl: impl, allocator: allocator, shutDownOptions: shutDownOptions)
         self.init(credentialsProvider: &wrapped.rawValue, allocator: wrapped.allocator)
     }
 

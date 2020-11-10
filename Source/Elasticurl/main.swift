@@ -5,7 +5,7 @@ import AwsCommonRuntimeKit
 import Foundation
 import Darwin
 
-//swiftlint:disable cyclomatic_complexity
+//swiftlint:disable cyclomatic_complexity type_body_length
 struct Context {
     //args
     public var logLevel: LogLevel = .trace
@@ -22,7 +22,7 @@ struct Context {
     public var insecure: Bool = false
     public var url: URL = URL(fileURLWithPath: "")
     public var data: Data?
-    public var alpnList: [String] = ["http/1.1"]
+    public var alpnList: [String] = []
     public var outputStream = FileHandle.standardOutput
 
 }
@@ -148,13 +148,13 @@ struct Elasticurl {
             exit(0)
         }
 
-        if let http1 = argumentsDict["w"] as? String {
-            context.alpnList.append(http1)
+        if argumentsDict["w"] != nil {
+            context.alpnList.append("http/1.1")
         }
 
-        if let http2 = argumentsDict["W"] as? String {
+        if argumentsDict["W"] != nil {
 
-            context.alpnList.append(http2)
+            context.alpnList.append("http/2")
         }
 
         if argumentsDict["h"] != nil {
@@ -277,6 +277,16 @@ struct Elasticurl {
                 httpRequest.addHeaders(headers: headers)
             }
 
+            if let data = context.data {
+                let byteBuffer = ByteBuffer(size: data.count)
+                let buffer = byteBuffer.put(data)
+                let awsStream = AwsInputStream(buffer)
+                httpRequest.body = awsStream
+                if headers.add(name: "Content-length", value: "\(data.count)") {
+                    httpRequest.addHeaders(headers: headers)
+                }
+            }
+
             let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
                 let allHeaders = headers.getAll()
                 for header in allHeaders {
@@ -295,7 +305,10 @@ struct Elasticurl {
             }
 
             let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
-                print(error.localizedDescription)
+                if case let CRTError.crtError(unwrappedError) = error {
+                    print(unwrappedError.errorMessage ?? "no error message")
+                }
+
                 semaphore.signal()
             }
 

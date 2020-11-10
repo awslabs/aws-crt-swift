@@ -16,8 +16,7 @@ public class AwsInputStream {
     public var length: Int64
 
     public init(_ impl: AwsInputStreamImpl, allocator: Allocator = defaultAllocator) {
-        let tempLength = impl.length
-        self.length = tempLength
+        self.length = impl.length
         let ptr = UnsafeMutablePointer<AwsInputStreamImpl>.allocate(capacity: 1)
         ptr.initialize(to: impl)
         self.implPointer = ptr
@@ -35,79 +34,6 @@ public protocol AwsInputStreamImpl {
 
     func seek(offset: aws_off_t, basis: aws_stream_seek_basis) -> Bool
     func read(buffer: inout aws_byte_buf) -> Bool
-}
-
-extension InputStream: AwsInputStreamImpl {
-    @inlinable
-    public var status: aws_stream_status {
-        return aws_stream_status(is_end_of_stream: self.streamStatus == .atEnd, is_valid: true)
-    }
-
-    @inlinable
-    public var length: Int64 {
-        open()
-        var data = Data()
-        let bufferSize = 1024
-        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
-        while hasBytesAvailable {
-            let read = self.read(buffer, maxLength: bufferSize)
-            if read == 0 {
-                break  // added
-            }
-            data.append(buffer, count: read)
-        }
-        defer {
-            buffer.deallocate()
-        }
-
-        close()
-        return Int64(data.count)
-    }
-
-    @inlinable
-    public func seek(offset: aws_off_t, basis: aws_stream_seek_basis) -> Bool {
-        let targetOffset: Int64
-        if basis.rawValue == AWS_SSB_BEGIN.rawValue {
-            targetOffset = length + Int64(offset)
-
-        } else {
-            targetOffset = length - Int64(offset)
-        }
-        do {
-        _ = try self.readData(maxLength: Int(targetOffset))
-        } catch {
-            //log error
-        }
-        return true
-    }
-
-    @inlinable
-    public func read(buffer: inout aws_byte_buf) -> Bool {
-        do {
-            let data = try self.readData(maxLength: buffer.capacity - buffer.len)
-            if data.count > 0 {
-                let result = buffer.buffer.advanced(by: buffer.len)
-                data.copyBytes(to: result, count: data.count)
-                buffer.len += data.count
-                return true
-            }
-        } catch {
-            //log error
-        }
-        return !self.status.is_end_of_stream
-    }
-
-    public func readData(maxLength length: Int) throws -> Data {
-        open()
-        var buffer = [UInt8](repeating: 0, count: length)
-        let result = self.read(&buffer, maxLength: buffer.count)
-        if result < 0 {
-            throw self.streamError ?? POSIXError(.EIO)
-        } else {
-            close()
-            return Data(buffer.prefix(result))
-        }
-    }
 }
 
 extension FileHandle: AwsInputStreamImpl {

@@ -32,11 +32,13 @@ public protocol CredentialsProvider {
 class WrappedCredentialsProvider {
     var rawValue: aws_credentials_provider
     let allocator: Allocator
+    private let implementationPtr: UnsafeMutablePointer<CredentialsProvider>
+    private let vTablePtr: UnsafeMutablePointer<aws_credentials_provider_vtable>
 
-    init(impl: inout CredentialsProvider,
+    init(impl: CredentialsProvider,
          allocator: Allocator,
          shutDownOptions: CredentialsProviderShutdownOptions? = nil) {
-        var vtable = aws_credentials_provider_vtable(get_credentials: getCredentialsFn,
+        let vtable = aws_credentials_provider_vtable(get_credentials: getCredentialsFn,
                                                      destroy: { (credentialsProviderPtr) in
             guard let credentialsProviderPtr = credentialsProviderPtr else {
                 return
@@ -50,10 +52,16 @@ class WrappedCredentialsProvider {
         intPointer.pointee = 1
         let atomicVar = aws_atomic_var(value: UnsafeMutableRawPointer(intPointer))
         self.allocator = allocator
-        self.rawValue = aws_credentials_provider(vtable: &vtable,
+        let credProviderPtr = UnsafeMutablePointer<CredentialsProvider>.allocate(capacity: 1)
+        credProviderPtr.initialize(to: impl)
+        let vTablePtr = UnsafeMutablePointer<aws_credentials_provider_vtable>.allocate(capacity: 1)
+        vTablePtr.initialize(to: vtable)
+        self.vTablePtr = vTablePtr
+        self.implementationPtr = credProviderPtr
+        self.rawValue = aws_credentials_provider(vtable: vTablePtr,
                                                  allocator: allocator.rawValue,
                                                  shutdown_options: shutDownOptions,
-                                                 impl: &impl,
+                                                 impl: credProviderPtr,
                                                  ref_count: atomicVar)
 
     }
@@ -78,5 +86,10 @@ class WrappedCredentialsProvider {
             shutDownOptionsC = aws_credentials_provider_shutdown_options()
         }
         return shutDownOptionsC!
+    }
+
+    deinit {
+        implementationPtr.deinitializeAndDeallocate()
+        vTablePtr.deinitializeAndDeallocate()
     }
 }
