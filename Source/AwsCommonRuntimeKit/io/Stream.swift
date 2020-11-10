@@ -12,6 +12,7 @@ private var vtable = aws_input_stream_vtable(seek: doSeek,
 
 public class AwsInputStream {
     var rawValue: aws_input_stream
+    let implPointer: UnsafeMutablePointer<AwsInputStreamImpl>
     public var length: Int64
 
     public init(_ impl: AwsInputStreamImpl, allocator: Allocator = defaultAllocator) {
@@ -19,8 +20,13 @@ public class AwsInputStream {
         self.length = tempLength
         let ptr = UnsafeMutablePointer<AwsInputStreamImpl>.allocate(capacity: 1)
         ptr.initialize(to: impl)
-        defer {ptr.deinitializeAndDeallocate()}
+        self.implPointer = ptr
+      
         self.rawValue = aws_input_stream(allocator: allocator.rawValue, impl: ptr, vtable: &vtable)
+    }
+    
+    deinit {
+        implPointer.deinitializeAndDeallocate()
     }
 }
 
@@ -157,8 +163,8 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
 
 private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                     _ buffer: UnsafeMutablePointer<aws_byte_buf>!) -> Int32 {
-    let inputStream = stream.pointee.impl.bindMemory(to: AwsInputStreamImpl.self, capacity: 1).pointee
-    if inputStream.read(buffer: &buffer.pointee) {
+    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsInputStreamImpl.self)
+    if inputStream.pointee.read(buffer: &buffer.pointee) {
         return AWS_OP_SUCCESS
     }
     return AWS_OP_ERR
