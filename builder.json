@@ -24,7 +24,7 @@
   "targets": {
     "ios": {
       "!build_steps": [
-        "xcodebuild -target AwsCommonRuntimeKit -destination 'generic/platform=iOS'"
+        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS'"
       ]
     },
     "macos": {
