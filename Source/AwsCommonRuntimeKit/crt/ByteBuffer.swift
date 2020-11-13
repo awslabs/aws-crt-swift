@@ -220,7 +220,7 @@ public class ByteBuffer {
     private let hostEndianness: Endianness = OSHostByteOrder() == OSLittleEndian ? .little : .big
 
     deinit {
-        pointer.deinitializeAndDeallocate()
+        pointer.deallocate()
     }
 }
 
