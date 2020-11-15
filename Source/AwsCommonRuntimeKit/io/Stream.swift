@@ -47,7 +47,6 @@ extension FileHandle: AwsInputStreamImpl {
         let savedPos = self.offsetInFile
         defer { self.seek(toFileOffset: savedPos ) }
         self.seekToEndOfFile()
-        //What happens if the UInt64 is > Int64.max ??
         return Int64(self.offsetInFile)
     }
 

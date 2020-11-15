@@ -209,7 +209,6 @@ struct Elasticurl {
         if let fileName = context.outputFileName {
             let fileManager = FileManager.default
             let path = FileManager.default.currentDirectoryPath + "/" + fileName
-            print("current directory is:" + path)
             fileManager.createFile(atPath: path, contents: nil, attributes: nil)
             context.outputStream = FileHandle(forWritingAtPath: fileName) ?? FileHandle.standardOutput
         }
@@ -272,7 +271,8 @@ struct Elasticurl {
             let headers = HttpHeaders(allocator: allocator)
             if headers.add(name: "Host", value: host),
                headers.add(name: "User-Agent", value: "Elasticurl"),
-               headers.add(name: "Accept", value: "*/*") {
+               headers.add(name: "Accept", value: "*/*"),
+               headers.add(name: "Swift", value: "Version 5.3"){
 
                 httpRequest.addHeaders(headers: headers)
             }
@@ -296,7 +296,6 @@ struct Elasticurl {
             }
 
             let onBody: HttpRequestOptions.OnIncomingBody = { stream, bodyChunk in
-                print("data was received")
                 writeData(data: bodyChunk)
             }
 

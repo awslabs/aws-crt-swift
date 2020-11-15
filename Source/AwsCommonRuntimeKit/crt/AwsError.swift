@@ -10,8 +10,7 @@ public struct AWSError {
 
     public init(errorCode: Int32) {
         self.errorCode = errorCode
-        let stringPtr = aws_error_str(errorCode)
-        if let stringPtr = stringPtr {
+        if let stringPtr = aws_error_str(errorCode) {
             self.errorMessage = String(cString: stringPtr)
         } else {
             self.errorMessage = nil

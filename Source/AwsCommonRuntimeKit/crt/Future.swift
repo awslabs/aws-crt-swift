@@ -11,45 +11,62 @@ public final class Future<Value> {
     private var waiter = DispatchSemaphore(value: 0)
 
     private var _observers: [((FutureResult) -> Void)] = []
+    
+    private let lock = NSLock()
 
     public init(value: FutureResult? = nil) {
         self._value = value
     }
-
+    
     public func get() throws -> Value {
+        lock.lock()
         if let value = self._value {
+            lock.unlock()
             return try value.get()
         }
 
         waiter.wait()
+        defer { lock.unlock() }
         //can force unwrap here cuz if wait was lifted, future has completed
         return try self._value!.get()
     }
 
     public func fulfill(_ value: Value) {
-        precondition(self._value == nil, "can only be fulfilled once")
+        lock.lock()
+        guard self._value == nil else {
+            return lock.unlock() //already resolved
+        }
         let result = FutureResult.success(value)
         self._value = result
-        _observers.forEach { $0(result) }
+        let observers = _observers
         _observers = []
+        lock.unlock()
+        observers.forEach { $0(result) }
         waiter.signal()
     }
 
     public func fail(_ error: Error) {
-        precondition(self._value == nil, "can only be fulfilled once")
+        lock.lock()
+        guard self._value == nil else {
+            return lock.unlock()
+        }
         let result = FutureResult.failure(error)
         self._value = result
-        _observers.forEach { $0(result) }
+        let observers = _observers
         _observers = []
+        lock.unlock()
+        observers.forEach { $0(result) }
         waiter.signal()
     }
 
     public func then(_ block: @escaping (FutureResult) -> Void) {
-        if let value = self._value {
-            block(value)
-        } else {
+        lock.lock()
+        guard let value = self._value else {
             self._observers.append(block)
+            return lock.unlock() //still pending, handlers attached
         }
+        lock.unlock()
+        block(value)
     }
 }
 
