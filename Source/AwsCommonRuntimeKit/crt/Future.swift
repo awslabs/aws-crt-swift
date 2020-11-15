@@ -11,13 +11,13 @@ public final class Future<Value> {
     private var waiter = DispatchSemaphore(value: 0)
 
     private var _observers: [((FutureResult) -> Void)] = []
-    
+
     private let lock = NSLock()
 
     public init(value: FutureResult? = nil) {
         self._value = value
     }
-    
+
     public func get() throws -> Value {
         lock.lock()
         if let value = self._value {

@@ -28,11 +28,11 @@ public class HttpMessage {
     }
 
     deinit {
-        if let oldStream = aws_http_message_get_body_stream(self.rawValue) {
+        if let oldStream = aws_http_message_get_body_stream(rawValue) {
             aws_input_stream_destroy(oldStream)
         }
         if self.owned {
-            aws_http_message_destroy(self.rawValue)
+            aws_http_message_destroy(rawValue)
         }
     }
 }

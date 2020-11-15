@@ -272,7 +272,7 @@ struct Elasticurl {
             if headers.add(name: "Host", value: host),
                headers.add(name: "User-Agent", value: "Elasticurl"),
                headers.add(name: "Accept", value: "*/*"),
-               headers.add(name: "Swift", value: "Version 5.3"){
+               headers.add(name: "Swift", value: "Version 5.3") {
 
                 httpRequest.addHeaders(headers: headers)
             }
