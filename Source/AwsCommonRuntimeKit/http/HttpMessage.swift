@@ -6,7 +6,7 @@ import AwsCIo
 public class HttpMessage {
     let rawValue: OpaquePointer
     private let owned: Bool
-
+    public var headers: HttpHeaders?
     public var body: AwsInputStream? {
         willSet(value) {
             if let newBody = value {
@@ -38,20 +38,9 @@ public class HttpMessage {
 }
 //header handling
 public extension HttpMessage {
+
     var headerCount: Int {
            return aws_http_message_get_header_count(rawValue)
-    }
-
-    var headers: [HttpHeader] {
-        var headers = [HttpHeader]()
-        for index in 0...headerCount {
-            if let header = getHeader(atIndex: index) {
-                headers.append(header)
-            } else {
-                continue
-            }
-        }
-        return headers
     }
 
     func addHeaders(headers: HttpHeaders) {
@@ -63,6 +52,7 @@ public extension HttpMessage {
                 continue
             }
         }
+        self.headers = headers
     }
 
     func removeHeader(atIndex index: Int) -> Bool {
