@@ -224,7 +224,7 @@ public class ByteBuffer {
     }
 }
 
-extension ByteBuffer: AwsInputStreamImpl {
+extension ByteBuffer: AwsStream {
     public var status: aws_stream_status {
         return aws_stream_status(is_end_of_stream: self.currentIndex == array.count, is_valid: true)
     }

@@ -12,12 +12,12 @@ private var vtable = aws_input_stream_vtable(seek: doSeek,
 //swiftlint:disable trailing_whitespace
 public class AwsInputStream {
     var rawValue: aws_input_stream
-    let implPointer: UnsafeMutablePointer<AwsInputStreamImpl>
+    let implPointer: UnsafeMutablePointer<AwsStream>
     public var length: Int64
 
-    public init(_ impl: AwsInputStreamImpl, allocator: Allocator = defaultAllocator) {
+    public init(_ impl: AwsStream, allocator: Allocator = defaultAllocator) {
         self.length = impl.length
-        let ptr = UnsafeMutablePointer<AwsInputStreamImpl>.allocate(capacity: 1)
+        let ptr = UnsafeMutablePointer<AwsStream>.allocate(capacity: 1)
         ptr.initialize(to: impl)
         self.implPointer = ptr
         self.rawValue = aws_input_stream(allocator: allocator.rawValue, impl: ptr, vtable: &vtable)
@@ -28,7 +28,7 @@ public class AwsInputStream {
     }
 }
 
-public protocol AwsInputStreamImpl {
+public protocol AwsStream {
     var status: aws_stream_status { get }
     var length: Int64 { get }
 
@@ -36,7 +36,7 @@ public protocol AwsInputStreamImpl {
     func read(buffer: inout aws_byte_buf) -> Bool
 }
 
-extension FileHandle: AwsInputStreamImpl {
+extension FileHandle: AwsStream {
     @inlinable
     public var status: aws_stream_status {
         return aws_stream_status(is_end_of_stream: self.length == self.offsetInFile, is_valid: true)
@@ -78,7 +78,7 @@ extension FileHandle: AwsInputStreamImpl {
 private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                     _ offset: aws_off_t,
                     _ seekBasis: aws_stream_seek_basis) -> Int32 {
-    let inputStream = stream.pointee.impl.bindMemory(to: AwsInputStreamImpl.self, capacity: 1).pointee
+    let inputStream = stream.pointee.impl.bindMemory(to: AwsStream.self, capacity: 1).pointee
     if inputStream.seek(offset: offset, basis: seekBasis) {
         return AWS_OP_SUCCESS
     }
@@ -87,7 +87,7 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
 
 private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                     _ buffer: UnsafeMutablePointer<aws_byte_buf>!) -> Int32 {
-    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsInputStreamImpl.self)
+    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsStream.self)
     if inputStream.pointee.read(buffer: &buffer.pointee) {
         return AWS_OP_SUCCESS
     }
@@ -96,14 +96,14 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
 
 private func doGetStatus(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                          _ result: UnsafeMutablePointer<aws_stream_status>!) -> Int32 {
-    let inputStream = stream.pointee.impl.bindMemory(to: AwsInputStreamImpl.self, capacity: 1).pointee
+    let inputStream = stream.pointee.impl.bindMemory(to: AwsStream.self, capacity: 1).pointee
     result.pointee = inputStream.status
     return AWS_OP_SUCCESS
 }
 
 private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                          _ result: UnsafeMutablePointer<Int64>!) -> Int32 {
-    let inputStream = stream.pointee.impl.bindMemory(to: AwsInputStreamImpl.self, capacity: 1).pointee
+    let inputStream = stream.pointee.impl.bindMemory(to: AwsStream.self, capacity: 1).pointee
     let length = inputStream.length
     if length >= 0 {
         result.pointee = length

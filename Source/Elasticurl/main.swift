@@ -231,7 +231,6 @@ struct Elasticurl {
 
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
             let logger = Logger(pipe: stdout, level: context.logLevel, allocator: allocator)
-
             AwsCommonRuntimeKit.initialize(allocator: allocator)
 
             let port = UInt16(443)
