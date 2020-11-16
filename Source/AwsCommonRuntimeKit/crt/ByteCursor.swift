@@ -20,7 +20,7 @@ extension aws_byte_cursor {
     public func toString() -> String? {
         return String(bytesNoCopy: self.ptr, length: self.len, encoding: .utf8, freeWhenDone: false)
     }
-    
+
     public func toData() -> Data {
         return Data(bytesNoCopy: self.ptr, count: self.len, deallocator: .none)
     }
@@ -35,9 +35,12 @@ extension String {
 private struct StringByteCursor: ByteCursor {
     private let string: ContiguousArray<CChar>
     var rawValue: aws_byte_cursor
-    
+
     init(_ string: String) {
         self.string = string.utf8CString
-        self.rawValue = aws_byte_cursor_from_array(self.string.withUnsafeBufferPointer { ptr in return ptr.baseAddress }, self.string.count - 1)
+        self.rawValue = aws_byte_cursor_from_array(
+            self.string.withUnsafeBufferPointer { ptr in return ptr.baseAddress },
+            self.string.count - 1
+        )
     }
 }

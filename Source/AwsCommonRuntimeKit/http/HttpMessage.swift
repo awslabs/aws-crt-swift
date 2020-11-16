@@ -6,7 +6,7 @@ import AwsCIo
 public class HttpMessage {
     let rawValue: OpaquePointer
     private let owned: Bool
-
+    public var headers: HttpHeaders?
     public var body: AwsInputStream? {
         willSet(value) {
             if let newBody = value {
@@ -28,33 +28,35 @@ public class HttpMessage {
     }
 
     deinit {
-        if let oldStream = aws_http_message_get_body_stream(self.rawValue) {
+        if let oldStream = aws_http_message_get_body_stream(rawValue) {
             aws_input_stream_destroy(oldStream)
         }
         if self.owned {
-            aws_http_message_destroy(self.rawValue)
+            aws_http_message_destroy(rawValue)
         }
     }
 }
 //header handling
 public extension HttpMessage {
+
     var headerCount: Int {
-           return aws_http_message_get_header_count(self.rawValue)
+           return aws_http_message_get_header_count(rawValue)
     }
 
     func addHeaders(headers: HttpHeaders) {
-        for index in 0...headerCount {
+        for index in 0...headers.count {
             var header = HttpHeader(name: "", value: "")
             if aws_http_headers_get_index(headers.rawValue, index, &header.rawValue) == AWS_OP_SUCCESS {
-                aws_http_message_add_header(self.rawValue, header.rawValue)
+                aws_http_message_add_header(rawValue, header.rawValue)
             } else {
                 continue
             }
         }
+        self.headers = headers
     }
 
     func removeHeader(atIndex index: Int) -> Bool {
-        if aws_http_message_erase_header(self.rawValue, index) != AWS_OP_SUCCESS {
+        if aws_http_message_erase_header(rawValue, index) != AWS_OP_SUCCESS {
             return false
         }
 
@@ -63,7 +65,7 @@ public extension HttpMessage {
 
     func getHeader(atIndex index: Int) -> HttpHeader? {
         var header = HttpHeader(name: "", value: "")
-        if aws_http_message_get_header(self.rawValue, &header.rawValue, index) != AWS_OP_SUCCESS {
+        if aws_http_message_get_header(rawValue, &header.rawValue, index) != AWS_OP_SUCCESS {
             return nil
         }
         return header

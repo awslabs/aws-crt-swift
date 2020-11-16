@@ -3,6 +3,7 @@
 
 import AwsCMqtt
 
+//swiftlint:disable function_parameter_count
 public final class MqttClient {
 
     let rawValue: UnsafeMutablePointer<aws_mqtt_client>
@@ -17,7 +18,7 @@ public final class MqttClient {
 
         if aws_mqtt_client_init(rawValue, allocator.rawValue, clientBootstrap.rawValue) != AWS_OP_SUCCESS {
             rawValue.deinitializeAndDeallocate()
-            throw AwsCommonRuntimeError()
+            throw AWSCommonRuntimeError()
         }
     }
 

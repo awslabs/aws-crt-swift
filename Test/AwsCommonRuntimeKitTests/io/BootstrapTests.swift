@@ -6,14 +6,14 @@ import XCTest
 class BootstrapTests: CrtXCBaseTestCase {
 
   func testCanCreateBootstrap() throws {
-    let shutDownOptions = ShutDownCallbackOptions() { semaphore in
+    let shutDownOptions = ShutDownCallbackOptions { semaphore in
         semaphore.signal()
     }
-    let resolverShutDownOptions = ShutDownCallbackOptions() { semaphore in
+    let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
         semaphore.signal()
     }
-    let elg = try EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
-    let resolver = try DefaultHostResolver(eventLoopGroup: elg,
+    let elg = EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
+    let resolver = DefaultHostResolver(eventLoopGroup: elg,
                                            maxHosts: 8,
                                            maxTTL: 30,
                                            allocator: allocator,

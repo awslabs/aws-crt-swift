@@ -2,11 +2,11 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 class ResolverOptions {
-	let host: AwsString
+	let host: AWSString
 	let resolver: HostResolver
 	let onResolved: OnHostResolved
 
-	init(resolver: HostResolver, host: AwsString, onResolved: @escaping OnHostResolved) {
+	init(resolver: HostResolver, host: AWSString, onResolved: @escaping OnHostResolved) {
 		self.host = host
 		self.onResolved = onResolved
 		self.resolver = resolver

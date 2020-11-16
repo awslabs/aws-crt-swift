@@ -38,7 +38,7 @@ extension SignatureType: RawRepresentable, CaseIterable {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})
         self = value ?? .requestHeaders
     }
-    
+
     public var rawValue: aws_signature_type {
         switch self {
         case .requestHeaders: return AWS_ST_HTTP_REQUEST_HEADERS

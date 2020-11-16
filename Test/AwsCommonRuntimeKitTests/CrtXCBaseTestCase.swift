@@ -15,7 +15,7 @@ class CrtXCBaseTestCase: XCTestCase {
     override func tearDown() {
         AwsCommonRuntimeKit.cleanUp()
         allocator.dump()
-        
+
         XCTAssertEqual(allocator.count, 0,
                        "Memory was leaked: \(allocator.bytes) bytes in \(allocator.count) allocations")
         super.tearDown()
@@ -24,11 +24,11 @@ class CrtXCBaseTestCase: XCTestCase {
 
 extension XCTestCase {
    func skipIfiOS() throws {
-      if #available(iOS 10, *)  {
+      if #available(iOS 10, *) {
          throw XCTSkip("Skipping test on iOS")
       }
    }
-    
+
     func skipifmacOS() throws {
         if #available(macOS 10.14, *) {
             throw XCTSkip("Skipping test on macOS")

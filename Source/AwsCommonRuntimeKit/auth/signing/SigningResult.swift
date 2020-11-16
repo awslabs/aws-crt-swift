@@ -4,7 +4,7 @@ import AwsCAuth
 
 public struct SigningResult {
     let rawValue: UnsafeMutablePointer<aws_signing_result>?
-    
+
     public init?(rawValue: UnsafeMutablePointer<aws_signing_result>?) {
         self.rawValue = rawValue
     }

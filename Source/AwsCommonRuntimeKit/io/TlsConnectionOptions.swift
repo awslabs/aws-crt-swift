@@ -18,17 +18,19 @@ public final class TlsConnectionOptions {
 
 	public func setAlpnList(_ alpnList: String) throws {
 		if aws_tls_connection_options_set_alpn_list(rawValue, self.allocator.rawValue, alpnList) != AWS_OP_SUCCESS {
-			throw AwsCommonRuntimeError()
+			throw AWSCommonRuntimeError()
 		}
 	}
 
 	public func setServerName(_ serverName: String) throws {
 		var byteCur = serverName.newByteCursor()
-		if aws_tls_connection_options_set_server_name(rawValue, self.allocator.rawValue, &byteCur.rawValue) != AWS_OP_SUCCESS {
-			throw AwsCommonRuntimeError()
+		if aws_tls_connection_options_set_server_name(rawValue,
+                                                      self.allocator.rawValue,
+                                                      &byteCur.rawValue) != AWS_OP_SUCCESS {
+			throw AWSCommonRuntimeError()
 		}
 	}
-    
+
     deinit {
         aws_tls_connection_options_clean_up(rawValue)
         rawValue.deallocate()

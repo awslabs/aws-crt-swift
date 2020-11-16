@@ -1,7 +1,7 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-public typealias OnMultiSubAck = (MqttConnection, Int16, [String], Int32) -> Void
+public typealias OnMultiSubAck = (MqttConnection, Int16, [String], CRTError) -> Void
 
 struct MultiSubAckCallbackData {
     let onMultiSubAck: OnMultiSubAck

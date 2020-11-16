@@ -5,18 +5,18 @@ import Foundation
 @testable import AwsCommonRuntimeKit
 
 class EventLoopGroupTests: CrtXCBaseTestCase {
-    
-    func testCanCreateGroup() throws {
-        let shutDownOptions = ShutDownCallbackOptions() { semaphore in
+
+    func testCanCreateGroup() {
+        let shutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
-        _ = try EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
+        _ = EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
     }
-    
-    func testCanCreateGroupWithThreads() throws {
-        let shutDownOptions = ShutDownCallbackOptions() { semaphore in
+
+    func testCanCreateGroupWithThreads() {
+        let shutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
-        _ = try EventLoopGroup(threadCount: 2, allocator: allocator, shutDownOptions: shutDownOptions)
+        _ = EventLoopGroup(threadCount: 2, allocator: allocator, shutDownOptions: shutDownOptions)
     }
 }

@@ -7,14 +7,28 @@ on:
       - '!master'
 
 env:
-  BUILDER_VERSION: ios
-  BUILDER_SOURCE: channels
+  BUILDER_VERSION: v0.7.1
+  BUILDER_SOURCE: releases
   BUILDER_HOST: https://d19elf31gohf1l.cloudfront.net
   PACKAGE_NAME: aws-crt-swift
   LINUX_BASE_IMAGE: ubuntu-16-x64
   RUN: ${{ github.run_id }}-${{ github.run_number }}
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: GitHub Action for SwiftLint
+        uses: norio-nomura/action-swiftlint@3.1.0
+      - name: GitHub Action for SwiftLint with --strict
+        uses: norio-nomura/action-swiftlint@3.1.0
+        with:
+          args: --strict
+      - name: GitHub Action for SwiftLint (Only files changed in the PR)
+        uses: norio-nomura/action-swiftlint@3.1.0
+        env:
+          DIFF_BASE: ${{ github.base_ref }}
   ubuntu:
     runs-on: ubuntu-latest
     strategy:
@@ -92,4 +106,4 @@ jobs:
         run: |
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
           chmod a+x builder
-          ./builder build -p ${{ env.PACKAGE_NAME }} --spec=downstream
+          ./builder build -p ${{ env.PACKAGE_NAME }} --spec=downstream --target=ios-armv8

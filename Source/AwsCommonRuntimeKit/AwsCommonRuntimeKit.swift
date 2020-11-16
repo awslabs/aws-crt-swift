@@ -19,4 +19,3 @@ public struct AwsCommonRuntimeKit {
 
   private init() {}
 }
-

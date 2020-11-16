@@ -1,0 +1,37 @@
+# Do not specify an `included` section at this top-level file. Specify the
+# `--config` option pointing to this file, and the `--path` option to the files
+# you wish to lint
+disabled_rules:
+    - unused_closure_parameter
+    - closure_parameter_position
+excluded:
+    - Test
+
+analyzer_rules:
+    - unused_import
+    - unused_declaration
+
+# configurable rules can be customized from this configuration file
+closing_brace: error
+colon:
+  severity: error
+comma: error
+empty_count: warning
+empty_enum_arguments: error
+function_body_length:
+  warning: 100
+  error: 150
+identifier_name:
+  excluded:
+    - id
+    - of
+    - or
+line_length:
+  warning: 120
+  error: 160
+opening_brace: error
+return_arrow_whitespace: error
+statement_position:
+  severity: error
+todo: warning
+trailing_semicolon: error

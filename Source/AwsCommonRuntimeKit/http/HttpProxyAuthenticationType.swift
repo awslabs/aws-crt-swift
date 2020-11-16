@@ -3,7 +3,9 @@
 import AwsCHttp
 
 public enum HttpProxyAuthenticationType {
+    /// No authentication
     case none
+    /// Basic (username and password base64 encoded) authentication
     case basic
 }
 

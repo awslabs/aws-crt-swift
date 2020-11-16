@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCAuth
 
-public typealias OnSigningComplete = (SigningResult?, HttpRequest, Int) -> Void
+public typealias OnSigningComplete = (SigningResult?, HttpRequest, CRTError) -> Void
 
 struct SigningCallbackData {
     public let allocator: Allocator

@@ -23,8 +23,13 @@
   },
   "targets": {
     "ios": {
-      "build_steps": [
-        "xcodebuild -scheme AwsCrt -destination 'generic/platform=iOS'"
+      "!build_steps": [
+        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS'"
+      ]
+    },
+    "macos": {
+      "!test_steps": [
+        "./integ_test.sh"
       ]
     }
   }

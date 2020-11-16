@@ -1,24 +1,16 @@
 // swift-tools-version:5.1
-
 import PackageDescription
 
 var package = Package(name: "AwsCrt",
+                      platforms: [.iOS(.v11), .macOS(.v10_14)],
                       products: [
-                        .library(name: "AwsCommonRuntimeKit",
-                                 targets: [
-                                    "AwsCCommon",
-                                    "AwsCIo",
-                                    "AwsCCompression",
-                                    "AwsCHttp",
-                                    "AwsCCal",
-                                    "AwsCAuth",
-                                    "AwsCMqtt",
-                                    "AwsCommonRuntimeKit"]),
+                        .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
                         .executable(name: "Elasticurl", targets: ["Elasticurl"])
                       ])
 
 // aws-c-common config
-var awsCCommonPlatformExcludes = ["include", "source/windows", "source/android", "AWSCRTAndroidTestRunner", "cmake", "codebuild", "docker-images", "tests", "verification"]
+var awsCCommonPlatformExcludes = ["source/windows", "source/android", "AWSCRTAndroidTestRunner",
+                                  "cmake", "codebuild", "docker-images", "tests", "verification"]
 //var unsafeFlagsArray: [String] = []
 
 #if arch(i386) || arch(x86_64)
@@ -41,7 +33,7 @@ awsCCommonPlatformExcludes.append("source/arch/intel/asm")
 awsCCommonPlatformExcludes.append("source/arch/arm/asm")
 #endif
 
-var awsCIoPlatformExcludes = ["include", "tests", "cmake", "docs"]
+var awsCIoPlatformExcludes = ["tests", "cmake", "docs"]
 
 #if os(macOS)
 awsCIoPlatformExcludes.append("source/windows")
@@ -58,7 +50,7 @@ awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
 #endif
 
-var awsCCalPlatformExcludes = ["include", "tests", "cmake"]
+var awsCCalPlatformExcludes = ["tests", "cmake"]
 
 #if os(macOS)
 awsCCalPlatformExcludes.append("source/windows")
@@ -71,126 +63,70 @@ awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
 #endif
 
-var awsCCompressionPlatformExcludes = ["include", "tests", "cmake", "codebuild", "source/huffman_generator/"]
-var awsCHttpPlatformExcludes = ["include", "tests", "bin", "integration-testing", "continuous-delivery", "cmake", "codebuild"]
-var awsCAuthPlatformExcludes = ["include", "tests"]
-var awsCMqttPlatformExcludes = ["include", "tests", "cmake"]
+var awsCCompressionPlatformExcludes = ["tests", "cmake", "codebuild", "source/huffman_generator/"]
+var awsCHttpPlatformExcludes = ["tests", "bin", "integration-testing", "continuous-delivery", "cmake", "codebuild"]
+var awsCAuthPlatformExcludes = ["tests"]
+var awsCMqttPlatformExcludes = ["tests", "cmake"]
 
 package.targets = ( [
     .target(
+        name: "AwsCPlatformConfig",
+        path: "aws-common-runtime/config",
+        publicHeadersPath: "."
+    ),
+    .target(
         name: "AwsCCommon",
+        dependencies: ["AwsCPlatformConfig"],
         path: "aws-common-runtime/aws-c-common",
-        exclude: awsCCommonPlatformExcludes,
-        publicHeadersPath: "include",
-        cSettings: [
-            .headerSearchPath("include/"),
-            .headerSearchPath("../../platform_config/osx/x86_64/"),
-            //do this to avoid having problems with the test header module export
-            .define("AWS_UNSTABLE_TESTING_API=1"),
-            //.unsafeFlags(unsafeFlagsArray),
-        ]),
+        exclude: awsCCommonPlatformExcludes),
     .target(
         name: "AwsCIo",
         dependencies: ["AwsCCommon"],
         path: "aws-common-runtime/aws-c-io",
-        exclude: awsCIoPlatformExcludes,
-        publicHeadersPath: "include",
-        cSettings: [
-            .headerSearchPath("include/"),
-            .headerSearchPath("../../platform_config/osx/x86_64/"),
-            //do this to avoid having problems with the test header module export
-            .define("AWS_UNSTABLE_TESTING_API=1")
-        ]),
+        exclude: awsCIoPlatformExcludes),
     .target(
         name: "AwsCCal",
         dependencies: ["AwsCCommon"],
         path: "aws-common-runtime/aws-c-cal",
-        exclude: awsCCalPlatformExcludes,
-        publicHeadersPath: "include",
-        cSettings: [
-            .headerSearchPath("include/"),
-            .headerSearchPath("../../platform_config/osx/x86_64/"),
-            //do this to avoid having problems with the test header module export
-            .define("AWS_UNSTABLE_TESTING_API=1")
-        ]
+        exclude: awsCCalPlatformExcludes
     ),
     .target(
         name: "AwsCCompression",
         dependencies: ["AwsCCommon"],
         path: "aws-common-runtime/aws-c-compression",
-        exclude: awsCCompressionPlatformExcludes,
-        publicHeadersPath: "include",
-        cSettings: [
-            .headerSearchPath("include/"),
-            .headerSearchPath("../../platform_config/osx/x86_64/"),
-            //do this to avoid having problems with the test header module export
-            .define("AWS_UNSTABLE_TESTING_API=1")
-        ]
+        exclude: awsCCompressionPlatformExcludes
     ),
     .target(
         name: "AwsCHttp",
         dependencies: ["AwsCCompression", "AwsCIo", "AwsCCommon"],
         path: "aws-common-runtime/aws-c-http",
-        exclude: awsCHttpPlatformExcludes,
-        publicHeadersPath: "include",
-        cSettings: [
-            .headerSearchPath("include/"),
-            .headerSearchPath("../../platform_config/osx/x86_64/"),
-            //do this to avoid having problems with the test header module export
-            .define("AWS_UNSTABLE_TESTING_API=1")
-        ]
+        exclude: awsCHttpPlatformExcludes
     ),
     .target(
         name: "AwsCAuth",
         dependencies: ["AwsCHttp", "AwsCCompression", "AwsCCal", "AwsCIo", "AwsCCommon"],
         path: "aws-common-runtime/aws-c-auth",
-        exclude: awsCAuthPlatformExcludes,
-        publicHeadersPath: "include",
-        cSettings: [
-            .headerSearchPath("include/"),
-            .headerSearchPath("../../platform_config/osx/x86_64/"),
-            //do this to avoid having problems with the test header module export
-            .define("AWS_UNSTABLE_TESTING_API=1")
-        ]
+        exclude: awsCAuthPlatformExcludes
     ),
     .target(
         name: "AwsCMqtt",
         dependencies: ["AwsCHttp", "AwsCCompression", "AwsCIo", "AwsCCommon"],
         path: "aws-common-runtime/aws-c-mqtt",
-        exclude: awsCMqttPlatformExcludes,
-        publicHeadersPath: "include",
-        cSettings: [
-            .headerSearchPath("include/"),
-            .headerSearchPath("../../platform_config/osx/x86_64/"),
-            //do this to avoid having problems with the test header module export
-            .define("AWS_UNSTABLE_TESTING_API=1")
-        ]
+        exclude: awsCMqttPlatformExcludes
     ),
     .target(
         name: "AwsCommonRuntimeKit",
         dependencies: [ "AwsCMqtt", "AwsCAuth", "AwsCHttp", "AwsCCal", "AwsCCompression", "AwsCIo", "AwsCCommon"],
-        path: "Source/AwsCommonRuntimeKit",
-        cSettings: [
-            .headerSearchPath("../../platform_config/osx/x86_64/"),
-            .define("AWS_UNSTABLE_TESTING_API"),
-        ]
+        path: "Source/AwsCommonRuntimeKit"
     ),
     .testTarget(
         name: "AwsCommonRuntimeKitTests",
         dependencies: ["AwsCommonRuntimeKit"],
-        path: "Test",
-        cSettings: [
-            .headerSearchPath("../platform_config/osx/x86_64/"),
-            .define("AWS_UNSTABLE_TESTING_API"),
-        ]
+        path: "Test"
     ),
     .target(
         name: "Elasticurl",
         dependencies: ["AwsCommonRuntimeKit"],
-        path: "Source/Elasticurl",
-        cSettings: [
-            .headerSearchPath("../../platform_config/osx/x86_64/"),
-            .define("AWS_UNSTABLE_TESTING_API"),
-        ]
+        path: "Source/Elasticurl"
     )
 ] )

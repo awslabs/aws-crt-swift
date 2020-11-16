@@ -11,33 +11,33 @@ class MqttClientTests: CrtXCBaseTestCase {
         let options = TlsContextOptions(defaultClientWithAllocator: allocator)
         try options.setAlpnList("")
         let context = try TlsContext(options: options, mode: .client, allocator: allocator)
-     
-        let socketOptions = SocketOptions(socketType: .datagram)
-        
-        let shutDownOptions = ShutDownCallbackOptions() { semaphore in
-            semaphore.signal()
-        }
-        
-        let resolverShutDownOptions = ShutDownCallbackOptions() { semaphore in
+
+        let socketOptions = SocketOptions(socketType: .stream)
+
+        let shutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
 
-        let elg = try EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
-        let resolver = try DefaultHostResolver(eventLoopGroup: elg,
+        let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
+            semaphore.signal()
+        }
+
+        let elg = EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
+        let resolver = DefaultHostResolver(eventLoopGroup: elg,
                                                maxHosts: 8,
                                                maxTTL: 5,
                                                allocator: allocator,
                                                shutDownOptions: resolverShutDownOptions)
-        
+
         let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
             sempahore.signal()
         }
-        
+
         let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                                   hostResolver: resolver,
                                                   callbackData: clientBootstrapCallbackData,
                                                   allocator: allocator)
-        
+
         clientBootstrap.enableBlockingShutdown = true
 
         let mqttClient = try MqttClient(clientBootstrap: clientBootstrap, allocator: allocator)
