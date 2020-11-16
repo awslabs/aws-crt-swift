@@ -26,7 +26,6 @@ public final class Future<Value> {
         }
         lock.unlock()
         waiter.wait()
-        
         //can force unwrap here cuz if wait was lifted, future has completed
         return try self._value!.get()
     }
