@@ -4,6 +4,8 @@
 import struct Foundation.Data
 import class Foundation.InputStream
 import class Foundation.FileManager
+import class Foundation.FileHandle
+import class Foundation.OutputStream
 import struct Foundation.URL
 import AwsCIo
 
@@ -268,8 +270,10 @@ extension ByteBuffer: AwsStream {
 }
 
 extension ByteBuffer {
+    /// initialize a  new `ByteBuffer` instance from `Foundation.Data`
     public convenience init(data: Data) {
         self.init(size: data.count)
+
         let byteArray: [UInt8] = data.map { $0 }
         array.append(contentsOf: byteArray)
 
@@ -278,6 +282,7 @@ extension ByteBuffer {
         }
     }
 
+    /// initialize a new `ByteBuffer` instance from `Foundation.InputStream`
     public convenience init(stream: InputStream) throws {
         self.init(size: 0)
         stream.open()
@@ -305,11 +310,40 @@ extension ByteBuffer {
         }
     }
 
+    /// initialize a new `ByteBuffer` instance from a file path in the format of a `String`
     public convenience init(filePath: String) throws {
         let url = URL(fileURLWithPath: filePath)
 
         let data = try Data(contentsOf: url)
 
         self.init(data: data)
+    }
+
+    /// Coverts the array of bytes to a `Data` object
+    ///
+    /// - Returns: `Data`
+    public func toData() -> Data {
+        return Data(bytes: array, count: array.count)
+    }
+
+    /// Creates a new file at the `filePath` given and writes the data to it returning a `FileHandle` to it.
+    ///
+    /// - Parameters:
+    ///   - filePath:  The path at which you would like a new file to be created at and written to.
+    /// - Returns: `FileHandle`
+    public func toFile(filePath: String) -> FileHandle? {
+        let fileManager = FileManager.default
+        if fileManager.createFile(atPath: filePath, contents: self.toData()) {
+            return FileHandle(forReadingAtPath: filePath)
+        } else {
+            return nil
+        }
+    }
+
+    /// Converts the array of bytes to `Foundation.InputStream`
+    ///
+    /// - Returns: `InputStream`
+    public func toStream() -> InputStream {
+        return InputStream(data: self.toData())
     }
 }
