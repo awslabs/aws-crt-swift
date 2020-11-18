@@ -47,17 +47,7 @@ public class ByteBuffer {
         return self
     }
 
-    public func put(_ value: Data) -> ByteBuffer {
-        let byteArray: [UInt8] = value.map { $0 }
-        array.append(contentsOf: byteArray)
-
-        for i in 0..<value.count {
-            pointer.advanced(by: i).initialize(to: value[i])
-        }
-        return self
-    }
-
-    public func putData(_ value: Data) {
+    public func put(_ value: Data) {
         let byteArray: [UInt8] = value.map { $0 }
         array.append(contentsOf: byteArray)
 
