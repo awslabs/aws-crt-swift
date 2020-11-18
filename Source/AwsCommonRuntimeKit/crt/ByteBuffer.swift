@@ -33,8 +33,8 @@ public class ByteBuffer {
         currentEndianness = endianness
         return self
     }
-    
-    public func putBytes(_ value: UInt8) {
+
+    public func putByte(_ value: UInt8) {
         array.append(value)
         pointer.advanced(by: currentIndex).initialize(to: value)
     }
@@ -46,9 +46,8 @@ public class ByteBuffer {
     }
 
     public func put(_ value: Data) -> ByteBuffer {
-        for byte in value {
-            array.append(byte.byteSwapped)
-        }
+        let byteArray: [UInt8] = value.map { $0 }
+        array.append(contentsOf: byteArray)
 
         for i in 0..<value.count {
             pointer.advanced(by: i).initialize(to: value[i])
@@ -271,15 +270,14 @@ extension ByteBuffer: AwsStream {
 extension ByteBuffer {
     public convenience init(data: Data) {
         self.init(size: data.count)
-        for byte in data {
-            array.append(byte.byteSwapped)
-        }
+        let byteArray: [UInt8] = data.map { $0 }
+        array.append(contentsOf: byteArray)
 
         for i in 0..<data.count {
             pointer.advanced(by: i).initialize(to: data[i])
         }
     }
-    
+
     public convenience init(stream: InputStream) throws {
         self.init(size: 0)
         stream.open()
@@ -292,7 +290,7 @@ extension ByteBuffer {
         defer {
             buffer.deallocate()
         }
-        
+
         while stream.hasBytesAvailable {
             let read = stream.read(buffer, maxLength: bufferSize)
             if read < 0 {
@@ -303,16 +301,15 @@ extension ByteBuffer {
                 break
             }
             allocate(read)
-            
-            putBytes(buffer.pointee)
+            putByte(buffer.pointee)
         }
     }
-    
+
     public convenience init(filePath: String) throws {
         let url = URL(fileURLWithPath: filePath)
-        
+
         let data = try Data(contentsOf: url)
-        
+
         self.init(data: data)
     }
 }
