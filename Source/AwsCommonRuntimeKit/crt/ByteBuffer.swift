@@ -51,8 +51,9 @@ public class ByteBuffer {
         let byteArray: [UInt8] = value.map { $0 }
         array.append(contentsOf: byteArray)
 
+        let startingPtr = pointer.advanced(by: currentIndex)
         for i in 0..<value.count {
-            pointer.advanced(by: i).initialize(to: value[i])
+            startingPtr.advanced(by: i).initialize(to: byteArray[i])
         }
     }
 
