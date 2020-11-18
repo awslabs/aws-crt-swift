@@ -57,6 +57,15 @@ public class ByteBuffer {
         return self
     }
 
+    public func putData(_ value: Data) {
+        let byteArray: [UInt8] = value.map { $0 }
+        array.append(contentsOf: byteArray)
+
+        for i in 0..<value.count {
+            pointer.advanced(by: i).initialize(to: value[i])
+        }
+    }
+
     public func put(_ value: Int32) -> ByteBuffer {
         if currentEndianness == .little {
             array.append(contentsOf: to(value.littleEndian))
