@@ -13,7 +13,6 @@ import AwsCIo
 public class ByteBuffer {
 
     public init(size: Int) {
-        pointer = UnsafeMutablePointer.allocate(capacity: 1)
         array.reserveCapacity(size)
     }
 
@@ -38,23 +37,16 @@ public class ByteBuffer {
 
     public func putByte(_ value: UInt8) {
         array.append(value)
-        pointer.advanced(by: currentIndex).initialize(to: value)
     }
 
     public func put(_ value: UInt8) -> ByteBuffer {
         array.append(value)
-        pointer.advanced(by: currentIndex).initialize(to: value)
         return self
     }
 
     public func put(_ value: Data) {
         let byteArray: [UInt8] = value.map { $0 }
         array.append(contentsOf: byteArray)
-
-        let startingPtr = pointer.advanced(by: currentIndex)
-        for i in 0..<value.count {
-            startingPtr.advanced(by: i).initialize(to: byteArray[i])
-        }
     }
 
     public func put(_ value: Int32) -> ByteBuffer {
@@ -64,11 +56,6 @@ public class ByteBuffer {
         }
         let arrayOfBytes = to(value.bigEndian)
         array.append(contentsOf: arrayOfBytes)
-        let startingPtr = pointer.advanced(by: currentIndex)
-
-        for i in 0...arrayOfBytes.count {
-            startingPtr.advanced(by: i).initialize(to: arrayOfBytes[i])
-        }
 
         return self
     }
@@ -80,11 +67,6 @@ public class ByteBuffer {
         }
         let arrayOfBytes = to(value.bigEndian)
         array.append(contentsOf: arrayOfBytes)
-        let startingPtr = pointer.advanced(by: currentIndex)
-
-        for i in 0...arrayOfBytes.count {
-            startingPtr.advanced(by: i).initialize(to: arrayOfBytes[i])
-        }
 
         return self
     }
@@ -97,11 +79,6 @@ public class ByteBuffer {
 
         let arrayOfBytes = to(value.bigEndian)
         array.append(contentsOf: arrayOfBytes)
-        let startingPtr = pointer.advanced(by: currentIndex)
-
-        for i in 0...arrayOfBytes.count {
-            startingPtr.advanced(by: i).initialize(to: arrayOfBytes[i])
-        }
         return self
     }
 
@@ -113,11 +90,6 @@ public class ByteBuffer {
         let arrayOfBytes = to(value.bitPattern.bigEndian)
         array.append(contentsOf: arrayOfBytes)
 
-        let startingPtr = pointer.advanced(by: currentIndex)
-
-        for i in 0...arrayOfBytes.count {
-            startingPtr.advanced(by: i).initialize(to: arrayOfBytes[i])
-        }
         return self
     }
 
@@ -128,11 +100,7 @@ public class ByteBuffer {
         }
         let arrayOfBytes = to(value.bitPattern.bigEndian)
         array.append(contentsOf: to(value.bitPattern.bigEndian))
-        let startingPtr = pointer.advanced(by: currentIndex)
 
-        for i in 0...arrayOfBytes.count {
-            startingPtr.advanced(by: i).initialize(to: arrayOfBytes[i])
-        }
         return self
     }
 
@@ -221,16 +189,12 @@ public class ByteBuffer {
         }
     }
 
-    private var pointer: UnsafeMutablePointer<UInt8>
     private var array = [UInt8]()
     private var currentIndex: Int = 0
 
     private var currentEndianness: Endianness = .big
     private let hostEndianness: Endianness = OSHostByteOrder() == OSLittleEndian ? .little : .big
 
-    deinit {
-        pointer.deallocate()
-    }
 }
 
 extension ByteBuffer: AwsStream {
@@ -260,8 +224,8 @@ extension ByteBuffer: AwsStream {
         let dataArray = array[0..<(arrayEnd)]
         if dataArray.count > 0 {
             let result = buffer.buffer.advanced(by: buffer.len)
-            let unsafePtr = UnsafePointer(pointer)
-            result.assign(from: unsafePtr, count: dataArray.count)
+            let resultBufferPointer = UnsafeMutableBufferPointer.init(start: result, count: dataArray.count)
+            dataArray.copyBytes(to: resultBufferPointer)
             buffer.len += dataArray.count
             return true
         }
@@ -273,13 +237,7 @@ extension ByteBuffer {
     /// initialize a  new `ByteBuffer` instance from `Foundation.Data`
     public convenience init(data: Data) {
         self.init(size: data.count)
-
-        let byteArray: [UInt8] = data.map { $0 }
-        array.append(contentsOf: byteArray)
-
-        for i in 0..<data.count {
-            pointer.advanced(by: i).initialize(to: data[i])
-        }
+        put(data)
     }
 
     /// initialize a new `ByteBuffer` instance from `Foundation.InputStream`
