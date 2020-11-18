@@ -1,7 +1,10 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-import Foundation
+import struct Foundation.Data
+import class Foundation.InputStream
+import class Foundation.FileManager
+import struct Foundation.URL
 import AwsCIo
 
 //swiftlint:disable identifier_name
@@ -29,6 +32,11 @@ public class ByteBuffer {
     public func order(_ endianness: Endianness) -> ByteBuffer {
         currentEndianness = endianness
         return self
+    }
+    
+    public func putBytes(_ value: UInt8) {
+        array.append(value)
+        pointer.advanced(by: currentIndex).initialize(to: value)
     }
 
     public func put(_ value: UInt8) -> ByteBuffer {
@@ -257,5 +265,54 @@ extension ByteBuffer: AwsStream {
             return true
         }
         return !self.status.is_end_of_stream
+    }
+}
+
+extension ByteBuffer {
+    public convenience init(data: Data) {
+        self.init(size: data.count)
+        for byte in data {
+            array.append(byte.byteSwapped)
+        }
+
+        for i in 0..<data.count {
+            pointer.advanced(by: i).initialize(to: data[i])
+        }
+    }
+    
+    public convenience init(stream: InputStream) throws {
+        self.init(size: 0)
+        stream.open()
+        defer {
+            stream.close()
+        }
+
+        let bufferSize = 1024
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        defer {
+            buffer.deallocate()
+        }
+        
+        while stream.hasBytesAvailable {
+            let read = stream.read(buffer, maxLength: bufferSize)
+            if read < 0 {
+                //Stream error occured
+                throw stream.streamError!
+            } else if read == 0 {
+                //EOF
+                break
+            }
+            allocate(read)
+            
+            putBytes(buffer.pointee)
+        }
+    }
+    
+    public convenience init(filePath: String) throws {
+        let url = URL(fileURLWithPath: filePath)
+        
+        let data = try Data(contentsOf: url)
+        
+        self.init(data: data)
     }
 }
