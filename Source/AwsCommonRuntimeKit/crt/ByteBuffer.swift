@@ -9,7 +9,7 @@ import class Foundation.OutputStream
 import struct Foundation.URL
 import AwsCIo
 
-//swiftlint:disable identifier_name
+//swiftlint:disable identifier_name superfluous_disable_command
 public class ByteBuffer {
 
     public init(size: Int) {
