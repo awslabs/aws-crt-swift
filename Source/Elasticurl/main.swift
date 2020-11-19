@@ -30,6 +30,7 @@ struct Context {
 struct Elasticurl {
     private static let version = "0.1.0"
     private static var context = Context()
+    private static let logger = Logger(pipe: stdout, level: context.logLevel)
 
     static func parseArguments() {
 
@@ -230,7 +231,7 @@ struct Elasticurl {
             }
 
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
-            let logger = Logger(pipe: stdout, level: context.logLevel, allocator: allocator)
+
             AwsCommonRuntimeKit.initialize(allocator: allocator)
 
             let port = UInt16(443)
@@ -277,9 +278,8 @@ struct Elasticurl {
             }
 
             if let data = context.data {
-                let byteBuffer = ByteBuffer(size: data.count)
-                let buffer = byteBuffer.put(data)
-                let awsStream = AwsInputStream(buffer)
+                let byteBuffer = ByteBuffer(data: data)
+                let awsStream = AwsInputStream(byteBuffer)
                 httpRequest.body = awsStream
                 if headers.add(name: "Content-length", value: "\(data.count)") {
                     httpRequest.addHeaders(headers: headers)

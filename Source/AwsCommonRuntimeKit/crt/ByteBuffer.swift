@@ -1,14 +1,18 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-import Foundation
+import struct Foundation.Data
+import class Foundation.InputStream
+import class Foundation.FileManager
+import class Foundation.FileHandle
+import class Foundation.OutputStream
+import struct Foundation.URL
 import AwsCIo
 
-//swiftlint:disable identifier_name
+//swiftlint:disable identifier_name superfluous_disable_command
 public class ByteBuffer {
 
     public init(size: Int) {
-        pointer = UnsafeMutablePointer.allocate(capacity: 1)
         array.reserveCapacity(size)
     }
 
@@ -31,21 +35,18 @@ public class ByteBuffer {
         return self
     }
 
+    public func putByte(_ value: UInt8) {
+        array.append(value)
+    }
+
     public func put(_ value: UInt8) -> ByteBuffer {
         array.append(value)
-        pointer.advanced(by: currentIndex).initialize(to: value)
         return self
     }
 
-    public func put(_ value: Data) -> ByteBuffer {
-        for byte in value {
-            array.append(byte.byteSwapped)
-        }
-
-        for i in 0..<value.count {
-            pointer.advanced(by: i).initialize(to: value[i])
-        }
-        return self
+    public func put(_ value: Data) {
+        let byteArray: [UInt8] = value.map { $0 }
+        array.append(contentsOf: byteArray)
     }
 
     public func put(_ value: Int32) -> ByteBuffer {
@@ -55,11 +56,6 @@ public class ByteBuffer {
         }
         let arrayOfBytes = to(value.bigEndian)
         array.append(contentsOf: arrayOfBytes)
-        let startingPtr = pointer.advanced(by: currentIndex)
-
-        for i in 0...arrayOfBytes.count {
-            startingPtr.advanced(by: i).initialize(to: arrayOfBytes[i])
-        }
 
         return self
     }
@@ -71,11 +67,6 @@ public class ByteBuffer {
         }
         let arrayOfBytes = to(value.bigEndian)
         array.append(contentsOf: arrayOfBytes)
-        let startingPtr = pointer.advanced(by: currentIndex)
-
-        for i in 0...arrayOfBytes.count {
-            startingPtr.advanced(by: i).initialize(to: arrayOfBytes[i])
-        }
 
         return self
     }
@@ -88,11 +79,6 @@ public class ByteBuffer {
 
         let arrayOfBytes = to(value.bigEndian)
         array.append(contentsOf: arrayOfBytes)
-        let startingPtr = pointer.advanced(by: currentIndex)
-
-        for i in 0...arrayOfBytes.count {
-            startingPtr.advanced(by: i).initialize(to: arrayOfBytes[i])
-        }
         return self
     }
 
@@ -104,11 +90,6 @@ public class ByteBuffer {
         let arrayOfBytes = to(value.bitPattern.bigEndian)
         array.append(contentsOf: arrayOfBytes)
 
-        let startingPtr = pointer.advanced(by: currentIndex)
-
-        for i in 0...arrayOfBytes.count {
-            startingPtr.advanced(by: i).initialize(to: arrayOfBytes[i])
-        }
         return self
     }
 
@@ -119,11 +100,7 @@ public class ByteBuffer {
         }
         let arrayOfBytes = to(value.bitPattern.bigEndian)
         array.append(contentsOf: to(value.bitPattern.bigEndian))
-        let startingPtr = pointer.advanced(by: currentIndex)
 
-        for i in 0...arrayOfBytes.count {
-            startingPtr.advanced(by: i).initialize(to: arrayOfBytes[i])
-        }
         return self
     }
 
@@ -212,16 +189,12 @@ public class ByteBuffer {
         }
     }
 
-    private var pointer: UnsafeMutablePointer<UInt8>
     private var array = [UInt8]()
     private var currentIndex: Int = 0
 
     private var currentEndianness: Endianness = .big
     private let hostEndianness: Endianness = OSHostByteOrder() == OSLittleEndian ? .little : .big
 
-    deinit {
-        pointer.deallocate()
-    }
 }
 
 extension ByteBuffer: AwsStream {
@@ -251,11 +224,84 @@ extension ByteBuffer: AwsStream {
         let dataArray = array[0..<(arrayEnd)]
         if dataArray.count > 0 {
             let result = buffer.buffer.advanced(by: buffer.len)
-            let unsafePtr = UnsafePointer(pointer)
-            result.assign(from: unsafePtr, count: dataArray.count)
+            let resultBufferPointer = UnsafeMutableBufferPointer.init(start: result, count: dataArray.count)
+            dataArray.copyBytes(to: resultBufferPointer)
             buffer.len += dataArray.count
             return true
         }
         return !self.status.is_end_of_stream
+    }
+}
+
+extension ByteBuffer {
+    /// initialize a  new `ByteBuffer` instance from `Foundation.Data`
+    public convenience init(data: Data) {
+        self.init(size: data.count)
+        put(data)
+    }
+
+    /// initialize a new `ByteBuffer` instance from `Foundation.InputStream`
+    public convenience init(stream: InputStream) throws {
+        self.init(size: 0)
+        stream.open()
+        defer {
+            stream.close()
+        }
+
+        let bufferSize = 1024
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        defer {
+            buffer.deallocate()
+        }
+
+        while stream.hasBytesAvailable {
+            let read = stream.read(buffer, maxLength: bufferSize)
+            if read < 0 {
+                //Stream error occured
+                throw stream.streamError!
+            } else if read == 0 {
+                //EOF
+                break
+            }
+            allocate(read)
+            putByte(buffer.pointee)
+        }
+    }
+
+    /// initialize a new `ByteBuffer` instance from a file path in the format of a `String`
+    public convenience init(filePath: String) throws {
+        let url = URL(fileURLWithPath: filePath)
+
+        let data = try Data(contentsOf: url)
+
+        self.init(data: data)
+    }
+
+    /// Coverts the array of bytes to a `Data` object
+    ///
+    /// - Returns: `Data`
+    public func toData() -> Data {
+        return Data(bytes: array, count: array.count)
+    }
+
+    /// Creates a new file at the `filePath` given and writes the data to it returning a `FileHandle` to it.
+    ///
+    /// - Parameters:
+    ///   - filePath:  The path at which you would like a new file to be created at and written to.
+    /// - Returns: `FileHandle`
+    public func toFile(filePath: String) -> FileHandle? {
+        let fileManager = FileManager.default
+        if fileManager.createFile(atPath: filePath, contents: self.toData()) {
+            return FileHandle(forReadingAtPath: filePath)
+        } else {
+            return nil
+        }
+    }
+
+    /// Converts the array of bytes to `Foundation.InputStream`
+    ///
+    /// - Returns: `InputStream`
+    public func toStream() -> InputStream {
+        return InputStream(data: self.toData())
     }
 }
