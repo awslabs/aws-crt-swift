@@ -5,7 +5,7 @@ import AwsCAuth
 import AwsCIo
 import AwsCHttp
 
-final class AWSCredentialsProvider {
+public final class AWSCredentialsProvider {
 
     let allocator: Allocator
 
