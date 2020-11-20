@@ -1,8 +1,8 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-struct CredentialsProviderShutdownOptions {
-    typealias ShutDownCallback = () -> Void
+public struct CredentialsProviderShutdownOptions {
+    public typealias ShutDownCallback = () -> Void
 
     public let shutDownCallback: ShutDownCallback
 

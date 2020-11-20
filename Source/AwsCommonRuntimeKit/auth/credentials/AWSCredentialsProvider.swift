@@ -53,7 +53,7 @@ public final class AWSCredentialsProvider {
     /// - Parameters:
     ///   - shutdownOptions:  The `CredentialsProviderShutdownOptions`options object.
     /// - Returns: `AWSCredentialsProvider`
-    convenience init(fromEnv shutdownOptions: CredentialsProviderShutdownOptions?,
+    public convenience init(fromEnv shutdownOptions: CredentialsProviderShutdownOptions?,
                      allocator: Allocator = defaultAllocator) throws {
 
         var envOptions = aws_credentials_provider_environment_options()
