@@ -1,7 +1,7 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-struct CredentialsProviderChainDefaultConfig {
+public struct CredentialsProviderChainDefaultConfig {
     public let shutDownOptions: CredentialsProviderShutdownOptions?
     public let bootstrap: ClientBootstrap
 

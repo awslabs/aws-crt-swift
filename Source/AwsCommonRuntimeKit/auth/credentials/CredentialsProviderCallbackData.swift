@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 public struct CredentialsProviderCallbackData {
-    public typealias OnCredentialsResolved = (Credentials?, CRTError) -> Void
+    public typealias OnCredentialsResolved = (CRTCredentials?, CRTError) -> Void
     public var onCredentialsResolved: OnCredentialsResolved?
     public let allocator: Allocator
 

@@ -3,7 +3,7 @@
 
 import AwsCAuth
 
-public final class Credentials {
+public final class CRTCredentials {
 
     let rawValue: OpaquePointer
 

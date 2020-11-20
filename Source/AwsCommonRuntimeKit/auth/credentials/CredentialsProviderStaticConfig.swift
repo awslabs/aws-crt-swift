@@ -1,7 +1,7 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-struct CredentialsProviderStaticConfigOptions {
+public struct CredentialsProviderStaticConfigOptions {
     public let accessKey: String
     public let secret: String
     public let sessionToken: String

@@ -7,7 +7,7 @@ private func getCredentialsFn(_ credentialsProviderPtr: UnsafeMutablePointer<aws
                               _ callbackFn: (@convention(c)(OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
                               userData: UnsafeMutableRawPointer?) -> Int32 {
 
-    guard let credentialsProvider = userData?.assumingMemoryBound(to: CredentialsProvider.self) else {
+    guard let credentialsProvider = userData?.assumingMemoryBound(to: CRTCredentialsProvider.self) else {
         return 1
     }
 
@@ -23,7 +23,7 @@ private func getCredentialsFn(_ credentialsProviderPtr: UnsafeMutablePointer<aws
    return 0
 }
 
-public protocol CredentialsProvider {
+public protocol CRTCredentialsProvider {
     var allocator: Allocator {get set}
     func getCredentials(credentialCallbackData: CredentialsProviderCallbackData)
 
@@ -32,10 +32,10 @@ public protocol CredentialsProvider {
 class WrappedCredentialsProvider {
     var rawValue: aws_credentials_provider
     let allocator: Allocator
-    private let implementationPtr: UnsafeMutablePointer<CredentialsProvider>
+    private let implementationPtr: UnsafeMutablePointer<CRTCredentialsProvider>
     private let vTablePtr: UnsafeMutablePointer<aws_credentials_provider_vtable>
 
-    init(impl: CredentialsProvider,
+    init(impl: CRTCredentialsProvider,
          allocator: Allocator,
          shutDownOptions: CredentialsProviderShutdownOptions? = nil) {
         let vtable = aws_credentials_provider_vtable(get_credentials: getCredentialsFn,
@@ -52,7 +52,7 @@ class WrappedCredentialsProvider {
         intPointer.pointee = 1
         let atomicVar = aws_atomic_var(value: UnsafeMutableRawPointer(intPointer))
         self.allocator = allocator
-        let credProviderPtr = UnsafeMutablePointer<CredentialsProvider>.allocate(capacity: 1)
+        let credProviderPtr = UnsafeMutablePointer<CRTCredentialsProvider>.allocate(capacity: 1)
         credProviderPtr.initialize(to: impl)
         let vTablePtr = UnsafeMutablePointer<aws_credentials_provider_vtable>.allocate(capacity: 1)
         vTablePtr.initialize(to: vtable)

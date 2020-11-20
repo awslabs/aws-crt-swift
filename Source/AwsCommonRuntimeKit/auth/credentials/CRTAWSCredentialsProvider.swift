@@ -5,7 +5,7 @@ import AwsCAuth
 import AwsCIo
 import AwsCHttp
 
-public final class AWSCredentialsProvider {
+public final class CRTAWSCredentialsProvider {
 
     let allocator: Allocator
 
@@ -17,7 +17,7 @@ public final class AWSCredentialsProvider {
         self.allocator = allocator
     }
 
-    convenience init(fromProvider impl: CredentialsProvider,
+    public convenience init(fromProvider impl: CRTCredentialsProvider,
                      shutDownOptions: CredentialsProviderShutdownOptions? = nil,
                      allocator: Allocator = defaultAllocator) {
         let wrapped = WrappedCredentialsProvider(impl: impl, allocator: allocator, shutDownOptions: shutDownOptions)
@@ -29,7 +29,7 @@ public final class AWSCredentialsProvider {
     /// - Parameters:
     ///   - config:  The `CredentialsProviderStaticConfigOptions` config object.
     /// - Returns: `AWSCredentialsProvider`
-    convenience init(fromStatic config: CredentialsProviderStaticConfigOptions,
+    public convenience init(fromStatic config: CredentialsProviderStaticConfigOptions,
                      allocator: Allocator = defaultAllocator) throws {
 
         var staticOptions = aws_credentials_provider_static_options()
@@ -71,7 +71,7 @@ public final class AWSCredentialsProvider {
     /// - Parameters:
     ///   - profileOptions:  The `CredentialsProviderProfileOptions`options object.
     /// - Returns: `AWSCredentialsProvider`
-    convenience init(fromProfile profileOptions: CredentialsProviderProfileOptions,
+    public convenience init(fromProfile profileOptions: CredentialsProviderProfileOptions,
                      allocator: Allocator = defaultAllocator) throws {
 
         var profileOptionsC = aws_credentials_provider_profile_options()
@@ -99,7 +99,7 @@ public final class AWSCredentialsProvider {
     /// - Parameters:
     ///   - imdsConfig:  The `CredentialsProviderImdsConfig`options object.
     /// - Returns: `AWSCredentialsProvider`
-    convenience init(fromImds imdsConfig: CredentialsProviderImdsConfig,
+    public convenience init(fromImds imdsConfig: CredentialsProviderImdsConfig,
                      allocator: Allocator = defaultAllocator) throws {
 
         var imdsOptions = aws_credentials_provider_imds_options()
@@ -118,7 +118,7 @@ public final class AWSCredentialsProvider {
     /// - Parameters:
     ///   - cachedConfig:  The `CredentialsProviderCachedConfig`options object.
     /// - Returns: `AWSCredentialsProvider`
-    convenience init(fromCached cachedConfig: inout CredentialsProviderCachedConfig,
+    public convenience init(fromCached cachedConfig: inout CredentialsProviderCachedConfig,
                      allocator: Allocator = defaultAllocator) throws {
 
         var cachedOptions = aws_credentials_provider_cached_options()
@@ -146,7 +146,7 @@ public final class AWSCredentialsProvider {
     /// - Parameters:
     ///   - chainDefaultConfig:  The `CredentialsProviderChainDefaultConfig`options object.
     /// - Returns: `AWSCredentialsProvider`
-    convenience init(fromChainDefault chainDefaultConfig: CredentialsProviderChainDefaultConfig,
+    public convenience init(fromChainDefault chainDefaultConfig: CredentialsProviderChainDefaultConfig,
                      allocator: Allocator = defaultAllocator) throws {
 
         var chainDefaultOptions = aws_credentials_provider_chain_default_options()
@@ -166,7 +166,7 @@ public final class AWSCredentialsProvider {
     /// - Parameters:
     ///   - x509Config:  The `CredentialsProviderX509Config`options object.
     /// - Returns: `AWSCredentialsProvider`
-    convenience init(fromx509 x509Config: CredentialsProviderX509Config,
+    public convenience init(fromx509 x509Config: CredentialsProviderX509Config,
                      allocator: Allocator = defaultAllocator) throws {
 
         var x509Options = aws_credentials_provider_x509_options()
@@ -195,7 +195,7 @@ public final class AWSCredentialsProvider {
     ///
     /// - Parameters:
     ///   - credentialCallbackData:  The `CredentialProviderCallbackData`options object.
-    func getCredentials(credentialCallbackData: CredentialsProviderCallbackData) {
+    public func getCredentials(credentialCallbackData: CredentialsProviderCallbackData) {
         let pointer = UnsafeMutablePointer<CredentialsProviderCallbackData>.allocate(capacity: 1)
         pointer.initialize(to: credentialCallbackData)
         aws_credentials_provider_get_credentials(rawValue, { (credentials, errorCode, userdata) -> Void in
@@ -206,7 +206,7 @@ public final class AWSCredentialsProvider {
             defer { pointer.deinitializeAndDeallocate() }
             let error = AWSError(errorCode: errorCode)
             if let onCredentialsResolved = pointer.pointee.onCredentialsResolved {
-                onCredentialsResolved(Credentials(rawValue: credentials), CRTError.crtError(error))
+                onCredentialsResolved(CRTCredentials(rawValue: credentials), CRTError.crtError(error))
             }
         }, pointer)
     }
