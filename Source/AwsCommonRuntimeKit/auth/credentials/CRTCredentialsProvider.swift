@@ -11,8 +11,8 @@ private func getCredentialsFn(_ credentialsProviderPtr: UnsafeMutablePointer<aws
         return 1
     }
 
-    var credentialCallbackData = CredentialsProviderCallbackData(allocator: credentialsProvider.pointee.allocator)
-    let callbackPointer = UnsafeMutablePointer<CredentialsProviderCallbackData>.allocate(capacity: 1)
+    var credentialCallbackData = CRTCredentialsProviderCallbackData(allocator: credentialsProvider.pointee.allocator)
+    let callbackPointer = UnsafeMutablePointer<CRTCredentialsProviderCallbackData>.allocate(capacity: 1)
     callbackPointer.initialize(to: credentialCallbackData)
     credentialCallbackData.onCredentialsResolved = { (credentials, crtError) in
         if case let CRTError.crtError(error) = crtError {
@@ -25,7 +25,7 @@ private func getCredentialsFn(_ credentialsProviderPtr: UnsafeMutablePointer<aws
 
 public protocol CRTCredentialsProvider {
     var allocator: Allocator {get set}
-    func getCredentials(credentialCallbackData: CredentialsProviderCallbackData)
+    func getCredentials(credentialCallbackData: CRTCredentialsProviderCallbackData)
 
 }
 

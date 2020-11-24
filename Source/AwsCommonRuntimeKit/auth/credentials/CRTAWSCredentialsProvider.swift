@@ -195,14 +195,14 @@ public final class CRTAWSCredentialsProvider {
     ///
     /// - Parameters:
     ///   - credentialCallbackData:  The `CredentialProviderCallbackData`options object.
-    public func getCredentials(credentialCallbackData: CredentialsProviderCallbackData) {
-        let pointer = UnsafeMutablePointer<CredentialsProviderCallbackData>.allocate(capacity: 1)
+    public func getCredentials(credentialCallbackData: CRTCredentialsProviderCallbackData) {
+        let pointer = UnsafeMutablePointer<CRTCredentialsProviderCallbackData>.allocate(capacity: 1)
         pointer.initialize(to: credentialCallbackData)
         aws_credentials_provider_get_credentials(rawValue, { (credentials, errorCode, userdata) -> Void in
             guard let userdata = userdata else {
                 return
             }
-            let pointer = userdata.assumingMemoryBound(to: CredentialsProviderCallbackData.self)
+            let pointer = userdata.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
             defer { pointer.deinitializeAndDeallocate() }
             let error = AWSError(errorCode: errorCode)
             if let onCredentialsResolved = pointer.pointee.onCredentialsResolved {

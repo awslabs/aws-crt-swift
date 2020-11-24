@@ -30,8 +30,8 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         return shutDownOptions
     }
 
-    func setUpCallbackCredentials() -> CredentialsProviderCallbackData {
-        let callbackData = CredentialsProviderCallbackData(allocator: allocator) { (_, errorCode) in
+    func setUpCallbackCredentials() -> CRTCredentialsProviderCallbackData {
+        let callbackData = CRTCredentialsProviderCallbackData(allocator: allocator) { (_, errorCode) in
 
            //test that we got here successfully but not if we have credentials as we can't
            //test all uses cases i.e. some need to be on ec2 instance, etc
