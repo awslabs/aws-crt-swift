@@ -99,7 +99,7 @@ public class ByteBuffer {
             return self
         }
         let arrayOfBytes = to(value.bitPattern.bigEndian)
-        array.append(contentsOf: to(value.bitPattern.bigEndian))
+        array.append(contentsOf: arrayOfBytes)
 
         return self
     }
