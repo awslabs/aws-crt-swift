@@ -7,12 +7,12 @@ private func getCredentialsFn(_ credentialsProviderPtr: UnsafeMutablePointer<aws
                               _ callbackFn: (@convention(c)(OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
                               userData: UnsafeMutableRawPointer?) -> Int32 {
 
-    guard let credentialsProvider = userData?.assumingMemoryBound(to: CredentialsProvider.self) else {
+    guard let credentialsProvider = userData?.assumingMemoryBound(to: CRTCredentialsProvider.self) else {
         return 1
     }
 
-    var credentialCallbackData = CredentialsProviderCallbackData(allocator: credentialsProvider.pointee.allocator)
-    let callbackPointer = UnsafeMutablePointer<CredentialsProviderCallbackData>.allocate(capacity: 1)
+    var credentialCallbackData = CRTCredentialsProviderCallbackData(allocator: credentialsProvider.pointee.allocator)
+    let callbackPointer = UnsafeMutablePointer<CRTCredentialsProviderCallbackData>.allocate(capacity: 1)
     callbackPointer.initialize(to: credentialCallbackData)
     credentialCallbackData.onCredentialsResolved = { (credentials, crtError) in
         if case let CRTError.crtError(error) = crtError {
@@ -23,21 +23,21 @@ private func getCredentialsFn(_ credentialsProviderPtr: UnsafeMutablePointer<aws
    return 0
 }
 
-public protocol CredentialsProvider {
+public protocol CRTCredentialsProvider {
     var allocator: Allocator {get set}
-    func getCredentials(credentialCallbackData: CredentialsProviderCallbackData)
+    func getCredentials(credentialCallbackData: CRTCredentialsProviderCallbackData)
 
 }
 
-class WrappedCredentialsProvider {
+class WrappedCRTCredentialsProvider {
     var rawValue: aws_credentials_provider
     let allocator: Allocator
-    private let implementationPtr: UnsafeMutablePointer<CredentialsProvider>
+    private let implementationPtr: UnsafeMutablePointer<CRTCredentialsProvider>
     private let vTablePtr: UnsafeMutablePointer<aws_credentials_provider_vtable>
 
-    init(impl: CredentialsProvider,
+    init(impl: CRTCredentialsProvider,
          allocator: Allocator,
-         shutDownOptions: CredentialsProviderShutdownOptions? = nil) {
+         shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
         let vtable = aws_credentials_provider_vtable(get_credentials: getCredentialsFn,
                                                      destroy: { (credentialsProviderPtr) in
             guard let credentialsProviderPtr = credentialsProviderPtr else {
@@ -52,7 +52,7 @@ class WrappedCredentialsProvider {
         intPointer.pointee = 1
         let atomicVar = aws_atomic_var(value: UnsafeMutableRawPointer(intPointer))
         self.allocator = allocator
-        let credProviderPtr = UnsafeMutablePointer<CredentialsProvider>.allocate(capacity: 1)
+        let credProviderPtr = UnsafeMutablePointer<CRTCredentialsProvider>.allocate(capacity: 1)
         credProviderPtr.initialize(to: impl)
         let vTablePtr = UnsafeMutablePointer<aws_credentials_provider_vtable>.allocate(capacity: 1)
         vTablePtr.initialize(to: vtable)
@@ -66,18 +66,18 @@ class WrappedCredentialsProvider {
 
     }
 
-    static func setUpShutDownOptions(shutDownOptions: CredentialsProviderShutdownOptions?)
+    static func setUpShutDownOptions(shutDownOptions: CRTCredentialsProviderShutdownOptions?)
     -> aws_credentials_provider_shutdown_options {
         let shutDownOptionsC: aws_credentials_provider_shutdown_options?
         if let shutDownOptions = shutDownOptions {
 
-            let pointer = UnsafeMutablePointer<CredentialsProviderShutdownOptions>.allocate(capacity: 1)
+            let pointer = UnsafeMutablePointer<CRTCredentialsProviderShutdownOptions>.allocate(capacity: 1)
             pointer.initialize(to: shutDownOptions)
             shutDownOptionsC = aws_credentials_provider_shutdown_options(shutdown_callback: { userData in
                 guard let userData = userData else {
                     return
                 }
-                let pointer = userData.assumingMemoryBound(to: CredentialsProviderShutdownOptions.self)
+                let pointer = userData.assumingMemoryBound(to: CRTCredentialsProviderShutdownOptions.self)
                 defer {pointer.deinitializeAndDeallocate()}
                 pointer.pointee.shutDownCallback()
 

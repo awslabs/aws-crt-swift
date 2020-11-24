@@ -22,16 +22,16 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         }
     }
 
-    func setUpShutDownOptions() -> CredentialsProviderShutdownOptions {
-        let shutDownOptions = CredentialsProviderShutdownOptions {
+    func setUpShutDownOptions() -> CRTCredentialsProviderShutdownOptions {
+        let shutDownOptions = CRTCredentialsProviderShutdownOptions {
             XCTAssert(true)
             self.expectation2.fulfill()
         }
         return shutDownOptions
     }
 
-    func setUpCallbackCredentials() -> CredentialsProviderCallbackData {
-        let callbackData = CredentialsProviderCallbackData(allocator: allocator) { (_, errorCode) in
+    func setUpCallbackCredentials() -> CRTCredentialsProviderCallbackData {
+        let callbackData = CRTCredentialsProviderCallbackData(allocator: allocator) { (_, errorCode) in
 
            //test that we got here successfully but not if we have credentials as we can't
            //test all uses cases i.e. some need to be on ec2 instance, etc
@@ -44,11 +44,11 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     func testCreateAWSCredentialsProviderStatic() {
         do {
         let shutDownOptions = setUpShutDownOptions()
-        let config = CredentialsProviderStaticConfigOptions(accessKey: accessKey,
+        let config = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
                                                             secret: secret,
                                                             sessionToken: sessionToken,
                                                             shutDownOptions: shutDownOptions)
-        let provider = try AWSCredentialsProvider(fromStatic: config, allocator: allocator)
+        let provider = try CRTAWSCredentialsProvider(fromStatic: config, allocator: allocator)
         let callbackData = setUpCallbackCredentials()
         provider.getCredentials(credentialCallbackData: callbackData)
         wait(for: [expectation], timeout: 5.0)
@@ -60,7 +60,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     func testCreateAWSCredentialsProviderEnv() {
         do {
         let shutDownOptions = setUpShutDownOptions()
-        let provider = try AWSCredentialsProvider(fromEnv: shutDownOptions, allocator: allocator)
+        let provider = try CRTAWSCredentialsProvider(fromEnv: shutDownOptions, allocator: allocator)
         let callbackData = setUpCallbackCredentials()
         provider.getCredentials(credentialCallbackData: callbackData)
         wait(for: [expectation], timeout: 5.0)
@@ -76,9 +76,9 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         //uses default paths to credentials and config
         do {
         let shutDownOptions = setUpShutDownOptions()
-        let config = CredentialsProviderProfileOptions(shutdownOptions: shutDownOptions)
+        let config = MockCredentialsProviderProfileOptions(shutdownOptions: shutDownOptions)
 
-        let provider = try AWSCredentialsProvider(fromProfile: config, allocator: allocator)
+        let provider = try CRTAWSCredentialsProvider(fromProfile: config, allocator: allocator)
 
         let callbackData = setUpCallbackCredentials()
         provider.getCredentials(credentialCallbackData: callbackData)
@@ -115,9 +115,9 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             bootstrap.enableBlockingShutDown()
             let shutDownOptions = setUpShutDownOptions()
 
-            let config = CredentialsProviderChainDefaultConfig(bootstrap: bootstrap, shutDownOptions: shutDownOptions)
+            let config = MockCredentialsProviderChainDefaultConfig(bootstrap: bootstrap, shutDownOptions: shutDownOptions)
 
-            let provider = try AWSCredentialsProvider(fromChainDefault: config)
+            let provider = try CRTAWSCredentialsProvider(fromChainDefault: config)
             let callbackData = setUpCallbackCredentials()
             provider.getCredentials(credentialCallbackData: callbackData)
 
@@ -125,5 +125,53 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         } catch {
             XCTFail()
         }
+    }
+}
+
+struct MockCredentialsProviderProfileOptions: CRTCredentialsProviderProfileOptions {
+    var shutdownOptions: CRTCredentialsProviderShutdownOptions?
+    
+    var configFileNameOverride: String?
+    
+    var profileFileNameOverride: String?
+    
+    var credentialsFileNameOverride: String?
+    
+    init(configFileNameOverride: String? = nil,
+         profileFileNameOverride: String? = nil,
+         credentialsFileNameOverride: String? = nil,
+         shutdownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
+        self.configFileNameOverride = configFileNameOverride
+        self.profileFileNameOverride = profileFileNameOverride
+        self.credentialsFileNameOverride = credentialsFileNameOverride
+        self.shutdownOptions = shutdownOptions
+    }
+}
+
+struct MockCredentialsProviderStaticConfigOptions: CRTCredentialsProviderStaticConfigOptions {
+    public var accessKey: String
+    public var secret: String
+    public var sessionToken: String
+    public var shutDownOptions: CRTCredentialsProviderShutdownOptions?
+
+    public init(accessKey: String,
+                secret: String,
+                sessionToken: String,
+                shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
+        self.accessKey = accessKey
+        self.secret = secret
+        self.sessionToken = sessionToken
+        self.shutDownOptions = shutDownOptions
+    }
+}
+
+public struct MockCredentialsProviderChainDefaultConfig: CRTCredentialsProviderChainDefaultConfig {
+    public var shutDownOptions: CRTCredentialsProviderShutdownOptions?
+    public var bootstrap: ClientBootstrap
+
+    public init(bootstrap: ClientBootstrap,
+                shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
+        self.bootstrap = bootstrap
+        self.shutDownOptions = shutDownOptions
     }
 }

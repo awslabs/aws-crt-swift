@@ -6,3 +6,4 @@ build-xcode-ios
 cmake-build-debug
 .DS_Store
 .swiftpm
+.vscode

@@ -6,8 +6,8 @@ import AwsCAuth
 struct SigningConfig {
     public typealias ShouldSignHeader = (String) -> Bool
     public let rawValue: aws_signing_config_aws
-    public let credentials: Credentials?
-    public let credentialsProvider: AWSCredentialsProvider?
+    public let credentials: CRTCredentials?
+    public let credentialsProvider: CRTAWSCredentialsProvider?
     public let expiration: Int64
     public let signedBodyHeader: SignedBodyHeaderType
     public let signedBodyValue: String
@@ -20,8 +20,8 @@ struct SigningConfig {
     public let signingAlgorithm: SigningAlgorithmType
     public let configType: SigningConfigType
 
-    public init(credentials: Credentials? = nil,
-                credentialsProvider: AWSCredentialsProvider? = nil,
+    public init(credentials: CRTCredentials? = nil,
+                credentialsProvider: CRTAWSCredentialsProvider? = nil,
                 expiration: Int64,
                 date: AWSDate,
                 service: String,
