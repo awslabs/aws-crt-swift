@@ -5,6 +5,5 @@ public protocol CRTCredentialsProviderCachedConfig {
     var shutDownOptions: CRTCredentialsProviderShutdownOptions? {get set}
     var source: CRTAWSCredentialsProvider {get set}
     /// refresh time in ms
-    var refreshTime:Int64 {get set}
+    var refreshTime: Int64 {get set}
 }
-

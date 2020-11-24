@@ -18,8 +18,8 @@ public final class CRTAWSCredentialsProvider {
     }
 
     public convenience init(fromProvider impl: CRTCredentialsProvider,
-                     shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil,
-                     allocator: Allocator = defaultAllocator) {
+                            shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil,
+                            allocator: Allocator = defaultAllocator) {
         let wrapped = WrappedCRTCredentialsProvider(impl: impl, allocator: allocator, shutDownOptions: shutDownOptions)
         self.init(credentialsProvider: &wrapped.rawValue, allocator: wrapped.allocator)
     }
@@ -30,7 +30,7 @@ public final class CRTAWSCredentialsProvider {
     ///   - config:  The `CredentialsProviderStaticConfigOptions` config object.
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromStatic config: CRTCredentialsProviderStaticConfigOptions,
-                     allocator: Allocator = defaultAllocator) throws {
+                            allocator: Allocator = defaultAllocator) throws {
 
         var staticOptions = aws_credentials_provider_static_options()
         staticOptions.shutdown_options = WrappedCRTCredentialsProvider.setUpShutDownOptions(
@@ -54,10 +54,11 @@ public final class CRTAWSCredentialsProvider {
     ///   - shutdownOptions:  The `CredentialsProviderShutdownOptions`options object.
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromEnv shutdownOptions: CRTCredentialsProviderShutdownOptions?,
-                     allocator: Allocator = defaultAllocator) throws {
+                            allocator: Allocator = defaultAllocator) throws {
 
         var envOptions = aws_credentials_provider_environment_options()
-        envOptions.shutdown_options = WrappedCRTCredentialsProvider.setUpShutDownOptions(shutDownOptions: shutdownOptions)
+        envOptions.shutdown_options = WrappedCRTCredentialsProvider.setUpShutDownOptions(shutDownOptions:
+                                                                                            shutdownOptions)
 
         guard let provider = aws_credentials_provider_new_environment(allocator.rawValue,
                                                                       &envOptions)
@@ -72,12 +73,12 @@ public final class CRTAWSCredentialsProvider {
     ///   - profileOptions:  The `CredentialsProviderProfileOptions`options object.
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromProfile profileOptions: CRTCredentialsProviderProfileOptions,
-                     allocator: Allocator = defaultAllocator) throws {
+                            allocator: Allocator = defaultAllocator) throws {
 
         var profileOptionsC = aws_credentials_provider_profile_options()
         if let configFileName = profileOptions.configFileNameOverride,
-            let credentialsFileName = profileOptions.credentialsFileNameOverride,
-            let profileName = profileOptions.profileFileNameOverride {
+           let credentialsFileName = profileOptions.credentialsFileNameOverride,
+           let profileName = profileOptions.profileFileNameOverride {
             profileOptionsC.config_file_name_override = configFileName.awsByteCursor
             profileOptionsC.credentials_file_name_override = credentialsFileName.awsByteCursor
             profileOptionsC.profile_name_override = profileName.awsByteCursor
@@ -87,7 +88,7 @@ public final class CRTAWSCredentialsProvider {
 
         guard let provider = aws_credentials_provider_new_profile(allocator.rawValue,
                                                                   &profileOptionsC) else {
-                                                                    throw AWSCommonRuntimeError()
+            throw AWSCommonRuntimeError()
 
         }
 
@@ -100,7 +101,7 @@ public final class CRTAWSCredentialsProvider {
     ///   - imdsConfig:  The `CredentialsProviderImdsConfig`options object.
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromImds imdsConfig: CRTCredentialsProviderImdsConfig,
-                     allocator: Allocator = defaultAllocator) throws {
+                            allocator: Allocator = defaultAllocator) throws {
 
         var imdsOptions = aws_credentials_provider_imds_options()
         imdsOptions.bootstrap = imdsConfig.bootstrap.rawValue
@@ -119,7 +120,7 @@ public final class CRTAWSCredentialsProvider {
     ///   - cachedConfig:  The `CredentialsProviderCachedConfig`options object.
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromCached cachedConfig: inout CRTCredentialsProviderCachedConfig,
-                     allocator: Allocator = defaultAllocator) throws {
+                            allocator: Allocator = defaultAllocator) throws {
 
         var cachedOptions = aws_credentials_provider_cached_options()
         cachedOptions.shutdown_options = WrappedCRTCredentialsProvider.setUpShutDownOptions(
@@ -147,7 +148,7 @@ public final class CRTAWSCredentialsProvider {
     ///   - chainDefaultConfig:  The `CredentialsProviderChainDefaultConfig`options object.
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromChainDefault chainDefaultConfig: CRTCredentialsProviderChainDefaultConfig,
-                     allocator: Allocator = defaultAllocator) throws {
+                            allocator: Allocator = defaultAllocator) throws {
 
         var chainDefaultOptions = aws_credentials_provider_chain_default_options()
         chainDefaultOptions.shutdown_options = WrappedCRTCredentialsProvider.setUpShutDownOptions(
@@ -167,7 +168,7 @@ public final class CRTAWSCredentialsProvider {
     ///   - x509Config:  The `CredentialsProviderX509Config`options object.
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromx509 x509Config: CRTCredentialsProviderX509Config,
-                     allocator: Allocator = defaultAllocator) throws {
+                            allocator: Allocator = defaultAllocator) throws {
 
         var x509Options = aws_credentials_provider_x509_options()
         x509Options.shutdown_options = WrappedCRTCredentialsProvider.setUpShutDownOptions(
