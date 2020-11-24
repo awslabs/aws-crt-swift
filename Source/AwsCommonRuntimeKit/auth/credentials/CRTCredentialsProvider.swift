@@ -29,7 +29,7 @@ public protocol CRTCredentialsProvider {
 
 }
 
-class WrappedCredentialsProvider {
+class WrappedCRTCredentialsProvider {
     var rawValue: aws_credentials_provider
     let allocator: Allocator
     private let implementationPtr: UnsafeMutablePointer<CRTCredentialsProvider>
@@ -37,7 +37,7 @@ class WrappedCredentialsProvider {
 
     init(impl: CRTCredentialsProvider,
          allocator: Allocator,
-         shutDownOptions: CredentialsProviderShutdownOptions? = nil) {
+         shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
         let vtable = aws_credentials_provider_vtable(get_credentials: getCredentialsFn,
                                                      destroy: { (credentialsProviderPtr) in
             guard let credentialsProviderPtr = credentialsProviderPtr else {
@@ -66,18 +66,18 @@ class WrappedCredentialsProvider {
 
     }
 
-    static func setUpShutDownOptions(shutDownOptions: CredentialsProviderShutdownOptions?)
+    static func setUpShutDownOptions(shutDownOptions: CRTCredentialsProviderShutdownOptions?)
     -> aws_credentials_provider_shutdown_options {
         let shutDownOptionsC: aws_credentials_provider_shutdown_options?
         if let shutDownOptions = shutDownOptions {
 
-            let pointer = UnsafeMutablePointer<CredentialsProviderShutdownOptions>.allocate(capacity: 1)
+            let pointer = UnsafeMutablePointer<CRTCredentialsProviderShutdownOptions>.allocate(capacity: 1)
             pointer.initialize(to: shutDownOptions)
             shutDownOptionsC = aws_credentials_provider_shutdown_options(shutdown_callback: { userData in
                 guard let userData = userData else {
                     return
                 }
-                let pointer = userData.assumingMemoryBound(to: CredentialsProviderShutdownOptions.self)
+                let pointer = userData.assumingMemoryBound(to: CRTCredentialsProviderShutdownOptions.self)
                 defer {pointer.deinitializeAndDeallocate()}
                 pointer.pointee.shutDownCallback()
 
