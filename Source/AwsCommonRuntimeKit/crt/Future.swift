@@ -92,6 +92,15 @@ public extension Future {
         return promise
     }
 
+    /// Returns a new `Future<Void>` that succeeds only if all of the provided futures succeed.
+    ///
+    /// This method acts as a successful completion notifier - values fulfilled by each future are discarded.
+    ///
+    /// The returned `Future` fails as soon as any of the provided futures fail.
+    ///
+    /// - Parameters:
+    ///     - futures: An array of homogenous `Futures`s to wait for.
+    /// - Returns: A new `Future<Void>` that waits for the other futures to succeed.
     static func whenAllComplete(_ futures: [Future<Value>]) -> Future<Void> {
         let future = Future<Void>()
 
@@ -118,7 +127,6 @@ public extension Future {
         for(index, future) in futures.enumerated() {
             if let result = future._value {
                 processResult(index, result)
-
             }
         }
         return future
