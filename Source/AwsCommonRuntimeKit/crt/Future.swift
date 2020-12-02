@@ -69,7 +69,7 @@ public final class Future<Value> {
     }
 }
 
-extension Future {
+public extension Future {
     func chained<T>(closure: @escaping (FutureResult) -> Future<T>) -> Future<T> {
         // We'll start by constructing a "wrapper" promise that will be
         // returned from this method:
@@ -90,5 +90,37 @@ extension Future {
         }
 
         return promise
+    }
+    
+    static func whenAllComplete(_ futures: [Future<Value>]) -> Future<Void> {
+        let future = Future<Void>()
+        
+        var remainingCount = futures.count
+        
+        if remainingCount == 0 {
+            future.fulfill(())
+        }
+        
+        // Sends the result to `onValue` in case of success and succeeds/fails the input promise, if appropriate.
+        func processResult(_ index: Int, _ result: Result<Value, Error>) {
+            switch result {
+            case .success(_):
+                remainingCount -= 1
+
+                if remainingCount == 0 {
+                    future.fulfill(())
+                }
+            case .failure(let error):
+                future.fail(error)
+            }
+        }
+        
+        for(index, future) in futures.enumerated() {
+            if let result = future._value {
+                processResult(index, result)
+                
+            }
+        }
+        return future
     }
 }

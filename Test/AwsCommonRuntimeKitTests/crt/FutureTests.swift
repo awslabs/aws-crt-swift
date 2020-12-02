@@ -72,4 +72,31 @@ class FutureTests: XCTestCase {
 
         XCTAssert(result == .success)
     }
+    
+    func testFutureFromMultipleThreadsWithExtension()  throws {
+        let globalQueue = DispatchQueue.global()
+        let mainThread = DispatchQueue.main
+        let future1 = Future<String>()
+        let future2 = Future<String>()
+        let futures = [future1, future2]
+        
+        globalQueue.async {
+            future1.fulfill("value is finally fulfilled")
+        }
+        
+        mainThread.async {
+            future2.fulfill("value is finally fulfilled")
+        }
+        
+        
+        let result = Future.whenAllComplete(futures)
+        result.then { (result) in
+            switch result {
+            case .failure(let error):
+                XCTFail(error.localizedDescription)
+            case .success(_):
+                XCTAssert(true)
+            }
+        }
+    }
 }
