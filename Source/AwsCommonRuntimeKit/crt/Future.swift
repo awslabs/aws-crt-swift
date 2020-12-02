@@ -91,20 +91,20 @@ public extension Future {
 
         return promise
     }
-    
+
     static func whenAllComplete(_ futures: [Future<Value>]) -> Future<Void> {
         let future = Future<Void>()
-        
+
         var remainingCount = futures.count
-        
+
         if remainingCount == 0 {
             future.fulfill(())
         }
-        
+
         // Sends the result to `onValue` in case of success and succeeds/fails the input promise, if appropriate.
         func processResult(_ index: Int, _ result: Result<Value, Error>) {
             switch result {
-            case .success(_):
+            case .success:
                 remainingCount -= 1
 
                 if remainingCount == 0 {
@@ -114,11 +114,11 @@ public extension Future {
                 future.fail(error)
             }
         }
-        
+
         for(index, future) in futures.enumerated() {
             if let result = future._value {
                 processResult(index, result)
-                
+
             }
         }
         return future
