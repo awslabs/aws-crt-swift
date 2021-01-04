@@ -99,7 +99,8 @@ public class SigV4HttpRequestSigner {
         return future
     }
 
-    public func applySigningResult(signingResult: SigningResult, request: HttpRequest) -> Result<HttpRequest, CRTError> {
+    public func applySigningResult(signingResult: SigningResult,
+                                   request: HttpRequest) -> Result<HttpRequest, CRTError> {
         if aws_apply_signing_result_to_http_request(request.rawValue,
                                                     allocator.rawValue,
                                                     signingResult.rawValue) == AWS_OP_SUCCESS {
