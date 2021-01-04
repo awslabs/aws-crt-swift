@@ -28,13 +28,14 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                                        shouldSignHeader: shouldSignHeader,
                                        signatureType: .requestHeaders)
             let expectation = XCTestExpectation(description: "Signing complete")
-            try signer.signRequest(request: request, config: config) {signingResult, httpRequest, _ in
-                guard let signingResult = signingResult else {
-                    XCTFail()
-                    return
+            let signedRequestResult = try signer.signRequest(request: request, config: config)
+            signedRequestResult.then { (futureResult) in
+                switch futureResult {
+                case.failure(let error):
+                    XCTFail(error.localizedDescription)
+                case .success(let request):
+                    XCTAssertNotNil(request)
                 }
-                let signedRequest = try? signer.applySigningResult(signingResult: signingResult, request: httpRequest)
-                XCTAssertNotNil(signedRequest)
                 expectation.fulfill()
             }
             wait(for: [expectation], timeout: 3.0)
@@ -61,13 +62,15 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                                        shouldSignHeader: shouldSignHeader,
                                        signatureType: .requestHeaders)
             let expectation = XCTestExpectation(description: "Signing complete")
-            try signer.signRequest(request: request, config: config) {signingResult, httpRequest, _ in
-                guard let signingResult = signingResult else {
-                    XCTFail()
-                    return
+       
+            let signedRequestResult = try signer.signRequest(request: request, config: config)
+            signedRequestResult.then { (futureResult) in
+                switch futureResult {
+                case.failure(let error):
+                    XCTFail(error.localizedDescription)
+                case .success(let request):
+                    XCTAssertNotNil(request)
                 }
-                let signedRequest = try? signer.applySigningResult(signingResult: signingResult, request: httpRequest)
-                XCTAssertNotNil(signedRequest)
                 expectation.fulfill()
             }
             wait(for: [expectation], timeout: 3.0)
