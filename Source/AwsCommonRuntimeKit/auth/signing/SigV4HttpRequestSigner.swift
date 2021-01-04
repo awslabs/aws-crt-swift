@@ -41,7 +41,7 @@ public class SigV4HttpRequestSigner {
             throw AWSCommonRuntimeError()
         }
         let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
-        
+
         let onSigningComplete: OnSigningComplete = { [self]signingResult, httpRequest, crtError in
             if let signingResult = signingResult {
                 let signedRequest = self.applySigningResult(signingResult: signingResult, request: httpRequest)
@@ -95,7 +95,7 @@ public class SigV4HttpRequestSigner {
                                     callbackPointer) != AWS_OP_SUCCESS {
             throw AWSCommonRuntimeError()
         }
-        
+
         return future
     }
 
