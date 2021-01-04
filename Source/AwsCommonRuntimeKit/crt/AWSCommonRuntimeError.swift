@@ -3,7 +3,7 @@
 import AwsCCommon
 
 public struct AWSCommonRuntimeError: Error {
-  private let code = aws_last_error()
+    let code = aws_last_error()
 
   internal init() {}
 }

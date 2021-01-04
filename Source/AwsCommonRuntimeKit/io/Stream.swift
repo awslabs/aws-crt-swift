@@ -11,12 +11,15 @@ private var vtable = aws_input_stream_vtable(seek: doSeek,
                                              destroy: doDestroy)
 //swiftlint:disable trailing_whitespace
 public class AwsInputStream {
+    //to be used in conversion from http request to sdk request and back during signing
+    public var byteBuffer: ByteBuffer
     var rawValue: aws_input_stream
     let implPointer: UnsafeMutablePointer<AwsStream>
     public var length: Int64
 
-    public init(_ impl: AwsStream, allocator: Allocator = defaultAllocator) {
+    public init(_ impl: AwsStream, byteBuffer: ByteBuffer, allocator: Allocator = defaultAllocator) {
         self.length = impl.length
+        self.byteBuffer = byteBuffer
         let ptr = UnsafeMutablePointer<AwsStream>.allocate(capacity: 1)
         ptr.initialize(to: impl)
         self.implPointer = ptr

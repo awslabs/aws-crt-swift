@@ -42,10 +42,15 @@ public class SigV4HttpRequestSigner {
         }
         let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
         
-        let onSigningComplete: OnSigningComplete = {signingResult, httpRequest, crtError
+        let onSigningComplete: OnSigningComplete = { [self]signingResult, httpRequest, crtError in
             if let signingResult = signingResult {
-                let signedRequest = applySigningResult(signingResult: signingResult, request: HttpRequest)
-                future.fulfill(signedRequest)
+                let signedRequest = self.applySigningResult(signingResult: signingResult, request: httpRequest)
+                switch signedRequest {
+                case .failure(let error):
+                    future.fail(error)
+                case .success(let request):
+                    future.fulfill(request)
+                }
             }
             future.fail(crtError)
         }
@@ -90,15 +95,19 @@ public class SigV4HttpRequestSigner {
                                     callbackPointer) != AWS_OP_SUCCESS {
             throw AWSCommonRuntimeError()
         }
+        
+        return future
     }
 
-    public func applySigningResult(signingResult: SigningResult, request: HttpRequest) throws -> HttpRequest {
+    public func applySigningResult(signingResult: SigningResult, request: HttpRequest) -> Result<HttpRequest, CRTError> {
         if aws_apply_signing_result_to_http_request(request.rawValue,
                                                     allocator.rawValue,
                                                     signingResult.rawValue) == AWS_OP_SUCCESS {
-            return request
+            return .success(request)
         } else {
-            throw AWSCommonRuntimeError()
+            let error = AWSCommonRuntimeError()
+            let awsError = AWSError(errorCode: error.code)
+            return .failure(CRTError.crtError(awsError))
         }
     }
 }
