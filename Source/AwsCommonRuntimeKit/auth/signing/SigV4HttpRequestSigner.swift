@@ -3,7 +3,7 @@
 
 import AwsCAuth
 
-class SigV4HttpRequestSigner {
+public class SigV4HttpRequestSigner {
     public var allocator: Allocator
 
     public init(allocator: Allocator = defaultAllocator) {
@@ -29,9 +29,10 @@ class SigV4HttpRequestSigner {
     /// - `Parameters`:
     ///    - `request`:  The `HttpRequest`to be signed.
     ///    - `config`: The `SigningConfig` to use when signing.
-    ///    - `callback`: The `OnRequestSigningComplete` will be called when requst has been signed.
     /// - `Throws`: An error of type `AwsCommonRuntimeError` which will pull last error found in the CRT
-    public func signRequest(request: HttpRequest, config: SigningConfig, callback: @escaping OnSigningComplete) throws {
+    /// - `Returns`: Returns a future with a signed http request `Future<HttpRequest>`
+    public func signRequest(request: HttpRequest, config: SigningConfig) throws -> Future<HttpRequest> {
+        let future = Future<HttpRequest>()
         if config.configType != .aws {
             throw AWSCommonRuntimeError()
         }
@@ -40,11 +41,19 @@ class SigV4HttpRequestSigner {
             throw AWSCommonRuntimeError()
         }
         let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
+        
+        let onSigningComplete: OnSigningComplete = {signingResult, httpRequest, crtError
+            if let signingResult = signingResult {
+                let signedRequest = applySigningResult(signingResult: signingResult, request: HttpRequest)
+                future.fulfill(signedRequest)
+            }
+            future.fail(crtError)
+        }
 
         let callbackData = SigningCallbackData(allocator: allocator.rawValue,
                                                request: request,
                                                signable: signable,
-                                               onSigningComplete: callback)
+                                               onSigningComplete: onSigningComplete)
 
         let configPointer = UnsafeMutablePointer<aws_signing_config_aws>.allocate(capacity: 1)
         configPointer.initialize(to: config.rawValue)

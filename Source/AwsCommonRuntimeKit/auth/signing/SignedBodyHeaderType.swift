@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCAuth
 
-enum SignedBodyHeaderType {
+public enum SignedBodyHeaderType {
 
     /// Do not add a header
     case none

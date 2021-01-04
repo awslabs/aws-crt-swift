@@ -3,7 +3,7 @@
 
 import AwsCAuth
 
-struct SigningConfig {
+public struct SigningConfig {
     public typealias ShouldSignHeader = (String) -> Bool
     public let rawValue: aws_signing_config_aws
     public let credentials: CRTCredentials?
@@ -82,7 +82,7 @@ struct SigningConfig {
 }
 
 extension SigningConfig {
-    struct Flags {
+    public struct Flags {
          let rawValue: aws_signing_config_aws.__Unnamed_struct_flags
 
          /// We assume the uri will be encoded once in preparation for transmission.  Certain services

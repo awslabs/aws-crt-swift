@@ -3,7 +3,7 @@
 
 import AwsCAuth
 
-enum SignatureType {
+public enum SignatureType {
     /**
      A signature for a full http request should be computed, with header updates applied to the signing result.
      */
