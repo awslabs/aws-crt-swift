@@ -10,7 +10,7 @@ public struct SigningConfig {
     public let credentialsProvider: CRTAWSCredentialsProvider?
     public let expiration: Int64
     public let signedBodyHeader: SignedBodyHeaderType
-    public let signedBodyValue: String
+    public let signedBodyValue: SignedBodyValue
     public let flags: Flags
     public let shouldSignHeader: ShouldSignHeader?
     public let date: AWSDate
@@ -27,7 +27,7 @@ public struct SigningConfig {
                 service: String,
                 region: String,
                 signedBodyHeader: SignedBodyHeaderType = .contentSha256,
-                signedBodyValue: String = "",
+                signedBodyValue: SignedBodyValue = SignedBodyValue.empty,
                 flags: Flags = Flags(),
                 shouldSignHeader: ShouldSignHeader? = .none,
                 signatureType: SignatureType = .requestChunk,
@@ -73,7 +73,7 @@ public struct SigningConfig {
                                                 },
                                                should_sign_header_ud: pointer,
                                                flags: flags.rawValue,
-                                               signed_body_value: signedBodyValue.awsByteCursor,
+                                               signed_body_value: signedBodyValue.rawValue.awsByteCursor,
                                                signed_body_header: signedBodyHeader.rawValue,
                                                credentials: credentials?.rawValue,
                                                credentials_provider: credentialsProvider?.rawValue,
