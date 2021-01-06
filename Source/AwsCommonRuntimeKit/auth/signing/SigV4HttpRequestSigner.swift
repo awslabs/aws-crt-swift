@@ -43,16 +43,19 @@ public class SigV4HttpRequestSigner {
         let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
 
         let onSigningComplete: OnSigningComplete = { [self]signingResult, httpRequest, crtError in
-            if let signingResult = signingResult?.rawValue {
-                let signedRequest = self.applySigningResult(signingResult: signingResult, request: httpRequest)
+            if case let CRTError.crtError(unwrappedError) = crtError,
+               unwrappedError.errorCode == 0,
+               let signingResultRawValue = signingResult?.rawValue {
+                let signedRequest = self.applySigningResult(signingResult: signingResultRawValue, request: httpRequest)
                 switch signedRequest {
                 case .failure(let error):
                     future.fail(error)
                 case .success(let request):
                     future.fulfill(request)
                 }
+            } else {
+                future.fail(crtError)
             }
-            future.fail(crtError)
         }
 
         let callbackData = SigningCallbackData(allocator: allocator.rawValue,
