@@ -43,7 +43,7 @@ public class SigV4HttpRequestSigner {
         let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
 
         let onSigningComplete: OnSigningComplete = { [self]signingResult, httpRequest, crtError in
-            if let signingResult = signingResult {
+            if let signingResult = signingResult?.rawValue {
                 let signedRequest = self.applySigningResult(signingResult: signingResult, request: httpRequest)
                 switch signedRequest {
                 case .failure(let error):
@@ -100,11 +100,11 @@ public class SigV4HttpRequestSigner {
         return future
     }
 
-    public func applySigningResult(signingResult: SigningResult,
+    public func applySigningResult(signingResult: UnsafeMutablePointer<aws_signing_result>,
                                    request: HttpRequest) -> Result<HttpRequest, CRTError> {
         if aws_apply_signing_result_to_http_request(request.rawValue,
                                                     allocator.rawValue,
-                                                    signingResult.rawValue) == AWS_OP_SUCCESS {
+                                                    signingResult) == AWS_OP_SUCCESS {
             return .success(request)
         } else {
             let error = AWSCommonRuntimeError()

@@ -6,7 +6,7 @@ public struct CRTCredentialsProviderCallbackData {
     public var onCredentialsResolved: OnCredentialsResolved?
     public let allocator: Allocator
 
-    public init(allocator: Allocator,
+    public init(allocator: Allocator = defaultAllocator,
                 onCredentialsResolved: OnCredentialsResolved? = nil) {
         self.onCredentialsResolved = onCredentialsResolved
         self.allocator = allocator
