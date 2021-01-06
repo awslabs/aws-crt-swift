@@ -12,7 +12,7 @@ private var vtable = aws_input_stream_vtable(seek: doSeek,
 //swiftlint:disable trailing_whitespace
 public class AwsInputStream {
     var rawValue: aws_input_stream
-    let implPointer: UnsafeMutablePointer<AwsStream>
+    public let implPointer: UnsafeMutablePointer<AwsStream>
     public var length: Int64
 
     public init(_ impl: AwsStream, allocator: Allocator = defaultAllocator) {

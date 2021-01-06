@@ -30,17 +30,6 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         return shutDownOptions
     }
 
-    func setUpCallbackCredentials() -> CRTCredentialsProviderCallbackData {
-        let callbackData = CRTCredentialsProviderCallbackData(allocator: allocator) { (_, errorCode) in
-
-           //test that we got here successfully but not if we have credentials as we can't
-           //test all uses cases i.e. some need to be on ec2 instance, etc
-            XCTAssertNotNil(errorCode)
-            self.expectation.fulfill()
-        }
-        return callbackData
-    }
-
     func testCreateAWSCredentialsProviderStatic() {
         do {
         let shutDownOptions = setUpShutDownOptions()
@@ -49,8 +38,16 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                             sessionToken: sessionToken,
                                                             shutDownOptions: shutDownOptions)
         let provider = try CRTAWSCredentialsProvider(fromStatic: config, allocator: allocator)
-        let callbackData = setUpCallbackCredentials()
-        provider.getCredentials(credentialCallbackData: callbackData)
+        let result = provider.getCredentials()
+        result.then { (result) in
+            switch result {
+            case .failure(let error):
+                XCTAssertNotNil(error)
+            case .success(let credentials):
+                print(credentials)
+            }
+            self.expectation.fulfill()
+        }
         wait(for: [expectation], timeout: 5.0)
         } catch {
             XCTFail()
@@ -61,8 +58,16 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         do {
         let shutDownOptions = setUpShutDownOptions()
         let provider = try CRTAWSCredentialsProvider(fromEnv: shutDownOptions, allocator: allocator)
-        let callbackData = setUpCallbackCredentials()
-        provider.getCredentials(credentialCallbackData: callbackData)
+        let result = provider.getCredentials()
+            result.then { (result) in
+                switch result {
+                case .failure(let error):
+                    XCTAssertNotNil(error)
+                case .success(let credentials):
+                    print(credentials)
+                }
+                self.expectation.fulfill()
+            }
         wait(for: [expectation], timeout: 5.0)
         } catch {
             XCTFail()
@@ -80,8 +85,16 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 
         let provider = try CRTAWSCredentialsProvider(fromProfile: config, allocator: allocator)
 
-        let callbackData = setUpCallbackCredentials()
-        provider.getCredentials(credentialCallbackData: callbackData)
+        let result = provider.getCredentials()
+            result.then { (result) in
+                switch result {
+                case .failure(let error):
+                    XCTAssertNotNil(error)
+                case .success(let credentials):
+                    print(credentials)
+                }
+                self.expectation.fulfill()
+            }
 
         wait(for: [expectation], timeout: 5.0)
         } catch {
@@ -118,8 +131,16 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             let config = MockCredentialsProviderChainDefaultConfig(bootstrap: bootstrap, shutDownOptions: shutDownOptions)
 
             let provider = try CRTAWSCredentialsProvider(fromChainDefault: config)
-            let callbackData = setUpCallbackCredentials()
-            provider.getCredentials(credentialCallbackData: callbackData)
+            let result = provider.getCredentials()
+            result.then { (result) in
+                switch result {
+                case .failure(let error):
+                    XCTAssertNotNil(error)
+                case .success(let credentials):
+                    print(credentials)
+                }
+                self.expectation.fulfill()
+            }
 
             wait(for: [expectation], timeout: 10.0)
         } catch {

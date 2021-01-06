@@ -3,7 +3,7 @@
 
 import AwsCAuth
 
-enum SigningConfigType {
+public enum SigningConfigType {
     case aws
 }
 

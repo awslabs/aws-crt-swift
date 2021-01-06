@@ -196,9 +196,17 @@ public final class CRTAWSCredentialsProvider {
     ///
     /// - Parameters:
     ///   - credentialCallbackData:  The `CredentialProviderCallbackData`options object.
-    public func getCredentials(credentialCallbackData: CRTCredentialsProviderCallbackData) {
+    public func getCredentials() -> Future<CRTCredentials> {
+        let future = Future<CRTCredentials>()
+        let callbackData = CRTCredentialsProviderCallbackData(allocator: allocator) { (crtCredentials, crtError) in
+            if let crtCredentials = crtCredentials {
+                future.fulfill(crtCredentials)
+            } else {
+                future.fail(crtError)
+            }
+        }
         let pointer = UnsafeMutablePointer<CRTCredentialsProviderCallbackData>.allocate(capacity: 1)
-        pointer.initialize(to: credentialCallbackData)
+        pointer.initialize(to: callbackData)
         aws_credentials_provider_get_credentials(rawValue, { (credentials, errorCode, userdata) -> Void in
             guard let userdata = userdata else {
                 return
@@ -210,6 +218,7 @@ public final class CRTAWSCredentialsProvider {
                 onCredentialsResolved(CRTCredentials(rawValue: credentials), CRTError.crtError(error))
             }
         }, pointer)
+        return future
     }
 
     deinit {

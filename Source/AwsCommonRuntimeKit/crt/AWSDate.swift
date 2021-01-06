@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
 
-class AWSDate: Comparable {
+public class AWSDate: Comparable {
     let rawValue: UnsafeMutablePointer<aws_date_time>
 
     var year: UInt16 {
@@ -37,22 +37,22 @@ class AWSDate: Comparable {
         aws_date_time_second(rawValue, true)
     }
 
-    init() {
+    public init() {
         self.rawValue = UnsafeMutablePointer<aws_date_time>.allocate(capacity: 1)
         rawValue.initialize(to: aws_date_time())
         aws_date_time_init_now(rawValue)
     }
-    init(epochMs: UInt64) {
+    public init(epochMs: UInt64) {
         self.rawValue = UnsafeMutablePointer<aws_date_time>.allocate(capacity: 1)
         aws_date_time_init_epoch_millis(rawValue, epochMs)
     }
 
-    init(epochS: Double) {
+    public init(epochS: Double) {
         self.rawValue = UnsafeMutablePointer<aws_date_time>.allocate(capacity: 1)
         aws_date_time_init_epoch_secs(rawValue, epochS)
     }
 
-    init(timestamp: String) {
+    public init(timestamp: String) {
         self.rawValue = UnsafeMutablePointer<aws_date_time>.allocate(capacity: 1)
         let pointer = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
         pointer.initialize(to: timestamp.awsByteCursor)
@@ -60,23 +60,23 @@ class AWSDate: Comparable {
         aws_date_time_init_from_str_cursor(rawValue, pointer, DateFormat.autoDetect.rawValue)
     }
 
-    static func == (lhs: AWSDate, rhs: AWSDate) -> Bool {
+    public static func == (lhs: AWSDate, rhs: AWSDate) -> Bool {
         return aws_date_time_diff(lhs.rawValue, rhs.rawValue) == 0
     }
 
-    static func < (lhs: AWSDate, rhs: AWSDate) -> Bool {
+    public static func < (lhs: AWSDate, rhs: AWSDate) -> Bool {
         return aws_date_time_diff(lhs.rawValue, rhs.rawValue) < 0
     }
 
-    static func > (lhs: AWSDate, rhs: AWSDate) -> Bool {
+    public static func > (lhs: AWSDate, rhs: AWSDate) -> Bool {
         return aws_date_time_diff(lhs.rawValue, rhs.rawValue) > 0
     }
 
-    static func <= (lhs: AWSDate, rhs: AWSDate) -> Bool {
+    public static func <= (lhs: AWSDate, rhs: AWSDate) -> Bool {
         return aws_date_time_diff(lhs.rawValue, rhs.rawValue) <= 0
     }
 
-    static func >= (lhs: AWSDate, rhs: AWSDate) -> Bool {
+    public static func >= (lhs: AWSDate, rhs: AWSDate) -> Bool {
         return aws_date_time_diff(lhs.rawValue, rhs.rawValue) >= 0
     }
 

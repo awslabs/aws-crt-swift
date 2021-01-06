@@ -3,14 +3,14 @@
 
 import AwsCAuth
 
-struct SigningConfig {
+public struct SigningConfig {
     public typealias ShouldSignHeader = (String) -> Bool
     public let rawValue: aws_signing_config_aws
     public let credentials: CRTCredentials?
     public let credentialsProvider: CRTAWSCredentialsProvider?
     public let expiration: Int64
     public let signedBodyHeader: SignedBodyHeaderType
-    public let signedBodyValue: String
+    public let signedBodyValue: SignedBodyValue
     public let flags: Flags
     public let shouldSignHeader: ShouldSignHeader?
     public let date: AWSDate
@@ -22,15 +22,15 @@ struct SigningConfig {
 
     public init(credentials: CRTCredentials? = nil,
                 credentialsProvider: CRTAWSCredentialsProvider? = nil,
-                expiration: Int64,
                 date: AWSDate,
                 service: String,
                 region: String,
+                expiration: Int64 = 0,
                 signedBodyHeader: SignedBodyHeaderType = .contentSha256,
-                signedBodyValue: String = "",
+                signedBodyValue: SignedBodyValue = SignedBodyValue.empty,
                 flags: Flags = Flags(),
-                shouldSignHeader: ShouldSignHeader? = .none,
-                signatureType: SignatureType = .requestChunk,
+                shouldSignHeader: ShouldSignHeader? = nil,
+                signatureType: SignatureType = .requestHeaders,
                 signingAlgorithm: SigningAlgorithmType = .signingV4,
                 configType: SigningConfigType = .aws) {
         self.credentials = credentials
@@ -64,16 +64,21 @@ struct SigningConfig {
                                                     return false
                                                 }
 
-                                                let callback = userData.bindMemory(to: ShouldSignHeader.self,
+                                                let callback = userData.bindMemory(to: ShouldSignHeader?.self,
                                                                                    capacity: 1)
-                                                defer {
-                                                    callback.deinitializeAndDeallocate()
+
+                                                if let callbackFn = callback.pointee {
+                                                    defer {
+                                                        callback.deinitializeAndDeallocate()
+                                                    }
+                                                    return callbackFn(name)
+                                                } else {
+                                                    return true
                                                 }
-                                                return callback.pointee(name)
                                                 },
                                                should_sign_header_ud: pointer,
                                                flags: flags.rawValue,
-                                               signed_body_value: signedBodyValue.awsByteCursor,
+                                               signed_body_value: signedBodyValue.rawValue.awsByteCursor,
                                                signed_body_header: signedBodyHeader.rawValue,
                                                credentials: credentials?.rawValue,
                                                credentials_provider: credentialsProvider?.rawValue,
@@ -82,7 +87,7 @@ struct SigningConfig {
 }
 
 extension SigningConfig {
-    struct Flags {
+    public struct Flags {
          let rawValue: aws_signing_config_aws.__Unnamed_struct_flags
 
          /// We assume the uri will be encoded once in preparation for transmission.  Certain services
@@ -100,7 +105,7 @@ extension SigningConfig {
 
         public init(useDoubleURIEncode: Bool = true,
                     shouldNormalizeURIPath: Bool = true,
-                    omitSessionToken: Bool = true) {
+                    omitSessionToken: Bool = false) {
             self.useDoubleURIEncode = useDoubleURIEncode
             self.shouldNormalizeURIPath = shouldNormalizeURIPath
             self.omitSessionToken = omitSessionToken

@@ -3,7 +3,7 @@
 
 import AwsCAuth
 
-enum SigningAlgorithmType {
+public enum SigningAlgorithmType {
     case signingV4
 }
 
