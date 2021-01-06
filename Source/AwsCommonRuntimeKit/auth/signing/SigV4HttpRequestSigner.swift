@@ -93,7 +93,8 @@ public class SigV4HttpRequestSigner {
                                                                            CRTError.crtError(error))
         },
                                     callbackPointer) != AWS_OP_SUCCESS {
-            throw AWSCommonRuntimeError()
+            let error = AWSError(errorCode: AWSCommonRuntimeError().code)
+            throw CRTError.crtError(error)
         }
 
         return future
