@@ -21,12 +21,10 @@ class SigV4SigningTests: CrtXCBaseTestCase {
             }
             let awsDate = AWSDate(epochS: Date().timeIntervalSince1970)
             let config = SigningConfig(credentialsProvider: provider,
-                                       expiration: Int64.max,
                                        date: awsDate,
                                        service: "service",
-                                       region: "test",
-                                       shouldSignHeader: shouldSignHeader,
-                                       signatureType: .requestHeaders)
+                                       region: "us-east-1",
+                                       shouldSignHeader: shouldSignHeader)
             let expectation = XCTestExpectation(description: "Signing complete")
             let signedRequestResult = try signer.signRequest(request: request, config: config)
             signedRequestResult.then { (futureResult) in
@@ -55,12 +53,11 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                 return true
             }
             let config = SigningConfig(credentials: credentials,
-                                       expiration: Int64.max,
                                        date: awsDate,
                                        service: "service",
-                                       region: "test",
-                                       shouldSignHeader: shouldSignHeader,
-                                       signatureType: .requestHeaders)
+                                       region: "us-east-1",
+                                       signedBodyValue: .empty,
+                                       shouldSignHeader: shouldSignHeader)
             let expectation = XCTestExpectation(description: "Signing complete")
        
             let signedRequestResult = try signer.signRequest(request: request, config: config)
