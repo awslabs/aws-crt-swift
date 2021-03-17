@@ -1,16 +1,67 @@
 // swift-tools-version:5.3
 import PackageDescription
 
+var dependencies: [Package.Dependency] = []
+var targetCryptoDependencies: [Target.Dependency] = []
+
+#if os(Linux)
+let libCryptoPackage = Package(
+    name: "LibCrypto",
+    products: [
+        .library(
+            name: "LibCrypto",
+            targets: ["LibCrypto"]
+        )
+    ],
+    targets: [
+        .systemLibrary(
+            name: "LibCrypto",
+            pkgConfig: "openssl",
+            providers: [
+                .apt(["openssl libssl-dev"]),
+                .yum(["openssl openssl-devel"]),
+            ]
+        )
+    ])
+
+dependencies.append(libCryptoPackage)
+targetCryptoDependencies.append(.byName(name: "LibCrypto"))
+
+let s2nPackage = Package(
+    name: "S2N",
+    products: [
+        .library(
+            name: "S2N",
+            targets: ["S2N"]
+        )
+    ],
+    dependencies: dependencies,
+    targets: [
+        .target(
+            name: "S2N",
+            dependencies: targetCryptoDependencies,
+            path: "aws-common-runtime/s2n",
+            exclude: ["bin", "cmake", "codebuild" "coverage", "docker-images", "docs", "lib", "libcrypto-build", "scram", "tests"],
+            publicHeadersPath: "api",
+        )
+    ]
+)
+
+dependencies.append(s2nPackage)
+targetCryptoDependencies.append(.byName(name: "S2N"))
+#endif
+
 var package = Package(name: "AwsCrt",
-                      platforms: [.iOS(.v11), .macOS(.v10_14)],
-                      products: [
-                        .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
-                        .executable(name: "Elasticurl", targets: ["Elasticurl"])
-                      ])
+    platforms: [.iOS(.v11), .macOS(.v10_14)],
+    products: [
+      .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
+      .executable(name: "Elasticurl", targets: ["Elasticurl"])
+    ],
+    dependencies: dependencies,
+)
 
 // aws-c-common config
-var awsCCommonPlatformExcludes = ["source/windows", "source/android", "AWSCRTAndroidTestRunner",
-                                  "cmake", "codebuild", "docker-images", "tests", "verification"]
+var awsCCommonPlatformExcludes = ["source/windows", "source/android", "AWSCRTAndroidTestRunner", "cmake", "codebuild", "docker-images", "tests", "verification"]
 //var unsafeFlagsArray: [String] = []
 
 #if arch(i386) || arch(x86_64)
@@ -72,24 +123,22 @@ package.targets = ( [
     .target(
         name: "AwsCPlatformConfig",
         path: "aws-common-runtime/config",
-        publicHeadersPath: "."
-    ),
+        publicHeadersPath: "."),
     .target(
         name: "AwsCCommon",
         dependencies: ["AwsCPlatformConfig"],
         path: "aws-common-runtime/aws-c-common",
         exclude: awsCCommonPlatformExcludes),
     .target(
+        name: "AwsCCal",
+        dependencies: ["AwsCCommon", targetCryptoDependencies],
+        path: "aws-common-runtime/aws-c-cal",
+        exclude: awsCCalPlatformExcludes),
+    .target(
         name: "AwsCIo",
-        dependencies: ["AwsCCommon"],
+        dependencies: ["AwsCCommon", "AwsCCal", targetCryptoDependencies],
         path: "aws-common-runtime/aws-c-io",
         exclude: awsCIoPlatformExcludes),
-    .target(
-        name: "AwsCCal",
-        dependencies: ["AwsCCommon"],
-        path: "aws-common-runtime/aws-c-cal",
-        exclude: awsCCalPlatformExcludes
-    ),
     .target(
         name: "AwsCCompression",
         dependencies: ["AwsCCommon"],
@@ -130,3 +179,6 @@ package.targets = ( [
         path: "Source/Elasticurl"
     )
 ] )
+
+
+
