@@ -1,4 +1,7 @@
+#ifdef __APPLE__
 #include <TargetConditionals.h>
+#endif
+
 #ifndef AWS_COMMON_CONFIG_H
 #define AWS_COMMON_CONFIG_H
 /**
@@ -27,5 +30,10 @@
 /* #undef AWS_HAVE_MSVC_MULX */
 #define AWS_HAVE_EXECINFO
 #endif
-#define AWS_UNSTABLE_TESTING_API 1
+#else
+#define AWS_HAVE_GCC_OVERFLOW_MATH_EXTENSIONS
+#define AWS_HAVE_GCC_INLINE_ASM
+/* #undef AWS_HAVE_MSVC_MULX */
+#define AWS_HAVE_EXECINFO
 #endif
+#define AWS_UNSTABLE_TESTING_API 1
