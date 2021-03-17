@@ -1,56 +1,14 @@
 // swift-tools-version:5.3
 import PackageDescription
 
-var packageDependencies: [Str] = []
-var calDependencies = ["AwsCCommon"]
-var ioDependencies = ["AwsCCommon", "AwsCCal"]
+var packageDependencies : [Package.Dependency] = []
+var calDependencies : [Target.Dependency] = ["AwsCCommon"]
+var ioDependencies : [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
 
 #if os(Linux)
-let libCryptoPackage = Package(
-    name: "LibCrypto",
-    products: [
-        .library(
-            name: "LibCrypto",
-            targets: ["LibCrypto"]
-        )
-    ],
-    targets: [
-        .systemLibrary(
-            name: "LibCrypto",
-            pkgConfig: "openssl",
-            providers: [
-                .apt(["openssl libssl-dev"]),
-                .yum(["openssl openssl-devel"]),
-            ]
-        )
-    ])
-
-packageDependencies.append("LibCrypto")
-calDependencies.append("LibCrypto")
-ioDependencies.append("LibCrypto")
-
-let s2nPackage = Package(
-    name: "S2N",
-    products: [
-        .library(
-            name: "S2N",
-            targets: ["S2N"]
-        )
-    ],
-    targets: [
-        .target(
-            name: "S2N",
-            dependencies: ["LibCrypto"],
-            path: "aws-common-runtime/s2n",
-            exclude: ["bin", "cmake", "codebuild", "coverage", "docker-images", "docs", "lib", "libcrypto-build", "scram", "tests"],
-            publicHeadersPath: "api"
-        )
-    ]
-)
-
-packageDependencies.append("S2N")
-calDependencies.append("S2N")
+packageDependencies.append(.package(path="S2N-Pkg"))
 ioDependencies.append("S2N")
+calDependencies.append("LibCrypto")
 #endif
 
 var package = Package(name: "AwsCrt",
