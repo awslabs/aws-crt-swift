@@ -9,7 +9,7 @@ let package = Package(
             targets: ["S2N"]
         )
     ],
-    dependencies: [.package(path: "../LibCrypto")],
+    dependencies: [.package(path: "LibCrypto")],
     targets: [
         .target(
             name: "S2N",
