@@ -42,9 +42,9 @@ let s2nPackage = Package(
             dependencies: targetCryptoDependencies,
             path: "aws-common-runtime/s2n",
             exclude: ["bin", "cmake", "codebuild", "coverage", "docker-images", "docs", "lib", "libcrypto-build", "scram", "tests"],
-            publicHeadersPath: "api",
-        ),
-    ],
+            publicHeadersPath: "api"
+        )
+    ]
 )
 
 dependencies.append(s2nPackage)
