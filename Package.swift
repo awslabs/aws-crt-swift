@@ -1,7 +1,7 @@
 // swift-tools-version:5.3
 import PackageDescription
 
-var packageDependencies: [Package.Dependency] = []
+var packageDependencies: [String] = []
 var calDependencies = ["AwsCCommon"]
 var ioDependencies = ["AwsCCommon", "AwsCCal"]
 
@@ -25,7 +25,7 @@ let libCryptoPackage = Package(
         )
     ])
 
-packageDependencies.append(libCryptoPackage)
+packageDependencies.append("LibCrypto")
 calDependencies.append("LibCrypto")
 ioDependencies.append("LibCrypto")
 
@@ -37,11 +37,11 @@ let s2nPackage = Package(
             targets: ["S2N"]
         )
     ],
-    dependencies: ["LibCrypto"],
+    dependencies: [libCryptoPackage],
     targets: [
         .target(
             name: "S2N",
-            dependencies: [libCryptoPackage],
+            dependencies: ['LibCrypto'],
             path: "aws-common-runtime/s2n",
             exclude: ["bin", "cmake", "codebuild", "coverage", "docker-images", "docs", "lib", "libcrypto-build", "scram", "tests"],
             publicHeadersPath: "api"
@@ -49,7 +49,7 @@ let s2nPackage = Package(
     ]
 )
 
-packageDependencies.append(s2nPackage)
+packageDependencies.append("S2N")
 calDependencies.append("S2N")
 ioDependencies.append("S2N")
 #endif
