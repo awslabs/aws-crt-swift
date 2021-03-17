@@ -1,8 +1,9 @@
 // swift-tools-version:5.3
 import PackageDescription
 
-var dependencies: [Package.Dependency] = []
-var targetCryptoDependencies: [Target.Dependency] = []
+var packageDependencies: [Package.Dependency] = []
+var calDependencies = ["AwsCCommon"]
+var ioDependencies = ["AwsCCommon", "AwsCCal"]
 
 #if os(Linux)
 let libCryptoPackage = Package(
@@ -24,8 +25,9 @@ let libCryptoPackage = Package(
         )
     ])
 
-dependencies.append(.byName("LibCrypto"))
-targetCryptoDependencies.append(.byName(name: "LibCrypto"))
+dependencies.append(.package(libCryptoPackage))
+calDependencies.append("LibCrypto")
+ioDependencies.append("LibCrypto")
 
 let s2nPackage = Package(
     name: "S2N",
@@ -47,8 +49,9 @@ let s2nPackage = Package(
     ]
 )
 
-dependencies.append(.byName("S2N"))
-targetCryptoDependencies.append(.byName(name: "S2N"))
+dependencies.append(.package(s2nPackage))
+calDependencies.append("S2N")
+ioDependencies.append("S2N")
 #endif
 
 var package = Package(name: "AwsCrt",
@@ -131,12 +134,12 @@ package.targets = ( [
         exclude: awsCCommonPlatformExcludes),
     .target(
         name: "AwsCCal",
-        dependencies: ["AwsCCommon", targetCryptoDependencies],
+        dependencies: calDependencies,
         path: "aws-common-runtime/aws-c-cal",
         exclude: awsCCalPlatformExcludes),
     .target(
         name: "AwsCIo",
-        dependencies: ["AwsCCommon", "AwsCCal", targetCryptoDependencies],
+        dependencies: ioDependencies,
         path: "aws-common-runtime/aws-c-io",
         exclude: awsCIoPlatformExcludes),
     .target(
