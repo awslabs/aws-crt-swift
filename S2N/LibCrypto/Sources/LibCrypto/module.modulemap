@@ -1,0 +1,6 @@
+
+module LibCrypto [system] {
+    header "openssl/*",
+    link "crypto"
+}
+
