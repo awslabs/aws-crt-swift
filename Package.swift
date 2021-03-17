@@ -14,11 +14,11 @@ calDependencies.append("LibCrypto")
 
 var package = Package(name: "AwsCrt",
     platforms: [.iOS(.v11), .macOS(.v10_14)],
-    dependencies: packageDependencies,
     products: [
       .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
       .executable(name: "Elasticurl", targets: ["Elasticurl"])
-    ]
+    ],
+    dependencies: packageDependencies
 )
 
 // aws-c-common config
