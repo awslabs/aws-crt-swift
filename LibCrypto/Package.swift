@@ -1,7 +1,7 @@
 // swift-tools-version:5.3
 import PackageDescription
 
-let LibCrypto = Package(
+let package = Package(
 name: "LibCrypto",
 products: [
     .library(

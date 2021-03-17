@@ -1,7 +1,7 @@
 // swift-tools-version:5.3
 import PackageDescription
 
-let S2N = Package(
+let package = Package(
     name: "S2N",
     products: [
         .library(
@@ -9,7 +9,7 @@ let S2N = Package(
             targets: ["S2N"]
         )
     ],
-    dependencies: [.package(path: "../LibCrypto-Pkg")],
+    dependencies: [.package(path: "../LibCrypto")],
     targets: [
         .target(
             name: "S2N",
