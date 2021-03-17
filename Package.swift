@@ -25,7 +25,7 @@ let libCryptoPackage = Package(
         )
     ])
 
-dependencies.append(.package(libCryptoPackage))
+packageDependencies.append(.package(libCryptoPackage))
 calDependencies.append("LibCrypto")
 ioDependencies.append("LibCrypto")
 
@@ -37,11 +37,11 @@ let s2nPackage = Package(
             targets: ["S2N"]
         )
     ],
-    dependencies: dependencies,
+    dependencies: ["LibCrypto"],
     targets: [
         .target(
             name: "S2N",
-            dependencies: targetCryptoDependencies,
+            dependencies: ["LibCrypto"],
             path: "aws-common-runtime/s2n",
             exclude: ["bin", "cmake", "codebuild", "coverage", "docker-images", "docs", "lib", "libcrypto-build", "scram", "tests"],
             publicHeadersPath: "api"
@@ -49,7 +49,7 @@ let s2nPackage = Package(
     ]
 )
 
-dependencies.append(.package(s2nPackage))
+packageDependencies.append(.package(s2nPackage))
 calDependencies.append("S2N")
 ioDependencies.append("S2N")
 #endif
@@ -60,7 +60,7 @@ var package = Package(name: "AwsCrt",
       .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
       .executable(name: "Elasticurl", targets: ["Elasticurl"])
     ],
-    dependencies: dependencies
+    dependencies: packageDependencies
 )
 
 // aws-c-common config
