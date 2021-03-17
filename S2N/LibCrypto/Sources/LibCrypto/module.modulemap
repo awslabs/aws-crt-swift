@@ -1,6 +1,7 @@
 
 module LibCrypto [system] {
-    header "openssl/*",
-    link "crypto"
+    umbrella "openssl",
+    link "crypto",
+    export *
 }
 
