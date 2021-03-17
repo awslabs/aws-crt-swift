@@ -24,7 +24,7 @@ let libCryptoPackage = Package(
         )
     ])
 
-dependencies.append(libCryptoPackage)
+dependencies.append(.byName("LibCrypto"))
 targetCryptoDependencies.append(.byName(name: "LibCrypto"))
 
 let s2nPackage = Package(
@@ -47,7 +47,7 @@ let s2nPackage = Package(
     ]
 )
 
-dependencies.append(s2nPackage)
+dependencies.append(.byName("S2N"))
 targetCryptoDependencies.append(.byName(name: "S2N"))
 #endif
 
@@ -57,7 +57,7 @@ var package = Package(name: "AwsCrt",
       .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
       .executable(name: "Elasticurl", targets: ["Elasticurl"])
     ],
-    dependencies: dependencies,
+    dependencies: dependencies
 )
 
 // aws-c-common config
