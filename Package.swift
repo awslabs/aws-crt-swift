@@ -37,7 +37,6 @@ let s2nPackage = Package(
             targets: ["S2N"]
         )
     ],
-    dependencies: [libCryptoPackage],
     targets: [
         .target(
             name: "S2N",
@@ -60,7 +59,6 @@ var package = Package(name: "AwsCrt",
       .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
       .executable(name: "Elasticurl", targets: ["Elasticurl"])
     ],
-    dependencies: packageDependencies
 )
 
 // aws-c-common config
