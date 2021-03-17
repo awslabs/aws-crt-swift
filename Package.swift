@@ -1,7 +1,7 @@
 // swift-tools-version:5.3
 import PackageDescription
 
-var packageDependencies: [String] = []
+var packageDependencies: [Str] = []
 var calDependencies = ["AwsCCommon"]
 var ioDependencies = ["AwsCCommon", "AwsCCal"]
 
@@ -58,7 +58,7 @@ var package = Package(name: "AwsCrt",
     products: [
       .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
       .executable(name: "Elasticurl", targets: ["Elasticurl"])
-    ],
+    ]
 )
 
 // aws-c-common config
