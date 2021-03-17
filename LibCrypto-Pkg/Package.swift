@@ -15,7 +15,7 @@ targets: [
         pkgConfig: "openssl",
         providers: [
             .apt(["openssl libssl-dev"]),
-            .yum(["openssl openssl-devel"]),
+            .yum(["openssl openssl-devel"])
         ]
     )
 ])
