@@ -14,8 +14,8 @@ targets: [
         name: "LibCrypto",
         pkgConfig: "openssl",
         providers: [
-            .apt(["openssl libssl-dev"]),
-            .yum(["openssl openssl-devel"])
+            .apt(["openssl libssl-dev"])
+//add this back when swift pm get's their crap together \\  .yum(["openssl openssl-devel"])
         ]
     )
 ])
