@@ -1,32 +1,32 @@
 
 module S2N {
     explicit module PublicApi {
-        header "api/s2n.h"
+        header "s2n/api/s2n.h"
         export *
     }
 
     explicit module PrivateCryptoApi {
-        umbrella "crypto"
+        umbrella "s2n/crypto"
     }
 
     explicit module PrivateErrorApi {
-	umbrella "error"
+	umbrella "s2n/error"
    }
 
    explicit module PrivatePqApi {
-       umbrella "pq-crypto"
+       umbrella "s2n/pq-crypto"
    }
 
    explicit module PrivateStufferApi {
-       umbrella "stuffer"
+       umbrella "s2n/stuffer"
    }
 
    explicit module PrivateTlsApi {
-       umbrella "tls"
+       umbrella "s2n/tls"
    }
 
    explicit module PrivateUtilsApi {
-       umbrella "utils"
+       umbrella "s2n/utils"
    }
 }
 
