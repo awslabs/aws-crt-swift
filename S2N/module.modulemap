@@ -1,0 +1,32 @@
+
+module S2N {
+    explicit module PublicApi {
+        header "api/s2n.h"
+        export *
+    }
+
+    explicit module PrivateCryptoApi {
+        umbrella "crypto"
+    }
+
+    explicit module PrivateErrorApi {
+	umbrella "error"
+   }
+
+   explicit module PrivatePqApi {
+       umbrella "pq-crypto"
+   }
+
+   explicit module PrivateStufferApi {
+       umbrella "stuffer"
+   }
+
+   explicit module PrivateTlsApi {
+       umbrella "tls"
+   }
+
+   explicit module PrivateUtilsApi {
+       umbrella "utils"
+   }
+}
+
