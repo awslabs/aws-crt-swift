@@ -1,5 +1,5 @@
 
-module LibCrypto [system] {
+module LibCrypto {
     umbrella "openssl"
     link "crypto"
     export *
