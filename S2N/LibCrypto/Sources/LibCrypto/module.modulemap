@@ -1,6 +1,6 @@
 
 module LibCrypto {
-    umbrella "openssl"
+    header "shim.h"
     link "crypto"
     export *
 }
