@@ -6,8 +6,8 @@ var calDependencies : [Target.Dependency] = ["AwsCCommon"]
 var ioDependencies : [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
 
 #if os(Linux)
-packageDependencies.append(.package(path:"S2N"))
-packageDependencies.append(.package(path:"LibCrypto"))
+packageDependencies.append(.package(path:"S2N/"))
+packageDependencies.append(.package(path:"S2N/LibCrypto"))
 
 ioDependencies.append("S2N")
 calDependencies.append("LibCrypto")
