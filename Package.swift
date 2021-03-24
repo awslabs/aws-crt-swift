@@ -22,9 +22,11 @@ var package = Package(name: "AwsCrt",
     dependencies: packageDependencies
 )
 
+let excludesFromAll = ["tests", "cmake", "codebuild", "CONTRIBUTING.md", "LICENSE", "format-check.sh", "NOTICE", "builder.json", "sanitizer-blacklist.txt", "CMakeLists.txt", "README.md", "CODE_OF_CONDUCT.md", "build-deps.sh"]
+
 // aws-c-common config
-var awsCCommonPlatformExcludes = ["source/windows", "source/android", "AWSCRTAndroidTestRunner", "cmake", "codebuild", "docker-images", "tests", "verification"]
-//var unsafeFlagsArray: [String] = []
+var awsCCommonPlatformExcludes = ["source/windows", "source/android", "AWSCRTAndroidTestRunner", "docker-images", "verification", "include/aws/common/"]
+awsCCommonPlatformExcludes.append(contentsOf: excludesFromAll)
 
 #if arch(i386) || arch(x86_64)
 awsCCommonPlatformExcludes.append("source/arch/arm")
@@ -46,7 +48,8 @@ awsCCommonPlatformExcludes.append("source/arch/intel/asm")
 awsCCommonPlatformExcludes.append("source/arch/arm/asm")
 #endif
 
-var awsCIoPlatformExcludes = ["tests", "cmake", "docs"]
+var awsCIoPlatformExcludes = ["docs"]
+awsCIoPlatformExcludes.append(contentsOf: excludesFromAll)
 
 #if os(macOS)
 awsCIoPlatformExcludes.append("source/windows")
@@ -64,6 +67,7 @@ awsCIoPlatformExcludes.append("source/darwin")
 #endif
 
 var awsCCalPlatformExcludes = ["tests", "cmake"]
+awsCCalPlatformExcludes.append(contentsOf: excludesFromAll)
 
 #if os(macOS)
 awsCCalPlatformExcludes.append("source/windows")
@@ -76,10 +80,12 @@ awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
 #endif
 
-var awsCCompressionPlatformExcludes = ["tests", "cmake", "codebuild", "source/huffman_generator/"]
-var awsCHttpPlatformExcludes = ["tests", "bin", "integration-testing", "continuous-delivery", "cmake", "codebuild"]
-var awsCAuthPlatformExcludes = ["tests"]
-var awsCMqttPlatformExcludes = ["tests", "cmake"]
+var awsCCompressionPlatformExcludes = ["source/huffman_generator/"]
+awsCCompressionPlatformExcludes.append(contentsOf: excludesFromAll)
+var awsCHttpPlatformExcludes = ["bin", "integration-testing", "continuous-delivery", "include/aws/http/private"]
+awsCHttpPlatformExcludes.append(contentsOf: excludesFromAll)
+let awsCAuthPlatformExcludes = excludesFromAll
+let awsCMqttPlatformExcludes = excludesFromAll
 
 package.targets = ( [
     .target(
