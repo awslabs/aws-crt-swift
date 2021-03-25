@@ -202,8 +202,6 @@ public class ByteBuffer {
         let number: UInt32 = 0x12345678
         return number == number.bigEndian ? .big : .little
     }
-    //private let hostEndianness: Endianness = OSHostByteOrder() == OSLittleEndian ? .little : .big
-
 }
 
 extension ByteBuffer: AwsStream {
