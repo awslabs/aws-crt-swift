@@ -1,1 +1,0 @@
-../templates/template-for-repository/proofs/README.md

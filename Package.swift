@@ -148,7 +148,7 @@ package.targets = ( [
     .target(
         name: "S2N",
         dependencies: ["LibCrypto"],
-        path: "Source/LibCrypto/s2n",
+        path: "S2N/s2n",
         exclude: awsS2nExcludes,
         publicHeadersPath: "api",
         cSettings: [
