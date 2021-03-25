@@ -8,6 +8,11 @@ import class Foundation.FileHandle
 import class Foundation.OutputStream
 import struct Foundation.URL
 import AwsCIo
+#if os(Linux)
+     import Glibc
+ #else
+     import Darwin
+ #endif
 
 //swiftlint:disable identifier_name superfluous_disable_command
 public class ByteBuffer {
@@ -193,7 +198,11 @@ public class ByteBuffer {
     private var currentIndex: Int = 0
 
     private var currentEndianness: Endianness = .big
-    private let hostEndianness: Endianness = OSHostByteOrder() == OSLittleEndian ? .little : .big
+    private var hostEndianness: Endianness {
+        let number: UInt32 = 0x12345678
+        return number == number.bigEndian ? .big : .little
+    }
+    //private let hostEndianness: Endianness = OSHostByteOrder() == OSLittleEndian ? .little : .big
 
 }
 

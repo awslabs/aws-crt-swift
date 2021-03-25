@@ -1,14 +1,11 @@
 // swift-tools-version:5.3
 import PackageDescription
 
-var packageDependencies : [Package.Dependency] = []
+
 var calDependencies : [Target.Dependency] = ["AwsCCommon"]
 var ioDependencies : [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
 
 #if os(Linux)
-packageDependencies.append(.package(path:"S2N/"))
-packageDependencies.append(.package(path:"S2N/LibCrypto"))
-
 ioDependencies.append("S2N")
 calDependencies.append("LibCrypto")
 #endif
@@ -18,8 +15,7 @@ var package = Package(name: "AwsCrt",
     products: [
       .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
       .executable(name: "Elasticurl", targets: ["Elasticurl"])
-    ],
-    dependencies: packageDependencies
+    ]
 )
 
 let excludesFromAll = ["tests", "cmake", "codebuild", "CONTRIBUTING.md", "LICENSE", "format-check.sh", "NOTICE", "builder.json", "sanitizer-blacklist.txt", "CMakeLists.txt", "README.md", "CODE_OF_CONDUCT.md", "build-deps.sh"]
@@ -73,7 +69,7 @@ awsCCalPlatformExcludes.append(contentsOf: excludesFromAll)
 awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/unix")
 #elseif(Windows)
-awsCCalPlatformExcludes.append("source/darin")
+awsCCalPlatformExcludes.append("source/darwin")
 awsCCalPlatformExcludes.append("source/unix")
 #else
 awsCCalPlatformExcludes.append("source/windows")
@@ -86,6 +82,9 @@ var awsCHttpPlatformExcludes = ["bin", "integration-testing", "continuous-delive
 awsCHttpPlatformExcludes.append(contentsOf: excludesFromAll)
 let awsCAuthPlatformExcludes = excludesFromAll
 let awsCMqttPlatformExcludes = excludesFromAll
+
+var awsS2nExcludes = ["bin", "cmake", "codebuild", "coverage", "docker-images", "docs", "lib", "pq-crypto", "libcrypto-build", "scram", "tests", "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile", "tls/Makefile", "utils/Makefile", "error/Makefile", "extensions/Makefile", "tls/extensions/Makefile", "codecov.yml", "scripts/"]
+awsS2nExcludes.append(contentsOf: excludesFromAll)
 
 package.targets = ( [
     .target(
@@ -145,6 +144,26 @@ package.targets = ( [
         name: "Elasticurl",
         dependencies: ["AwsCommonRuntimeKit"],
         path: "Source/Elasticurl"
+    ),
+    .target(
+        name: "S2N",
+        dependencies: ["LibCrypto"],
+        path: "Source/LibCrypto/s2n",
+        exclude: awsS2nExcludes,
+        publicHeadersPath: "api",
+        cSettings: [
+            .headerSearchPath("./"),
+            .define("POSIX_C_SOURCE=200809L"),
+            .define("S2N_NO_PQ"),
+        ]
+    ),
+    .systemLibrary(
+        name: "LibCrypto",
+        pkgConfig: "libcrypto",
+        providers: [
+            .apt(["openssl libssl-dev"])
+//add this back when swift pm get's their crap together \\  .yum(["openssl openssl-devel"])
+        ]
     )
 ] )
 

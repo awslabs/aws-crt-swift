@@ -3,7 +3,11 @@
 
 import AwsCommonRuntimeKit
 import Foundation
-import Darwin
+#if os(Linux)
+     import Glibc
+ #else
+     import Darwin
+ #endif
 
 //swiftlint:disable cyclomatic_complexity type_body_length
 struct Context {
