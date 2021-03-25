@@ -1,9 +1,8 @@
 // swift-tools-version:5.3
 import PackageDescription
 
-
-var calDependencies : [Target.Dependency] = ["AwsCCommon"]
-var ioDependencies : [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
+var calDependencies: [Target.Dependency] = ["AwsCCommon"]
+var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
 
 #if os(Linux)
 ioDependencies.append("S2N")
@@ -18,10 +17,15 @@ var package = Package(name: "AwsCrt",
     ]
 )
 
-let excludesFromAll = ["tests", "cmake", "codebuild", "CONTRIBUTING.md", "LICENSE", "format-check.sh", "NOTICE", "builder.json", "sanitizer-blacklist.txt", "CMakeLists.txt", "README.md", "CODE_OF_CONDUCT.md", "build-deps.sh"]
+let excludesFromAll = ["tests", "cmake", "codebuild", "CONTRIBUTING.md",
+                       "LICENSE", "format-check.sh", "NOTICE", "builder.json",
+                       "sanitizer-blacklist.txt", "CMakeLists.txt", "README.md",
+                       "CODE_OF_CONDUCT.md", "build-deps.sh"]
 
 // aws-c-common config
-var awsCCommonPlatformExcludes = ["source/windows", "source/android", "AWSCRTAndroidTestRunner", "docker-images", "verification", "include/aws/common/"]
+var awsCCommonPlatformExcludes = ["source/windows", "source/android",
+                                  "AWSCRTAndroidTestRunner", "docker-images", "verification",
+                                  "include/aws/common/"]
 awsCCommonPlatformExcludes.append(contentsOf: excludesFromAll)
 
 #if arch(i386) || arch(x86_64)
@@ -83,7 +87,12 @@ awsCHttpPlatformExcludes.append(contentsOf: excludesFromAll)
 let awsCAuthPlatformExcludes = excludesFromAll
 let awsCMqttPlatformExcludes = excludesFromAll
 
-var awsS2nExcludes = ["bin", "cmake", "codebuild", "coverage", "docker-images", "docs", "lib", "pq-crypto", "libcrypto-build", "scram", "tests", "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile", "tls/Makefile", "utils/Makefile", "error/Makefile", "extensions/Makefile", "tls/extensions/Makefile", "codecov.yml", "scripts/"]
+var awsS2nExcludes = ["bin", "cmake", "codebuild", "coverage", "docker-images",
+                      "docs", "lib", "pq-crypto", "libcrypto-build", "scram", "tests",
+                      "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
+                      "tls/Makefile", "utils/Makefile", "error/Makefile",
+                      "extensions/Makefile", "tls/extensions/Makefile",
+                      "codecov.yml", "scripts/"]
 awsS2nExcludes.append(contentsOf: excludesFromAll)
 
 package.targets = ( [
@@ -154,7 +163,7 @@ package.targets = ( [
         cSettings: [
             .headerSearchPath("./"),
             .define("POSIX_C_SOURCE=200809L"),
-            .define("S2N_NO_PQ"),
+            .define("S2N_NO_PQ")
         ]
     ),
     .systemLibrary(
@@ -166,6 +175,3 @@ package.targets = ( [
         ]
     )
 ] )
-
-
-
