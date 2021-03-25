@@ -1,12 +1,15 @@
 // swift-tools-version:5.3
 import PackageDescription
 
+var packageDependencies : [Package.Dependency] = []
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
 var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
 
 #if os(Linux)
-ioDependencies.append("S2N")
-calDependencies.append("LibCrypto")
+packageDependencies.append(.package(name:"S2N", path:"./S2N"))
+
+ioDependencies.append(.product(name: "S2N", package: "S2N"))
+calDependencies.append(.product(name: "LibCrypto", package: "S2N"))
 #endif
 
 var package = Package(name: "AwsCrt",
@@ -14,7 +17,8 @@ var package = Package(name: "AwsCrt",
     products: [
       .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
       .executable(name: "Elasticurl", targets: ["Elasticurl"])
-    ]
+    ],
+    dependencies: packageDependencies
 )
 
 let excludesFromAll = ["tests", "cmake", "codebuild", "CONTRIBUTING.md",
@@ -87,13 +91,7 @@ awsCHttpPlatformExcludes.append(contentsOf: excludesFromAll)
 let awsCAuthPlatformExcludes = excludesFromAll
 let awsCMqttPlatformExcludes = excludesFromAll
 
-var awsS2nExcludes = ["bin", "cmake", "codebuild", "coverage", "docker-images",
-                      "docs", "lib", "pq-crypto", "libcrypto-build", "scram", "tests",
-                      "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
-                      "tls/Makefile", "utils/Makefile", "error/Makefile",
-                      "extensions/Makefile", "tls/extensions/Makefile",
-                      "codecov.yml", "scripts/"]
-awsS2nExcludes.append(contentsOf: excludesFromAll)
+
 
 package.targets = ( [
     .target(
@@ -153,25 +151,5 @@ package.targets = ( [
         name: "Elasticurl",
         dependencies: ["AwsCommonRuntimeKit"],
         path: "Source/Elasticurl"
-    ),
-    .target(
-        name: "S2N",
-        dependencies: ["LibCrypto"],
-        path: "S2N/s2n",
-        exclude: awsS2nExcludes,
-        publicHeadersPath: "api",
-        cSettings: [
-            .headerSearchPath("./"),
-            .define("POSIX_C_SOURCE=200809L"),
-            .define("S2N_NO_PQ")
-        ]
-    ),
-    .systemLibrary(
-        name: "LibCrypto",
-        pkgConfig: "libcrypto",
-        providers: [
-            .apt(["openssl libssl-dev"])
-//add this back when swift pm get's their crap together \\  .yum(["openssl openssl-devel"])
-        ]
     )
 ] )
