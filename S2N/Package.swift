@@ -32,7 +32,7 @@ let package = Package(
             cSettings: [
                 .headerSearchPath("./"),
                 .define("POSIX_C_SOURCE=200809L"),
-                .define("S2N_NO_PQ"),
+                .define("S2N_NO_PQ")
             ]
         ),
         .systemLibrary(

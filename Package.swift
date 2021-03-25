@@ -1,7 +1,7 @@
 // swift-tools-version:5.3
 import PackageDescription
 
-var packageDependencies : [Package.Dependency] = []
+var packageDependencies: [Package.Dependency] = []
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
 var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
 
@@ -90,8 +90,6 @@ var awsCHttpPlatformExcludes = ["bin", "integration-testing", "continuous-delive
 awsCHttpPlatformExcludes.append(contentsOf: excludesFromAll)
 let awsCAuthPlatformExcludes = excludesFromAll
 let awsCMqttPlatformExcludes = excludesFromAll
-
-
 
 package.targets = ( [
     .target(
