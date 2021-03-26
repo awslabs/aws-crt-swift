@@ -21,8 +21,8 @@ let package = Package(
             // add pq-crypto back after adding in platform and chipset detection
             exclude: ["bin", "cmake", "codebuild", "coverage", "docker-images",
                       "docs", "lib", "pq-crypto/bike_r1", "pq-crypto/bike_r2", "pq-crypto/kyber_90s_r2",
-                      "pq-crypto/kyber_r2", "pq-crypto/sike_r1", "pq-crypto/sike_r2", 
-                      "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk", 
+                      "pq-crypto/kyber_r2", "pq-crypto/sike_r1", "pq-crypto/sike_r2",
+                      "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
                       "libcrypto-build", "scram", "tests",
                       "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
                       "tls/Makefile", "utils/Makefile", "error/Makefile",
