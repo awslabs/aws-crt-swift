@@ -1,14 +1,13 @@
-FROM swift:latest
+FROM swift:5.3-xenial
 
 WORKDIR /package
 
 COPY . ./
 
-RUN ls
-
-RUN dpkg --add-architecture i386
-RUN apt-get update
-RUN DEBIAN_FRONTEND='noninteractive' apt-get install openssl libssl-dev -y
+# to test on al2 swift images uncomment this and comment out other line.
+# RUN yum -y install openssl-devel
+RUN apt-get update -qq
+RUN apt-get -y install libssl-dev
 
 RUN swift package clean
 

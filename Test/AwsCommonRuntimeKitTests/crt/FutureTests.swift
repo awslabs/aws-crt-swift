@@ -34,8 +34,8 @@ class FutureTests: XCTestCase {
             group.enter()
 
             DispatchQueue.global().async {
-                let sleepVal = arc4random() % 1000
-                usleep(sleepVal)
+                let sleepVal = Int.random(in: 1...2000) % 1000
+                Thread.sleep(forTimeInterval: TimeInterval(sleepVal))
                 future.fulfill("value is finally fulfilled")
                 group.leave()
             }
