@@ -157,11 +157,11 @@ struct Elasticurl {
             context.alpnList.append("http/1.1")
         }
 
-        if argumentsDict["h"] != nil {
+        if argumentsDict["w"] != nil {
             context.alpnList.append("h2")
         }
 
-        if argumentsDict["h"] == nil && argumentsDict["W"] == nil {
+        if argumentsDict["w"] == nil && argumentsDict["W"] == nil {
             context.alpnList.append("h2")
             context.alpnList.append("http/1.1")
         }
