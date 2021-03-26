@@ -18,16 +18,18 @@ let package = Package(
             name: "S2N",
             dependencies: ["LibCrypto"],
             path: "s2n",
+            // add pq-crypto back after adding in platform and chipset detection
             exclude: ["bin", "cmake", "codebuild", "coverage", "docker-images",
-                      "docs", "lib", "pq-crypto", "libcrypto-build", "scram", "tests",
+                      "docs", "lib", "pq-crypto/bike_r1", "pq-crypto/bike_r2", "pq-crypto/kyber_90s_r2",
+                      "pq-crypto/kyber_r2", "pq-crypto/sike_r1", "pq-crypto/sike_r2", 
+                      "libcrypto-build", "scram", "tests",
                       "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
                       "tls/Makefile", "utils/Makefile", "error/Makefile",
                       "extensions/Makefile", "tls/extensions/Makefile",
                       "codecov.yml", "scripts/", "tests", "cmake", "codebuild", "CONTRIBUTING.md",
                       "LICENSE", "format-check.sh", "NOTICE", "builder.json",
                       "sanitizer-blacklist.txt", "CMakeLists.txt", "README.md",
-                      "CODE_OF_CONDUCT.md", "build-deps.sh"]
-,
+                      "CODE_OF_CONDUCT.md", "build-deps.sh"],
             publicHeadersPath: "api",
             cSettings: [
                 .headerSearchPath("./"),
