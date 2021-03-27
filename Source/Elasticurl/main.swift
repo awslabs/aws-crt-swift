@@ -239,7 +239,7 @@ struct Elasticurl {
             }
 
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
-
+            //let logger = Logger(pipe: stdout, level: context.logLevel, allocator: defaultAllocator)
             AwsCommonRuntimeKit.initialize(allocator: allocator)
 
             let port = UInt16(443)
@@ -251,6 +251,7 @@ struct Elasticurl {
             let tlsConnectionOptions = tlsContext.newConnectionOptions()
 
             try tlsConnectionOptions.setServerName(host)
+            try tlsConnectionOptions.setAlpnList(context.alpnList.joined(separator: ";"))
 
             let elg = EventLoopGroup(threadCount: 1, allocator: allocator)
             let hostResolver = DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
@@ -330,6 +331,7 @@ struct Elasticurl {
             let connectionManager = HttpClientConnectionManager(options: httpClientOptions)
             do {
                 let connection = try connectionManager.acquireConnection().get()
+                print(httpRequest)
                 let requestOptions = HttpRequestOptions(request: httpRequest,
                                                         onIncomingHeaders: onIncomingHeaders,
                                                         onIncomingHeadersBlockDone: onBlockDone,

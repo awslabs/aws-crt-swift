@@ -13,4 +13,4 @@ RUN swift package clean
 
 RUN swift build
 
-CMD ["swift", "test"]
+CMD ["swift", "test", "-Xcc", "-g"]

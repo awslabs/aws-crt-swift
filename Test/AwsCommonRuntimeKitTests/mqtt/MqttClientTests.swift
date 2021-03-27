@@ -25,7 +25,7 @@ class MqttClientTests: CrtXCBaseTestCase {
         let elg = EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
         let resolver = DefaultHostResolver(eventLoopGroup: elg,
                                                maxHosts: 8,
-                                               maxTTL: 5,
+                                               maxTTL: 30,
                                                allocator: allocator,
                                                shutDownOptions: resolverShutDownOptions)
 
@@ -44,7 +44,7 @@ class MqttClientTests: CrtXCBaseTestCase {
         let connectExpectation = XCTestExpectation(description: "connected successfully")
 
         let connection = mqttClient.newConnection(host: "www.example.com",
-                                                  port: 8883,
+                                                  port: 443,
                                                   socketOptions: socketOptions,
                                                   tlsContext: context,
                                                   useWebSockets: false,
