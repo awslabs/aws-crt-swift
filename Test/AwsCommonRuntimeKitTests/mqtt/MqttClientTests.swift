@@ -9,7 +9,8 @@ class MqttClientTests: CrtXCBaseTestCase {
 
     func testMqttClientResourceSafety() throws {
         let options = TlsContextOptions(defaultClientWithAllocator: allocator)
-        try options.setAlpnList("")
+        let logging = Logger(pipe: stdout, level: .debug, allocator: allocator)
+       // try options.setAlpnList(nil)
         let context = try TlsContext(options: options, mode: .client, allocator: allocator)
 
         let socketOptions = SocketOptions(socketType: .stream)

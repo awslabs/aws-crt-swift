@@ -44,11 +44,13 @@ public final class DefaultHostResolver: HostResolver {
             mutablePtr.initialize(to: options)
 
             ptr = UnsafePointer(mutablePtr)
-        }
+    
         defer {ptr?.deallocate()}
+        }
         self.shutDownOptions = shutDownOptions
-        self.rawValue = aws_host_resolver_new_default(allocator.rawValue, maxHosts, elg.rawValue, ptr)
-
+        var options = aws_host_resolver_default_options(max_entries: maxHosts, el_group: elg.rawValue, shutdown_options: ptr, system_clock_override_fn: nil)
+        self.rawValue = aws_host_resolver_new_default(allocator.rawValue, &options)
+      
         let config = aws_host_resolution_config(
             impl: aws_default_dns_resolve,
             max_ttl: maxTTL,

@@ -70,7 +70,7 @@ awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
 #endif
 
-var awsCCalPlatformExcludes = ["tests", "cmake"]
+var awsCCalPlatformExcludes = ["tests", "cmake", "include/aws/cal/private"]
 awsCCalPlatformExcludes.append(contentsOf: excludesFromAll)
 
 #if os(macOS)
@@ -119,7 +119,7 @@ package.targets = ( [
     ),
     .target(
         name: "AwsCHttp",
-        dependencies: ["AwsCCompression", "AwsCIo", "AwsCCommon"],
+        dependencies: ["AwsCCompression", "AwsCIo", "AwsCCal", "AwsCCommon"],
         path: "aws-common-runtime/aws-c-http",
         exclude: awsCHttpPlatformExcludes
     ),
@@ -131,7 +131,7 @@ package.targets = ( [
     ),
     .target(
         name: "AwsCMqtt",
-        dependencies: ["AwsCHttp", "AwsCCompression", "AwsCIo", "AwsCCommon"],
+        dependencies: ["AwsCHttp", "AwsCCompression", "AwsCIo", "AwsCCal", "AwsCCommon"],
         path: "aws-common-runtime/aws-c-mqtt",
         exclude: awsCMqttPlatformExcludes
     ),

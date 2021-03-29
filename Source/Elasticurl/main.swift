@@ -239,7 +239,7 @@ struct Elasticurl {
             }
 
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
-            //let logger = Logger(pipe: stdout, level: context.logLevel, allocator: defaultAllocator)
+            let logger = Logger(pipe: stdout, level: context.logLevel, allocator: defaultAllocator)
             AwsCommonRuntimeKit.initialize(allocator: allocator)
 
             let port = UInt16(443)
@@ -251,7 +251,6 @@ struct Elasticurl {
             let tlsConnectionOptions = tlsContext.newConnectionOptions()
 
             try tlsConnectionOptions.setServerName(host)
-            try tlsConnectionOptions.setAlpnList(context.alpnList.joined(separator: ";"))
 
             let elg = EventLoopGroup(threadCount: 1, allocator: allocator)
             let hostResolver = DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
@@ -280,19 +279,27 @@ struct Elasticurl {
             let headers = HttpHeaders(allocator: allocator)
             if headers.add(name: "Host", value: host),
                headers.add(name: "User-Agent", value: "Elasticurl"),
-               headers.add(name: "Accept", value: "*/*"),
-               headers.add(name: "Swift", value: "Version 5.3") {
-
+               headers.add(name: "Accept", value: "*/*") {
+                headers.add(name: "Content-Type", value: "application/json")
                 httpRequest.addHeaders(headers: headers)
             }
+            
+           
 
             if let data = context.data {
-                let byteBuffer = ByteBuffer(data: data)
+                print(String(data: data, encoding: .utf8))
+                let myData = "{\"test\": \"testVal\"}".data(using: .utf8)
+                let byteBuffer = ByteBuffer(data: myData!)
                 let awsStream = AwsInputStream(byteBuffer)
                 httpRequest.body = awsStream
-                if headers.add(name: "Content-length", value: "\(data.count)") {
+                if headers.add(name: "Content-length", value: "\(myData!.count)") {
                     httpRequest.addHeaders(headers: headers)
                 }
+            }
+            
+            for header in headers.getAll() {
+                print(header.name)
+                print(header.value)
             }
 
             let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
@@ -331,7 +338,6 @@ struct Elasticurl {
             let connectionManager = HttpClientConnectionManager(options: httpClientOptions)
             do {
                 let connection = try connectionManager.acquireConnection().get()
-                print(httpRequest)
                 let requestOptions = HttpRequestOptions(request: httpRequest,
                                                         onIncomingHeaders: onIncomingHeaders,
                                                         onIncomingHeadersBlockDone: onBlockDone,

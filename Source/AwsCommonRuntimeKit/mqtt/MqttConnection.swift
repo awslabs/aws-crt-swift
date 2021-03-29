@@ -260,7 +260,7 @@ public class MqttConnection {
         let ptr = UnsafeMutablePointer<PubCallbackData>.allocate(capacity: 1)
         ptr.initialize(to: pubCallbackData)
 
-        if aws_mqtt_client_connection_set_on_any_publish_handler(rawValue, { (_, topic, payload, userData) in
+        if aws_mqtt_client_connection_set_on_any_publish_handler(rawValue, { (_, topic, payload, _,  _, _, userData) in
             guard let userData = userData, let topic = topic?.pointee.toString(), let payload = payload else {
                 return
             }
@@ -303,7 +303,7 @@ public class MqttConnection {
         let packetId = aws_mqtt_client_connection_subscribe(rawValue,
                                                             topicPtr,
                                                             qos.rawValue,
-                                                            { (_, topicPtr, payload, userData) in
+                                                            { (_, topicPtr, payload, _, _, _, userData) in
             guard let userData = userData,
                   let topic = topicPtr?.pointee.toString(),
                   let payload = payload else {
@@ -469,7 +469,7 @@ public class MqttConnection {
     }
 
     deinit {
-        aws_mqtt_client_connection_destroy(rawValue)
+        aws_mqtt_client_connection_release(rawValue)
         if let pubCallbackData = pubCallbackData {
             pubCallbackData.deinitializeAndDeallocate()
         }

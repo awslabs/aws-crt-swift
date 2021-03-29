@@ -37,3 +37,5 @@
 #define AWS_HAVE_EXECINFO
 #endif
 #define AWS_UNSTABLE_TESTING_API 1
+
+#define AWS_AFFINITY_METHOD 0

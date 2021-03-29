@@ -9,17 +9,11 @@ public final class MqttClient {
     let rawValue: UnsafeMutablePointer<aws_mqtt_client>
 
     init(rawValue: UnsafeMutablePointer<aws_mqtt_client>, clientBootstrap: ClientBootstrap) {
-        self.rawValue = rawValue
-        aws_mqtt_client_init(rawValue, defaultAllocator, clientBootstrap.rawValue)
+        self.rawValue = aws_mqtt_client_new(defaultAllocator, clientBootstrap.rawValue)
     }
 
     init(clientBootstrap: ClientBootstrap, allocator: Allocator = defaultAllocator) throws {
-        self.rawValue = UnsafeMutablePointer<aws_mqtt_client>.allocate(capacity: 1)
-
-        if aws_mqtt_client_init(rawValue, allocator.rawValue, clientBootstrap.rawValue) != AWS_OP_SUCCESS {
-            rawValue.deinitializeAndDeallocate()
-            throw AWSCommonRuntimeError()
-        }
+        self.rawValue = aws_mqtt_client_new(allocator.rawValue, clientBootstrap.rawValue)
     }
 
     /// Creates a new mqtt connection to the host on the port given using TLS
@@ -68,7 +62,7 @@ public final class MqttClient {
     }
 
     deinit {
-        aws_mqtt_client_clean_up(rawValue)
+        aws_mqtt_client_release(rawValue)
         rawValue.deallocate()
     }
 }
