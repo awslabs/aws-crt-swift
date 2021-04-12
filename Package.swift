@@ -70,7 +70,7 @@ awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
 #endif
 
-var awsCCalPlatformExcludes = ["tests", "cmake", "include/aws/cal/private"]
+var awsCCalPlatformExcludes = ["bin", "tests", "cmake", "include/aws/cal/private"]
 awsCCalPlatformExcludes.append(contentsOf: excludesFromAll)
 
 #if os(macOS)
