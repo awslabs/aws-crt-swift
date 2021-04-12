@@ -283,8 +283,6 @@ struct Elasticurl {
                 headers.add(name: "Content-Type", value: "application/json")
                 httpRequest.addHeaders(headers: headers)
             }
-            
-           
 
             if let data = context.data {
                 print(String(data: data, encoding: .utf8))
@@ -296,7 +294,7 @@ struct Elasticurl {
                     httpRequest.addHeaders(headers: headers)
                 }
             }
-            
+
             for header in headers.getAll() {
                 print(header.name)
                 print(header.value)

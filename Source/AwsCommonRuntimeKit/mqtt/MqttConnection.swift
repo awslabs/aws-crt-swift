@@ -260,7 +260,7 @@ public class MqttConnection {
         let ptr = UnsafeMutablePointer<PubCallbackData>.allocate(capacity: 1)
         ptr.initialize(to: pubCallbackData)
 
-        if aws_mqtt_client_connection_set_on_any_publish_handler(rawValue, { (_, topic, payload, _,  _, _, userData) in
+        if aws_mqtt_client_connection_set_on_any_publish_handler(rawValue, { (_, topic, payload, _, _, _, userData) in
             guard let userData = userData, let topic = topic?.pointee.toString(), let payload = payload else {
                 return
             }
