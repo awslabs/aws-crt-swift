@@ -2,6 +2,7 @@
   "name": "aws-crt-swift",
   "enabled": true,
   "build_steps": [
+    "swift build --version",
     "swift build -c release"
   ],
   "test_steps": [
