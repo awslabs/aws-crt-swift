@@ -26,7 +26,7 @@ public struct SigningConfig {
                 service: String,
                 region: String,
                 expiration: Int64 = 0,
-                signedBodyHeader: SignedBodyHeaderType = .contentSha256,
+                signedBodyHeader: SignedBodyHeaderType = .none,
                 signedBodyValue: SignedBodyValue = SignedBodyValue.empty,
                 flags: Flags = Flags(),
                 shouldSignHeader: ShouldSignHeader? = nil,
