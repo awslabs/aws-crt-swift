@@ -63,6 +63,5 @@ public final class MqttClient {
 
     deinit {
         aws_mqtt_client_release(rawValue)
-        rawValue.deallocate()
     }
 }
