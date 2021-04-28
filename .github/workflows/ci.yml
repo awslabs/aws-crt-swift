@@ -84,7 +84,7 @@ jobs:
           docker pull $DOCKER_IMAGE
           docker run --mount type=bind,source=$(pwd),target=/root/${{ env.PACKAGE_NAME }} --env GITHUB_REF $DOCKER_IMAGE build -p ${{ env.PACKAGE_NAME }} --build-dir=/root/${{ env.PACKAGE_NAME }} --spec=downstream --compiler=clang-${{ matrix.version }}
   osx:
-    runs-on: macos-latest
+    runs-on: macos-11.0
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
@@ -96,7 +96,7 @@ jobs:
           chmod a+x builder
           ./builder build -p ${{ env.PACKAGE_NAME }} --spec=downstream
   ios:
-    runs-on: macos-latest
+    runs-on: macos-11.0
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2

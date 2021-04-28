@@ -6,7 +6,7 @@
 	url = https://github.com/awslabs/aws-c-io.git
 [submodule "aws-common-runtime/s2n"]
 	path = S2N/s2n
-	url = https://github.com/awslabs/s2n.git
+	url = https://github.com/aws/s2n-tls.git
 [submodule "aws-common-runtime/aws-c-compression"]
 	path = aws-common-runtime/aws-c-compression
 	url = https://github.com/awslabs/aws-c-compression.git
