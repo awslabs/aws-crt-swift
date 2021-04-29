@@ -1,4 +1,4 @@
-FROM swift:5.4-xenial
+FROM swift:5.4-focal
 
 WORKDIR /package
 
