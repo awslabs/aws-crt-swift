@@ -27,5 +27,6 @@ public class Logger {
 
     deinit {
         aws_logger_clean_up(&logger)
+        aws_logger_set(nil)
     }
 }
