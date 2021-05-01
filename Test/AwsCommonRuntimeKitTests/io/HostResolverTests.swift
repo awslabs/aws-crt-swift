@@ -40,6 +40,6 @@ class HostResolverTests: CrtXCBaseTestCase {
         XCTAssertEqual(unwrappedError.errorCode, 0, "Error (\(String(describing: unwrappedError)) is blank")
     }
 
-    XCTAssertEqual(addressCount, 2, "Address Count is (\(String(describing: addressCount)))")
+    XCTAssert(addressCount! >= 1, "Address Count is (\(String(describing: addressCount)))")
   }
 }
