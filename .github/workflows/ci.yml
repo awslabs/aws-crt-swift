@@ -7,8 +7,8 @@ on:
       - '!master'
 
 env:
-  BUILDER_VERSION: cc
-  BUILDER_SOURCE: channels
+  BUILDER_VERSION: v0.8.15
+  BUILDER_SOURCE: releases
   BUILDER_HOST: https://d19elf31gohf1l.cloudfront.net
   PACKAGE_NAME: aws-crt-swift
   LINUX_BASE_IMAGE: ubuntu-16-x64
