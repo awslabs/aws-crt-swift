@@ -38,4 +38,10 @@ extension XCTestCase {
             throw XCTSkip("Skipping test on macOS")
         }
     }
+    
+    func skipIfLinux() throws {
+        #if os(Linux)
+            throw XCTSkip("Skipping test on linux")
+        #endif
+    }
 }
