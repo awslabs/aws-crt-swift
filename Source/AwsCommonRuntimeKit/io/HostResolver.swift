@@ -7,7 +7,7 @@ import AwsCIo
 public typealias HostAddress = aws_host_address
 public typealias OnHostResolved = (HostResolver, [HostAddress], CRTError) -> Void
 
-public protocol HostResolver: class {
+public protocol HostResolver: AnyObject {
     var rawValue: UnsafeMutablePointer<aws_host_resolver> { get set }
     var config: UnsafeMutablePointer<aws_host_resolution_config> { get }
     func resolve(host: String, onResolved: @escaping OnHostResolved) throws
