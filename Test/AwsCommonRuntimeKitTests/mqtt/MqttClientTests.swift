@@ -8,6 +8,7 @@ import Foundation
 class MqttClientTests: CrtXCBaseTestCase {
 
     func testMqttClientResourceSafety() throws {
+        try skipIfLinux()
         let options = TlsContextOptions(defaultClientWithAllocator: allocator)
         //try options.setAlpnList(nil)
         let context = try TlsContext(options: options, mode: .client, allocator: allocator)
