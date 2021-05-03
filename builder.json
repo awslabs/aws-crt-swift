@@ -13,10 +13,6 @@
     "ubuntu": {},
     "macos": {},
     "al2": {},
-    "centos": {
-      "_comment": "centos uses an ancient version of glibc that uses __block as a variable, which is reserved by swift/clang",
-      "pre_build_steps": ["sed -i -e 's/\\*__block/\\*__libc_block/g' /usr/include/unistd.h"]
-    },
     "al2012": {
       "enabled": false
     },
