@@ -17,7 +17,6 @@ class CrtXCBaseTestCase: XCTestCase {
     }
 
     override func tearDown() {
-        aws_thread_join_all_managed()
         AwsCommonRuntimeKit.cleanUp()
 
         allocator.dump()
