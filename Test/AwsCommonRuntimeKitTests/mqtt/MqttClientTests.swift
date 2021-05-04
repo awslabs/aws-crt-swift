@@ -8,7 +8,7 @@ import Foundation
 class MqttClientTests: CrtXCBaseTestCase {
 
     func testMqttClientResourceSafety() throws {
-        try skipIfLinux()
+        //try skipIfLinux()
         let options = TlsContextOptions(defaultClientWithAllocator: allocator)
         //try options.setAlpnList(nil)
         let context = try TlsContext(options: options, mode: .client, allocator: allocator)
@@ -64,6 +64,6 @@ class MqttClientTests: CrtXCBaseTestCase {
         let onMessageSucceeded = connection.setOnMessageHandler { (_, _, _) in }
         XCTAssertTrue(onMessageSucceeded)
 
-        wait(for: [connectExpectation], timeout: 5.0)
+        wait(for: [connectExpectation], timeout: 1000000000005.0)
     }
 }

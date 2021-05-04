@@ -3,6 +3,7 @@
 
 import XCTest
 import AwsCommonRuntimeKit
+import AwsCCommon
 
 class CrtXCBaseTestCase: XCTestCase {
     internal let allocator = TracingAllocator(tracingStacksOf: defaultAllocator)
@@ -10,12 +11,15 @@ class CrtXCBaseTestCase: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        AwsCommonRuntimeKit.initialize(allocator: self.allocator)
         logging = Logger(pipe: stdout, level: .trace, allocator: defaultAllocator)
+
+        AwsCommonRuntimeKit.initialize(allocator: self.allocator)
     }
 
     override func tearDown() {
+        aws_thread_join_all_managed()
         AwsCommonRuntimeKit.cleanUp()
+
         allocator.dump()
         XCTAssertEqual(allocator.count, 0,
                        "Memory was leaked: \(allocator.bytes) bytes in \(allocator.count) allocations")
@@ -38,7 +42,7 @@ extension XCTestCase {
             throw XCTSkip("Skipping test on macOS")
         }
     }
-    
+
     func skipIfLinux() throws {
         #if os(Linux)
             throw XCTSkip("Skipping test on linux")

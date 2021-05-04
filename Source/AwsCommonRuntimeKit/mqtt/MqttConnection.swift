@@ -226,7 +226,7 @@ public class MqttConnection {
                 pOptions.host = proxyOptions.hostName.awsByteCursor
                 pOptions.port = proxyOptions.port
 
-                if aws_mqtt_client_connection_set_websocket_proxy_options(rawValue, &pOptions) == AWS_OP_SUCCESS {
+                if aws_mqtt_client_connection_set_http_proxy_options(rawValue, &pOptions) == AWS_OP_SUCCESS {
                     return false
                 }
             }

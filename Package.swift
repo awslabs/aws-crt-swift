@@ -21,7 +21,7 @@ var package = Package(name: "AwsCrt",
     dependencies: packageDependencies
 )
 
-let excludesFromAll = ["tests", "cmake", "codebuild", "CONTRIBUTING.md",
+let excludesFromAll = ["bin", "tests", "cmake", "codebuild", "CONTRIBUTING.md",
                        "LICENSE", "format-check.sh", "NOTICE", "builder.json",
                        "sanitizer-blacklist.txt", "CMakeLists.txt", "README.md",
                        "CODE_OF_CONDUCT.md", "build-deps.sh"]
@@ -133,7 +133,8 @@ package.targets = ( [
         name: "AwsCMqtt",
         dependencies: ["AwsCHttp", "AwsCCompression", "AwsCIo", "AwsCCal", "AwsCCommon"],
         path: "aws-common-runtime/aws-c-mqtt",
-        exclude: awsCMqttPlatformExcludes
+        exclude: awsCMqttPlatformExcludes,
+        cSettings : [.define("AWS_MQTT_WITH_WEBSOCKETS")]
     ),
     .target(
         name: "AwsCommonRuntimeKit",
