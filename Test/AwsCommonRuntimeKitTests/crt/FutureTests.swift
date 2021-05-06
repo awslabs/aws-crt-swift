@@ -1,11 +1,6 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import XCTest
-#if os(Linux)
-     import Glibc
- #else
-     import Darwin
- #endif
 @testable import AwsCommonRuntimeKit
 
 class FutureTests: XCTestCase {
@@ -34,19 +29,19 @@ class FutureTests: XCTestCase {
         let group = DispatchGroup()
         //create new future
         let future = Future<String>()
-        let sleepVal = Int.random(in: 1...4)
+        
         for _ in 0...1000 {
             group.enter()
 
             DispatchQueue.global().async {
-               
-                usleep(useconds_t(sleepVal))
+                let sleepVal = arc4random() % 1000
+                usleep(sleepVal)
                 future.fulfill("value is finally fulfilled")
                 group.leave()
             }
         }
         
-        let result = group.wait(timeout: DispatchTime.now() + 10)
+        let result = group.wait(timeout: DispatchTime.now() + 5)
 
         XCTAssert(result == .success)
     }

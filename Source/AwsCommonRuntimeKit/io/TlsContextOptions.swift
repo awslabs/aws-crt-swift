@@ -78,9 +78,8 @@ public final class TlsContextOptions {
         }
     }
     
-    public func setAlpnList(_ alpnList: String?) throws {
-        if let alpnList = alpnList,
-           aws_tls_ctx_options_set_alpn_list(rawValue, alpnList) != AWS_OP_SUCCESS {
+    public func setAlpnList(_ alpnList: String) throws {
+        if aws_tls_ctx_options_set_alpn_list(rawValue, alpnList) != AWS_OP_SUCCESS {
             throw AWSCommonRuntimeError()
         }
     }
