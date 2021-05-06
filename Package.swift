@@ -70,7 +70,7 @@ awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
 #endif
 
-var awsCCalPlatformExcludes = ["bin", "tests", "cmake", "include/aws/cal/private"]
+var awsCCalPlatformExcludes = ["include/aws/cal/private"]
 awsCCalPlatformExcludes.append(contentsOf: excludesFromAll)
 
 #if os(macOS)
@@ -86,7 +86,7 @@ awsCCalPlatformExcludes.append("source/darwin")
 
 var awsCCompressionPlatformExcludes = ["source/huffman_generator/"]
 awsCCompressionPlatformExcludes.append(contentsOf: excludesFromAll)
-var awsCHttpPlatformExcludes = ["bin", "integration-testing", "continuous-delivery", "include/aws/http/private"]
+var awsCHttpPlatformExcludes = ["integration-testing", "continuous-delivery", "include/aws/http/private"]
 awsCHttpPlatformExcludes.append(contentsOf: excludesFromAll)
 let awsCAuthPlatformExcludes = excludesFromAll
 let awsCMqttPlatformExcludes = excludesFromAll

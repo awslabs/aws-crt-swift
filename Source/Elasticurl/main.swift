@@ -204,16 +204,6 @@ struct Elasticurl {
         print("  -h, --help: Display this message and quit.")
     }
 
-    static func enableLogging(allocator: Allocator) {
-        if let traceFile = context.traceFile {
-            print("enable logging with trace file")
-            _ = Logger(filePath: traceFile, level: context.logLevel, allocator: allocator)
-        } else {
-            print("enable logging with stdout")
-            _ = Logger(pipe: stdout, level: context.logLevel, allocator: allocator)
-        }
-    }
-
     static func createOutputFile() {
         if let fileName = context.outputFileName {
             let fileManager = FileManager.default
@@ -229,17 +219,26 @@ struct Elasticurl {
 
     static func run() {
         do {
+            
             parseArguments()
-
+            
             createOutputFile()
-
+            var logger: Logger?
+            if let traceFile = context.traceFile {
+                print("enable logging with trace file")
+                logger = Logger(filePath: traceFile, level: context.logLevel, allocator: defaultAllocator)
+            } else {
+                print("enable logging with stdout")
+                logger = Logger(pipe: stdout, level: context.logLevel, allocator: defaultAllocator)
+            }
+            
             guard let host = context.url.host else {
                 print("no proper host was parsed from the url. quitting.")
                 exit(EXIT_FAILURE)
             }
 
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
-            let logger = Logger(pipe: stdout, level: context.logLevel, allocator: defaultAllocator)
+           
             AwsCommonRuntimeKit.initialize(allocator: allocator)
 
             let port = UInt16(443)
@@ -279,18 +278,17 @@ struct Elasticurl {
             let headers = HttpHeaders(allocator: allocator)
             if headers.add(name: "Host", value: host),
                headers.add(name: "User-Agent", value: "Elasticurl"),
-               headers.add(name: "Accept", value: "*/*") {
-                headers.add(name: "Content-Type", value: "application/json")
+               headers.add(name: "Accept", value: "*/*"),
+               headers.add(name: "Content-Type", value: "application/json") {
+                
                 httpRequest.addHeaders(headers: headers)
             }
 
             if let data = context.data {
-                print(String(data: data, encoding: .utf8))
-                let myData = "{\"test\": \"testVal\"}".data(using: .utf8)
-                let byteBuffer = ByteBuffer(data: myData!)
+                let byteBuffer = ByteBuffer(data: data)
                 let awsStream = AwsInputStream(byteBuffer)
                 httpRequest.body = awsStream
-                if headers.add(name: "Content-length", value: "\(myData!.count)") {
+                if headers.add(name: "Content-length", value: "\(data.count)") {
                     httpRequest.addHeaders(headers: headers)
                 }
             }

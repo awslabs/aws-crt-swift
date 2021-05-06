@@ -3,7 +3,6 @@
   "enabled": true,
   "needs_compiler": false,
   "build_steps": [
-    "swift build --version",
     "swift build -c release"
   ],
   "test_steps": [
