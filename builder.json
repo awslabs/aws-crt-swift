@@ -1,6 +1,7 @@
 {
   "name": "aws-crt-swift",
   "enabled": true,
+  "needs_compiler": false,
   "build_steps": [
     "swift build -c release"
   ],

@@ -3,7 +3,11 @@
 
 import AwsCommonRuntimeKit
 import Foundation
-import Darwin
+#if os(Linux)
+     import Glibc
+ #else
+     import Darwin
+ #endif
 
 //swiftlint:disable cyclomatic_complexity type_body_length
 struct Context {
@@ -15,7 +19,7 @@ struct Context {
     public var certificate: String?
     public var privateKey: String?
     public var connectTimeout: Int = 3000
-    public var headers: [String] = [String]()
+    public var headers: [String: String] = [String: String]()
     public var includeHeaders: Bool = false
     public var outputFileName: String?
     public var traceFile: String?
@@ -87,7 +91,13 @@ struct Elasticurl {
         }
 
         if let headers = argumentsDict["H"] as? String {
-            context.headers.append(headers)
+            let keyValues = headers.components(separatedBy: ",")
+            for headerKeyValuePair in keyValues {
+                let keyValuePair = headerKeyValuePair.components(separatedBy: ":")
+                    let key = keyValuePair[0]
+                    let value = keyValuePair[1]
+                context.headers[key] = value
+            }
         }
 
         if let stringData = argumentsDict["d"] as? String {
@@ -108,7 +118,6 @@ struct Elasticurl {
         }
 
         if let method = argumentsDict["M"] as? String {
-
             context.verb = method
         }
 
@@ -149,13 +158,17 @@ struct Elasticurl {
             exit(0)
         }
 
-        if argumentsDict["w"] != nil {
+        if argumentsDict["W"] != nil {
             context.alpnList.append("http/1.1")
         }
 
-        if argumentsDict["W"] != nil {
+        if argumentsDict["w"] != nil {
+            context.alpnList.append("h2")
+        }
 
-            context.alpnList.append("http/2")
+        if argumentsDict["w"] == nil && argumentsDict["W"] == nil {
+            context.alpnList.append("h2")
+            context.alpnList.append("http/1.1")
         }
 
         if argumentsDict["h"] != nil {
@@ -196,16 +209,6 @@ struct Elasticurl {
         print("  -h, --help: Display this message and quit.")
     }
 
-    static func enableLogging(allocator: Allocator) {
-        if let traceFile = context.traceFile {
-            print("enable logging with trace file")
-            _ = Logger(filePath: traceFile, level: context.logLevel, allocator: allocator)
-        } else {
-            print("enable logging with stdout")
-            _ = Logger(pipe: stdout, level: context.logLevel, allocator: allocator)
-        }
-    }
-
     static func createOutputFile() {
         if let fileName = context.outputFileName {
             let fileManager = FileManager.default
@@ -222,8 +225,16 @@ struct Elasticurl {
     static func run() {
         do {
             parseArguments()
-
             createOutputFile()
+
+            var logger: Logger?
+            if let traceFile = context.traceFile {
+                print("enable logging with trace file")
+                logger = Logger(filePath: traceFile, level: context.logLevel, allocator: defaultAllocator)
+            } else {
+                print("enable logging with stdout")
+                logger = Logger(pipe: stdout, level: context.logLevel, allocator: defaultAllocator)
+            }
 
             guard let host = context.url.host else {
                 print("no proper host was parsed from the url. quitting.")
@@ -272,9 +283,10 @@ struct Elasticurl {
             if headers.add(name: "Host", value: host),
                headers.add(name: "User-Agent", value: "Elasticurl"),
                headers.add(name: "Accept", value: "*/*"),
-               headers.add(name: "Swift", value: "Version 5.3") {
-
-                httpRequest.addHeaders(headers: headers)
+               headers.add(name: "Swift", value: "Version 5.4") {
+                for header in context.headers {
+                    _ = headers.add(name: header.key, value: header.value)
+                }
             }
 
             if let data = context.data {
@@ -285,6 +297,7 @@ struct Elasticurl {
                     httpRequest.addHeaders(headers: headers)
                 }
             }
+            httpRequest.addHeaders(headers: headers)
 
             let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
                 let allHeaders = headers.getAll()
