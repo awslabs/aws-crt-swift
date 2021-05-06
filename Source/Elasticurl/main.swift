@@ -226,7 +226,7 @@ struct Elasticurl {
         do {
             parseArguments()
             createOutputFile()
-            
+
             var logger: Logger?
             if let traceFile = context.traceFile {
                 print("enable logging with trace file")
@@ -235,14 +235,14 @@ struct Elasticurl {
                 print("enable logging with stdout")
                 logger = Logger(pipe: stdout, level: context.logLevel, allocator: defaultAllocator)
             }
-            
+
             guard let host = context.url.host else {
                 print("no proper host was parsed from the url. quitting.")
                 exit(EXIT_FAILURE)
             }
 
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
-           
+
             AwsCommonRuntimeKit.initialize(allocator: allocator)
 
             let port = UInt16(443)

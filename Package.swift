@@ -134,7 +134,7 @@ package.targets = ( [
         dependencies: ["AwsCHttp", "AwsCCompression", "AwsCIo", "AwsCCal", "AwsCCommon"],
         path: "aws-common-runtime/aws-c-mqtt",
         exclude: awsCMqttPlatformExcludes,
-        cSettings : [.define("AWS_MQTT_WITH_WEBSOCKETS")]
+        cSettings: [.define("AWS_MQTT_WITH_WEBSOCKETS")]
     ),
     .target(
         name: "AwsCommonRuntimeKit",
