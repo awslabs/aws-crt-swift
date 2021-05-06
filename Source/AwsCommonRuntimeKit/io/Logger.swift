@@ -13,6 +13,7 @@ public class Logger {
         options.file = pipe
         aws_logger_init_standard(&logger, allocator.rawValue, &options)
         aws_logger_set(&logger)
+
     }
 
     public init(filePath: String, level: LogLevel, allocator: Allocator = defaultAllocator) {
@@ -26,6 +27,5 @@ public class Logger {
 
     deinit {
         aws_logger_clean_up(&logger)
-        aws_logger_set(nil)
     }
 }

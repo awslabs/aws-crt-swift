@@ -9,6 +9,7 @@ class MqttClientTests: CrtXCBaseTestCase {
 
     func testMqttClientResourceSafety() throws {
         let options = TlsContextOptions(defaultClientWithAllocator: allocator)
+        try options.setAlpnList("")
         let context = try TlsContext(options: options, mode: .client, allocator: allocator)
 
         let socketOptions = SocketOptions(socketType: .stream)
@@ -24,7 +25,7 @@ class MqttClientTests: CrtXCBaseTestCase {
         let elg = EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
         let resolver = DefaultHostResolver(eventLoopGroup: elg,
                                                maxHosts: 8,
-                                               maxTTL: 30,
+                                               maxTTL: 5,
                                                allocator: allocator,
                                                shutDownOptions: resolverShutDownOptions)
 
@@ -43,7 +44,7 @@ class MqttClientTests: CrtXCBaseTestCase {
         let connectExpectation = XCTestExpectation(description: "connected successfully")
 
         let connection = mqttClient.newConnection(host: "www.example.com",
-                                                  port: 443,
+                                                  port: 8883,
                                                   socketOptions: socketOptions,
                                                   tlsContext: context,
                                                   useWebSockets: false,
@@ -62,6 +63,6 @@ class MqttClientTests: CrtXCBaseTestCase {
         let onMessageSucceeded = connection.setOnMessageHandler { (_, _, _) in }
         XCTAssertTrue(onMessageSucceeded)
 
-        wait(for: [connectExpectation], timeout: 10.0)
+        wait(for: [connectExpectation], timeout: 5.0)
     }
 }

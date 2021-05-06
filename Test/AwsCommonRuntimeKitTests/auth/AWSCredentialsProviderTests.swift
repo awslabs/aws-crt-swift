@@ -78,7 +78,6 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         //skip this test if it is running on macosx or on iOS
         try skipIfiOS()
         try skipifmacOS()
-        try skipIfLinux()
         //uses default paths to credentials and config
         do {
         let shutDownOptions = setUpShutDownOptions()
