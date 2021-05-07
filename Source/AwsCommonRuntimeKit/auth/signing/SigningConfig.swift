@@ -58,24 +58,22 @@ public struct SigningConfig {
                                                service: service.awsByteCursor,
                                                date: date.rawValue.pointee,
                                                should_sign_header: { (name, userData) -> Bool in
-
+                                                
                                                 guard let userData = userData,
-                                                    let name = name?.pointee.toString() else {
+                                                      let name = name?.pointee.toString() else {
                                                     return false
                                                 }
-
+                                                
                                                 let callback = userData.bindMemory(to: ShouldSignHeader?.self,
                                                                                    capacity: 1)
-
+                                                
                                                 if let callbackFn = callback.pointee {
-                                                    defer {
-                                                        callback.deinitializeAndDeallocate()
-                                                    }
+                                                    
                                                     return callbackFn(name)
                                                 } else {
                                                     return true
                                                 }
-                                                },
+                                               },
                                                should_sign_header_ud: pointer,
                                                flags: flags.rawValue,
                                                signed_body_value: signedBodyValue.rawValue.awsByteCursor,
