@@ -17,13 +17,13 @@ public final class CRTCredentials {
 
     public init(accessKey: String,
                 secret: String,
-                sessionToken: String,
+                sessionToken: String?,
                 expirationTimeout: UInt64,
                 allocator: Allocator = defaultAllocator) {
         self.rawValue = aws_credentials_new(allocator.rawValue,
                                             accessKey.awsByteCursor,
                                             secret.awsByteCursor,
-                                            sessionToken.awsByteCursor, expirationTimeout)
+                                            sessionToken?.awsByteCursor ?? "".awsByteCursor, expirationTimeout)
     }
 
     /// Gets the access key from the `aws_credentials` instance
