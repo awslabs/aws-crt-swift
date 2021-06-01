@@ -26,7 +26,7 @@ public struct SigningConfig {
                 service: String,
                 region: String,
                 expiration: Int64 = 0,
-                signedBodyHeader: SignedBodyHeaderType = .contentSha256,
+                signedBodyHeader: SignedBodyHeaderType = .none,
                 signedBodyValue: SignedBodyValue = SignedBodyValue.empty,
                 flags: Flags = Flags(),
                 shouldSignHeader: ShouldSignHeader? = nil,
@@ -60,7 +60,7 @@ public struct SigningConfig {
                                                should_sign_header: { (name, userData) -> Bool in
 
                                                 guard let userData = userData,
-                                                    let name = name?.pointee.toString() else {
+                                                      let name = name?.pointee.toString() else {
                                                     return false
                                                 }
 
@@ -68,14 +68,12 @@ public struct SigningConfig {
                                                                                    capacity: 1)
 
                                                 if let callbackFn = callback.pointee {
-                                                    defer {
-                                                        callback.deinitializeAndDeallocate()
-                                                    }
+
                                                     return callbackFn(name)
                                                 } else {
                                                     return true
                                                 }
-                                                },
+                                               },
                                                should_sign_header_ud: pointer,
                                                flags: flags.rawValue,
                                                signed_body_value: signedBodyValue.rawValue.awsByteCursor,
