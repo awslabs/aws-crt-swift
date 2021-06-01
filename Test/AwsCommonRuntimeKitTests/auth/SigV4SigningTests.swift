@@ -152,7 +152,7 @@ class SigV4SigningTests: CrtXCBaseTestCase {
         let credentials = CRTCredentials(accessKey: "access",
                                       secret: "secret",
                                       sessionToken: "token",
-                                      expirationTimeout: Int.max,
+                                      expirationTimeout: UInt64.max,
                                       allocator: allocator)
         return credentials
     }
