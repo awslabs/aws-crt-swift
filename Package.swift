@@ -146,7 +146,7 @@ package.targets = ( [
         dependencies: ["AwsCommonRuntimeKit"],
         path: "Test"
     ),
-    .target(
+    .executableTarget(
         name: "Elasticurl",
         dependencies: ["AwsCommonRuntimeKit"],
         path: "Source/Elasticurl"
