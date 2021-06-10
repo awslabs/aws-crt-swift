@@ -10,7 +10,7 @@ class RetryerTests: CrtXCBaseTestCase {
         let shutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
-        let elg = EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions )
+        let elg = EventLoopGroup(threadCount: 1, allocator: allocator, shutDownOptions: shutDownOptions )
         let backOffRetryOptions = CRTExponentialBackoffRetryOptions(eventLoopGroup: elg)
         let config = MockRetryOptions(backOffRetryOptions: backOffRetryOptions)
         _ = try CRTAWSRetryStrategy(options: config, allocator: allocator)
@@ -20,7 +20,7 @@ class RetryerTests: CrtXCBaseTestCase {
         let shutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
-        let elg = EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions )
+        let elg = EventLoopGroup(threadCount: 1, allocator: allocator, shutDownOptions: shutDownOptions )
         let backOffRetryOptions = CRTExponentialBackoffRetryOptions(eventLoopGroup: elg)
         let config = MockRetryOptions(backOffRetryOptions: backOffRetryOptions)
         let retryer = try CRTAWSRetryStrategy(options: config, allocator: allocator)

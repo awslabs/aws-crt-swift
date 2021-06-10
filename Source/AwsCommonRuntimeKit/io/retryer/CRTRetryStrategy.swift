@@ -38,12 +38,11 @@ private func acquireRetryToken(_ retryStrategy: UnsafeMutablePointer<aws_retry_s
 
 private func scheduleRetry(_ token: UnsafeMutablePointer<aws_retry_token>?, _ errorType: aws_retry_error_type, _ callbackFn: (@convention(c) (UnsafeMutablePointer<aws_retry_token>?, Int32, UnsafeMutableRawPointer?) -> Void)?, userData: UnsafeMutableRawPointer?) -> Int32 {
     
-    guard let retryStrategy = userData?.assumingMemoryBound(to: CRTRetryStrategy.self) else {
+    guard let retryStrategy = userData?.assumingMemoryBound(to: CRTRetryStrategy.self),
+          let token = token else {
         return 1
     }
-    guard let token = token else {
-        return 1
-    }
+
     var scheduleCallbackData = CRTScheduleRetryCallbackData(allocator: retryStrategy.pointee.allocator)
     let callbackPointer = UnsafeMutablePointer<CRTScheduleRetryCallbackData>.allocate(capacity: 1)
     callbackPointer.initialize(to: scheduleCallbackData)
@@ -60,6 +59,7 @@ private func destroy(_ retryPtr: UnsafeMutablePointer<aws_retry_strategy>?) {
     guard let retryStrategyPtr = retryPtr else {
         return
     }
+    
     aws_retry_strategy_release(retryStrategyPtr)
 }
 

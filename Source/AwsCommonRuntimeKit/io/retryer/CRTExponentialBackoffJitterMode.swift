@@ -4,7 +4,8 @@
 import AwsCIo
 
 public enum CRTExponentialBackoffJitterMode {
-    /* Uses AWS_EXPONENTIAL_BACKOFF_JITTER_FULL */
+    /// Uses AWS_EXPONENTIAL_BACKOFF_JITTER_FULL
+    /// Link to documentation: https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/
     case `default`
     case none
     case full
