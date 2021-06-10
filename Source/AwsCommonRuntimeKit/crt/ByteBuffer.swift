@@ -213,13 +213,13 @@ extension ByteBuffer: AwsStream {
         return Int64(array.count)
     }
 
-    public func seek(offset: aws_off_t, basis: aws_stream_seek_basis) -> Bool {
+    public func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool {
         let targetOffset: Int64
         if basis.rawValue == AWS_SSB_BEGIN.rawValue {
-            targetOffset = length + Int64(offset)
+            targetOffset = length + offset
 
         } else {
-            targetOffset = length - Int64(offset)
+            targetOffset = length - offset
         }
         currentIndex = Int(targetOffset)
         return true
@@ -233,6 +233,7 @@ extension ByteBuffer: AwsStream {
             let result = buffer.buffer.advanced(by: buffer.len)
             let resultBufferPointer = UnsafeMutableBufferPointer.init(start: result, count: dataArray.count)
             dataArray.copyBytes(to: resultBufferPointer)
+            self.currentIndex = arrayEnd
             buffer.len += dataArray.count
             return true
         }
