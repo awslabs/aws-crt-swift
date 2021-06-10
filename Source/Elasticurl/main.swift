@@ -312,7 +312,7 @@ struct Elasticurl {
             }
 
             let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone = { stream, block in
-
+                
             }
 
             let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
