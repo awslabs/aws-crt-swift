@@ -2,8 +2,8 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCIo
 
-public struct CRTRetryScheduleCallbackData {
-    public typealias OnRetryReady = (CRTAWSRetryToken, CRTError) -> Void
+public struct CRTScheduleRetryCallbackData {
+    public typealias OnRetryReady = (CRTAWSRetryToken?, CRTError) -> Void
     public var onRetryReady: OnRetryReady?
     public let allocator: Allocator
 

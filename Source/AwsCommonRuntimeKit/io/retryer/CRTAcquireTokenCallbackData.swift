@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCIo
 
-public struct CRTRetryerCallbackData {
+public struct CRTAcquireTokenCallbackData {
     public typealias OnTokenAcquired = (CRTAWSRetryToken?, CRTError) -> Void
     public var onTokenAcquired: OnTokenAcquired?
     public let allocator: Allocator

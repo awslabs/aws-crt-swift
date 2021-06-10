@@ -9,6 +9,25 @@ import Foundation
      import Darwin
  #endif
 
+extension String {
+    var unescaped: String {
+        let entities = ["\0": "\\0",
+                        "\t": "\\t",
+                        "\n": "\\n",
+                        "\r": "\\r",
+                        "\"": "\\\"",
+                        "\'": "\\'",
+                        ]
+
+        return entities
+            .reduce(self) { (string, entity) in
+                string.replacingOccurrences(of: entity.value, with: entity.key)
+            }
+            .replacingOccurrences(of: "\\\\(?!\\\\)", with: "", options: .regularExpression)
+            .replacingOccurrences(of: "\\\\", with: "\\")
+    }
+}
+
 //swiftlint:disable cyclomatic_complexity type_body_length
 struct Context {
     //args
@@ -101,7 +120,9 @@ struct Elasticurl {
         }
 
         if let stringData = argumentsDict["d"] as? String {
-            context.data = stringData.data(using: .utf8)
+            let unescapedData = NSString(string: stringData)
+            let data = String(unescapedData).data(using: .utf8)
+            context.data = data
         }
 
         if let dataFilePath = argumentsDict["g"] as? String {
@@ -312,7 +333,7 @@ struct Elasticurl {
             }
 
             let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone = { stream, block in
-
+                print("received incoming headers block")
             }
 
             let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in

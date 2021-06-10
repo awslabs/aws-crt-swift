@@ -6,10 +6,10 @@ import AwsCIo
 public protocol CRTRetryStrategy {
     var allocator: Allocator {get set}
     var rawValue: UnsafeMutablePointer<aws_retry_strategy> {get set}
-    func acquireRetryToken(partitionId: String, callbackData: CRTRetryerCallbackData)
+    func acquireRetryToken(partitionId: String, callbackData: CRTAcquireTokenCallbackData)
     func scheduleRetry(token: CRTAWSRetryToken,
                        errorType: RetryError,
-                       callbackData: CRTRetryScheduleCallbackData)
+                       callbackData: CRTScheduleRetryCallbackData)
     func recordSuccess(token: CRTAWSRetryToken)
     func releaseToken(token: CRTAWSRetryToken)
 }
@@ -23,8 +23,8 @@ private func acquireRetryToken(_ retryStrategy: UnsafeMutablePointer<aws_retry_s
         return 1
     }
 
-    var tokenCallbackData = CRTRetryerCallbackData(allocator: retryStrategySwift.pointee.allocator)
-    let callbackPointer = UnsafeMutablePointer<CRTRetryerCallbackData>.allocate(capacity: 1)
+    var tokenCallbackData = CRTAcquireTokenCallbackData(allocator: retryStrategySwift.pointee.allocator)
+    let callbackPointer = UnsafeMutablePointer<CRTAcquireTokenCallbackData>.allocate(capacity: 1)
     callbackPointer.initialize(to: tokenCallbackData)
     tokenCallbackData.onTokenAcquired = { (token, crtError) in
         if case let CRTError.crtError(error) = crtError {
@@ -44,12 +44,12 @@ private func scheduleRetry(_ token: UnsafeMutablePointer<aws_retry_token>?, _ er
     guard let token = token else {
         return 1
     }
-    var scheduleCallbackData = CRTRetryScheduleCallbackData(allocator: retryStrategy.pointee.allocator)
-    let callbackPointer = UnsafeMutablePointer<CRTRetryScheduleCallbackData>.allocate(capacity: 1)
+    var scheduleCallbackData = CRTScheduleRetryCallbackData(allocator: retryStrategy.pointee.allocator)
+    let callbackPointer = UnsafeMutablePointer<CRTScheduleRetryCallbackData>.allocate(capacity: 1)
     callbackPointer.initialize(to: scheduleCallbackData)
     scheduleCallbackData.onRetryReady = { (token, crtError) in
         if case let CRTError.crtError(error) = crtError {
-            callbackFn?(token.rawValue, error.errorCode, callbackPointer)
+            callbackFn?(token?.rawValue, error.errorCode, callbackPointer)
         }
     }
     retryStrategy.pointee.scheduleRetry(token: CRTAWSRetryToken(rawValue: token), errorType: RetryError(rawValue: errorType), callbackData: scheduleCallbackData)

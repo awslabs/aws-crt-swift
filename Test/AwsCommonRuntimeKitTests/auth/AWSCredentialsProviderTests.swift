@@ -7,21 +7,21 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     let accessKey = "AccessKey"
     let secret = "Sekrit"
     let sessionToken = "Token"
-
+    
     let expectation = XCTestExpectation(description: "Credentials callback was called")
     let expectation2 = XCTestExpectation(description: "Shutdown callback was called")
-
+    
     override func setUp() {
         super.setUp()
     }
-
+    
     override func tearDown() {
         super.tearDown()
         if !name.contains("testCreateAWSCredentialsProviderProfile") {
-        wait(for: [expectation2], timeout: 3.0)
+            wait(for: [expectation2], timeout: 3.0)
         }
     }
-
+    
     func setUpShutDownOptions() -> CRTCredentialsProviderShutdownOptions {
         let shutDownOptions = CRTCredentialsProviderShutdownOptions {
             XCTAssert(true)
@@ -29,36 +29,16 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         }
         return shutDownOptions
     }
-
+    
     func testCreateAWSCredentialsProviderStatic() {
         do {
-        let shutDownOptions = setUpShutDownOptions()
-        let config = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
-                                                            secret: secret,
-                                                            sessionToken: sessionToken,
-                                                            shutDownOptions: shutDownOptions)
-        let provider = try CRTAWSCredentialsProvider(fromStatic: config, allocator: allocator)
-        let result = provider.getCredentials()
-        result.then { (result) in
-            switch result {
-            case .failure(let error):
-                XCTAssertNotNil(error)
-            case .success(let credentials):
-                print(credentials)
-            }
-            self.expectation.fulfill()
-        }
-        wait(for: [expectation], timeout: 5.0)
-        } catch {
-            XCTFail()
-        }
-    }
-
-    func testCreateAWSCredentialsProviderEnv() {
-        do {
-        let shutDownOptions = setUpShutDownOptions()
-        let provider = try CRTAWSCredentialsProvider(fromEnv: shutDownOptions, allocator: allocator)
-        let result = provider.getCredentials()
+            let shutDownOptions = setUpShutDownOptions()
+            let config = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
+                                                                    secret: secret,
+                                                                    sessionToken: sessionToken,
+                                                                    shutDownOptions: shutDownOptions)
+            let provider = try CRTAWSCredentialsProvider(fromStatic: config, allocator: allocator)
+            let result = provider.getCredentials()
             result.then { (result) in
                 switch result {
                 case .failure(let error):
@@ -68,12 +48,32 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                 }
                 self.expectation.fulfill()
             }
-        wait(for: [expectation], timeout: 5.0)
+            wait(for: [expectation], timeout: 5.0)
         } catch {
             XCTFail()
         }
     }
-
+    
+    func testCreateAWSCredentialsProviderEnv() {
+        do {
+            let shutDownOptions = setUpShutDownOptions()
+            let provider = try CRTAWSCredentialsProvider(fromEnv: shutDownOptions, allocator: allocator)
+            let result = provider.getCredentials()
+            result.then { (result) in
+                switch result {
+                case .failure(let error):
+                    XCTAssertNotNil(error)
+                case .success(let credentials):
+                    print(credentials)
+                }
+                self.expectation.fulfill()
+            }
+            wait(for: [expectation], timeout: 5.0)
+        } catch {
+            XCTFail()
+        }
+    }
+    
     func testCreateAWSCredentialsProviderProfile() throws {
         //skip this test if it is running on macosx or on iOS
         try skipIfiOS()
@@ -81,12 +81,12 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         try skipIfLinux()
         //uses default paths to credentials and config
         do {
-        let shutDownOptions = setUpShutDownOptions()
-        let config = MockCredentialsProviderProfileOptions(shutdownOptions: shutDownOptions)
-
-        let provider = try CRTAWSCredentialsProvider(fromProfile: config, allocator: allocator)
-
-        let result = provider.getCredentials()
+            let shutDownOptions = setUpShutDownOptions()
+            let config = MockCredentialsProviderProfileOptions(shutdownOptions: shutDownOptions)
+            
+            let provider = try CRTAWSCredentialsProvider(fromProfile: config, allocator: allocator)
+            
+            let result = provider.getCredentials()
             result.then { (result) in
                 switch result {
                 case .failure(let error):
@@ -96,29 +96,29 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                 }
                 self.expectation.fulfill()
             }
-
-        wait(for: [expectation], timeout: 5.0)
+            
+            wait(for: [expectation], timeout: 5.0)
         } catch {
             XCTFail()
         }
     }
-
+    
     func testCreateAWSCredentialsProviderChain() {
         do {
             let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
                 semaphore.signal()
             }
-
+            
             let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
                 semaphore.signal()
             }
             let elg = EventLoopGroup(threadCount: 0, allocator: allocator, shutDownOptions: elgShutDownOptions)
             let hostResolver = DefaultHostResolver(eventLoopGroup: elg,
-                                                       maxHosts: 8,
-                                                       maxTTL: 30,
-                                                       allocator: allocator,
-                                                       shutDownOptions: resolverShutDownOptions)
-
+                                                   maxHosts: 8,
+                                                   maxTTL: 30,
+                                                   allocator: allocator,
+                                                   shutDownOptions: resolverShutDownOptions)
+            
             let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
                 sempahore.signal()
             }
@@ -128,9 +128,9 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                 allocator: allocator)
             bootstrap.enableBlockingShutDown()
             let shutDownOptions = setUpShutDownOptions()
-
+            
             let config = MockCredentialsProviderChainDefaultConfig(bootstrap: bootstrap, shutDownOptions: shutDownOptions)
-
+            
             let provider = try CRTAWSCredentialsProvider(fromChainDefault: config)
             let result = provider.getCredentials()
             result.then { (result) in
@@ -142,7 +142,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                 }
                 self.expectation.fulfill()
             }
-
+            
             wait(for: [expectation], timeout: 10.0)
         } catch {
             XCTFail()
@@ -175,7 +175,7 @@ struct MockCredentialsProviderStaticConfigOptions: CRTCredentialsProviderStaticC
     public var secret: String
     public var sessionToken: String
     public var shutDownOptions: CRTCredentialsProviderShutdownOptions?
-
+    
     public init(accessKey: String,
                 secret: String,
                 sessionToken: String,
@@ -190,7 +190,7 @@ struct MockCredentialsProviderStaticConfigOptions: CRTCredentialsProviderStaticC
 public struct MockCredentialsProviderChainDefaultConfig: CRTCredentialsProviderChainDefaultConfig {
     public var shutDownOptions: CRTCredentialsProviderShutdownOptions?
     public var bootstrap: ClientBootstrap
-
+    
     public init(bootstrap: ClientBootstrap,
                 shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
         self.bootstrap = bootstrap
