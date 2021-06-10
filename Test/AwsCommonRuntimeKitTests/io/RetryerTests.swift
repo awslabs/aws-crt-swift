@@ -35,7 +35,6 @@ class RetryerTests: CrtXCBaseTestCase {
             self.expectation.fulfill()
         }
         wait(for: [expectation], timeout: 3.0)
-        print("hi justin")
     }
 }
 
