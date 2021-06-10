@@ -32,7 +32,7 @@ public protocol AwsStream {
     var status: aws_stream_status { get }
     var length: Int64 { get }
 
-    func seek(offset: aws_off_t, basis: aws_stream_seek_basis) -> Bool
+    func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool
     func read(buffer: inout aws_byte_buf) -> Bool
 }
 
@@ -51,7 +51,7 @@ extension FileHandle: AwsStream {
     }
 
     @inlinable
-    public func seek(offset: aws_off_t, basis: aws_stream_seek_basis) -> Bool {
+    public func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool {
         let targetOffset: UInt64
         if basis.rawValue == AWS_SSB_BEGIN.rawValue {
             targetOffset = self.offsetInFile + UInt64(offset)
@@ -76,7 +76,7 @@ extension FileHandle: AwsStream {
 }
 
 private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
-                    _ offset: aws_off_t,
+                    _ offset: Int64,
                     _ seekBasis: aws_stream_seek_basis) -> Int32 {
     let inputStream = stream.pointee.impl.bindMemory(to: AwsStream.self, capacity: 1).pointee
     if inputStream.seek(offset: offset, basis: seekBasis) {

@@ -8,6 +8,11 @@ import class Foundation.FileHandle
 import class Foundation.OutputStream
 import struct Foundation.URL
 import AwsCIo
+#if os(Linux)
+     import Glibc
+ #else
+     import Darwin
+ #endif
 
 //swiftlint:disable identifier_name superfluous_disable_command
 public class ByteBuffer {
@@ -193,8 +198,10 @@ public class ByteBuffer {
     private var currentIndex: Int = 0
 
     private var currentEndianness: Endianness = .big
-    private let hostEndianness: Endianness = OSHostByteOrder() == OSLittleEndian ? .little : .big
-
+    private var hostEndianness: Endianness {
+        let number: UInt32 = 0x12345678
+        return number == number.bigEndian ? .big : .little
+    }
 }
 
 extension ByteBuffer: AwsStream {
@@ -206,13 +213,13 @@ extension ByteBuffer: AwsStream {
         return Int64(array.count)
     }
 
-    public func seek(offset: aws_off_t, basis: aws_stream_seek_basis) -> Bool {
+    public func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool {
         let targetOffset: Int64
         if basis.rawValue == AWS_SSB_BEGIN.rawValue {
-            targetOffset = length + Int64(offset)
+            targetOffset = length + offset
 
         } else {
-            targetOffset = length - Int64(offset)
+            targetOffset = length - offset
         }
         currentIndex = Int(targetOffset)
         return true
@@ -226,6 +233,7 @@ extension ByteBuffer: AwsStream {
             let result = buffer.buffer.advanced(by: buffer.len)
             let resultBufferPointer = UnsafeMutableBufferPointer.init(start: result, count: dataArray.count)
             dataArray.copyBytes(to: resultBufferPointer)
+            self.currentIndex = arrayEnd
             buffer.len += dataArray.count
             return true
         }
