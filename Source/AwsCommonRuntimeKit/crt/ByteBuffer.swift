@@ -233,6 +233,7 @@ extension ByteBuffer: AwsStream {
             let result = buffer.buffer.advanced(by: buffer.len)
             let resultBufferPointer = UnsafeMutableBufferPointer.init(start: result, count: dataArray.count)
             dataArray.copyBytes(to: resultBufferPointer)
+            self.currentIndex = arrayEnd
             buffer.len += dataArray.count
             return true
         }
