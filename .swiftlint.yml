@@ -27,7 +27,7 @@ identifier_name:
     - of
     - or
 line_length:
-  warning: 120
+  warning: 150
   error: 160
 opening_brace: error
 return_arrow_whitespace: error

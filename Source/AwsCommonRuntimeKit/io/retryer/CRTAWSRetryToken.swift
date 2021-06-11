@@ -5,7 +5,7 @@ import AwsCIo
 
 public final class CRTAWSRetryToken {
     var rawValue: UnsafeMutablePointer<aws_retry_token>
-    
+
     public init(retryStrategy: CRTRetryStrategy, allocator: Allocator = defaultAllocator) {
         let intPointer = UnsafeMutablePointer<Int>.allocate(capacity: 1)
         intPointer.pointee = 1
@@ -20,12 +20,12 @@ public final class CRTAWSRetryToken {
         retryTokenPtr.initialize(to: retryToken)
         self.rawValue = retryTokenPtr
     }
-    
+
     public init(rawValue: UnsafeMutablePointer<aws_retry_token>,
                 allocator: Allocator = defaultAllocator) {
         self.rawValue = rawValue
     }
-    
+
     deinit {
         aws_retry_token_release(rawValue)
     }

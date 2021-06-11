@@ -9,7 +9,7 @@ public struct CRTExponentialBackoffRetryOptions {
     let backOffScaleFactor: UInt32
     let generateRandom: GenerateRandom?
     let jitterMode: CRTExponentialBackoffJitterMode
-    
+
     public init(eventLoopGroup: EventLoopGroup,
                 maxRetries: Int = 10,
                 backOffScaleFactor: UInt32 = 25,

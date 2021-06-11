@@ -6,4 +6,3 @@ public protocol CRTRetryOptions {
     var initialBucketCapacity: Int {get set}
     var backOffRetryOptions: CRTExponentialBackoffRetryOptions {get set}
 }
-
