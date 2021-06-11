@@ -5,7 +5,7 @@ on:
     branches:
       - '*'
       - '!master'
-  pull_requests:
+  pull_request:
       - 'master'
 
 env:
