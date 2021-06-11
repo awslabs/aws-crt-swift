@@ -9,7 +9,7 @@ on:
       - 'master'
 
 env:
-  BUILDER_VERSION: v0.8.15
+  BUILDER_VERSION: v0.8.18
   BUILDER_SOURCE: releases
   BUILDER_HOST: https://d19elf31gohf1l.cloudfront.net
   PACKAGE_NAME: aws-crt-swift
