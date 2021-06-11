@@ -5,6 +5,9 @@ on:
     branches:
       - '*'
       - '!master'
+  pull_request:
+    branches:
+      - 'master'
 
 env:
   BUILDER_VERSION: v0.8.18
