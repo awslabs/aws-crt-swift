@@ -76,10 +76,10 @@ extension FileHandle: AwsStream {
 }
 
 private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
-                    _ offset: Int64,
+                    _ offset: aws_off_t,
                     _ seekBasis: aws_stream_seek_basis) -> Int32 {
     let inputStream = stream.pointee.impl.bindMemory(to: AwsStream.self, capacity: 1).pointee
-    if inputStream.seek(offset: offset, basis: seekBasis) {
+    if inputStream.seek(offset: Int64(offset), basis: seekBasis) {
         return AWS_OP_SUCCESS
     }
     return AWS_OP_ERR
