@@ -42,8 +42,7 @@ public final class CRTAWSRetryStrategy {
         self.init(retryStrategy: retryer, allocator: allocator)
     }
 
-    //TODO: what should timeout be default to if anything?
-    public func acquireToken(timeout: UInt64, partitionId: String) -> Future<CRTAWSRetryToken> {
+    public func acquireToken(timeout: UInt64 = 0, partitionId: String) -> Future<CRTAWSRetryToken> {
         let future = Future<CRTAWSRetryToken>()
         let callbackData = CRTAcquireTokenCallbackData(allocator: allocator) { (crtToken, crtError) in
             if let crtToken = crtToken {
