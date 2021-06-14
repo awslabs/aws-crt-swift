@@ -172,7 +172,7 @@ package.targets = ( [
         path: "Source/AwsCommonRuntimeKit",
         swiftSettings: [
             .unsafeFlags(["-g"]),
-            .unsafeFlags(["-Onone"], .when(configuration: .debug)),
+            .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     ),
     .testTarget(
