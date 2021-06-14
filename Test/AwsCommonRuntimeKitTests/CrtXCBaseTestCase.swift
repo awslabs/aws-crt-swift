@@ -7,11 +7,10 @@ import AwsCCommon
 
 class CrtXCBaseTestCase: XCTestCase {
     internal let allocator = TracingAllocator(tracingStacksOf: defaultAllocator)
-    var logging: Logger?
+    let logging = Logger(pipe: stdout, level: .trace, allocator: defaultAllocator)
 
     override func setUp() {
         super.setUp()
-        logging = Logger(pipe: stdout, level: .trace, allocator: defaultAllocator)
 
         AwsCommonRuntimeKit.initialize(allocator: self.allocator)
     }
@@ -22,8 +21,6 @@ class CrtXCBaseTestCase: XCTestCase {
         allocator.dump()
         XCTAssertEqual(allocator.count, 0,
                        "Memory was leaked: \(allocator.bytes) bytes in \(allocator.count) allocations")
-
-        logging = nil
 
         super.tearDown()
     }
