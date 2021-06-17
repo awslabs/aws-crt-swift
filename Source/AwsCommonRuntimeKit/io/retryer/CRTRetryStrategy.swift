@@ -8,7 +8,7 @@ public protocol CRTRetryStrategy {
     var rawValue: UnsafeMutablePointer<aws_retry_strategy> {get set}
     func acquireRetryToken(partitionId: String, callbackData: CRTAcquireTokenCallbackData)
     func scheduleRetry(token: CRTAWSRetryToken,
-                       errorType: RetryError,
+                       errorType: CRTRetryError,
                        callbackData: CRTScheduleRetryCallbackData)
     func recordSuccess(token: CRTAWSRetryToken)
     func releaseToken(token: CRTAWSRetryToken)
@@ -60,7 +60,7 @@ private func scheduleRetry(_ token: UnsafeMutablePointer<aws_retry_token>?,
         }
     }
     retryStrategy.pointee.scheduleRetry(token: CRTAWSRetryToken(rawValue: token),
-                                        errorType: RetryError(rawValue: errorType),
+                                        errorType: CRTRetryError(rawValue: errorType),
                                         callbackData: scheduleCallbackData)
     return 0
 }

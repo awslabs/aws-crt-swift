@@ -3,7 +3,7 @@
 
 import AwsCIo
 
-public enum RetryError {
+public enum CRTRetryError {
     /** This is a connection level error such as a socket timeout, socket connect error, tls negotiation timeout etc...
      * Typically these should never be applied for non-idempotent request types since in this scenario, it's impossible
      * to know whether the operation had a side effect on the server. */
@@ -17,7 +17,7 @@ public enum RetryError {
     case clientError
 }
 
-extension RetryError: RawRepresentable, CaseIterable {
+extension CRTRetryError: RawRepresentable, CaseIterable {
 
     public init(rawValue: aws_retry_error_type) {
         let value = Self.allCases.first { $0.rawValue == rawValue }

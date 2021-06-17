@@ -71,7 +71,7 @@ public final class CRTAWSRetryStrategy {
         return future
     }
 
-    public func scheduleRetry(token: CRTAWSRetryToken, errorType: RetryError) -> Future<CRTAWSRetryToken> {
+    public func scheduleRetry(token: CRTAWSRetryToken, errorType: CRTRetryError) -> Future<CRTAWSRetryToken> {
         let future = Future<CRTAWSRetryToken>()
         let callbackData = CRTScheduleRetryCallbackData(allocator: allocator) { crtToken, crtError in
             if let crtToken = crtToken {
