@@ -91,70 +91,47 @@ awsCHttpPlatformExcludes.append(contentsOf: excludesFromAll)
 let awsCAuthPlatformExcludes = excludesFromAll
 let awsCMqttPlatformExcludes = excludesFromAll
 
-let cFlags = ["-g", "-fno-omit-frame-pointer"]
-
 package.targets = ( [
     .target(
         name: "AwsCPlatformConfig",
         path: "aws-common-runtime/config",
-        publicHeadersPath: ".",
-        cSettings: [
-            .unsafeFlags(cFlags)
-        ]
+        publicHeadersPath: "."
     ),
     .target(
         name: "AwsCCommon",
         dependencies: ["AwsCPlatformConfig"],
         path: "aws-common-runtime/aws-c-common",
-        exclude: awsCCommonPlatformExcludes,
-        cSettings: [
-            .unsafeFlags(cFlags)
-        ]
+        exclude: awsCCommonPlatformExcludes
     ),
     .target(
         name: "AwsCCal",
         dependencies: calDependencies,
         path: "aws-common-runtime/aws-c-cal",
-        exclude: awsCCalPlatformExcludes,
-        cSettings: [
-            .unsafeFlags(cFlags)
-        ]
+        exclude: awsCCalPlatformExcludes
     ),
     .target(
         name: "AwsCIo",
         dependencies: ioDependencies,
         path: "aws-common-runtime/aws-c-io",
-        exclude: awsCIoPlatformExcludes,
-        cSettings: [
-            .unsafeFlags(cFlags)
-        ]
+        exclude: awsCIoPlatformExcludes
     ),
     .target(
         name: "AwsCCompression",
         dependencies: ["AwsCCommon"],
         path: "aws-common-runtime/aws-c-compression",
-        exclude: awsCCompressionPlatformExcludes,
-        cSettings: [
-            .unsafeFlags(cFlags)
-        ]
+        exclude: awsCCompressionPlatformExcludes
     ),
     .target(
         name: "AwsCHttp",
         dependencies: ["AwsCCompression", "AwsCIo", "AwsCCal", "AwsCCommon"],
         path: "aws-common-runtime/aws-c-http",
-        exclude: awsCHttpPlatformExcludes,
-        cSettings: [
-            .unsafeFlags(cFlags)
-        ]
+        exclude: awsCHttpPlatformExcludes
     ),
     .target(
         name: "AwsCAuth",
         dependencies: ["AwsCHttp", "AwsCCompression", "AwsCCal", "AwsCIo", "AwsCCommon"],
         path: "aws-common-runtime/aws-c-auth",
-        exclude: awsCAuthPlatformExcludes,
-        cSettings: [
-            .unsafeFlags(cFlags)
-        ]
+        exclude: awsCAuthPlatformExcludes
     ),
     .target(
         name: "AwsCMqtt",
@@ -162,35 +139,22 @@ package.targets = ( [
         path: "aws-common-runtime/aws-c-mqtt",
         exclude: awsCMqttPlatformExcludes,
         cSettings: [
-            .define("AWS_MQTT_WITH_WEBSOCKETS"),
-            .unsafeFlags(cFlags)
+            .define("AWS_MQTT_WITH_WEBSOCKETS")
         ]
     ),
     .target(
         name: "AwsCommonRuntimeKit",
         dependencies: [ "AwsCMqtt", "AwsCAuth", "AwsCHttp", "AwsCCal", "AwsCCompression", "AwsCIo", "AwsCCommon"],
-        path: "Source/AwsCommonRuntimeKit",
-        swiftSettings: [
-            .unsafeFlags(["-g"]),
-            .unsafeFlags(["-Onone"], .when(configuration: .debug))
-        ]
+        path: "Source/AwsCommonRuntimeKit"
     ),
     .testTarget(
         name: "AwsCommonRuntimeKitTests",
         dependencies: ["AwsCommonRuntimeKit"],
-        path: "Test",
-        swiftSettings: [
-            .unsafeFlags(["-g"]),
-            .unsafeFlags(["-Onone"], .when(configuration: .debug))
-        ]
+        path: "Test"
     ),
     .executableTarget(
         name: "Elasticurl",
         dependencies: ["AwsCommonRuntimeKit"],
-        path: "Source/Elasticurl",
-        swiftSettings: [
-            .unsafeFlags(["-g"]),
-            .unsafeFlags(["-Onone"], .when(configuration: .debug))
-        ]
+        path: "Source/Elasticurl"
     )
 ] )
