@@ -34,9 +34,9 @@ awsCCommonPlatformExcludes.append(contentsOf: excludesFromAll)
 
 #if arch(i386) || arch(x86_64)
 awsCCommonPlatformExcludes.append("source/arch/arm")
-//temporary cause I can't use intrensics because swiftpm doesn't like the necessary compiler flag.
+// temporary cause I can't use intrensics because swiftpm doesn't like the necessary compiler flag.
 awsCCommonPlatformExcludes.append("source/arch/intel")
-//unsafeFlagsArray.append("-mavx512f")
+// unsafeFlagsArray.append("-mavx512f")
 #elseif arch(arm64)
 awsCCommonPlatformExcludes.append("source/arch/intel")
 #else
@@ -162,7 +162,7 @@ package.targets = ( [
         path: "aws-common-runtime/aws-c-mqtt",
         exclude: awsCMqttPlatformExcludes,
         cSettings: [
-            .define("AWS_MQTT_WITH_WEBSOCKETS"),
+            .define("AWS_MQTT_WITH_WEBSOCKETS")
 //            .unsafeFlags(cFlags)
         ]
     ),
