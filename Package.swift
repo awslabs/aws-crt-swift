@@ -34,9 +34,9 @@ awsCCommonPlatformExcludes.append(contentsOf: excludesFromAll)
 
 #if arch(i386) || arch(x86_64)
 awsCCommonPlatformExcludes.append("source/arch/arm")
-//temporary cause I can't use intrensics because swiftpm doesn't like the necessary compiler flag.
+// temporary cause I can't use intrensics because swiftpm doesn't like the necessary compiler flag.
 awsCCommonPlatformExcludes.append("source/arch/intel")
-//unsafeFlagsArray.append("-mavx512f")
+// unsafeFlagsArray.append("-mavx512f")
 #elseif arch(arm64)
 awsCCommonPlatformExcludes.append("source/arch/intel")
 #else
@@ -99,7 +99,7 @@ package.targets = ( [
         path: "aws-common-runtime/config",
         publicHeadersPath: ".",
         cSettings: [
-            .unsafeFlags(cFlags)
+//            .unsafeFlags(cFlags)
         ]
     ),
     .target(
@@ -108,7 +108,7 @@ package.targets = ( [
         path: "aws-common-runtime/aws-c-common",
         exclude: awsCCommonPlatformExcludes,
         cSettings: [
-            .unsafeFlags(cFlags)
+//            .unsafeFlags(cFlags)
         ]
     ),
     .target(
@@ -117,7 +117,7 @@ package.targets = ( [
         path: "aws-common-runtime/aws-c-cal",
         exclude: awsCCalPlatformExcludes,
         cSettings: [
-            .unsafeFlags(cFlags)
+//            .unsafeFlags(cFlags)
         ]
     ),
     .target(
@@ -126,7 +126,7 @@ package.targets = ( [
         path: "aws-common-runtime/aws-c-io",
         exclude: awsCIoPlatformExcludes,
         cSettings: [
-            .unsafeFlags(cFlags)
+//            .unsafeFlags(cFlags)
         ]
     ),
     .target(
@@ -135,7 +135,7 @@ package.targets = ( [
         path: "aws-common-runtime/aws-c-compression",
         exclude: awsCCompressionPlatformExcludes,
         cSettings: [
-            .unsafeFlags(cFlags)
+//            .unsafeFlags(cFlags)
         ]
     ),
     .target(
@@ -144,7 +144,7 @@ package.targets = ( [
         path: "aws-common-runtime/aws-c-http",
         exclude: awsCHttpPlatformExcludes,
         cSettings: [
-            .unsafeFlags(cFlags)
+//            .unsafeFlags(cFlags)
         ]
     ),
     .target(
@@ -153,7 +153,7 @@ package.targets = ( [
         path: "aws-common-runtime/aws-c-auth",
         exclude: awsCAuthPlatformExcludes,
         cSettings: [
-            .unsafeFlags(cFlags)
+//            .unsafeFlags(cFlags)
         ]
     ),
     .target(
@@ -162,8 +162,8 @@ package.targets = ( [
         path: "aws-common-runtime/aws-c-mqtt",
         exclude: awsCMqttPlatformExcludes,
         cSettings: [
-            .define("AWS_MQTT_WITH_WEBSOCKETS"),
-            .unsafeFlags(cFlags)
+            .define("AWS_MQTT_WITH_WEBSOCKETS")
+//            .unsafeFlags(cFlags)
         ]
     ),
     .target(
@@ -171,8 +171,8 @@ package.targets = ( [
         dependencies: [ "AwsCMqtt", "AwsCAuth", "AwsCHttp", "AwsCCal", "AwsCCompression", "AwsCIo", "AwsCCommon"],
         path: "Source/AwsCommonRuntimeKit",
         swiftSettings: [
-            .unsafeFlags(["-g"]),
-            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+//            .unsafeFlags(["-g"]),
+//            .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     ),
     .testTarget(
@@ -180,8 +180,8 @@ package.targets = ( [
         dependencies: ["AwsCommonRuntimeKit"],
         path: "Test",
         swiftSettings: [
-            .unsafeFlags(["-g"]),
-            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+//            .unsafeFlags(["-g"]),
+//            .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     ),
     .executableTarget(
@@ -189,8 +189,8 @@ package.targets = ( [
         dependencies: ["AwsCommonRuntimeKit"],
         path: "Source/Elasticurl",
         swiftSettings: [
-            .unsafeFlags(["-g"]),
-            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+//            .unsafeFlags(["-g"]),
+//            .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     )
 ] )
