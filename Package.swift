@@ -1,4 +1,4 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.5
 import PackageDescription
 
 let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
@@ -216,7 +216,7 @@ packageTargets.append(contentsOf: [
     .testTarget(
         name: "AwsCommonRuntimeKitTests",
         dependencies: ["AwsCommonRuntimeKit"],
-        path: "Test",
+        path: "Test/AwsCommonRuntimeKitTests",
         swiftSettings: [
 //            .unsafeFlags(["-g"]),
 //            .unsafeFlags(["-Onone"], .when(configuration: .debug))

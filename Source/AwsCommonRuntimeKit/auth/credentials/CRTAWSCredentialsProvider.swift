@@ -281,15 +281,21 @@ public final class CRTAWSCredentialsProvider {
     ///
     /// - Parameters:
     ///   - credentialCallbackData:  The `CredentialProviderCallbackData`options object.
-    public func getCredentials() -> Future<CRTCredentials> {
-        let future = Future<CRTCredentials>()
-        let callbackData = CRTCredentialsCallbackData(allocator: allocator) { (crtCredentials, crtError) in
-            if let crtCredentials = crtCredentials {
-                future.fulfill(crtCredentials)
-            } else {
-                future.fail(crtError)
+    public func getCredentials() async -> Result<CRTCredentials, CRTError> {
+        //let future = Future<CRTCredentials>()
+        var callbackData = CRTCredentialsProviderCallbackData(allocator: allocator)
+        typealias CredentialsContinuation = CheckedContinuation<Result<CRTCredentials, CRTError>, Never>
+        let closure = await withCheckedContinuation { (continuation: CredentialsContinuation) in
+            callbackData.onCredentialsResolved = { crtCredentials, crtError in
+                if let crtCredentials = crtCredentials {
+                    continuation.resume(returning: .success(crtCredentials))
+                } else {
+                    continuation.resume(returning: .failure(crtError))
+                }
+                
             }
         }
+       
         let pointer: UnsafeMutablePointer<CRTCredentialsCallbackData> = fromPointer(ptr: callbackData)
         aws_credentials_provider_get_credentials(rawValue, { (credentials, errorCode, userdata) -> Void in
             guard let userdata = userdata else {
@@ -302,7 +308,7 @@ public final class CRTAWSCredentialsProvider {
                 onCredentialsResolved(CRTCredentials(rawValue: credentials), CRTError.crtError(error))
             }
         }, pointer)
-        return future
+        return closure
     }
 
     static func setUpShutDownOptions(shutDownOptions: CRTCredentialsProviderShutdownOptions?)

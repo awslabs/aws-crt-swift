@@ -31,8 +31,9 @@ public class SigV4HttpRequestSigner {
     ///    - `config`: The `SigningConfig` to use when signing.
     /// - `Throws`: An error of type `AwsCommonRuntimeError` which will pull last error found in the CRT
     /// - `Returns`: Returns a future with a signed http request `Future<HttpRequest>`
-    public func signRequest(request: HttpRequest, config: SigningConfig) throws -> Future<HttpRequest> {
-        let future = Future<HttpRequest>()
+    public func signRequest(request: HttpRequest, config: SigningConfig) async throws -> HttpRequest {
+        //let future = Future<HttpRequest>()
+        typealias SignedContinuation = CheckedContinuation<HttpRequest, Error>
         if config.configType != .aws {
             throw AWSCommonRuntimeError()
         }
@@ -42,19 +43,25 @@ public class SigV4HttpRequestSigner {
         }
         let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
 
-        let onSigningComplete: OnSigningComplete = { [self]signingResult, httpRequest, crtError in
-            if case let CRTError.crtError(unwrappedError) = crtError,
-               unwrappedError.errorCode == 0,
-               let signingResultRawValue = signingResult?.rawValue {
-                let signedRequest = self.applySigningResult(signingResult: signingResultRawValue, request: httpRequest)
-                switch signedRequest {
-                case .failure(let error):
-                    future.fail(error)
-                case .success(let request):
-                    future.fulfill(request)
+        var callbackData = SigningCallbackData(allocator: allocator.rawValue,
+                                               request: request,
+                                               signable: signable)
+        
+        let continuation = try await withCheckedThrowingContinuation { (continuation: SignedContinuation) in
+            callbackData.onSigningComplete = {[self]signingResult, httpRequest, crtError in
+                if case let CRTError.crtError(unwrappedError) = crtError,
+                   unwrappedError.errorCode == 0,
+                   let signingResultRawValue = signingResult?.rawValue {
+                    let signedRequest = self.applySigningResult(signingResult: signingResultRawValue, request: httpRequest)
+                    switch signedRequest {
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    case .success(let request):
+                        continuation.resume(returning: request)
+                    }
+                } else {
+                    continuation.resume(throwing: crtError)
                 }
-            } else {
-                future.fail(crtError)
             }
         }
 
@@ -98,7 +105,7 @@ public class SigV4HttpRequestSigner {
             throw CRTError.crtError(error)
         }
 
-        return future
+        return continuation
     }
 
     public func applySigningResult(signingResult: UnsafeMutablePointer<aws_signing_result>,
