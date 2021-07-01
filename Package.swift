@@ -1,4 +1,4 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.5
 import PackageDescription
 
 var packageDependencies: [Package.Dependency] = []
@@ -13,7 +13,7 @@ calDependencies.append(.product(name: "LibCrypto", package: "S2N"))
 #endif
 
 var package = Package(name: "AwsCrt",
-    platforms: [.iOS(.v11), .macOS(.v10_14)],
+    platforms: [.iOS("15.0"), .macOS("12.0")],
     products: [
       .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
       .executable(name: "Elasticurl", targets: ["Elasticurl"])
@@ -178,7 +178,7 @@ package.targets = ( [
     .testTarget(
         name: "AwsCommonRuntimeKitTests",
         dependencies: ["AwsCommonRuntimeKit"],
-        path: "Test",
+        path: "Test/AwsCommonRuntimeKitTests",
         swiftSettings: [
 //            .unsafeFlags(["-g"]),
 //            .unsafeFlags(["-Onone"], .when(configuration: .debug))

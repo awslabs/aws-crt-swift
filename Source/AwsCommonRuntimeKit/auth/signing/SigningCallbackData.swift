@@ -7,16 +7,17 @@ public typealias OnSigningComplete = (SigningResult?, HttpRequest, CRTError) -> 
 struct SigningCallbackData {
     public let allocator: Allocator
     public unowned var request: HttpRequest
-    public let onSigningComplete: OnSigningComplete
+    public var onSigningComplete: OnSigningComplete
     public let signable: UnsafeMutablePointer<aws_signable>?
 
     public init(allocator: Allocator = defaultAllocator,
                 request: HttpRequest,
-                signable: UnsafeMutablePointer<aws_signable>?,
-                onSigningComplete: @escaping OnSigningComplete) {
+                signable: UnsafeMutablePointer<aws_signable>?) {
         self.allocator = allocator
         self.request = request
         self.signable = signable
-        self.onSigningComplete = onSigningComplete
+        self.onSigningComplete = { result, request, error in
+            
+        }
     }
 }
