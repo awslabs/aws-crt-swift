@@ -89,7 +89,7 @@ jobs:
   osx:
     runs-on: macos-11
     env:
-      DEVELOPER_DIR: /Applications/Xcode_12.5.app
+      DEVELOPER_DIR: /Applications/Xcode_13.app
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
@@ -103,7 +103,7 @@ jobs:
   ios:
     runs-on: macos-11
     env:
-      DEVELOPER_DIR: /Applications/Xcode_12.5.app
+      DEVELOPER_DIR: /Applications/Xcode_13.app
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v2
