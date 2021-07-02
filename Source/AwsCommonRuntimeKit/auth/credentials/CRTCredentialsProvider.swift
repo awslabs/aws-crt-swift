@@ -14,7 +14,7 @@ private func getCredentialsFn(_ credentialsProviderPtr: UnsafeMutablePointer<aws
     let credentialCallbackData = CRTCredentialsProviderCallbackData(allocator: credentialsProvider.pointee.allocator)
     let callbackPointer = UnsafeMutablePointer<CRTCredentialsProviderCallbackData>.allocate(capacity: 1)
     callbackPointer.initialize(to: credentialCallbackData)
-    detach {
+    async {
         let result = await credentialsProvider.pointee.getCredentials()
         switch result {
         case .success(let credentials):

@@ -13,7 +13,7 @@ calDependencies.append(.product(name: "LibCrypto", package: "S2N"))
 #endif
 
 var package = Package(name: "AwsCrt",
-    platforms: [.iOS("15.0"), .macOS("11.4")],
+    platforms: [.iOS("15.0"), .macOS("12.0")],
     products: [
       .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
       .executable(name: "Elasticurl", targets: ["Elasticurl"])
