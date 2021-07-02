@@ -54,7 +54,6 @@ packageTargets.append(.target(
 ioDependencies.append("S2N")
 calDependencies.append("LibCrypto")
 #endif
-
 // aws-c-common config
 var awsCCommonPlatformExcludes = ["source/windows", "source/android",
                                   "AWSCRTAndroidTestRunner", "docker-images", "verification",
