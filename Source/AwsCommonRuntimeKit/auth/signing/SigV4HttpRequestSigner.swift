@@ -48,21 +48,7 @@ public class SigV4HttpRequestSigner {
                                                signable: signable)
         
         let continuation = try await withCheckedThrowingContinuation { (continuation: SignedContinuation) in
-            callbackData.onSigningComplete = {[self]signingResult, httpRequest, crtError in
-                if case let CRTError.crtError(unwrappedError) = crtError,
-                   unwrappedError.errorCode == 0,
-                   let signingResultRawValue = signingResult?.rawValue {
-                    let signedRequest = self.applySigningResult(signingResult: signingResultRawValue, request: httpRequest)
-                    switch signedRequest {
-                    case .failure(let error):
-                        continuation.resume(throwing: error)
-                    case .success(let request):
-                        continuation.resume(returning: request)
-                    }
-                } else {
-                    continuation.resume(throwing: crtError)
-                }
-            }
+            callbackData.onSigningComplete = continuation
         }
 
         let callbackData = SigningCallbackData(allocator: allocator.rawValue,
@@ -95,10 +81,27 @@ public class SigV4HttpRequestSigner {
                                             aws_signable_destroy(callback.pointee.signable)
                                             callback.deinitializeAndDeallocate()
                                         }
-                                        let error = AWSError(errorCode: errorCode)
-                                        callback.pointee.onSigningComplete(SigningResult(rawValue: signingResult),
-                                                                           callback.pointee.request,
-                                                                           CRTError.crtError(error))
+                                 
+                                        if let continuation = callback.pointee.onSigningComplete {
+                                            if errorCode == 0,
+                                               let signingResult = signingResult {
+
+                                                let signedRequest = aws_apply_signing_result_to_http_request(callback.pointee.request.rawValue,
+                                                                                                             callback.pointee.allocator.rawValue,
+                                                                                                             signingResult)
+                                                if signedRequest == 0 {
+                                                    continuation.resume(returning: callback.pointee.request)
+                                                } else {
+                                                    
+                                                    let awsError = AWSError(errorCode: signedRequest)
+                                                    continuation.resume(throwing: CRTError.crtError(awsError))
+                                                }
+                                            } else {
+                                                let error = AWSError(errorCode: errorCode)
+                                                continuation.resume(throwing: CRTError.crtError(error))
+                                            }
+                                        }
+
         },
                                     callbackPointer) != AWS_OP_SUCCESS {
             let error = AWSError(errorCode: AWSCommonRuntimeError().code)
@@ -106,18 +109,5 @@ public class SigV4HttpRequestSigner {
         }
 
         return continuation
-    }
-
-    public func applySigningResult(signingResult: UnsafeMutablePointer<aws_signing_result>,
-                                   request: HttpRequest) -> Result<HttpRequest, CRTError> {
-        if aws_apply_signing_result_to_http_request(request.rawValue,
-                                                    allocator.rawValue,
-                                                    signingResult) == AWS_OP_SUCCESS {
-            return .success(request)
-        } else {
-            let error = AWSCommonRuntimeError()
-            let awsError = AWSError(errorCode: error.code)
-            return .failure(CRTError.crtError(awsError))
-        }
     }
 }

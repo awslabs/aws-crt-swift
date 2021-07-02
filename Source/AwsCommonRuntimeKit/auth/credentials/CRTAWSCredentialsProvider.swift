@@ -279,21 +279,12 @@ public final class CRTAWSCredentialsProvider {
     /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
     /// the callback passed in.
     ///
-    /// - Parameters:
-    ///   - credentialCallbackData:  The `CredentialProviderCallbackData`options object.
+    /// - Returns: `Result<CRTCredentials, CRTError>`
     public func getCredentials() async -> Result<CRTCredentials, CRTError> {
-        //let future = Future<CRTCredentials>()
         var callbackData = CRTCredentialsProviderCallbackData(allocator: allocator)
-        typealias CredentialsContinuation = CheckedContinuation<Result<CRTCredentials, CRTError>, Never>
+        
         let closure = await withCheckedContinuation { (continuation: CredentialsContinuation) in
-            callbackData.onCredentialsResolved = { crtCredentials, crtError in
-                if let crtCredentials = crtCredentials {
-                    continuation.resume(returning: .success(crtCredentials))
-                } else {
-                    continuation.resume(returning: .failure(crtError))
-                }
-                
-            }
+            callbackData.onCredentialsResolved = continuation
         }
        
         let pointer: UnsafeMutablePointer<CRTCredentialsCallbackData> = fromPointer(ptr: callbackData)
@@ -305,7 +296,12 @@ public final class CRTAWSCredentialsProvider {
             defer { pointer.deinitializeAndDeallocate() }
             let error = AWSError(errorCode: errorCode)
             if let onCredentialsResolved = pointer.pointee.onCredentialsResolved {
-                onCredentialsResolved(CRTCredentials(rawValue: credentials), CRTError.crtError(error))
+                let credentials = CRTCredentials(rawValue: credentials)
+                if errorCode == 0, let credentials = credentials {
+                    onCredentialsResolved.resume(returning: .success(credentials))
+                } else {
+                    onCredentialsResolved.resume(returning: .failure(.crtError(error)))
+                }
             }
         }, pointer)
         return closure
