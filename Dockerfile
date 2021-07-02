@@ -1,4 +1,4 @@
-FROM swift:5.4-focal
+FROM swiftlang/swift:nightly-5.5-focal
 
 WORKDIR /package
 
@@ -11,6 +11,6 @@ RUN apt-get -y install libssl-dev
 
 RUN swift package clean
 
-RUN swift build
+RUN swift build --verbose
 
 CMD ["swift", "test", "-Xcc", "-g"]
