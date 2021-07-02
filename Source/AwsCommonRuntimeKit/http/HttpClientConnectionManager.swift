@@ -1,12 +1,13 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
+import Collections
 
 typealias OnConnectionAcquired =  (HttpClientConnection?, Int32) -> Void
 
 public class HttpClientConnectionManager {
 
-    var queue: Queue<Future<HttpClientConnection>> = Queue<Future<HttpClientConnection>>()
+    var queue: Deque<Future<HttpClientConnection>> = Deque<Future<HttpClientConnection>>()
     let manager: OpaquePointer
     let allocator: Allocator
     let options: HttpClientConnectionOptions
@@ -47,7 +48,7 @@ public class HttpClientConnectionManager {
     public func acquireConnection() -> Future<HttpClientConnection> {
         let future = Future<HttpClientConnection>()
         let onConnectionAcquired: OnConnectionAcquired = { connection, errorCode in
-            guard let future = self.queue.dequeue() else {
+            guard let future = self.queue.popFirst() else {
                 //this should never happen
                 return
             }
@@ -79,13 +80,13 @@ public class HttpClientConnectionManager {
             callbackData.pointee.onConnectionAcquired(httpConnection, errorCode)
         },
         cbData)
-        queue.enqueue(future)
+        queue.append(future)
         return future
     }
 
     public func closePendingConnections() {
         while !queue.isEmpty {
-            if let future = queue.dequeue() {
+            if let future = queue.popFirst() {
                 let error = AWSError(errorCode: -1)
                 future.fail(CRTError.crtError(error))
             }

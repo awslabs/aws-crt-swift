@@ -11,7 +11,8 @@ var package = Package(name: "AwsCrt",
                       products: [
                         .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
                         .executable(name: "Elasticurl", targets: ["Elasticurl"])
-                      ]
+                      ],
+                      dependencies: [.package(url: "https://github.com/apple/swift-collections", from: "0.0.1")]
 )
 
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
@@ -206,7 +207,7 @@ packageTargets.append(contentsOf: [
     ),
     .target(
         name: "AwsCommonRuntimeKit",
-        dependencies: [ "AwsCMqtt", "AwsCAuth", "AwsCHttp", "AwsCCal", "AwsCCompression", "AwsCIo", "AwsCCommon"],
+        dependencies: [ "AwsCMqtt", "AwsCAuth", "AwsCHttp", "AwsCCal", "AwsCCompression", "AwsCIo", "AwsCCommon", .product(name: "Collections", package: "swift-collections")],
         path: "Source/AwsCommonRuntimeKit",
         swiftSettings: [
 //            .unsafeFlags(["-g"]),
