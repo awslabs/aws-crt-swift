@@ -1,7 +1,7 @@
 // swift-tools-version:5.5
 import PackageDescription
 
-var packageDependencies: [Package.Dependency] = []
+var packageDependencies: [Package.Dependency] = [.package(url: "https://github.com/apple/swift-collections", from: "0.0.1")]
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
 var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
 
@@ -168,7 +168,7 @@ package.targets = ( [
     ),
     .target(
         name: "AwsCommonRuntimeKit",
-        dependencies: [ "AwsCMqtt", "AwsCAuth", "AwsCHttp", "AwsCCal", "AwsCCompression", "AwsCIo", "AwsCCommon"],
+        dependencies: [ "AwsCMqtt", "AwsCAuth", "AwsCHttp", "AwsCCal", "AwsCCompression", "AwsCIo", "AwsCCommon", .product(name: "Collections", package: "swift-collections")],
         path: "Source/AwsCommonRuntimeKit",
         swiftSettings: [
 //            .unsafeFlags(["-g"]),
