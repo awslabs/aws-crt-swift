@@ -11,6 +11,6 @@ RUN apt-get -y install libssl-dev
 
 RUN swift package clean
 
-RUN swift build --verbose
+RUN swift build
 
 CMD ["swift", "test", "-Xcc", "-g"]
