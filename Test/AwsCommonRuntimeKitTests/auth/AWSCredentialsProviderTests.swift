@@ -23,8 +23,9 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         return shutDownOptions
     }
     
-    func testCreateAWSCredentialsProviderStatic() async throws {
+    func testCreateAWSCredentialsProviderStatic() throws {
 
+        async {
         let shutDownOptions = setUpShutDownOptions()
         let config = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
                                                                 secret: secret,
@@ -39,10 +40,12 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         case .success(let credentials):
             print(credentials)
         }
+        }
     }
     
-    func testCreateAWSCredentialsProviderEnv() async throws {
+    func testCreateAWSCredentialsProviderEnv() throws {
 
+        async {
         let shutDownOptions = setUpShutDownOptions()
         let provider = try CRTAWSCredentialsProvider(fromEnv: shutDownOptions, allocator: allocator)
         let result = await provider.getCredentials()
@@ -53,9 +56,11 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         case .success(let credentials):
             print(credentials)
         }
+        }
     }
     
-    func testCreateAWSCredentialsProviderProfile() async throws {
+    func testCreateAWSCredentialsProviderProfile() throws {
+        async {
         //skip this test if it is running on macosx or on iOS
         try skipIfiOS()
         try skipifmacOS()
@@ -74,9 +79,12 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         case .success(let credentials):
             print(credentials)
         }
+        }
     }
     
-    func testCreateAWSCredentialsProviderChain() async throws {
+    func testCreateAWSCredentialsProviderChain() throws {
+        async {
+        try skipIfLinux()
         let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
@@ -111,6 +119,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             XCTAssertNotNil(error)
         case .success(let credentials):
             print(credentials)
+        }
         }
     }
 }
