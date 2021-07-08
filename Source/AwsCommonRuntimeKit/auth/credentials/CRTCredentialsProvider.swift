@@ -85,7 +85,7 @@ class WrappedCRTCredentialsProvider {
                 }
                 let pointer = userData.assumingMemoryBound(to: CRTCredentialsProviderShutdownOptions.self)
                 defer {pointer.deinitializeAndDeallocate()}
-                pointer.pointee.shutDownCallback()
+                pointer.pointee.shutDownCallback?.resume()
 
             }, shutdown_user_data: pointer)
         } else {

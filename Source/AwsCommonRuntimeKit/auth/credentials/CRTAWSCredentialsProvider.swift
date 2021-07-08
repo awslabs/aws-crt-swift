@@ -281,12 +281,14 @@ public final class CRTAWSCredentialsProvider {
     ///
     /// - Returns: `Result<CRTCredentials, CRTError>`
     public func getCredentials() async -> Result<CRTCredentials, CRTError> {
-        var callbackData = CRTCredentialsProviderCallbackData(allocator: allocator)
-        
-        let closure = await withCheckedContinuation { (continuation: CredentialsContinuation) in
-            callbackData.onCredentialsResolved = continuation
+        return await withCheckedContinuation { (continuation: CredentialsContinuation) in
+            getCredentialsFromCRT(continuation: continuation)
         }
-       
+    }
+    
+    private func getCredentialsFromCRT(continuation: CredentialsContinuation) {
+        var callbackData = CRTCredentialsProviderCallbackData(allocator: allocator)
+        callbackData.onCredentialsResolved = continuation
         let pointer: UnsafeMutablePointer<CRTCredentialsCallbackData> = fromPointer(ptr: callbackData)
         aws_credentials_provider_get_credentials(rawValue, { (credentials, errorCode, userdata) -> Void in
             guard let userdata = userdata else {
@@ -304,7 +306,6 @@ public final class CRTAWSCredentialsProvider {
                 }
             }
         }, pointer)
-        return closure
     }
 
     static func setUpShutDownOptions(shutDownOptions: CRTCredentialsProviderShutdownOptions?)
