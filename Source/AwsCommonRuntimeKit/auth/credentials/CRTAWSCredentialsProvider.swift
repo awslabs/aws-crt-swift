@@ -196,12 +196,14 @@ public final class CRTAWSCredentialsProvider {
     ///
     /// - Returns: `Result<CRTCredentials, CRTError>`
     public func getCredentials() async -> Result<CRTCredentials, CRTError> {
-        var callbackData = CRTCredentialsProviderCallbackData(allocator: allocator)
-        
-        let closure = await withCheckedContinuation { (continuation: CredentialsContinuation) in
-            callbackData.onCredentialsResolved = continuation
+        return await withCheckedContinuation { (continuation: CredentialsContinuation) in
+            getCredentialsFromCRT(continuation: continuation)
         }
-       
+    }
+    
+    private func getCredentialsFromCRT(continuation: CredentialsContinuation) {
+        var callbackData = CRTCredentialsProviderCallbackData(allocator: allocator)
+        callbackData.onCredentialsResolved = continuation
         let pointer = UnsafeMutablePointer<CRTCredentialsProviderCallbackData>.allocate(capacity: 1)
         pointer.initialize(to: callbackData)
         aws_credentials_provider_get_credentials(rawValue, { (credentials, errorCode, userdata) -> Void in
@@ -220,7 +222,6 @@ public final class CRTAWSCredentialsProvider {
                 }
             }
         }, pointer)
-        return closure
     }
 
     deinit {
