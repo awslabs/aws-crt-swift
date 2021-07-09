@@ -7,16 +7,16 @@ public typealias SignedContinuation = CheckedContinuation<HttpRequest, Error>
 struct SigningCallbackData {
     public let allocator: Allocator
     public unowned var request: HttpRequest
-    public var onSigningComplete: SignedContinuation?
+    public let continuation: SignedContinuation?
     public let signable: UnsafeMutablePointer<aws_signable>?
 
     public init(allocator: Allocator = defaultAllocator,
                 request: HttpRequest,
                 signable: UnsafeMutablePointer<aws_signable>?,
-                onSigningComplete: SignedContinuation? = nil) {
+                continuation: SignedContinuation? = nil) {
         self.allocator = allocator
         self.request = request
         self.signable = signable
-        self.onSigningComplete = onSigningComplete
+        self.continuation = continuation
     }
 }

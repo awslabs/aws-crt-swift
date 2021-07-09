@@ -90,9 +90,9 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     func testCreateAWSCredentialsProviderChain() throws {
         async {
             try skipIfLinux()
-//            let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
-//                semaphore.signal()
-//            }
+            let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
+                semaphore.signal()
+            }
             
             let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
                 semaphore.signal()
@@ -104,9 +104,9 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                    allocator: allocator,
                                                    shutDownOptions: resolverShutDownOptions)
             
-            //            let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
-            //                sempahore.signal()
-            //            }
+            let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
+                sempahore.signal()
+            }
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                                 hostResolver: hostResolver,
                                                 allocator: allocator)
@@ -125,9 +125,6 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             case .success(let credentials):
                 print(credentials)
             }
-            
-            await bootstrap.enableBlockingShutdown()
-            //await elg.enableBlockingShutdown()
         }
     }
     
