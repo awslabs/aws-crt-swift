@@ -6,10 +6,9 @@ import AwsCIo
 public protocol CRTRetryStrategy {
     var allocator: Allocator {get set}
     var rawValue: UnsafeMutablePointer<aws_retry_strategy> {get set}
-    func acquireRetryToken(partitionId: String, callbackData: CRTAcquireTokenCallbackData)
+    func acquireRetryToken(partitionId: String) async throws -> CRTAWSRetryToken
     func scheduleRetry(token: CRTAWSRetryToken,
-                       errorType: CRTRetryError,
-                       callbackData: CRTScheduleRetryCallbackData)
+                       errorType: CRTRetryError) async throws -> CRTAWSRetryToken
     func recordSuccess(token: CRTAWSRetryToken)
     func releaseToken(token: CRTAWSRetryToken)
 }
@@ -29,13 +28,17 @@ private func acquireRetryToken(_ retryStrategy: UnsafeMutablePointer<aws_retry_s
     var tokenCallbackData = CRTAcquireTokenCallbackData(allocator: retryStrategySwift.pointee.allocator)
     let callbackPointer = UnsafeMutablePointer<CRTAcquireTokenCallbackData>.allocate(capacity: 1)
     callbackPointer.initialize(to: tokenCallbackData)
-    tokenCallbackData.onTokenAcquired = { (token, crtError) in
-        if case let CRTError.crtError(error) = crtError {
-            callbackFn?(retryStrategy, error.errorCode, token?.rawValue, callbackPointer)
+    async {
+        do {
+            let result = try await retryStrategySwift.pointee.acquireRetryToken(partitionId: partitionId?.pointee.toString() ?? "")
+            callbackFn?(retryStrategy, 0, result.rawValue, callbackPointer)
+        } catch let err {
+            if case let CRTError.crtError(crtError) = err {
+                callbackFn?(retryStrategy, crtError.errorCode, nil, callbackPointer)
+            }
         }
     }
 
-    retryStrategySwift.pointee.acquireRetryToken(partitionId: partitionId?.pointee.toString() ?? "", callbackData: tokenCallbackData)
     return 0
 }
 
@@ -51,17 +54,21 @@ private func scheduleRetry(_ token: UnsafeMutablePointer<aws_retry_token>?,
         return 1
     }
 
-    var scheduleCallbackData = CRTScheduleRetryCallbackData(allocator: retryStrategy.pointee.allocator)
+    let scheduleCallbackData = CRTScheduleRetryCallbackData(allocator: retryStrategy.pointee.allocator)
     let callbackPointer = UnsafeMutablePointer<CRTScheduleRetryCallbackData>.allocate(capacity: 1)
     callbackPointer.initialize(to: scheduleCallbackData)
-    scheduleCallbackData.onRetryReady = { (token, crtError) in
-        if case let CRTError.crtError(error) = crtError {
-            callbackFn?(token?.rawValue, error.errorCode, callbackPointer)
+    async {
+        do {
+            _ = try await retryStrategy.pointee.scheduleRetry(token: CRTAWSRetryToken(rawValue: token),
+                                                                            errorType: CRTRetryError(rawValue: errorType))
+            callbackFn?(token, 0, callbackPointer)
+        } catch let err {
+            if case let CRTError.crtError(crtError) = err {
+                callbackFn?(token, crtError.errorCode, callbackPointer)
+            }
         }
     }
-    retryStrategy.pointee.scheduleRetry(token: CRTAWSRetryToken(rawValue: token),
-                                        errorType: CRTRetryError(rawValue: errorType),
-                                        callbackData: scheduleCallbackData)
+
     return 0
 }
 

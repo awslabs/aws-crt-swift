@@ -2,14 +2,14 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCIo
 
+public typealias TokenContinuation = CheckedContinuation<CRTAWSRetryToken, Error>
 public struct CRTAcquireTokenCallbackData {
-    public typealias OnTokenAcquired = (CRTAWSRetryToken?, CRTError) -> Void
-    public var onTokenAcquired: OnTokenAcquired?
+    public var continuation: TokenContinuation?
     public let allocator: Allocator
 
     public init(allocator: Allocator = defaultAllocator,
-                onTokenAcquired: OnTokenAcquired? = nil) {
-        self.onTokenAcquired = onTokenAcquired
+                continuation: TokenContinuation? = nil) {
+        self.continuation = continuation
         self.allocator = allocator
     }
 }

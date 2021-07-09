@@ -42,16 +42,15 @@ public final class CRTAWSRetryStrategy {
         self.init(retryStrategy: retryer, allocator: allocator)
     }
 
-    public func acquireToken(timeout: UInt64 = 0, partitionId: String) -> Future<CRTAWSRetryToken> {
-        let future = Future<CRTAWSRetryToken>()
-        let callbackData = CRTAcquireTokenCallbackData(allocator: allocator) { (crtToken, crtError) in
-            if let crtToken = crtToken {
-                future.fulfill(crtToken)
-            } else {
-                future.fail(crtError)
-            }
+    public func acquireToken(timeout: UInt64 = 0, partitionId: String) async throws -> CRTAWSRetryToken {
+        return try await withCheckedThrowingContinuation { (continuation: TokenContinuation) in
+            acquireTokenFromCRT(timeout: timeout, partitionId: partitionId, continuation: continuation)
         }
+        
+    }
 
+    private func acquireTokenFromCRT(timeout: UInt64, partitionId: String, continuation: TokenContinuation) {
+        let callbackData = CRTAcquireTokenCallbackData(allocator: allocator)
         let pointer = UnsafeMutablePointer<CRTAcquireTokenCallbackData>.allocate(capacity: 1)
         pointer.initialize(to: callbackData)
         let partitionPtr = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
@@ -64,23 +63,24 @@ public final class CRTAWSRetryStrategy {
             let pointer = userdata.assumingMemoryBound(to: CRTAcquireTokenCallbackData.self)
             defer {pointer.deinitializeAndDeallocate()}
             let error = AWSError(errorCode: errorCode)
-            if let onTokenAcquired = pointer.pointee.onTokenAcquired {
-                onTokenAcquired(CRTAWSRetryToken(rawValue: token), CRTError.crtError(error))
+            if let continuation = pointer.pointee.continuation {
+                if errorCode == 0 {
+                    continuation.resume(returning: CRTAWSRetryToken(rawValue: token))
+                } else {
+                    continuation.resume(throwing: CRTError.crtError(error))
+                }
             }
         }, pointer, timeout)
-        return future
     }
 
-    public func scheduleRetry(token: CRTAWSRetryToken, errorType: CRTRetryError) -> Future<CRTAWSRetryToken> {
-        let future = Future<CRTAWSRetryToken>()
-        let callbackData = CRTScheduleRetryCallbackData(allocator: allocator) { crtToken, crtError in
-            if let crtToken = crtToken {
-                future.fulfill(crtToken)
-            } else {
-                future.fail(crtError)
-            }
-        }
-
+    public func scheduleRetry(token: CRTAWSRetryToken, errorType: CRTRetryError) async throws -> CRTAWSRetryToken {
+        return try await withCheckedThrowingContinuation({ (continuation: ScheduleRetryContinuation) in
+            scheduleRetryToCRT(token: token, errorType: errorType, continuation: continuation)
+        })
+    }
+    
+    private func scheduleRetryToCRT(token: CRTAWSRetryToken, errorType: CRTRetryError, continuation: ScheduleRetryContinuation) {
+        let callbackData = CRTScheduleRetryCallbackData(allocator: allocator)
         let pointer = UnsafeMutablePointer<CRTScheduleRetryCallbackData>.allocate(capacity: 1)
         pointer.initialize(to: callbackData)
 
@@ -92,11 +92,14 @@ public final class CRTAWSRetryStrategy {
             let pointer = userdata.assumingMemoryBound(to: CRTScheduleRetryCallbackData.self)
             defer { pointer.deinitializeAndDeallocate()}
             let error = AWSError(errorCode: errorCode)
-            if let onRetryReady = pointer.pointee.onRetryReady {
-                onRetryReady(CRTAWSRetryToken(rawValue: retryToken), CRTError.crtError(error))
+            if let continuation = pointer.pointee.continuation {
+                if errorCode == 0 {
+                    continuation.resume(returning: CRTAWSRetryToken(rawValue: retryToken))
+                } else {
+                    continuation.resume(throwing: CRTError.crtError(error))
+                }
             }
         }, pointer)
-        return future
     }
 
     public func recordSuccess(token: CRTAWSRetryToken) {
