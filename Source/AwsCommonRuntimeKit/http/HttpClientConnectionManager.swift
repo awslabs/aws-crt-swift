@@ -7,7 +7,7 @@ typealias OnConnectionAcquired =  (HttpClientConnection?, Int32) -> Void
 
 public class HttpClientConnectionManager {
 
-    var queue: Deque<Future<HttpClientConnection>> = Deque<Future<HttpClientConnection>>()
+    var queue: Deque<ConnectionContinuation> = Deque<ConnectionContinuation>()
     let manager: OpaquePointer
     let allocator: Allocator
     let options: HttpClientConnectionOptions
@@ -45,22 +45,14 @@ public class HttpClientConnectionManager {
     }
 
     /// Acquires an `HttpClientConnection` asynchronously.
-    public func acquireConnection() -> Future<HttpClientConnection> {
-        let future = Future<HttpClientConnection>()
-        let onConnectionAcquired: OnConnectionAcquired = { connection, errorCode in
-            guard let future = self.queue.popFirst() else {
-                //this should never happen
-                return
-            }
-            guard let connection = connection else {
-                let error = AWSError(errorCode: errorCode)
-                future.fail(CRTError.crtError(error))
-                return
-            }
-
-            future.fulfill(connection)
-        }
-        let callbackData = HttpClientConnectionCallbackData(onConnectionAcquired: onConnectionAcquired,
+    public func acquireConnection() async throws -> HttpClientConnection {
+        return try await withCheckedThrowingContinuation({ (continuation: ConnectionContinuation) in
+            acquireConnection(continuation: continuation)
+        })
+    }
+    
+    private func acquireConnection(continuation: ConnectionContinuation) {
+        let callbackData = HttpClientConnectionCallbackData(continuation: continuation,
                                                             connectionManager: self,
                                                             allocator: allocator)
         let cbData: UnsafeMutablePointer<HttpClientConnectionCallbackData> = fromPointer(ptr: callbackData)
@@ -72,23 +64,24 @@ public class HttpClientConnectionManager {
             let callbackData = userData.assumingMemoryBound(to: HttpClientConnectionCallbackData.self)
             defer {callbackData.deinitializeAndDeallocate()}
             guard let connection = connection else {
-                callbackData.pointee.onConnectionAcquired(nil, errorCode)
+                let error = AWSError(errorCode: errorCode)
+                callbackData.pointee.continuation.resume(throwing: CRTError.crtError(error))
                 return
             }
             let httpConnection = HttpClientConnection(manager: callbackData.pointee.connectionManager,
                                                       connection: connection)
-            callbackData.pointee.onConnectionAcquired(httpConnection, errorCode)
+ 
+            callbackData.pointee.continuation.resume(returning: httpConnection)
         },
         cbData)
-        queue.append(future)
-        return future
+        queue.append(continuation)
     }
 
     public func closePendingConnections() {
         while !queue.isEmpty {
-            if let future = queue.popFirst() {
+            if let continuation = queue.popFirst() {
                 let error = AWSError(errorCode: -1)
-                future.fail(CRTError.crtError(error))
+                continuation.resume(throwing: CRTError.crtError(error))
             }
         }
     }

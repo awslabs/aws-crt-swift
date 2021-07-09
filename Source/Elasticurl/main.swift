@@ -222,7 +222,7 @@ struct Elasticurl {
         context.outputStream.write(data)
     }
 
-    static func runWithLogger() {
+    static func runWithLogger() async {
         parseArguments()
         createOutputFile()
         var logger: Logger?
@@ -238,7 +238,7 @@ struct Elasticurl {
         }
     }
 
-    static func run() {
+    static func run() async {
         do {
 
             guard let host = context.url.host else {
@@ -339,7 +339,7 @@ struct Elasticurl {
 
             let connectionManager = HttpClientConnectionManager(options: httpClientOptions)
             do {
-                let connection = try connectionManager.acquireConnection().get()
+                let connection = try await connectionManager.acquireConnection()
                 let requestOptions = HttpRequestOptions(request: httpRequest,
                                                         onIncomingHeaders: onIncomingHeaders,
                                                         onIncomingHeadersBlockDone: onBlockDone,
@@ -362,4 +362,6 @@ struct Elasticurl {
     }
 }
 
-Elasticurl.runWithLogger()
+async {
+    await Elasticurl.runWithLogger()()
+}
