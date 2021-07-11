@@ -9,8 +9,8 @@ COPY . ./
 RUN apt-get update -qq
 RUN apt-get -y install libssl-dev
 
-RUN swift package clean
+# RUN swift package clean
 
-RUN swift build
+# RUN swift build --verbose
 
 CMD ["swift", "test", "-Xcc", "-g"]

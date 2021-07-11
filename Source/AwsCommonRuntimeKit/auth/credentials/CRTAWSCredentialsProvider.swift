@@ -194,17 +194,15 @@ public final class CRTAWSCredentialsProvider {
     /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
     /// the callback passed in.
     ///
-    /// - Parameters:
-    ///   - credentialCallbackData:  The `CredentialProviderCallbackData`options object.
-    public func getCredentials() -> Future<CRTCredentials> {
-        let future = Future<CRTCredentials>()
-        let callbackData = CRTCredentialsProviderCallbackData(allocator: allocator) { (crtCredentials, crtError) in
-            if let crtCredentials = crtCredentials {
-                future.fulfill(crtCredentials)
-            } else {
-                future.fail(crtError)
-            }
+    /// - Returns: `Result<CRTCredentials, CRTError>`
+    public func getCredentials() async -> Result<CRTCredentials, CRTError> {
+        return await withCheckedContinuation { (continuation: CredentialsContinuation) in
+            getCredentialsFromCRT(continuation: continuation)
         }
+    }
+    
+    private func getCredentialsFromCRT(continuation: CredentialsContinuation) {
+        let callbackData = CRTCredentialsProviderCallbackData(allocator: allocator, onCredentialsResolved: continuation)
         let pointer = UnsafeMutablePointer<CRTCredentialsProviderCallbackData>.allocate(capacity: 1)
         pointer.initialize(to: callbackData)
         aws_credentials_provider_get_credentials(rawValue, { (credentials, errorCode, userdata) -> Void in
@@ -215,10 +213,14 @@ public final class CRTAWSCredentialsProvider {
             defer { pointer.deinitializeAndDeallocate() }
             let error = AWSError(errorCode: errorCode)
             if let onCredentialsResolved = pointer.pointee.onCredentialsResolved {
-                onCredentialsResolved(CRTCredentials(rawValue: credentials), CRTError.crtError(error))
+                let credentials = CRTCredentials(rawValue: credentials)
+                if errorCode == 0, let credentials = credentials {
+                    onCredentialsResolved.resume(returning: .success(credentials))
+                } else {
+                    onCredentialsResolved.resume(returning: .failure(.crtError(error)))
+                }
             }
         }, pointer)
-        return future
     }
 
     deinit {

@@ -30,7 +30,7 @@ public final class EventLoopGroup {
             mutablePtr.initialize(to: options)
             ptr = UnsafePointer(mutablePtr)
         }
-        defer {ptr?.deallocate()}
+        //defer {ptr?.deallocate()}
         self.shutDownOptions = shutDownOptions
 
         self.rawValue = aws_event_loop_group_new_default(allocator.rawValue, threadCount, ptr)

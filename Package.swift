@@ -1,7 +1,7 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.5
 import PackageDescription
 
-var packageDependencies: [Package.Dependency] = []
+var packageDependencies: [Package.Dependency] = [.package(url: "https://github.com/apple/swift-collections", from: "0.0.1")]
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
 var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
 
@@ -13,7 +13,7 @@ calDependencies.append(.product(name: "LibCrypto", package: "S2N"))
 #endif
 
 var package = Package(name: "AwsCrt",
-    platforms: [.iOS(.v11), .macOS(.v10_14)],
+    platforms: [.iOS("15.0"), .macOS("12.0")],
     products: [
       .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
       .executable(name: "Elasticurl", targets: ["Elasticurl"])
@@ -168,7 +168,7 @@ package.targets = ( [
     ),
     .target(
         name: "AwsCommonRuntimeKit",
-        dependencies: [ "AwsCMqtt", "AwsCAuth", "AwsCHttp", "AwsCCal", "AwsCCompression", "AwsCIo", "AwsCCommon"],
+        dependencies: [ "AwsCMqtt", "AwsCAuth", "AwsCHttp", "AwsCCal", "AwsCCompression", "AwsCIo", "AwsCCommon", .product(name: "Collections", package: "swift-collections")],
         path: "Source/AwsCommonRuntimeKit",
         swiftSettings: [
 //            .unsafeFlags(["-g"]),
@@ -178,7 +178,7 @@ package.targets = ( [
     .testTarget(
         name: "AwsCommonRuntimeKitTests",
         dependencies: ["AwsCommonRuntimeKit"],
-        path: "Test",
+        path: "Test/AwsCommonRuntimeKitTests",
         swiftSettings: [
 //            .unsafeFlags(["-g"]),
 //            .unsafeFlags(["-Onone"], .when(configuration: .debug))

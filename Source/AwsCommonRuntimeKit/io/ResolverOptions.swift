@@ -4,11 +4,11 @@
 class ResolverOptions {
 	let host: AWSString
 	let resolver: HostResolver
-	let onResolved: OnHostResolved
+	let continuation: HostResolvedContinuation
 
-	init(resolver: HostResolver, host: AWSString, onResolved: @escaping OnHostResolved) {
+	init(resolver: HostResolver, host: AWSString, continuation: HostResolvedContinuation) {
 		self.host = host
-		self.onResolved = onResolved
+		self.continuation = continuation
 		self.resolver = resolver
 	}
 }

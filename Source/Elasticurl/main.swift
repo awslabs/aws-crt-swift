@@ -222,7 +222,7 @@ struct Elasticurl {
         context.outputStream.write(data)
     }
 
-    static func run() {
+    static func run() async {
         do {
             parseArguments()
             createOutputFile()
@@ -334,7 +334,7 @@ struct Elasticurl {
 
             let connectionManager = HttpClientConnectionManager(options: httpClientOptions)
             do {
-                let connection = try connectionManager.acquireConnection().get()
+                let connection = try await connectionManager.acquireConnection()
                 let requestOptions = HttpRequestOptions(request: httpRequest,
                                                         onIncomingHeaders: onIncomingHeaders,
                                                         onIncomingHeadersBlockDone: onBlockDone,
@@ -357,4 +357,7 @@ struct Elasticurl {
     }
 }
 
-Elasticurl.run()
+async {
+    await Elasticurl.run()
+}
+
