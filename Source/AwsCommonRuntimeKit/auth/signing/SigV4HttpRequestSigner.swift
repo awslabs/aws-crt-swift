@@ -46,7 +46,9 @@ public class SigV4HttpRequestSigner {
         }
     }
     
-    private func signRequestToCRT(request: HttpRequest, config: SigningConfig, continuation: SignedContinuation) {
+    private func signRequestToCRT(request: HttpRequest,
+                                  config: SigningConfig,
+                                  continuation: SignedContinuation) {
         let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
         
         let callbackData = SigningCallbackData(allocator: allocator.rawValue,
@@ -69,7 +71,7 @@ public class SigV4HttpRequestSigner {
         defer {
             base.deinitializeAndDeallocate()
         }
-        
+
         aws_sign_request_aws(allocator.rawValue,
                              signable,
                              configPtr, { (signingResult, errorCode, userData) -> Void in
@@ -103,6 +105,5 @@ public class SigV4HttpRequestSigner {
             }
             
         },callbackPointer)
-        
     }
 }

@@ -25,103 +25,103 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         return shutDownOptions
     }
     
-    func testCreateAWSCredentialsProviderStatic() throws {
-        
-        async {
-            let shutDownOptions = await setUpShutDownOptions()
-            let config = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
-                                                                    secret: secret,
-                                                                    sessionToken: sessionToken,
-                                                                    shutDownOptions: shutDownOptions)
-            let provider = try CRTAWSCredentialsProvider(fromStatic: config, allocator: allocator)
-            let result = await provider.getCredentials()
-            
-            switch result {
-            case .failure(let error):
-                XCTAssertNotNil(error)
-            case .success(let credentials):
-                print(credentials)
-            }
-        }
-    }
-    
-    func testCreateAWSCredentialsProviderEnv() throws {
-        
-        async {
-            let shutDownOptions = await setUpShutDownOptions()
-            let provider = try CRTAWSCredentialsProvider(fromEnv: shutDownOptions, allocator: allocator)
-            let result = await provider.getCredentials()
-            
-            switch result {
-            case .failure(let error):
-                XCTAssertNotNil(error)
-            case .success(let credentials):
-                print(credentials)
-            }
-        }
-    }
-    
-    func testCreateAWSCredentialsProviderProfile() throws {
-        async {
-            //skip this test if it is running on macosx or on iOS
-            try skipIfiOS()
-            try skipifmacOS()
-            try skipIfLinux()
-            //uses default paths to credentials and config
-            let shutDownOptions = await setUpShutDownOptions()
-            let config = MockCredentialsProviderProfileOptions(shutdownOptions: shutDownOptions)
-            
-            let provider = try CRTAWSCredentialsProvider(fromProfile: config, allocator: allocator)
-            
-            let result = await provider.getCredentials()
-            
-            switch result {
-            case .failure(let error):
-                XCTAssertNotNil(error)
-            case .success(let credentials):
-                print(credentials)
-            }
-        }
-    }
-    
-    func testCreateAWSCredentialsProviderChain() throws {
-        async {
-            try skipIfLinux()
-            let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
-                semaphore.signal()
-            }
-            
-            let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
-                semaphore.signal()
-            }
-            let elg = EventLoopGroup(threadCount: 0, allocator: allocator)
-            let hostResolver = DefaultHostResolver(eventLoopGroup: elg,
-                                                   maxHosts: 8,
-                                                   maxTTL: 30,
-                                                   allocator: allocator,
-                                                   shutDownOptions: resolverShutDownOptions)
-            
-            let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
-                sempahore.signal()
-            }
-            let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                                                hostResolver: hostResolver,
-                                                allocator: allocator)
+    func testCreateAWSCredentialsProviderStatic() async throws {
 
-            
-            let shutDownOptions = await setUpShutDownOptions()
-            
-            let config = MockCredentialsProviderChainDefaultConfig(bootstrap: bootstrap, shutDownOptions: shutDownOptions)
-            
-            let provider = try CRTAWSCredentialsProvider(fromChainDefault: config)
-            
-            let result = await provider.getCredentials()
-            switch result {
-            case .failure(let error):
-                XCTAssertNotNil(error)
-            case .success(let credentials):
-                print(credentials)
-            }
+        let shutDownOptions = await setUpShutDownOptions()
+        let config = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
+                                                                secret: secret,
+                                                                sessionToken: sessionToken,
+                                                                shutDownOptions: shutDownOptions)
+        let provider = try CRTAWSCredentialsProvider(fromStatic: config, allocator: allocator)
+        let result = await provider.getCredentials()
+        
+        switch result {
+        case .failure(let error):
+            XCTAssertNotNil(error)
+        case .success(let credentials):
+            print(credentials)
+        }
+        
+    }
+    
+    func testCreateAWSCredentialsProviderEnv() async throws {
+        
+        let shutDownOptions = await setUpShutDownOptions()
+        let provider = try CRTAWSCredentialsProvider(fromEnv: shutDownOptions, allocator: allocator)
+        let result = await provider.getCredentials()
+        
+        switch result {
+        case .failure(let error):
+            XCTAssertNotNil(error)
+        case .success(let credentials):
+            print(credentials)
+        }
+        
+    }
+    
+    func testCreateAWSCredentialsProviderProfile() async throws {
+        //skip this test if it is running on macosx or on iOS
+        try skipIfiOS()
+        try skipifmacOS()
+        try skipIfLinux()
+        //uses default paths to credentials and config
+        let shutDownOptions = await setUpShutDownOptions()
+        let config = MockCredentialsProviderProfileOptions(shutdownOptions: shutDownOptions)
+        
+        let provider = try CRTAWSCredentialsProvider(fromProfile: config, allocator: allocator)
+        
+        let result = await provider.getCredentials()
+        
+        switch result {
+        case .failure(let error):
+            XCTAssertNotNil(error)
+        case .success(let credentials):
+            print(credentials)
+        }
+    }
+    
+    func testCreateAWSCredentialsProviderChain() async throws {
+        try skipIfLinux()
+        
+        let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
+            semaphore.signal()
+        }
+        
+        let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
+            semaphore.signal()
+        }
+        
+        let elg = EventLoopGroup(threadCount: 1,
+                                 allocator: allocator,
+                                 shutDownOptions: elgShutDownOptions)
+        
+        let hostResolver = DefaultHostResolver(eventLoopGroup: elg,
+                                               maxHosts: 8,
+                                               maxTTL: 30,
+                                               allocator: allocator,
+                                               shutDownOptions: resolverShutDownOptions)
+        
+        let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
+            sempahore.signal()
+        }
+        
+        let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
+                                            hostResolver: hostResolver,
+                                            callbackData: clientBootstrapCallbackData,
+                                            allocator: allocator)
+        
+        bootstrap.enableBlockingShutdown = true
+        
+        let config = MockCredentialsProviderChainDefaultConfig(bootstrap: bootstrap, shutDownOptions: nil)
+        
+        let provider = try CRTAWSCredentialsProvider(fromChainDefault: config)
+        
+        let result = await provider.getCredentials()
+        switch result {
+        case .failure(let error):
+            XCTAssertNotNil(error)
+        case .success(let credentials):
+            print(credentials)
         }
     }
 }

@@ -50,7 +50,7 @@ public final class CRTAWSRetryStrategy {
     }
 
     private func acquireTokenFromCRT(timeout: UInt64, partitionId: String, continuation: TokenContinuation) {
-        let callbackData = CRTAcquireTokenCallbackData(allocator: allocator)
+        let callbackData = CRTAcquireTokenCallbackData(allocator: allocator, continuation: continuation)
         let pointer = UnsafeMutablePointer<CRTAcquireTokenCallbackData>.allocate(capacity: 1)
         pointer.initialize(to: callbackData)
         let partitionPtr = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
