@@ -177,6 +177,10 @@ public class ByteBuffer {
         return currentEndianness == .little ? Double(bitPattern: result.littleEndian)
             : Double(bitPattern: result.bigEndian)
     }
+    
+    public func toByteArray() -> [UInt8] {
+        return array
+    }
 
     public enum Endianness {
         case little
