@@ -15,7 +15,7 @@ import AwsCIo
  #endif
 
 //swiftlint:disable identifier_name superfluous_disable_command
-public class ByteBuffer {
+public class ByteBuffer: Codable {
 
     public init(size: Int) {
         array.reserveCapacity(size)
@@ -205,6 +205,16 @@ public class ByteBuffer {
     private var hostEndianness: Endianness {
         let number: UInt32 = 0x12345678
         return number == number.bigEndian ? .big : .little
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(array)
+    }
+    
+    public required init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        array = try container.decode([UInt8].self)
     }
 }
 
