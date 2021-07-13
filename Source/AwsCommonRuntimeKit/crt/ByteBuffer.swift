@@ -177,7 +177,7 @@ public class ByteBuffer: Codable {
         return currentEndianness == .little ? Double(bitPattern: result.littleEndian)
             : Double(bitPattern: result.bigEndian)
     }
-    
+
     public func toByteArray() -> [UInt8] {
         return array
     }
@@ -206,12 +206,12 @@ public class ByteBuffer: Codable {
         let number: UInt32 = 0x12345678
         return number == number.bigEndian ? .big : .little
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(array)
     }
-    
+
     public required init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         array = try container.decode([UInt8].self)
