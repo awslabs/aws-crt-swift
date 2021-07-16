@@ -48,6 +48,19 @@ public class ByteBuffer: Codable {
         array.append(value)
         return self
     }
+    
+    public func put(_ value: ByteBuffer) {
+        array.append(contentsOf: value.array)
+    }
+    
+    public func put(_ value: ByteBuffer, offset: UInt = 0, maxBytes: UInt?) {
+        var end: UInt = UInt(value.length)
+        if let maxBytes = maxBytes {
+             end =  maxBytes
+        }
+        let bytesToTake = value.array[Int(offset)..<Int(end)]
+        array.append(contentsOf: bytesToTake)
+    }
 
     public func put(_ value: Data) {
         let byteArray: [UInt8] = value.map { $0 }
