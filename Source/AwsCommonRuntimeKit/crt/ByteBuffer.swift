@@ -49,11 +49,7 @@ public class ByteBuffer: Codable {
         return self
     }
 
-    public func put(_ value: ByteBuffer) {
-        array.append(contentsOf: value.array)
-    }
-
-    public func put(_ value: ByteBuffer, offset: UInt = 0, maxBytes: UInt?) {
+    public func put(_ value: ByteBuffer, offset: UInt = 0, maxBytes: UInt? = nil) {
         var end: UInt = UInt(value.length)
         if let maxBytes = maxBytes {
              end =  maxBytes
