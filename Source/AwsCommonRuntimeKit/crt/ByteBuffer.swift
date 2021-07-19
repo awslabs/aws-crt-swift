@@ -232,17 +232,17 @@ extension ByteBuffer: AwsStream {
         return aws_stream_status(is_end_of_stream: self.currentIndex == array.count, is_valid: true)
     }
 
-    public var length: Int64 {
-        return Int64(array.count)
+    public var length: UInt {
+        return UInt(array.count)
     }
 
     public func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool {
         let targetOffset: Int64
         if basis.rawValue == AWS_SSB_BEGIN.rawValue {
-            targetOffset = length + offset
+            targetOffset = Int64(length) + offset
 
         } else {
-            targetOffset = length - offset
+            targetOffset = Int64(length) - offset
         }
         currentIndex = Int(targetOffset)
         return true

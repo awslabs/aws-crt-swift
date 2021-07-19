@@ -16,7 +16,7 @@ public class AwsInputStream {
     public var length: Int64
 
     public init(_ impl: AwsStream, allocator: Allocator = defaultAllocator) {
-        self.length = impl.length
+        self.length = Int64(impl.length)
         let ptr = UnsafeMutablePointer<AwsStream>.allocate(capacity: 1)
         ptr.initialize(to: impl)
         self.implPointer = ptr
@@ -30,7 +30,7 @@ public class AwsInputStream {
 
 public protocol AwsStream {
     var status: aws_stream_status { get }
-    var length: Int64 { get }
+    var length: UInt { get }
 
     func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool
     func read(buffer: inout aws_byte_buf) -> Bool
@@ -43,11 +43,11 @@ extension FileHandle: AwsStream {
     }
 
     @inlinable
-    public var length: Int64 {
+    public var length: UInt {
         let savedPos = self.offsetInFile
         defer { self.seek(toFileOffset: savedPos ) }
         self.seekToEndOfFile()
-        return Int64(self.offsetInFile)
+        return UInt(self.offsetInFile)
     }
 
     @inlinable
@@ -106,7 +106,7 @@ private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     let inputStream = stream.pointee.impl.bindMemory(to: AwsStream.self, capacity: 1).pointee
     let length = inputStream.length
     if length >= 0 {
-        result.pointee = length
+        result.pointee = Int64(length)
         return AWS_OP_SUCCESS
     }
     aws_raise_error(Int32(AWS_IO_STREAM_READ_FAILED.rawValue))
