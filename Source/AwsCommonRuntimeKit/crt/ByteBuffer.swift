@@ -15,7 +15,7 @@ import AwsCIo
  #endif
 
 //swiftlint:disable identifier_name superfluous_disable_command
-public class ByteBuffer {
+public class ByteBuffer: Codable {
 
     public init(size: Int) {
         array.reserveCapacity(size)
@@ -47,6 +47,15 @@ public class ByteBuffer {
     public func put(_ value: UInt8) -> ByteBuffer {
         array.append(value)
         return self
+    }
+
+    public func put(_ value: ByteBuffer, offset: UInt = 0, maxBytes: UInt? = nil) {
+        var end: UInt = UInt(value.length)
+        if let maxBytes = maxBytes {
+             end =  maxBytes
+        }
+        let bytesToTake = value.array[Int(offset)..<Int(end)]
+        array.append(contentsOf: bytesToTake)
     }
 
     public func put(_ value: Data) {
@@ -178,6 +187,10 @@ public class ByteBuffer {
             : Double(bitPattern: result.bigEndian)
     }
 
+    public func toByteArray() -> [UInt8] {
+        return array
+    }
+
     public enum Endianness {
         case little
         case big
@@ -202,6 +215,16 @@ public class ByteBuffer {
         let number: UInt32 = 0x12345678
         return number == number.bigEndian ? .big : .little
     }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(array)
+    }
+
+    public required init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        array = try container.decode([UInt8].self)
+    }
 }
 
 extension ByteBuffer: AwsStream {
@@ -209,17 +232,17 @@ extension ByteBuffer: AwsStream {
         return aws_stream_status(is_end_of_stream: self.currentIndex == array.count, is_valid: true)
     }
 
-    public var length: Int64 {
-        return Int64(array.count)
+    public var length: UInt {
+        return UInt(array.count)
     }
 
     public func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool {
         let targetOffset: Int64
         if basis.rawValue == AWS_SSB_BEGIN.rawValue {
-            targetOffset = length + offset
+            targetOffset = Int64(length) + offset
 
         } else {
-            targetOffset = length - offset
+            targetOffset = Int64(length) - offset
         }
         currentIndex = Int(targetOffset)
         return true
