@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - '*'
-      - '!master'
+      - '!main'
   pull_request:
     branches:
-      - 'master'
+      - 'main'
 
 env:
   BUILDER_VERSION: v0.8.18
