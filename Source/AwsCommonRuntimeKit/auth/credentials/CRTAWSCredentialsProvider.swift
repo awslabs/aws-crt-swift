@@ -76,11 +76,15 @@ public final class CRTAWSCredentialsProvider {
                             allocator: Allocator = defaultAllocator) throws {
 
         var profileOptionsC = aws_credentials_provider_profile_options()
-        if let configFileName = profileOptions.configFileNameOverride,
-           let credentialsFileName = profileOptions.credentialsFileNameOverride,
-           let profileName = profileOptions.profileFileNameOverride {
+        if let configFileName = profileOptions.configFileNameOverride {
             profileOptionsC.config_file_name_override = configFileName.awsByteCursor
+        }
+        
+        if let credentialsFileName = profileOptions.credentialsFileNameOverride {
             profileOptionsC.credentials_file_name_override = credentialsFileName.awsByteCursor
+        }
+        
+        if let profileName = profileOptions.profileFileNameOverride {
             profileOptionsC.profile_name_override = profileName.awsByteCursor
         }
         profileOptionsC.shutdown_options = WrappedCRTCredentialsProvider.setUpShutDownOptions(
