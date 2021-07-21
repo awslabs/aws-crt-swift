@@ -79,11 +79,11 @@ public final class CRTAWSCredentialsProvider {
         if let configFileName = profileOptions.configFileNameOverride {
             profileOptionsC.config_file_name_override = configFileName.awsByteCursor
         }
-        
+
         if let credentialsFileName = profileOptions.credentialsFileNameOverride {
             profileOptionsC.credentials_file_name_override = credentialsFileName.awsByteCursor
         }
-        
+
         if let profileName = profileOptions.profileFileNameOverride {
             profileOptionsC.profile_name_override = profileName.awsByteCursor
         }
