@@ -54,7 +54,6 @@ ioDependencies.append("S2N")
 calDependencies.append("LibCrypto")
 #endif
 
-
 // aws-c-common config
 var awsCCommonPlatformExcludes = ["source/windows", "source/android",
                                   "AWSCRTAndroidTestRunner", "docker-images", "verification",
@@ -98,7 +97,6 @@ awsCIoPlatformExcludes.append("source/darwin")
 #endif
 
 var awsCCalPlatformExcludes = ["bin", "include/aws/cal/private", "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"] + excludesFromAll
-
 
 #if os(macOS)
 awsCCalPlatformExcludes.append("source/windows")
