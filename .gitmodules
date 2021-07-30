@@ -22,3 +22,6 @@
 [submodule "aws-common-runtime/aws-c-cal"]
 	path = aws-common-runtime/aws-c-cal
 	url = https://github.com/awslabs/aws-c-cal
+[submodule "aws-common-runtime/aws-lc"]
+	path = aws-common-runtime/aws-lc
+	url = https://github.com/awslabs/aws-lc

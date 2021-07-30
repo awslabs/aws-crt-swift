@@ -21,7 +21,7 @@ var package = Package(name: "AwsCrt",
     dependencies: packageDependencies
 )
 
-let excludesFromAll = ["bin", "tests", "cmake", "codebuild", "CONTRIBUTING.md",
+let excludesFromAll = ["tests", "cmake", "codebuild", "CONTRIBUTING.md",
                        "LICENSE", "format-check.sh", "NOTICE", "builder.json",
                        "sanitizer-blacklist.txt", "CMakeLists.txt", "README.md",
                        "CODE_OF_CONDUCT.md", "build-deps.sh"]
@@ -70,7 +70,7 @@ awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
 #endif
 
-var awsCCalPlatformExcludes = ["include/aws/cal/private"]
+var awsCCalPlatformExcludes = ["bin", "include/aws/cal/private"]
 awsCCalPlatformExcludes.append(contentsOf: excludesFromAll)
 
 #if os(macOS)
@@ -86,10 +86,11 @@ awsCCalPlatformExcludes.append("source/darwin")
 
 var awsCCompressionPlatformExcludes = ["source/huffman_generator/"]
 awsCCompressionPlatformExcludes.append(contentsOf: excludesFromAll)
-var awsCHttpPlatformExcludes = ["integration-testing", "continuous-delivery", "include/aws/http/private"]
+var awsCHttpPlatformExcludes = ["bin", "integration-testing", "continuous-delivery", "include/aws/http/private"]
 awsCHttpPlatformExcludes.append(contentsOf: excludesFromAll)
 let awsCAuthPlatformExcludes = excludesFromAll
 let awsCMqttPlatformExcludes = excludesFromAll
+let awsCLibCryptoPlatformExcludes = ["tests", "util/fipstools"] + excludesFromAll
 
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
 
@@ -100,6 +101,14 @@ package.targets = ( [
         publicHeadersPath: ".",
         cSettings: [
 //            .unsafeFlags(cFlags)
+        ]
+    ),
+    .target(
+        name: "AWSCLibCrypto",
+        path: "aws-common-runtime/aws-lc",
+        exclude: awsCLibCryptoPlatformExcludes,
+        cSettings: [
+ //           .unsafeFlags(cFlags)
         ]
     ),
     .target(
