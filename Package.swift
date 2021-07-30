@@ -21,15 +21,14 @@ var package = Package(name: "AwsCrt",
     dependencies: packageDependencies
 )
 
-let excludesFromAll = ["tests", "cmake", "codebuild", "CONTRIBUTING.md",
+let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
                        "LICENSE", "format-check.sh", "NOTICE", "builder.json",
-                       "sanitizer-blacklist.txt", "CMakeLists.txt", "README.md",
-                       "CODE_OF_CONDUCT.md", "build-deps.sh"]
+                        "CMakeLists.txt", "README.md"]
 
 // aws-c-common config
 var awsCCommonPlatformExcludes = ["source/windows", "source/android",
                                   "AWSCRTAndroidTestRunner", "docker-images", "verification",
-                                  "include/aws/common/"]
+                                  "include/aws/common/", "sanitizer-blacklist.txt"]
 awsCCommonPlatformExcludes.append(contentsOf: excludesFromAll)
 
 #if arch(i386) || arch(x86_64)
@@ -52,7 +51,7 @@ awsCCommonPlatformExcludes.append("source/arch/intel/asm")
 awsCCommonPlatformExcludes.append("source/arch/arm/asm")
 #endif
 
-var awsCIoPlatformExcludes = ["docs"]
+var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md"]
 awsCIoPlatformExcludes.append(contentsOf: excludesFromAll)
 
 #if os(macOS)
@@ -70,7 +69,7 @@ awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
 #endif
 
-var awsCCalPlatformExcludes = ["bin", "include/aws/cal/private"]
+var awsCCalPlatformExcludes = ["bin", "include/aws/cal/private", "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"]
 awsCCalPlatformExcludes.append(contentsOf: excludesFromAll)
 
 #if os(macOS)
@@ -84,13 +83,14 @@ awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
 #endif
 
-var awsCCompressionPlatformExcludes = ["source/huffman_generator/"]
+var awsCCompressionPlatformExcludes = ["source/huffman_generator/", "CODE_OF_CONDUCT.md", "codebuild"]
 awsCCompressionPlatformExcludes.append(contentsOf: excludesFromAll)
-var awsCHttpPlatformExcludes = ["bin", "integration-testing", "continuous-delivery", "include/aws/http/private"]
+var awsCHttpPlatformExcludes = ["bin", "integration-testing", "include/aws/http/private",
+                                 "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"]
 awsCHttpPlatformExcludes.append(contentsOf: excludesFromAll)
-let awsCAuthPlatformExcludes = excludesFromAll
-let awsCMqttPlatformExcludes = excludesFromAll
-let awsCLibCryptoPlatformExcludes = ["tests", "util/fipstools"] + excludesFromAll
+let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
+let awsCMqttPlatformExcludes = ["bin", "CODE_OF_CONDUCT.md"] + excludesFromAll
+let awsCLibCryptoPlatformExcludes = ["tests", "util"] + excludesFromAll
 
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
 
@@ -103,14 +103,14 @@ package.targets = ( [
 //            .unsafeFlags(cFlags)
         ]
     ),
-    .target(
-        name: "AWSCLibCrypto",
-        path: "aws-common-runtime/aws-lc",
-        exclude: awsCLibCryptoPlatformExcludes,
-        cSettings: [
- //           .unsafeFlags(cFlags)
-        ]
-    ),
+//     .target(
+//         name: "AWSCLibCrypto",
+//         path: "aws-common-runtime/aws-lc",
+//         exclude: awsCLibCryptoPlatformExcludes,
+//         cSettings: [
+//  //           .unsafeFlags(cFlags)
+//         ]
+//     ),
     .target(
         name: "AwsCCommon",
         dependencies: ["AwsCPlatformConfig"],
