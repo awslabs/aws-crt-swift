@@ -13,17 +13,40 @@ var package = Package(name: "AwsCrt",
 
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
 var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
-let awsCLibCryptoPlatformExcludes = ["tests", "util", "CODE_OF_CONDUCT.md"]
+let awsCLibCryptoPlatformExcludes = ["tests", "util", "CODE_OF_CONDUCT.md", "*.cc"]
 #if os(Linux)
-
 packageTargets.append(.target(
         name: "AWSCLibCrypto",
         path: "aws-common-runtime/aws-lc",
         exclude: awsCLibCryptoPlatformExcludes))
-ioDependencies.append("AWSCLibCrypto")
+packageTargets.append(.target(
+            name: "S2N",
+            dependencies: ["AWSCLibCrypto"],
+            path: "aws-common-runtime/s2n",
+            // add pq-crypto back after adding in platform and chipset detection
+            exclude: ["bin", "cmake", "codebuild", "coverage", "docker-images",
+                      "docs", "lib", "pq-crypto/bike_r1", "pq-crypto/bike_r2",
+                      "pq-crypto/bike_r3", "pq-crypto/kyber_90s_r2", "pq-crypto/kyber_r3",
+                      "pq-crypto/kyber_r2", "pq-crypto/sike_r1", "pq-crypto/sike_r2",
+                      "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
+                      "libcrypto-build", "scram", "tests",
+                      "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
+                      "tls/Makefile", "utils/Makefile", "error/Makefile",
+                      "extensions/Makefile", "tls/extensions/Makefile",
+                      "codecov.yml", "scripts/", "tests", "cmake", "codebuild", "CONTRIBUTING.md",
+                      "LICENSE", "format-check.sh", "NOTICE", "builder.json",
+                      "sanitizer-blacklist.txt", "CMakeLists.txt", "README.md",
+                      "CODE_OF_CONDUCT.md", "build-deps.sh"],
+            publicHeadersPath: "api",
+            cSettings: [
+                .headerSearchPath("./"),
+                .define("POSIX_C_SOURCE=200809L"),
+                .define("S2N_NO_PQ")
+            ]
+        ))
+
+ioDependencies.append("S2N")
 calDependencies.append("AWSCLibCrypto")
-//ioDependencies.append(.product(name: "S2N", package: "S2N"))
-//calDependencies.append(.product(name: "LibCrypto", package: "S2N"))
 #endif
 
 let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
