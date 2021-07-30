@@ -1,23 +1,22 @@
 // swift-tools-version:5.4
 import PackageDescription
 
+var packageTargets: [Target] = []
+
 var package = Package(name: "AwsCrt",
     platforms: [.iOS(.v11), .macOS(.v10_14)],
     products: [
       .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
       .executable(name: "Elasticurl", targets: ["Elasticurl"])
-    ],
-    dependencies: packageDependencies,
-    targets: []
+    ]
 )
 
-var packageDependencies: [Package.Dependency] = []
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
 var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
 let awsCLibCryptoPlatformExcludes = ["tests", "util", "CODE_OF_CONDUCT.md"]
 #if os(Linux)
-//packageDependencies.append(.package(name: "S2N", path: "./S2N"))
-package.targets.append(.target(
+
+packageTargets.append(.target(
         name: "AWSCLibCrypto",
         path: "aws-common-runtime/aws-lc",
         exclude: awsCLibCryptoPlatformExcludes))
@@ -96,11 +95,9 @@ var awsCHttpPlatformExcludes = ["bin", "integration-testing", "include/aws/http/
 let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 let awsCMqttPlatformExcludes = ["bin", "CODE_OF_CONDUCT.md"] + excludesFromAll
 
-
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
 
-
-package.targets.append(contentsOf: [
+packageTargets.append(contentsOf: [
     .target(
         name: "AwsCPlatformConfig",
         path: "aws-common-runtime/config",
@@ -201,3 +198,5 @@ package.targets.append(contentsOf: [
         ]
     )
 ] )
+
+package.targets = packageTargets
