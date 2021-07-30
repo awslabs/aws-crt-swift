@@ -1,25 +1,31 @@
 // swift-tools-version:5.4
 import PackageDescription
 
-var packageDependencies: [Package.Dependency] = []
-var calDependencies: [Target.Dependency] = ["AwsCCommon"]
-var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
-
-#if os(Linux)
-packageDependencies.append(.package(name: "S2N", path: "./S2N"))
-
-ioDependencies.append(.product(name: "S2N", package: "S2N"))
-calDependencies.append(.product(name: "LibCrypto", package: "S2N"))
-#endif
-
 var package = Package(name: "AwsCrt",
     platforms: [.iOS(.v11), .macOS(.v10_14)],
     products: [
       .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
       .executable(name: "Elasticurl", targets: ["Elasticurl"])
     ],
-    dependencies: packageDependencies
+    dependencies: packageDependencies,
+    targets: []
 )
+
+var packageDependencies: [Package.Dependency] = []
+var calDependencies: [Target.Dependency] = ["AwsCCommon"]
+var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
+let awsCLibCryptoPlatformExcludes = ["tests", "util", "CODE_OF_CONDUCT.md"]
+#if os(Linux)
+//packageDependencies.append(.package(name: "S2N", path: "./S2N"))
+package.targets.append(.target(
+        name: "AWSCLibCrypto",
+        path: "aws-common-runtime/aws-lc",
+        exclude: awsCLibCryptoPlatformExcludes))
+ioDependencies.append("AWSCLibCrypto")
+calDependencies.append("AWSCLibCrypto")
+//ioDependencies.append(.product(name: "S2N", package: "S2N"))
+//calDependencies.append(.product(name: "LibCrypto", package: "S2N"))
+#endif
 
 let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
                        "LICENSE", "format-check.sh", "NOTICE", "builder.json",
@@ -83,18 +89,18 @@ awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
 #endif
 
-var awsCCompressionPlatformExcludes = ["source/huffman_generator/", "CODE_OF_CONDUCT.md", "codebuild"]
-awsCCompressionPlatformExcludes.append(contentsOf: excludesFromAll)
+var awsCCompressionPlatformExcludes = ["source/huffman_generator/", "CODE_OF_CONDUCT.md", "codebuild"] + excludesFromAll
+
 var awsCHttpPlatformExcludes = ["bin", "integration-testing", "include/aws/http/private",
-                                 "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"]
-awsCHttpPlatformExcludes.append(contentsOf: excludesFromAll)
+                                 "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"] + excludesFromAll
 let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 let awsCMqttPlatformExcludes = ["bin", "CODE_OF_CONDUCT.md"] + excludesFromAll
-let awsCLibCryptoPlatformExcludes = ["tests", "util"] + excludesFromAll
+
 
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
 
-package.targets = ( [
+
+package.targets.append(contentsOf: [
     .target(
         name: "AwsCPlatformConfig",
         path: "aws-common-runtime/config",
@@ -103,14 +109,6 @@ package.targets = ( [
 //            .unsafeFlags(cFlags)
         ]
     ),
-//     .target(
-//         name: "AWSCLibCrypto",
-//         path: "aws-common-runtime/aws-lc",
-//         exclude: awsCLibCryptoPlatformExcludes,
-//         cSettings: [
-//  //           .unsafeFlags(cFlags)
-//         ]
-//     ),
     .target(
         name: "AwsCCommon",
         dependencies: ["AwsCPlatformConfig"],
