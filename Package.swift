@@ -2,6 +2,9 @@
 import PackageDescription
 
 var packageTargets: [Target] = []
+let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
+                       "LICENSE", "format-check.sh", "NOTICE", "builder.json",
+                        "CMakeLists.txt", "README.md"]
 
 var package = Package(name: "AwsCrt",
     platforms: [.iOS(.v11), .macOS(.v10_14)],
@@ -16,27 +19,32 @@ var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
 let awsCLibCryptoPlatformExcludes = ["tests", "util", "CODE_OF_CONDUCT.md", "*.cc"]
 #if os(Linux)
 packageTargets.append(.target(
+        name: "AwsCS2NConfig",
+        path: "aws-common-runtime/config/aws/s2n",
+        publicHeadersPath: "."
+    ))
+packageTargets.append(.target(
         name: "AWSCLibCrypto",
+        dependencies: ["AwsCS2NConfig"],
         path: "aws-common-runtime/aws-lc",
         exclude: awsCLibCryptoPlatformExcludes))
+// add pq-crypto back after adding in platform and chipset detection
+let s2nExcludes = excludesFromAll + ["bin", "codebuild", "coverage", "docker-images",
+                                     "docs", "lib", "pq-crypto/bike_r1", "pq-crypto/bike_r2",
+                                     "pq-crypto/bike_r3", "pq-crypto/kyber_90s_r2", "pq-crypto/kyber_r3",
+                                     "pq-crypto/kyber_r2", "pq-crypto/sike_r1", "pq-crypto/sike_r2",
+                                     "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
+                                     "libcrypto-build", "scram", "tests",
+                                     "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
+                                     "tls/Makefile", "utils/Makefile", "error/Makefile",
+                                     "extensions/Makefile", "tls/extensions/Makefile",
+                                     "codecov.yml", "scripts/","sanitizer-blacklist.txt",
+                                     "CODE_OF_CONDUCT.md", "build-deps.sh"]
 packageTargets.append(.target(
             name: "S2N",
             dependencies: ["AWSCLibCrypto"],
             path: "aws-common-runtime/s2n",
-            // add pq-crypto back after adding in platform and chipset detection
-            exclude: ["bin", "cmake", "codebuild", "coverage", "docker-images",
-                      "docs", "lib", "pq-crypto/bike_r1", "pq-crypto/bike_r2",
-                      "pq-crypto/bike_r3", "pq-crypto/kyber_90s_r2", "pq-crypto/kyber_r3",
-                      "pq-crypto/kyber_r2", "pq-crypto/sike_r1", "pq-crypto/sike_r2",
-                      "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
-                      "libcrypto-build", "scram", "tests",
-                      "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
-                      "tls/Makefile", "utils/Makefile", "error/Makefile",
-                      "extensions/Makefile", "tls/extensions/Makefile",
-                      "codecov.yml", "scripts/", "tests", "cmake", "codebuild", "CONTRIBUTING.md",
-                      "LICENSE", "format-check.sh", "NOTICE", "builder.json",
-                      "sanitizer-blacklist.txt", "CMakeLists.txt", "README.md",
-                      "CODE_OF_CONDUCT.md", "build-deps.sh"],
+            exclude: s2nExcludes,
             publicHeadersPath: "api",
             cSettings: [
                 .headerSearchPath("./"),
@@ -48,10 +56,6 @@ packageTargets.append(.target(
 ioDependencies.append("S2N")
 calDependencies.append("AWSCLibCrypto")
 #endif
-
-let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
-                       "LICENSE", "format-check.sh", "NOTICE", "builder.json",
-                        "CMakeLists.txt", "README.md"]
 
 // aws-c-common config
 var awsCCommonPlatformExcludes = ["source/windows", "source/android",
@@ -123,7 +127,7 @@ let cFlags = ["-g", "-fno-omit-frame-pointer"]
 packageTargets.append(contentsOf: [
     .target(
         name: "AwsCPlatformConfig",
-        path: "aws-common-runtime/config",
+        path: "aws-common-runtime/config/aws/common",
         publicHeadersPath: ".",
         cSettings: [
 //            .unsafeFlags(cFlags)
