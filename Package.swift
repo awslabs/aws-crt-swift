@@ -109,9 +109,11 @@ awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
 #endif
 
-var awsCCompressionPlatformExcludes = ["source/huffman_generator/", "CODE_OF_CONDUCT.md", "codebuild"] + excludesFromAll
+var awsCCompressionPlatformExcludes = ["source/huffman_generator/", "CODE_OF_CONDUCT.md",
+                                       "codebuild"] + excludesFromAll
 
-var awsCHttpPlatformExcludes = ["bin", "integration-testing", "include/aws/http/private", "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"] + excludesFromAll
+var awsCHttpPlatformExcludes = ["bin", "integration-testing", "include/aws/http/private",
+                                "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"] + excludesFromAll
 let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 let awsCMqttPlatformExcludes = ["bin", "CODE_OF_CONDUCT.md"] + excludesFromAll
 
