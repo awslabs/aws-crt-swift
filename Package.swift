@@ -16,13 +16,22 @@ var package = Package(name: "AwsCrt",
 
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
 var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
-let awsCLibCryptoPlatformExcludes = ["tests", "util", "CODE_OF_CONDUCT.md", "*.cc"]
+let awsCLibCryptoPlatformExcludes = ["tests", "util", "CODE_OF_CONDUCT.md", "crypto/asn1/asn1_test.cc"]
 #if os(Linux)
+packageTargets.append(.systemLibrary(
+    name: "OpenSSL",
+    pkgConfig: "openssl",
+    providers: [
+        .apt(["openssl libssl-dev"]),
+        .yum(["openssl openssl-devel"])
+    ]
+))
 packageTargets.append(.target(
         name: "AwsCS2NConfig",
+        dependencies: ["OpenSSL"],
         path: "aws-common-runtime/config/aws/s2n",
-        publicHeadersPath: "."
-    ))
+        publicHeadersPath: "."))
+
 packageTargets.append(.target(
         name: "AWSCLibCrypto",
         dependencies: ["AwsCS2NConfig"],
