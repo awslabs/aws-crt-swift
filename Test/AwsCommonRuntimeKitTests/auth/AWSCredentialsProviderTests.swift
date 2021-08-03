@@ -173,12 +173,12 @@ struct MockCredentialsProviderProfileOptions: CRTCredentialsProviderProfileOptio
 struct MockCredentialsProviderStaticConfigOptions: CRTCredentialsProviderStaticConfigOptions {
     public var accessKey: String
     public var secret: String
-    public var sessionToken: String
+    public var sessionToken: String?
     public var shutDownOptions: CRTCredentialsProviderShutdownOptions?
     
     public init(accessKey: String,
                 secret: String,
-                sessionToken: String,
+                sessionToken: String? = nil,
                 shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
         self.accessKey = accessKey
         self.secret = secret
