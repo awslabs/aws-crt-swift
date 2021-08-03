@@ -37,7 +37,9 @@ public final class CRTAWSCredentialsProvider {
             shutDownOptions: config.shutDownOptions)
         staticOptions.access_key_id = config.accessKey.awsByteCursor
         staticOptions.secret_access_key = config.secret.awsByteCursor
-        staticOptions.session_token = config.sessionToken.awsByteCursor
+        if let sessionToken = config.sessionToken?.awsByteCursor {
+            staticOptions.session_token = sessionToken
+        }
 
         guard let provider = aws_credentials_provider_new_static(allocator.rawValue,
                                                                  &staticOptions) else { throw AWSCommonRuntimeError() }
