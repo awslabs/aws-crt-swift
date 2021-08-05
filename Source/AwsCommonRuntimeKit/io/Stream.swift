@@ -105,12 +105,9 @@ private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                          _ result: UnsafeMutablePointer<Int64>!) -> Int32 {
     let inputStream = stream.pointee.impl.bindMemory(to: AwsStream.self, capacity: 1).pointee
     let length = inputStream.length
-    if length >= 0 {
-        result.pointee = Int64(length)
-        return AWS_OP_SUCCESS
-    }
-    aws_raise_error(Int32(AWS_IO_STREAM_READ_FAILED.rawValue))
-    return AWS_OP_ERR
+  
+    result.pointee = Int64(length)
+    return AWS_OP_SUCCESS
 }
 
 private func doDestroy(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
