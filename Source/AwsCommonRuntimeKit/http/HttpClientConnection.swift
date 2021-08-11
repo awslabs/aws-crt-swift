@@ -110,7 +110,7 @@ public class HttpClientConnection {
         }
 
         let cbData = HttpStreamCallbackData(requestOptions: requestOptions)
-        options.user_data = getMutableRawPointer(memoryType: cbData)
+        options.user_data = fromPointer(ptr: cbData)
 
         let stream = HttpStream(httpConnection: self)
         cbData.stream = stream

@@ -58,24 +58,43 @@ extension Bool {
     }
 }
 
-func getMutablePointer<T>(memoryType: T?) -> UnsafeMutablePointer<T>? {
-    if let memoryType = memoryType {
+func fromPointer<T, P: PointerConformance>(ptr: T?) -> P? {
+   if let ptr = ptr {
         let pointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
-        pointer.initialize(to: memoryType)
-        return pointer
+        pointer.initialize(to: ptr)
+       return P(pointer: OpaquePointer(pointer))
     }
-
     return nil
 }
 
-func getMutableRawPointer<T>(memoryType: T?) -> UnsafeMutableRawPointer? {
-    return UnsafeMutableRawPointer(getMutablePointer(memoryType: memoryType))
+protocol PointerConformance {
+
+    init(pointer: OpaquePointer)
 }
 
-func getUnsafePointer<T>(memoryType: T?) -> UnsafePointer<T>? {
-    return UnsafePointer(getMutablePointer(memoryType: memoryType))
+extension UnsafeMutablePointer: PointerConformance {
+    init(pointer: OpaquePointer) {
+        self = UnsafeMutablePointer(pointer)
+    }
 }
 
-func getUnsafeRawPointer<T>(memoryType: T?) -> UnsafeRawPointer? {
-    return UnsafeRawPointer(getMutableRawPointer(memoryType: memoryType))
+extension UnsafeMutableRawPointer: PointerConformance {
+    init(pointer: OpaquePointer) {
+        self = UnsafeMutableRawPointer(pointer)
+    }
 }
+
+extension UnsafePointer: PointerConformance {
+    init(pointer: OpaquePointer) {
+        self = UnsafePointer(pointer)
+    }
+}
+
+extension UnsafeRawPointer: PointerConformance {
+    init(pointer: OpaquePointer) {
+        self = UnsafeRawPointer(pointer)
+    }
+}
+
+
+

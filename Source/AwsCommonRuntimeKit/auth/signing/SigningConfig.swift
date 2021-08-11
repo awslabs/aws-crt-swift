@@ -66,7 +66,7 @@ public struct SigningConfig {
                                                     return true
                                                 }
                                                },
-                                               should_sign_header_ud: getMutableRawPointer(memoryType: shouldSignHeader),
+                                               should_sign_header_ud: fromPointer(ptr: shouldSignHeader),
                                                flags: flags.rawValue,
                                                signed_body_value: signedBodyValue.rawValue.awsByteCursor,
                                                signed_body_header: signedBodyHeader.rawValue,
