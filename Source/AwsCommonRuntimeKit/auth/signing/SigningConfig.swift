@@ -46,7 +46,7 @@ public struct SigningConfig {
         self.signatureType = signatureType
         self.signingAlgorithm = signingAlgorithm
         self.configType = configType
-        var awsSigningConfig = aws_signing_config_aws(config_type: configType.rawValue,
+        self.rawValue = aws_signing_config_aws(config_type: configType.rawValue,
                                                algorithm: signingAlgorithm.rawValue,
                                                signature_type: signatureType.rawValue,
                                                region: region.awsByteCursor,
@@ -55,19 +55,18 @@ public struct SigningConfig {
                                                should_sign_header: { (name, userData) -> Bool in
                                                 guard let userData = userData,
                                                       let name = name?.pointee.toString() else {
-                                                    return false
+                                                    return true
                                                 }
 
                                                 let callback = userData.assumingMemoryBound(to: ShouldSignHeader?.self)
 
                                                 if let callbackFn = callback.pointee {
-
                                                     return callbackFn(name)
                                                 } else {
                                                     return true
                                                 }
                                                },
-                                               should_sign_header_ud: nil,
+                                               should_sign_header_ud: SigningConfig.getShouldSignHeaderPointer(shouldSignHeader: shouldSignHeader),
                                                flags: flags.rawValue,
                                                signed_body_value: signedBodyValue.rawValue.awsByteCursor,
                                                signed_body_header: signedBodyHeader.rawValue,
@@ -75,12 +74,16 @@ public struct SigningConfig {
                                                credentials_provider: credentialsProvider?.rawValue,
                                                expiration_in_seconds: UInt64(expiration))
 
+    }
+    
+    static func getShouldSignHeaderPointer(shouldSignHeader: ShouldSignHeader?) -> UnsafeMutableRawPointer? {
         if let shouldSignHeader = shouldSignHeader {
             let pointer = UnsafeMutablePointer<(String) -> Bool>.allocate(capacity: 1)
             pointer.initialize(to: shouldSignHeader)
-            awsSigningConfig.should_sign_header_ud = UnsafeMutableRawPointer(pointer)
+            return UnsafeMutableRawPointer(pointer)
         }
-        self.rawValue = awsSigningConfig
+        
+        return nil
     }
 }
 
