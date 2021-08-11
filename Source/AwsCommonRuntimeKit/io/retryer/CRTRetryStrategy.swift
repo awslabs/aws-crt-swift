@@ -27,8 +27,7 @@ private func acquireRetryToken(_ retryStrategy: UnsafeMutablePointer<aws_retry_s
     }
 
     var tokenCallbackData = CRTAcquireTokenCallbackData(allocator: retryStrategySwift.pointee.allocator)
-    let callbackPointer = UnsafeMutablePointer<CRTAcquireTokenCallbackData>.allocate(capacity: 1)
-    callbackPointer.initialize(to: tokenCallbackData)
+    let callbackPointer: UnsafeMutablePointer<CRTAcquireTokenCallbackData> = fromPointer(ptr: tokenCallbackData)
     tokenCallbackData.onTokenAcquired = { (token, crtError) in
         if case let CRTError.crtError(error) = crtError {
             callbackFn?(retryStrategy, error.errorCode, token?.rawValue, callbackPointer)
@@ -52,8 +51,7 @@ private func scheduleRetry(_ token: UnsafeMutablePointer<aws_retry_token>?,
     }
 
     var scheduleCallbackData = CRTScheduleRetryCallbackData(allocator: retryStrategy.pointee.allocator)
-    let callbackPointer = UnsafeMutablePointer<CRTScheduleRetryCallbackData>.allocate(capacity: 1)
-    callbackPointer.initialize(to: scheduleCallbackData)
+    let callbackPointer: UnsafeMutablePointer<CRTScheduleRetryCallbackData> = fromPointer(ptr: scheduleCallbackData)
     scheduleCallbackData.onRetryReady = { (token, crtError) in
         if case let CRTError.crtError(error) = crtError {
             callbackFn?(token?.rawValue, error.errorCode, callbackPointer)
@@ -103,14 +101,11 @@ class WrappedCRTRetryStrategy {
                                                record_success: recordSuccess,
                                                release_token: releaseToken)
 
-        let intPointer = UnsafeMutablePointer<Int>.allocate(capacity: 1)
-        intPointer.pointee = 1
-        let atomicVar = aws_atomic_var(value: UnsafeMutableRawPointer(intPointer))
+        let intPointer: UnsafeMutableRawPointer = fromPointer(ptr: 1)
+        let atomicVar = aws_atomic_var(value: intPointer)
         self.allocator = allocator
-        let retryStategyPtr = UnsafeMutablePointer<CRTRetryStrategy>.allocate(capacity: 1)
-        retryStategyPtr.initialize(to: impl)
-        let vTablePtr = UnsafeMutablePointer<aws_retry_strategy_vtable>.allocate(capacity: 1)
-        vTablePtr.initialize(to: vtable)
+        let retryStategyPtr: UnsafeMutablePointer<CRTRetryStrategy> = fromPointer(ptr: impl)
+        let vTablePtr: UnsafeMutablePointer<aws_retry_strategy_vtable> = fromPointer(ptr: vtable)
         self.vTablePtr = vTablePtr
         self.implementationPtr = retryStategyPtr
         self.rawValue = aws_retry_strategy(allocator: allocator.rawValue,

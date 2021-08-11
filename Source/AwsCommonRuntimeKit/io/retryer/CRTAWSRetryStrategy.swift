@@ -52,10 +52,8 @@ public final class CRTAWSRetryStrategy {
             }
         }
 
-        let pointer = UnsafeMutablePointer<CRTAcquireTokenCallbackData>.allocate(capacity: 1)
-        pointer.initialize(to: callbackData)
-        let partitionPtr = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
-        partitionPtr.initialize(to: partitionId.awsByteCursor)
+        let pointer: UnsafeMutablePointer<CRTAcquireTokenCallbackData> = fromPointer(ptr: callbackData)
+        let partitionPtr: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: partitionId.awsByteCursor)
         aws_retry_strategy_acquire_retry_token(rawValue, partitionPtr, { retryerPointer, errorCode, token, userdata in
             guard let userdata = userdata,
                   let token = token else {
@@ -81,8 +79,7 @@ public final class CRTAWSRetryStrategy {
             }
         }
 
-        let pointer = UnsafeMutablePointer<CRTScheduleRetryCallbackData>.allocate(capacity: 1)
-        pointer.initialize(to: callbackData)
+        let pointer: UnsafeMutablePointer<CRTScheduleRetryCallbackData> = fromPointer(ptr: callbackData)
 
         aws_retry_strategy_schedule_retry(token.rawValue, errorType.rawValue, { retryToken, errorCode, userdata in
             guard let userdata = userdata,

@@ -20,8 +20,7 @@ public class HttpMonitoringOptions {
         let options = aws_http_connection_monitoring_options(
             minimum_throughput_bytes_per_second: UInt64(minThroughputBytesPerSecond),
             allowable_throughput_failure_interval_seconds: UInt32(allowableThroughputFailureInterval))
-        let ptr = UnsafeMutablePointer<aws_http_connection_monitoring_options>.allocate(capacity: 1)
-        ptr.initialize(to: options)
+        let ptr: UnsafeMutablePointer<aws_http_connection_monitoring_options> = fromPointer(ptr: options)
         self.rawValue = ptr
 
     }

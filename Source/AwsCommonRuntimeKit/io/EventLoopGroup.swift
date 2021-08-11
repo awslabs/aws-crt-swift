@@ -12,24 +12,18 @@ public final class EventLoopGroup {
     public init(threadCount: UInt16 = 0,
                 allocator: Allocator = defaultAllocator,
                 shutDownOptions: ShutDownCallbackOptions? = nil) {
-        var ptr: UnsafePointer<aws_shutdown_callback_options>?
-        if let shutDownOptions = shutDownOptions {
-            let shutDownPtr = UnsafeMutablePointer<ShutDownCallbackOptions>.allocate(capacity: 1)
-            shutDownPtr.initialize(to: shutDownOptions)
-            let options = aws_shutdown_callback_options(shutdown_callback_fn: { (userData) in
-                guard let userdata = userData else {
-                    return
-                }
-                let pointer = userdata.assumingMemoryBound(to: ShutDownCallbackOptions.self)
-                defer { pointer.deinitializeAndDeallocate() }
-                pointer.pointee.shutDownCallback(pointer.pointee.semaphore)
+        let shutDownPtr: UnsafeMutablePointer<ShutDownCallbackOptions>? = fromOptionalPointer(ptr: shutDownOptions)
+        let options = aws_shutdown_callback_options(shutdown_callback_fn: { (userData) in
+            guard let userdata = userData else {
+                return
+            }
+            let pointer = userdata.assumingMemoryBound(to: ShutDownCallbackOptions.self)
+            defer { pointer.deinitializeAndDeallocate() }
+            pointer.pointee.shutDownCallback(pointer.pointee.semaphore)
 
-            }, shutdown_callback_user_data: shutDownPtr)
-
-            let mutablePtr = UnsafeMutablePointer<aws_shutdown_callback_options>.allocate(capacity: 1)
-            mutablePtr.initialize(to: options)
-            ptr = UnsafePointer(mutablePtr)
-        }
+        }, shutdown_callback_user_data: shutDownPtr)
+        let ptr: UnsafePointer<aws_shutdown_callback_options>? = fromOptionalPointer(ptr: options)
+        
         defer {ptr?.deallocate()}
         self.shutDownOptions = shutDownOptions
 

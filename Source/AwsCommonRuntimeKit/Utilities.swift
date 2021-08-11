@@ -58,11 +58,18 @@ extension Bool {
     }
 }
 
-func fromPointer<T, P: PointerConformance>(ptr: T?) -> P? {
-   if let ptr = ptr {
-        let pointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
-        pointer.initialize(to: ptr)
-       return P(OpaquePointer(pointer))
+// Ensure that any UnsafeXXXPointer is ALWAYS initialized to either nil or a value in a single call. Prevents the
+// case where you create an UnsafeMutableWhatever and do not call `initialize()` on it, resulting in a non-null but
+// also invalid pointer
+func fromPointer<T, P: PointerConformance>(ptr: T) -> P {
+    let pointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
+    pointer.initialize(to: ptr)
+    return P(OpaquePointer(pointer))
+}
+
+func fromOptionalPointer<T, P: PointerConformance>(ptr: T?) -> P? {
+    if let ptr = ptr {
+        return fromPointer(ptr: ptr)
     }
     return nil
 }

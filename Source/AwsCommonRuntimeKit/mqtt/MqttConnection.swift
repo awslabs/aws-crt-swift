@@ -154,10 +154,8 @@ public class MqttConnection {
         mqttOptions.keep_alive_time_secs = UInt16(keepAliveTime)
         mqttOptions.ping_timeout_ms = UInt32(requestTimeoutMs)
         mqttOptions.clean_session = cleanSession
-        let connectionPtr = UnsafeMutablePointer<MqttConnection>.allocate(capacity: 1)
-        connectionPtr.initialize(to: self)
-        let ptr = UnsafeMutableRawPointer(connectionPtr)
-        mqttOptions.user_data = ptr
+        let connectionPtr: UnsafeMutableRawPointer = fromPointer(ptr: self)
+        mqttOptions.user_data = connectionPtr
 
         mqttOptions.on_connection_complete = { (connectionPtr,
                                                 errorCode,
@@ -293,13 +291,11 @@ public class MqttConnection {
                    onSubAck: @escaping OnSubAck) -> UInt16 {
 
         let pubCallbackData = PubCallbackData(onPublishReceived: onPublishReceived, mqttConnection: self)
-        let pubCallbackPtr = UnsafeMutablePointer<PubCallbackData>.allocate(capacity: 1)
-        pubCallbackPtr.initialize(to: pubCallbackData)
+        let pubCallbackPtr: UnsafeMutablePointer<PubCallbackData> = fromPointer(ptr: pubCallbackData)
         let subAckCallbackData = SubAckCallbackData(onSubAck: onSubAck, connection: self, topic: nil)
-        let subAckCallbackPtr = UnsafeMutablePointer<SubAckCallbackData>.allocate(capacity: 1)
-        subAckCallbackPtr.initialize(to: subAckCallbackData)
-        let topicPtr = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
-        topicPtr.initialize(to: topicFilter.awsByteCursor)
+        let subAckCallbackPtr: UnsafeMutablePointer<SubAckCallbackData> = fromPointer(ptr: subAckCallbackData)
+        let topicPtr: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: topicFilter.awsByteCursor)
+    
         let packetId = aws_mqtt_client_connection_subscribe(rawValue,
                                                             topicPtr,
                                                             qos.rawValue,
@@ -347,9 +343,8 @@ public class MqttConnection {
         let subAckCallbackData = MultiSubAckCallbackData(onMultiSubAck: onMultiSubAck,
                                                          connection: self,
                                                          topics: topicFilters)
-        let subAckCallbackPtr = UnsafeMutablePointer<MultiSubAckCallbackData>.allocate(capacity: 1)
-        subAckCallbackPtr.initialize(to: subAckCallbackData)
-
+        let subAckCallbackPtr: UnsafeMutablePointer<MultiSubAckCallbackData> = fromPointer(ptr: subAckCallbackData)
+ 
         let stringPointers = UnsafeMutablePointer<String>.allocate(capacity: topicFilters.count)
 
         for index in 0...topicFilters.count {
@@ -399,10 +394,8 @@ public class MqttConnection {
     /// - Returns: The packet id of the unsubscribe packet if successfully sent, otherwise 0.
     func unsubscribe(topicFilter: String, onComplete: @escaping OnOperationComplete) -> UInt16 {
         let opCallbackData = OpCompleteCallbackData(connection: self, onOperationComplete: onComplete)
-        let opCallbackPtr = UnsafeMutablePointer<OpCompleteCallbackData>.allocate(capacity: 1)
-        opCallbackPtr.initialize(to: opCallbackData)
-        let topicPtr = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
-        topicPtr.initialize(to: topicFilter.awsByteCursor)
+        let opCallbackPtr: UnsafeMutablePointer<OpCompleteCallbackData> = fromPointer(ptr: opCallbackData)
+        let topicPtr: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: topicFilter.awsByteCursor)
         let packetId = aws_mqtt_client_connection_unsubscribe(rawValue,
                                                               topicPtr,
                                                               { (_, packetId, errorCode, userData) in
@@ -438,8 +431,7 @@ public class MqttConnection {
         let opCallbackData = OpCompleteCallbackData(topic: topic,
                                                     connection: self,
                                                     onOperationComplete: onComplete)
-        let opCallbackPtr = UnsafeMutablePointer<OpCompleteCallbackData>.allocate(capacity: 1)
-        opCallbackPtr.initialize(to: opCallbackData)
+        let opCallbackPtr: UnsafeMutablePointer<OpCompleteCallbackData> = fromPointer(ptr: opCallbackData)
         let pointers = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 2)
         pointers.initialize(to: topic.awsByteCursor)
         pointers.advanced(by: 1).initialize(to: payload.awsByteCursor)
