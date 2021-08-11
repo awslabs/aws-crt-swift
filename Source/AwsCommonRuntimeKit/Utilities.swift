@@ -62,39 +62,22 @@ func fromPointer<T, P: PointerConformance>(ptr: T?) -> P? {
    if let ptr = ptr {
         let pointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
         pointer.initialize(to: ptr)
-       return P(pointer: OpaquePointer(pointer))
+       return P(OpaquePointer(pointer))
     }
     return nil
 }
 
 protocol PointerConformance {
-
-    init(pointer: OpaquePointer)
+    init(_ pointer: OpaquePointer)
 }
 
-extension UnsafeMutablePointer: PointerConformance {
-    init(pointer: OpaquePointer) {
-        self = UnsafeMutablePointer(pointer)
-    }
-}
+extension UnsafeMutablePointer: PointerConformance {}
 
-extension UnsafeMutableRawPointer: PointerConformance {
-    init(pointer: OpaquePointer) {
-        self = UnsafeMutableRawPointer(pointer)
-    }
-}
+extension UnsafeMutableRawPointer: PointerConformance {}
 
-extension UnsafePointer: PointerConformance {
-    init(pointer: OpaquePointer) {
-        self = UnsafePointer(pointer)
-    }
-}
+extension UnsafePointer: PointerConformance {}
 
-extension UnsafeRawPointer: PointerConformance {
-    init(pointer: OpaquePointer) {
-        self = UnsafeRawPointer(pointer)
-    }
-}
+extension UnsafeRawPointer: PointerConformance {}
 
 
 
