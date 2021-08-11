@@ -66,24 +66,13 @@ public struct SigningConfig {
                                                     return true
                                                 }
                                                },
-                                               should_sign_header_ud: SigningConfig.getShouldSignHeaderPointer(shouldSignHeader: shouldSignHeader),
+                                               should_sign_header_ud: getMutableRawPointer(memoryType: shouldSignHeader),
                                                flags: flags.rawValue,
                                                signed_body_value: signedBodyValue.rawValue.awsByteCursor,
                                                signed_body_header: signedBodyHeader.rawValue,
                                                credentials: credentials?.rawValue,
                                                credentials_provider: credentialsProvider?.rawValue,
                                                expiration_in_seconds: UInt64(expiration))
-
-    }
-
-    static func getShouldSignHeaderPointer(shouldSignHeader: ShouldSignHeader?) -> UnsafeMutableRawPointer? {
-        if let shouldSignHeader = shouldSignHeader {
-            let pointer = UnsafeMutablePointer<(String) -> Bool>.allocate(capacity: 1)
-            pointer.initialize(to: shouldSignHeader)
-            return UnsafeMutableRawPointer(pointer)
-        }
-
-        return nil
     }
 }
 

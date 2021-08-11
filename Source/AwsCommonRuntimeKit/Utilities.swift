@@ -57,3 +57,25 @@ extension Bool {
         return self ? 1 : 0
     }
 }
+
+func getMutablePointer<T>(memoryType: T?) -> UnsafeMutablePointer<T>? {
+    if let memoryType = memoryType {
+        let pointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
+        pointer.initialize(to: memoryType)
+        return pointer
+    }
+
+    return nil
+}
+
+func getMutableRawPointer<T>(memoryType: T?) -> UnsafeMutableRawPointer? {
+    return UnsafeMutableRawPointer(getMutablePointer(memoryType: memoryType))
+}
+
+func getUnsafePointer<T>(memoryType: T?) -> UnsafePointer<T>? {
+    return UnsafePointer(getMutablePointer(memoryType: memoryType))
+}
+
+func getUnsafeRawPointer<T>(memoryType: T?) -> UnsafeRawPointer? {
+    return UnsafeRawPointer(getMutableRawPointer(memoryType: memoryType))
+}
