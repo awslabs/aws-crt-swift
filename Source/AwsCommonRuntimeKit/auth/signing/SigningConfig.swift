@@ -75,14 +75,14 @@ public struct SigningConfig {
                                                expiration_in_seconds: UInt64(expiration))
 
     }
-    
+
     static func getShouldSignHeaderPointer(shouldSignHeader: ShouldSignHeader?) -> UnsafeMutableRawPointer? {
         if let shouldSignHeader = shouldSignHeader {
             let pointer = UnsafeMutablePointer<(String) -> Bool>.allocate(capacity: 1)
             pointer.initialize(to: shouldSignHeader)
             return UnsafeMutableRawPointer(pointer)
         }
-        
+
         return nil
     }
 }
