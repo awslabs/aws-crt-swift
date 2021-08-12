@@ -100,6 +100,3 @@ extension UnsafeMutableRawPointer: PointerConformance {}
 extension UnsafePointer: PointerConformance {}
 
 extension UnsafeRawPointer: PointerConformance {}
-
-
-

@@ -211,7 +211,7 @@ public final class CRTAWSCredentialsProvider {
                 future.fail(crtError)
             }
         }
-        let pointer:UnsafeMutablePointer<CRTCredentialsProviderCallbackData> = fromPointer(ptr: callbackData)
+        let pointer: UnsafeMutablePointer<CRTCredentialsProviderCallbackData> = fromPointer(ptr: callbackData)
         aws_credentials_provider_get_credentials(rawValue, { (credentials, errorCode, userdata) -> Void in
             guard let userdata = userdata else {
                 return

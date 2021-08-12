@@ -292,7 +292,7 @@ public class MqttConnection {
         let subAckCallbackData = SubAckCallbackData(onSubAck: onSubAck, connection: self, topic: nil)
         let subAckCallbackPtr: UnsafeMutablePointer<SubAckCallbackData> = fromPointer(ptr: subAckCallbackData)
         let topicPtr: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: topicFilter.awsByteCursor)
-    
+
         let packetId = aws_mqtt_client_connection_subscribe(rawValue,
                                                             topicPtr,
                                                             qos.rawValue,
@@ -341,7 +341,7 @@ public class MqttConnection {
                                                          connection: self,
                                                          topics: topicFilters)
         let subAckCallbackPtr: UnsafeMutablePointer<MultiSubAckCallbackData> = fromPointer(ptr: subAckCallbackData)
- 
+
         var awsArray = aws_array_list()
         awsArray.current_size = topicFilters.count
         awsArray.item_size = MemoryLayout.size(ofValue: String.self)

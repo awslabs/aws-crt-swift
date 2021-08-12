@@ -39,7 +39,7 @@ public final class DefaultHostResolver: HostResolver {
         }, shutdown_callback_user_data: shutDownPtr)
 
         let shutdownCallbackOptionPtr: UnsafePointer<aws_shutdown_callback_options> = fromPointer(ptr: shutDownCallbackOptions)
-        
+
         self.shutDownOptions = shutDownOptions
         let options = aws_host_resolver_default_options(max_entries: maxHosts,
                                                         el_group: elg.rawValue,
@@ -102,7 +102,7 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!
     }
 
     let error = AWSError(errorCode: errorCode)
-    
+
     options.pointee.onResolved(options.pointee.resolver, addresses, CRTError.crtError(error))
     options.deinitializeAndDeallocate()
 }

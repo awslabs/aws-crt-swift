@@ -23,7 +23,7 @@ public final class EventLoopGroup {
 
         }, shutdown_callback_user_data: shutDownPtr)
         let ptr: UnsafePointer<aws_shutdown_callback_options>? = fromOptionalPointer(ptr: options)
-        
+
         defer {ptr?.deallocate()}
         self.shutDownOptions = shutDownOptions
 
