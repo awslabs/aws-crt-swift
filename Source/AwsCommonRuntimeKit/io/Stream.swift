@@ -17,9 +17,8 @@ public class AwsInputStream {
 
     public init(_ impl: AwsStream, allocator: Allocator = defaultAllocator) {
         self.length = Int64(impl.length)
-        let ptr:UnsafeMutablePointer<AwsStream> = fromPointer(ptr: impl)
-        self.implPointer = ptr
-        self.rawValue = aws_input_stream(allocator: allocator.rawValue, impl: ptr, vtable: &vtable)
+        self.implPointer = fromPointer(ptr: impl)
+        self.rawValue = aws_input_stream(allocator: allocator.rawValue, impl: self.implPointer, vtable: &vtable)
     }
     
     deinit {

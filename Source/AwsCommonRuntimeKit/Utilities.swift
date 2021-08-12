@@ -74,6 +74,21 @@ func fromOptionalPointer<T, P: PointerConformance>(ptr: T?) -> P? {
     return nil
 }
 
+func allocate<T>(_ capacity: Int = 1) -> UnsafeMutablePointer<T> {
+    let ptr = UnsafeMutablePointer<T>.allocate(capacity: capacity)
+    zeroStruct(ptr)
+    return ptr
+}
+
+func toPointerArray<T, P: PointerConformance>(_ array: [T]) -> P {
+    let pointers = UnsafeMutablePointer<T>.allocate(capacity: array.count)
+
+    for index in 0...array.count {
+        pointers.advanced(by: index).initialize(to: array[index])
+    }
+    return P(OpaquePointer(pointers))
+}
+
 protocol PointerConformance {
     init(_ pointer: OpaquePointer)
 }
