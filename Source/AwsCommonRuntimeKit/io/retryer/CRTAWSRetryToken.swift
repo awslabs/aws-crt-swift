@@ -13,8 +13,7 @@ public final class CRTAWSRetryToken {
                                          retry_strategy: retryStrategy.rawValue,
                                          ref_count: atomicVar.rawValue,
                                          impl: retryStrategyPtr)
-        let retryTokenPtr: UnsafeMutablePointer<aws_retry_token> = fromPointer(ptr: retryToken)
-        self.rawValue = retryTokenPtr
+        self.rawValue = fromPointer(ptr: retryToken)
     }
 
     public init(rawValue: UnsafeMutablePointer<aws_retry_token>,

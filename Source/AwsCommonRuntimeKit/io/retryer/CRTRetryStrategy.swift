@@ -103,14 +103,12 @@ class WrappedCRTRetryStrategy {
 
         let atomicVar = Atomic<Int>(1)
         self.allocator = allocator
-        let retryStategyPtr: UnsafeMutablePointer<CRTRetryStrategy> = fromPointer(ptr: impl)
-        let vTablePtr: UnsafeMutablePointer<aws_retry_strategy_vtable> = fromPointer(ptr: vtable)
-        self.vTablePtr = vTablePtr
-        self.implementationPtr = retryStategyPtr
+        self.vTablePtr = fromPointer(ptr: vtable)
+        self.implementationPtr = fromPointer(ptr: impl)
         self.rawValue = aws_retry_strategy(allocator: allocator.rawValue,
                                            vtable: vTablePtr,
                                            ref_count: atomicVar.rawValue,
-                                           impl: retryStategyPtr)
+                                           impl: implementationPtr)
     }
 
 }

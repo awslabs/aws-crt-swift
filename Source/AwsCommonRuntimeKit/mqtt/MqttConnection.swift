@@ -152,8 +152,7 @@ public class MqttConnection {
         mqttOptions.keep_alive_time_secs = UInt16(keepAliveTime)
         mqttOptions.ping_timeout_ms = UInt32(requestTimeoutMs)
         mqttOptions.clean_session = cleanSession
-        let connectionPtr: UnsafeMutableRawPointer = fromPointer(ptr: self)
-        mqttOptions.user_data = connectionPtr
+        mqttOptions.user_data = fromPointer(ptr: self)
 
         mqttOptions.on_connection_complete = { (connectionPtr,
                                                 errorCode,
