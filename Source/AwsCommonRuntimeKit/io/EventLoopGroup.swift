@@ -12,25 +12,7 @@ public final class EventLoopGroup {
     public init(threadCount: UInt16 = 0,
                 allocator: Allocator = defaultAllocator,
                 shutDownOptions: ShutDownCallbackOptions? = nil) {
-        var ptr: UnsafePointer<aws_shutdown_callback_options>?
-        if let shutDownOptions = shutDownOptions {
-            let shutDownPtr = UnsafeMutablePointer<ShutDownCallbackOptions>.allocate(capacity: 1)
-            shutDownPtr.initialize(to: shutDownOptions)
-            let options = aws_shutdown_callback_options(shutdown_callback_fn: { (userData) in
-                guard let userdata = userData else {
-                    return
-                }
-                let pointer = userdata.assumingMemoryBound(to: ShutDownCallbackOptions.self)
-                defer { pointer.deinitializeAndDeallocate() }
-                pointer.pointee.shutDownCallback(pointer.pointee.semaphore)
-
-            }, shutdown_callback_user_data: shutDownPtr)
-
-            let mutablePtr = UnsafeMutablePointer<aws_shutdown_callback_options>.allocate(capacity: 1)
-            mutablePtr.initialize(to: options)
-            ptr = UnsafePointer(mutablePtr)
-        }
-        defer {ptr?.deallocate()}
+        let ptr = shutDownOptions?.toShutDownCPointer()
         self.shutDownOptions = shutDownOptions
 
         self.rawValue = aws_event_loop_group_new_default(allocator.rawValue, threadCount, ptr)

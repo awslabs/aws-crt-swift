@@ -19,7 +19,7 @@ public final class DefaultHostResolver: HostResolver {
     private let allocator: Allocator
     public let shutDownOptions: ShutDownCallbackOptions?
     var shutdownCallbackOptionPtr: UnsafePointer<aws_shutdown_callback_options>?
-    let hostResolverOptionsPtr = UnsafeMutablePointer<aws_host_resolver_default_options>.allocate(capacity: 1)
+    let hostResolverOptionsPtr: UnsafeMutablePointer<aws_host_resolver_default_options>
 
     public init(eventLoopGroup elg: EventLoopGroup,
                 maxHosts: Int,
@@ -28,29 +28,14 @@ public final class DefaultHostResolver: HostResolver {
                 shutDownOptions: ShutDownCallbackOptions? = nil) {
         self.allocator = allocator
 
-        if let shutDownOptions = shutDownOptions {
-            let shutDownPtr = UnsafeMutablePointer<ShutDownCallbackOptions>.allocate(capacity: 1)
-            shutDownPtr.initialize(to: shutDownOptions)
-            let options = aws_shutdown_callback_options(shutdown_callback_fn: { (userData) in
-                guard let userdata = userData else {
-                    return
-                }
-                let pointer = userdata.assumingMemoryBound(to: ShutDownCallbackOptions.self)
-                defer { pointer.deinitializeAndDeallocate() }
-                pointer.pointee.shutDownCallback(pointer.pointee.semaphore)
-            }, shutdown_callback_user_data: shutDownPtr)
+        let shutdownCallbackOptionPtr = shutDownOptions?.toShutDownCPointer()
 
-            let mutablePtr = UnsafeMutablePointer<aws_shutdown_callback_options>.allocate(capacity: 1)
-            mutablePtr.initialize(to: options)
-
-            shutdownCallbackOptionPtr = UnsafePointer(mutablePtr)
-        }
         self.shutDownOptions = shutDownOptions
         let options = aws_host_resolver_default_options(max_entries: maxHosts,
                                                         el_group: elg.rawValue,
                                                         shutdown_options: shutdownCallbackOptionPtr,
                                                         system_clock_override_fn: nil)
-        hostResolverOptionsPtr.initialize(to: options)
+        self.hostResolverOptionsPtr = fromPointer(ptr: options)
         self.rawValue = aws_host_resolver_new_default(allocator.rawValue, hostResolverOptionsPtr)
 
         let config = aws_host_resolution_config(
@@ -59,9 +44,7 @@ public final class DefaultHostResolver: HostResolver {
             impl_data: nil
         )
 
-        let hostResolverConfigPointer = UnsafeMutablePointer<aws_host_resolution_config>.allocate(capacity: 1)
-        hostResolverConfigPointer.initialize(to: config)
-        self.config = hostResolverConfigPointer
+        self.config = fromPointer(ptr: config)
 
     }
 
@@ -79,15 +62,14 @@ public final class DefaultHostResolver: HostResolver {
         let options = ResolverOptions(resolver: self,
                                       host: AWSString(host, allocator: self.allocator),
                                       onResolved: callback)
-        let unmanagedOptions = Unmanaged.passRetained(options)
+        let pointer: UnsafeMutableRawPointer = fromPointer(ptr: options)
 
         if aws_host_resolver_resolve_host(self.rawValue,
                                           options.host.rawValue,
                                           onHostResolved,
                                           self.config,
-                                          unmanagedOptions.toOpaque()) != AWS_OP_SUCCESS {
-            // We have an unbalanced retain on unmanagedOptions, need to release it!
-            defer { unmanagedOptions.release() }
+                                          pointer) != AWS_OP_SUCCESS {
+            pointer.deallocate()
             throw AWSCommonRuntimeError()
         }
     }
@@ -98,8 +80,7 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!
                             _ errorCode: Int32,
                             _ hostAddresses: UnsafePointer<aws_array_list>!,
                             _ userData: UnsafeMutableRawPointer!) {
-    // Consumes the unbalanced retain that was made to get the value here
-    let options: ResolverOptions = Unmanaged.fromOpaque(userData).takeRetainedValue()
+    let options = userData.assumingMemoryBound(to: ResolverOptions.self)
 
     let length = aws_array_list_length(hostAddresses)
     var addresses: [HostAddress] = Array(repeating: HostAddress(), count: length)
@@ -111,5 +92,7 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!
     }
 
     let error = AWSError(errorCode: errorCode)
-    options.onResolved(options.resolver, addresses, CRTError.crtError(error))
+
+    options.pointee.onResolved(options.pointee.resolver, addresses, CRTError.crtError(error))
+    options.deinitializeAndDeallocate()
 }

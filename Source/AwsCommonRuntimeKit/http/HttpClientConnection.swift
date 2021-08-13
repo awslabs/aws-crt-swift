@@ -40,16 +40,19 @@ public class HttpClientConnection {
             guard let userData = userData else {
                 return -1
             }
-            let httpStreamCbData: HttpStreamCallbackData = Unmanaged.fromOpaque(userData).takeUnretainedValue()
-            guard let bufPtr = data!.pointee.ptr else {
-                return -1
-            }
-            guard let bufLen = data?.pointee.len else {
-                return -1
-            }
+
+            let httpStreamCbData = userData.assumingMemoryBound(to: HttpStreamCallbackData.self)
+
+            guard let bufPtr = data?.pointee.ptr,
+                  let bufLen = data?.pointee.len,
+                  let stream = httpStreamCbData.pointee.stream,
+                  let incomingBodyFn = httpStreamCbData.pointee.requestOptions.onIncomingBody else {
+                      return -1
+                  }
 
             let callbackBytes = Data(bytesNoCopy: bufPtr, count: bufLen, deallocator: .none)
-            httpStreamCbData.requestOptions.onIncomingBody!(httpStreamCbData.stream!, callbackBytes)
+
+            incomingBodyFn(stream, callbackBytes)
 
             return 0
         }
@@ -58,7 +61,7 @@ public class HttpClientConnection {
             guard let userData = userData else {
                 return -1
             }
-            let httpStreamCbData: HttpStreamCallbackData = Unmanaged.fromOpaque(userData).takeUnretainedValue()
+            let httpStreamCbData = userData.assumingMemoryBound(to: HttpStreamCallbackData.self)
 
             var headers = [HttpHeader]()
             for cHeader in UnsafeBufferPointer(start: headerArray, count: headersCount) {
@@ -70,9 +73,13 @@ public class HttpClientConnection {
 
             }
             let headersStruct = HttpHeaders(fromArray: headers)
-            httpStreamCbData.requestOptions.onIncomingHeaders(httpStreamCbData.stream!,
-                                                              HttpHeaderBlock(rawValue: headerBlock),
-                                                              headersStruct)
+
+            guard let stream = httpStreamCbData.pointee.stream else {
+                return -1
+            }
+            httpStreamCbData.pointee.requestOptions.onIncomingHeaders(stream,
+                                                                      HttpHeaderBlock(rawValue: headerBlock),
+                                                                      headersStruct )
             return 0
         }
         options.on_response_header_block_done = {_, headerBlock, userData -> Int32 in
@@ -80,9 +87,12 @@ public class HttpClientConnection {
             guard let userData = userData else {
                 return -1
             }
-            let httpStreamCbData: HttpStreamCallbackData = Unmanaged.fromOpaque(userData).takeUnretainedValue()
-            httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(httpStreamCbData.stream!,
-                                                                       HttpHeaderBlock(rawValue: headerBlock))
+            let httpStreamCbData = userData.assumingMemoryBound(to: HttpStreamCallbackData.self)
+            guard let stream = httpStreamCbData.pointee.stream else {
+                return -1
+            }
+            httpStreamCbData.pointee.requestOptions.onIncomingHeadersBlockDone(stream, HttpHeaderBlock(rawValue: headerBlock))
+
             return 0
         }
         options.on_complete = {_, errorCode, userData in
@@ -90,14 +100,17 @@ public class HttpClientConnection {
             guard let userData = userData else {
                 return
             }
-            let httpStreamCbData: HttpStreamCallbackData = Unmanaged.fromOpaque(userData).takeUnretainedValue()
+            let httpStreamCbData = userData.assumingMemoryBound(to: HttpStreamCallbackData.self)
             let error = AWSError(errorCode: errorCode)
-
-            httpStreamCbData.requestOptions.onStreamComplete!(httpStreamCbData.stream!, CRTError.crtError(error))
+            guard let stream = httpStreamCbData.pointee.stream,
+                  let onStreamCompleteFn = httpStreamCbData.pointee.requestOptions.onStreamComplete else {
+                      return
+                  }
+            onStreamCompleteFn(stream, CRTError.crtError(error))
         }
 
         let cbData = HttpStreamCallbackData(requestOptions: requestOptions)
-        options.user_data = Unmanaged.passRetained(cbData).toOpaque()
+        options.user_data = fromOptionalPointer(ptr: cbData)
 
         let stream = HttpStream(httpConnection: self)
         cbData.stream = stream

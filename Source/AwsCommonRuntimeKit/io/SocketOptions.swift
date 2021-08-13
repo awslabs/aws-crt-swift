@@ -17,8 +17,7 @@ public class SocketOptions {
             keep_alive_max_failed_probes: 0,
             keepalive: false
         )
-        let ptr = UnsafeMutablePointer<aws_socket_options>.allocate(capacity: 1)
-        ptr.initialize(to: socketOptions)
+        let ptr: UnsafeMutablePointer<aws_socket_options> = fromPointer(ptr: socketOptions)
         self.rawValue = ptr
     }
 

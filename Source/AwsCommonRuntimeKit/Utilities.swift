@@ -8,23 +8,23 @@ import AwsCCommon
 
 @inlinable
 func zeroStruct<T>(_ ptr: UnsafeMutablePointer<T>) {
-  memset(ptr, 0x00, MemoryLayout<T>.size)
+    memset(ptr, 0x00, MemoryLayout<T>.size)
 }
 
 extension Data {
-  @inlinable
-  var awsByteCursor: aws_byte_cursor {
-    return withUnsafeBytes { (rawPtr: UnsafeRawBufferPointer) -> aws_byte_cursor in
-      return aws_byte_cursor_from_array(rawPtr.baseAddress, self.count)
+    @inlinable
+    var awsByteCursor: aws_byte_cursor {
+        return withUnsafeBytes { (rawPtr: UnsafeRawBufferPointer) -> aws_byte_cursor in
+            return aws_byte_cursor_from_array(rawPtr.baseAddress, self.count)
+        }
     }
-  }
 }
 
 extension String {
-  @inlinable
-  var awsByteCursor: aws_byte_cursor {
-    return aws_byte_cursor_from_c_str(self.asCStr())
-  }
+    @inlinable
+    var awsByteCursor: aws_byte_cursor {
+        return aws_byte_cursor_from_c_str(self.asCStr())
+    }
 }
 
 public extension Int32 {
@@ -57,3 +57,46 @@ extension Bool {
         return self ? 1 : 0
     }
 }
+
+// Ensure that any UnsafeXXXPointer is ALWAYS initialized to either nil or a value in a single call. Prevents the
+// case where you create an UnsafeMutableWhatever and do not call `initialize()` on it, resulting in a non-null but
+// also invalid pointer
+func fromPointer<T, P: PointerConformance>(ptr: T) -> P {
+    let pointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
+    pointer.initialize(to: ptr)
+    return P(OpaquePointer(pointer))
+}
+
+func fromOptionalPointer<T, P: PointerConformance>(ptr: T?) -> P? {
+    if let ptr = ptr {
+        return fromPointer(ptr: ptr)
+    }
+    return nil
+}
+
+func allocatePointer<T>(_ capacity: Int = 1) -> UnsafeMutablePointer<T> {
+    let ptr = UnsafeMutablePointer<T>.allocate(capacity: capacity)
+    zeroStruct(ptr)
+    return ptr
+}
+
+func toPointerArray<T, P: PointerConformance>(_ array: [T]) -> P {
+    let pointers = UnsafeMutablePointer<T>.allocate(capacity: array.count)
+
+    for index in 0...array.count {
+        pointers.advanced(by: index).initialize(to: array[index])
+    }
+    return P(OpaquePointer(pointers))
+}
+
+protocol PointerConformance {
+    init(_ pointer: OpaquePointer)
+}
+
+extension UnsafeMutablePointer: PointerConformance {}
+
+extension UnsafeMutableRawPointer: PointerConformance {}
+
+extension UnsafePointer: PointerConformance {}
+
+extension UnsafeRawPointer: PointerConformance {}

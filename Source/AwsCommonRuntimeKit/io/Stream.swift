@@ -17,10 +17,8 @@ public class AwsInputStream {
 
     public init(_ impl: AwsStream, allocator: Allocator = defaultAllocator) {
         self.length = Int64(impl.length)
-        let ptr = UnsafeMutablePointer<AwsStream>.allocate(capacity: 1)
-        ptr.initialize(to: impl)
-        self.implPointer = ptr
-        self.rawValue = aws_input_stream(allocator: allocator.rawValue, impl: ptr, vtable: &vtable)
+        self.implPointer = fromPointer(ptr: impl)
+        self.rawValue = aws_input_stream(allocator: allocator.rawValue, impl: self.implPointer, vtable: &vtable)
     }
     
     deinit {
@@ -78,7 +76,7 @@ extension FileHandle: AwsStream {
 private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                     _ offset: Int64,
                     _ seekBasis: aws_stream_seek_basis) -> Int32 {
-    let inputStream = stream.pointee.impl.bindMemory(to: AwsStream.self, capacity: 1).pointee
+    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsStream.self).pointee
     if inputStream.seek(offset: offset, basis: seekBasis) {
         return AWS_OP_SUCCESS
     }
@@ -96,14 +94,14 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
 
 private func doGetStatus(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                          _ result: UnsafeMutablePointer<aws_stream_status>!) -> Int32 {
-    let inputStream = stream.pointee.impl.bindMemory(to: AwsStream.self, capacity: 1).pointee
+    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsStream.self).pointee
     result.pointee = inputStream.status
     return AWS_OP_SUCCESS
 }
 
 private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                          _ result: UnsafeMutablePointer<Int64>!) -> Int32 {
-    let inputStream = stream.pointee.impl.bindMemory(to: AwsStream.self, capacity: 1).pointee
+    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsStream.self).pointee
     let length = inputStream.length
   
     result.pointee = Int64(length)

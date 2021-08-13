@@ -12,9 +12,7 @@ public class HttpProxyOptions {
     public var tlsOptions: TlsConnectionOptions?
 
     public init(hostName: String, port: UInt16) {
-        let ptr = UnsafeMutablePointer<aws_http_proxy_options>.allocate(capacity: 1)
-        zeroStruct(ptr)
-        self.rawValue = ptr
+        self.rawValue = allocatePointer()
         self.hostName = hostName
         self.port = port
     }

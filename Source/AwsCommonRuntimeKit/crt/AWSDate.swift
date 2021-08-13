@@ -38,24 +38,22 @@ public class AWSDate: Comparable {
     }
 
     public init() {
-        self.rawValue = UnsafeMutablePointer<aws_date_time>.allocate(capacity: 1)
-        rawValue.initialize(to: aws_date_time())
+        self.rawValue = fromPointer(ptr: aws_date_time())
         aws_date_time_init_now(rawValue)
     }
     public init(epochMs: UInt64) {
-        self.rawValue = UnsafeMutablePointer<aws_date_time>.allocate(capacity: 1)
+        self.rawValue = allocatePointer()
         aws_date_time_init_epoch_millis(rawValue, epochMs)
     }
 
     public init(epochS: Double) {
-        self.rawValue = UnsafeMutablePointer<aws_date_time>.allocate(capacity: 1)
+        self.rawValue = allocatePointer()
         aws_date_time_init_epoch_secs(rawValue, epochS)
     }
 
     public init(timestamp: String) {
-        self.rawValue = UnsafeMutablePointer<aws_date_time>.allocate(capacity: 1)
-        let pointer = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
-        pointer.initialize(to: timestamp.awsByteCursor)
+        self.rawValue = allocatePointer()
+        let pointer: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: timestamp.awsByteCursor)
         defer { pointer.deinitializeAndDeallocate()}
         aws_date_time_init_from_str_cursor(rawValue, pointer, DateFormat.autoDetect.rawValue)
     }
@@ -105,7 +103,7 @@ public class AWSDate: Comparable {
 
 extension AWSDate {
     func toLocalTimeString(format: DateFormat) -> String? {
-        let stringPtr = UnsafeMutablePointer<aws_byte_buf>.allocate(capacity: 1)
+        let stringPtr: UnsafeMutablePointer<aws_byte_buf> = allocatePointer()
         if aws_date_time_to_local_time_str(rawValue, format.rawValue, stringPtr) == AWS_OP_SUCCESS {
             let byteCursor = aws_byte_cursor_from_buf(stringPtr)
             return byteCursor.toString()
@@ -115,7 +113,7 @@ extension AWSDate {
     }
 
     func toGMTString(format: DateFormat) -> String? {
-       let stringPtr = UnsafeMutablePointer<aws_byte_buf>.allocate(capacity: 1)
+        let stringPtr: UnsafeMutablePointer<aws_byte_buf> = allocatePointer()
         if aws_date_time_to_utc_time_str(rawValue, format.rawValue, stringPtr) == AWS_OP_SUCCESS {
             let byteCursor = aws_byte_cursor_from_buf(stringPtr)
             return byteCursor.toString()

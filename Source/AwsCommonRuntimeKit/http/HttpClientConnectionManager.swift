@@ -14,10 +14,8 @@ public class HttpClientConnectionManager {
     public init(options: HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) {
         self.options = options
         self.allocator = allocator
-        let shutDownPtr = UnsafeMutablePointer<ShutDownCallbackOptions>.allocate(capacity: 1)
-        if let shutDownOptions = options.shutDownOptions {
-        shutDownPtr.initialize(to: shutDownOptions)
-        }
+        let shutDownPtr: UnsafeMutablePointer<ShutDownCallbackOptions>? = fromOptionalPointer(ptr: options.shutDownOptions)
+
         var mgrOptions = aws_http_connection_manager_options(bootstrap: options.clientBootstrap.rawValue,
                                                              initial_window_size: options.initialWindowSize,
                                                              socket_options: options.socketOptions.rawValue,
@@ -66,8 +64,7 @@ public class HttpClientConnectionManager {
         let callbackData = HttpClientConnectionCallbackData(onConnectionAcquired: onConnectionAcquired,
                                                             connectionManager: self,
                                                             allocator: allocator)
-        let cbData = UnsafeMutablePointer<HttpClientConnectionCallbackData>.allocate(capacity: 1)
-        cbData.initialize(to: callbackData)
+        let cbData: UnsafeMutablePointer<HttpClientConnectionCallbackData> = fromPointer(ptr: callbackData)
 
         aws_http_connection_manager_acquire_connection(manager, { (connection, errorCode, userData) in
             guard let userData = userData else {

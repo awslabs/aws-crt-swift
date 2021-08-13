@@ -63,8 +63,7 @@ public class SigV4HttpRequestSigner {
                                                signable: signable,
                                                onSigningComplete: onSigningComplete)
 
-        let configPointer = UnsafeMutablePointer<aws_signing_config_aws>.allocate(capacity: 1)
-        configPointer.initialize(to: config.rawValue)
+        let configPointer: UnsafeMutablePointer<aws_signing_config_aws> = fromPointer(ptr: config.rawValue)
         let base = configPointer.withMemoryRebound(to: aws_signing_config_base.self,
                                                    capacity: 1) { (configPointer)
             -> UnsafeMutablePointer<aws_signing_config_base> in
@@ -72,8 +71,7 @@ public class SigV4HttpRequestSigner {
         }
         let configPtr = UnsafePointer(base)
 
-        let callbackPointer = UnsafeMutablePointer<SigningCallbackData>.allocate(capacity: 1)
-        callbackPointer.initialize(to: callbackData)
+        let callbackPointer: UnsafeMutablePointer<SigningCallbackData> = fromPointer(ptr: callbackData)
 
         defer {
             base.deinitializeAndDeallocate()
