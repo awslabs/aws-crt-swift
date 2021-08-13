@@ -47,8 +47,8 @@ private func scheduleRetry(_ token: UnsafeMutablePointer<aws_retry_token>?,
 
     guard let retryStrategy = userData?.assumingMemoryBound(to: CRTRetryStrategy.self),
           let token = token else {
-        return 1
-    }
+              return 1
+          }
 
     var scheduleCallbackData = CRTScheduleRetryCallbackData(allocator: retryStrategy.pointee.allocator)
     let callbackPointer: UnsafeMutablePointer<CRTScheduleRetryCallbackData> = fromPointer(ptr: scheduleCallbackData)
@@ -101,8 +101,7 @@ class WrappedCRTRetryStrategy {
                                                record_success: recordSuccess,
                                                release_token: releaseToken)
 
-        let intPointer: UnsafeMutableRawPointer = fromPointer(ptr: 1)
-        let atomicVar = aws_atomic_var(value: intPointer)
+        let atomicVar = Atomic<Int>(1)
         self.allocator = allocator
         let retryStategyPtr: UnsafeMutablePointer<CRTRetryStrategy> = fromPointer(ptr: impl)
         let vTablePtr: UnsafeMutablePointer<aws_retry_strategy_vtable> = fromPointer(ptr: vtable)
@@ -110,7 +109,7 @@ class WrappedCRTRetryStrategy {
         self.implementationPtr = retryStategyPtr
         self.rawValue = aws_retry_strategy(allocator: allocator.rawValue,
                                            vtable: vTablePtr,
-                                           ref_count: atomicVar,
+                                           ref_count: atomicVar.rawValue,
                                            impl: retryStategyPtr)
     }
 

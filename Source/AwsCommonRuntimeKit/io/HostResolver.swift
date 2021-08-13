@@ -27,18 +27,8 @@ public final class DefaultHostResolver: HostResolver {
                 allocator: Allocator = defaultAllocator,
                 shutDownOptions: ShutDownCallbackOptions? = nil) {
         self.allocator = allocator
-        let shutDownPtr: UnsafeMutablePointer<ShutDownCallbackOptions>? = fromOptionalPointer(ptr: shutDownOptions)
 
-        let shutDownCallbackOptions = aws_shutdown_callback_options(shutdown_callback_fn: { (userData) in
-            guard let userdata = userData else {
-                return
-            }
-            let pointer = userdata.assumingMemoryBound(to: ShutDownCallbackOptions.self)
-            pointer.pointee.shutDownCallback(pointer.pointee.semaphore)
-            pointer.deinitializeAndDeallocate()
-        }, shutdown_callback_user_data: shutDownPtr)
-
-        let shutdownCallbackOptionPtr: UnsafePointer<aws_shutdown_callback_options> = fromPointer(ptr: shutDownCallbackOptions)
+        let shutdownCallbackOptionPtr = shutDownOptions?.toShutDownCPointer()
 
         self.shutDownOptions = shutDownOptions
         let options = aws_host_resolver_default_options(max_entries: maxHosts,

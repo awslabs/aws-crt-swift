@@ -20,7 +20,7 @@ private func getCredentialsFn(_ credentialsProviderPtr: UnsafeMutablePointer<aws
         }
     }
     credentialsProvider.pointee.getCredentials(credentialCallbackData: credentialCallbackData)
-   return 0
+    return 0
 }
 
 public protocol CRTCredentialsProvider {
@@ -48,8 +48,7 @@ class WrappedCRTCredentialsProvider {
 
         })
         let shutDownOptions = Self.setUpShutDownOptions(shutDownOptions: shutDownOptions)
-        let intPointer: UnsafeMutableRawPointer = fromPointer(ptr: 1)
-        let atomicVar = aws_atomic_var(value: intPointer)
+        let atomicVar = Atomic<Int>(1)
         self.allocator = allocator
         let credProviderPtr: UnsafeMutablePointer<CRTCredentialsProvider> = fromPointer(ptr: impl)
         let vTablePtr: UnsafeMutablePointer<aws_credentials_provider_vtable> = fromPointer(ptr: vtable)
@@ -59,7 +58,7 @@ class WrappedCRTCredentialsProvider {
                                                  allocator: allocator.rawValue,
                                                  shutdown_options: shutDownOptions,
                                                  impl: credProviderPtr,
-                                                 ref_count: atomicVar)
+                                                 ref_count: atomicVar.rawValue)
 
     }
 

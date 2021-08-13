@@ -8,23 +8,23 @@ import AwsCCommon
 
 @inlinable
 func zeroStruct<T>(_ ptr: UnsafeMutablePointer<T>) {
-  memset(ptr, 0x00, MemoryLayout<T>.size)
+    memset(ptr, 0x00, MemoryLayout<T>.size)
 }
 
 extension Data {
-  @inlinable
-  var awsByteCursor: aws_byte_cursor {
-    return withUnsafeBytes { (rawPtr: UnsafeRawBufferPointer) -> aws_byte_cursor in
-      return aws_byte_cursor_from_array(rawPtr.baseAddress, self.count)
+    @inlinable
+    var awsByteCursor: aws_byte_cursor {
+        return withUnsafeBytes { (rawPtr: UnsafeRawBufferPointer) -> aws_byte_cursor in
+            return aws_byte_cursor_from_array(rawPtr.baseAddress, self.count)
+        }
     }
-  }
 }
 
 extension String {
-  @inlinable
-  var awsByteCursor: aws_byte_cursor {
-    return aws_byte_cursor_from_c_str(self.asCStr())
-  }
+    @inlinable
+    var awsByteCursor: aws_byte_cursor {
+        return aws_byte_cursor_from_c_str(self.asCStr())
+    }
 }
 
 public extension Int32 {

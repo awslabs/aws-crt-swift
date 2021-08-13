@@ -167,7 +167,7 @@ public final class CRTAWSCredentialsProvider {
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
-    #if os(macOS)
+#if os(macOS)
     /// Creates a credentials provider that sources credentials from IoT Core.
     ///
     /// - Parameters:
@@ -195,7 +195,7 @@ public final class CRTAWSCredentialsProvider {
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
-    #endif
+#endif
 
     /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
     /// the callback passed in.
@@ -229,5 +229,4 @@ public final class CRTAWSCredentialsProvider {
     deinit {
         aws_credentials_provider_release(rawValue)
     }
-
 }

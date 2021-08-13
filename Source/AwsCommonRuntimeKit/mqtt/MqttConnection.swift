@@ -182,9 +182,9 @@ public class MqttConnection {
                 if aws_mqtt_client_connection_use_websockets(rawValue,
                                                              { (httpRequest, userData, completeFn, completeUserData) in
                     guard let userData = userData,
-                        let httpRequest = httpRequest else {
-                        return
-                    }
+                          let httpRequest = httpRequest else {
+                              return
+                          }
                     let ptr = userData.assumingMemoryBound(to: MqttConnection.self)
 
                     let onInterceptComplete: OnWebSocketHandshakeInterceptComplete = {request, crtError in
@@ -235,14 +235,14 @@ public class MqttConnection {
     /// - Returns: A `Bool` of True if the connection is open and is being shut down.
     func disconnect() -> Bool {
 
-       return aws_mqtt_client_connection_disconnect(rawValue, { (connectionPtr, userData) in
+        return aws_mqtt_client_connection_disconnect(rawValue, { (connectionPtr, userData) in
             guard let userData = userData else {
                 return
             }
             let connectionPtr = userData.assumingMemoryBound(to: MqttConnection.self)
             defer { connectionPtr.deinitializeAndDeallocate()}
 
-        connectionPtr.pointee.onDisconnect(connectionPtr.pointee.rawValue)
+            connectionPtr.pointee.onDisconnect(connectionPtr.pointee.rawValue)
         }, rawValue) == AWS_OP_SUCCESS
     }
 
@@ -300,8 +300,8 @@ public class MqttConnection {
             guard let userData = userData,
                   let topic = topicPtr?.pointee.toString(),
                   let payload = payload else {
-                return
-            }
+                      return
+                  }
             let ptr = userData.assumingMemoryBound(to: PubCallbackData.self)
             defer {
                 ptr.deinitializeAndDeallocate()
@@ -350,11 +350,11 @@ public class MqttConnection {
         let packetId = aws_mqtt_client_connection_subscribe_multiple(rawValue,
                                                                      &awsArray,
                                                                      { (_, packetId, topicPointers, errorCode, userData)
-                                                                        in
+            in
             guard let userData = userData,
                   let topicPointers = topicPointers else {
-                return
-            }
+                      return
+                  }
             let ptr = userData.assumingMemoryBound(to: MultiSubAckCallbackData.self)
             defer {ptr.deinitializeAndDeallocate()}
             var topics = [String]()
@@ -441,10 +441,8 @@ public class MqttConnection {
                                             CRTError.crtError(error))
         }, opCallbackPtr)
 
-        defer {
-            topicPointer.deinitializeAndDeallocate()
-            payloadPointer.deinitializeAndDeallocate()
-        }
+        topicPointer.deinitializeAndDeallocate()
+        payloadPointer.deinitializeAndDeallocate()
 
         return packetId
     }
