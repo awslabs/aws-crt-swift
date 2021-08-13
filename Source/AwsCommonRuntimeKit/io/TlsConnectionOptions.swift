@@ -10,7 +10,7 @@ public final class TlsConnectionOptions {
 	init(_ context: TlsContext, allocator: Allocator) {
 		self.allocator = allocator
 
-        self.rawValue = allocate()
+        self.rawValue = allocatePointer()
 		aws_tls_connection_options_init_from_ctx(rawValue, context.rawValue)
 	}
 

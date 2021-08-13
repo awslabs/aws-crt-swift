@@ -74,7 +74,7 @@ func fromOptionalPointer<T, P: PointerConformance>(ptr: T?) -> P? {
     return nil
 }
 
-func allocate<T>(_ capacity: Int = 1) -> UnsafeMutablePointer<T> {
+func allocatePointer<T>(_ capacity: Int = 1) -> UnsafeMutablePointer<T> {
     let ptr = UnsafeMutablePointer<T>.allocate(capacity: capacity)
     zeroStruct(ptr)
     return ptr

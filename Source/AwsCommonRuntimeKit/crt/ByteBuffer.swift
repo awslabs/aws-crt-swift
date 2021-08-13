@@ -280,7 +280,7 @@ extension ByteBuffer {
         }
 
         let bufferSize = 1024
-        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        let buffer: UnsafeMutablePointer<UInt8> = allocatePointer(bufferSize)
         defer {
             buffer.deallocate()
         }
