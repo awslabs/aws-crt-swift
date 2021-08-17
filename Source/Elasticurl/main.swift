@@ -221,7 +221,7 @@ struct Elasticurl {
     static func writeData(data: Data) {
         context.outputStream.write(data)
     }
-    
+
     static func runWithLogger() {
         parseArguments()
         createOutputFile()
