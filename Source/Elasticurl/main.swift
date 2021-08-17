@@ -221,20 +221,25 @@ struct Elasticurl {
     static func writeData(data: Data) {
         context.outputStream.write(data)
     }
+    
+    static func runWithLogger() {
+        parseArguments()
+        createOutputFile()
+        var logger: Logger?
+        if let traceFile = context.traceFile {
+            print("enable logging with trace file")
+            logger = Logger(filePath: traceFile, level: context.logLevel, allocator: defaultAllocator)
+        } else {
+            print("enable logging with stdout")
+            logger = Logger(pipe: stdout, level: context.logLevel, allocator: defaultAllocator)
+        }
+        withExtendedLifetime(logger) {
+            run()
+        }
+    }
 
     static func run() {
         do {
-            parseArguments()
-            createOutputFile()
-
-            var logger: Logger?
-            if let traceFile = context.traceFile {
-                print("enable logging with trace file")
-                logger = Logger(filePath: traceFile, level: context.logLevel, allocator: defaultAllocator)
-            } else {
-                print("enable logging with stdout")
-                logger = Logger(pipe: stdout, level: context.logLevel, allocator: defaultAllocator)
-            }
 
             guard let host = context.url.host else {
                 print("no proper host was parsed from the url. quitting.")
@@ -357,4 +362,4 @@ struct Elasticurl {
     }
 }
 
-Elasticurl.run()
+Elasticurl.runWithLogger()
