@@ -21,7 +21,7 @@ public final class CRTAWSCredentialsProvider {
                             shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil,
                             allocator: Allocator = defaultAllocator) {
         let wrapped = WrappedCRTCredentialsProvider(impl: impl, allocator: allocator, shutDownOptions: shutDownOptions)
-        self.init(credentialsProvider: &wrapped.rawValue, allocator: wrapped.allocator)
+        self.init(credentialsProvider: wrapped.rawValue, allocator: wrapped.allocator)
     }
 
     /// Creates a credentials provider containing a fixed set of credentials.
