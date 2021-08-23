@@ -7,4 +7,3 @@ public protocol CRTCredentialsProvider {
     var allocator: Allocator {get set}
     func getCredentials(credentialCallbackData: CRTCredentialsProviderCallbackData)
 }
-
