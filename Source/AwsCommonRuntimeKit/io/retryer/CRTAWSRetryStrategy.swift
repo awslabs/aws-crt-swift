@@ -14,12 +14,6 @@ public final class CRTAWSRetryStrategy {
         self.allocator = allocator
     }
 
-    public convenience init(fromProvider impl: CRTRetryStrategy,
-                            allocator: Allocator = defaultAllocator) {
-        let wrapped = WrappedCRTRetryStrategy(impl: impl, allocator: allocator)
-        self.init(retryStrategy: &wrapped.rawValue, allocator: wrapped.allocator)
-    }
-
     /// Creates an AWS Retryer implementing the correct retry strategy.
     ///
     /// - Parameters:

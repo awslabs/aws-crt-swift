@@ -6,9 +6,9 @@ import AwsCIo
 public final class CRTAWSRetryToken {
     var rawValue: UnsafeMutablePointer<aws_retry_token>
 
-    public init(retryStrategy: CRTRetryStrategy, allocator: Allocator = defaultAllocator) {
+    public init(retryStrategy: CRTAWSRetryStrategy, allocator: Allocator = defaultAllocator) {
         let atomicVar = Atomic<Int>(1)
-        let retryStrategyPtr: UnsafeMutablePointer<CRTRetryStrategy> = fromPointer(ptr: retryStrategy)
+        let retryStrategyPtr: UnsafeMutablePointer<CRTAWSRetryStrategy> = fromPointer(ptr: retryStrategy)
         let retryToken = aws_retry_token(allocator: allocator.rawValue,
                                          retry_strategy: retryStrategy.rawValue,
                                          ref_count: atomicVar.rawValue,
