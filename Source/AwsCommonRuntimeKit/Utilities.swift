@@ -6,7 +6,6 @@ import struct Foundation.Data
 import class Foundation.FileHandle
 import AwsCCommon
 import AwsCCal
-import var CommonCrypto.CC_MD5_DIGEST_LENGTH
 
 @inlinable
 func zeroStruct<T>(_ ptr: UnsafeMutablePointer<T>) {
