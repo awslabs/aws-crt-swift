@@ -26,7 +26,7 @@ extension String {
     var awsByteCursor: aws_byte_cursor {
         return aws_byte_cursor_from_c_str(self.asCStr())
     }
-    
+
     func md5(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String? {
         let input: UnsafePointer<aws_byte_cursor> = fromPointer(ptr: self.awsByteCursor)
         let emptyBuffer: UInt8 = 0
