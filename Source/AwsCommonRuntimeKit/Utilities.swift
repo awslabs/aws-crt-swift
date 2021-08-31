@@ -6,6 +6,7 @@ import struct Foundation.Data
 import class Foundation.FileHandle
 import AwsCCommon
 import AwsCCal
+import var CommonCrypto.CC_MD5_DIGEST_LENGTH
 
 @inlinable
 func zeroStruct<T>(_ ptr: UnsafeMutablePointer<T>) {
@@ -31,13 +32,13 @@ extension String {
         let input: UnsafePointer<aws_byte_cursor> = fromPointer(ptr: self.awsByteCursor)
         let emptyBuffer: UInt8 = 0
         let bufferPtr: UnsafeMutablePointer<UInt8> = fromPointer(ptr: emptyBuffer)
-        let buffer = aws_byte_buf(len: self.count, buffer: bufferPtr, capacity: 256, allocator: allocator.rawValue)
+        let buffer = aws_byte_buf(len: 0, buffer: bufferPtr, capacity: 16, allocator: allocator.rawValue)
         let output: UnsafeMutablePointer<aws_byte_buf> = fromPointer(ptr: buffer)
 
         let result = aws_md5_compute(allocator.rawValue, input, output, truncate)
         if result == AWS_OP_SUCCESS {
             let byteCursor = aws_byte_cursor_from_buf(output)
-            return byteCursor.toString()
+            return byteCursor.toData().map { String(format: "%02hhx", $0) }.joined()
         } else {
             return nil
         }
