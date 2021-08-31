@@ -5,6 +5,7 @@ import struct Foundation.Date
 import struct Foundation.Data
 import class Foundation.FileHandle
 import AwsCCommon
+import AwsCCal
 
 @inlinable
 func zeroStruct<T>(_ ptr: UnsafeMutablePointer<T>) {
@@ -24,6 +25,22 @@ extension String {
     @inlinable
     var awsByteCursor: aws_byte_cursor {
         return aws_byte_cursor_from_c_str(self.asCStr())
+    }
+    
+    func md5(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String? {
+        let input: UnsafePointer<aws_byte_cursor> = fromPointer(ptr: self.awsByteCursor)
+        let emptyBuffer: UInt8 = 0
+        let bufferPtr: UnsafeMutablePointer<UInt8> = fromPointer(ptr: emptyBuffer)
+        let buffer = aws_byte_buf(len: self.count, buffer: bufferPtr, capacity: 256, allocator: allocator.rawValue)
+        let output: UnsafeMutablePointer<aws_byte_buf> = fromPointer(ptr: buffer)
+
+        let result = aws_md5_compute(allocator.rawValue, input, output, truncate)
+        if result == AWS_OP_SUCCESS {
+            let byteCursor = aws_byte_cursor_from_buf(output)
+            return byteCursor.toString()
+        } else {
+            return nil
+        }
     }
 }
 
