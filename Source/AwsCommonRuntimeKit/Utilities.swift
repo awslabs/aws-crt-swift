@@ -34,13 +34,12 @@ extension String {
         let buffer = aws_byte_buf(len: 0, buffer: bufferPtr, capacity: 16, allocator: allocator.rawValue)
         let output: UnsafeMutablePointer<aws_byte_buf> = fromPointer(ptr: buffer)
 
-        let result = aws_md5_compute(allocator.rawValue, input, output, truncate)
-        if result == AWS_OP_SUCCESS {
-            let byteCursor = aws_byte_cursor_from_buf(output)
-            return byteCursor.toData().map { String(format: "%02hhx", $0) }.joined()
-        } else {
+        guard AWS_OP_SUCCESS == aws_md5_compute(allocator.rawValue, input, output, truncate) else {
             return nil
         }
+
+        let byteCursor = aws_byte_cursor_from_buf(output)
+        return byteCursor.toData().base64EncodedString()
     }
 }
 

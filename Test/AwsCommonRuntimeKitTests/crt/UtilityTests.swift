@@ -12,7 +12,7 @@ class UtilityTests: XCTestCase {
     func testMd5() throws {
         let hello = "Hello"
         let md5 = hello.md5()
-        XCTAssertEqual(md5, "8b1a9953c4611296a827abf8c47804d7")
+        XCTAssertEqual(md5, "ixqZU8RhEpaoJ6v4xHgE1w==")
     }
 }
 
