@@ -116,6 +116,7 @@ var awsCHttpPlatformExcludes = ["bin", "integration-testing", "include/aws/http/
                                 "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"] + excludesFromAll
 let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 let awsCMqttPlatformExcludes = ["bin", "CODE_OF_CONDUCT.md"] + excludesFromAll
+let awsCEventStreamExcludes = [] + excludesFromAll
 
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
 
@@ -193,8 +194,14 @@ packageTargets.append(contentsOf: [
         ]
     ),
     .target(
+        name: "AwsCEventStreams",
+        dependencies: ["AwsCHttp", "AwsCCompression", "AwsCIo", "AwsCCal", "AwsCCommon"],
+        path: "aws-common-runtime/aws-c-event-stream",
+        exclude: awsCEventStreamExcludes
+    ),
+    .target(
         name: "AwsCommonRuntimeKit",
-        dependencies: [ "AwsCMqtt", "AwsCAuth", "AwsCHttp", "AwsCCal", "AwsCCompression", "AwsCIo", "AwsCCommon"],
+        dependencies: [ "AwsCMqtt", "AwsCAuth", "AwsCHttp", "AwsCCal", "AwsCCompression", "AwsCIo", "AwsCCommon", "AwsCEventStreams"],
         path: "Source/AwsCommonRuntimeKit",
         swiftSettings: [
 //            .unsafeFlags(["-g"]),

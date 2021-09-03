@@ -21,6 +21,15 @@ extension Data {
     }
 }
 
+extension ByteBuffer {
+    @inlinable
+    var awsByteBuf: aws_byte_buf {
+        return withUnsafeBytes(of: self.toByteArray()) { (rawPtr: UnsafeRawBufferPointer) -> aws_byte_buf in
+            return aws_byte_buf_from_array(rawPtr.baseAddress, Int(self.length))
+        }
+    }
+}
+
 extension String {
     @inlinable
     var awsByteCursor: aws_byte_cursor {
@@ -40,6 +49,15 @@ extension String {
 
         let byteCursor = aws_byte_cursor_from_buf(output)
         return byteCursor.toData().base64EncodedString()
+    }
+    
+    static func fromByteArray(pointer: UnsafePointer<Int8>) -> String? {
+        let swiftString = withUnsafePointer(to: pointer) {
+            $0.withMemoryRebound(to: UInt8.self, capacity: MemoryLayout.size(ofValue: $0)) {
+                String(cString: $0)
+            }
+        }
+        return swiftString
     }
 }
 
