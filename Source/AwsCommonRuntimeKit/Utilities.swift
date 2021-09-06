@@ -51,13 +51,34 @@ extension String {
         return byteCursor.toData().base64EncodedString()
     }
     
-    static func fromByteArray(pointer: UnsafePointer<Int8>) -> String? {
-        let swiftString = withUnsafePointer(to: pointer) {
-            $0.withMemoryRebound(to: UInt8.self, capacity: MemoryLayout.size(ofValue: $0)) {
-                String(cString: $0)
+    init<T>(tupleOfCChars: T, length: Int = Int.max) {
+        self = withUnsafePointer(to: tupleOfCChars) {
+            let lengthOfTuple = MemoryLayout<T>.size / MemoryLayout<CChar>.size
+            return $0.withMemoryRebound(to: UInt8.self, capacity: lengthOfTuple) {
+                String(bytes: UnsafeBufferPointer(start: $0, count: Swift.min(length, lengthOfTuple)), encoding: .utf8)!
             }
         }
-        return swiftString
+    }
+    
+    func copyTo<T>(tuple: inout T) {
+        
+        let tupleSize = MemoryLayout.size(ofValue: tuple)
+        
+        let size = min(count, tupleSize)
+
+        var cStr = utf8CString
+
+        withUnsafeMutablePointer(to: &tuple) { (pTuple) in
+            
+            let pRawTuple = UnsafeMutableRawPointer(pTuple)
+            
+            withUnsafePointer(to: &cStr[0]) { (pString) in
+                
+                let pRawString = UnsafeRawPointer(pString)
+                
+                pRawTuple.copyMemory(from: pRawString, byteCount: size)
+            }
+        }
     }
 }
 
