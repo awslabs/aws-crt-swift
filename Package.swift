@@ -3,15 +3,15 @@ import PackageDescription
 
 let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
                        "LICENSE", "format-check.sh", "NOTICE", "builder.json",
-                        "CMakeLists.txt", "README.md"]
+                       "CMakeLists.txt", "README.md"]
 var packageTargets: [Target] = []
 
 var package = Package(name: "AwsCrt",
-    platforms: [.iOS(.v11), .macOS(.v10_14)],
-    products: [
-      .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
-      .executable(name: "Elasticurl", targets: ["Elasticurl"])
-    ]
+                      platforms: [.iOS(.v11), .macOS(.v10_14)],
+                      products: [
+                        .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
+                        .executable(name: "Elasticurl", targets: ["Elasticurl"])
+                      ]
 )
 
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
@@ -19,37 +19,37 @@ var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
 
 #if os(Linux)
 packageTargets.append( .systemLibrary(
-            name: "LibCrypto",
-            pkgConfig: "libcrypto",
-            providers: [
-                .apt(["openssl libssl-dev"]),
-                .yum(["openssl openssl-devel"])
-            ]
-        ))
- // add pq-crypto back after adding in platform and chipset detection
+    name: "LibCrypto",
+    pkgConfig: "libcrypto",
+    providers: [
+        .apt(["openssl libssl-dev"]),
+        .yum(["openssl openssl-devel"])
+    ]
+))
+// add pq-crypto back after adding in platform and chipset detection
 let s2nExcludes = excludesFromAll + ["bin", "codebuild", "coverage", "docker-images",
-                      "docs", "lib", "pq-crypto/bike_r1", "pq-crypto/bike_r2",
-                      "pq-crypto/bike_r3", "pq-crypto/kyber_90s_r2", "pq-crypto/kyber_r3",
-                      "pq-crypto/kyber_r2", "pq-crypto/sike_r1", "pq-crypto/sike_r2",
-                      "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
-                      "libcrypto-build", "scram",
-                      "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
-                      "tls/Makefile", "utils/Makefile", "error/Makefile",
-                      "extensions/Makefile", "tls/extensions/Makefile",
-                      "codecov.yml", "scripts/", "codebuild", "format-check.sh", "sanitizer-blacklist.txt",
-                      "CODE_OF_CONDUCT.md", "build-deps.sh"]
+                                     "docs", "lib", "pq-crypto/bike_r1", "pq-crypto/bike_r2",
+                                     "pq-crypto/bike_r3", "pq-crypto/kyber_90s_r2", "pq-crypto/kyber_r3",
+                                     "pq-crypto/kyber_r2", "pq-crypto/sike_r1", "pq-crypto/sike_r2",
+                                     "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
+                                     "libcrypto-build", "scram",
+                                     "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
+                                     "tls/Makefile", "utils/Makefile", "error/Makefile",
+                                     "extensions/Makefile", "tls/extensions/Makefile",
+                                     "codecov.yml", "scripts/", "codebuild", "format-check.sh", "sanitizer-blacklist.txt",
+                                     "CODE_OF_CONDUCT.md", "build-deps.sh"]
 packageTargets.append(.target(
-            name: "S2N",
-            dependencies: ["LibCrypto"],
-            path: "aws-common-runtime/s2n",
-            exclude: s2nExcludes,
-            publicHeadersPath: "api",
-            cSettings: [
-                .headerSearchPath("./"),
-                .define("POSIX_C_SOURCE=200809L"),
-                .define("S2N_NO_PQ")
-            ]
-        ))
+    name: "S2N",
+    dependencies: ["LibCrypto"],
+    path: "aws-common-runtime/s2n",
+    exclude: s2nExcludes,
+    publicHeadersPath: "api",
+    cSettings: [
+        .headerSearchPath("./"),
+        .define("POSIX_C_SOURCE=200809L"),
+        .define("S2N_NO_PQ")
+    ]
+))
 ioDependencies.append("S2N")
 calDependencies.append("LibCrypto")
 #endif
@@ -116,7 +116,8 @@ var awsCHttpPlatformExcludes = ["bin", "integration-testing", "include/aws/http/
                                 "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"] + excludesFromAll
 let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 let awsCMqttPlatformExcludes = ["bin", "CODE_OF_CONDUCT.md"] + excludesFromAll
-let awsCEventStreamExcludes = [] + excludesFromAll
+let awsCEventStreamExcludes = ["CODE_OF_CONDUCT.md", "bin", "clang-tidy/run-clang-tidy.sh"] + excludesFromAll
+let awsCChecksumsExcludes = ["CMakeLists.txt", "LICENSE", "builder.json", "README.md", "format-check.sh"]
 
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
 
@@ -126,7 +127,7 @@ packageTargets.append(contentsOf: [
         path: "aws-common-runtime/config",
         publicHeadersPath: ".",
         cSettings: [
-//            .unsafeFlags(cFlags)
+            //            .unsafeFlags(cFlags)
         ]
     ),
     .target(
@@ -135,8 +136,14 @@ packageTargets.append(contentsOf: [
         path: "aws-common-runtime/aws-c-common",
         exclude: awsCCommonPlatformExcludes,
         cSettings: [
-//            .unsafeFlags(cFlags)
+            //            .unsafeFlags(cFlags)
         ]
+    ),
+    .target(
+        name: "AwsChecksums",
+        dependencies: ["AwsCCommon"],
+        path: "aws-common-runtime/aws-checksums",
+        exclude: awsCChecksumsExcludes
     ),
     .target(
         name: "AwsCCal",
@@ -144,7 +151,7 @@ packageTargets.append(contentsOf: [
         path: "aws-common-runtime/aws-c-cal",
         exclude: awsCCalPlatformExcludes,
         cSettings: [
-//            .unsafeFlags(cFlags)
+            //            .unsafeFlags(cFlags)
         ]
     ),
     .target(
@@ -153,7 +160,7 @@ packageTargets.append(contentsOf: [
         path: "aws-common-runtime/aws-c-io",
         exclude: awsCIoPlatformExcludes,
         cSettings: [
-//            .unsafeFlags(cFlags)
+            //            .unsafeFlags(cFlags)
         ]
     ),
     .target(
@@ -162,7 +169,7 @@ packageTargets.append(contentsOf: [
         path: "aws-common-runtime/aws-c-compression",
         exclude: awsCCompressionPlatformExcludes,
         cSettings: [
-//            .unsafeFlags(cFlags)
+            //            .unsafeFlags(cFlags)
         ]
     ),
     .target(
@@ -171,7 +178,7 @@ packageTargets.append(contentsOf: [
         path: "aws-common-runtime/aws-c-http",
         exclude: awsCHttpPlatformExcludes,
         cSettings: [
-//            .unsafeFlags(cFlags)
+            //            .unsafeFlags(cFlags)
         ]
     ),
     .target(
@@ -180,7 +187,7 @@ packageTargets.append(contentsOf: [
         path: "aws-common-runtime/aws-c-auth",
         exclude: awsCAuthPlatformExcludes,
         cSettings: [
-//            .unsafeFlags(cFlags)
+            //            .unsafeFlags(cFlags)
         ]
     ),
     .target(
@@ -190,12 +197,12 @@ packageTargets.append(contentsOf: [
         exclude: awsCMqttPlatformExcludes,
         cSettings: [
             .define("AWS_MQTT_WITH_WEBSOCKETS")
-//            .unsafeFlags(cFlags)
+            //            .unsafeFlags(cFlags)
         ]
     ),
     .target(
         name: "AwsCEventStreams",
-        dependencies: ["AwsCHttp", "AwsCCompression", "AwsCIo", "AwsCCal", "AwsCCommon"],
+        dependencies: ["AwsCHttp", "AwsCCompression", "AwsCIo", "AwsCCal", "AwsCCommon", "AwsChecksums"],
         path: "aws-common-runtime/aws-c-event-stream",
         exclude: awsCEventStreamExcludes
     ),
@@ -204,8 +211,8 @@ packageTargets.append(contentsOf: [
         dependencies: [ "AwsCMqtt", "AwsCAuth", "AwsCHttp", "AwsCCal", "AwsCCompression", "AwsCIo", "AwsCCommon", "AwsCEventStreams"],
         path: "Source/AwsCommonRuntimeKit",
         swiftSettings: [
-//            .unsafeFlags(["-g"]),
-//            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+            //            .unsafeFlags(["-g"]),
+            //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     ),
     .testTarget(
@@ -213,8 +220,8 @@ packageTargets.append(contentsOf: [
         dependencies: ["AwsCommonRuntimeKit"],
         path: "Test",
         swiftSettings: [
-//            .unsafeFlags(["-g"]),
-//            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+            //            .unsafeFlags(["-g"]),
+            //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     ),
     .executableTarget(
@@ -222,8 +229,8 @@ packageTargets.append(contentsOf: [
         dependencies: ["AwsCommonRuntimeKit"],
         path: "Source/Elasticurl",
         swiftSettings: [
-//            .unsafeFlags(["-g"]),
-//            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+            //            .unsafeFlags(["-g"]),
+            //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     )
 ] )
