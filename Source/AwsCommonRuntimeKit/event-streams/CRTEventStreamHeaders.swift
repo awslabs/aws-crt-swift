@@ -5,9 +5,19 @@ import AwsCEventStreams
 import struct Foundation.UUID
 
 public struct CRTEventStreamHeaders {
-    let rawValue: UnsafeMutablePointer<aws_array_list>
+    let rawValue: UnsafeMutablePointer<aws_array_list>?
     let headers: [CRTEventStreamHeader]
 
+    public init(allocator: Allocator = defaultAllocator, headers: [CRTEventStreamHeader] = []) {
+        let pointer: UnsafeMutablePointer<aws_array_list> = allocatePointer()
+        if aws_event_stream_headers_list_init(pointer, allocator.rawValue) == AWS_OP_SUCCESS {
+            self.rawValue = pointer
+        } else {
+            self.rawValue = nil
+        }
+        self.headers = headers
+    }
+    
     func addHeader(header: CRTEventStreamHeader) {
         switch header.type {
         case .boolTrue, .boolFalse:
