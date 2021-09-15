@@ -5,19 +5,17 @@ import AwsCEventStreams
 
 public class CRTEventStreamMessage {
     let rawValue: UnsafeMutablePointer<aws_event_stream_message>
-    
 
     public init(allocator: Allocator = defaultAllocator, headers: CRTEventStreamHeaders, payload: ByteBuffer) {
         self.rawValue = allocatePointer()
         let byteBuf: UnsafeMutablePointer<aws_byte_buf> = fromPointer(ptr: payload.awsByteBuf)
         aws_event_stream_message_init(rawValue, allocator.rawValue, headers.rawValue, byteBuf)
     }
-    
+
     deinit {
         aws_event_stream_message_clean_up(rawValue)
     }
 }
-
 
 extension CRTEventStreamMessage: CustomDebugStringConvertible {
     public var debugDescription: String {

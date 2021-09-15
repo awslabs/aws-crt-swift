@@ -7,16 +7,16 @@ public struct CRTEventStreamHeader {
     public var rawValue: aws_event_stream_header_value_pair
     public var name: String {
         return String(tupleOfCChars: rawValue.header_name)
-        
+
     }
     public var value: String {
         return String(tupleOfCChars: rawValue.header_value.static_val)
-        
+
     }
     public var type: EventStreamHeaderType {
         return EventStreamHeaderType(rawValue: rawValue.header_value_type)
     }
-    
+
     init(name: String,
          value: String,
          type: EventStreamHeaderType = .boolTrue) {
@@ -28,5 +28,5 @@ public struct CRTEventStreamHeader {
         value.copyTo(tuple: &headerValuePair.header_value)
         self.rawValue = headerValuePair
     }
-    
+
 }

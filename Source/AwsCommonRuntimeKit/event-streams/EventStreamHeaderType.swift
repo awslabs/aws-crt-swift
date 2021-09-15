@@ -6,7 +6,7 @@ import CoreFoundation
 import CoreGraphics
 
 public enum EventStreamHeaderType {
-    
+
     case boolTrue
     case boolFalse
     case byte
@@ -20,7 +20,7 @@ public enum EventStreamHeaderType {
 }
 
 extension EventStreamHeaderType: RawRepresentable, CaseIterable {
-    
+
     public init(rawValue: aws_event_stream_header_value_type) {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})
         self = value ?? .boolTrue
@@ -39,5 +39,5 @@ extension EventStreamHeaderType: RawRepresentable, CaseIterable {
         case .uuid: return AWS_EVENT_STREAM_HEADER_UUID
         }
     }
-    
+
 }
