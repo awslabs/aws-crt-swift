@@ -119,8 +119,7 @@ var awsCHttpPlatformExcludes = ["bin", "integration-testing", "include/aws/http/
                                 "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"] + excludesFromAll
 let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 let awsCMqttPlatformExcludes = ["bin", "CODE_OF_CONDUCT.md"] + excludesFromAll
-let awsCEventStreamExcludes = ["CODE_OF_CONDUCT.md", "bin", "clang-tidy/run-clang-tidy.sh"] + excludesFromAll
-
+let awsCEventStreamExcludes = ["bin", "CODE_OF_CONDUCT.md", "clang-tidy/run-clang-tidy.sh"] + excludesFromAll
 
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
 

@@ -2,16 +2,42 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCEventStreams
+import AwsCIo
 
+public typealias OnMessageWritten = (CRTEventStreamMessage, AWSError) -> Void
 public class CRTEventStreamChannelHandler {
-    public init(options: CRTEventStreamChannelHandlerOptions) {
-        let channelHandlerOptions = aws_event_stream_channel_handler_options(on_message_received: { messsagePointer, errorCode, userData in
-            guard let userData = userData else {
+    let rawValue: UnsafeMutablePointer<aws_channel_handler>
+    
+    public init(options: CRTEventStreamChannelHandlerOptions, allocator: Allocator = defaultAllocator) {
+        let channelHandlerOptions = aws_event_stream_channel_handler_options(on_message_received: { messagePointer, errorCode, userData in
+            guard let userData = userData,
+                  let messagePointer = messagePointer else {
                 return
             }
             
             let options = userData.assumingMemoryBound(to: CRTEventStreamChannelHandlerOptions.self)
+            let message = CRTEventStreamMessage(rawValue: messagePointer)
+            let error = AWSError(errorCode: errorCode)
+            options.pointee.onMessageReceived(message, error)
+            options.deinitializeAndDeallocate()
+        }, user_data: fromPointer(ptr: options), initial_window_size: options.initialWindowSize, manual_window_management: options.enableManualWindowManagement)
+        let optionsPointer: UnsafePointer<aws_event_stream_channel_handler_options> = fromPointer(ptr: channelHandlerOptions)
+        self.rawValue = aws_event_stream_channel_handler_new(allocator.rawValue, optionsPointer)
+    }
+    
+    public func sendMessage(message: CRTEventStreamMessage, onMessageWritten: @escaping OnMessageWritten) {
+        let callbackPointer: UnsafeMutableRawPointer = fromPointer(ptr: onMessageWritten)
+        aws_event_stream_channel_handler_write_message(rawValue, message.rawValue, { messagePointer, errorCode, userData in
+            guard let userData = userData,
+                  let messagePointer = messagePointer else {
+                return
+            }
             
-        }, user_data: <#T##UnsafeMutableRawPointer!#>, initial_window_size: <#T##Int#>, manual_window_management: <#T##Bool#>)
+            let onMessageWritten = userData.assumingMemoryBound(to: OnMessageWritten.self)
+            let message = CRTEventStreamMessage(rawValue: messagePointer)
+            let error = AWSError(errorCode: errorCode)
+            onMessageWritten.pointee(message, error)
+            onMessageWritten.deinitializeAndDeallocate()
+        }, callbackPointer)
     }
 }

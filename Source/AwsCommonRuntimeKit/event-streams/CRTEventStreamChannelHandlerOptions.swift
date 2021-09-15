@@ -3,7 +3,7 @@
 
 import AwsCEventStreams
 
-public typealias OnMessageReceived = (CRTEventStreamMessage, Int32) -> Void
+public typealias OnMessageReceived = (CRTEventStreamMessage, AWSError) -> Void
 public struct CRTEventStreamChannelHandlerOptions {
     /// initial window size to use for the channel. If automatic window management is set to true, this value is ignored.
     public let initialWindowSize: Int
@@ -18,7 +18,7 @@ public struct CRTEventStreamChannelHandlerOptions {
     
     public init(initialWindowSize: Int = Int.max,
                 enableManualWindowManagement: Bool = false,
-                onMessageReceived: OnMessageReceived) {
+                onMessageReceived: @escaping OnMessageReceived) {
         self.initialWindowSize = initialWindowSize
         self.enableManualWindowManagement = enableManualWindowManagement
         self.onMessageReceived = onMessageReceived
