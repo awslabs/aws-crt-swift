@@ -97,13 +97,16 @@ awsCIoPlatformExcludes.append("source/darwin")
 #endif
 
 var awsCCalPlatformExcludes = ["bin", "include/aws/cal/private", "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"] + excludesFromAll
+var awsCChecksumsExcludes = ["CMakeLists.txt", "LICENSE", "builder.json", "README.md", "format-check.sh"]
 
 #if os(macOS)
 awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/unix")
+awsCChecksumsExcludes.append("source/intel")
 #elseif(Windows)
 awsCCalPlatformExcludes.append("source/darwin")
 awsCCalPlatformExcludes.append("source/unix")
+//TODO: figure out what to exclude for windows for checksums
 #else
 awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
@@ -117,7 +120,7 @@ var awsCHttpPlatformExcludes = ["bin", "integration-testing", "include/aws/http/
 let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 let awsCMqttPlatformExcludes = ["bin", "CODE_OF_CONDUCT.md"] + excludesFromAll
 let awsCEventStreamExcludes = ["CODE_OF_CONDUCT.md", "bin", "clang-tidy/run-clang-tidy.sh"] + excludesFromAll
-let awsCChecksumsExcludes = ["CMakeLists.txt", "LICENSE", "builder.json", "README.md", "format-check.sh"]
+
 
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
 
