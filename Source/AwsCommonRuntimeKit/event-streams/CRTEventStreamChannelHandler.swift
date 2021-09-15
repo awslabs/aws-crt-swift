@@ -7,14 +7,14 @@ import AwsCIo
 public typealias OnMessageWritten = (CRTEventStreamMessage, AWSError) -> Void
 public class CRTEventStreamChannelHandler {
     let rawValue: UnsafeMutablePointer<aws_channel_handler>
-    
+
     public init(options: CRTEventStreamChannelHandlerOptions, allocator: Allocator = defaultAllocator) {
         let channelHandlerOptions = aws_event_stream_channel_handler_options(on_message_received: { messagePointer, errorCode, userData in
             guard let userData = userData,
                   let messagePointer = messagePointer else {
                 return
             }
-            
+
             let options = userData.assumingMemoryBound(to: CRTEventStreamChannelHandlerOptions.self)
             let message = CRTEventStreamMessage(rawValue: messagePointer)
             let error = AWSError(errorCode: errorCode)
@@ -24,7 +24,7 @@ public class CRTEventStreamChannelHandler {
         let optionsPointer: UnsafePointer<aws_event_stream_channel_handler_options> = fromPointer(ptr: channelHandlerOptions)
         self.rawValue = aws_event_stream_channel_handler_new(allocator.rawValue, optionsPointer)
     }
-    
+
     public func sendMessage(message: CRTEventStreamMessage, onMessageWritten: @escaping OnMessageWritten) {
         let callbackPointer: UnsafeMutableRawPointer = fromPointer(ptr: onMessageWritten)
         aws_event_stream_channel_handler_write_message(rawValue, message.rawValue, { messagePointer, errorCode, userData in
@@ -32,7 +32,7 @@ public class CRTEventStreamChannelHandler {
                   let messagePointer = messagePointer else {
                 return
             }
-            
+
             let onMessageWritten = userData.assumingMemoryBound(to: OnMessageWritten.self)
             let message = CRTEventStreamMessage(rawValue: messagePointer)
             let error = AWSError(errorCode: errorCode)

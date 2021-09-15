@@ -11,7 +11,7 @@ public class CRTEventStreamMessage {
         let byteBuf: UnsafeMutablePointer<aws_byte_buf> = fromPointer(ptr: payload.awsByteBuf)
         aws_event_stream_message_init(rawValue, allocator.rawValue, headers.rawValue, byteBuf)
     }
-    
+
     public init(rawValue: UnsafeMutablePointer<aws_event_stream_message>) {
         self.rawValue = rawValue
     }

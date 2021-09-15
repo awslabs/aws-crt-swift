@@ -6,7 +6,6 @@ import CoreFoundation
 import CoreGraphics
 
 public enum EventStreamHeaderType {
-
     case boolTrue
     case boolFalse
     case byte

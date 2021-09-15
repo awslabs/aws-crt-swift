@@ -13,9 +13,9 @@ public struct CRTEventStreamChannelHandlerOptions {
       aws_event_stream_channel_handler_increment_read_window()
      */
     public let enableManualWindowManagement: Bool
-    
+
     public let onMessageReceived: OnMessageReceived
-    
+
     public init(initialWindowSize: Int = Int.max,
                 enableManualWindowManagement: Bool = false,
                 onMessageReceived: @escaping OnMessageReceived) {

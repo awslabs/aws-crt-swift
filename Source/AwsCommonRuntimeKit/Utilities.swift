@@ -111,11 +111,11 @@ extension Bool {
     var uintValue: UInt32 {
         return self ? 1 : 0
     }
-    
+
     var int8Value: Int8 {
         return self ? 1: 0
     }
-    
+
     init?(string: String) {
         switch string {
         case "True", "true", "yes", "1":
