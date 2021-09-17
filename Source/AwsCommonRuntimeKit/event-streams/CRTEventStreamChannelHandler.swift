@@ -23,6 +23,9 @@ public class CRTEventStreamChannelHandler {
         }, user_data: fromPointer(ptr: options), initial_window_size: options.initialWindowSize, manual_window_management: options.enableManualWindowManagement)
         let optionsPointer: UnsafePointer<aws_event_stream_channel_handler_options> = fromPointer(ptr: channelHandlerOptions)
         self.rawValue = aws_event_stream_channel_handler_new(allocator.rawValue, optionsPointer)
+        let slot = aws_channel_slot_new(OpaquePointer(rawValue))
+        aws_channel_slot_insert_end(OpaquePointer(rawValue), slot)
+        
     }
 
     public func sendMessage(message: CRTEventStreamMessage, onMessageWritten: @escaping OnMessageWritten) {
