@@ -26,10 +26,55 @@ class CRTEventStreamChannelHandlerTests: CrtXCBaseTestCase {
             XCTAssert(error.errorCode == 0)
         }
         
-        let handler = CRTEventStreamChannelHandler(options: options)
-        handler.sendMessage(message: testMessage) { message, error in
-            XCTAssert(message.rawValue == testMessage.rawValue)
-            XCTAssert(error.errorCode == 0)
+        let options = TlsContextOptions(defaultClientWithAllocator: allocator)
+        let context = try TlsContext(options: options, mode: .client, allocator: allocator)
+
+        let socketOptions = SocketOptions(socketType: .stream)
+
+        let shutDownOptions = ShutDownCallbackOptions { semaphore in
+            semaphore.signal()
+        }
+
+        let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
+            semaphore.signal()
+        }
+
+        let elg = EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
+        let resolver = DefaultHostResolver(eventLoopGroup: elg,
+                                               maxHosts: 8,
+                                               maxTTL: 30,
+                                               allocator: allocator,
+                                               shutDownOptions: resolverShutDownOptions)
+
+        let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
+            sempahore.signal()
+        }
+
+        let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg,
+                                                  hostResolver: resolver,
+                                                  callbackData: clientBootstrapCallbackData,
+                                                  allocator: allocator)
+
+        clientBootstrap.enableBlockingShutdown = true
+        let socketOptions = SocketOptions(socketType: .stream)
+        let shutDownCallbackOptions = ShutDownCallbackOptions { sempahore in
+            semaphore.signal()
+        }
+        let options = HttpClientConnectionOptions(clientBootstrap: clientBootstrap,
+                                                  hostName: "httpbin.org",
+                                                  port: 80,
+                                                  proxyOptions: nil,
+                                                  socketOptions: socketOptions,
+                                                  tlsOptions: context.newConnectionOptions(),
+                                                  monitoringOptions: nil,
+                                                  shutDownOptions: shutDownCallbackOptions)
+        let httpConnectionMgr = HttpClientConnectionManager(options: options)
+        let connection = httpConnectionMgr.acquireConnection().then { result in
+            let handler = CRTEventStreamChannelHandler(options: options, httpConnection: result.get())
+            handler.sendMessage(message: testMessage) { message, error in
+                XCTAssert(message.rawValue == testMessage.rawValue)
+                XCTAssert(error.errorCode == 0)
+            }
         }
     }
 }

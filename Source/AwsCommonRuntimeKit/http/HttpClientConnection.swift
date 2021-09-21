@@ -21,6 +21,10 @@ public class HttpClientConnection {
     public var isOpen: Bool {
         return aws_http_connection_is_open(rawValue)
     }
+    
+    var channel: UnsafeMutablePointer<aws_channel> {
+        return aws_http_connection_get_channel(rawValue)
+    }
 
     /// Close the http connection
     public func close() {

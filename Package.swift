@@ -99,17 +99,18 @@ awsCIoPlatformExcludes.append("source/darwin")
 var awsCCalPlatformExcludes = ["bin", "include/aws/cal/private", "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"] + excludesFromAll
 var awsCChecksumsExcludes = ["CMakeLists.txt", "LICENSE", "builder.json", "README.md", "format-check.sh"]
 
-#if os(macOS)
+#if os(macOS) && !arch(arm64)
 awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/unix")
 awsCChecksumsExcludes.append("source/intel")
 #elseif(Windows)
 awsCCalPlatformExcludes.append("source/darwin")
 awsCCalPlatformExcludes.append("source/unix")
-//TODO: figure out what to exclude for windows for checksums
+awsCChecksumsExcludes.append("source/intel/asm")
 #else
 awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
+awsCChecksumsExcludes.append("source/intel/visualc")
 #endif
 
 var awsCCompressionPlatformExcludes = ["source/huffman_generator/", "CODE_OF_CONDUCT.md",
