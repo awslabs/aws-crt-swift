@@ -41,7 +41,7 @@ extension String {
         let byteCursor = aws_byte_cursor_from_buf(output)
         return byteCursor.toData().base64EncodedString()
     }
-    
+
     public func base64EncodedSha256(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String? {
         let input: UnsafePointer<aws_byte_cursor> = fromPointer(ptr: self.awsByteCursor)
         let emptyBuffer: UInt8 = 0
