@@ -46,7 +46,7 @@ extension String {
         let input: UnsafePointer<aws_byte_cursor> = fromPointer(ptr: self.awsByteCursor)
         let emptyBuffer: UInt8 = 0
         let bufferPtr: UnsafeMutablePointer<UInt8> = fromPointer(ptr: emptyBuffer)
-        let buffer = aws_byte_buf(len: 0, buffer: bufferPtr, capacity: 32, allocator: allocator.rawValue)
+        let buffer = aws_byte_buf(len: 0, buffer: bufferPtr, capacity: Int(AWS_SHA256_LEN), allocator: allocator.rawValue)
         let output: UnsafeMutablePointer<aws_byte_buf> = fromPointer(ptr: buffer)
 
         aws_sha256_compute(allocator.rawValue, input, output, truncate)
