@@ -216,7 +216,7 @@ public class ByteBuffer: Codable {
 
     public var basePointer: UnsafeMutablePointer<UInt8> {
         if array.count > 0 {
-            return fromPointer(ptr: get(0))
+            return UnsafeMutablePointer<UInt8>(&array)
         } else {
             return allocatePointer()
         }
