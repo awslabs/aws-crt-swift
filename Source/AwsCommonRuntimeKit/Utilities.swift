@@ -44,10 +44,10 @@ extension String {
 }
 
 public extension ByteBuffer {
-    
-    var awsByteCursor: aws_byte_cursor {
+
+    private var awsByteCursor: aws_byte_cursor {
         let array = self.toByteArray()
-        
+
         return array.withUnsafeBufferPointer { pointer in
             let rawPointer = UnsafeRawPointer(pointer.baseAddress)
             return aws_byte_cursor_from_array(rawPointer, self.toByteArray().count)
