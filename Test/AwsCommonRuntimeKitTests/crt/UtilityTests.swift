@@ -41,5 +41,11 @@ class UtilityTests: XCTestCase {
         
         XCTAssertEqual(sha256, "4tmg4NSMn1u8NF5Hohe/WZ/FCochtnakQVNhI8gTONs=")
     }
+    
+    func testSha256LongString() throws {
+        let longString = "Hi John You are the best for helping me. And also really smart. And Yili is a lucky girl.".data(using: .utf8)!
+        let sha256 = ByteBuffer(data: longString).base64EncodedSha256()
+        XCTAssertEqual(sha256, "Yo+bIb5g8Pa/2kXn2uoJTnp0+0ILn2/QigSNISP11L0=")
+    }
 }
 

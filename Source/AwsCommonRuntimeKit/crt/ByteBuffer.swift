@@ -235,7 +235,7 @@ public class ByteBuffer: Codable {
 
     private var array = [UInt8]()
     private var currentIndex: Int = 0
-    private var capacity: Int = 0
+    var capacity: Int = 0
 
     private var currentEndianness: Endianness = .big
     private var hostEndianness: Endianness {
