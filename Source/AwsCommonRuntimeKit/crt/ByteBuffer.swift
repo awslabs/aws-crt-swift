@@ -21,14 +21,14 @@ public class ByteBuffer: Codable {
         array.reserveCapacity(size)
         self.capacity = size
     }
-    
+
     public init(bytes: [UInt8]) {
         self.array = bytes
         self.capacity = bytes.count
     }
-    
+
     public init(ptr: UnsafeMutablePointer<UInt8>, len: Int, capacity: Int) {
-        let buffer = UnsafeBufferPointer(start: ptr, count: len);
+        let buffer = UnsafeBufferPointer(start: ptr, count: len)
         self.array = Array(buffer)
         self.capacity = capacity
     }
@@ -61,7 +61,7 @@ public class ByteBuffer: Codable {
         array.append(value)
         return self
     }
-    
+
     public func put(_ value: [UInt8]) -> ByteBuffer {
         array.append(contentsOf: value)
         return self
@@ -213,7 +213,7 @@ public class ByteBuffer: Codable {
         case little
         case big
     }
-    
+
     public var basePointer: UnsafeMutablePointer<UInt8> {
         if array.count > 0 {
             return fromPointer(ptr: get(0))
@@ -252,12 +252,12 @@ public class ByteBuffer: Codable {
         let container = try decoder.singleValueContainer()
         array = try container.decode([UInt8].self)
     }
-    
+
     public func readIntoBuffer(buffer: inout ByteBuffer) -> Int {
         guard array.count > 0 else {
             return 0
         }
-        
+
         guard currentIndex < array.count else {
             return 0
         }

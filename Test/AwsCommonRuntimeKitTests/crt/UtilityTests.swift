@@ -39,7 +39,7 @@ class UtilityTests: XCTestCase {
         let payload = "{\"foo\":\"base64 encoded sha256 checksum\"}".data(using: .utf8)!
         let sha256 = ByteBuffer(data: payload).base64EncodedSha256()
         
-        XCTAssertEqual(sha256, "15AWgDvzZshZ+JV1A9usGzitl1E3+O1OkYjK9+VCsVo=")
+        XCTAssertEqual(sha256, "4tmg4NSMn1u8NF5Hohe/WZ/FCochtnakQVNhI8gTONs=")
     }
 }
 
