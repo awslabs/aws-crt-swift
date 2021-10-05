@@ -19,11 +19,24 @@ public class ByteBuffer: Codable {
 
     public init(size: Int) {
         array.reserveCapacity(size)
+        self.capacity = size
+    }
+    
+    public init(bytes: [UInt8]) {
+        self.array = bytes
+        self.capacity = bytes.count
+    }
+    
+    public init(ptr: UnsafeMutablePointer<UInt8>, len: Int, capacity: Int) {
+        let buffer = UnsafeBufferPointer(start: ptr, count: len);
+        self.array = Array(buffer)
+        self.capacity = capacity
     }
 
     public func allocate(_ size: Int) {
         array = [UInt8]()
         array.reserveCapacity(size)
+        self.capacity += size
         currentIndex = 0
     }
 
@@ -46,6 +59,11 @@ public class ByteBuffer: Codable {
 
     public func put(_ value: UInt8) -> ByteBuffer {
         array.append(value)
+        return self
+    }
+    
+    public func put(_ value: [UInt8]) -> ByteBuffer {
+        array.append(contentsOf: value)
         return self
     }
 
@@ -195,6 +213,14 @@ public class ByteBuffer: Codable {
         case little
         case big
     }
+    
+    public var basePointer: UnsafeMutablePointer<UInt8> {
+        if array.count > 0 {
+            return fromPointer(ptr: get(0))
+        } else {
+            return allocatePointer()
+        }
+    }
 
     private func to<T>(_ value: T) -> [UInt8] {
         var value = value
@@ -209,6 +235,7 @@ public class ByteBuffer: Codable {
 
     private var array = [UInt8]()
     private var currentIndex: Int = 0
+    private var capacity: Int = 0
 
     private var currentEndianness: Endianness = .big
     private var hostEndianness: Endianness {
@@ -224,6 +251,29 @@ public class ByteBuffer: Codable {
     public required init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         array = try container.decode([UInt8].self)
+    }
+    
+    public func readIntoBuffer(buffer: inout ByteBuffer) -> Int {
+        guard array.count > 0 else {
+            return 0
+        }
+        
+        guard currentIndex < array.count else {
+            return 0
+        }
+        let bufferCapacity = buffer.capacity - buffer.array.count
+        var arrayEnd = array.count > bufferCapacity ? bufferCapacity + currentIndex: array.count
+        if arrayEnd > array.count {
+            arrayEnd = array.count
+        }
+        let dataArray = Array(array[currentIndex..<(arrayEnd)])
+        if dataArray.count > 0 {
+            _ = buffer.put(dataArray)
+            self.currentIndex = arrayEnd
+            return dataArray.count
+        } else {
+            return 0
+        }
     }
 }
 
