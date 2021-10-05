@@ -43,12 +43,6 @@ extension String {
     }
 }
 
-extension aws_byte_buf {
-    public func toByteBuffer() -> ByteBuffer {
-        return ByteBuffer(ptr: self.buffer, len: self.len, capacity: self.capacity)
-    }
-}
-
 public extension ByteBuffer {
   
     var awsByteCursor: aws_byte_cursor {
@@ -63,8 +57,8 @@ public extension ByteBuffer {
         let output: UnsafeMutablePointer<aws_byte_buf> = fromPointer(ptr: buffer)
 
         aws_sha256_compute(allocator.rawValue, input, output, truncate)
-
-        return output.pointee.toByteBuffer()
+        let byteCursor = aws_byte_cursor_from_buf(output)
+        return ByteBuffer(data: byteCursor.toData())
     }
     
     func base64EncodedSha256(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String {

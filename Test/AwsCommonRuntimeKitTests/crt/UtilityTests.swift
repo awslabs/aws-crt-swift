@@ -24,23 +24,22 @@ class UtilityTests: XCTestCase {
     }
     
     func testSha256() throws {
-        let hello = "Hello"
-        let sha256 = hello.base64EncodedSha256()
-        XCTAssertEqual(sha256, "GF+NsyJx/iX1Yab8k4suJkMG7DBO2lGAB9F2SCY4GWk=")
+        let hello = "Hello".data(using: .utf8)!
+        let sha256 = ByteBuffer(data: hello).base64EncodedSha256()
+        XCTAssertEqual(sha256, "mOvg7kNh8w/hQ7vi3KpSGkjWvlpbIqrajGWk8IMwvwo=")
     }
     
     func testSha256_EmptyString() throws {
-        let empty = ""
-        let sha256 = empty.base64EncodedSha256()
+        let empty = "".data(using: .utf8)!
+        let sha256 = ByteBuffer(data: empty).base64EncodedSha256()
         XCTAssertEqual(sha256, "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=")
     }
     
     func testSha256_payload() throws {
-        let payload = "{\"foo\":\"base64 encoded sha256 checksum\"}"
+        let payload = "{\"foo\":\"base64 encoded sha256 checksum\"}".data(using: .utf8)!
+        let sha256 = ByteBuffer(data: payload).base64EncodedSha256()
         
-        let sha256 = payload.base64EncodedSha256()
-        
-        XCTAssertEqual(sha256, "lBSnDP4sj/yN8eIVOJlv+vC56hw+7JtN0132GiMQXRg=")
+        XCTAssertEqual(sha256, "15AWgDvzZshZ+JV1A9usGzitl1E3+O1OkYjK9+VCsVo=")
     }
 }
 
