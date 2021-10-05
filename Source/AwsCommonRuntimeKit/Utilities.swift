@@ -45,18 +45,8 @@ extension String {
 
 public extension ByteBuffer {
     
-    var awsByteBuf: aws_byte_buf {
-        return aws_byte_buf(len: self.toByteArray().count, buffer: self.basePointer, capacity: self.capacity, allocator: defaultAllocator)
-    }
-
     var awsByteCursor: aws_byte_cursor {
-//        let basePointer = UnsafeMutablePointer<UInt8>(&(self.toByteArray()))
-//            if array.count > 0 {
-//                return
-//            } else {
-//                return allocatePointer()
-//            }
-        return aws_byte_cursor_from_array(self.basePointer, self.toByteArray().count)
+        return aws_byte_cursor_from_array(self.toByteArray(), self.toByteArray().count)
     }
 
     func sha256(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> Data {
@@ -78,9 +68,6 @@ public extension ByteBuffer {
     func sha256(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> ByteBuffer {
         return ByteBuffer(data: sha256(allocator: allocator, truncate: truncate))
     }
-//    func sha256DataDebug(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> Data {
-//        return sha256(allocator: allocator, truncate: truncate)
-//    }
 }
 
 public extension Int32 {

@@ -214,14 +214,6 @@ public class ByteBuffer: Codable {
         case big
     }
 
-    public var basePointer: UnsafeMutablePointer<UInt8> {
-        if array.count > 0 {
-            return UnsafeMutablePointer<UInt8>(&array)
-        } else {
-            return allocatePointer()
-        }
-    }
-
     private func to<T>(_ value: T) -> [UInt8] {
         var value = value
         return withUnsafeBytes(of: &value, Array.init)
