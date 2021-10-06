@@ -51,27 +51,18 @@ extension aws_byte_buf {
 
 public extension ByteBuffer {
 
-    private var awsByteCursor: aws_byte_cursor {
-        let array = self.toByteArray()
-
-        return array.withUnsafeBufferPointer { pointer in
-            let rawPointer = UnsafeRawPointer(pointer.baseAddress)
-            return aws_byte_cursor_from_array(rawPointer, self.toByteArray().count)
-        }
-    }
-
     func sha256(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> ByteBuffer {
-        let input: UnsafePointer<aws_byte_cursor> = fromPointer(ptr: self.awsByteCursor)
-        let emptyBuffer: UInt8 = 0
-        let bufferPtr: UnsafeMutablePointer<UInt8> = fromPointer(ptr: emptyBuffer)
-        let buffer = aws_byte_buf(len: 0, buffer: bufferPtr, capacity: Int(AWS_SHA256_LEN), allocator: allocator.rawValue)
-        let output: UnsafeMutablePointer<aws_byte_buf> = fromPointer(ptr: buffer)
-
-        aws_sha256_compute(allocator.rawValue, input, output, truncate)
-        return output.pointee.toByteBuffer()
+        let byteArray = self.toByteArray()
+        var byteCursor = aws_byte_cursor_from_array(byteArray, byteArray.count)
+        
+        let bufferPtr: UnsafeMutablePointer<UInt8> = fromPointer(ptr: 0)
+        var buffer = aws_byte_buf(len: 0, buffer: bufferPtr, capacity: Int(AWS_SHA256_LEN), allocator: allocator.rawValue)
+        
+        aws_sha256_compute(allocator.rawValue, &byteCursor, &buffer, truncate) 
+        return buffer.toByteBuffer()
     }
 
-    func base64EncodedSha256(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String {
+    func base64EncodedSha256(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String? {
         return sha256(allocator: allocator, truncate: truncate).toData().base64EncodedString()
     }
 }
