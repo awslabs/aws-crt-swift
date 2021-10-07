@@ -397,4 +397,13 @@ public extension ByteBuffer {
     func base64EncodedSha256(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String {
         return sha256(allocator: allocator, truncate: truncate).toData().base64EncodedString()
     }
+    
+    func encodeToHexString() -> String {
+        var hexString = ""
+        for byte in array {
+            hexString += String(format:"%02x", UInt8(byte))
+        }
+        
+        return hexString
+    }
 }
