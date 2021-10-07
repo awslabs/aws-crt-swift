@@ -66,6 +66,7 @@ awsCCommonPlatformExcludes.append("source/arch/intel")
 // unsafeFlagsArray.append("-mavx512f")
 #elseif arch(arm64)
 awsCCommonPlatformExcludes.append("source/arch/intel")
+awsCCommonPlatformExcludes.append("source/arch/generic")
 #else
 awsCCommonPlatformExcludes.append("source/arch/intel")
 awsCCommonPlatformExcludes.append("source/arch/arm")
