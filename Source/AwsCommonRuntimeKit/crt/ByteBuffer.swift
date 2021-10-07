@@ -385,7 +385,7 @@ public extension ByteBuffer {
     func sha256(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> ByteBuffer {
         var byteCursor = aws_byte_cursor_from_array(self.array, self.array.count)
 
-        var bytes = Array<UInt8>(repeating: 0, count: Int(AWS_SHA256_LEN))
+        var bytes = [UInt8](repeating: 0, count: Int(AWS_SHA256_LEN))
         let result: ByteBuffer = bytes.withUnsafeMutableBufferPointer { pointer in
             var buffer = aws_byte_buf(len: 0, buffer: pointer.baseAddress, capacity: Int(AWS_SHA256_LEN), allocator: allocator.rawValue)
             aws_sha256_compute(allocator.rawValue, &byteCursor, &buffer, truncate)
