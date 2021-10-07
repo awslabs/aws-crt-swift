@@ -35,3 +35,5 @@ statement_position:
   severity: error
 todo: warning
 trailing_semicolon: error
+file_length: 
+  error: 500
