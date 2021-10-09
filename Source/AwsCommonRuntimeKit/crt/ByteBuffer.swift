@@ -8,6 +8,8 @@ import class Foundation.FileHandle
 import class Foundation.OutputStream
 import struct Foundation.URL
 import AwsCIo
+import AwsCCommon
+import AwsCCal
 #if os(Linux)
      import Glibc
  #else
@@ -19,11 +21,24 @@ public class ByteBuffer: Codable {
 
     public init(size: Int) {
         array.reserveCapacity(size)
+        self.capacity = size
+    }
+
+    public init(bytes: [UInt8]) {
+        self.array = bytes
+        self.capacity = bytes.count
+    }
+
+    public init(ptr: UnsafeMutablePointer<UInt8>, len: Int, capacity: Int) {
+        let buffer = UnsafeBufferPointer(start: ptr, count: len)
+        self.array = Array(buffer)
+        self.capacity = capacity
     }
 
     public func allocate(_ size: Int) {
         array = [UInt8]()
         array.reserveCapacity(size)
+        self.capacity += size
         currentIndex = 0
     }
 
@@ -46,6 +61,11 @@ public class ByteBuffer: Codable {
 
     public func put(_ value: UInt8) -> ByteBuffer {
         array.append(value)
+        return self
+    }
+
+    public func put(_ value: [UInt8]) -> ByteBuffer {
+        array.append(contentsOf: value)
         return self
     }
 
@@ -209,6 +229,7 @@ public class ByteBuffer: Codable {
 
     private var array = [UInt8]()
     private var currentIndex: Int = 0
+    var capacity: Int = 0
 
     private var currentEndianness: Endianness = .big
     private var hostEndianness: Endianness {
@@ -224,6 +245,29 @@ public class ByteBuffer: Codable {
     public required init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         array = try container.decode([UInt8].self)
+    }
+
+    public func readIntoBuffer(buffer: inout ByteBuffer) -> Int {
+        guard array.count > 0 else {
+            return 0
+        }
+
+        guard currentIndex < array.count else {
+            return 0
+        }
+        let bufferCapacity = buffer.capacity - buffer.array.count
+        var arrayEnd = array.count > bufferCapacity ? bufferCapacity + currentIndex: array.count
+        if arrayEnd > array.count {
+            arrayEnd = array.count
+        }
+        let dataArray = Array(array[currentIndex..<(arrayEnd)])
+        if dataArray.count > 0 {
+            _ = buffer.put(dataArray)
+            self.currentIndex = arrayEnd
+            return dataArray.count
+        } else {
+            return 0
+        }
     }
 }
 
@@ -334,5 +378,32 @@ extension ByteBuffer {
     /// - Returns: `InputStream`
     public func toStream() -> InputStream {
         return InputStream(data: self.toData())
+    }
+}
+
+public extension ByteBuffer {
+    func sha256(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> ByteBuffer {
+        var byteCursor = aws_byte_cursor_from_array(self.array, self.array.count)
+
+        var bytes = [UInt8](repeating: 0, count: Int(AWS_SHA256_LEN))
+        let result: ByteBuffer = bytes.withUnsafeMutableBufferPointer { pointer in
+            var buffer = aws_byte_buf(len: 0, buffer: pointer.baseAddress, capacity: Int(AWS_SHA256_LEN), allocator: allocator.rawValue)
+            aws_sha256_compute(allocator.rawValue, &byteCursor, &buffer, truncate)
+            return buffer.toByteBuffer()
+        }
+        return result
+    }
+
+    func base64EncodedSha256(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String {
+        return sha256(allocator: allocator, truncate: truncate).toData().base64EncodedString()
+    }
+
+    func encodeToHexString() -> String {
+        var hexString = ""
+        for byte in array {
+            hexString += String(format: "%02x", UInt8(byte))
+        }
+
+        return hexString
     }
 }
