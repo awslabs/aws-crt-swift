@@ -110,6 +110,8 @@ awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
 #endif
 
+let awsCSdkUtilsPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
+
 var awsCCompressionPlatformExcludes = ["source/huffman_generator/", "CODE_OF_CONDUCT.md",
                                        "codebuild"] + excludesFromAll
 
@@ -134,6 +136,15 @@ packageTargets.append(contentsOf: [
         dependencies: ["AwsCPlatformConfig"],
         path: "aws-common-runtime/aws-c-common",
         exclude: awsCCommonPlatformExcludes,
+        cSettings: [
+//            .unsafeFlags(cFlags)
+        ]
+    ),
+    .target(
+        name: "AwsCSdkUtils",
+        dependencies: ["AwsCCommon"],
+        path: "aws-common-runtime/aws-c-sdkutils",
+        exclude: awsCSdkUtilsPlatformExcludes,
         cSettings: [
 //            .unsafeFlags(cFlags)
         ]
@@ -176,7 +187,7 @@ packageTargets.append(contentsOf: [
     ),
     .target(
         name: "AwsCAuth",
-        dependencies: ["AwsCHttp", "AwsCCompression", "AwsCCal", "AwsCIo", "AwsCCommon"],
+        dependencies: ["AwsCHttp", "AwsCCompression", "AwsCCal", "AwsCIo", "AwsCSdkUtils", "AwsCCommon"],
         path: "aws-common-runtime/aws-c-auth",
         exclude: awsCAuthPlatformExcludes,
         cSettings: [
