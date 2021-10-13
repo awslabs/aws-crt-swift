@@ -34,13 +34,13 @@ public class CRTAWSProfileCollection {
 
     }
 
-    public init(fromMerge configProfileCollection: CRTAWSProfileCollection,
-                credentialPofileCollection: CRTAWSProfileCollection,
+    public init(configProfileCollection: CRTAWSProfileCollection,
+                credentialProfileCollection: CRTAWSProfileCollection,
                 source: CRTAWSProfileSourceType,
                 allocator: Allocator = defaultAllocator) {
         self.rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
                                                               configProfileCollection.rawValue,
-                                                              credentialPofileCollection.rawValue)
+                                                              credentialProfileCollection.rawValue)
     }
 
     public func getProfile(name: String, profileCollection: CRTAWSProfileCollection, allocator: Allocator = defaultAllocator) -> CRTAWSProfile? {
