@@ -379,7 +379,7 @@ extension ByteBuffer {
     public func toStream() -> InputStream {
         return InputStream(data: self.toData())
     }
-    
+
     func toAwsByteBuf(allocator: Allocator = defaultAllocator) -> aws_byte_buf {
         let count = self.array.count
         return self.array.withUnsafeMutableBufferPointer { pointer in
