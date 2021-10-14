@@ -9,7 +9,13 @@ public class CRTAWSProfileCollection {
     public init(fromFile path: String,
                 source: CRTAWSProfileSourceType,
                 allocator: Allocator = defaultAllocator) {
-        let awsString = AWSString(path, allocator: allocator)
+        var finalizedPath = path
+        if path.hasPrefix("~"),
+           let homeDirectory = aws_get_home_directory(allocator.rawValue),
+           let homeDirectoryString = String(awsString: homeDirectory) {
+            finalizedPath = homeDirectoryString + path.dropFirst()
+        }
+        let awsString = AWSString(finalizedPath, allocator: allocator)
         self.rawValue = aws_profile_collection_new_from_file(allocator.rawValue,
                                                              awsString.rawValue,
                                                              source.rawValue)
@@ -43,9 +49,9 @@ public class CRTAWSProfileCollection {
                                                               credentialProfileCollection.rawValue)
     }
 
-    public func getProfile(name: String, profileCollection: CRTAWSProfileCollection, allocator: Allocator = defaultAllocator) -> CRTAWSProfile? {
+    public func getProfile(name: String, allocator: Allocator = defaultAllocator) -> CRTAWSProfile? {
         let awsString = AWSString(name, allocator: allocator)
-        guard let profilePointer = aws_profile_collection_get_profile(profileCollection.rawValue,
+        guard let profilePointer = aws_profile_collection_get_profile(self.rawValue,
                                                                       awsString.rawValue) else {
             return nil
         }

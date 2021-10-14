@@ -10,14 +10,14 @@ public struct CRTAWSProfile {
         self.rawValue = rawValue
     }
 
-    var name: String? {
+    public var name: String? {
         guard let string = aws_profile_get_name(rawValue) else {
             return nil
         }
         return String(awsString: string)
     }
 
-    func getProperty(name: String, allocator: Allocator = defaultAllocator) -> CRTAWSProfileProperty? {
+    public func getProperty(name: String, allocator: Allocator = defaultAllocator) -> CRTAWSProfileProperty? {
         let nameAwsString = AWSString(name, allocator: allocator)
         guard let propPointer = aws_profile_get_property(rawValue, nameAwsString.rawValue) else {
             return nil
@@ -25,7 +25,7 @@ public struct CRTAWSProfile {
         return CRTAWSProfileProperty(rawValue: propPointer)
     }
 
-    var propertyCount: Int {
+    public var propertyCount: Int {
        return aws_profile_get_property_count(rawValue)
     }
 }
