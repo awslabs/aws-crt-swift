@@ -246,6 +246,29 @@ public final class CRTAWSCredentialsProvider {
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
+    
+    /// Creates a provider that sources credentials from the ecs role credentials service
+    ///
+    ///  - Parameters:
+    ///    - containerConfig: The `CRTCredentialsProviderContainerConfig` options object
+    /// - Returns: `AWSCredentialsProvider`
+    public convenience init(fromContainer containerConfig: CRTCredentialsProviderContainerConfig,
+                            allocator: Allocator = defaultAllocator) throws {
+        var ecsOptions = aws_credentials_provider_ecs_options()
+        ecsOptions.tls_ctx = containerConfig.tlsContext.rawValue
+        ecsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
+            shutDownOptions: containerConfig.shutDownOptions)
+        ecsOptions.bootstrap = containerConfig.bootstrap.rawValue
+        ecsOptions.host = containerConfig.host.awsByteCursor
+        ecsOptions.auth_token = containerConfig.authToken.awsByteCursor
+        ecsOptions.path_and_query = containerConfig.pathAndQuery.awsByteCursor
+        ecsOptions.function_table = nil
+        
+        guard let provider = aws_credentials_provider_new_ecs(allocator.rawValue, &ecsOptions) else {
+            throw AWSCommonRuntimeError()
+        }
+        self.init(credentialsProvider: provider, allocator: allocator)
+    }
 
     /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
     /// the callback passed in.
