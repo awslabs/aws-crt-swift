@@ -30,7 +30,7 @@ packageTargets.append( .systemLibrary(
 let s2nExcludes = excludesFromAll + ["bin", "codebuild", "coverage", "docker-images",
                       "docs", "lib", "pq-crypto/bike_r1", "pq-crypto/bike_r2",
                       "pq-crypto/bike_r3", "pq-crypto/kyber_90s_r2", "pq-crypto/kyber_r3",
-                      "pq-crypto/kyber_r2", "pq-crypto/sike_r1", "pq-crypto/sike_r2",
+                      "pq-crypto/kyber_r2", "pq-crypto/sike_r1", "pq-crypto/sike_r3",
                       "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
                       "libcrypto-build", "scram",
                       "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
@@ -80,7 +80,7 @@ awsCCommonPlatformExcludes.append("source/arch/intel/asm")
 awsCCommonPlatformExcludes.append("source/arch/arm/asm")
 #endif
 
-var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md"] + excludesFromAll
+var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild"] + excludesFromAll
 
 #if os(macOS)
 awsCIoPlatformExcludes.append("source/windows")
@@ -110,6 +110,8 @@ awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
 #endif
 
+let awsCSdkUtilsPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
+
 var awsCCompressionPlatformExcludes = ["source/huffman_generator/", "CODE_OF_CONDUCT.md",
                                        "codebuild"] + excludesFromAll
 
@@ -134,6 +136,15 @@ packageTargets.append(contentsOf: [
         dependencies: ["AwsCPlatformConfig"],
         path: "aws-common-runtime/aws-c-common",
         exclude: awsCCommonPlatformExcludes,
+        cSettings: [
+//            .unsafeFlags(cFlags)
+        ]
+    ),
+    .target(
+        name: "AwsCSdkUtils",
+        dependencies: ["AwsCCommon"],
+        path: "aws-common-runtime/aws-c-sdkutils",
+        exclude: awsCSdkUtilsPlatformExcludes,
         cSettings: [
 //            .unsafeFlags(cFlags)
         ]
@@ -176,7 +187,7 @@ packageTargets.append(contentsOf: [
     ),
     .target(
         name: "AwsCAuth",
-        dependencies: ["AwsCHttp", "AwsCCompression", "AwsCCal", "AwsCIo", "AwsCCommon"],
+        dependencies: ["AwsCHttp", "AwsCCompression", "AwsCCal", "AwsCIo", "AwsCSdkUtils", "AwsCCommon"],
         path: "aws-common-runtime/aws-c-auth",
         exclude: awsCAuthPlatformExcludes,
         cSettings: [
