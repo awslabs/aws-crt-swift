@@ -202,6 +202,40 @@ public final class CRTAWSCredentialsProvider {
     }
 #endif
 
+    /// Creates a provider that sources credentials from STS using AssumeRoleWithWebIdentity
+    ///
+    /// - Parameters:
+    ///    - webIdentityConfig: The `CRTCredentialsProviderWebIdentityConfig` options object.
+    /// - Returns: `AWSCredentialsProvider`
+    public convenience init(fromWebIdentity webIdentityConfig: CRTCredentialsProviderWebIdentityConfig,
+                            allocator: Allocator = defaultAllocator) throws {
+        var stsOptions = aws_credentials_provider_sts_web_identity_options()
+        stsOptions.bootstrap = webIdentityConfig.bootstrap.rawValue
+        stsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
+            shutDownOptions: webIdentityConfig.shutDownOptions)
+        stsOptions.tls_ctx = webIdentityConfig.tlsContext.rawValue
+        stsOptions.function_table = nil
+        guard let provider = aws_credentials_provider_new_sts_web_identity(allocator.rawValue,
+                                                                           &stsOptions) else {
+            throw AWSCommonRuntimeError()
+        }
+        self.init(credentialsProvider: provider, allocator: allocator)
+    }
+    
+    public convenience init(fromSTS stsConfig: CRTCredentialsProviderSTSConfig,
+                            allocator: Allocator = defaultAllocator) throws {
+        var stsOptions = aws_credentials_provider_sts_options()
+        stsOptions.tls_ctx = stsConfig.tlsContext.rawValue
+        stsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
+            shutDownOptions: stsConfig.shutDownOptions)
+        stsOptions.creds_provider = stsConfig.credentialsProvider.rawValue
+        
+        guard let provider = aws_credentials_provider_new_sts(allocator.rawValue, &stsOptions) else {
+            throw AWSCommonRuntimeError()
+        }
+        self.init(credentialsProvider: provider, allocator: allocator)
+    }
+
     /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
     /// the callback passed in.
     ///
