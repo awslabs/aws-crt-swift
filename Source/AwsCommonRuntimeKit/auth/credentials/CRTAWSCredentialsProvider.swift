@@ -221,7 +221,7 @@ public final class CRTAWSCredentialsProvider {
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
-    
+
     /// Creates a provider that assumes an IAM role via. STS AssumeRole() API. This provider will fetch new credentials
     /// upon each call to `getCredentials`
     ///
@@ -240,13 +240,13 @@ public final class CRTAWSCredentialsProvider {
         stsOptions.duration_seconds = stsConfig.durationSeconds
         stsOptions.function_table = nil
         stsOptions.system_clock_fn = nil
-        
+
         guard let provider = aws_credentials_provider_new_sts(allocator.rawValue, &stsOptions) else {
             throw AWSCommonRuntimeError()
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
-    
+
     /// Creates a provider that sources credentials from the ecs role credentials service
     ///
     ///  - Parameters:
@@ -263,7 +263,7 @@ public final class CRTAWSCredentialsProvider {
         ecsOptions.auth_token = containerConfig.authToken.awsByteCursor
         ecsOptions.path_and_query = containerConfig.pathAndQuery.awsByteCursor
         ecsOptions.function_table = nil
-        
+
         guard let provider = aws_credentials_provider_new_ecs(allocator.rawValue, &ecsOptions) else {
             throw AWSCommonRuntimeError()
         }
