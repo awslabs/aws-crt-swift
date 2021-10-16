@@ -222,6 +222,12 @@ public final class CRTAWSCredentialsProvider {
         self.init(credentialsProvider: provider, allocator: allocator)
     }
     
+    /// Creates a provider that assumes an IAM role via. STS AssumeRole() API. This provider will fetch new credentials
+    /// upon each call to `getCredentials`
+    ///
+    /// - Parameters:
+    ///    - stsConfig: The `CRTCredentialsProviderSTSConfig` options object
+    /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromSTS stsConfig: CRTCredentialsProviderSTSConfig,
                             allocator: Allocator = defaultAllocator) throws {
         var stsOptions = aws_credentials_provider_sts_options()
@@ -229,6 +235,11 @@ public final class CRTAWSCredentialsProvider {
         stsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
             shutDownOptions: stsConfig.shutDownOptions)
         stsOptions.creds_provider = stsConfig.credentialsProvider.rawValue
+        stsOptions.role_arn = stsConfig.roleArn.awsByteCursor
+        stsOptions.session_name = stsConfig.sessionName.awsByteCursor
+        stsOptions.duration_seconds = stsConfig.durationSeconds
+        stsOptions.function_table = nil
+        stsOptions.system_clock_fn = nil
         
         guard let provider = aws_credentials_provider_new_sts(allocator.rawValue, &stsOptions) else {
             throw AWSCommonRuntimeError()
