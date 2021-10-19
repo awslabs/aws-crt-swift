@@ -269,7 +269,7 @@ public final class CRTAWSCredentialsProvider {
             ecsOptions.path_and_query = pathAndQuery.awsByteCursor
         }
         ecsOptions.function_table = nil
-        
+
         guard let provider = aws_credentials_provider_new_ecs(allocator.rawValue, &ecsOptions) else {
             throw AWSCommonRuntimeError()
         }
