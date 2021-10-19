@@ -17,7 +17,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     
     override func tearDown() {
         super.tearDown()
-        if !name.contains("testCreateAWSCredentialsProviderProfile") {
+        if !name.contains("testCreateAWSCredentialsProviderProfile") && !name.contains("testCreateDestroyStsWebIdentityInvalidEnv") {
             wait(for: [expectation2], timeout: 3.0)
         }
     }
@@ -148,6 +148,42 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             XCTFail()
         }
     }
+    
+    func testCreateDestroyStsWebIdentityInvalidEnv() {
+        let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
+            semaphore.signal()
+        }
+        
+        let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
+            semaphore.signal()
+        }
+        
+        let elg = EventLoopGroup(threadCount: 0, allocator: allocator, shutDownOptions: elgShutDownOptions)
+        let hostResolver = DefaultHostResolver(eventLoopGroup: elg,
+                                               maxHosts: 8,
+                                               maxTTL: 30,
+                                               allocator: allocator,
+                                               shutDownOptions: resolverShutDownOptions)
+        
+        let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
+            sempahore.signal()
+        }
+        
+        do {
+            let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
+                                                hostResolver: hostResolver,
+                                                callbackData: clientBootstrapCallbackData,
+                                                allocator: allocator)
+            bootstrap.enableBlockingShutDown()
+            let options = TlsContextOptions(defaultClientWithAllocator: allocator)
+            let context = try TlsContext(options: options, mode: .client, allocator: allocator)
+            let config = MockCredentialsProviderWebIdentityConfig(bootstrap: bootstrap, tlsContext: context)
+            _ = try CRTAWSCredentialsProvider(fromWebIdentity: config)
+        } catch let err {
+            let awsErr = err as? AWSCommonRuntimeError
+            XCTAssertEqual(awsErr?.code, 0)
+        }
+    }
 }
 
 struct MockCredentialsProviderProfileOptions: CRTCredentialsProviderProfileOptions {
@@ -194,6 +230,20 @@ public struct MockCredentialsProviderChainDefaultConfig: CRTCredentialsProviderC
     public init(bootstrap: ClientBootstrap,
                 shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
         self.bootstrap = bootstrap
+        self.shutDownOptions = shutDownOptions
+    }
+}
+
+struct MockCredentialsProviderWebIdentityConfig: CRTCredentialsProviderWebIdentityConfig {
+    public var shutDownOptions: CRTCredentialsProviderShutdownOptions?
+    public var bootstrap: ClientBootstrap
+    public var tlsContext: TlsContext
+    
+    public init(bootstrap: ClientBootstrap,
+                tlsContext: TlsContext,
+                shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
+        self.bootstrap = bootstrap
+        self.tlsContext = tlsContext
         self.shutDownOptions = shutDownOptions
     }
 }
