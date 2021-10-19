@@ -259,11 +259,17 @@ public final class CRTAWSCredentialsProvider {
         ecsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
             shutDownOptions: containerConfig.shutDownOptions)
         ecsOptions.bootstrap = containerConfig.bootstrap.rawValue
-        ecsOptions.host = containerConfig.host.awsByteCursor
-        ecsOptions.auth_token = containerConfig.authToken.awsByteCursor
-        ecsOptions.path_and_query = containerConfig.pathAndQuery.awsByteCursor
+        if let host = containerConfig.host {
+            ecsOptions.host = host.awsByteCursor
+        }
+        if let authToken = containerConfig.authToken {
+            ecsOptions.auth_token = authToken.awsByteCursor
+        }
+        if let pathAndQuery = containerConfig.pathAndQuery {
+            ecsOptions.path_and_query = pathAndQuery.awsByteCursor
+        }
         ecsOptions.function_table = nil
-
+        
         guard let provider = aws_credentials_provider_new_ecs(allocator.rawValue, &ecsOptions) else {
             throw AWSCommonRuntimeError()
         }

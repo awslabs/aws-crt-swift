@@ -17,7 +17,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     
     override func tearDown() {
         super.tearDown()
-        if !name.contains("testCreateAWSCredentialsProviderProfile") && !name.contains("testCreateDestroyStsWebIdentityInvalidEnv") {
+        if !name.contains("testCreateAWSCredentialsProviderProfile") && !name.contains("testCreateDestroyStsWebIdentityInvalidEnv") && !name.contains("testCreateDestroyStsInvalidRole") {
             wait(for: [expectation2], timeout: 3.0)
         }
     }
@@ -184,6 +184,101 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             XCTAssertEqual(awsErr?.code, 0)
         }
     }
+    
+    func testCreateDestroyStsInvalidRole() {
+        let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
+            semaphore.signal()
+        }
+        
+        let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
+            semaphore.signal()
+        }
+        
+        let elg = EventLoopGroup(threadCount: 0, allocator: allocator, shutDownOptions: elgShutDownOptions)
+        let hostResolver = DefaultHostResolver(eventLoopGroup: elg,
+                                               maxHosts: 8,
+                                               maxTTL: 30,
+                                               allocator: allocator,
+                                               shutDownOptions: resolverShutDownOptions)
+        
+        let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
+            sempahore.signal()
+        }
+        
+        do {
+            let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
+                                                hostResolver: hostResolver,
+                                                callbackData: clientBootstrapCallbackData,
+                                                allocator: allocator)
+            bootstrap.enableBlockingShutDown()
+            let options = TlsContextOptions(defaultClientWithAllocator: allocator)
+            let context = try TlsContext(options: options, mode: .client, allocator: allocator)
+            let staticConfig = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
+                                                                    secret: secret,
+                                                                    sessionToken: sessionToken)
+            let provider = try CRTAWSCredentialsProvider(fromStatic: staticConfig, allocator: allocator)
+            let config = MockCredentialsProviderSTSConfig(bootstrap: bootstrap,
+                                                          tlsContext: context,
+                                                          credentialsProvider: provider,
+                                                          roleArn: "invalid-role-arn",
+                                                          sessionName: "test-session",
+                                                          durationSeconds: 10)
+            _ = try CRTAWSCredentialsProvider(fromSTS: config)
+        } catch let err {
+            let awsErr = err as? AWSCommonRuntimeError
+            XCTAssertEqual(awsErr?.code, 34)
+        }
+    }
+    
+    func testCreateDestroyEcsMissingCreds() {
+        let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
+            semaphore.signal()
+        }
+        
+        let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
+            semaphore.signal()
+        }
+        
+        let elg = EventLoopGroup(threadCount: 0, allocator: allocator, shutDownOptions: elgShutDownOptions)
+        let hostResolver = DefaultHostResolver(eventLoopGroup: elg,
+                                               maxHosts: 8,
+                                               maxTTL: 30,
+                                               allocator: allocator,
+                                               shutDownOptions: resolverShutDownOptions)
+        
+        let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
+            sempahore.signal()
+        }
+        
+        do {
+            let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
+                                                hostResolver: hostResolver,
+                                                callbackData: clientBootstrapCallbackData,
+                                                allocator: allocator)
+            bootstrap.enableBlockingShutDown()
+            let options = TlsContextOptions(defaultClientWithAllocator: allocator)
+            let context = try TlsContext(options: options, mode: .client, allocator: allocator)
+            let shutDownOptions = setUpShutDownOptions()
+            let config = MockCredentialsProviderContainerConfig(bootstrap: bootstrap,
+                                                                tlsContext: context,
+                                                                shutDownOptions: shutDownOptions)
+            let provider = try CRTAWSCredentialsProvider(fromContainer: config)
+            let result = provider.getCredentials()
+            result.then { (result) in
+                switch result {
+                case .failure(let error):
+                    XCTAssertNotNil(error)
+                    self.expectation.fulfill()
+                case .success(let credentials):
+                    print(credentials)
+                }
+            }
+            
+            wait(for: [expectation], timeout: 10.0)
+        } catch {
+            XCTFail()
+        }
+    }
 }
 
 struct MockCredentialsProviderProfileOptions: CRTCredentialsProviderProfileOptions {
@@ -235,15 +330,64 @@ public struct MockCredentialsProviderChainDefaultConfig: CRTCredentialsProviderC
 }
 
 struct MockCredentialsProviderWebIdentityConfig: CRTCredentialsProviderWebIdentityConfig {
-    public var shutDownOptions: CRTCredentialsProviderShutdownOptions?
-    public var bootstrap: ClientBootstrap
-    public var tlsContext: TlsContext
+    var shutDownOptions: CRTCredentialsProviderShutdownOptions?
+    var bootstrap: ClientBootstrap
+    var tlsContext: TlsContext
     
-    public init(bootstrap: ClientBootstrap,
+    init(bootstrap: ClientBootstrap,
                 tlsContext: TlsContext,
                 shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
         self.bootstrap = bootstrap
         self.tlsContext = tlsContext
+        self.shutDownOptions = shutDownOptions
+    }
+}
+
+struct MockCredentialsProviderSTSConfig: CRTCredentialsProviderSTSConfig {
+    var shutDownOptions: CRTCredentialsProviderShutdownOptions?
+    var bootstrap: ClientBootstrap
+    var tlsContext: TlsContext
+    var credentialsProvider: CRTAWSCredentialsProvider
+    var roleArn: String
+    var sessionName: String
+    var durationSeconds: UInt16
+    
+    init(bootstrap: ClientBootstrap,
+         tlsContext: TlsContext,
+         credentialsProvider: CRTAWSCredentialsProvider,
+         roleArn: String,
+         sessionName: String,
+         durationSeconds: UInt16,
+         shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
+        self.bootstrap = bootstrap
+        self.tlsContext = tlsContext
+        self.credentialsProvider = credentialsProvider
+        self.roleArn = roleArn
+        self.sessionName = sessionName
+        self.durationSeconds = durationSeconds
+        self.shutDownOptions = shutDownOptions
+    }
+}
+
+struct MockCredentialsProviderContainerConfig: CRTCredentialsProviderContainerConfig {
+    var shutDownOptions: CRTCredentialsProviderShutdownOptions?
+    var bootstrap: ClientBootstrap
+    var tlsContext: TlsContext
+    var authToken: String?
+    var pathAndQuery: String?
+    var host: String?
+    
+    init(bootstrap: ClientBootstrap,
+         tlsContext: TlsContext,
+         authToken: String? = nil,
+         pathAndQuery: String? = nil,
+         host: String? = nil,
+         shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
+        self.bootstrap = bootstrap
+        self.tlsContext = tlsContext
+        self.authToken = authToken
+        self.pathAndQuery = pathAndQuery
+        self.host = host
         self.shutDownOptions = shutDownOptions
     }
 }
