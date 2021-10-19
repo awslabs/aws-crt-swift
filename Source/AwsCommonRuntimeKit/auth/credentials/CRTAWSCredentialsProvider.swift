@@ -202,6 +202,80 @@ public final class CRTAWSCredentialsProvider {
     }
 #endif
 
+    /// Creates a provider that sources credentials from STS using AssumeRoleWithWebIdentity
+    ///
+    /// - Parameters:
+    ///    - webIdentityConfig: The `CRTCredentialsProviderWebIdentityConfig` options object.
+    /// - Returns: `AWSCredentialsProvider`
+    public convenience init(fromWebIdentity webIdentityConfig: CRTCredentialsProviderWebIdentityConfig,
+                            allocator: Allocator = defaultAllocator) throws {
+        var stsOptions = aws_credentials_provider_sts_web_identity_options()
+        stsOptions.bootstrap = webIdentityConfig.bootstrap.rawValue
+        stsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
+            shutDownOptions: webIdentityConfig.shutDownOptions)
+        stsOptions.tls_ctx = webIdentityConfig.tlsContext.rawValue
+        stsOptions.function_table = nil
+        guard let provider = aws_credentials_provider_new_sts_web_identity(allocator.rawValue,
+                                                                           &stsOptions) else {
+            throw AWSCommonRuntimeError()
+        }
+        self.init(credentialsProvider: provider, allocator: allocator)
+    }
+
+    /// Creates a provider that assumes an IAM role via. STS AssumeRole() API. This provider will fetch new credentials
+    /// upon each call to `getCredentials`
+    ///
+    /// - Parameters:
+    ///    - stsConfig: The `CRTCredentialsProviderSTSConfig` options object
+    /// - Returns: `AWSCredentialsProvider`
+    public convenience init(fromSTS stsConfig: CRTCredentialsProviderSTSConfig,
+                            allocator: Allocator = defaultAllocator) throws {
+        var stsOptions = aws_credentials_provider_sts_options()
+        stsOptions.tls_ctx = stsConfig.tlsContext.rawValue
+        stsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
+            shutDownOptions: stsConfig.shutDownOptions)
+        stsOptions.creds_provider = stsConfig.credentialsProvider.rawValue
+        stsOptions.role_arn = stsConfig.roleArn.awsByteCursor
+        stsOptions.session_name = stsConfig.sessionName.awsByteCursor
+        stsOptions.duration_seconds = stsConfig.durationSeconds
+        stsOptions.function_table = nil
+        stsOptions.system_clock_fn = nil
+
+        guard let provider = aws_credentials_provider_new_sts(allocator.rawValue, &stsOptions) else {
+            throw AWSCommonRuntimeError()
+        }
+        self.init(credentialsProvider: provider, allocator: allocator)
+    }
+
+    /// Creates a provider that sources credentials from the ecs role credentials service
+    ///
+    ///  - Parameters:
+    ///    - containerConfig: The `CRTCredentialsProviderContainerConfig` options object
+    /// - Returns: `AWSCredentialsProvider`
+    public convenience init(fromContainer containerConfig: CRTCredentialsProviderContainerConfig,
+                            allocator: Allocator = defaultAllocator) throws {
+        var ecsOptions = aws_credentials_provider_ecs_options()
+        ecsOptions.tls_ctx = containerConfig.tlsContext.rawValue
+        ecsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
+            shutDownOptions: containerConfig.shutDownOptions)
+        ecsOptions.bootstrap = containerConfig.bootstrap.rawValue
+        if let host = containerConfig.host {
+            ecsOptions.host = host.awsByteCursor
+        }
+        if let authToken = containerConfig.authToken {
+            ecsOptions.auth_token = authToken.awsByteCursor
+        }
+        if let pathAndQuery = containerConfig.pathAndQuery {
+            ecsOptions.path_and_query = pathAndQuery.awsByteCursor
+        }
+        ecsOptions.function_table = nil
+
+        guard let provider = aws_credentials_provider_new_ecs(allocator.rawValue, &ecsOptions) else {
+            throw AWSCommonRuntimeError()
+        }
+        self.init(credentialsProvider: provider, allocator: allocator)
+    }
+
     /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
     /// the callback passed in.
     ///
