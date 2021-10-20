@@ -9,7 +9,7 @@ public struct CRTIMDSClientOptions {
 
     public init(bootstrap: ClientBootstrap,
                 retryStrategy: CRTAWSRetryStrategy,
-                protocolVersion: CRTIMDSProtocolVersion = .v2,
+                protocolVersion: CRTIMDSProtocolVersion = .version2,
                 shutDownOptions: CRTIDMSClientShutdownOptions? = nil) {
         self.bootstrap = bootstrap
         self.retryStrategy = retryStrategy
