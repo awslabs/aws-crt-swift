@@ -60,7 +60,7 @@ extension aws_array_list {
             aws_array_list_get_at(&arrayList, &val, index)
             newArray[index] = val.bindMemory(to: String.self, capacity: 1).pointee
         }
-        
+
         return newArray
     }
 }

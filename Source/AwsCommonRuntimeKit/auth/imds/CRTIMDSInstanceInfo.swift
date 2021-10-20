@@ -19,7 +19,7 @@ public struct CRTIMDSInstanceInfo {
     public let kernelId: String
     public let ramDiskId: String
     public let region: String
-    
+
     init(pointer: UnsafePointer<aws_imds_instance_info>) {
         let instanceInfo = pointer.pointee
         self.marketPlaceProductCodes = instanceInfo.marketplace_product_codes.toStringArray()
@@ -36,6 +36,6 @@ public struct CRTIMDSInstanceInfo {
         self.kernelId = instanceInfo.kernel_id.toString() ?? ""
         self.ramDiskId = instanceInfo.ramdisk_id.toString() ?? ""
         self.region = instanceInfo.region.toString() ?? ""
-  
+
     }
 }

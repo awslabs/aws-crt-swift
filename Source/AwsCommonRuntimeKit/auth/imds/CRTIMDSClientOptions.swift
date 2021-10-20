@@ -8,7 +8,7 @@ public struct CRTIMDSClientOptions {
     public let retryStrategy: CRTAWSRetryStrategy
     public let protocolVersion: CRTIMDSProtocolVersion
     public let shutDownOptions: CRTIDMSClientShutdownOptions?
-    
+
     public init(bootstrap: ClientBootstrap,
                 retryStrategy: CRTAWSRetryStrategy,
                 protocolVersion: CRTIMDSProtocolVersion = .v2,

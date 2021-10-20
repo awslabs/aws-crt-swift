@@ -6,7 +6,7 @@ import Foundation
 
 public class CRTIMDSClient {
     let rawValue: OpaquePointer
-    
+
     public init(options: CRTIMDSClientOptions, allocator: Allocator = defaultAllocator) {
         let shutDownOptions = CRTIMDSClient.setUpShutDownOptions(shutDownOptions: options.shutDownOptions)
         var imdsOptions = aws_imds_client_options(shutdown_options: shutDownOptions,
@@ -25,7 +25,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_resource_async(rawValue, resourcePath.awsByteCursor, resourceCallback, pointer)
     }
-    
+
     /// Gets the ami id of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -34,7 +34,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_ami_id(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets the ami launch index of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -43,7 +43,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_ami_launch_index(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets the ami manifest path of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -52,7 +52,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_ami_manifest_path(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets the list of ancestor ami ids of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -61,7 +61,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_ancestor_ami_ids(rawValue, arrayCallback, pointer)
     }
-    
+
     /// Gets the instance-action of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -70,7 +70,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_instance_action(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets the instance id of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -79,7 +79,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_instance_id(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets the instance type of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -88,7 +88,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_instance_type(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets the mac address of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -97,7 +97,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_mac_address(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets the private ip address of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -106,7 +106,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_private_ip_address(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets the availability zone of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -115,7 +115,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_availability_zone(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets the product codes of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -124,7 +124,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_product_codes(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets the public key of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -133,7 +133,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_public_key(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets the ramdisk id of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -142,7 +142,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_ramdisk_id(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets the reservation id of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -151,7 +151,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_reservation_id(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets the list of the security groups of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -160,7 +160,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_security_groups(rawValue, arrayCallback, pointer)
     }
-    
+
     /// Gets the list of block device mappings of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -169,7 +169,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_block_device_mapping(rawValue, arrayCallback, pointer)
     }
-    
+
     /// Gets the attached iam role of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -178,7 +178,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_attached_iam_role(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets temporary credentials based on the attached iam role of the ec2 instance
     ///
     /// - Parameters:
@@ -198,7 +198,7 @@ public class CRTIMDSClient {
             pointer.deinitializeAndDeallocate()
         }, pointer)
     }
-    
+
     /// Gets the iam profile information of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -221,7 +221,7 @@ public class CRTIMDSClient {
             pointer.deinitializeAndDeallocate()
         }, pointer)
     }
-    
+
     /// Gets the user data of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -230,7 +230,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_user_data(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets the signature of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -239,7 +239,7 @@ public class CRTIMDSClient {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_instance_signature(rawValue, resourceCallback, pointer)
     }
-    
+
     /// Gets the instance information data block of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -263,7 +263,7 @@ public class CRTIMDSClient {
             pointer.deinitializeAndDeallocate()
         }, pointer)
     }
-    
+
     static func setUpShutDownOptions(shutDownOptions: CRTIDMSClientShutdownOptions?)
     -> aws_imds_client_shutdown_options {
 
@@ -279,19 +279,19 @@ public class CRTIMDSClient {
 
         return shutDownOptionsC
     }
-    
+
     deinit {
         aws_imds_client_release(rawValue)
     }
 }
 
-private func resourceCallback(_ byteBuf :UnsafePointer<aws_byte_buf>?,
+private func resourceCallback(_ byteBuf: UnsafePointer<aws_byte_buf>?,
                               _ errorCode: Int32,
-                              _ userData:  UnsafeMutableRawPointer?) {
+                              _ userData: UnsafeMutableRawPointer?) {
     guard let userData = userData else {
         return
     }
-    
+
     let pointer = userData.assumingMemoryBound(to: CRTIMDSClientResourceCallbackData.self)
     let error = AWSError(errorCode: errorCode)
     let byteCursor = aws_byte_cursor_from_buf(byteBuf)
@@ -300,15 +300,15 @@ private func resourceCallback(_ byteBuf :UnsafePointer<aws_byte_buf>?,
     pointer.deinitializeAndDeallocate()
 }
 
-private func arrayCallback(_ arrayListPointer :UnsafePointer<aws_array_list>?,
+private func arrayCallback(_ arrayListPointer: UnsafePointer<aws_array_list>?,
                            _ errorCode: Int32,
-                           _ userData:  UnsafeMutableRawPointer?) {
+                           _ userData: UnsafeMutableRawPointer?) {
     guard let userData = userData else {
         return
     }
     let pointer = userData.assumingMemoryBound(to: CRTIMDSClientArrayCallbackData.self)
     let error = AWSError(errorCode: errorCode)
-    
+
     let amiIds = arrayListPointer?.pointee.toStringArray()
 
     pointer.pointee.onArrayResolved(amiIds, CRTError.crtError(error))
