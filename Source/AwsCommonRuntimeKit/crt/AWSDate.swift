@@ -42,7 +42,7 @@ public class AWSDate: Comparable {
         aws_date_time_init_now(rawValue)
     }
 
-    public init(rawValue: aws_date_time) {
+    init(rawValue: aws_date_time) {
         self.rawValue = fromPointer(ptr: rawValue)
     }
 
