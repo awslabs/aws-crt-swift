@@ -49,6 +49,22 @@ extension aws_byte_buf {
     }
 }
 
+extension aws_array_list {
+    func toStringArray() -> [String] {
+        let length = self.length
+        var arrayList = self
+        var newArray: [String] = Array(repeating: "", count: length)
+
+        for index  in 0..<length {
+            var val: UnsafeMutableRawPointer! = nil
+            aws_array_list_get_at(&arrayList, &val, index)
+            newArray[index] = val.bindMemory(to: String.self, capacity: 1).pointee
+        }
+
+        return newArray
+    }
+}
+
 public extension Int32 {
     func toString() -> String? {
         // Convert UnicodeScalar to a String.

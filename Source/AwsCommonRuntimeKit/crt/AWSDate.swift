@@ -41,6 +41,11 @@ public class AWSDate: Comparable {
         self.rawValue = fromPointer(ptr: aws_date_time())
         aws_date_time_init_now(rawValue)
     }
+
+    init(rawValue: aws_date_time) {
+        self.rawValue = fromPointer(ptr: rawValue)
+    }
+
     public init(epochMs: UInt64) {
         self.rawValue = allocatePointer()
         aws_date_time_init_epoch_millis(rawValue, epochMs)

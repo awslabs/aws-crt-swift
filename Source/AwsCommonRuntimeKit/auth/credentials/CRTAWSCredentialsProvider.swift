@@ -283,19 +283,19 @@ public final class CRTAWSCredentialsProvider {
     ///   - credentialCallbackData:  The `CredentialProviderCallbackData`options object.
     public func getCredentials() -> Future<CRTCredentials> {
         let future = Future<CRTCredentials>()
-        let callbackData = CRTCredentialsProviderCallbackData(allocator: allocator) { (crtCredentials, crtError) in
+        let callbackData = CRTCredentialsCallbackData(allocator: allocator) { (crtCredentials, crtError) in
             if let crtCredentials = crtCredentials {
                 future.fulfill(crtCredentials)
             } else {
                 future.fail(crtError)
             }
         }
-        let pointer: UnsafeMutablePointer<CRTCredentialsProviderCallbackData> = fromPointer(ptr: callbackData)
+        let pointer: UnsafeMutablePointer<CRTCredentialsCallbackData> = fromPointer(ptr: callbackData)
         aws_credentials_provider_get_credentials(rawValue, { (credentials, errorCode, userdata) -> Void in
             guard let userdata = userdata else {
                 return
             }
-            let pointer = userdata.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
+            let pointer = userdata.assumingMemoryBound(to: CRTCredentialsCallbackData.self)
             defer { pointer.deinitializeAndDeallocate() }
             let error = AWSError(errorCode: errorCode)
             if let onCredentialsResolved = pointer.pointee.onCredentialsResolved {
@@ -332,7 +332,7 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer?,
     guard let credentialsProvider = delegatePtr?.assumingMemoryBound(to: CRTCredentialsProvider.self) else {
         return 1
     }
-    guard let credentialCallbackData = userData?.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self) else {
+    guard let credentialCallbackData = userData?.assumingMemoryBound(to: CRTCredentialsCallbackData.self) else {
         return 1
     }
 
