@@ -47,6 +47,10 @@ extension aws_byte_buf {
     func toByteBuffer() -> ByteBuffer {
         return ByteBuffer(ptr: self.buffer, len: self.len, capacity: self.capacity)
     }
+    
+    func toString() -> String {
+        return String(cString: self.buffer)
+    }
 }
 
 public extension Int32 {
