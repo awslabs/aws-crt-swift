@@ -161,8 +161,9 @@ private func resourceCallback(_ byteBuf :UnsafePointer<aws_byte_buf>?,
     
     let pointer = userData.assumingMemoryBound(to: CRTIMDSClientResourceCallbackData.self)
     let error = AWSError(errorCode: errorCode)
+    let byteCursor = aws_byte_cursor_from_buf(byteBuf)
 
-    pointer.pointee.onResourceResolved(byteBuf?.pointee.toString(), CRTError.crtError(error))
+    pointer.pointee.onResourceResolved(byteCursor.toString(), CRTError.crtError(error))
     pointer.deinitializeAndDeallocate()
 }
 
@@ -183,7 +184,6 @@ private func arrayCallback(_ arrayListPointer :UnsafePointer<aws_array_list>?,
         aws_array_list_get_at_ptr(arrayListPointer, &address, index)
         amiIds[index] = address.bindMemory(to: String.self, capacity: 1).pointee
     }
-
 
     pointer.pointee.onArrayResolved(amiIds, CRTError.crtError(error))
     pointer.deinitializeAndDeallocate()

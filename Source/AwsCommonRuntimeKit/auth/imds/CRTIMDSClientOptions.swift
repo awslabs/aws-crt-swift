@@ -5,10 +5,17 @@ import AwsCAuth
 
 public struct CRTIMDSClientOptions {
     public let bootstrap: ClientBootstrap
-    
     public let retryStrategy: CRTAWSRetryStrategy
-    
     public let protocolVersion: CRTIMDSProtocolVersion
+    public let shutDownOptions: CRTIDMSClientShutdownOptions?
     
-    public let shutDownOptions: CRTIDMSClientShutdownOptions
+    public init(bootstrap: ClientBootstrap,
+                retryStrategy: CRTAWSRetryStrategy,
+                protocolVersion: CRTIMDSProtocolVersion = .v2,
+                shutDownOptions: CRTIDMSClientShutdownOptions? = nil) {
+        self.bootstrap = bootstrap
+        self.retryStrategy = retryStrategy
+        self.protocolVersion = protocolVersion
+        self.shutDownOptions = shutDownOptions
+    }
 }
