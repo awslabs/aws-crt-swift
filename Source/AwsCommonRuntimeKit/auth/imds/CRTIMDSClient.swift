@@ -2,7 +2,6 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCAuth
-import Foundation
 
 public class CRTIMDSClient {
     let rawValue: OpaquePointer

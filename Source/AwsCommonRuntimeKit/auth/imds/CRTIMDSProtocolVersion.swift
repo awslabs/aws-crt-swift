@@ -14,6 +14,7 @@ extension CRTIMDSProtocolVersion: RawRepresentable, CaseIterable {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})
         self = value ?? .v2
     }
+    
     public var rawValue: aws_imds_protocol_version {
         switch self {
         case .v2: return IMDS_PROTOCOL_V2

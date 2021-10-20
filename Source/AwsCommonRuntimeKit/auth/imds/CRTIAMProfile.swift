@@ -13,6 +13,5 @@ public struct CRTIAMProfile {
         self.lastUpdated = AWSDate(rawValue: profile.last_updated)
         self.profileArn = profile.instance_profile_arn.toString() ?? ""
         self.profileId = profile.instance_profile_id.toString() ?? ""
-
     }
 }

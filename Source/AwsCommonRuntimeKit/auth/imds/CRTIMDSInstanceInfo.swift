@@ -4,7 +4,6 @@
 import AwsCAuth
 
 public struct CRTIMDSInstanceInfo {
-
     public let marketPlaceProductCodes: [String]
     public let availabilityZone: String
     public let privateIp: String
@@ -36,6 +35,5 @@ public struct CRTIMDSInstanceInfo {
         self.kernelId = instanceInfo.kernel_id.toString() ?? ""
         self.ramDiskId = instanceInfo.ramdisk_id.toString() ?? ""
         self.region = instanceInfo.region.toString() ?? ""
-
     }
 }
