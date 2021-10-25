@@ -7,8 +7,8 @@ public class CRTAWSProfileCollection {
     var rawValue: OpaquePointer
 
     public init?(fromFile path: String,
-                source: CRTAWSProfileSourceType,
-                allocator: Allocator = defaultAllocator) {
+                 source: CRTAWSProfileSourceType,
+                 allocator: Allocator = defaultAllocator) {
         var finalizedPath = path
         if path.hasPrefix("~"),
            let homeDirectory = aws_get_home_directory(allocator.rawValue),
@@ -17,10 +17,10 @@ public class CRTAWSProfileCollection {
         }
         let awsString = AWSString(finalizedPath, allocator: allocator)
         guard let profilePointer = aws_profile_collection_new_from_file(allocator.rawValue,
-                                                             awsString.rawValue,
-                                                             source.rawValue) else {
-                                                                 return nil
-                                                             }
+                                                                        awsString.rawValue,
+                                                                        source.rawValue) else {
+            return nil
+        }
         self.rawValue = profilePointer
     }
 
@@ -31,9 +31,9 @@ public class CRTAWSProfileCollection {
         let byteCount = byteArray.count
         let byteBuf = byteArray.withUnsafeMutableBufferPointer { pointer -> aws_byte_buf in
             let byteBuf = aws_byte_buf(len: byteCount,
-                                buffer: pointer.baseAddress,
-                                capacity: byteCount,
-                                allocator: allocator.rawValue)
+                                       buffer: pointer.baseAddress,
+                                       capacity: byteCount,
+                                       allocator: allocator.rawValue)
             return byteBuf
         }
         let pointer: UnsafePointer<aws_byte_buf> = fromPointer(ptr: byteBuf)
