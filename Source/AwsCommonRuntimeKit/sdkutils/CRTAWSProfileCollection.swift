@@ -6,7 +6,7 @@ import AwsCSdkUtils
 public class CRTAWSProfileCollection {
     var rawValue: OpaquePointer
 
-    public init(fromFile path: String,
+    public init?(fromFile path: String,
                 source: CRTAWSProfileSourceType,
                 allocator: Allocator = defaultAllocator) {
         var finalizedPath = path
@@ -16,9 +16,12 @@ public class CRTAWSProfileCollection {
             finalizedPath = homeDirectoryString + path.dropFirst()
         }
         let awsString = AWSString(finalizedPath, allocator: allocator)
-        self.rawValue = aws_profile_collection_new_from_file(allocator.rawValue,
+        guard let profilePointer = aws_profile_collection_new_from_file(allocator.rawValue,
                                                              awsString.rawValue,
-                                                             source.rawValue)
+                                                             source.rawValue) else {
+                                                                 return nil
+                                                             }
+        self.rawValue = profilePointer
     }
 
     public init(fromBuffer buffer: ByteBuffer,
