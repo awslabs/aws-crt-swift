@@ -12,7 +12,7 @@ public final class MqttClient {
         self.rawValue = aws_mqtt_client_new(defaultAllocator, clientBootstrap.rawValue)
     }
 
-    init(clientBootstrap: ClientBootstrap, allocator: Allocator = defaultAllocator) throws {
+    public init(clientBootstrap: ClientBootstrap, allocator: Allocator = defaultAllocator) throws {
         self.rawValue = aws_mqtt_client_new(allocator.rawValue, clientBootstrap.rawValue)
     }
 
@@ -25,7 +25,7 @@ public final class MqttClient {
     ///   - useWebSockets: Set to `True` to connect over web sockets
     ///   - allocator: The allocator instance to allocate memory on
     /// - Returns: `MqttConnection`
-    func newConnection(host: String,
+    public func newConnection(host: String,
                        port: Int16,
                        socketOptions: SocketOptions,
                        tlsContext: TlsContext,
@@ -48,7 +48,7 @@ public final class MqttClient {
     ///   - useWebSockets: Set to `True` to connect over web sockets
     ///   - allocator: The allocator instance to allocate memory on
     /// - Returns: `MqttConnection`
-    func newConnection(host: String,
+    public func newConnection(host: String,
                        port: Int16,
                        socketOptions: SocketOptions,
                        useWebSockets: Bool,
