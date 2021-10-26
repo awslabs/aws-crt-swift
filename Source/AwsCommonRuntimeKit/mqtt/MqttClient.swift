@@ -26,11 +26,11 @@ public final class MqttClient {
     ///   - allocator: The allocator instance to allocate memory on
     /// - Returns: `MqttConnection`
     public func newConnection(host: String,
-                       port: Int16,
-                       socketOptions: SocketOptions,
-                       tlsContext: TlsContext,
-                       useWebSockets: Bool,
-                       allocator: Allocator) -> MqttConnection {
+                              port: Int16,
+                              socketOptions: SocketOptions,
+                              tlsContext: TlsContext,
+                              useWebSockets: Bool,
+                              allocator: Allocator) -> MqttConnection {
         return MqttConnection(clientPointer: rawValue,
                               host: host,
                               port: port,
@@ -49,10 +49,10 @@ public final class MqttClient {
     ///   - allocator: The allocator instance to allocate memory on
     /// - Returns: `MqttConnection`
     public func newConnection(host: String,
-                       port: Int16,
-                       socketOptions: SocketOptions,
-                       useWebSockets: Bool,
-                       allocator: Allocator) -> MqttConnection {
+                              port: Int16,
+                              socketOptions: SocketOptions,
+                              useWebSockets: Bool,
+                              allocator: Allocator) -> MqttConnection {
         return MqttConnection(clientPointer: rawValue,
                               host: host,
                               port: port,
