@@ -1,7 +1,7 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-typealias OnOperationComplete = (MqttConnection, Int16, CRTError) -> Void
+public typealias OnOperationComplete = (MqttConnection, Int16, CRTError) -> Void
 
 struct OpCompleteCallbackData {
     let onOperationComplete: OnOperationComplete
