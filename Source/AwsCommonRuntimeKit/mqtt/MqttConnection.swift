@@ -37,6 +37,7 @@ public class MqttConnection {
     let tlsContext: TlsContext?
     var proxyOptions: HttpProxyOptions?
     var pubCallbackData: UnsafeMutablePointer<PubCallbackData>?
+    var nativePointer: UnsafeMutableRawPointer?
 
     init(clientPointer: UnsafeMutablePointer<aws_mqtt_client>,
          host: String,
@@ -53,12 +54,12 @@ public class MqttConnection {
         self.socketOptions = socketOptions
         self.tlsContext = tlsContext
         self.rawValue = aws_mqtt_client_connection_new(clientPointer)
-
+        
         setUpCallbackData()
     }
 
     private func setUpCallbackData() {
-
+        self.nativePointer = fromPointer(ptr: self)
         aws_mqtt_client_connection_set_connection_interruption_handlers(rawValue, { (_, errorCode, userData) in
             guard let userData = userData else {
                 return
@@ -71,7 +72,7 @@ public class MqttConnection {
             pointer.pointee.onConnectionInterrupted(pointer.pointee.rawValue,
                                                     CRTError.crtError(error))
 
-        }, self, { (_, connectReturnCode, sessionPresent, userData) in
+        }, nativePointer, { (_, connectReturnCode, sessionPresent, userData) in
             guard let userData = userData else {
                 return
             }
@@ -82,7 +83,7 @@ public class MqttConnection {
                                                 MqttReturnCode(rawValue: connectReturnCode),
                                                 sessionPresent)
 
-        }, self)
+        }, nativePointer)
     }
 
     /// Sets the will message to send with the CONNECT packet.
@@ -425,5 +426,6 @@ public class MqttConnection {
         if let pubCallbackData = pubCallbackData {
             pubCallbackData.deinitializeAndDeallocate()
         }
+        nativePointer?.deallocate()
     }
 }
