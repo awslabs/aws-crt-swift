@@ -298,26 +298,22 @@ public class MqttConnection {
                       return
                   }
             let ptr = userData.assumingMemoryBound(to: PubCallbackData.self)
-            defer {
-                ptr.deinitializeAndDeallocate()
-                topicPtr?.deallocate()
-            }
+        
             ptr.pointee.onPublishReceived(ptr.pointee.mqttConnection, topic, payload.pointee.toData())
+            ptr.deinitializeAndDeallocate()
         }, pubCallbackPtr, nil, { (_, packetId, topicPtr, qos, errorCode, userData) in
             guard let userData = userData, let topic = topicPtr?.pointee.toString() else {
                 return
             }
             let ptr = userData.assumingMemoryBound(to: SubAckCallbackData.self)
-            defer {
-                ptr.deinitializeAndDeallocate()
-                topicPtr?.deallocate()
-            }
+
             let error = AWSError(errorCode: errorCode)
             ptr.pointee.onSubAck(ptr.pointee.connection,
                                  Int16(packetId),
                                  topic,
                                  MqttQos(rawValue: qos),
                                  CRTError.crtError(error))
+            ptr.deinitializeAndDeallocate()
         }, subAckCallbackPtr)
 
         return packetId
