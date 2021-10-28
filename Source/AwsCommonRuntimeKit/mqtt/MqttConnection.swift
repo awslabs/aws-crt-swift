@@ -93,11 +93,13 @@ public class MqttConnection {
     ///   - payload: The payload of the will message to send over as `Data`
     /// - Returns: A `Bool` if will was set successfully
     public func setWill(topic: String, qos: MqttQos, retain: Bool, payload: Data) -> Bool {
+        var topicByteCursor = topic.awsByteCursor
+        var payloadByteCursor = payload.awsByteCursor
         return aws_mqtt_client_connection_set_will(rawValue,
-                                                   &topic.awsByteCursor,
+                                                   &topicByteCursor,
                                                    qos.rawValue,
                                                    retain,
-                                                   &payload.awsByteCursor) == AWS_OP_SUCCESS
+                                                   &payloadByteCursor) == AWS_OP_SUCCESS
     }
 
     /// Sets the username and/or password to send with the CONNECT packet.
@@ -106,9 +108,11 @@ public class MqttConnection {
     ///   - password: Password to authenticate with as `String`
     /// - Returns: A  `Bool` if login was set successfully.
     public func setLogin(username: String, password: String) -> Bool {
+        var usernameByteCursor = username.awsByteCursor
+        var passwordByteCursor = password.awsByteCursor
         return aws_mqtt_client_connection_set_login(rawValue,
-                                                    &username.awsByteCursor,
-                                                    &password.awsByteCursor) == AWS_OP_SUCCESS
+                                                    &usernameByteCursor,
+                                                    &passwordByteCursor) == AWS_OP_SUCCESS
     }
 
     /// Opens the actual connection defined this class. Once the connection is opened, `OnConnectionComplete`
@@ -277,9 +281,9 @@ public class MqttConnection {
         let pubCallbackPtr: UnsafeMutablePointer<PubCallbackData> = fromPointer(ptr: pubCallbackData)
         let subAckCallbackData = SubAckCallbackData(onSubAck: onSubAck, connection: self, topic: nil)
         let subAckCallbackPtr: UnsafeMutablePointer<SubAckCallbackData> = fromPointer(ptr: subAckCallbackData)
-       
+        var topicByteCursor = topicFilter.awsByteCursor
         let packetId = aws_mqtt_client_connection_subscribe(rawValue,
-                                                            &topicFilter.awsByteCursor,
+                                                            &topicByteCursor,
                                                             qos.rawValue,
                                                             { (_, topicPtr, payload, _, _, _, userData) in
             guard let userData = userData,
@@ -359,9 +363,9 @@ public class MqttConnection {
     public func unsubscribe(topicFilter: String, onComplete: @escaping OnOperationComplete) -> UInt16 {
         let opCallbackData = OpCompleteCallbackData(connection: self, onOperationComplete: onComplete)
         let opCallbackPtr: UnsafeMutablePointer<OpCompleteCallbackData> = fromPointer(ptr: opCallbackData)
-
+        var topicByteCursor = topicFilter.awsByteCursor
         let packetId = aws_mqtt_client_connection_unsubscribe(rawValue,
-                                                              &topicFilter.awsByteCursor,
+                                                              &topicByteCursor,
                                                               { (_, packetId, errorCode, userData) in
             guard let userData = userData else {
                 return
@@ -394,12 +398,13 @@ public class MqttConnection {
                                                     connection: self,
                                                     onOperationComplete: onComplete)
         let opCallbackPtr: UnsafeMutablePointer<OpCompleteCallbackData> = fromPointer(ptr: opCallbackData)
-
+        var topicByteCursor = topic.awsByteCursor
+        var payloadByteCursor = payload.awsByteCursor
         let packetId = aws_mqtt_client_connection_publish(rawValue,
-                                                          &payload.awsByteCursor,
+                                                          &payloadByteCursor,
                                                           qos.rawValue,
                                                           retain,
-                                                          &topic.awsByteCursor,
+                                                          &topicByteCursor,
                                                           { (_, packetId, errorCode, userData) in
             guard let userData = userData else {
                 return
