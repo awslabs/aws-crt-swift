@@ -293,6 +293,12 @@ private func resourceCallback(_ byteBuf: UnsafePointer<aws_byte_buf>?,
 
     let pointer = userData.assumingMemoryBound(to: CRTIMDSClientResourceCallbackData.self)
     let error = AWSError(errorCode: errorCode)
+    guard let byteBuf = byteBuf else {
+        pointer.pointee.onResourceResolved(nil, CRTError.crtError(error))
+        pointer.deinitializeAndDeallocate()
+        return
+    }
+
     let byteCursor = aws_byte_cursor_from_buf(byteBuf)
 
     pointer.pointee.onResourceResolved(byteCursor.toString(), CRTError.crtError(error))
