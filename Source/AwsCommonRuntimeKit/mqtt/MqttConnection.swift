@@ -178,7 +178,7 @@ public class MqttConnection {
         if useWebSockets {
             if onWebSocketHandshakeIntercept != nil {
 
-                if aws_mqtt_client_connection_use_websockets(rawValue,
+                aws_mqtt_client_connection_use_websockets(rawValue,
                                                              { (httpRequest, userData, completeFn, completeUserData) in
                     guard let userData = userData,
                           let httpRequest = httpRequest else {
@@ -195,13 +195,9 @@ public class MqttConnection {
                     //can unwrap here with ! because we know its not nil at this point
                     ptr.pointee.onWebSocketHandshakeIntercept!(HttpRequest(message: httpRequest),
                                                                onInterceptComplete)
-                }, rawValue, nil, nil) == AWS_OP_SUCCESS {
-                    return false
-                }
+                }, rawValue, nil, nil)
             } else {
-                if aws_mqtt_client_connection_use_websockets(rawValue, nil, nil, nil, nil) == AWS_OP_SUCCESS {
-                    return false
-                }
+                aws_mqtt_client_connection_use_websockets(rawValue, nil, nil, nil, nil)
             }
 
             if let proxyOptions = proxyOptions {
@@ -221,7 +217,7 @@ public class MqttConnection {
                 pOptions.host = proxyOptions.hostName.awsByteCursor
                 pOptions.port = proxyOptions.port
 
-                if aws_mqtt_client_connection_set_http_proxy_options(rawValue, &pOptions) == AWS_OP_SUCCESS {
+                if aws_mqtt_client_connection_set_http_proxy_options(rawValue, &pOptions) != AWS_OP_SUCCESS {
                     return false
                 }
             }
