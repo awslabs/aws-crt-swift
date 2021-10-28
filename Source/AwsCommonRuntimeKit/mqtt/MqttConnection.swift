@@ -71,7 +71,7 @@ public class MqttConnection {
             pointer.pointee.onConnectionInterrupted(pointer.pointee.rawValue,
                                                     CRTError.crtError(error))
 
-        }, rawValue, { (_, connectReturnCode, sessionPresent, userData) in
+        }, self, { (_, connectReturnCode, sessionPresent, userData) in
             guard let userData = userData else {
                 return
             }
@@ -82,7 +82,7 @@ public class MqttConnection {
                                                 MqttReturnCode(rawValue: connectReturnCode),
                                                 sessionPresent)
 
-        }, rawValue)
+        }, self)
     }
 
     /// Sets the will message to send with the CONNECT packet.
