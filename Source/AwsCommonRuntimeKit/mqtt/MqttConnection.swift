@@ -401,10 +401,10 @@ public class MqttConnection {
         var topicByteCursor = topic.awsByteCursor
         var payloadByteCursor = payload.awsByteCursor
         let packetId = aws_mqtt_client_connection_publish(rawValue,
-                                                          &payloadByteCursor,
+                                                          &topicByteCursor,
                                                           qos.rawValue,
                                                           retain,
-                                                          &topicByteCursor,
+                                                          &payloadByteCursor,
                                                           { (_, packetId, errorCode, userData) in
             guard let userData = userData else {
                 return
