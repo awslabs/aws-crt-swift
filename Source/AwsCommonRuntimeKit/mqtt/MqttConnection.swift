@@ -96,7 +96,7 @@ public class MqttConnection {
     ///   - retain: True to have the server save the packet, and send to all new subscriptions matching topic
     ///   - payload: The payload of the will message to send over as `Data`
     /// - Returns: A `Bool` if will was set successfully
-    func setWill(topic: String, qos: MqttQos, retain: Bool, payload: Data) -> Bool {
+    public func setWill(topic: String, qos: MqttQos, retain: Bool, payload: Data) -> Bool {
         let topicPointer: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: topic.awsByteCursor)
         let payloadPointer: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: payload.awsByteCursor)
 
@@ -112,7 +112,7 @@ public class MqttConnection {
     ///   - username: Username to send over as `String`
     ///   - password: Password to authenticate with as `String`
     /// - Returns: A  `Bool` if login was set successfully.
-    func setLogin(username: String, password: String) -> Bool {
+    public func setLogin(username: String, password: String) -> Bool {
         let usernamePointer: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: username.awsByteCursor)
         let passwordPointer: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: password.awsByteCursor)
         return aws_mqtt_client_connection_set_login(rawValue,
@@ -136,10 +136,10 @@ public class MqttConnection {
     ///   but keep-alive options may not work the same way on every platfor and OS version.
     ///   This duration must be shorter than `keepAliveTime`.
     /// - Returns: A `Bool`of True  if operation to connect has been successfully initated.
-    func connect(clientId: String,
-                 cleanSession: Bool,
-                 keepAliveTime: Int16,
-                 requestTimeoutMs: Int32) -> Bool {
+    public func connect(clientId: String,
+                        cleanSession: Bool,
+                        keepAliveTime: Int16,
+                        requestTimeoutMs: Int32) -> Bool {
 
         var mqttOptions = aws_mqtt_connection_options()
         mqttOptions.host_name = host.awsByteCursor
@@ -232,7 +232,7 @@ public class MqttConnection {
 
     /// Closes the connection asyncronously, calls the `OnDisconnect` callback, and destroys the connection object.
     /// - Returns: A `Bool` of True if the connection is open and is being shut down.
-    func disconnect() -> Bool {
+    public func disconnect() -> Bool {
 
         return aws_mqtt_client_connection_disconnect(rawValue, { (connectionPtr, userData) in
             guard let userData = userData else {
@@ -248,7 +248,7 @@ public class MqttConnection {
     /// Sets the callback to call whenever ANY publish packet is received.
     /// - Parameter onPublishReceived: The function to call when a publish is received
     /// - Returns: A `Bool` of True if the callback was set successfully
-    func setOnMessageHandler(onPublishReceived: @escaping OnPublishReceived) -> Bool {
+    public func setOnMessageHandler(onPublishReceived: @escaping OnPublishReceived) -> Bool {
         let pubCallbackData = PubCallbackData(onPublishReceived: onPublishReceived,
                                               mqttConnection: self)
 
@@ -281,10 +281,10 @@ public class MqttConnection {
     ///   - onPublishReceived: Called when a PUBLISH packet matching `topicFilter` is received
     ///   - onSubAck: Called when a SUBACK has been received from the server and the subscription is complete
     /// - Returns: The packet id of the subscribe packet if successfully sent, otherwise 0.
-    func subscribe(topicFilter: String,
-                   qos: MqttQos,
-                   onPublishReceived: @escaping OnPublishReceived,
-                   onSubAck: @escaping OnSubAck) -> UInt16 {
+    public func subscribe(topicFilter: String,
+                          qos: MqttQos,
+                          onPublishReceived: @escaping OnPublishReceived,
+                          onSubAck: @escaping OnSubAck) -> UInt16 {
 
         let pubCallbackData = PubCallbackData(onPublishReceived: onPublishReceived, mqttConnection: self)
         let pubCallbackPtr: UnsafeMutablePointer<PubCallbackData> = fromPointer(ptr: pubCallbackData)
@@ -333,8 +333,8 @@ public class MqttConnection {
     ///   - topicFilters: An array of topic filters describing the requests
     ///   - onMultiSubAck: Called when a SUBACK has been received from the server and the subscription is complete
     /// - Returns: The packet id of the subscribe packet if successfully sent, otherwise 0.
-    func subscribe(topicFilters: [String],
-                   onMultiSubAck: @escaping OnMultiSubAck) -> UInt16 {
+    public func subscribe(topicFilters: [String],
+                          onMultiSubAck: @escaping OnMultiSubAck) -> UInt16 {
 
         let subAckCallbackData = MultiSubAckCallbackData(onMultiSubAck: onMultiSubAck,
                                                          connection: self,
@@ -380,7 +380,7 @@ public class MqttConnection {
     ///   - topicFilter: The topic filter to unsubscribe on. This resource must persist until `onComplete`.
     ///   - onComplete: Called when a UNSUBACK has been received from the server and the subscription is removed
     /// - Returns: The packet id of the unsubscribe packet if successfully sent, otherwise 0.
-    func unsubscribe(topicFilter: String, onComplete: @escaping OnOperationComplete) -> UInt16 {
+    public func unsubscribe(topicFilter: String, onComplete: @escaping OnOperationComplete) -> UInt16 {
         let opCallbackData = OpCompleteCallbackData(connection: self, onOperationComplete: onComplete)
         let opCallbackPtr: UnsafeMutablePointer<OpCompleteCallbackData> = fromPointer(ptr: opCallbackData)
         let topicPtr: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: topicFilter.awsByteCursor)
@@ -411,11 +411,11 @@ public class MqttConnection {
     ///   - onComplete: For QoS `.atMostOnce`, called as soon as the packet is sent. For QoS `.atLeastOnce`,
     ///    called when PUBACK is received. For QoS `.exactlyOnce`, called when PUBCOMP is received
     /// - Returns: The packet id of the publish packet if successfully sent, otherwise 0.
-    func publish(topic: String,
-                 qos: MqttQos,
-                 retain: Bool,
-                 payload: Data,
-                 onComplete: @escaping OnOperationComplete) -> UInt16 {
+    public func publish(topic: String,
+                        qos: MqttQos,
+                        retain: Bool,
+                        payload: Data,
+                        onComplete: @escaping OnOperationComplete) -> UInt16 {
         let opCallbackData = OpCompleteCallbackData(topic: topic,
                                                     connection: self,
                                                     onOperationComplete: onComplete)
