@@ -66,8 +66,6 @@ public class MqttConnection {
 
             let pointer = userData.assumingMemoryBound(to: MqttConnection.self)
 
-            defer { pointer.deinitializeAndDeallocate()}
-
             let error = AWSError(errorCode: errorCode)
 
             pointer.pointee.onConnectionInterrupted(pointer.pointee.rawValue,
@@ -79,8 +77,6 @@ public class MqttConnection {
             }
 
             let pointer = userData.assumingMemoryBound(to: MqttConnection.self)
-
-            defer { pointer.deinitializeAndDeallocate()}
 
             pointer.pointee.onConnectionResumed(pointer.pointee.rawValue,
                                                 MqttReturnCode(rawValue: connectReturnCode),
@@ -300,7 +296,6 @@ public class MqttConnection {
             let ptr = userData.assumingMemoryBound(to: PubCallbackData.self)
         
             ptr.pointee.onPublishReceived(ptr.pointee.mqttConnection, topic, payload.pointee.toData())
-            ptr.deinitializeAndDeallocate()
         }, pubCallbackPtr, nil, { (_, packetId, topicPtr, qos, errorCode, userData) in
             guard let userData = userData, let topic = topicPtr?.pointee.toString() else {
                 return
@@ -313,7 +308,6 @@ public class MqttConnection {
                                  topic,
                                  MqttQos(rawValue: qos),
                                  CRTError.crtError(error))
-            ptr.deinitializeAndDeallocate()
         }, subAckCallbackPtr)
 
         return packetId
@@ -347,14 +341,10 @@ public class MqttConnection {
                       return
                   }
             let ptr = userData.assumingMemoryBound(to: MultiSubAckCallbackData.self)
-            defer {ptr.deinitializeAndDeallocate()}
             var topics = [String]()
             for index in 0...topicPointers.pointee.current_size {
                 let pointer = topicPointers.pointee.data.advanced(by: index)
                 let swiftString = pointer.assumingMemoryBound(to: String.self)
-                defer {
-                    pointer.deallocate()
-                }
                 topics.append(swiftString.pointee)
             }
             let error = AWSError(errorCode: errorCode)
@@ -383,9 +373,7 @@ public class MqttConnection {
                 return
             }
             let ptr = userData.assumingMemoryBound(to: OpCompleteCallbackData.self)
-            defer {
-                ptr.deinitializeAndDeallocate()
-            }
+
             let error = AWSError(errorCode: errorCode)
             ptr.pointee.onOperationComplete(ptr.pointee.connection,
                                             Int16(packetId),
@@ -425,15 +413,12 @@ public class MqttConnection {
                 return
             }
             let ptr = userData.assumingMemoryBound(to: OpCompleteCallbackData.self)
-            defer { ptr.deinitializeAndDeallocate()}
+           
             let error = AWSError(errorCode: errorCode)
             ptr.pointee.onOperationComplete(ptr.pointee.connection,
                                             Int16(packetId),
                                             CRTError.crtError(error))
         }, opCallbackPtr)
-
-        topicPointer.deinitializeAndDeallocate()
-        payloadPointer.deinitializeAndDeallocate()
 
         return packetId
     }
