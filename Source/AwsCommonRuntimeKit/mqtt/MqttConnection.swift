@@ -20,12 +20,12 @@ public typealias OnWebSocketHandshakeInterceptComplete = (HttpRequest, CRTError)
 
 //swiftlint:disable cyclomatic_complexity file_length type_body_length opening_brace
 public class MqttConnection {
-    var onConnectionInterrupted: OnConnectionInterrupted = {(connectionPtr, errorCode) in }
-    var onConnectionResumed: OnConnectionResumed = {(connectionPtr, returnCode, retain) in }
-    var onDisconnect: OnDisconnect = {(connectionPtr) in }
-    var onConnectionComplete: OnConnectionComplete = {(connectionPtr, errorCode, returnCode, retain) in}
-    var onWebSocketHandshakeIntercept: OnWebSocketHandshakeIntercept?
-    var onWebSocketHandshakeInterceptComplete: OnWebSocketHandshakeInterceptComplete?
+    public var onConnectionInterrupted: OnConnectionInterrupted = {(connectionPtr, errorCode) in }
+    public var onConnectionResumed: OnConnectionResumed = {(connectionPtr, returnCode, retain) in }
+    public var onDisconnect: OnDisconnect = {(connectionPtr) in }
+    public var onConnectionComplete: OnConnectionComplete = {(connectionPtr, errorCode, returnCode, retain) in}
+    public var onWebSocketHandshakeIntercept: OnWebSocketHandshakeIntercept?
+    public var onWebSocketHandshakeInterceptComplete: OnWebSocketHandshakeInterceptComplete?
 
     private var allocator: Allocator
     private var clientPointer: UnsafeMutablePointer<aws_mqtt_client>
