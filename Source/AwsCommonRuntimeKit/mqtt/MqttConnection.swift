@@ -54,7 +54,7 @@ public class MqttConnection {
         self.socketOptions = socketOptions
         self.tlsContext = tlsContext
         self.rawValue = aws_mqtt_client_connection_new(clientPointer)
-        
+
         setUpCallbackData()
     }
 
@@ -293,7 +293,7 @@ public class MqttConnection {
                       return
                   }
             let ptr = userData.assumingMemoryBound(to: PubCallbackData.self)
-        
+
             ptr.pointee.onPublishReceived(ptr.pointee.mqttConnection, topic, payload.pointee.toData())
         }, pubCallbackPtr, nil, { (_, packetId, topicPtr, qos, errorCode, userData) in
             guard let userData = userData, let topic = topicPtr?.pointee.toString() else {
@@ -411,7 +411,7 @@ public class MqttConnection {
                 return
             }
             let ptr = userData.assumingMemoryBound(to: OpCompleteCallbackData.self)
-           
+
             let error = AWSError(errorCode: errorCode)
             ptr.pointee.onOperationComplete(ptr.pointee.connection,
                                             Int16(packetId),
