@@ -10,8 +10,14 @@ public final class TlsConnectionOptions {
 	init(_ context: TlsContext, allocator: Allocator) {
 		self.allocator = allocator
 
-        self.rawValue = allocatePointer()
-		aws_tls_connection_options_init_from_ctx(rawValue, context.rawValue)
+        var connectionsPointer: UnsafeMutablePointer<aws_tls_connection_options> = allocatePointer()
+		aws_tls_connection_options_init_from_ctx(connectionsPointer, context.rawValue)
+        #if os(iOS) || os(watchOS)
+        connectionsPointer.pointee.timeout_ms = 30_000
+        #else
+        connectionsPointer.pointee.timeout_ms = 3_000
+        #endif
+        self.rawValue = connectionsPointer
 	}
 
 	public func setAlpnList(_ alpnList: String) throws {
