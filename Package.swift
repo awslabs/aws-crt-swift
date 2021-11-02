@@ -7,7 +7,7 @@ let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
 var packageTargets: [Target] = []
 
 var package = Package(name: "AwsCrt",
-    platforms: [.iOS(.v11), .macOS(.v10_14)],
+                      platforms: [.iOS(.v11), .macOS(.v10_14), .tvOS(.v12), .watchOS(.v5)],
     products: [
       .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
       .executable(name: "Elasticurl", targets: ["Elasticurl"])
