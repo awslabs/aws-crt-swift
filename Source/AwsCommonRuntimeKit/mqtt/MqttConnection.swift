@@ -150,7 +150,7 @@ public class MqttConnection {
         mqttOptions.ping_timeout_ms = UInt32(requestTimeoutMs)
         mqttOptions.clean_session = cleanSession
         mqttOptions.user_data = nativePointer
-        
+
         mqttOptions.on_connection_complete = { (connectionPtr,
                                                 errorCode,
                                                 returnCode,
