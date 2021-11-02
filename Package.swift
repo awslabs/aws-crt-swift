@@ -8,10 +8,10 @@ var packageTargets: [Target] = []
 
 var package = Package(name: "AwsCrt",
                       platforms: [.iOS(.v11), .macOS(.v10_14), .tvOS(.v12), .watchOS(.v5)],
-    products: [
-      .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
-      .executable(name: "Elasticurl", targets: ["Elasticurl"])
-    ]
+                      products: [
+                        .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
+                        .executable(name: "Elasticurl", targets: ["Elasticurl"])
+                      ]
 )
 
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
