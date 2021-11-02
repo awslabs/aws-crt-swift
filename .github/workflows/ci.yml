@@ -101,6 +101,7 @@ jobs:
   devices:
     runs-on: macos-11
     strategy:
+      fail-fast: false
       matrix:
         target:
           - ios
