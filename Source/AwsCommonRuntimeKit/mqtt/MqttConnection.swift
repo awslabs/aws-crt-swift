@@ -37,6 +37,7 @@ public class MqttConnection {
     let tlsContext: TlsContext?
     var proxyOptions: HttpProxyOptions?
     var pubCallbackData: UnsafeMutablePointer<PubCallbackData>?
+    /// This pointer has to live for the duration of all the callbacks that could be called so that is why we store it on the connection itself.
     var nativePointer: UnsafeMutableRawPointer?
 
     init(clientPointer: UnsafeMutablePointer<aws_mqtt_client>,
@@ -148,8 +149,8 @@ public class MqttConnection {
         mqttOptions.keep_alive_time_secs = UInt16(keepAliveTime)
         mqttOptions.ping_timeout_ms = UInt32(requestTimeoutMs)
         mqttOptions.clean_session = cleanSession
-        mqttOptions.user_data = fromPointer(ptr: self)
-
+        mqttOptions.user_data = nativePointer
+        
         mqttOptions.on_connection_complete = { (connectionPtr,
                                                 errorCode,
                                                 returnCode,
@@ -426,6 +427,5 @@ public class MqttConnection {
         if let pubCallbackData = pubCallbackData {
             pubCallbackData.deinitializeAndDeallocate()
         }
-        nativePointer?.deallocate()
     }
 }
