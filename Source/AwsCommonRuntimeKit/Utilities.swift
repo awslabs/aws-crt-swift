@@ -121,7 +121,7 @@ func allocatePointer<T>(_ capacity: Int = 1) -> UnsafeMutablePointer<T> {
 func toPointerArray<T, P: PointerConformance>(_ array: [T]) -> P {
     let pointers = UnsafeMutablePointer<T>.allocate(capacity: array.count)
 
-    for index in 0...array.count {
+    for index in 0..<array.count {
         pointers.advanced(by: index).initialize(to: array[index])
     }
     return P(OpaquePointer(pointers))
