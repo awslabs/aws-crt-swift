@@ -29,6 +29,16 @@
         "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS'"
       ]
     },
+    "tvos": {
+      "!build_steps": [
+        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=tvOS'"
+      ]
+    },
+    "watchos": {
+      "!build_steps": [
+        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=watchOS'"
+      ]
+    },
     "macos": {
       "!test_steps": [
         "./integ_test.sh"
