@@ -42,7 +42,7 @@ jobs:
     steps:
       - name: Build ${{ env.PACKAGE_NAME }}
         run: |
-          aws s3 cp s3://aws-crt-test-stuff/ci/${{ env.BUILDER_VERSION }}/linux-container-ci.sh /tmp/linux-container-ci.sh
+          aws s3 cp --debug s3://aws-crt-test-stuff/ci/${{ env.BUILDER_VERSION }}/linux-container-ci.sh /tmp/linux-container-ci.sh
       - name: chmod
         run: |
           chmod a+x /tmp/linux-container-ci.sh
