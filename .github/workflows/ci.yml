@@ -39,7 +39,7 @@ jobs:
     strategy:
       matrix:
         image:
-          - ubuntu-16-x64
+          - ubuntu-x64
           - al2-x64
           - centos-x64
     steps:
