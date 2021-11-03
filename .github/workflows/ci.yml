@@ -43,7 +43,11 @@ jobs:
       - name: Build ${{ env.PACKAGE_NAME }}
         run: |
           aws s3 cp s3://aws-crt-test-stuff/ci/${{ env.BUILDER_VERSION }}/linux-container-ci.sh ./linux-container-ci.sh
+      - name: chmod
+        run: |
           chmod a+x ./linux-container-ci.sh
+      - name: run
+        run: |
           ./linux-container-ci.sh ${{ env.BUILDER_VERSION }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
   osx:
     runs-on: macos-11
