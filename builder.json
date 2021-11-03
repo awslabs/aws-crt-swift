@@ -10,9 +10,6 @@
     "swift test"
   ],
   "hosts": {
-    "ubuntu": {},
-    "macos": {},
-    "al2": {},
     "al2012": {
       "enabled": false
     },
