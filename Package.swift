@@ -80,9 +80,9 @@ awsCCommonPlatformExcludes.append("source/arch/intel/asm")
 awsCCommonPlatformExcludes.append("source/arch/arm/asm")
 #endif
 
-var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild"] + excludesFromAll
+var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild", "include/aws/io/private"] + excludesFromAll
 
-#if os(macOS)
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
