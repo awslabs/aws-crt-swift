@@ -184,14 +184,14 @@ public class CRTIMDSClient {
     ///
     /// - Parameters:
     ///    - callbackData: The `CRTCredentialsCallbackData` object with an async callback
-    public func getCredentials(iamRoleName: String) async -> Result<CRTCredentials, CRTError> {
-        return await withCheckedContinuation({ (continuation: CredentialsContinuation) in
+    public func getCredentials(iamRoleName: String) async throws -> CRTCredentials {
+        return try await withCheckedThrowingContinuation({ (continuation: CredentialsContinuation) in
             getCredentialsFromCRT(iamRoleName: iamRoleName, continuation: continuation)
         })
     }
 
     public func getCredentialsFromCRT(iamRoleName: String, continuation: CredentialsContinuation) {
-        let callbackData = CRTCredentialsProviderCallbackData(onCredentialsResolved: continuation)
+        let callbackData = CRTCredentialsProviderCallbackData(continuation: continuation)
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_credentials(rawValue, iamRoleName.awsByteCursor, { credentialsPointer, errorCode, userData in
             guard let userData = userData else {
@@ -200,13 +200,12 @@ public class CRTIMDSClient {
             let pointer = userData.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
 
             let error = AWSError(errorCode: errorCode)
-            if let onCredentialsResolved = pointer.pointee.onCredentialsResolved {
-                let credentials = CRTCredentials(rawValue: credentialsPointer)
-                if errorCode == 0, let credentials = credentials {
-                    onCredentialsResolved.resume(returning: .success(credentials))
-                } else {
-                    onCredentialsResolved.resume(returning: .failure(.crtError(error)))
-                }
+            if errorCode == 0,
+               let credentialsPointer = credentialsPointer,
+               let crtCredentials = CRTCredentials(rawValue: credentialsPointer) {
+                pointer.pointee.continuation?.resume(returning: crtCredentials)
+            } else {
+                pointer.pointee.continuation?.resume(throwing: CRTError.crtError(error))
             }
             pointer.deinitializeAndDeallocate()
         }, pointer)

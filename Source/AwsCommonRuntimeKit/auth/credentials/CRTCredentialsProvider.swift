@@ -5,6 +5,6 @@ import AwsCAuth
 
 public protocol CRTCredentialsProvider {
     var allocator: Allocator {get set}
-    func getCredentials() async -> Result<CRTCredentials, CRTError>
+    func getCredentials() async throws -> CRTCredentials
 
 }

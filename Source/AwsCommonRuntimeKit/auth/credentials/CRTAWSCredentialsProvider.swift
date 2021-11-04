@@ -280,15 +280,14 @@ public final class CRTAWSCredentialsProvider {
     /// the callback passed in.
     ///
     /// - Returns: `Result<CRTCredentials, CRTError>`
-    public func getCredentials() async -> Result<CRTCredentials, CRTError> {
-        return await withCheckedContinuation { (continuation: CredentialsContinuation) in
+    public func getCredentials() async throws -> CRTCredentials{
+        return try await withCheckedThrowingContinuation { (continuation: CredentialsContinuation) in
             getCredentialsFromCRT(continuation: continuation)
         }
     }
 
     private func getCredentialsFromCRT(continuation: CredentialsContinuation) {
-        var callbackData = CRTCredentialsProviderCallbackData(allocator: allocator)
-        callbackData.onCredentialsResolved = continuation
+        let callbackData = CRTCredentialsProviderCallbackData(continuation: continuation)
         let pointer: UnsafeMutablePointer<CRTCredentialsProviderCallbackData> = fromPointer(ptr: callbackData)
         aws_credentials_provider_get_credentials(rawValue, { (credentials, errorCode, userdata) -> Void in
             guard let userdata = userdata else {
@@ -297,14 +296,15 @@ public final class CRTAWSCredentialsProvider {
             let pointer = userdata.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
             defer { pointer.deinitializeAndDeallocate() }
             let error = AWSError(errorCode: errorCode)
-            if let onCredentialsResolved = pointer.pointee.onCredentialsResolved {
-                let credentials = CRTCredentials(rawValue: credentials)
-                if errorCode == 0, let credentials = credentials {
-                    onCredentialsResolved.resume(returning: .success(credentials))
-                } else {
-                    onCredentialsResolved.resume(returning: .failure(.crtError(error)))
-                }
+  
+            if errorCode == 0,
+               let credentials = credentials,
+               let crtCredentials = CRTCredentials(rawValue: credentials) {
+                pointer.pointee.continuation?.resume(returning: crtCredentials)
+            } else {
+                pointer.pointee.continuation?.resume(throwing: CRTError.crtError(error))
             }
+            
         }, pointer)
     }
 
@@ -341,12 +341,11 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer?,
     let callbackPointer = UnsafeMutablePointer<CRTCredentialsProviderCallbackData>.allocate(capacity: 1)
     callbackPointer.initialize(to: credentialCallbackData.pointee)
     Task {
-        let result = await credentialsProvider.pointee.getCredentials()
-        switch result {
-        case .success(let credentials):
+        do {
+            let credentials = try await credentialsProvider.pointee.getCredentials()
             callbackFn?(credentials.rawValue, 0, callbackPointer)
-        case .failure(let error):
-            if case let CRTError.crtError(crtError) = error {
+        } catch let err {
+            if case let CRTError.crtError(crtError) = err {
                 callbackFn?(nil, crtError.errorCode, callbackPointer)
             }
         }
