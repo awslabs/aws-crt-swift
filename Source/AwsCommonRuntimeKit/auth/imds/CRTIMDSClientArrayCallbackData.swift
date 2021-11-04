@@ -1,14 +1,13 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
-
+public typealias ArrayContinuation = CheckedContinuation<[String]?, Error>
 public struct CRTIMDSClientArrayCallbackData {
-    public typealias OnArrayResolved = ([String]?, CRTError) -> Void
-    public var onArrayResolved: OnArrayResolved
+    public var continuation: ArrayContinuation?
     public let allocator: Allocator
 
     public init(allocator: Allocator = defaultAllocator,
-                onArrayResolved: @escaping OnArrayResolved) {
-        self.onArrayResolved = onArrayResolved
+                continuation: ArrayContinuation?) {
         self.allocator = allocator
+        self.continuation = continuation
     }
 }
