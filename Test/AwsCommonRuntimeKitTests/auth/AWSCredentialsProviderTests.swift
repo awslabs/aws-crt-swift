@@ -85,7 +85,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
-        let elg = EventLoopGroup(threadCount: 0, allocator: allocator)
+        let elg = EventLoopGroup(threadCount: 0, allocator: allocator, shutDownOptions: elgShutDownOptions)
         let hostResolver = DefaultHostResolver(eventLoopGroup: elg,
                                                maxHosts: 8,
                                                maxTTL: 30,
@@ -97,6 +97,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         }
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                             hostResolver: hostResolver,
+                                            callbackData: clientBootstrapCallbackData,
                                             allocator: allocator)
 
         
