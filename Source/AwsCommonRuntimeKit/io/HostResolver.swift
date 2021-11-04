@@ -74,6 +74,7 @@ public final class DefaultHostResolver: HostResolver {
                                        options.host.rawValue,
                                        onHostResolved, config, pointer)
     }
+}
 
 
 private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!,

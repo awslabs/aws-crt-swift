@@ -9,8 +9,7 @@ class SigV4SigningTests: CrtXCBaseTestCase {
         _ = SigV4HttpRequestSigner(allocator: allocator)
     }
 
-    func testSimpleSigningWithCredentialsProvider() throws {
-        async {
+    func testSimpleSigningWithCredentialsProvider() async throws {
         let signer = SigV4HttpRequestSigner(allocator: allocator)
         let request = makeMockRequest()
         let staticConfig = MockCredentialsProviderStaticConfigOptions(accessKey: "access",
@@ -33,11 +32,9 @@ class SigV4SigningTests: CrtXCBaseTestCase {
         let headers = signedRequest.getHeaders()
         XCTAssert(headers.contains(where: {$0.name == "Authorization"}))
         XCTAssert(headers.contains(where: {$0.name == "X-Amz-Security-Token"}))
-        }
     }
 
-    func testSimpleSigningWithCredentials() throws {
-        async {
+    func testSimpleSigningWithCredentials() async throws {
         let signer = SigV4HttpRequestSigner(allocator: allocator)
         let request = makeMockRequest()
         let credentials = makeMockCredentials()
@@ -58,11 +55,9 @@ class SigV4SigningTests: CrtXCBaseTestCase {
         let headers = signedRequest.getHeaders()
         XCTAssert(headers.contains(where: {$0.name == "Authorization"}))
         XCTAssert(headers.contains(where: {$0.name == "X-Amz-Security-Token"}))
-        }
     }
     
-    func testSimpleSigningWithCredentialsAndBodyInRequest() throws {
-        async {
+    func testSimpleSigningWithCredentialsAndBodyInRequest() async throws {
         let signer = SigV4HttpRequestSigner(allocator: allocator)
         let request = makeMockRequestWithBody()
         let credentials = makeMockCredentials()
@@ -84,7 +79,6 @@ class SigV4SigningTests: CrtXCBaseTestCase {
         let headers = signedRequest.getHeaders()
         XCTAssert(headers.contains(where: {$0.name == "Authorization"}))
         XCTAssert(headers.contains(where: {$0.name == "X-Amz-Security-Token"}))
-        }
     }
 
     func makeMockRequest() -> HttpRequest {

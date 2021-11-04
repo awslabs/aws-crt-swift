@@ -2,12 +2,11 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCAuth
 
-//public typealias OnSigningComplete = (SigningResult?, HttpRequest, CRTError) -> Void
 public typealias SignedContinuation = CheckedContinuation<HttpRequest, Error>
 struct SigningCallbackData {
     public let allocator: Allocator
     public unowned var request: HttpRequest
-    public let continuation: SignedContinuation?
+    public var continuation: SignedContinuation?
     public let signable: UnsafeMutablePointer<aws_signable>?
 
     public init(allocator: Allocator = defaultAllocator,

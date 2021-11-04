@@ -289,12 +289,12 @@ public final class CRTAWSCredentialsProvider {
     private func getCredentialsFromCRT(continuation: CredentialsContinuation) {
         var callbackData = CRTCredentialsProviderCallbackData(allocator: allocator)
         callbackData.onCredentialsResolved = continuation
-        let pointer: UnsafeMutablePointer<CRTCredentialsCallbackData> = fromPointer(ptr: callbackData)
+        let pointer: UnsafeMutablePointer<CRTCredentialsProviderCallbackData> = fromPointer(ptr: callbackData)
         aws_credentials_provider_get_credentials(rawValue, { (credentials, errorCode, userdata) -> Void in
             guard let userdata = userdata else {
                 return
             }
-            let pointer = userdata.assumingMemoryBound(to: CRTCredentialsCallbackData.self)
+            let pointer = userdata.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
             defer { pointer.deinitializeAndDeallocate() }
             let error = AWSError(errorCode: errorCode)
             if let onCredentialsResolved = pointer.pointee.onCredentialsResolved {
@@ -317,7 +317,7 @@ public final class CRTAWSCredentialsProvider {
                 return
             }
             let pointer = userData.assumingMemoryBound(to: CRTCredentialsProviderShutdownOptions.self)
-            pointer.pointee.shutDownCallback()
+            pointer.pointee.shutDownCallback?.resume()
             pointer.deinitializeAndDeallocate()
         }, shutdown_user_data: pointer)
 
@@ -335,11 +335,21 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer?,
     guard let credentialsProvider = delegatePtr?.assumingMemoryBound(to: CRTCredentialsProvider.self) else {
         return 1
     }
-    guard let credentialCallbackData = userData?.assumingMemoryBound(to: CRTCredentialsCallbackData.self) else {
+    guard let credentialCallbackData = userData?.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self) else {
         return 1
     }
-
-    credentialsProvider.pointee.getCredentials(credentialCallbackData: credentialCallbackData.pointee)
+    let callbackPointer = UnsafeMutablePointer<CRTCredentialsProviderCallbackData>.allocate(capacity: 1)
+    callbackPointer.initialize(to: credentialCallbackData.pointee)
+    Task {
+        let result = await credentialsProvider.pointee.getCredentials()
+        switch result {
+        case .success(let credentials):
+            callbackFn?(credentials.rawValue, 0, callbackPointer)
+        case .failure(let error):
+            if case let CRTError.crtError(crtError) = error {
+                callbackFn?(nil, crtError.errorCode, callbackPointer)
+            }
+        }
+    }
     return 0
-
 }

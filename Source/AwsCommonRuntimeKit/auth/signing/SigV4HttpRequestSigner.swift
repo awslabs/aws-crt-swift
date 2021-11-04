@@ -53,15 +53,6 @@ public class SigV4HttpRequestSigner {
                                                request: request,
                                                signable: signable,
                                                continuation: continuation)
-        
-        let continuation = try await withCheckedThrowingContinuation { (continuation: SignedContinuation) in
-            callbackData.onSigningComplete = continuation
-        }
-
-        let callbackData = SigningCallbackData(allocator: allocator.rawValue,
-                                               request: request,
-                                               signable: signable,
-                                               onSigningComplete: onSigningComplete)
 
         let configPointer: UnsafeMutablePointer<aws_signing_config_aws> = fromPointer(ptr: config.rawValue)
         let base = configPointer.withMemoryRebound(to: aws_signing_config_base.self,

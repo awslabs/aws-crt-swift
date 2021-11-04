@@ -182,17 +182,29 @@ public class CRTIMDSClient {
     ///
     /// - Parameters:
     ///    - callbackData: The `CRTCredentialsCallbackData` object with an async callback
-    public func getCredentials(iamRoleName: String, callbackData: CRTCredentialsCallbackData) {
+    public func getCredentials(iamRoleName: String) async -> Result<CRTCredentials, CRTError> {
+        return await withCheckedContinuation({ (continuation: CredentialsContinuation) in
+            getCredentialsFromCRT(iamRoleName: iamRoleName, continuation: continuation)
+        })
+    }
+    
+    public func getCredentialsFromCRT(iamRoleName: String, continuation: CredentialsContinuation) {
+        let callbackData = CRTCredentialsProviderCallbackData(allocator: defaultAllocator, onCredentialsResolved: continuation)
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
         aws_imds_client_get_credentials(rawValue, iamRoleName.awsByteCursor, { credentialsPointer, errorCode, userData in
             guard let userData = userData else {
                 return
             }
-            let pointer = userData.assumingMemoryBound(to: CRTCredentialsCallbackData.self)
-            let credentials = CRTCredentials(rawValue: credentialsPointer)
+            let pointer = userData.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
+           
             let error = AWSError(errorCode: errorCode)
             if let onCredentialsResolved = pointer.pointee.onCredentialsResolved {
-                onCredentialsResolved(credentials, CRTError.crtError(error))
+                let credentials = CRTCredentials(rawValue: credentialsPointer)
+                if errorCode == 0, let credentials = credentials {
+                    onCredentialsResolved.resume(returning: .success(credentials))
+                } else {
+                    onCredentialsResolved.resume(returning: .failure(.crtError(error)))
+                }
             }
             pointer.deinitializeAndDeallocate()
         }, pointer)

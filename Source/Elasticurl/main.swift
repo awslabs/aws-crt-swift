@@ -222,7 +222,7 @@ struct Elasticurl {
         context.outputStream.write(data)
     }
 
-    static func runWithLogger() async {
+    static func runWithLogger() {
         parseArguments()
         createOutputFile()
         var logger: Logger?
@@ -233,12 +233,14 @@ struct Elasticurl {
             print("enable logging with stdout")
             logger = Logger(pipe: stdout, level: context.logLevel, allocator: defaultAllocator)
         }
+        
         withExtendedLifetime(logger) {
             run()
         }
     }
 
-    static func run() async {
+    static func run() {
+        Task {
         do {
 
             guard let host = context.url.host else {
@@ -359,9 +361,9 @@ struct Elasticurl {
             print(err)
             exit(EXIT_FAILURE)
         }
+        }
     }
 }
 
-async {
-    await Elasticurl.runWithLogger()()
-}
+Elasticurl.runWithLogger()
+
