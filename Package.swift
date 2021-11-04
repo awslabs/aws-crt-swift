@@ -206,7 +206,14 @@ packageTargets.append(contentsOf: [
     ),
     .target(
         name: "AwsCommonRuntimeKit",
-        dependencies: [ "AwsCMqtt", "AwsCAuth", "AwsCHttp", "AwsCCal", "AwsCCompression", "AwsCIo", "AwsCCommon", .product(name: "Collections", package: "swift-collections")],
+        dependencies: [ "AwsCMqtt",
+                        "AwsCAuth",
+                        "AwsCHttp",
+                        "AwsCCal",
+                        "AwsCCompression",
+                        "AwsCIo",
+                        "AwsCCommon",
+                        .product(name: "Collections", package: "swift-collections")],
         path: "Source/AwsCommonRuntimeKit",
         swiftSettings: [
 //            .unsafeFlags(["-g"]),
