@@ -49,16 +49,18 @@ jobs:
           ./linux-container-ci.sh ${{ env.BUILDER_VERSION }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
   osx:
     runs-on: macos-11
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_13.2.app
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
           chmod a+x builder
           ./builder build -p ${{ env.PACKAGE_NAME }}
-        with:
-          xcode-version: '13.2-beta'
   devices:
     runs-on: macos-11
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_13.2.app
     strategy:
       fail-fast: false
       matrix:
@@ -72,5 +74,3 @@ jobs:
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
           chmod a+x builder
           ./builder build -p ${{ env.PACKAGE_NAME }} --target=${{ matrix.target }}-armv8
-        with:
-          xcode-version: '13.2-beta'
