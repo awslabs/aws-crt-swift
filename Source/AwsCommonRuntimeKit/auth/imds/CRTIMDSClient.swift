@@ -187,7 +187,7 @@ public class CRTIMDSClient {
             getCredentialsFromCRT(iamRoleName: iamRoleName, continuation: continuation)
         })
     }
-    
+
     public func getCredentialsFromCRT(iamRoleName: String, continuation: CredentialsContinuation) {
         let callbackData = CRTCredentialsProviderCallbackData(allocator: defaultAllocator, onCredentialsResolved: continuation)
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
@@ -196,7 +196,7 @@ public class CRTIMDSClient {
                 return
             }
             let pointer = userData.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
-           
+
             let error = AWSError(errorCode: errorCode)
             if let onCredentialsResolved = pointer.pointee.onCredentialsResolved {
                 let credentials = CRTCredentials(rawValue: credentialsPointer)

@@ -233,7 +233,7 @@ struct Elasticurl {
             print("enable logging with stdout")
             logger = Logger(pipe: stdout, level: context.logLevel, allocator: defaultAllocator)
         }
-        
+
         withExtendedLifetime(logger) {
             run()
         }
@@ -366,4 +366,3 @@ struct Elasticurl {
 }
 
 Elasticurl.runWithLogger()
-

@@ -5,11 +5,11 @@ import AwsCAuth
 
 public class SigV4HttpRequestSigner {
     public var allocator: Allocator
-    
+
     public init(allocator: Allocator = defaultAllocator) {
         self.allocator = allocator
     }
-    
+
     /// Signs an HttpRequest via the SigV4 algorithm.
     /// Do not add the following headers to requests before signing:
     ///   - x-amz-content-sha256,
@@ -36,19 +36,19 @@ public class SigV4HttpRequestSigner {
         if config.configType != .aws {
             throw AWSCommonRuntimeError()
         }
-        
+
         if config.rawValue.credentials_provider == nil && config.rawValue.credentials == nil {
             throw AWSCommonRuntimeError()
         }
-        
+
         return try await withCheckedThrowingContinuation { (continuation: SignedContinuation) in
             signRequestToCRT(request: request, config: config, continuation: continuation)
         }
     }
-    
+
     private func signRequestToCRT(request: HttpRequest, config: SigningConfig, continuation: SignedContinuation) {
         let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
-        
+
         let callbackData = SigningCallbackData(allocator: allocator.rawValue,
                                                request: request,
                                                signable: signable,
@@ -67,7 +67,7 @@ public class SigV4HttpRequestSigner {
         defer {
             base.deinitializeAndDeallocate()
         }
-        
+
         aws_sign_request_aws(allocator.rawValue,
                              signable,
                              configPtr, { (signingResult, errorCode, userData) -> Void in
@@ -79,18 +79,18 @@ public class SigV4HttpRequestSigner {
                 aws_signable_destroy(callback.pointee.signable)
                 callback.deinitializeAndDeallocate()
             }
-            
+
             if let continuation = callback.pointee.continuation {
                 if errorCode == 0,
                    let signingResult = signingResult {
-                    
+
                     let signedRequest = aws_apply_signing_result_to_http_request(callback.pointee.request.rawValue,
                                                                                  callback.pointee.allocator.rawValue,
                                                                                  signingResult)
                     if signedRequest == 0 {
                         continuation.resume(returning: callback.pointee.request)
                     } else {
-                        
+
                         let awsError = AWSError(errorCode: signedRequest)
                         continuation.resume(throwing: CRTError.crtError(awsError))
                     }
@@ -99,8 +99,8 @@ public class SigV4HttpRequestSigner {
                     continuation.resume(throwing: CRTError.crtError(error))
                 }
             }
-            
-        },callbackPointer)
-        
+
+        }, callbackPointer)
+
     }
 }

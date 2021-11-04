@@ -50,7 +50,7 @@ public class HttpClientConnectionManager {
             acquireConnection(continuation: continuation)
         })
     }
-    
+
     private func acquireConnection(continuation: ConnectionContinuation) {
         let callbackData = HttpClientConnectionCallbackData(continuation: continuation,
                                                             connectionManager: self,
@@ -70,7 +70,7 @@ public class HttpClientConnectionManager {
             }
             let httpConnection = HttpClientConnection(manager: callbackData.pointee.connectionManager,
                                                       connection: connection)
- 
+
             callbackData.pointee.continuation.resume(returning: httpConnection)
         },
         cbData)

@@ -285,7 +285,7 @@ public final class CRTAWSCredentialsProvider {
             getCredentialsFromCRT(continuation: continuation)
         }
     }
-    
+
     private func getCredentialsFromCRT(continuation: CredentialsContinuation) {
         var callbackData = CRTCredentialsProviderCallbackData(allocator: allocator)
         callbackData.onCredentialsResolved = continuation

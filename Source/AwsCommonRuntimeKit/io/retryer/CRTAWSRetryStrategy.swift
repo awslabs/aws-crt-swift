@@ -40,7 +40,7 @@ public final class CRTAWSRetryStrategy {
         return try await withCheckedThrowingContinuation { (continuation: TokenContinuation) in
             acquireTokenFromCRT(timeout: timeout, partitionId: partitionId, continuation: continuation)
         }
-        
+
     }
 
     private func acquireTokenFromCRT(timeout: UInt64, partitionId: String, continuation: TokenContinuation) {
@@ -70,7 +70,7 @@ public final class CRTAWSRetryStrategy {
             scheduleRetryToCRT(token: token, errorType: errorType, continuation: continuation)
         })
     }
-    
+
     private func scheduleRetryToCRT(token: CRTAWSRetryToken, errorType: CRTRetryError, continuation: ScheduleRetryContinuation) {
         let callbackData = CRTScheduleRetryCallbackData(allocator: allocator)
         let pointer: UnsafeMutablePointer<CRTScheduleRetryCallbackData> = fromPointer(ptr: callbackData)

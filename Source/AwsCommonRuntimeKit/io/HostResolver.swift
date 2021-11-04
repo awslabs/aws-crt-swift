@@ -63,19 +63,18 @@ public final class DefaultHostResolver: HostResolver {
             resolve(host: host, continuation: continuation)
         })
     }
-    
+
     private func resolve(host: String, continuation: HostResolvedContinuation) {
         let options = ResolverOptions(resolver: self,
                                       host: AWSString(host, allocator: allocator),
                                       continuation: continuation)
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: options)
-        
+
         aws_host_resolver_resolve_host(rawValue,
                                        options.host.rawValue,
                                        onHostResolved, config, pointer)
     }
 }
-
 
 private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!,
                             _ hostName: UnsafePointer<aws_string>!,
@@ -100,4 +99,3 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!
         options.pointee.continuation.resume(throwing: CRTError.crtError(error))
     }
 }
-
