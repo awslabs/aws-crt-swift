@@ -38,7 +38,7 @@
     },
     "macos": {
       "!build_steps": [
-        "swift build --build-tests --enable-index-store --configuration debug -Xswiftc -warnings-as-errors -Xcc -Werror -Xlinker -rpath -Xlinker \"$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx\""
+        "swift build --build-tests --enable-index-store --configuration release -Xswiftc -warnings-as-errors -Xcc -Werror -Xlinker -rpath -Xlinker \"$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx\""
       ],
       "!test_steps": [
         "./integ_test.sh"
