@@ -7,7 +7,7 @@
     "swift build -c release"
   ],
   "test_steps": [
-    "swift test --skip-build --enable-index-store" 
+    "swift test" 
   ],
   "hosts": {
     "al2012": {
@@ -37,10 +37,10 @@
       ]
     },
     "macos": {
-      "!build_steps": [
-        "swift build --build-tests --enable-index-store --configuration release -Xswiftc -Xcc -Xlinker -rpath -Xlinker \"$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx\""
-      ],
       "!test_steps": [
+        "swift build --build-tests --enable-index-store --configuration debug -Xlinker -rpath -Xlinker \"$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx\"",
+        "swift test --skip-build --enable-index-store --configuration debug",
+        "swift build -c release -Xlinker -rpath -Xlinker \"$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.5/macosx\"",
         "./integ_test.sh"
       ]
     }
