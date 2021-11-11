@@ -280,7 +280,7 @@ public final class CRTAWSCredentialsProvider {
     /// the callback passed in.
     ///
     /// - Returns: `Result<CRTCredentials, CRTError>`
-    public func getCredentials() async throws -> CRTCredentials{
+    public func getCredentials() async throws -> CRTCredentials {
         return try await withCheckedThrowingContinuation { (continuation: CredentialsContinuation) in
             getCredentialsFromCRT(continuation: continuation)
         }
@@ -296,7 +296,7 @@ public final class CRTAWSCredentialsProvider {
             let pointer = userdata.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
             defer { pointer.deinitializeAndDeallocate() }
             let error = AWSError(errorCode: errorCode)
-  
+
             if errorCode == 0,
                let credentials = credentials,
                let crtCredentials = CRTCredentials(rawValue: credentials) {
@@ -304,7 +304,7 @@ public final class CRTAWSCredentialsProvider {
             } else {
                 pointer.pointee.continuation?.resume(throwing: CRTError.crtError(error))
             }
-            
+
         }, pointer)
     }
 

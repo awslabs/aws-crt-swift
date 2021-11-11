@@ -309,7 +309,7 @@ private func resourceCallback(_ byteBuf: UnsafePointer<aws_byte_buf>?,
     let pointer = userData.assumingMemoryBound(to: CRTIMDSClientResourceCallbackData.self)
     let error = AWSError(errorCode: errorCode)
     guard let byteBuf = byteBuf else {
-        
+
         pointer.pointee.continuation?.resume(throwing: CRTError.crtError(error))
         pointer.deinitializeAndDeallocate()
         return
