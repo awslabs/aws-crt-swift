@@ -36,7 +36,7 @@ let s2nExcludes = ["bin", "codebuild", "coverage", "docker-images",
                    "libcrypto-build", "scram",
                    "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
                    "tls/Makefile", "utils/Makefile", "error/Makefile", "tls/extensions/Makefile",
-                   "codecov.yml", "scripts/", "codebuild", "bindings/rust", "VERSIONING.rst"]
+                   "codecov.yml", "scripts/", "codebuild", "bindings/rust", "VERSIONING.rst", "tests"]
 packageTargets.append(.target(
             name: "S2N",
             dependencies: ["LibCrypto"],
