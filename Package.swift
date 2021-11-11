@@ -35,10 +35,8 @@ let s2nExcludes = excludesFromAll + ["bin", "codebuild", "coverage", "docker-ima
                       "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
                       "libcrypto-build", "scram",
                       "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
-                      "tls/Makefile", "utils/Makefile", "error/Makefile",
-                      "extensions/Makefile", "tls/extensions/Makefile",
-                      "codecov.yml", "scripts/", "codebuild", "format-check.sh", "sanitizer-blacklist.txt",
-                      "CODE_OF_CONDUCT.md", "build-deps.sh"]
+                      "tls/Makefile", "utils/Makefile", "error/Makefile", "tls/extensions/Makefile",
+                      "codecov.yml", "scripts/", "codebuild", "format-check.sh", "build-deps.sh"]
 packageTargets.append(.target(
             name: "S2N",
             dependencies: ["LibCrypto"],
