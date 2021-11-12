@@ -28,7 +28,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     
     func testCreateAWSCredentialsProviderStatic() throws {
         XCTRunAsyncAndBlock { [self] in
-            let shutDownOptions = await setUpShutDownOptions()
+            let shutDownOptions = setUpShutDownOptions()
             let config = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
                                                                     secret: secret,
                                                                     sessionToken: sessionToken,
@@ -41,7 +41,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     
     func testCreateAWSCredentialsProviderEnv() throws {
         XCTRunAsyncAndBlock { [self] in
-            let shutDownOptions = await setUpShutDownOptions()
+            let shutDownOptions = setUpShutDownOptions()
             let provider = try CRTAWSCredentialsProvider(fromEnv: shutDownOptions, allocator: allocator)
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
@@ -55,7 +55,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         try skipIfLinux()
         //uses default paths to credentials and config
         XCTRunAsyncAndBlock { [self] in
-            let shutDownOptions = await setUpShutDownOptions()
+            let shutDownOptions = setUpShutDownOptions()
             let config = MockCredentialsProviderProfileOptions(shutdownOptions: shutDownOptions)
             
             let provider = try CRTAWSCredentialsProvider(fromProfile: config, allocator: allocator)
@@ -92,7 +92,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                 allocator: allocator)
             
             
-            let shutDownOptions = await setUpShutDownOptions()
+            let shutDownOptions = setUpShutDownOptions()
             
             let config = MockCredentialsProviderChainDefaultConfig(bootstrap: bootstrap, shutDownOptions: shutDownOptions)
             
