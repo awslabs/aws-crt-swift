@@ -317,7 +317,7 @@ public final class CRTAWSCredentialsProvider {
                 return
             }
             let pointer = userData.assumingMemoryBound(to: CRTCredentialsProviderShutdownOptions.self)
-            pointer.pointee.shutDownCallback?.resume()
+            pointer.pointee.shutDownCallback()
             pointer.deinitializeAndDeallocate()
         }, shutdown_user_data: pointer)
 

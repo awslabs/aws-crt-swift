@@ -8,6 +8,8 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     let secret = "Sekrit"
     let sessionToken = "Token"
     
+    let expectation2 = XCTestExpectation(description: "Shutdown callback was called")
+    
     override func setUp() {
         super.setUp()
     }
@@ -17,11 +19,9 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     }
     
     func setUpShutDownOptions() -> CRTCredentialsProviderShutdownOptions {
-        var shutDownOptions = CRTCredentialsProviderShutdownOptions()
-        XCTRunAsyncAndBlock {
-            await withCheckedContinuation { continuation in
-                shutDownOptions.shutDownCallback = continuation
-            }
+        let shutDownOptions = CRTCredentialsProviderShutdownOptions {
+            XCTAssert(true)
+            self.expectation2.fulfill()
         }
         return shutDownOptions
     }
@@ -44,7 +44,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             let shutDownOptions = setUpShutDownOptions()
             let provider = try CRTAWSCredentialsProvider(fromEnv: shutDownOptions, allocator: allocator)
             let credentials = try await provider.getCredentials()
-            XCTAssertNotNil(credentials)
+            XCTAssertNil(credentials)
         }
     }
     
@@ -212,7 +212,8 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             bootstrap.enableBlockingShutDown()
             let options = TlsContextOptions(defaultClientWithAllocator: allocator)
             let context = try TlsContext(options: options, mode: .client, allocator: allocator)
-            let shutDownOptions = await setUpShutDownOptions()
+            let shutDownOptions = setUpShutDownOptions()
+
             let config = MockCredentialsProviderContainerConfig(bootstrap: bootstrap,
                                                                 tlsContext: context,
                                                                 shutDownOptions: shutDownOptions)

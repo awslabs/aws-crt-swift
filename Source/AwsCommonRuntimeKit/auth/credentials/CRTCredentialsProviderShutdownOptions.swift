@@ -2,12 +2,11 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 public struct CRTCredentialsProviderShutdownOptions {
-    public typealias ShutDownCallback = CheckedContinuation<Void, Never>
+    public typealias ShutDownCallback = () -> Void
 
-    public var shutDownCallback: ShutDownCallback?
+    public let shutDownCallback: ShutDownCallback
 
-    public init(shutDownCallback: ShutDownCallback? = nil) {
+    public init(shutDownCallback: @escaping ShutDownCallback) {
         self.shutDownCallback = shutDownCallback
-
     }
 }
