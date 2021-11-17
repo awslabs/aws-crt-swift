@@ -15,43 +15,14 @@ class CrtXCBaseTestCase: XCTestCase {
         AwsCommonRuntimeKit.initialize(allocator: self.allocator)
     }
 
-//    override func tearDown() {
-//        AwsCommonRuntimeKit.cleanUp()
-//
-//        allocator.dump()
-//        XCTAssertEqual(allocator.count, 0,
-//                       "Memory was leaked: \(allocator.bytes) bytes in \(allocator.count) allocations")
-//
-//        super.tearDown()
-//    }
-    
-    override func tearDown() async throws {
+    override func tearDown() {
         AwsCommonRuntimeKit.cleanUp()
 
         allocator.dump()
         XCTAssertEqual(allocator.count, 0,
                        "Memory was leaked: \(allocator.bytes) bytes in \(allocator.count) allocations")
 
-        try await super.tearDown()
-    }
-    
-//    public func XCTRunAsyncAndBlock(_ closure: @escaping () async throws -> Void) {
-//        let dg = DispatchGroup()
-//        dg.enter()
-//        Task {
-//            do {
-//                try await closure()
-//            } catch {
-//                XCTFail("\(error)")
-//            }
-//            dg.leave()
-//        }
-//        dg.wait()
-//    }
-    
-    public func XCTRunAsyncAndBlock(_ closure: () async throws -> Void) async throws {
-
-        try await closure()
+        super.tearDown()
     }
 }
 
