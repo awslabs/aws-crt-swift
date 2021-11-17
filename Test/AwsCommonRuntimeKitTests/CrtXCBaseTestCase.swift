@@ -35,20 +35,26 @@ class CrtXCBaseTestCase: XCTestCase {
         try await super.tearDown()
     }
     
-    public func XCTRunAsyncAndBlock(_ closure: @escaping () async throws -> Void) {
-        let dg = DispatchGroup()
-        dg.enter()
-        Task {
-            do {
-                try await closure()
-            } catch {
-                XCTFail("\(error)")
-            }
-            dg.leave()
-        }
-        dg.wait()
+//    public func XCTRunAsyncAndBlock(_ closure: @escaping () async throws -> Void) {
+//        let dg = DispatchGroup()
+//        dg.enter()
+//        Task {
+//            do {
+//                try await closure()
+//            } catch {
+//                XCTFail("\(error)")
+//            }
+//            dg.leave()
+//        }
+//        dg.wait()
+//    }
+    
+    public func XCTRunAsyncAndBlock(_ closure: () async throws -> Void) async throws {
+
+        try await closure()
     }
 }
+
 
 extension XCTestCase {
    func skipIfiOS() throws {
