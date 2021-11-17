@@ -38,7 +38,6 @@
     },
     "macos": {
       "!test_steps": [
-        "./macos-test.sh",
         "./integ_test.sh"
       ]
     }
