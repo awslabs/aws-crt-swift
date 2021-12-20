@@ -12,7 +12,7 @@ var package = Package(name: "AwsCrt",
                         .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
                         .executable(name: "Elasticurl", targets: ["Elasticurl"])
                       ],
-                      dependencies: [.package(url: "https://github.com/apple/swift-collections", from: "0.0.1")]
+                      dependencies: [.package(url: "https://github.com/apple/swift-collections", from: "1.0.2")]
 )
 
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
