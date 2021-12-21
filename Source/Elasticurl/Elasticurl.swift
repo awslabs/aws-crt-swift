@@ -3,6 +3,7 @@
 
 import AwsCommonRuntimeKit
 import Foundation
+import _Concurrency
 #if os(Linux)
 import Glibc
 #else
@@ -223,7 +224,7 @@ struct Elasticurl {
         context.outputStream.write(data)
     }
     
-    static func main() {
+    static func main() async {
         parseArguments()
         createOutputFile()
         if let traceFile = context.traceFile {
@@ -234,11 +235,11 @@ struct Elasticurl {
             logger = Logger(pipe: stdout, level: context.logLevel, allocator: defaultAllocator)
         }
         
-        run()
+        await run()
     }
     
-    static func run() {
-        Task {
+    static func run() async {
+       // Task {
             do {
                 guard let host = context.url.host else {
                     print("no proper host was parsed from the url. quitting.")
@@ -359,6 +360,6 @@ struct Elasticurl {
                 print(err)
                 exit(EXIT_FAILURE)
             }
-        }
+        //}
     }
 }
