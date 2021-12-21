@@ -100,7 +100,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         XCTAssertNotNil(credentials)
     }
     
-    func testCreateDestroyStsWebIdentityInvalidEnv() {
+    func testCreateDestroyStsWebIdentityInvalidEnv() async throws {
         let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
@@ -120,23 +120,18 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             sempahore.signal()
         }
         
-        do {
-            let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                                                hostResolver: hostResolver,
-                                                callbackData: clientBootstrapCallbackData,
-                                                allocator: allocator)
-            bootstrap.enableBlockingShutDown()
-            let options = TlsContextOptions(defaultClientWithAllocator: allocator)
-            let context = try TlsContext(options: options, mode: .client, allocator: allocator)
-            let config = MockCredentialsProviderWebIdentityConfig(bootstrap: bootstrap, tlsContext: context)
-            _ = try CRTAWSCredentialsProvider(fromWebIdentity: config)
-        } catch let err {
-            let awsErr = err as? AWSCommonRuntimeError
-            XCTAssertEqual(awsErr?.code, 34)
-        }
+        let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
+                                            hostResolver: hostResolver,
+                                            callbackData: clientBootstrapCallbackData,
+                                            allocator: allocator)
+        bootstrap.enableBlockingShutDown()
+        let options = TlsContextOptions(defaultClientWithAllocator: allocator)
+        let context = try TlsContext(options: options, mode: .client, allocator: allocator)
+        let config = MockCredentialsProviderWebIdentityConfig(bootstrap: bootstrap, tlsContext: context)
+        XCTAssertThrowsError(try CRTAWSCredentialsProvider(fromWebIdentity: config))
     }
     
-    func testCreateDestroyStsInvalidRole() {
+    func testCreateDestroyStsInvalidRole() async throws {
         let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
@@ -156,29 +151,24 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             sempahore.signal()
         }
         
-        do {
-            let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                                                hostResolver: hostResolver,
-                                                callbackData: clientBootstrapCallbackData,
-                                                allocator: allocator)
-            bootstrap.enableBlockingShutDown()
-            let options = TlsContextOptions(defaultClientWithAllocator: allocator)
-            let context = try TlsContext(options: options, mode: .client, allocator: allocator)
-            let staticConfig = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
-                                                                          secret: secret,
-                                                                          sessionToken: sessionToken)
-            let provider = try CRTAWSCredentialsProvider(fromStatic: staticConfig, allocator: allocator)
-            let config = MockCredentialsProviderSTSConfig(bootstrap: bootstrap,
-                                                          tlsContext: context,
-                                                          credentialsProvider: provider,
-                                                          roleArn: "invalid-role-arn",
-                                                          sessionName: "test-session",
-                                                          durationSeconds: 10)
-            _ = try CRTAWSCredentialsProvider(fromSTS: config)
-        } catch let err {
-            let awsErr = err as? AWSCommonRuntimeError
-            XCTAssertEqual(awsErr?.code, 34)
-        }
+        let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
+                                            hostResolver: hostResolver,
+                                            callbackData: clientBootstrapCallbackData,
+                                            allocator: allocator)
+        bootstrap.enableBlockingShutDown()
+        let options = TlsContextOptions(defaultClientWithAllocator: allocator)
+        let context = try TlsContext(options: options, mode: .client, allocator: allocator)
+        let staticConfig = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
+                                                                      secret: secret,
+                                                                      sessionToken: sessionToken)
+        let provider = try CRTAWSCredentialsProvider(fromStatic: staticConfig, allocator: allocator)
+        let config = MockCredentialsProviderSTSConfig(bootstrap: bootstrap,
+                                                      tlsContext: context,
+                                                      credentialsProvider: provider,
+                                                      roleArn: "invalid-role-arn",
+                                                      sessionName: "test-session",
+                                                      durationSeconds: 10)
+        XCTAssertThrowsError(try CRTAWSCredentialsProvider(fromSTS: config))
     }
     
     func testCreateDestroyEcsMissingCreds() async {
