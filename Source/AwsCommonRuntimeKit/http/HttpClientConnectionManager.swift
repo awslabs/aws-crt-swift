@@ -7,7 +7,7 @@ typealias OnConnectionAcquired =  (HttpClientConnection?, Int32) -> Void
 
 public class HttpClientConnectionManager {
 
-    var queue: Deque<ConnectionContinuation> = Deque<ConnectionContinuation>()
+    var queue: Deque<HttpClientConnection> = Deque<HttpClientConnection>()
     let manager: OpaquePointer
     let allocator: Allocator
     let options: HttpClientConnectionOptions
@@ -54,7 +54,9 @@ public class HttpClientConnectionManager {
     private func acquireConnection(continuation: ConnectionContinuation) {
         let callbackData = HttpClientConnectionCallbackData(continuation: continuation,
                                                             connectionManager: self,
-                                                            allocator: allocator)
+                                                            allocator: allocator) { [weak self] connection in
+                                                            self?.queue.append(connection)
+        }
         let cbData: UnsafeMutablePointer<HttpClientConnectionCallbackData> = fromPointer(ptr: callbackData)
 
         aws_http_connection_manager_acquire_connection(manager, { (connection, errorCode, userData) in
@@ -70,18 +72,19 @@ public class HttpClientConnectionManager {
             }
             let httpConnection = HttpClientConnection(manager: callbackData.pointee.connectionManager,
                                                       connection: connection)
-
+            if let connectionCallback = callbackData.pointee.connectionCallback {
+                connectionCallback(httpConnection)
+            }
+          
             callbackData.pointee.continuation.resume(returning: httpConnection)
         },
         cbData)
-        queue.append(continuation)
     }
 
     public func closePendingConnections() {
         while !queue.isEmpty {
-            if let continuation = queue.popFirst() {
-                let error = AWSError(errorCode: -1)
-                continuation.resume(throwing: CRTError.crtError(error))
+            if let clientConnection = queue.popFirst() {
+                clientConnection.close()
             }
         }
     }
