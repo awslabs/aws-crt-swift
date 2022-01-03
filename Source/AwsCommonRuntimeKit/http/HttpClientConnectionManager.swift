@@ -75,7 +75,7 @@ public class HttpClientConnectionManager {
             if let connectionCallback = callbackData.pointee.connectionCallback {
                 connectionCallback(httpConnection)
             }
-          
+
             callbackData.pointee.continuation.resume(returning: httpConnection)
         },
         cbData)
