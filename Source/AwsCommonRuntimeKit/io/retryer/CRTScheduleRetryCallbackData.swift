@@ -4,7 +4,6 @@ import AwsCIo
 
 public typealias ScheduleRetryContinuation = CheckedContinuation<CRTAWSRetryToken, Error>
 public struct CRTScheduleRetryCallbackData {
-    //public typealias OnRetryReady = (CRTAWSRetryToken?, CRTError) -> Void
     public var continuation: ScheduleRetryContinuation?
     public let allocator: Allocator
 
