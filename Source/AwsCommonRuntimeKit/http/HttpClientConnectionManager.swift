@@ -15,15 +15,15 @@ public class HttpClientConnectionManager {
         self.options = options
         self.allocator = allocator
         let shutDownPtr: UnsafeMutablePointer<ShutDownCallbackOptions>? = fromOptionalPointer(ptr: options.shutDownOptions)
-
         var mgrOptions = aws_http_connection_manager_options(bootstrap: options.clientBootstrap.rawValue,
                                                              initial_window_size: options.initialWindowSize,
                                                              socket_options: options.socketOptions.rawValue,
                                                              tls_connection_options: options.tlsOptions?.rawValue,
-                                                             proxy_options: options.proxyOptions?.rawValue,
                                                              monitoring_options: options.monitoringOptions?.rawValue,
                                                              host: options.hostName.awsByteCursor,
                                                              port: options.port,
+                                                             proxy_options: options.proxyOptions?.rawValue,
+                                                             proxy_ev_settings: options.proxyEnvSettings?.rawValue,
                                                              max_connections: options.maxConnections,
                                                              shutdown_complete_user_data: shutDownPtr,
                                                              shutdown_complete_callback: { (userData) in
@@ -36,11 +36,9 @@ public class HttpClientConnectionManager {
                                                                 defer {callbackOptions.deinitializeAndDeallocate()}
                                                                 callbackOptions.pointee.shutDownCallback(
                                                                     callbackOptions.pointee.semaphore)
-                                                             },
-                                                             enable_read_back_pressure:
-                                                                options.enableManualWindowManagement,
-                                                             max_connection_idle_in_milliseconds:
-                                                                options.maxConnectionIdleMs)
+                                                            },
+                                                             enable_read_back_pressure: options.enableManualWindowManagement,
+                                                             max_connection_idle_in_milliseconds: options.maxConnectionIdleMs)
 
         self.manager = aws_http_connection_manager_new(allocator.rawValue, &mgrOptions)
     }
