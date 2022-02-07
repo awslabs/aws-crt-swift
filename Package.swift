@@ -80,7 +80,7 @@ awsCCommonPlatformExcludes.append("source/arch/intel/asm")
 awsCCommonPlatformExcludes.append("source/arch/arm/asm")
 #endif
 
-var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11.md", "THIRD-PARTY-LICENSES.txt", "include/aws/io/private/pkcs11/v2.40/pkcs11.h", "include/aws/io/private/pkcs11/v2.40/pkcs11f.h", "include/aws/io/private/pkcs11/v2.40/pkcs11t.h"] + excludesFromAll
+var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11.md", "THIRD-PARTY-LICENSES.txt"] + excludesFromAll
 
 #if os(macOS)
 awsCIoPlatformExcludes.append("source/windows")
