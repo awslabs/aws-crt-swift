@@ -80,7 +80,7 @@ awsCCommonPlatformExcludes.append("source/arch/intel/asm")
 awsCCommonPlatformExcludes.append("source/arch/arm/asm")
 #endif
 
-var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild"] + excludesFromAll
+var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11.md", "THIRD-PARTY-LICENSES.txt", "include/aws/io/private/pkcs11/v2.40/pkcs11.h", "include/aws/io/private/pkcs11/v2.40/pkcs11f.h", "include/aws/io/private/pkcs11/v2.40/pkcs11t.h"] + excludesFromAll
 
 #if os(macOS)
 awsCIoPlatformExcludes.append("source/windows")
@@ -116,7 +116,7 @@ var awsCCompressionPlatformExcludes = ["source/huffman_generator/", "CODE_OF_CON
                                        "codebuild"] + excludesFromAll
 
 var awsCHttpPlatformExcludes = ["bin", "integration-testing", "include/aws/http/private",
-                                "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"] + excludesFromAll
+                                "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt", "codebuild/linux-integration-tests.yml"] + excludesFromAll
 let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 let awsCMqttPlatformExcludes = ["bin", "CODE_OF_CONDUCT.md"] + excludesFromAll
 
