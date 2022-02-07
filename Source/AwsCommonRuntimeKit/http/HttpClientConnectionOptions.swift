@@ -13,6 +13,8 @@ public struct HttpClientConnectionOptions {
     public let port: UInt16
     /// The proxy options for connections in the connection pool
     public let proxyOptions: HttpProxyOptions?
+    /// Configuration for using proxy from environment variable. Only works when proxyOptions is not set.
+    public let proxyEnvSettings: ProxyEnvSettings?
     /// The socket options to use for connections in the connection pool
     public var socketOptions: SocketOptions
     /// The tls options to use for connections in the connection pool
@@ -45,6 +47,7 @@ public struct HttpClientConnectionOptions {
                 initialWindowSize: Int = Int.max,
                 port: UInt16,
                 proxyOptions: HttpProxyOptions?,
+                proxyEnvSettings: ProxyEnvSettings? = nil,
                 socketOptions: SocketOptions,
                 tlsOptions: TlsConnectionOptions?,
                 monitoringOptions: HttpMonitoringOptions?,
@@ -58,6 +61,7 @@ public struct HttpClientConnectionOptions {
         self.initialWindowSize = initialWindowSize
         self.port = port
         self.proxyOptions = proxyOptions
+        self.proxyEnvSettings = proxyEnvSettings
         self.socketOptions = socketOptions
         self.tlsOptions = tlsOptions
         self.monitoringOptions = monitoringOptions
