@@ -3,119 +3,82 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
+@available(macOS 12.0, *)
 class SigV4SigningTests: CrtXCBaseTestCase {
     func testCreateSigV4Signer() {
         _ = SigV4HttpRequestSigner(allocator: allocator)
     }
 
-    func testSimpleSigningWithCredentialsProvider() {
-        do {
-            let signer = SigV4HttpRequestSigner(allocator: allocator)
-            let request = makeMockRequest()
-            let staticConfig = MockCredentialsProviderStaticConfigOptions(accessKey: "access",
-                                                                          secret: "key",
-                                                                          sessionToken: "token")
-            let provider = try CRTAWSCredentialsProvider(fromStatic: staticConfig, allocator: allocator)
-            let shouldSignHeader: SigningConfig.ShouldSignHeader = { header in
-                return true
-            }
-            let awsDate = AWSDate(epochS: Date().timeIntervalSince1970)
-            let config = SigningConfig(credentialsProvider: provider,
-                                       date: awsDate,
-                                       service: "service",
-                                       region: "us-east-1",
-                                       shouldSignHeader: shouldSignHeader)
-            let expectation = XCTestExpectation(description: "Signing complete")
-            let signedRequestResult = try signer.signRequest(request: request, config: config)
-            signedRequestResult.then { (futureResult) in
-                switch futureResult {
-                case.failure(let error):
-                    XCTFail(error.localizedDescription)
-                case .success(let request):
-                    XCTAssertNotNil(request)
-                    let headers = request.getHeaders()
-                    XCTAssert(headers.contains(where: {$0.name == "Authorization"}))
-                    XCTAssert(headers.contains(where: {$0.name == "X-Amz-Security-Token"}))
-                }
-                expectation.fulfill()
-            }
-            wait(for: [expectation], timeout: 3.0)
-        } catch let error {
-            print(error)
-            XCTFail(error.localizedDescription)
+    func testSimpleSigningWithCredentialsProvider() async throws {
+        let signer = SigV4HttpRequestSigner(allocator: allocator)
+        let request = makeMockRequest()
+        let staticConfig = MockCredentialsProviderStaticConfigOptions(accessKey: "access",
+                                                                      secret: "key",
+                                                                      sessionToken: "token")
+        let provider = try CRTAWSCredentialsProvider(fromStatic: staticConfig, allocator: allocator)
+        let shouldSignHeader: SigningConfig.ShouldSignHeader = { header in
+            return true
         }
+        let awsDate = AWSDate(epochS: Date().timeIntervalSince1970)
+        let config = SigningConfig(credentialsProvider: provider,
+                                   date: awsDate,
+                                   service: "service",
+                                   region: "us-east-1",
+                                   shouldSignHeader: shouldSignHeader)
+       
+        let signedRequest = try await signer.signRequest(request: request, config: config)
+     
+        XCTAssertNotNil(signedRequest)
+        let headers = signedRequest.getHeaders()
+        XCTAssert(headers.contains(where: {$0.name == "Authorization"}))
+        XCTAssert(headers.contains(where: {$0.name == "X-Amz-Security-Token"}))
     }
 
-    func testSimpleSigningWithCredentials() {
-        do {
-            let signer = SigV4HttpRequestSigner(allocator: allocator)
-            let request = makeMockRequest()
-            let credentials = makeMockCredentials()
-            let awsDate = AWSDate(epochS: Date().timeIntervalSince1970)
-            let shouldSignHeader: SigningConfig.ShouldSignHeader = { header in
-                return true
-            }
-            let config = SigningConfig(credentials: credentials,
-                                       date: awsDate,
-                                       service: "service",
-                                       region: "us-east-1",
-                                       signedBodyValue: .empty,
-                                       shouldSignHeader: shouldSignHeader)
-            let expectation = XCTestExpectation(description: "Signing complete")
-       
-            let signedRequestResult = try signer.signRequest(request: request, config: config)
-            signedRequestResult.then { (futureResult) in
-                switch futureResult {
-                case.failure(let error):
-                    XCTFail(error.localizedDescription)
-                case .success(let request):
-                    XCTAssertNotNil(request)
-                    let headers = request.getHeaders()
-                    XCTAssert(headers.contains(where: {$0.name == "Authorization"}))
-                    XCTAssert(headers.contains(where: {$0.name == "X-Amz-Security-Token"}))
-                }
-                expectation.fulfill()
-            }
-            wait(for: [expectation], timeout: 3.0)
-        } catch {
-            XCTFail()
+    func testSimpleSigningWithCredentials() async throws {
+        let signer = SigV4HttpRequestSigner(allocator: allocator)
+        let request = makeMockRequest()
+        let credentials = makeMockCredentials()
+        let awsDate = AWSDate(epochS: Date().timeIntervalSince1970)
+        let shouldSignHeader: SigningConfig.ShouldSignHeader = { header in
+            return true
         }
+        let config = SigningConfig(credentials: credentials,
+                                   date: awsDate,
+                                   service: "service",
+                                   region: "us-east-1",
+                                   signedBodyValue: .empty,
+                                   shouldSignHeader: shouldSignHeader)
+        
+        let signedRequest = try await signer.signRequest(request: request, config: config)
+        
+        XCTAssertNotNil(signedRequest)
+        let headers = signedRequest.getHeaders()
+        XCTAssert(headers.contains(where: {$0.name == "Authorization"}))
+        XCTAssert(headers.contains(where: {$0.name == "X-Amz-Security-Token"}))
     }
     
-    func testSimpleSigningWithCredentialsAndBodyInRequest() {
-        do {
-            let signer = SigV4HttpRequestSigner(allocator: allocator)
-            let request = makeMockRequestWithBody()
-            let credentials = makeMockCredentials()
-            let awsDate = AWSDate(epochS: Date().timeIntervalSince1970)
-            let shouldSignHeader: SigningConfig.ShouldSignHeader = { header in
-                return true
-            }
-            let config = SigningConfig(credentials: credentials,
-                                       date: awsDate,
-                                       service: "service",
-                                       region: "us-east-1",
-                                       signedBodyValue: .empty,
-                                       shouldSignHeader: shouldSignHeader)
-            let expectation = XCTestExpectation(description: "Signing complete")
-       
-            let signedRequestResult = try signer.signRequest(request: request, config: config)
-            signedRequestResult.then { (futureResult) in
-                switch futureResult {
-                case.failure(let error):
-                    XCTFail(error.localizedDescription)
-                case .success(let request):
-                    XCTAssertNotNil(request)
-                    let headers = request.getHeaders()
-                    XCTAssert(headers.contains(where: {$0.name == "Authorization"}))
-                    XCTAssert(headers.contains(where: {$0.name == "X-Amz-Security-Token"}))
-                }
-                expectation.fulfill()
-            }
-            wait(for: [expectation], timeout: 3.0)
-        } catch {
-            XCTFail()
+    func testSimpleSigningWithCredentialsAndBodyInRequest() async throws {
+        let signer = SigV4HttpRequestSigner(allocator: allocator)
+        let request = makeMockRequestWithBody()
+        let credentials = makeMockCredentials()
+        let awsDate = AWSDate(epochS: Date().timeIntervalSince1970)
+        let shouldSignHeader: SigningConfig.ShouldSignHeader = { header in
+            return true
         }
+        let config = SigningConfig(credentials: credentials,
+                                   date: awsDate,
+                                   service: "service",
+                                   region: "us-east-1",
+                                   signedBodyValue: .empty,
+                                   shouldSignHeader: shouldSignHeader)
+     
+   
+        let signedRequest = try await signer.signRequest(request: request, config: config)
+
+        XCTAssertNotNil(signedRequest)
+        let headers = signedRequest.getHeaders()
+        XCTAssert(headers.contains(where: {$0.name == "Authorization"}))
+        XCTAssert(headers.contains(where: {$0.name == "X-Amz-Security-Token"}))
     }
 
     func makeMockRequest() -> HttpRequest {

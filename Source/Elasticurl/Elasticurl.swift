@@ -3,11 +3,12 @@
 
 import AwsCommonRuntimeKit
 import Foundation
+import _Concurrency
 #if os(Linux)
-     import Glibc
- #else
-     import Darwin
- #endif
+import Glibc
+#else
+import Darwin
+#endif
 
 //swiftlint:disable cyclomatic_complexity type_body_length
 struct Context {
@@ -31,10 +32,11 @@ struct Context {
 
 }
 
+@main
 struct Elasticurl {
     private static let version = "0.1.0"
     private static var context = Context()
-    private static let logger = Logger(pipe: stdout, level: context.logLevel)
+    private static var logger = Logger(pipe: stdout, level: context.logLevel)
 
     static func parseArguments() {
 
@@ -94,8 +96,8 @@ struct Elasticurl {
             let keyValues = headers.components(separatedBy: ",")
             for headerKeyValuePair in keyValues {
                 let keyValuePair = headerKeyValuePair.components(separatedBy: ":")
-                    let key = keyValuePair[0]
-                    let value = keyValuePair[1]
+                let key = keyValuePair[0]
+                let value = keyValuePair[1]
                 context.headers[key] = value
             }
         }
@@ -179,9 +181,9 @@ struct Elasticurl {
         //make sure a url was given before we do anything else
         guard let urlString = CommandLine.arguments.last,
               let url = URL(string: urlString) else {
-            print("Invalid URL: \(CommandLine.arguments.last!)")
-            exit(-1)
-        }
+                  print("Invalid URL: \(CommandLine.arguments.last!)")
+                  exit(-1)
+              }
         context.url = url
     }
 
@@ -222,10 +224,9 @@ struct Elasticurl {
         context.outputStream.write(data)
     }
 
-    static func runWithLogger() {
+    static func main() async {
         parseArguments()
         createOutputFile()
-        var logger: Logger?
         if let traceFile = context.traceFile {
             print("enable logging with trace file")
             logger = Logger(filePath: traceFile, level: context.logLevel, allocator: defaultAllocator)
@@ -233,14 +234,12 @@ struct Elasticurl {
             print("enable logging with stdout")
             logger = Logger(pipe: stdout, level: context.logLevel, allocator: defaultAllocator)
         }
-        withExtendedLifetime(logger) {
-            run()
-        }
+
+        await run()
     }
 
-    static func run() {
+    static func run() async {
         do {
-
             guard let host = context.url.host else {
                 print("no proper host was parsed from the url. quitting.")
                 exit(EXIT_FAILURE)
@@ -339,7 +338,7 @@ struct Elasticurl {
 
             let connectionManager = HttpClientConnectionManager(options: httpClientOptions)
             do {
-                let connection = try connectionManager.acquireConnection().get()
+                let connection = try await connectionManager.acquireConnection()
                 let requestOptions = HttpRequestOptions(request: httpRequest,
                                                         onIncomingHeaders: onIncomingHeaders,
                                                         onIncomingHeadersBlockDone: onBlockDone,
@@ -347,6 +346,7 @@ struct Elasticurl {
                                                         onStreamComplete: onComplete)
                 stream = connection.makeRequest(requestOptions: requestOptions)
                 stream!.activate()
+
             } catch {
                 print("connection has shut down with error: \(error.localizedDescription)" )
                 semaphore.signal()
@@ -361,5 +361,3 @@ struct Elasticurl {
         }
     }
 }
-
-Elasticurl.runWithLogger()

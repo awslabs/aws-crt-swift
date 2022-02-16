@@ -16,7 +16,7 @@ class RetryerTests: CrtXCBaseTestCase {
         _ = try CRTAWSRetryStrategy(options: config, allocator: allocator)
     }
     
-    func testAcquireToken() throws {
+    func testAcquireToken() async throws {
         let shutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
@@ -24,17 +24,8 @@ class RetryerTests: CrtXCBaseTestCase {
         let backOffRetryOptions = CRTExponentialBackoffRetryOptions(eventLoopGroup: elg)
         let config = MockRetryOptions(backOffRetryOptions: backOffRetryOptions)
         let retryer = try CRTAWSRetryStrategy(options: config, allocator: allocator)
-        let result = retryer.acquireToken(timeout: 0, partitionId: "partition1")
-        result.then { (result) in
-            switch result {
-            case .failure(let error):
-                XCTAssertNotNil(error)
-            case .success(let token):
-                print(token)
-            }
-            self.expectation.fulfill()
-        }
-        wait(for: [expectation], timeout: 3.0)
+        let result = try await retryer.acquireToken(timeout: 0, partitionId: "partition1")
+        XCTAssertNotNil(result)
     }
 }
 

@@ -7,7 +7,7 @@
     "swift build -c release"
   ],
   "test_steps": [
-    "swift test"
+    "swift test" 
   ],
   "hosts": {
     "al2012": {

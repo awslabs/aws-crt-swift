@@ -1,4 +1,4 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.5
 import PackageDescription
 
 let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
@@ -7,11 +7,12 @@ let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
 var packageTargets: [Target] = []
 
 var package = Package(name: "AwsCrt",
-                      platforms: [.iOS(.v13), .macOS(.v10_14), .tvOS(.v13), .watchOS(.v5)],
+                      platforms: [.iOS(.v13), .macOS(.v10_15), .tvOS(.v13), .watchOS(.v6)],
                       products: [
                         .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
                         .executable(name: "Elasticurl", targets: ["Elasticurl"])
-                      ]
+                      ],
+                      dependencies: [.package(url: "https://github.com/apple/swift-collections", from: "1.0.2")]
 )
 
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
@@ -27,17 +28,16 @@ packageTargets.append( .systemLibrary(
             ]
         ))
  // add pq-crypto back after adding in platform and chipset detection
-let s2nExcludes = excludesFromAll + ["bin", "codebuild", "coverage", "docker-images",
-                      "docs", "lib", "pq-crypto/bike_r1", "pq-crypto/bike_r2",
-                      "pq-crypto/bike_r3", "pq-crypto/kyber_90s_r2", "pq-crypto/kyber_r3",
-                      "pq-crypto/kyber_r2", "pq-crypto/sike_r1", "pq-crypto/sike_r3",
-                      "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
-                      "libcrypto-build", "scram",
-                      "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
-                      "tls/Makefile", "utils/Makefile", "error/Makefile",
-                      "extensions/Makefile", "tls/extensions/Makefile",
-                      "codecov.yml", "scripts/", "codebuild", "format-check.sh", "sanitizer-blacklist.txt",
-                      "CODE_OF_CONDUCT.md", "build-deps.sh"]
+let s2nExcludes = ["bin", "codebuild", "coverage", "docker-images",
+                   "docs", "lib", "pq-crypto/bike_r1", "pq-crypto/bike_r2",
+                   "pq-crypto/bike_r3", "pq-crypto/kyber_90s_r2", "pq-crypto/kyber_r3",
+                   "pq-crypto/kyber_r2", "pq-crypto/sike_r1", "pq-crypto/sike_r3",
+                   "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
+                   "libcrypto-build", "scram",
+                   "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
+                   "tls/Makefile", "utils/Makefile", "error/Makefile", "tls/extensions/Makefile",
+                   "codecov.yml", "scripts/", "codebuild", "bindings/rust", "VERSIONING.rst", "tests",
+                   "cmake/s2n-config.cmake", "CMakeLists.txt", "README.md", "cmake", "NOTICE", "LICENSE"]
 packageTargets.append(.target(
             name: "S2N",
             dependencies: ["LibCrypto"],
@@ -53,7 +53,6 @@ packageTargets.append(.target(
 ioDependencies.append("S2N")
 calDependencies.append("LibCrypto")
 #endif
-
 // aws-c-common config
 var awsCCommonPlatformExcludes = ["source/windows", "source/android",
                                   "AWSCRTAndroidTestRunner", "docker-images", "verification",
@@ -80,7 +79,8 @@ awsCCommonPlatformExcludes.append("source/arch/intel/asm")
 awsCCommonPlatformExcludes.append("source/arch/arm/asm")
 #endif
 
-var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11.md", "THIRD-PARTY-LICENSES.txt"] + excludesFromAll
+var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11.md", "THIRD-PARTY-LICENSES.txt",
+                              "source/pkcs11/v2.40"] + excludesFromAll
 
 #if os(macOS)
 awsCIoPlatformExcludes.append("source/windows")
@@ -206,7 +206,14 @@ packageTargets.append(contentsOf: [
     ),
     .target(
         name: "AwsCommonRuntimeKit",
-        dependencies: [ "AwsCMqtt", "AwsCAuth", "AwsCHttp", "AwsCCal", "AwsCCompression", "AwsCIo", "AwsCCommon"],
+        dependencies: [ "AwsCMqtt",
+                        "AwsCAuth",
+                        "AwsCHttp",
+                        "AwsCCal",
+                        "AwsCCompression",
+                        "AwsCIo",
+                        "AwsCCommon",
+                        .product(name: "Collections", package: "swift-collections")],
         path: "Source/AwsCommonRuntimeKit",
         swiftSettings: [
 //            .unsafeFlags(["-g"]),
@@ -216,7 +223,7 @@ packageTargets.append(contentsOf: [
     .testTarget(
         name: "AwsCommonRuntimeKitTests",
         dependencies: ["AwsCommonRuntimeKit"],
-        path: "Test",
+        path: "Test/AwsCommonRuntimeKitTests",
         swiftSettings: [
 //            .unsafeFlags(["-g"]),
 //            .unsafeFlags(["-Onone"], .when(configuration: .debug))

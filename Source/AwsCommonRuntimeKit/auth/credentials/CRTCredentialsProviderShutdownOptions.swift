@@ -8,6 +8,5 @@ public struct CRTCredentialsProviderShutdownOptions {
 
     public init(shutDownCallback: @escaping ShutDownCallback) {
         self.shutDownCallback = shutDownCallback
-
     }
 }

@@ -279,30 +279,33 @@ public final class CRTAWSCredentialsProvider {
     /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
     /// the callback passed in.
     ///
-    /// - Parameters:
-    ///   - credentialCallbackData:  The `CredentialProviderCallbackData`options object.
-    public func getCredentials() -> Future<CRTCredentials> {
-        let future = Future<CRTCredentials>()
-        let callbackData = CRTCredentialsCallbackData(allocator: allocator) { (crtCredentials, crtError) in
-            if let crtCredentials = crtCredentials {
-                future.fulfill(crtCredentials)
-            } else {
-                future.fail(crtError)
-            }
+    /// - Returns: `Result<CRTCredentials, CRTError>`
+    public func getCredentials() async throws -> CRTCredentials {
+        return try await withCheckedThrowingContinuation { (continuation: CredentialsContinuation) in
+            getCredentialsFromCRT(continuation: continuation)
         }
-        let pointer: UnsafeMutablePointer<CRTCredentialsCallbackData> = fromPointer(ptr: callbackData)
+    }
+
+    private func getCredentialsFromCRT(continuation: CredentialsContinuation) {
+        let callbackData = CRTCredentialsProviderCallbackData(continuation: continuation)
+        let pointer: UnsafeMutablePointer<CRTCredentialsProviderCallbackData> = fromPointer(ptr: callbackData)
         aws_credentials_provider_get_credentials(rawValue, { (credentials, errorCode, userdata) -> Void in
             guard let userdata = userdata else {
                 return
             }
-            let pointer = userdata.assumingMemoryBound(to: CRTCredentialsCallbackData.self)
+            let pointer = userdata.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
             defer { pointer.deinitializeAndDeallocate() }
             let error = AWSError(errorCode: errorCode)
-            if let onCredentialsResolved = pointer.pointee.onCredentialsResolved {
-                onCredentialsResolved(CRTCredentials(rawValue: credentials), CRTError.crtError(error))
+
+            if errorCode == 0,
+               let credentials = credentials,
+               let crtCredentials = CRTCredentials(rawValue: credentials) {
+                pointer.pointee.continuation?.resume(returning: crtCredentials)
+            } else {
+                pointer.pointee.continuation?.resume(throwing: CRTError.crtError(error))
             }
+
         }, pointer)
-        return future
     }
 
     static func setUpShutDownOptions(shutDownOptions: CRTCredentialsProviderShutdownOptions?)
@@ -332,11 +335,20 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer?,
     guard let credentialsProvider = delegatePtr?.assumingMemoryBound(to: CRTCredentialsProvider.self) else {
         return 1
     }
-    guard let credentialCallbackData = userData?.assumingMemoryBound(to: CRTCredentialsCallbackData.self) else {
+    guard let credentialCallbackData = userData?.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self) else {
         return 1
     }
-
-    credentialsProvider.pointee.getCredentials(credentialCallbackData: credentialCallbackData.pointee)
+    let callbackPointer = UnsafeMutablePointer<CRTCredentialsProviderCallbackData>.allocate(capacity: 1)
+    callbackPointer.initialize(to: credentialCallbackData.pointee)
+    Task {
+        do {
+            let credentials = try await credentialsProvider.pointee.getCredentials()
+            callbackFn?(credentials.rawValue, 0, callbackPointer)
+        } catch let err {
+            if case let CRTError.crtError(crtError) = err {
+                callbackFn?(nil, crtError.errorCode, callbackPointer)
+            }
+        }
+    }
     return 0
-
 }

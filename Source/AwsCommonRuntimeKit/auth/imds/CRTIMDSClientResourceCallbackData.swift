@@ -1,14 +1,12 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
-
+public typealias ResourceContinuation = CheckedContinuation<String?, Error>
 public struct CRTIMDSClientResourceCallbackData {
-    public typealias OnResourceResolved = (String?, CRTError) -> Void
-    public var onResourceResolved: OnResourceResolved
+    public var continuation: ResourceContinuation?
     public let allocator: Allocator
 
-    public init(allocator: Allocator = defaultAllocator,
-                onResourceResolved: @escaping OnResourceResolved) {
-        self.onResourceResolved = onResourceResolved
+    public init(allocator: Allocator = defaultAllocator, continuation: ResourceContinuation?) {
         self.allocator = allocator
+        self.continuation = continuation
     }
 }
