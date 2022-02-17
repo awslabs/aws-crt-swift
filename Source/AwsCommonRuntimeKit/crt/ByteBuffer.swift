@@ -72,7 +72,7 @@ public class ByteBuffer: Codable {
     public func put(_ value: ByteBuffer, offset: UInt = 0, maxBytes: UInt? = nil) {
         var end: UInt = UInt(value.length)
         if let maxBytes = maxBytes {
-             end =  maxBytes
+             end = maxBytes
         }
         let bytesToTake = value.array[Int(offset)..<Int(end)]
         array.append(contentsOf: bytesToTake)
@@ -283,7 +283,7 @@ extension ByteBuffer: AwsStream {
     public func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool {
         let targetOffset: Int64
         if basis.rawValue == AWS_SSB_BEGIN.rawValue {
-            targetOffset = Int64(length) + offset
+            targetOffset = offset
 
         } else {
             targetOffset = Int64(length) - offset
@@ -294,8 +294,8 @@ extension ByteBuffer: AwsStream {
 
     public func read(buffer: inout aws_byte_buf) -> Bool {
         let bufferCapacity = buffer.capacity - buffer.len
-        let arrayEnd = array.count > bufferCapacity ? bufferCapacity: array.count
-        let dataArray = array[0..<(arrayEnd)]
+        let arrayEnd = (bufferCapacity + self.currentIndex) < array.count ? bufferCapacity + self.currentIndex : array.count
+        let dataArray = array[self.currentIndex..<(arrayEnd)]
         if dataArray.count > 0 {
             let result = buffer.buffer.advanced(by: buffer.len)
             let resultBufferPointer = UnsafeMutableBufferPointer.init(start: result, count: dataArray.count)
