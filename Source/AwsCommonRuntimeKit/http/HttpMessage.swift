@@ -74,9 +74,11 @@ public extension HttpMessage {
     func getHeaders() -> [HttpHeader] {
         var headers = [HttpHeader]()
         var header = HttpHeader(name: "", value: "")
-        for index in 0...headerCount - 1 {
-            if aws_http_message_get_header(rawValue, &header.rawValue, index) == AWS_OP_SUCCESS {
-                headers.append(header)
+        if headerCount > 0 {
+            for index in 0...headerCount - 1 {
+                if aws_http_message_get_header(rawValue, &header.rawValue, index) == AWS_OP_SUCCESS {
+                    headers.append(header)
+                }
             }
         }
         return headers
