@@ -4,7 +4,6 @@
 import AwsCCommon
 import AwsCIo
 
-public typealias HostAddress = aws_host_address
 public typealias HostResolvedContinuation = CheckedContinuation<[HostAddress], Error>
 
 public protocol HostResolver: AnyObject {
@@ -86,10 +85,12 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!
     let length = aws_array_list_length(hostAddresses)
     var addresses: [HostAddress] = Array(repeating: HostAddress(), count: length)
 
-    for index  in 0..<length {
+    for index in 0..<length {
         var address: UnsafeMutableRawPointer! = nil
         aws_array_list_get_at_ptr(hostAddresses, &address, index)
-        addresses[index] = address.bindMemory(to: HostAddress.self, capacity: 1).pointee
+        let hostAddressCType = address.bindMemory(to: aws_host_address.self, capacity: 1).pointee
+        let hostAddress = HostAddress(hostAddress: hostAddressCType)
+        addresses[index] = hostAddress
     }
 
     if errorCode == 0 {
