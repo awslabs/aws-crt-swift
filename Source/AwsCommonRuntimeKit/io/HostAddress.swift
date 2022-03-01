@@ -11,7 +11,7 @@ public struct HostAddress {
     let useCount: Int
     let connectionFailureCount: Int
     let weight: UInt8
-    
+
     init(hostAddress: aws_host_address) {
         self.host = String(awsString: hostAddress.host)
         self.address = String(awsString: hostAddress.address)
@@ -21,7 +21,7 @@ public struct HostAddress {
         self.connectionFailureCount = hostAddress.connection_failure_count
         self.weight = hostAddress.weight
     }
-    
+
     init() {
         self.host = nil
         self.address = nil
@@ -32,4 +32,3 @@ public struct HostAddress {
         self.weight = 0
     }
 }
-
