@@ -72,7 +72,7 @@ public final class CRTAWSRetryStrategy {
     }
 
     private func scheduleRetryToCRT(token: CRTAWSRetryToken, errorType: CRTRetryError, continuation: ScheduleRetryContinuation) {
-        let callbackData = CRTScheduleRetryCallbackData(allocator: allocator)
+        let callbackData = CRTScheduleRetryCallbackData(allocator: allocator, continuation: continuation)
         let pointer: UnsafeMutablePointer<CRTScheduleRetryCallbackData> = fromPointer(ptr: callbackData)
 
         aws_retry_strategy_schedule_retry(token.rawValue, errorType.rawValue, { retryToken, errorCode, userdata in

@@ -92,7 +92,7 @@ public final class CRTAWSCredentialsProvider {
             profileOptionsC.credentials_file_name_override = credentialsFileName.awsByteCursor
         }
 
-        if let profileName = profileOptions.profileFileNameOverride {
+        if let profileName = profileOptions.profileNameOverride {
             profileOptionsC.profile_name_override = profileName.awsByteCursor
         }
         profileOptionsC.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: profileOptions.shutdownOptions)

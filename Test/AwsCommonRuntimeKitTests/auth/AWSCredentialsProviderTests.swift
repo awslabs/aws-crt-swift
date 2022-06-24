@@ -218,16 +218,16 @@ struct MockCredentialsProviderProfileOptions: CRTCredentialsProviderProfileOptio
     
     var configFileNameOverride: String?
     
-    var profileFileNameOverride: String?
+    var profileNameOverride: String?
     
     var credentialsFileNameOverride: String?
     
     init(configFileNameOverride: String? = nil,
-         profileFileNameOverride: String? = nil,
+         profileNameOverride: String? = nil,
          credentialsFileNameOverride: String? = nil,
          shutdownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
         self.configFileNameOverride = configFileNameOverride
-        self.profileFileNameOverride = profileFileNameOverride
+        self.profileNameOverride = profileNameOverride
         self.credentialsFileNameOverride = credentialsFileNameOverride
         self.shutdownOptions = shutdownOptions
     }
