@@ -11,4 +11,8 @@ public final class CRTAWSRetryToken {
         self.rawValue = rawValue
     }
 
+    deinit {
+        aws_retry_token_release(rawValue)
+    }
+
 }
