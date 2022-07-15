@@ -97,8 +97,8 @@ public final class CRTAWSRetryStrategy {
         aws_retry_token_record_success(token.rawValue)
     }
 
+    @available(*, deprecated, message: "This function will be removed soon.")
     public func releaseToken(token: CRTAWSRetryToken) {
-        aws_retry_token_release(token.rawValue)
     }
 
     deinit {
