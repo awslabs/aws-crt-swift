@@ -114,10 +114,10 @@ public class HttpClientConnection {
 
         let stream = HttpStream(httpConnection: self)
         cbData.stream = stream
-        stream.httpStream = aws_http_connection_make_request(rawValue, &options)
-        if stream.httpStream == nil {
+        guard let httpStream = aws_http_connection_make_request(rawValue, &options) else {
             throw AWSCommonRuntimeError()
         }
+        stream.httpStream = httpStream
         return stream
     }
 
