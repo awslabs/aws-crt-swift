@@ -26,15 +26,20 @@ public class HttpStream {
     /// - Parameters:
     ///   - incrementBy:  How many bytes to increment the sliding window by.
     public func updateWindow(incrementBy: Int) {
+        assert(httpStream != nil)
         aws_http_stream_update_window(httpStream, incrementBy)
     }
 
     ///Activates the client stream.
-    public func activate() {
-        aws_http_stream_activate(httpStream)
+    public func activate() throws {
+        assert(httpStream != nil)
+        if aws_http_stream_activate(httpStream) != AWS_OP_SUCCESS {
+            throw AWSCommonRuntimeError()
+        }
     }
 
     deinit {
+        assert(httpStream != nil)
         aws_http_stream_release(httpStream)
     }
 }

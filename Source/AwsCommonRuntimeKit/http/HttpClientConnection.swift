@@ -31,7 +31,7 @@ public class HttpClientConnection {
     /// - Parameter requestOptions: An `HttpRequestOptions` struct containing callbacks on
     /// the different events from the stream
     /// - Returns: An `HttpStream` containing the `HttpClientConnection`
-    public func makeRequest(requestOptions: HttpRequestOptions) -> HttpStream {
+    public func makeRequest(requestOptions: HttpRequestOptions) throws -> HttpStream {
         var options = aws_http_make_request_options()
         options.self_size = MemoryLayout<aws_http_make_request_options>.size
         options.request = requestOptions.request.rawValue
@@ -115,7 +115,9 @@ public class HttpClientConnection {
         let stream = HttpStream(httpConnection: self)
         cbData.stream = stream
         stream.httpStream = aws_http_connection_make_request(rawValue, &options)
-
+        if stream.httpStream == nil {
+            throw AWSCommonRuntimeError()
+        }
         return stream
     }
 
