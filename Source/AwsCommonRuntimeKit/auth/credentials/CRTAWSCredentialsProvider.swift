@@ -4,7 +4,6 @@
 import AwsCAuth
 import AwsCIo
 import AwsCHttp
-
 public final class CRTAWSCredentialsProvider {
 
     let allocator: Allocator
@@ -38,20 +37,79 @@ public final class CRTAWSCredentialsProvider {
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromStatic config: CRTCredentialsProviderStaticConfigOptions,
                             allocator: Allocator = defaultAllocator) throws {
-
+        
         var staticOptions = aws_credentials_provider_static_options()
         staticOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
             shutDownOptions: config.shutDownOptions)
-        staticOptions.access_key_id = config.accessKey.awsByteCursor
-        staticOptions.secret_access_key = config.secret.awsByteCursor
-        if let sessionToken = config.sessionToken?.awsByteCursor {
-            staticOptions.session_token = sessionToken
+        
+        let access_key =  config.accessKey.newByteCursor()
+        staticOptions.access_key_id = access_key.rawValue
+        
+        let secret_key = config.secret.newByteCursor()
+        staticOptions.secret_access_key = secret_key.rawValue
+        
+        let session_token = config.sessionToken?.newByteCursor()
+        if let rawValue = session_token?.rawValue {
+            staticOptions.session_token = rawValue
         }
 
         guard let provider = aws_credentials_provider_new_static(allocator.rawValue,
                                                                  &staticOptions) else { throw AWSCommonRuntimeError() }
 
         self.init(credentialsProvider: provider, allocator: allocator)
+        
+        
+        
+        //        var staticOptions = aws_credentials_provider_static_options()
+//        staticOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
+//            shutDownOptions: config.shutDownOptions)
+////        staticOptions.access_key_id = config.accessKey.awsByteCursor
+////        staticOptions.secret_access_key = config.secret.awsByteCursor
+////        if let sessionToken = config.sessionToken?.awsByteCursor {
+////            staticOptions.session_token = sessionToken
+////        }
+//
+//        guard let provider = aws_credentials_provider_new_static(allocator.rawValue,
+//                                                                 &staticOptions) else { throw AWSCommonRuntimeError() }
+//
+//        self.init(credentialsProvider: provider, allocator: allocator)
+//
+        
+        //        var pv: UnsafeMutablePointer<aws_credentials_provider>? = nil
+        //        try config.accessKey.withCString{cAccessKey in
+        //            try config.secret.withCString{cSecret in
+        //                var staticOptions = aws_credentials_provider_static_options()
+        //                staticOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
+        //                    shutDownOptions: config.shutDownOptions)
+        //
+        //                staticOptions.access_key_id = aws_byte_cursor_from_c_str(cAccessKey)
+        //                staticOptions.secret_access_key = aws_byte_cursor_from_c_str(cSecret)
+        //
+        //                guard let provider = aws_credentials_provider_new_static(allocator.rawValue,
+        //                                                                         &staticOptions) else { throw AWSCommonRuntimeError() }
+        //
+        //                pv = provider
+        //            }
+        //
+        //        }
+        //        self.init(credentialsProvider: pv!, allocator: allocator)
+            
+                // Convert the Swift strings to CChars (or Int8) that map to
+        //        let key_p0 = UnsafePointer<CChar>(config.accessKey)
+        //        let key_p1 = UnsafePointer<CChar>(config.secret)
+        //
+        //
+        //        let ak = config.accessKey.utf8CString.withUnsafeBufferPointer( ptr in
+        //                                                                       if let adr = ptr.baseAddress {
+        //            staticOptions.access_key_id = aws_byte_cursor_from_c_str(ak)
+        //            print("here")
+        //        })
+               // staticOptions.secret_access_key = aws_byte_cursor_from_c_str(config.secret.utf8CString.withUnsafeBufferPointer({$0.baseAddress}))
+        //        if let sessionToken = config.sessionToken {
+        //            staticOptions.session_token = aws_byte_cursor_from_c_str(sessionToken.utf8CString.withUnsafeBufferPointer({$0.baseAddress}))
+        //        }
+               
+        
     }
 
     /// Creates a credentials provider from environment variables:

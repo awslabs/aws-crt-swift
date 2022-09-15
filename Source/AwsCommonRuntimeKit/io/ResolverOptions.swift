@@ -6,6 +6,7 @@ class ResolverOptions {
 	let resolver: HostResolver
 	let continuation: HostResolvedContinuation
 
+	//Todo: can we just do AWSString = AWSString or make a copy?
 	init(resolver: HostResolver, host: AWSString, continuation: HostResolvedContinuation) {
 		self.host = host
 		self.continuation = continuation

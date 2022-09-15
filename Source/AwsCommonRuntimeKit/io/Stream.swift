@@ -3,13 +3,12 @@
 
 import AwsCIo
 import Foundation
-
+//Todo: what is this and write tests for it?
 private var vtable = aws_input_stream_vtable(seek: doSeek,
                                              read: doRead,
                                              get_status: doGetStatus,
                                              get_length: doGetLength,
                                              destroy: doDestroy)
-//swiftlint:disable trailing_whitespace
 public class AwsInputStream {
     var rawValue: aws_input_stream
     public let implPointer: UnsafeMutablePointer<AwsStream>
@@ -22,6 +21,8 @@ public class AwsInputStream {
     }
     
     deinit {
+        //Todo: why not destory the raw value? No error checking?
+
         implPointer.deinitializeAndDeallocate()
     }
 }

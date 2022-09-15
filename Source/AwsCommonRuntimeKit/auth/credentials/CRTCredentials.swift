@@ -20,10 +20,34 @@ public final class CRTCredentials {
                 sessionToken: String?,
                 expirationTimeout: UInt64,
                 allocator: Allocator = defaultAllocator) {
+       
+//        var creds: OpaquePointer?
+//        accessKey.withCString{cAccessKey in
+//            secret.withCString{cSecret in
+//
+//
+//                let access_key_id = aws_byte_cursor_from_c_str(cAccessKey)
+//                let secret_access_key = aws_byte_cursor_from_c_str(cSecret)
+//                let secret2 = aws_byte_cursor_from_c_str(cSecret)
+//
+//                creds = aws_credentials_new(allocator.rawValue,
+//                                                    access_key_id,
+//                                                    secret_access_key,
+//                                                    secret2,expirationTimeout)
+//
+//            }
+//
+//        }
+//
+//        self.rawValue = creds!
+        let access_key =  accessKey.newByteCursor()
+        let secret_key = secret.newByteCursor()
+        let session_token = sessionToken?.newByteCursor() ?? "".newByteCursor()
+        
         self.rawValue = aws_credentials_new(allocator.rawValue,
-                                            accessKey.awsByteCursor,
-                                            secret.awsByteCursor,
-                                            sessionToken?.awsByteCursor ?? "".awsByteCursor, expirationTimeout)
+                                            access_key.rawValue,
+                                            secret_key.rawValue,
+                                            session_token.rawValue, expirationTimeout)
     }
 
     /// Gets the access key from the `aws_credentials` instance
@@ -58,6 +82,6 @@ public final class CRTCredentials {
     }
 
     deinit {
-        aws_credentials_release(rawValue)
+      aws_credentials_release(rawValue)
     }
 }

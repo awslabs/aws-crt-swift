@@ -19,6 +19,7 @@ public final class TlsContextOptions {
     public init(clientWithMtlsCertificatePath certPath: String,
                 keyPath: String,
                 allocator: Allocator = defaultAllocator) throws {
+        //Todo: update
         let ptr: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: keyPath.awsByteCursor)
         self.rawValue = allocatePointer()
         if aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,

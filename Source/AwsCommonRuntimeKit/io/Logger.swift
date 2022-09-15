@@ -5,7 +5,7 @@ import AwsCCommon
 
 public class Logger {
     var logger: aws_logger
-
+    //Todo: read this
     public init(pipe: UnsafeMutablePointer<FILE>?, level: LogLevel, allocator: Allocator = defaultAllocator) {
         logger = aws_logger()
         var options = aws_logger_standard_options()
