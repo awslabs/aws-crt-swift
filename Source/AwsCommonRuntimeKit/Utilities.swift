@@ -102,7 +102,7 @@ extension Bool {
 // Ensure that any UnsafeXXXPointer is ALWAYS initialized to either nil or a value in a single call. Prevents the
 // case where you create an UnsafeMutableWhatever and do not call `initialize()` on it, resulting in a non-null but
 // also invalid pointer
-func fromPointer<T, P: PointerConformance>(ptr: T, allocator: Allocator = defaultAllocator) -> P {
+func fromPointer<T, P: PointerConformance>(ptr: T) -> P {
     let pointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
     pointer.initialize(to: ptr)
     return P(OpaquePointer(pointer))

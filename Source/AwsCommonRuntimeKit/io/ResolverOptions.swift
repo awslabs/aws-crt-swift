@@ -5,6 +5,7 @@ class ResolverOptions {
 	let host: AWSString
 	let resolver: HostResolver
 	let continuation: HostResolvedContinuation
+	
 	init(resolver: HostResolver, host: AWSString, continuation: HostResolvedContinuation) {
 		self.host = host
 		self.continuation = continuation
