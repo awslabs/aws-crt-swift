@@ -12,7 +12,7 @@ public final class TlsConnectionOptions {
 
         var connectionsPointer: UnsafeMutablePointer<aws_tls_connection_options> = allocatePointer()
 		aws_tls_connection_options_init_from_ctx(connectionsPointer, context.rawValue)
-		//Todo: make these constants more visible
+		//Todo: make these constants more visible such as global variable
         #if os(iOS) || os(watchOS)
         connectionsPointer.pointee.timeout_ms = 30_000
         #else

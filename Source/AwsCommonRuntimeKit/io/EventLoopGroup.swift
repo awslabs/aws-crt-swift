@@ -1,11 +1,13 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+
 import AwsCIo
 
 public final class EventLoopGroup {
     public var rawValue: UnsafeMutablePointer<aws_event_loop_group>
 
     public let shutDownOptions: ShutDownCallbackOptions?
+
     public init(threadCount: UInt16 = 0,
                 allocator: Allocator = defaultAllocator,
                 shutDownOptions: ShutDownCallbackOptions? = nil) {

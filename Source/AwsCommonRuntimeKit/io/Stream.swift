@@ -21,8 +21,6 @@ public class AwsInputStream {
     }
     
     deinit {
-        //Todo: why not destory the raw value? No error checking?
-
         implPointer.deinitializeAndDeallocate()
     }
 }

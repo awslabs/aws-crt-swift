@@ -20,6 +20,7 @@ public final class DefaultHostResolver: HostResolver {
     var shutdownCallbackOptionPtr: UnsafePointer<aws_shutdown_callback_options>?
 
     //How to handle OOM errors? Should every function throw exception or just crash the application?
+
     public init(eventLoopGroup elg: EventLoopGroup,
                 maxHosts: Int,
                 maxTTL: Int,
@@ -32,9 +33,9 @@ public final class DefaultHostResolver: HostResolver {
         self.shutDownOptions = shutDownOptions
 
         var options = aws_host_resolver_default_options(max_entries: maxHosts,
-                                                        el_group: elg.rawValue,
-                                                        shutdown_options: shutdownCallbackOptionPtr,
-                                                        system_clock_override_fn: nil)
+                el_group: elg.rawValue,
+                shutdown_options: shutdownCallbackOptionPtr,
+                system_clock_override_fn: nil)
         rawValue = aws_host_resolver_new_default(allocator.rawValue, &options)
         config = try! allocator.allocate(capacity: 1)
         config.pointee = aws_host_resolution_config(
@@ -60,19 +61,19 @@ public final class DefaultHostResolver: HostResolver {
         }
 
         let result = try await withCheckedThrowingContinuation({ (continuation: HostResolvedContinuation) in
-           pointer.pointee = ResolverOptions(resolver: self,
-                   host: AWSString(host, allocator: allocator),
-                   continuation: continuation)
-           resolve(host: host, continuation: continuation, options: pointer)
-       })
-       return result
+            pointer.pointee = ResolverOptions(resolver: self,
+                    host: AWSString(host, allocator: allocator),
+                    continuation: continuation)
+            resolve(host: host, continuation: continuation, options: pointer)
+        })
+        return result
     }
 
     private func resolve(host: String, continuation: HostResolvedContinuation, options: UnsafeMutablePointer<ResolverOptions>) {
         if (aws_host_resolver_resolve_host(rawValue,
                 options.pointee.host.rawValue,
-                                       onHostResolved, config, options) != AWS_OP_SUCCESS) {
-            continuation.resume(throwing: CRTError.crtError( AWSError(errorCode: aws_last_error())))
+                onHostResolved, config, options) != AWS_OP_SUCCESS) {
+            continuation.resume(throwing: CRTError.crtError(AWSError(errorCode: aws_last_error())))
         }
     }
 }
@@ -97,9 +98,9 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!
     }
 
     if errorCode == 0 {
-       continuation.resume(returning: addresses)
+        continuation.resume(returning: addresses)
     } else {
-        let error = AWSError(errorCode: 404)
+        let error = AWSError(errorCode: errorCode)
         continuation.resume(throwing: CRTError.crtError(error))
     }
 }
