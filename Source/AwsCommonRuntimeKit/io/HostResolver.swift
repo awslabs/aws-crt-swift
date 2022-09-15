@@ -66,9 +66,9 @@ public final class DefaultHostResolver: HostResolver {
     }
 
     private func resolve(host: String, continuation: HostResolvedContinuation, options: UnsafeMutablePointer<ResolverOptions>) {
-        if (aws_host_resolver_resolve_host(rawValue,
+        if aws_host_resolver_resolve_host(rawValue,
                 options.pointee.host.rawValue,
-                onHostResolved, config, options) != AWS_OP_SUCCESS) {
+                onHostResolved, config, options) != AWS_OP_SUCCESS {
             continuation.resume(throwing: CRTError.crtError(AWSError(errorCode: aws_last_error())))
         }
     }

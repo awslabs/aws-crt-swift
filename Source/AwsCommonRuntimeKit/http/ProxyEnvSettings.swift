@@ -7,7 +7,6 @@ public class ProxyEnvSettings {
     public var envVarType: HttpProxyEnvType = .disable
     public var proxyConnectionType: HttpProxyConnectionType = .forward
     public var tlsOptions: TlsConnectionOptions?
-
     
     //Todo: pointer is not pointing to anything
     public init(envVarType: HttpProxyEnvType = .disable,

@@ -102,15 +102,6 @@ extension Bool {
 // Ensure that any UnsafeXXXPointer is ALWAYS initialized to either nil or a value in a single call. Prevents the
 // case where you create an UnsafeMutableWhatever and do not call `initialize()` on it, resulting in a non-null but
 // also invalid pointer
-/**
-     * Allocates memory on the heap.
-     *
-     * - Parameter <T>: The type that the allocated memory is supposed to hold
-     * - Parameter capacity: How many instances of `<T>` to allocate for.
-     *
-     * - Returns: The allocated memory
-     * - Throws AwsError.memoryAllocationFailure: If the allocation failed.
-     */
 func fromPointer<T, P: PointerConformance>(ptr: T, allocator: Allocator = defaultAllocator) -> P {
     let pointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
     pointer.initialize(to: ptr)
