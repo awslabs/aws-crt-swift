@@ -40,7 +40,7 @@ internal extension Allocator {
     }
 
     /**
-     * Releases memory allocated by this allocator. We need to call deinitialize first so that Swift compiler
+     * Releases memory allocated by this allocator. We need to call deinitialize first so that Swift compiler's ARC
      * can decreases the reference count of instances held by this pointer and release them if needed.
      *
      * - Parameter pointer: The pointer to allocated data.

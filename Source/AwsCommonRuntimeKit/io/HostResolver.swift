@@ -1,7 +1,6 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-import AwsCCommon
 import AwsCIo
 
 public typealias HostResolvedContinuation = CheckedContinuation<[HostAddress], Error>
@@ -18,8 +17,6 @@ public final class DefaultHostResolver: HostResolver {
     private let allocator: Allocator
     public let shutDownOptions: ShutDownCallbackOptions?
     var shutdownCallbackOptionPtr: UnsafePointer<aws_shutdown_callback_options>?
-
-    //How to handle OOM errors? Should every function throw exception or just crash the application?
 
     public init(eventLoopGroup elg: EventLoopGroup,
                 maxHosts: Int,
@@ -38,11 +35,11 @@ public final class DefaultHostResolver: HostResolver {
                 system_clock_override_fn: nil)
         rawValue = aws_host_resolver_new_default(allocator.rawValue, &options)
         config = try! allocator.allocate(capacity: 1)
-        config.pointee = aws_host_resolution_config(
+        config.initialize(to: aws_host_resolution_config(
                 impl: aws_default_dns_resolve,
                 max_ttl: maxTTL,
                 impl_data: nil
-        )
+        ))
     }
 
     deinit {
@@ -55,18 +52,17 @@ public final class DefaultHostResolver: HostResolver {
     }
 
     public func resolve(host: String) async throws -> [HostAddress] {
-        let pointer: UnsafeMutablePointer<ResolverOptions> = try! allocator.allocate(capacity: 1)
+        let resolverOptions: UnsafeMutablePointer<ResolverOptions> = try! allocator.allocate(capacity: 1)
         defer {
-            allocator.release(pointer)
+            allocator.release(resolverOptions)
         }
 
-        let result = try await withCheckedThrowingContinuation({ (continuation: HostResolvedContinuation) in
-            pointer.pointee = ResolverOptions(resolver: self,
+        return try await withCheckedThrowingContinuation({ (continuation: HostResolvedContinuation) in
+            resolverOptions.initialize(to: ResolverOptions(resolver: self,
                     host: AWSString(host, allocator: allocator),
-                    continuation: continuation)
-            resolve(host: host, continuation: continuation, options: pointer)
+                    continuation: continuation))
+            resolve(host: host, continuation: continuation, options: resolverOptions)
         })
-        return result
     }
 
     private func resolve(host: String, continuation: HostResolvedContinuation, options: UnsafeMutablePointer<ResolverOptions>) {
@@ -86,7 +82,6 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!
     let options = userData.assumingMemoryBound(to: ResolverOptions.self)
 
     let length = aws_array_list_length(hostAddresses)
-    let continuation = options.pointee.continuation;
     var addresses: [HostAddress] = Array(repeating: HostAddress(), count: length)
 
     for index in 0..<length {
@@ -98,9 +93,9 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!
     }
 
     if errorCode == 0 {
-        continuation.resume(returning: addresses)
+        options.pointee.continuation.resume(returning: addresses)
     } else {
         let error = AWSError(errorCode: errorCode)
-        continuation.resume(throwing: CRTError.crtError(error))
+        options.pointee.continuation.resume(throwing: CRTError.crtError(error))
     }
 }
