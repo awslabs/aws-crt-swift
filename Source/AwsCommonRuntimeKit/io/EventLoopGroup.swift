@@ -6,7 +6,6 @@ public final class EventLoopGroup {
     public var rawValue: UnsafeMutablePointer<aws_event_loop_group>
 
     public let shutDownOptions: ShutDownCallbackOptions?
-    //Todo: confirm this
     public init(threadCount: UInt16 = 0,
                 allocator: Allocator = defaultAllocator,
                 shutDownOptions: ShutDownCallbackOptions? = nil) {

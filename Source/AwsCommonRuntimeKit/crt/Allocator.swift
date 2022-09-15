@@ -40,11 +40,14 @@ internal extension Allocator {
     }
 
     /**
-     * Releases memory allocated by this allocator.
+     * Releases memory allocated by this allocator. We need to call deinitialize first so that Swift compiler
+     * can decreases the reference count of instances held by this pointer and release them if needed.
      *
      * - Parameter pointer: The pointer to allocated data.
+     * - Parameter count:
      */
-    func release<T>(_ pointer: UnsafeMutablePointer<T>?) {
+    func release<T>(_ pointer: UnsafeMutablePointer<T>?, count: Int = 1) {
+        pointer?.deinitialize(count: count)
         return aws_mem_release(self.rawValue, pointer)
     }
 }

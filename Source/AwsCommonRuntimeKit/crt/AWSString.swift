@@ -43,6 +43,7 @@ extension String {
         self.init(cString: aws_string_c_str(awsString), encoding: encoding)
     }
 
+    // Todo: Refactor/Remove. This function has a memory leak. It calls aws_string_new but never destroy it.
     public func asCStr() -> UnsafePointer<Int8>? {
         return aws_string_c_str(aws_string_new_from_array(defaultAllocator, self, self.count))
     }

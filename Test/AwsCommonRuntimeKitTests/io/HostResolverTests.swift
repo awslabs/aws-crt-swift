@@ -15,7 +15,7 @@ class HostResolverTests: CrtXCBaseTestCase {
                                            maxTTL: 5,
                                            allocator: self.allocator,
                                            shutDownOptions: resolverShutDownOptions)
-        
+        XCTAssertNotNil(resolver)
         let addresses = try await resolver.resolve(host: "localhost")
         XCTAssertNoThrow(addresses)
         XCTAssertNotNil(addresses.count)
