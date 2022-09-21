@@ -125,13 +125,15 @@ let cSettings: [CSetting] = [
 //    .unsafeFlags(cFlags),
     .define("DEBUG_BUILD", .when(configuration: .debug))
 ]
-
+#if os(Linux)
 let cSettingsIO: [CSetting] = [
 //    .unsafeFlags(cFlags),
     .define("DEBUG_BUILD", .when(configuration: .debug)),
     .define("USE_S2N")
 ]
-
+#else
+let cSettingsIO = cSettings
+#endif
 packageTargets.append(contentsOf: [
     .target(
         name: "AwsCPlatformConfig",
@@ -232,5 +234,4 @@ packageTargets.append(contentsOf: [
         ]
     )
 ] )
-
 package.targets = packageTargets
