@@ -5,26 +5,32 @@ import AwsCIo
 import Foundation
 
 private var vtable = aws_input_stream_vtable(seek: doSeek,
-                                             read: doRead,
-                                             get_status: doGetStatus,
-                                             get_length: doGetLength,
-                                             destroy: doDestroy)
+        read: doRead,
+        get_status: doGetStatus,
+        get_length: doGetLength,
+        acquire: nil,
+        release: nil)
 //swiftlint:disable trailing_whitespace
 public class AwsInputStream {
     var rawValue: aws_input_stream
     public let implPointer: UnsafeMutablePointer<AwsStream>
     public var length: Int64
-
+    private var refCount: aws_ref_count
     public init(_ impl: AwsStream, allocator: Allocator = defaultAllocator) {
         self.length = Int64(impl.length)
         self.implPointer = fromPointer(ptr: impl)
-        self.rawValue = aws_input_stream(allocator: allocator.rawValue, impl: self.implPointer, vtable: &vtable)
+        refCount = aws_ref_count()
+        aws_ref_count_init(&refCount, nil, { obj in })
+        self.rawValue = aws_input_stream(impl: self.implPointer, vtable: &vtable, ref_count: refCount)
+
     }
-    
+
     deinit {
         implPointer.deinitializeAndDeallocate()
     }
 }
+
+
 
 public protocol AwsStream {
     var status: aws_stream_status { get }
