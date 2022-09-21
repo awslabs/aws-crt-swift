@@ -125,6 +125,13 @@ let cSettings: [CSetting] = [
 //    .unsafeFlags(cFlags),
     .define("DEBUG_BUILD", .when(configuration: .debug))
 ]
+
+let cSettingsIO: [CSetting] = [
+//    .unsafeFlags(cFlags),
+    .define("DEBUG_BUILD", .when(configuration: .debug)),
+    .define("USE_S2N")
+]
+
 packageTargets.append(contentsOf: [
     .target(
         name: "AwsCPlatformConfig",
@@ -158,7 +165,7 @@ packageTargets.append(contentsOf: [
         dependencies: ioDependencies,
         path: "aws-common-runtime/aws-c-io",
         exclude: awsCIoPlatformExcludes,
-        cSettings: cSettings
+        cSettings: cSettingsIO
     ),
     .target(
         name: "AwsCCompression",
