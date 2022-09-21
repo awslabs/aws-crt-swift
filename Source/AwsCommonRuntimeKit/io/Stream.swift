@@ -30,8 +30,6 @@ public class AwsInputStream {
     }
 }
 
-
-
 public protocol AwsStream {
     var status: aws_stream_status { get }
     var length: UInt { get }
