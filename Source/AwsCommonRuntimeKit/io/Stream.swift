@@ -122,8 +122,7 @@ private func doDestroy(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
 }
 
 private func acquire(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
-    let inputStream = Unmanaged<AWSStreamClass>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
-    _ = Unmanaged<AWSStreamClass>.passRetained(inputStream)
+    _ = Unmanaged<AWSStreamClass>.fromOpaque(stream.pointee.impl).retain()
 }
 
 private func release(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
