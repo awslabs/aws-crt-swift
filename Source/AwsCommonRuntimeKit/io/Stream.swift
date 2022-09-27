@@ -13,7 +13,7 @@ private var vtable = aws_input_stream_vtable(seek: doSeek,
         acquire: acquire,
         release: release)
 
-// We need to wrap AWSStream protocol in a class so that we can utilize reference counting in AWSInputStream
+// We need to wrap AWSStream protocol in a class so that we can utilize unmanaged reference counting in AWSInputStream
 private class AWSStreamClass {
     public let awsStream: AwsStream
     init(_ awsStream: AwsStream) {
