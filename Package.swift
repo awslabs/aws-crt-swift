@@ -29,14 +29,12 @@ packageTargets.append( .systemLibrary(
         ))
  // add pq-crypto back after adding in platform and chipset detection
 let s2nExcludes = ["bin", "codebuild", "coverage", "docker-images",
-                   "docs", "lib", "pq-crypto/bike_r1", "pq-crypto/bike_r2",
-                   "pq-crypto/bike_r3", "pq-crypto/kyber_90s_r2", "pq-crypto/kyber_r3",
-                   "pq-crypto/kyber_r2", "pq-crypto/sike_r1", "pq-crypto/sike_r3",
+                   "docs", "lib", "pq-crypto/kyber_r3",
                    "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
                    "libcrypto-build", "scram",
                    "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
                    "tls/Makefile", "utils/Makefile", "error/Makefile", "tls/extensions/Makefile",
-                   "codecov.yml", "scripts/", "codebuild", "bindings/rust", "VERSIONING.rst", "tests",
+                   "scripts/", "codebuild", "bindings/rust", "VERSIONING.rst", "tests",
                    "cmake/s2n-config.cmake", "CMakeLists.txt", "README.md", "cmake", "NOTICE", "LICENSE"]
 packageTargets.append(.target(
             name: "S2N",
