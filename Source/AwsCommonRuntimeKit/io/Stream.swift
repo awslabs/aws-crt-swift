@@ -10,8 +10,8 @@ private var vtable = aws_input_stream_vtable(seek: doSeek,
         read: doRead,
         get_status: doGetStatus,
         get_length: doGetLength,
-        acquire: acquire,
-        release: release)
+        acquire: doAcquire,
+        release: doRelease)
 
 // We need to wrap AWSStream protocol in a class so that we can utilize unmanaged reference counting in AWSInputStream
 private class AWSStreamClass {
@@ -117,10 +117,10 @@ private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     return AWS_OP_SUCCESS
 }
 
-private func acquire(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
+private func doAcquire(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
     _ = Unmanaged<AWSStreamClass>.fromOpaque(stream.pointee.impl).retain()
 }
 
-private func release(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
+private func doRelease(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
     _ = Unmanaged<AWSStreamClass>.fromOpaque(stream.pointee.impl).takeRetainedValue()
 }
