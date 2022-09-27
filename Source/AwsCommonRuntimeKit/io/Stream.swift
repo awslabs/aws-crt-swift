@@ -8,8 +8,8 @@ private var vtable = aws_input_stream_vtable(seek: doSeek,
         read: doRead,
         get_status: doGetStatus,
         get_length: doGetLength,
-        acquire: nil,
-        release: nil)
+        acquire: acquire,
+        release: release)
 //swiftlint:disable trailing_whitespace
 public class AwsInputStream {
     var rawValue: aws_input_stream
@@ -31,11 +31,14 @@ public class AwsInputStream {
 }
 
 public protocol AwsStream {
+    //var implPointer: UnsafeMutablePointer<AwsStream>?
     var status: aws_stream_status { get }
     var length: UInt { get }
 
     func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool
     func read(buffer: inout aws_byte_buf) -> Bool
+    //func acquire() -> Bool
+    //func release() -> Bool
 }
 
 extension FileHandle: AwsStream {
@@ -114,4 +117,12 @@ private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
 
 private func doDestroy(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
     // Nothing to do!
+}
+
+private func acquire(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
+//    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsStream.self).pointee
+}
+private func release(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
+   // let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsStream.self).pointee
+
 }

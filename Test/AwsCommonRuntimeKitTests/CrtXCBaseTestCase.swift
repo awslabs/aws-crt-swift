@@ -9,14 +9,17 @@ class CrtXCBaseTestCase: XCTestCase {
     internal let allocator = TracingAllocator(tracingStacksOf: defaultAllocator)
     let logging = Logger(pipe: stdout, level: .trace, allocator: defaultAllocator)
 
-    override func setUp() {
+    override class func setUp() {
+        AwsCommonRuntimeKit.initialize()
         super.setUp()
 
-        AwsCommonRuntimeKit.initialize(allocator: self.allocator)
+    }
+
+    override class func tearDown() {
+        AwsCommonRuntimeKit.cleanUp()
     }
 
     override func tearDown() {
-        AwsCommonRuntimeKit.cleanUp()
 
         allocator.dump()
         XCTAssertEqual(allocator.count, 0,
