@@ -117,10 +117,6 @@ private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     return AWS_OP_SUCCESS
 }
 
-private func doDestroy(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
-    // Nothing to do!
-}
-
 private func acquire(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
     _ = Unmanaged<AWSStreamClass>.fromOpaque(stream.pointee.impl).retain()
 }
