@@ -1,10 +1,9 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
-
 import AwsCHttp
 import Collections
 
-typealias OnConnectionAcquired = (HttpClientConnection?, Int32) -> Void
+typealias OnConnectionAcquired =  (HttpClientConnection?, Int32) -> Void
 
 public class HttpClientConnectionManager {
 
@@ -62,9 +61,9 @@ public class HttpClientConnectionManager {
 
     private func acquireConnection(continuation: ConnectionContinuation) {
         let callbackData = HttpClientConnectionCallbackData(continuation: continuation,
-                connectionManager: self,
-                allocator: allocator) { [weak self] connection in
-            self?.queue.append(connection)
+                                                            connectionManager: self,
+                                                            allocator: allocator) { [weak self] connection in
+                                                            self?.queue.append(connection)
         }
         let cbData: UnsafeMutablePointer<HttpClientConnectionCallbackData> = fromPointer(ptr: callbackData)
 
@@ -73,23 +72,21 @@ public class HttpClientConnectionManager {
                 return
             }
             let callbackData = userData.assumingMemoryBound(to: HttpClientConnectionCallbackData.self)
-            defer {
-                callbackData.deinitializeAndDeallocate()
-            }
+            defer {callbackData.deinitializeAndDeallocate()}
             guard let connection = connection else {
                 let error = AWSError(errorCode: errorCode)
                 callbackData.pointee.continuation.resume(throwing: CRTError.crtError(error))
                 return
             }
             let httpConnection = HttpClientConnection(manager: callbackData.pointee.connectionManager,
-                    connection: connection)
+                                                      connection: connection)
             if let connectionCallback = callbackData.pointee.connectionCallback {
                 connectionCallback(httpConnection)
             }
 
             callbackData.pointee.continuation.resume(returning: httpConnection)
         },
-                cbData)
+        cbData)
     }
 
     public func closePendingConnections() {

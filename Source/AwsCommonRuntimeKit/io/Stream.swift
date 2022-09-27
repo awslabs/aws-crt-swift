@@ -43,7 +43,6 @@ public protocol AwsStream {
     func read(buffer: inout aws_byte_buf) -> Bool
 }
 
-
 extension FileHandle: AwsStream {
     @inlinable
     public var status: aws_stream_status {
