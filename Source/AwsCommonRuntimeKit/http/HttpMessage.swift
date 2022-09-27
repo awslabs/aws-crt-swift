@@ -10,7 +10,7 @@ public class HttpMessage {
     public var body: AwsInputStream? {
         willSet(value) {
             if let newBody = value {
-                aws_http_message_set_body_stream(self.rawValue, &newBody.rawValue)
+                aws_http_message_set_body_stream(self.rawValue, &(newBody.rawValue)!)
             } else {
                 aws_http_message_set_body_stream(self.rawValue, nil)
             }

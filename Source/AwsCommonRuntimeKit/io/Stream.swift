@@ -12,7 +12,7 @@ private var vtable = aws_input_stream_vtable(seek: doSeek,
         release: release)
 //swiftlint:disable trailing_whitespace
 public class AwsInputStream {
-    var rawValue: aws_input_stream
+    var rawValue: aws_input_stream?
     public let implPointer: UnsafeMutablePointer<AwsStream>
     public var length: Int64
     private var refCount: aws_ref_count
@@ -21,25 +21,25 @@ public class AwsInputStream {
         self.implPointer = fromPointer(ptr: impl)
         refCount = aws_ref_count()
         aws_ref_count_init(&refCount, nil, { obj in })
-        self.rawValue = aws_input_stream(impl: self.implPointer, vtable: &vtable, ref_count: refCount)
+
+        self.rawValue = aws_input_stream(impl: Unmanaged<AwsStream>.passUnretained(implPointer).toOpaque(), vtable: &vtable, ref_count: refCount)
 
     }
 
     deinit {
+
         implPointer.deinitializeAndDeallocate()
     }
 }
 
 public protocol AwsStream {
-    //var implPointer: UnsafeMutablePointer<AwsStream>?
     var status: aws_stream_status { get }
     var length: UInt { get }
 
     func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool
     func read(buffer: inout aws_byte_buf) -> Bool
-    //func acquire() -> Bool
-    //func release() -> Bool
 }
+
 
 extension FileHandle: AwsStream {
     @inlinable
@@ -83,8 +83,9 @@ extension FileHandle: AwsStream {
 private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                     _ offset: Int64,
                     _ seekBasis: aws_stream_seek_basis) -> Int32 {
-    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsStream.self).pointee
-    if inputStream.seek(offset: offset, basis: seekBasis) {
+    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsInputStream.self).pointee
+    let asd = inputStream.implPointer.pointee
+    if asd.seek(offset: offset, basis: seekBasis) {
         return AWS_OP_SUCCESS
     }
     return AWS_OP_ERR
@@ -92,8 +93,8 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
 
 private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                     _ buffer: UnsafeMutablePointer<aws_byte_buf>!) -> Int32 {
-    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsStream.self)
-    if inputStream.pointee.read(buffer: &buffer.pointee) {
+    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsInputStream.self).pointee.implPointer.pointee
+    if inputStream.read(buffer: &buffer.pointee) {
         return AWS_OP_SUCCESS
     }
     return AWS_OP_ERR
@@ -101,14 +102,14 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
 
 private func doGetStatus(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                          _ result: UnsafeMutablePointer<aws_stream_status>!) -> Int32 {
-    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsStream.self).pointee
+    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsInputStream.self).pointee.implPointer.pointee
     result.pointee = inputStream.status
     return AWS_OP_SUCCESS
 }
 
 private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                          _ result: UnsafeMutablePointer<Int64>!) -> Int32 {
-    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsStream.self).pointee
+    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsInputStream.self).pointee.implPointer.pointee
     let length = inputStream.length
   
     result.pointee = Int64(length)
@@ -120,9 +121,10 @@ private func doDestroy(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
 }
 
 private func acquire(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
-//    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsStream.self).pointee
+    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsInputStream.self).pointee
+    Unmanaged<AwsInputStream>.passRetained(inputStream) // take a reference to self
 }
 private func release(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
-   // let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsStream.self).pointee
-
+    let inputStream = stream.pointee.impl.assumingMemoryBound(to: AwsInputStream.self)
+    Unmanaged<AwsInputStream>.fromOpaque(inputStream).takeRetainedValue()
 }
