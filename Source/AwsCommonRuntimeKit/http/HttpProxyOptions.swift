@@ -12,7 +12,7 @@ public class HttpProxyOptions {
     public var tlsOptions: TlsConnectionOptions?
 
     public init(hostName: String, port: UInt16) {
-        self.rawValue = allocatePointer()
+        rawValue = allocatePointer()
         self.hostName = hostName
         self.port = port
     }

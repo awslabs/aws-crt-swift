@@ -7,7 +7,7 @@ public final class CRTAWSRetryToken {
     var rawValue: UnsafeMutablePointer<aws_retry_token>
 
     public init(rawValue: UnsafeMutablePointer<aws_retry_token>,
-                allocator: Allocator = defaultAllocator) {
+                allocator _: Allocator = defaultAllocator) {
         self.rawValue = rawValue
     }
 

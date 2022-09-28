@@ -8,11 +8,11 @@ public enum SigningAlgorithmType {
 }
 
 extension SigningAlgorithmType: RawRepresentable, CaseIterable {
-
     public init(rawValue: aws_signing_algorithm) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        let value = Self.allCases.first(where: { $0.rawValue == rawValue })
         self = value ?? .signingV4
     }
+
     public var rawValue: aws_signing_algorithm {
         switch self {
         case .signingV4: return AWS_SIGNING_ALGORITHM_V4

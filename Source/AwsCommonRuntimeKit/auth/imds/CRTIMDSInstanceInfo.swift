@@ -21,19 +21,19 @@ public struct CRTIMDSInstanceInfo {
 
     init(pointer: UnsafePointer<aws_imds_instance_info>) {
         let instanceInfo = pointer.pointee
-        self.marketPlaceProductCodes = instanceInfo.marketplace_product_codes.toStringArray()
-        self.availabilityZone = instanceInfo.availability_zone.toString() ?? ""
-        self.privateIp = instanceInfo.private_ip.toString() ?? ""
-        self.version = instanceInfo.version.toString() ?? ""
-        self.instanceId = instanceInfo.instance_id.toString() ?? ""
-        self.billingProducts = instanceInfo.billing_products.toStringArray()
-        self.instanceType = instanceInfo.instance_type.toString() ?? ""
-        self.accountId = instanceInfo.account_id.toString() ?? ""
-        self.imageId = instanceInfo.image_id.toString() ?? ""
-        self.pendingTime = AWSDate(rawValue: instanceInfo.pending_time)
-        self.architecture = instanceInfo.architecture.toString() ?? ""
-        self.kernelId = instanceInfo.kernel_id.toString() ?? ""
-        self.ramDiskId = instanceInfo.ramdisk_id.toString() ?? ""
-        self.region = instanceInfo.region.toString() ?? ""
+        marketPlaceProductCodes = instanceInfo.marketplace_product_codes.toStringArray()
+        availabilityZone = instanceInfo.availability_zone.toString() ?? ""
+        privateIp = instanceInfo.private_ip.toString() ?? ""
+        version = instanceInfo.version.toString() ?? ""
+        instanceId = instanceInfo.instance_id.toString() ?? ""
+        billingProducts = instanceInfo.billing_products.toStringArray()
+        instanceType = instanceInfo.instance_type.toString() ?? ""
+        accountId = instanceInfo.account_id.toString() ?? ""
+        imageId = instanceInfo.image_id.toString() ?? ""
+        pendingTime = AWSDate(rawValue: instanceInfo.pending_time)
+        architecture = instanceInfo.architecture.toString() ?? ""
+        kernelId = instanceInfo.kernel_id.toString() ?? ""
+        ramDiskId = instanceInfo.ramdisk_id.toString() ?? ""
+        region = instanceInfo.region.toString() ?? ""
     }
 }

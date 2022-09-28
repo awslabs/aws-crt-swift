@@ -2,6 +2,6 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 public enum TlsMode {
-	case client
-	case server
+    case client
+    case server
 }

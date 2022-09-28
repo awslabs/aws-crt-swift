@@ -27,11 +27,11 @@ public enum HttpHeaderCompression {
 }
 
 extension HttpHeaderCompression: RawRepresentable, CaseIterable {
-
     public init(rawValue: aws_http_header_compression) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        let value = Self.allCases.first(where: { $0.rawValue == rawValue })
         self = value ?? .useCache
     }
+
     public var rawValue: aws_http_header_compression {
         switch self {
         case .useCache: return AWS_HTTP_HEADER_COMPRESSION_USE_CACHE

@@ -19,14 +19,14 @@ public final class HttpRequest: HttpMessage {
     public var method: String? {
         get {
             var result = aws_byte_cursor()
-            if aws_http_message_get_request_method(self.rawValue, &result) != AWS_OP_SUCCESS {
+            if aws_http_message_get_request_method(rawValue, &result) != AWS_OP_SUCCESS {
                 return nil
             }
             return result.toString()
         }
         set(value) {
             guard let value = value else { return }
-            if aws_http_message_set_request_method(self.rawValue, value.awsByteCursor) != AWS_OP_SUCCESS {
+            if aws_http_message_set_request_method(rawValue, value.awsByteCursor) != AWS_OP_SUCCESS {
                 self.method = nil
             }
         }
@@ -35,13 +35,13 @@ public final class HttpRequest: HttpMessage {
     public var path: String? {
         get {
             var result = aws_byte_cursor()
-            if aws_http_message_get_request_path(self.rawValue, &result) != AWS_OP_SUCCESS {
+            if aws_http_message_get_request_path(rawValue, &result) != AWS_OP_SUCCESS {
                 return nil
             }
             return result.toString()
         }
         set(value) {
-            if aws_http_message_set_request_path(self.rawValue,
+            if aws_http_message_set_request_path(rawValue,
                                                  value?.awsByteCursor ?? "".awsByteCursor) != AWS_OP_SUCCESS {
                 self.path = nil
             }

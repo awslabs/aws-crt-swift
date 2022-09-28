@@ -1,12 +1,11 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-import XCTest
-import Foundation
 @testable import AwsCommonRuntimeKit
+import Foundation
+import XCTest
 
 class MqttClientTests: CrtXCBaseTestCase {
-
     func testMqttClientResourceSafety() throws {
         let options = TlsContextOptions(defaultClientWithAllocator: allocator)
         let context = try TlsContext(options: options, mode: .client, allocator: allocator)
@@ -23,10 +22,10 @@ class MqttClientTests: CrtXCBaseTestCase {
 
         let elg = EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
         let resolver = DefaultHostResolver(eventLoopGroup: elg,
-                                               maxHosts: 8,
-                                               maxTTL: 30,
-                                               allocator: allocator,
-                                               shutDownOptions: resolverShutDownOptions)
+                                           maxHosts: 8,
+                                           maxTTL: 30,
+                                           allocator: allocator,
+                                           shutDownOptions: resolverShutDownOptions)
 
         let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
             sempahore.signal()
@@ -48,10 +47,9 @@ class MqttClientTests: CrtXCBaseTestCase {
                                                   tlsContext: context,
                                                   useWebSockets: false,
                                                   allocator: allocator)
-        connection.onConnectionComplete = { (connection, error, returnCode, retain) in
+        connection.onConnectionComplete = { _, _, _, _ in
             connectExpectation.fulfill()
             print("connected")
-
         }
         let connected = connection.connect(clientId: "testClient",
                                            cleanSession: true,
@@ -59,7 +57,7 @@ class MqttClientTests: CrtXCBaseTestCase {
                                            requestTimeoutMs: 3000)
         XCTAssertTrue(connected)
 
-        let onMessageSucceeded = connection.setOnMessageHandler { (_, _, _) in }
+        let onMessageSucceeded = connection.setOnMessageHandler { _, _, _ in }
         XCTAssertTrue(onMessageSucceeded)
 
         wait(for: [connectExpectation], timeout: 10.0)

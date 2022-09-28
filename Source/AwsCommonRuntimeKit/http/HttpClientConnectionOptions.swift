@@ -2,7 +2,6 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 public struct HttpClientConnectionOptions {
-
     /// The client bootstrap instance to use to create the pool's connections
     public let clientBootstrap: ClientBootstrap
     /// The host name to use for connections in the connection pool
@@ -55,8 +54,7 @@ public struct HttpClientConnectionOptions {
                 enableManualWindowManagement: Bool = false,
                 maxConnectionIdleMs: UInt64 = 0,
                 shutDownOptions: ShutDownCallbackOptions? = nil) {
-
-        self.clientBootstrap = bootstrap
+        clientBootstrap = bootstrap
         self.hostName = hostName
         self.initialWindowSize = initialWindowSize
         self.port = port

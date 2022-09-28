@@ -1,7 +1,7 @@
+@testable import AwsCommonRuntimeKit
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import XCTest
-@testable import AwsCommonRuntimeKit
 
 @available(macOS 12.0, *)
 class SigV4SigningTests: CrtXCBaseTestCase {
@@ -16,8 +16,8 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                                                                       secret: "key",
                                                                       sessionToken: "token")
         let provider = try CRTAWSCredentialsProvider(fromStatic: staticConfig, allocator: allocator)
-        let shouldSignHeader: SigningConfig.ShouldSignHeader = { header in
-            return true
+        let shouldSignHeader: SigningConfig.ShouldSignHeader = { _ in
+            true
         }
         let awsDate = AWSDate(epochS: Date().timeIntervalSince1970)
         let config = SigningConfig(credentialsProvider: provider,
@@ -25,13 +25,13 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                                    service: "service",
                                    region: "us-east-1",
                                    shouldSignHeader: shouldSignHeader)
-       
+
         let signedRequest = try await signer.signRequest(request: request, config: config)
-     
+
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
-        XCTAssert(headers.contains(where: {$0.name == "Authorization"}))
-        XCTAssert(headers.contains(where: {$0.name == "X-Amz-Security-Token"}))
+        XCTAssert(headers.contains(where: { $0.name == "Authorization" }))
+        XCTAssert(headers.contains(where: { $0.name == "X-Amz-Security-Token" }))
     }
 
     func testSimpleSigningWithCredentials() async throws {
@@ -39,8 +39,8 @@ class SigV4SigningTests: CrtXCBaseTestCase {
         let request = makeMockRequest()
         let credentials = makeMockCredentials()
         let awsDate = AWSDate(epochS: Date().timeIntervalSince1970)
-        let shouldSignHeader: SigningConfig.ShouldSignHeader = { header in
-            return true
+        let shouldSignHeader: SigningConfig.ShouldSignHeader = { _ in
+            true
         }
         let config = SigningConfig(credentials: credentials,
                                    date: awsDate,
@@ -48,22 +48,22 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                                    region: "us-east-1",
                                    signedBodyValue: .empty,
                                    shouldSignHeader: shouldSignHeader)
-        
+
         let signedRequest = try await signer.signRequest(request: request, config: config)
-        
+
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
-        XCTAssert(headers.contains(where: {$0.name == "Authorization"}))
-        XCTAssert(headers.contains(where: {$0.name == "X-Amz-Security-Token"}))
+        XCTAssert(headers.contains(where: { $0.name == "Authorization" }))
+        XCTAssert(headers.contains(where: { $0.name == "X-Amz-Security-Token" }))
     }
-    
+
     func testSimpleSigningWithCredentialsAndBodyInRequest() async throws {
         let signer = SigV4HttpRequestSigner(allocator: allocator)
         let request = makeMockRequestWithBody()
         let credentials = makeMockCredentials()
         let awsDate = AWSDate(epochS: Date().timeIntervalSince1970)
-        let shouldSignHeader: SigningConfig.ShouldSignHeader = { header in
-            return true
+        let shouldSignHeader: SigningConfig.ShouldSignHeader = { _ in
+            true
         }
         let config = SigningConfig(credentials: credentials,
                                    date: awsDate,
@@ -71,14 +71,13 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                                    region: "us-east-1",
                                    signedBodyValue: .empty,
                                    shouldSignHeader: shouldSignHeader)
-     
-   
+
         let signedRequest = try await signer.signRequest(request: request, config: config)
 
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
-        XCTAssert(headers.contains(where: {$0.name == "Authorization"}))
-        XCTAssert(headers.contains(where: {$0.name == "X-Amz-Security-Token"}))
+        XCTAssert(headers.contains(where: { $0.name == "Authorization" }))
+        XCTAssert(headers.contains(where: { $0.name == "X-Amz-Security-Token" }))
     }
 
     func makeMockRequest() -> HttpRequest {
@@ -94,7 +93,7 @@ class SigV4SigningTests: CrtXCBaseTestCase {
 
         return request
     }
-    
+
     func makeMockRequestWithBody() -> HttpRequest {
         let request = HttpRequest()
         request.method = "GET"
@@ -113,10 +112,10 @@ class SigV4SigningTests: CrtXCBaseTestCase {
 
     func makeMockCredentials() -> CRTCredentials {
         let credentials = CRTCredentials(accessKey: "access",
-                                      secret: "secret",
-                                      sessionToken: "token",
-                                      expirationTimeout: UInt64.max,
-                                      allocator: allocator)
+                                         secret: "secret",
+                                         sessionToken: "token",
+                                         expirationTimeout: UInt64.max,
+                                         allocator: allocator)
         return credentials
     }
 }

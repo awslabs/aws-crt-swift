@@ -1,23 +1,23 @@
+@testable import AwsCommonRuntimeKit
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import XCTest
-@testable import AwsCommonRuntimeKit
 
 class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     let accessKey = "AccessKey"
     let secret = "Sekrit"
     let sessionToken = "Token"
-    
+
     let expectation2 = XCTestExpectation(description: "Shutdown callback was called")
-    
+
     override func setUp() {
         super.setUp()
     }
-    
+
     override func tearDown() {
         super.tearDown()
     }
-    
+
     func setUpShutDownOptions() -> CRTCredentialsProviderShutdownOptions {
         let shutDownOptions = CRTCredentialsProviderShutdownOptions {
             XCTAssert(true)
@@ -25,7 +25,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         }
         return shutDownOptions
     }
-    
+
     func testCreateAWSCredentialsProviderStatic() async throws {
         let shutDownOptions = setUpShutDownOptions()
         let config = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
@@ -36,41 +36,41 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         let credentials = try await provider.getCredentials()
         XCTAssertNotNil(credentials)
     }
-    
+
     func testCreateAWSCredentialsProviderEnv() async {
         do {
             let shutDownOptions = setUpShutDownOptions()
             let provider = try CRTAWSCredentialsProvider(fromEnv: shutDownOptions, allocator: allocator)
             _ = try await provider.getCredentials()
-            
+
         } catch let err {
             let crtError = err as? CRTError
             XCTAssertNotNil(crtError)
         }
     }
-    
+
     func testCreateAWSCredentialsProviderProfile() async throws {
-        //skip this test if it is running on macosx or on iOS
+        // skip this test if it is running on macosx or on iOS
         try skipIfiOS()
         try skipifmacOS()
         try skipIfLinux()
-        //uses default paths to credentials and config
+        // uses default paths to credentials and config
         let shutDownOptions = setUpShutDownOptions()
         let config = MockCredentialsProviderProfileOptions(shutdownOptions: shutDownOptions)
-        
+
         let provider = try CRTAWSCredentialsProvider(fromProfile: config, allocator: allocator)
-        
+
         let credentials = try await provider.getCredentials()
-        
+
         XCTAssertNotNil(credentials)
     }
-    
+
     func testCreateAWSCredentialsProviderChain() async throws {
         try skipIfLinux()
         let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
-        
+
         let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
@@ -80,7 +80,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                maxTTL: 30,
                                                allocator: allocator,
                                                shutDownOptions: resolverShutDownOptions)
-        
+
         let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
             sempahore.signal()
         }
@@ -88,38 +88,37 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                             hostResolver: hostResolver,
                                             callbackData: clientBootstrapCallbackData,
                                             allocator: allocator)
-        
-        
+
         let shutDownOptions = setUpShutDownOptions()
-        
+
         let config = MockCredentialsProviderChainDefaultConfig(bootstrap: bootstrap, shutDownOptions: shutDownOptions)
-        
+
         let provider = try CRTAWSCredentialsProvider(fromChainDefault: config)
-        
+
         let credentials = try await provider.getCredentials()
         XCTAssertNotNil(credentials)
     }
-    
+
     func testCreateDestroyStsWebIdentityInvalidEnv() async throws {
         let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
-        
+
         let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
-        
+
         let elg = EventLoopGroup(threadCount: 0, allocator: allocator, shutDownOptions: elgShutDownOptions)
         let hostResolver = DefaultHostResolver(eventLoopGroup: elg,
                                                maxHosts: 8,
                                                maxTTL: 30,
                                                allocator: allocator,
                                                shutDownOptions: resolverShutDownOptions)
-        
+
         let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
             sempahore.signal()
         }
-        
+
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                             hostResolver: hostResolver,
                                             callbackData: clientBootstrapCallbackData,
@@ -130,27 +129,27 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         let config = MockCredentialsProviderWebIdentityConfig(bootstrap: bootstrap, tlsContext: context)
         XCTAssertThrowsError(try CRTAWSCredentialsProvider(fromWebIdentity: config))
     }
-    
+
     func testCreateDestroyStsInvalidRole() async throws {
         let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
-        
+
         let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
-        
+
         let elg = EventLoopGroup(threadCount: 0, allocator: allocator, shutDownOptions: elgShutDownOptions)
         let hostResolver = DefaultHostResolver(eventLoopGroup: elg,
                                                maxHosts: 8,
                                                maxTTL: 30,
                                                allocator: allocator,
                                                shutDownOptions: resolverShutDownOptions)
-        
+
         let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
             sempahore.signal()
         }
-        
+
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                             hostResolver: hostResolver,
                                             callbackData: clientBootstrapCallbackData,
@@ -170,24 +169,23 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                       durationSeconds: 10)
         XCTAssertThrowsError(try CRTAWSCredentialsProvider(fromSTS: config))
     }
-    
+
     func testCreateDestroyEcsMissingCreds() async {
-        
         let elgShutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
-        
+
         let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
             semaphore.signal()
         }
-        
+
         let elg = EventLoopGroup(threadCount: 0, allocator: allocator, shutDownOptions: elgShutDownOptions)
         let hostResolver = DefaultHostResolver(eventLoopGroup: elg,
                                                maxHosts: 8,
                                                maxTTL: 30,
                                                allocator: allocator,
                                                shutDownOptions: resolverShutDownOptions)
-        
+
         let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
             sempahore.signal()
         }
@@ -200,7 +198,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             let options = TlsContextOptions(defaultClientWithAllocator: allocator)
             let context = try TlsContext(options: options, mode: .client, allocator: allocator)
             let shutDownOptions = setUpShutDownOptions()
-            
+
             let config = MockCredentialsProviderContainerConfig(bootstrap: bootstrap,
                                                                 tlsContext: context,
                                                                 shutDownOptions: shutDownOptions)
@@ -215,13 +213,13 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 
 struct MockCredentialsProviderProfileOptions: CRTCredentialsProviderProfileOptions {
     var shutdownOptions: CRTCredentialsProviderShutdownOptions?
-    
+
     var configFileNameOverride: String?
-    
+
     var profileFileNameOverride: String?
-    
+
     var credentialsFileNameOverride: String?
-    
+
     init(configFileNameOverride: String? = nil,
          profileFileNameOverride: String? = nil,
          credentialsFileNameOverride: String? = nil,
@@ -238,7 +236,7 @@ struct MockCredentialsProviderStaticConfigOptions: CRTCredentialsProviderStaticC
     public var secret: String
     public var sessionToken: String?
     public var shutDownOptions: CRTCredentialsProviderShutdownOptions?
-    
+
     public init(accessKey: String,
                 secret: String,
                 sessionToken: String? = nil,
@@ -253,7 +251,7 @@ struct MockCredentialsProviderStaticConfigOptions: CRTCredentialsProviderStaticC
 public struct MockCredentialsProviderChainDefaultConfig: CRTCredentialsProviderChainDefaultConfig {
     public var shutDownOptions: CRTCredentialsProviderShutdownOptions?
     public var bootstrap: ClientBootstrap
-    
+
     public init(bootstrap: ClientBootstrap,
                 shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
         self.bootstrap = bootstrap
@@ -265,7 +263,7 @@ struct MockCredentialsProviderWebIdentityConfig: CRTCredentialsProviderWebIdenti
     var shutDownOptions: CRTCredentialsProviderShutdownOptions?
     var bootstrap: ClientBootstrap
     var tlsContext: TlsContext
-    
+
     init(bootstrap: ClientBootstrap,
          tlsContext: TlsContext,
          shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
@@ -283,7 +281,7 @@ struct MockCredentialsProviderSTSConfig: CRTCredentialsProviderSTSConfig {
     var roleArn: String
     var sessionName: String
     var durationSeconds: UInt16
-    
+
     init(bootstrap: ClientBootstrap,
          tlsContext: TlsContext,
          credentialsProvider: CRTAWSCredentialsProvider,
@@ -308,7 +306,7 @@ struct MockCredentialsProviderContainerConfig: CRTCredentialsProviderContainerCo
     var authToken: String?
     var pathAndQuery: String?
     var host: String?
-    
+
     init(bootstrap: ClientBootstrap,
          tlsContext: TlsContext,
          authToken: String? = nil,

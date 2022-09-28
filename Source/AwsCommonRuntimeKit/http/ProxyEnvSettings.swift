@@ -11,7 +11,7 @@ public class ProxyEnvSettings {
     public init(envVarType: HttpProxyEnvType = .disable,
                 proxyConnectionType: HttpProxyConnectionType = .forward,
                 tlsOptions: TlsConnectionOptions? = nil) {
-        self.rawValue = allocatePointer()
+        rawValue = allocatePointer()
         self.envVarType = envVarType
         self.proxyConnectionType = proxyConnectionType
         self.tlsOptions = tlsOptions

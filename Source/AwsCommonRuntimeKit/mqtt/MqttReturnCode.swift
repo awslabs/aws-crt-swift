@@ -4,20 +4,20 @@
 import AwsCMqtt
 
 public enum MqttReturnCode {
-	case accepted
-	case unaceptableProtocolVersion
-	case identifierRejected
-	case serverUnavailable
-	case badUsernameOrPassword
-	case notAuthorized
+    case accepted
+    case unaceptableProtocolVersion
+    case identifierRejected
+    case serverUnavailable
+    case badUsernameOrPassword
+    case notAuthorized
 }
 
 extension MqttReturnCode: RawRepresentable, CaseIterable {
-
     public init(rawValue: aws_mqtt_connect_return_code) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        let value = Self.allCases.first(where: { $0.rawValue == rawValue })
         self = value ?? .accepted
     }
+
     public var rawValue: aws_mqtt_connect_return_code {
         switch self {
         case .accepted: return AWS_MQTT_CONNECT_ACCEPTED

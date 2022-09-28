@@ -13,14 +13,14 @@ public struct ShutDownCallbackOptions {
 
     public init(shutDownCallback: @escaping ShutDownCallback) {
         self.shutDownCallback = shutDownCallback
-        self.semaphore = DispatchSemaphore(value: 0)
+        semaphore = DispatchSemaphore(value: 0)
     }
 }
 
 extension ShutDownCallbackOptions {
     func toShutDownCPointer() -> UnsafePointer<aws_shutdown_callback_options>? {
         let shutDownPtr: UnsafeMutablePointer<ShutDownCallbackOptions>? = fromOptionalPointer(ptr: self)
-        let options = aws_shutdown_callback_options(shutdown_callback_fn: { (userData) in
+        let options = aws_shutdown_callback_options(shutdown_callback_fn: { userData in
             guard let userdata = userData else {
                 return
             }

@@ -21,7 +21,7 @@ public class CRTAWSProfileCollection {
                                                                         source.rawValue) else {
             return nil
         }
-        self.rawValue = profilePointer
+        rawValue = profilePointer
     }
 
     public init(fromBuffer buffer: ByteBuffer,
@@ -37,24 +37,23 @@ public class CRTAWSProfileCollection {
             return byteBuf
         }
         let pointer: UnsafePointer<aws_byte_buf> = fromPointer(ptr: byteBuf)
-        self.rawValue = aws_profile_collection_new_from_buffer(allocator.rawValue,
-                                                               pointer,
-                                                               source.rawValue)
-
+        rawValue = aws_profile_collection_new_from_buffer(allocator.rawValue,
+                                                          pointer,
+                                                          source.rawValue)
     }
 
     public init(configProfileCollection: CRTAWSProfileCollection,
                 credentialProfileCollection: CRTAWSProfileCollection,
-                source: CRTAWSProfileSourceType,
+                source _: CRTAWSProfileSourceType,
                 allocator: Allocator = defaultAllocator) {
-        self.rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
-                                                              configProfileCollection.rawValue,
-                                                              credentialProfileCollection.rawValue)
+        rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
+                                                         configProfileCollection.rawValue,
+                                                         credentialProfileCollection.rawValue)
     }
 
     public func getProfile(name: String, allocator: Allocator = defaultAllocator) -> CRTAWSProfile? {
         let awsString = AWSString(name, allocator: allocator)
-        guard let profilePointer = aws_profile_collection_get_profile(self.rawValue,
+        guard let profilePointer = aws_profile_collection_get_profile(rawValue,
                                                                       awsString.rawValue) else {
             return nil
         }
@@ -62,7 +61,7 @@ public class CRTAWSProfileCollection {
     }
 
     public var profileCount: Int {
-        return aws_profile_collection_get_profile_count(rawValue)
+        aws_profile_collection_get_profile_count(rawValue)
     }
 
     deinit {

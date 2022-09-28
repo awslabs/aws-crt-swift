@@ -18,15 +18,15 @@ public enum CRTRetryError {
 }
 
 extension CRTRetryError: RawRepresentable, CaseIterable {
-
     public init(rawValue: aws_retry_error_type) {
         let value = Self.allCases.first { $0.rawValue == rawValue }
         self = value ?? .transient
     }
+
     public var rawValue: aws_retry_error_type {
         switch self {
-        case .transient:  return aws_retry_error_type(rawValue: 0)
-        case .throttling:  return aws_retry_error_type(rawValue: 1)
+        case .transient: return aws_retry_error_type(rawValue: 0)
+        case .throttling: return aws_retry_error_type(rawValue: 1)
         case .serverError: return aws_retry_error_type(rawValue: 2)
         case .clientError: return aws_retry_error_type(rawValue: 3)
         }

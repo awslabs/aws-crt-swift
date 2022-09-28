@@ -15,11 +15,11 @@ public class HttpClientConnection {
          allocator: Allocator = defaultAllocator) {
         self.manager = manager
         self.allocator = allocator
-        self.rawValue = connection
+        rawValue = connection
     }
 
     public var isOpen: Bool {
-        return aws_http_connection_is_open(rawValue)
+        aws_http_connection_is_open(rawValue)
     }
 
     /// Close the http connection
@@ -35,7 +35,7 @@ public class HttpClientConnection {
         var options = aws_http_make_request_options()
         options.self_size = MemoryLayout<aws_http_make_request_options>.size
         options.request = requestOptions.request.rawValue
-        options.on_response_body = {_, data, userData -> Int32 in
+        options.on_response_body = { _, data, userData -> Int32 in
 
             guard let userData = userData else {
                 return -1
@@ -47,8 +47,8 @@ public class HttpClientConnection {
                   let bufLen = data?.pointee.len,
                   let stream = httpStreamCbData.pointee.stream,
                   let incomingBodyFn = httpStreamCbData.pointee.requestOptions.onIncomingBody else {
-                      return -1
-                  }
+                return -1
+            }
 
             let callbackBytes = Data(bytesNoCopy: bufPtr, count: bufLen, deallocator: .none)
 
@@ -56,7 +56,7 @@ public class HttpClientConnection {
 
             return 0
         }
-        options.on_response_headers = {_, headerBlock, headerArray, headersCount, userData -> Int32 in
+        options.on_response_headers = { _, headerBlock, headerArray, headersCount, userData -> Int32 in
 
             guard let userData = userData else {
                 return -1
@@ -70,7 +70,6 @@ public class HttpClientConnection {
                     let swiftHeader = HttpHeader(name: name, value: value)
                     headers.append(swiftHeader)
                 }
-
             }
             let headersStruct = HttpHeaders(fromArray: headers)
 
@@ -79,10 +78,10 @@ public class HttpClientConnection {
             }
             httpStreamCbData.pointee.requestOptions.onIncomingHeaders(stream,
                                                                       HttpHeaderBlock(rawValue: headerBlock),
-                                                                      headersStruct )
+                                                                      headersStruct)
             return 0
         }
-        options.on_response_header_block_done = {_, headerBlock, userData -> Int32 in
+        options.on_response_header_block_done = { _, headerBlock, userData -> Int32 in
 
             guard let userData = userData else {
                 return -1
@@ -95,7 +94,7 @@ public class HttpClientConnection {
 
             return 0
         }
-        options.on_complete = {_, errorCode, userData in
+        options.on_complete = { _, errorCode, userData in
 
             guard let userData = userData else {
                 return
@@ -104,8 +103,8 @@ public class HttpClientConnection {
             let error = AWSError(errorCode: errorCode)
             guard let stream = httpStreamCbData.pointee.stream,
                   let onStreamCompleteFn = httpStreamCbData.pointee.requestOptions.onStreamComplete else {
-                      return
-                  }
+                return
+            }
             onStreamCompleteFn(stream, CRTError.crtError(error))
         }
 

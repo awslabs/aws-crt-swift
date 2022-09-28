@@ -4,7 +4,6 @@
 import AwsCAuth
 
 public final class CRTCredentials {
-
     let rawValue: OpaquePointer
 
     public init?(rawValue: OpaquePointer?) {
@@ -20,10 +19,10 @@ public final class CRTCredentials {
                 sessionToken: String?,
                 expirationTimeout: UInt64,
                 allocator: Allocator = defaultAllocator) {
-        self.rawValue = aws_credentials_new(allocator.rawValue,
-                                            accessKey.awsByteCursor,
-                                            secret.awsByteCursor,
-                                            sessionToken?.awsByteCursor ?? "".awsByteCursor, expirationTimeout)
+        rawValue = aws_credentials_new(allocator.rawValue,
+                                       accessKey.awsByteCursor,
+                                       secret.awsByteCursor,
+                                       sessionToken?.awsByteCursor ?? "".awsByteCursor, expirationTimeout)
     }
 
     /// Gets the access key from the `aws_credentials` instance
@@ -54,7 +53,7 @@ public final class CRTCredentials {
     ///
     /// - Returns:`UInt64`: The timeout in seconds of when the credentials expire
     public func getExpirationTimeout() -> UInt64 {
-        return aws_credentials_get_expiration_timepoint_seconds(rawValue)
+        aws_credentials_get_expiration_timepoint_seconds(rawValue)
     }
 
     deinit {

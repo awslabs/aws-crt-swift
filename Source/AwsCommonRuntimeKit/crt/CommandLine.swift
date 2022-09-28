@@ -1,10 +1,10 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-import Foundation
 import AwsCCommon
-//swiftlint:disable trailing_whitespace
-public struct CommandLineParser {
+import Foundation
+// swiftlint:disable trailing_whitespace
+public enum CommandLineParser {
     /// A function to parse command line arguments
     /// - Parameters:
     ///   - argc: The number of arguments
@@ -25,17 +25,17 @@ public struct CommandLineParser {
             if opt == -1 || opt == 0 {
                 break
             }
-            
+
             if let char = opt.toString() {
                 if aws_cli_optarg != nil {
                     argumentsDict[char] = String(cString: aws_cli_optarg)
                 } else {
-                    //if argument doesnt have a value just mark it as present in the dictionary
+                    // if argument doesnt have a value just mark it as present in the dictionary
                     argumentsDict[char] = true
                 }
             }
         }
-        
+
         return argumentsDict
     }
 }
@@ -48,9 +48,10 @@ public enum CLIHasArg {
 
 extension CLIHasArg: RawRepresentable, CaseIterable {
     public init(rawValue: aws_cli_options_has_arg) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        let value = Self.allCases.first(where: { $0.rawValue == rawValue })
         self = value ?? .none
     }
+
     public var rawValue: aws_cli_options_has_arg {
         switch self {
         case .none: return AWS_CLI_OPTIONS_NO_ARGUMENT
@@ -62,8 +63,8 @@ extension CLIHasArg: RawRepresentable, CaseIterable {
 
 public struct AWSCLIOption {
     public let rawValue: aws_cli_option
-    
+
     public init(name: String, hasArg: CLIHasArg, flag: UnsafeMutablePointer<Int32>? = nil, val: String) {
-        self.rawValue = aws_cli_option(name: name.asCStr(), has_arg: hasArg.rawValue, flag: flag, val: val.toInt32())
+        rawValue = aws_cli_option(name: name.asCStr(), has_arg: hasArg.rawValue, flag: flag, val: val.toInt32())
     }
 }

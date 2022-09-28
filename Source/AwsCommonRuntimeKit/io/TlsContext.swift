@@ -27,6 +27,6 @@ public final class TlsContext {
     }
 
     public func newConnectionOptions() -> TlsConnectionOptions {
-        return TlsConnectionOptions(self, allocator: self.allocator)
+        TlsConnectionOptions(self, allocator: allocator)
     }
 }
