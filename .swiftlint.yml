@@ -6,6 +6,7 @@ disabled_rules:
     - closure_parameter_position
     - superfluous_disable_command
     - trailing_comma
+    - todo
 excluded:
     - Test
 
@@ -35,7 +36,6 @@ opening_brace: error
 return_arrow_whitespace: error
 statement_position:
   severity: error
-todo: warning
 trailing_semicolon: error
 file_length:
   warning: 500
