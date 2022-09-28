@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCSdkUtils
 
@@ -21,7 +25,7 @@ public class CRTAWSProfileCollection {
                                                                         source.rawValue) else {
             return nil
         }
-        rawValue = profilePointer
+        self.rawValue = profilePointer
     }
 
     public init(fromBuffer buffer: ByteBuffer,
@@ -37,7 +41,7 @@ public class CRTAWSProfileCollection {
             return byteBuf
         }
         let pointer: UnsafePointer<aws_byte_buf> = fromPointer(ptr: byteBuf)
-        rawValue = aws_profile_collection_new_from_buffer(allocator.rawValue,
+        self.rawValue = aws_profile_collection_new_from_buffer(allocator.rawValue,
                                                           pointer,
                                                           source.rawValue)
     }
@@ -46,7 +50,7 @@ public class CRTAWSProfileCollection {
                 credentialProfileCollection: CRTAWSProfileCollection,
                 source _: CRTAWSProfileSourceType,
                 allocator: Allocator = defaultAllocator) {
-        rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
+        self.rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
                                                          configProfileCollection.rawValue,
                                                          credentialProfileCollection.rawValue)
     }

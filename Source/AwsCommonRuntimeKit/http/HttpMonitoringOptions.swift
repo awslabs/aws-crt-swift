@@ -1,3 +1,10 @@
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
@@ -22,7 +29,7 @@ public class HttpMonitoringOptions {
             allowable_throughput_failure_interval_seconds: UInt32(allowableThroughputFailureInterval),
             statistics_observer_fn: nil,
             statistics_observer_user_data: nil)
-        rawValue = fromPointer(ptr: options)
+        self.rawValue = fromPointer(ptr: options)
     }
 
     deinit {

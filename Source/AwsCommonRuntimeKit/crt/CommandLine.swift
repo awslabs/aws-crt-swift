@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCCommon
 import Foundation
@@ -65,6 +69,6 @@ public struct AWSCLIOption {
     public let rawValue: aws_cli_option
 
     public init(name: String, hasArg: CLIHasArg, flag: UnsafeMutablePointer<Int32>? = nil, val: String) {
-        rawValue = aws_cli_option(name: name.asCStr(), has_arg: hasArg.rawValue, flag: flag, val: val.toInt32())
+        self.rawValue = aws_cli_option(name: name.asCStr(), has_arg: hasArg.rawValue, flag: flag, val: val.toInt32())
     }
 }

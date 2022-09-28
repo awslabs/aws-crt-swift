@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCAuth
 
@@ -10,8 +14,8 @@ public struct CRTIAMProfile {
 
     init(pointer: UnsafePointer<aws_imds_iam_profile>) {
         let profile = pointer.pointee
-        lastUpdated = AWSDate(rawValue: profile.last_updated)
-        profileArn = profile.instance_profile_arn.toString() ?? ""
-        profileId = profile.instance_profile_id.toString() ?? ""
+        self.lastUpdated = AWSDate(rawValue: profile.last_updated)
+        self.profileArn = profile.instance_profile_arn.toString() ?? ""
+        self.profileId = profile.instance_profile_id.toString() ?? ""
     }
 }

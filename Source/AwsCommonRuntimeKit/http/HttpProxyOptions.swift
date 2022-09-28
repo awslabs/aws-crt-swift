@@ -1,3 +1,10 @@
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
@@ -12,7 +19,7 @@ public class HttpProxyOptions {
     public var tlsOptions: TlsConnectionOptions?
 
     public init(hostName: String, port: UInt16) {
-        rawValue = allocatePointer()
+        self.rawValue = allocatePointer()
         self.hostName = hostName
         self.port = port
     }

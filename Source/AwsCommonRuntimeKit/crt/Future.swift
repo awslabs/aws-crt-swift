@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import Foundation
 
@@ -15,7 +19,7 @@ public final class Future<Value> {
     private let lock = NSLock()
 
     public init(value: FutureResult? = nil) {
-        _value = value
+        self._value = value
     }
 
     public func get() throws -> Value {

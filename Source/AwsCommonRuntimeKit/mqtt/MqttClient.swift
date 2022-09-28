@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCMqtt
 
@@ -8,11 +12,11 @@ public final class MqttClient {
     let rawValue: UnsafeMutablePointer<aws_mqtt_client>
 
     init(rawValue _: UnsafeMutablePointer<aws_mqtt_client>, clientBootstrap: ClientBootstrap) {
-        rawValue = aws_mqtt_client_new(defaultAllocator, clientBootstrap.rawValue)
+        self.rawValue = aws_mqtt_client_new(defaultAllocator, clientBootstrap.rawValue)
     }
 
     public init(clientBootstrap: ClientBootstrap, allocator: Allocator = defaultAllocator) throws {
-        rawValue = aws_mqtt_client_new(allocator.rawValue, clientBootstrap.rawValue)
+        self.rawValue = aws_mqtt_client_new(allocator.rawValue, clientBootstrap.rawValue)
     }
 
     /// Creates a new mqtt connection to the host on the port given using TLS

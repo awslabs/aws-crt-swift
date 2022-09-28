@@ -1,3 +1,10 @@
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
@@ -11,7 +18,7 @@ public class ProxyEnvSettings {
     public init(envVarType: HttpProxyEnvType = .disable,
                 proxyConnectionType: HttpProxyConnectionType = .forward,
                 tlsOptions: TlsConnectionOptions? = nil) {
-        rawValue = allocatePointer()
+        self.rawValue = allocatePointer()
         self.envVarType = envVarType
         self.proxyConnectionType = proxyConnectionType
         self.tlsOptions = tlsOptions

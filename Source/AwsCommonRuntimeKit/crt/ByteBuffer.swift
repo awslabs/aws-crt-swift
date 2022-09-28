@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCCal
 import AwsCCommon
@@ -232,7 +236,7 @@ public class ByteBuffer: Codable {
 
     private var currentEndianness: Endianness = .big
     private var hostEndianness: Endianness {
-        let number: UInt32 = 0x1234_5678
+        let number: UInt32 = 0x12345678
         return number == number.bigEndian ? .big : .little
     }
 
@@ -247,7 +251,7 @@ public class ByteBuffer: Codable {
     }
 
     public func readIntoBuffer(buffer: inout ByteBuffer) -> Int {
-        guard array.count > 0 else {
+        guard !array.isEmpty else {
             return 0
         }
 
@@ -260,7 +264,7 @@ public class ByteBuffer: Codable {
             arrayEnd = array.count
         }
         let dataArray = Array(array[currentIndex ..< arrayEnd])
-        if dataArray.count > 0 {
+        if !dataArray.isEmpty {
             _ = buffer.put(dataArray)
             self.currentIndex = arrayEnd
             return dataArray.count
@@ -295,7 +299,7 @@ extension ByteBuffer: AwsStream {
         let bufferCapacity = buffer.capacity - buffer.len
         let arrayEnd = (bufferCapacity + self.currentIndex) < array.count ? bufferCapacity + self.currentIndex : array.count
         let dataArray = array[self.currentIndex ..< arrayEnd]
-        if dataArray.count > 0 {
+        if !dataArray.isEmpty {
             let result = buffer.buffer.advanced(by: buffer.len)
             let resultBufferPointer = UnsafeMutableBufferPointer(start: result, count: dataArray.count)
             dataArray.copyBytes(to: resultBufferPointer)
@@ -322,7 +326,7 @@ public extension ByteBuffer {
             stream.close()
         }
 
-        let bufferSize = 1024
+        let bufferSize = 1_024
         let buffer: UnsafeMutablePointer<UInt8> = allocatePointer(bufferSize)
         defer {
             buffer.deallocate()

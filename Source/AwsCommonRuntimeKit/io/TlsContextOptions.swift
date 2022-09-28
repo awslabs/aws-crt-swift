@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCIo
 // swiftlint:disable trailing_whitespace
@@ -11,7 +15,7 @@ public final class TlsContextOptions {
     }
 
     public init(defaultClientWithAllocator allocator: Allocator = defaultAllocator) {
-        rawValue = allocatePointer()
+        self.rawValue = allocatePointer()
         aws_tls_ctx_options_init_default_client(rawValue, allocator.rawValue)
     }
 
@@ -20,7 +24,7 @@ public final class TlsContextOptions {
                     keyPath: String,
                     allocator: Allocator = defaultAllocator) throws {
             let ptr: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: keyPath.awsByteCursor)
-            rawValue = allocatePointer()
+            self.rawValue = allocatePointer()
             if aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,
                                                                      allocator.rawValue,
                                                                      certPath, ptr) != AWS_OP_SUCCESS {
@@ -31,7 +35,7 @@ public final class TlsContextOptions {
         public init(clientWithMtlsCert cert: inout ByteCursor,
                     key: inout ByteCursor,
                     allocator: Allocator = defaultAllocator) throws {
-            rawValue = allocatePointer()
+            self.rawValue = allocatePointer()
             if aws_tls_ctx_options_init_client_mtls_pkcs12(rawValue,
                                                            allocator.rawValue,
                                                            &cert.rawValue,
@@ -45,7 +49,7 @@ public final class TlsContextOptions {
         public init(clientWithMtlsPkcs12Path path: String,
                     password: String,
                     allocator: Allocator = defaultAllocator) throws {
-            rawValue = allocatePointer()
+            self.rawValue = allocatePointer()
             var passwordCursor = password.newByteCursor()
             if aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,
                                                                      allocator.rawValue,

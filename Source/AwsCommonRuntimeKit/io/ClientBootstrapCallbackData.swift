@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import Foundation
 
@@ -10,6 +14,6 @@ public struct ClientBootstrapCallbackData {
 
     public init(onShutDownComplete: @escaping OnShutDownComplete) {
         self.onShutDownComplete = onShutDownComplete
-        shutDownSemaphore = DispatchSemaphore(value: 0)
+        self.shutDownSemaphore = DispatchSemaphore(value: 0)
     }
 }

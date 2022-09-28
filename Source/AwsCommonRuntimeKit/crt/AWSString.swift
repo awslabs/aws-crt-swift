@@ -1,3 +1,10 @@
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
@@ -7,8 +14,8 @@ final class AWSString {
     let rawValue: UnsafeMutablePointer<aws_string>
 
     init(_ str: String, allocator: Allocator) {
-        string = str
-        rawValue = aws_string_new_from_array(allocator.rawValue, str, str.count)
+        self.string = str
+        self.rawValue = aws_string_new_from_array(allocator.rawValue, str, str.count)
     }
 
     var count: Int {
@@ -34,7 +41,7 @@ private struct AWSStringByteCursor: ByteCursor {
 
     init(_ awsString: AWSString) {
         self.awsString = awsString
-        rawValue = aws_byte_cursor_from_string(awsString.rawValue)
+        self.rawValue = aws_byte_cursor_from_string(awsString.rawValue)
     }
 }
 

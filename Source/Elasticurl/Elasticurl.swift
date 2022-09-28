@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import _Concurrency
 import AwsCommonRuntimeKit
@@ -19,7 +23,7 @@ struct Context {
     public var caPath: String?
     public var certificate: String?
     public var privateKey: String?
-    public var connectTimeout: Int = 3000
+    public var connectTimeout: Int = 3_000
     public var headers: [String: String] = .init()
     public var includeHeaders: Bool = false
     public var outputFileName: String?

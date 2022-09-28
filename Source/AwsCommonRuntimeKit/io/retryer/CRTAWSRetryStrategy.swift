@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCIo
 
@@ -10,7 +14,7 @@ public final class CRTAWSRetryStrategy {
 
     init(retryStrategy: UnsafeMutablePointer<aws_retry_strategy>,
          allocator: Allocator) {
-        rawValue = retryStrategy
+        self.rawValue = retryStrategy
         self.allocator = allocator
     }
 

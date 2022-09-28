@@ -1,3 +1,10 @@
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
@@ -82,7 +89,7 @@ public final class TracingAllocator: Allocator {
     }
 
     private init(_ allocator: Allocator, level: TracingLevel, framesPerStack: Int) {
-        rawValue = aws_mem_tracer_new(allocator.rawValue, nil, aws_mem_trace_level(level.rawValue), framesPerStack)
+        self.rawValue = aws_mem_tracer_new(allocator.rawValue, nil, aws_mem_trace_level(level.rawValue), framesPerStack)
     }
 
     deinit {

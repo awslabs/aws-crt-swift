@@ -1,3 +1,10 @@
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 @testable import AwsCommonRuntimeKit
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
@@ -13,12 +20,12 @@ class TracingAllocatorTests: CrtXCBaseTestCase {
         XCTAssertEqual(allocator.bytes, 20)
         XCTAssertEqual(allocator.count, 1)
 
-        let ptr2: UnsafeMutablePointer<UInt8> = try allocator.allocate(capacity: 1024)
-        XCTAssertEqual(allocator.bytes, 1044)
+        let ptr2: UnsafeMutablePointer<UInt8> = try allocator.allocate(capacity: 1_024)
+        XCTAssertEqual(allocator.bytes, 1_044)
         XCTAssertEqual(allocator.count, 2)
 
         allocator.release(ptr1)
-        XCTAssertEqual(allocator.bytes, 1024)
+        XCTAssertEqual(allocator.bytes, 1_024)
         XCTAssertEqual(allocator.count, 1)
 
         allocator.release(ptr2)

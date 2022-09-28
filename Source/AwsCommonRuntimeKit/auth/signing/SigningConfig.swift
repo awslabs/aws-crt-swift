@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCAuth
 
@@ -46,7 +50,7 @@ public struct SigningConfig {
         self.signatureType = signatureType
         self.signingAlgorithm = signingAlgorithm
         self.configType = configType
-        rawValue = aws_signing_config_aws(config_type: configType.rawValue,
+        self.rawValue = aws_signing_config_aws(config_type: configType.rawValue,
                                           algorithm: signingAlgorithm.rawValue,
                                           signature_type: signatureType.rawValue,
                                           region: region.awsByteCursor,
@@ -99,7 +103,7 @@ public extension SigningConfig {
             self.useDoubleURIEncode = useDoubleURIEncode
             self.shouldNormalizeURIPath = shouldNormalizeURIPath
             self.omitSessionToken = omitSessionToken
-            rawValue = aws_signing_config_aws.__Unnamed_struct_flags(use_double_uri_encode:
+            self.rawValue = aws_signing_config_aws.__Unnamed_struct_flags(use_double_uri_encode:
                 useDoubleURIEncode.uintValue, should_normalize_uri_path:
                 shouldNormalizeURIPath.uintValue, omit_session_token:
                 omitSessionToken.uintValue)

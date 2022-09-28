@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCIo
 
@@ -13,11 +17,11 @@ public final class TlsConnectionOptions {
         var connectionsPointer: UnsafeMutablePointer<aws_tls_connection_options> = allocatePointer()
         aws_tls_connection_options_init_from_ctx(connectionsPointer, context.rawValue)
         #if os(iOS) || os(watchOS)
-            connectionsPointer.pointee.timeout_ms = 30000
+            connectionsPointer.pointee.timeout_ms = 30_000
         #else
-            connectionsPointer.pointee.timeout_ms = 3000
+            connectionsPointer.pointee.timeout_ms = 3_000
         #endif
-        rawValue = connectionsPointer
+        self.rawValue = connectionsPointer
     }
 
     public func setAlpnList(_ alpnList: String) throws {

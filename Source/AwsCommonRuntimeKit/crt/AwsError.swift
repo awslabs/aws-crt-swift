@@ -1,3 +1,10 @@
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
@@ -10,9 +17,9 @@ public struct AWSError {
     public init(errorCode: Int32) {
         self.errorCode = errorCode
         if let stringPtr = aws_error_str(errorCode) {
-            errorMessage = String(cString: stringPtr)
+            self.errorMessage = String(cString: stringPtr)
         } else {
-            errorMessage = nil
+            self.errorMessage = nil
         }
     }
 }

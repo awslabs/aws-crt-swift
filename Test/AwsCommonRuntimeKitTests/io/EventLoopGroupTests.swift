@@ -1,3 +1,10 @@
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 @testable import AwsCommonRuntimeKit
 import Foundation
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.

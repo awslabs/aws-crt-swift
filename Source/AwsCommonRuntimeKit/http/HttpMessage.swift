@@ -1,3 +1,10 @@
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
@@ -18,13 +25,13 @@ public class HttpMessage {
     }
 
     init(owningMessage message: OpaquePointer) {
-        owned = true
-        rawValue = message
+        self.owned = true
+        self.rawValue = message
     }
 
     init(borrowingMessage message: OpaquePointer) {
-        owned = false
-        rawValue = message
+        self.owned = false
+        self.rawValue = message
     }
 
     deinit {

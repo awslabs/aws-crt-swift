@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCHttp
 
@@ -20,7 +24,7 @@ public struct HttpHeader {
     init(name: String,
          value: String,
          compression: HttpHeaderCompression = .useCache) {
-        rawValue = aws_http_header(name: name.awsByteCursor,
+        self.rawValue = aws_http_header(name: name.awsByteCursor,
                                    value: value.awsByteCursor,
                                    compression: compression.rawValue)
     }

@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCCommon
 import AwsCIo
@@ -34,8 +38,8 @@ public final class DefaultHostResolver: HostResolver {
                                                         el_group: elg.rawValue,
                                                         shutdown_options: shutdownCallbackOptionPtr,
                                                         system_clock_override_fn: nil)
-        hostResolverOptionsPtr = fromPointer(ptr: options)
-        rawValue = aws_host_resolver_new_default(allocator.rawValue, hostResolverOptionsPtr)
+        self.hostResolverOptionsPtr = fromPointer(ptr: options)
+        self.rawValue = aws_host_resolver_new_default(allocator.rawValue, hostResolverOptionsPtr)
 
         let config = aws_host_resolution_config(
             impl: aws_default_dns_resolve,

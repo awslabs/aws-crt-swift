@@ -1,3 +1,10 @@
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
@@ -38,7 +45,7 @@ public class AWSDate: Comparable {
     }
 
     public init() {
-        rawValue = fromPointer(ptr: aws_date_time())
+        self.rawValue = fromPointer(ptr: aws_date_time())
         aws_date_time_init_now(rawValue)
     }
 
@@ -47,17 +54,17 @@ public class AWSDate: Comparable {
     }
 
     public init(epochMs: UInt64) {
-        rawValue = allocatePointer()
+        self.rawValue = allocatePointer()
         aws_date_time_init_epoch_millis(rawValue, epochMs)
     }
 
     public init(epochS: Double) {
-        rawValue = allocatePointer()
+        self.rawValue = allocatePointer()
         aws_date_time_init_epoch_secs(rawValue, epochS)
     }
 
     public init(timestamp: String) {
-        rawValue = allocatePointer()
+        self.rawValue = allocatePointer()
         let pointer: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: timestamp.awsByteCursor)
         defer { pointer.deinitializeAndDeallocate() }
         aws_date_time_init_from_str_cursor(rawValue, pointer, DateFormat.autoDetect.rawValue)

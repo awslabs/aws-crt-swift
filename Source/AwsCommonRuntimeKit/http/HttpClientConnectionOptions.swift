@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 public struct HttpClientConnectionOptions {
     /// The client bootstrap instance to use to create the pool's connections
@@ -54,7 +58,7 @@ public struct HttpClientConnectionOptions {
                 enableManualWindowManagement: Bool = false,
                 maxConnectionIdleMs: UInt64 = 0,
                 shutDownOptions: ShutDownCallbackOptions? = nil) {
-        clientBootstrap = bootstrap
+        self.clientBootstrap = bootstrap
         self.hostName = hostName
         self.initialWindowSize = initialWindowSize
         self.port = port

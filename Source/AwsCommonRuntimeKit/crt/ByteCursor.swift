@@ -1,3 +1,10 @@
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
@@ -39,7 +46,7 @@ private struct StringByteCursor: ByteCursor {
 
     init(_ string: String) {
         self.string = string.utf8CString
-        rawValue = aws_byte_cursor_from_array(
+        self.rawValue = aws_byte_cursor_from_array(
             self.string.withUnsafeBufferPointer { ptr in ptr.baseAddress },
             self.string.count - 1)
     }

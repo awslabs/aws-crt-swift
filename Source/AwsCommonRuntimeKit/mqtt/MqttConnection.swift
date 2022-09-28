@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCHttp
 import AwsCMqtt
@@ -54,7 +58,7 @@ public class MqttConnection {
         self.useWebSockets = useWebSockets
         self.socketOptions = socketOptions
         self.tlsContext = tlsContext
-        rawValue = aws_mqtt_client_connection_new(clientPointer)
+        self.rawValue = aws_mqtt_client_connection_new(clientPointer)
 
         setUpCallbackData()
     }

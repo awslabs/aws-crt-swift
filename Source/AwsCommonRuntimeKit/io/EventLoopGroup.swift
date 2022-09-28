@@ -1,3 +1,10 @@
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
@@ -15,7 +22,7 @@ public final class EventLoopGroup {
         let ptr = shutDownOptions?.toShutDownCPointer()
         self.shutDownOptions = shutDownOptions
 
-        rawValue = aws_event_loop_group_new_default(allocator.rawValue, threadCount, ptr)
+        self.rawValue = aws_event_loop_group_new_default(allocator.rawValue, threadCount, ptr)
     }
 
     deinit {

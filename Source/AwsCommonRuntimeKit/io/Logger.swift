@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCCommon
 
@@ -7,7 +11,7 @@ public class Logger {
     var logger: aws_logger
 
     public init(pipe: UnsafeMutablePointer<FILE>?, level: LogLevel, allocator: Allocator = defaultAllocator) {
-        logger = aws_logger()
+        self.logger = aws_logger()
         var options = aws_logger_standard_options()
         options.level = level.rawValue
         options.file = pipe
@@ -16,7 +20,7 @@ public class Logger {
     }
 
     public init(filePath: String, level: LogLevel, allocator: Allocator = defaultAllocator) {
-        logger = aws_logger()
+        self.logger = aws_logger()
         var options = aws_logger_standard_options()
         options.level = level.rawValue
         options.filename = filePath.asCStr()

@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 @testable import AwsCommonRuntimeKit
 import Foundation
@@ -53,8 +57,8 @@ class MqttClientTests: CrtXCBaseTestCase {
         }
         let connected = connection.connect(clientId: "testClient",
                                            cleanSession: true,
-                                           keepAliveTime: 4000,
-                                           requestTimeoutMs: 3000)
+                                           keepAliveTime: 4_000,
+                                           requestTimeoutMs: 3_000)
         XCTAssertTrue(connected)
 
         let onMessageSucceeded = connection.setOnMessageHandler { _, _, _ in }

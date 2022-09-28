@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCIo
 import Foundation
@@ -18,9 +22,9 @@ public class AwsInputStream {
     let awsStream: AwsStream
     public var length: Int64
     public init(_ impl: AwsStream, allocator _: Allocator = defaultAllocator) {
-        length = Int64(impl.length)
-        awsStream = impl
-        rawValue = aws_input_stream()
+        self.length = Int64(impl.length)
+        self.awsStream = impl
+        self.rawValue = aws_input_stream()
         rawValue.vtable = UnsafePointer<aws_input_stream_vtable>(&vtable)
         rawValue.impl = Unmanaged<AwsInputStream>.passUnretained(self).toOpaque()
     }
@@ -63,7 +67,7 @@ extension FileHandle: AwsStream {
     @inlinable
     public func read(buffer: inout aws_byte_buf) -> Bool {
         let data = readData(ofLength: buffer.capacity - buffer.len)
-        if data.count > 0 {
+        if !data.isEmpty {
             let result = buffer.buffer.advanced(by: buffer.len)
             data.copyBytes(to: result, count: data.count)
             buffer.len += data.count

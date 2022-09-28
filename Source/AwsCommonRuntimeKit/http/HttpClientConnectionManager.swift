@@ -1,3 +1,10 @@
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
@@ -46,7 +53,7 @@ public class HttpClientConnectionManager {
                                                              enable_read_back_pressure: options.enableManualWindowManagement,
                                                              max_connection_idle_in_milliseconds: options.maxConnectionIdleMs)
 
-        manager = aws_http_connection_manager_new(allocator.rawValue, &mgrOptions)
+        self.manager = aws_http_connection_manager_new(allocator.rawValue, &mgrOptions)
     }
 
     /// Acquires an `HttpClientConnection` asynchronously.

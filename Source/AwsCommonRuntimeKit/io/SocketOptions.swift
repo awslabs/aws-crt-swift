@@ -1,11 +1,15 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCIo
 
 public class SocketOptions {
     var rawValue: UnsafeMutablePointer<aws_socket_options>
-    let defaultSocketTimeMsec = UInt32(3000)
+    let defaultSocketTimeMsec = UInt32(3_000)
 
     public init(socketType: SocketType = .stream) {
         let socketOptions = aws_socket_options(
@@ -17,7 +21,7 @@ public class SocketOptions {
             keep_alive_max_failed_probes: 0,
             keepalive: false)
         let ptr: UnsafeMutablePointer<aws_socket_options> = fromPointer(ptr: socketOptions)
-        rawValue = ptr
+        self.rawValue = ptr
     }
 
     public var connectTimeoutMs: UInt32 {

@@ -1,3 +1,10 @@
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
@@ -10,7 +17,7 @@ public final class HttpHeaders {
     }
 
     public init(allocator: Allocator = defaultAllocator) {
-        rawValue = aws_http_headers_new(allocator.rawValue)
+        self.rawValue = aws_http_headers_new(allocator.rawValue)
     }
 
     convenience init(allocator: Allocator = defaultAllocator, fromArray: [HttpHeader]) {

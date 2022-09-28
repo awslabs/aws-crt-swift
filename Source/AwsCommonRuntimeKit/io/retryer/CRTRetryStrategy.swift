@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCIo
 
@@ -117,8 +121,8 @@ class WrappedCRTRetryStrategy {
         let vTablePtr = UnsafeMutablePointer<aws_retry_strategy_vtable>.allocate(capacity: 1)
         vTablePtr.initialize(to: vtable)
         self.vTablePtr = vTablePtr
-        implementationPtr = retryStategyPtr
-        rawValue = aws_retry_strategy(allocator: allocator.rawValue,
+        self.implementationPtr = retryStategyPtr
+        self.rawValue = aws_retry_strategy(allocator: allocator.rawValue,
                                       vtable: vTablePtr,
                                       ref_count: atomicVar,
                                       impl: retryStategyPtr)

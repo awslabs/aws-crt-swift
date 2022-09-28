@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCAuth
 
@@ -19,7 +23,7 @@ public final class CRTCredentials {
                 sessionToken: String?,
                 expirationTimeout: UInt64,
                 allocator: Allocator = defaultAllocator) {
-        rawValue = aws_credentials_new(allocator.rawValue,
+        self.rawValue = aws_credentials_new(allocator.rawValue,
                                        accessKey.awsByteCursor,
                                        secret.awsByteCursor,
                                        sessionToken?.awsByteCursor ?? "".awsByteCursor, expirationTimeout)

@@ -1,5 +1,9 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
 
 import AwsCAuth
 
@@ -13,7 +17,7 @@ public class CRTIMDSClient {
                                                   retry_strategy: options.retryStrategy.rawValue,
                                                   imds_version: options.protocolVersion.rawValue,
                                                   function_table: nil)
-        rawValue = aws_imds_client_new(allocator.rawValue, &imdsOptions)
+        self.rawValue = aws_imds_client_new(allocator.rawValue, &imdsOptions)
     }
 
     /// Queries a generic resource (string) from the ec2 instance metadata document

@@ -1,3 +1,10 @@
+//
+// Copyright Amazon.com Inc. or its affiliates.
+// All Rights Reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import XCTest
@@ -34,7 +41,7 @@ class FutureTests: XCTestCase {
         // create new future
         let future = Future<String>()
         let sleepVal = Int.random(in: 1 ... 4)
-        for _ in 0 ... 1000 {
+        for _ in 0 ... 1_000 {
             group.enter()
 
             DispatchQueue.global().async {
