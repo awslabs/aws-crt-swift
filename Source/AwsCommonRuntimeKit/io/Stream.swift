@@ -10,8 +10,8 @@ private var vtable = aws_input_stream_vtable(seek: doSeek,
         read: doRead,
         get_status: doGetStatus,
         get_length: doGetLength,
-        acquire: doAcquire,
-        release: doRelease)
+        acquire: { _ = Unmanaged<AwsInputStream>.fromOpaque($0!.pointee.impl).retain() },
+        release: { Unmanaged<AwsInputStream>.fromOpaque($0!.pointee.impl).release() })
 
 public class AwsInputStream {
     var rawValue: aws_input_stream
@@ -108,10 +108,3 @@ private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     return AWS_OP_SUCCESS
 }
 
-private func doAcquire(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
-    _ = Unmanaged<AwsInputStream>.fromOpaque(stream.pointee.impl).retain()
-}
-
-private func doRelease(_ stream: UnsafeMutablePointer<aws_input_stream>!) {
-    Unmanaged<AwsInputStream>.fromOpaque(stream.pointee.impl).release()
-}
