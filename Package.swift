@@ -119,7 +119,7 @@ let awsCMqttPlatformExcludes = ["bin", "CODE_OF_CONDUCT.md"] + excludesFromAll
 
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
 let cSettings: [CSetting] = [
-    //    .unsafeFlags(cFlags),
+    // .unsafeFlags(cFlags),
     .define("DEBUG_BUILD", .when(configuration: .debug)),
 ]
 
@@ -205,8 +205,8 @@ packageTargets.append(contentsOf: [
                        .product(name: "Collections", package: "swift-collections")],
         path: "Source/AwsCommonRuntimeKit",
         swiftSettings: [
-            //            .unsafeFlags(["-g"]),
-            //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+            // .unsafeFlags(["-g"]),
+            // .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     ),
     .testTarget(
@@ -214,8 +214,8 @@ packageTargets.append(contentsOf: [
         dependencies: ["AwsCommonRuntimeKit"],
         path: "Test/AwsCommonRuntimeKitTests",
         swiftSettings: [
-            //            .unsafeFlags(["-g"]),
-            //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+            // .unsafeFlags(["-g"]),
+            // .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     ),
     .executableTarget(
@@ -223,8 +223,8 @@ packageTargets.append(contentsOf: [
         dependencies: ["AwsCommonRuntimeKit"],
         path: "Source/Elasticurl",
         swiftSettings: [
-            //            .unsafeFlags(["-g"]),
-            //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+            // .unsafeFlags(["-g"]),
+            // .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     ),
 ])
