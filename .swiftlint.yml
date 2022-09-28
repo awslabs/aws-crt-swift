@@ -5,6 +5,7 @@ disabled_rules:
     - unused_closure_parameter
     - closure_parameter_position
     - superfluous_disable_command
+    - trailing_comma
 excluded:
     - Test
 
