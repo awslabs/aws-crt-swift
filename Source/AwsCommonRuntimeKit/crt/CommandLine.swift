@@ -3,7 +3,6 @@
 
 import AwsCCommon
 import Foundation
-// swiftlint:disable trailing_whitespace
 public enum CommandLineParser {
     /// A function to parse command line arguments
     /// - Parameters:

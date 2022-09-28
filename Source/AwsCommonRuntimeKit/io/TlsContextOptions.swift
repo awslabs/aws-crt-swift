@@ -2,7 +2,6 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCIo
-// swiftlint:disable trailing_whitespace
 public final class TlsContextOptions {
     var rawValue: UnsafeMutablePointer<aws_tls_ctx_options>
 

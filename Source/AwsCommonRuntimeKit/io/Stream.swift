@@ -4,8 +4,6 @@
 import AwsCIo
 import Foundation
 
-// swiftlint:disable trailing_whitespace
-
 private var vtable = aws_input_stream_vtable(seek: doSeek,
                                              read: doRead,
                                              get_status: doGetStatus,
