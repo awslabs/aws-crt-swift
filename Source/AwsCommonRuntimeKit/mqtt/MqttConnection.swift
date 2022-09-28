@@ -182,11 +182,12 @@ public class MqttConnection {
                                                               }
                                                               let ptr = userData.assumingMemoryBound(to: MqttConnection.self)
 
-                                                              let onInterceptComplete: OnWebSocketHandshakeInterceptComplete = { _, crtError in
-                                                                  if case let CRTError.crtError(error) = crtError {
-                                                                      completeFn!(httpRequest, error.errorCode, completeUserData)
+                                                              let onInterceptComplete: OnWebSocketHandshakeInterceptComplete =
+                                                                  { _, crtError in
+                                                                      if case let CRTError.crtError(error) = crtError {
+                                                                          completeFn!(httpRequest, error.errorCode, completeUserData)
+                                                                      }
                                                                   }
-                                                              }
                                                               defer { ptr.deinitializeAndDeallocate() }
                                                               // can unwrap here with ! because we know its not nil at this point
                                                               ptr.pointee.onWebSocketHandshakeIntercept!(HttpRequest(message: httpRequest),
@@ -297,7 +298,8 @@ public class MqttConnection {
                                                                     payload.pointee.toData()
                                                                 )
                                                             }, pubCallbackPtr, nil, { _, packetId, topicPtr, qos, errorCode, userData in
-                                                                guard let userData = userData, let topic = topicPtr?.pointee.toString() else {
+                                                                guard let userData = userData,
+                                                                      let topic = topicPtr?.pointee.toString() else {
                                                                     return
                                                                 }
                                                                 let ptr = userData.assumingMemoryBound(to: SubAckCallbackData.self)
@@ -340,7 +342,8 @@ public class MqttConnection {
                                                                          else {
                                                                              return
                                                                          }
-                                                                         let ptr = userData.assumingMemoryBound(to: MultiSubAckCallbackData.self)
+                                                                         let ptr = userData
+                                                                             .assumingMemoryBound(to: MultiSubAckCallbackData.self)
                                                                          var topics = [String]()
                                                                          for index in 0 ... topicPointers.pointee.current_size {
                                                                              let pointer = topicPointers.pointee.data.advanced(by: index)

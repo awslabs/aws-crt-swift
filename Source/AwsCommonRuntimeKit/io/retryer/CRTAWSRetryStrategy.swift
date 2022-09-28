@@ -23,7 +23,8 @@ public final class CRTAWSRetryStrategy {
                             allocator: Allocator = defaultAllocator) throws {
         let exponentialBackOffOptions = aws_exponential_backoff_retry_options(el_group: options.backOffRetryOptions.eventLoopGroup.rawValue,
                                                                               max_retries: options.backOffRetryOptions.maxRetries,
-                                                                              backoff_scale_factor_ms: options.backOffRetryOptions.backOffScaleFactor,
+                                                                              backoff_scale_factor_ms: options.backOffRetryOptions
+                                                                                  .backOffScaleFactor,
                                                                               jitter_mode: options.backOffRetryOptions.jitterMode.rawValue,
                                                                               generate_random: nil)
 
