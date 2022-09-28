@@ -22,8 +22,7 @@ public final class TlsContextOptions {
             rawValue = allocatePointer()
             if aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,
                                                                      allocator.rawValue,
-                                                                     certPath, ptr) != AWS_OP_SUCCESS
-            {
+                                                                     certPath, ptr) != AWS_OP_SUCCESS {
                 throw AWSCommonRuntimeError()
             }
         }
@@ -49,8 +48,7 @@ public final class TlsContextOptions {
             var passwordCursor = password.newByteCursor()
             if aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,
                                                                      allocator.rawValue,
-                                                                     path, &passwordCursor.rawValue) != AWS_OP_SUCCESS
-            {
+                                                                     path, &passwordCursor.rawValue) != AWS_OP_SUCCESS {
                 throw AWSCommonRuntimeError()
             }
         }
