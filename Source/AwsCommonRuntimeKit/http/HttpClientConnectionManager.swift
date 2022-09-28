@@ -38,10 +38,12 @@ public class HttpClientConnectionManager {
                                                                  }
 
                                                                  let callbackOptions = userData.assumingMemoryBound(
-                                                                     to: ShutDownCallbackOptions.self)
+                                                                     to: ShutDownCallbackOptions.self
+                                                                 )
                                                                  defer { callbackOptions.deinitializeAndDeallocate() }
                                                                  callbackOptions.pointee.shutDownCallback(
-                                                                     callbackOptions.pointee.semaphore)
+                                                                     callbackOptions.pointee.semaphore
+                                                                 )
                                                              },
                                                              enable_read_back_pressure: options.enableManualWindowManagement,
                                                              max_connection_idle_in_milliseconds: options.maxConnectionIdleMs)

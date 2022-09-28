@@ -29,7 +29,11 @@ class CRTAWSProfileCollectionTests: CrtXCBaseTestCase {
         let credBuffer = ByteBuffer(data: fakeCreds)
         let profileCollectionCreds = CRTAWSProfileCollection(fromBuffer: credBuffer, source: .credentials)
 
-        let mergedCollection = CRTAWSProfileCollection(configProfileCollection: profileCollectionConfig, credentialProfileCollection: profileCollectionCreds, source: .credentials)
+        let mergedCollection = CRTAWSProfileCollection(
+            configProfileCollection: profileCollectionConfig,
+            credentialProfileCollection: profileCollectionCreds,
+            source: .credentials
+        )
         XCTAssertNotNil(mergedCollection)
     }
 }

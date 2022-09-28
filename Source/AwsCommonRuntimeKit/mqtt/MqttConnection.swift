@@ -291,7 +291,11 @@ public class MqttConnection {
                                                                 }
                                                                 let ptr = userData.assumingMemoryBound(to: PubCallbackData.self)
 
-                                                                ptr.pointee.onPublishReceived(ptr.pointee.mqttConnection, topic, payload.pointee.toData())
+                                                                ptr.pointee.onPublishReceived(
+                                                                    ptr.pointee.mqttConnection,
+                                                                    topic,
+                                                                    payload.pointee.toData()
+                                                                )
                                                             }, pubCallbackPtr, nil, { _, packetId, topicPtr, qos, errorCode, userData in
                                                                 guard let userData = userData, let topic = topicPtr?.pointee.toString() else {
                                                                     return
