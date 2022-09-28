@@ -206,7 +206,7 @@ packageTargets.append(contentsOf: [
         path: "Source/AwsCommonRuntimeKit",
         swiftSettings: [
             //            .unsafeFlags(["-g"]),
-//            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+            //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     ),
     .testTarget(
@@ -215,7 +215,7 @@ packageTargets.append(contentsOf: [
         path: "Test/AwsCommonRuntimeKitTests",
         swiftSettings: [
             //            .unsafeFlags(["-g"]),
-//            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+            //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     ),
     .executableTarget(
@@ -224,7 +224,7 @@ packageTargets.append(contentsOf: [
         path: "Source/Elasticurl",
         swiftSettings: [
             //            .unsafeFlags(["-g"]),
-//            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+            //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     ),
 ])
