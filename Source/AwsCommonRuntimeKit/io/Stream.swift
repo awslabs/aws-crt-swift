@@ -107,4 +107,3 @@ private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     result.pointee = Int64(length)
     return AWS_OP_SUCCESS
 }
-
