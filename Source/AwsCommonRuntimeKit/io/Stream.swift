@@ -24,14 +24,10 @@ public class AwsInputStream {
     var rawValue: aws_input_stream
     private let awsStream: AWSStreamClass
     public var length: Int64
-    private var refCount: aws_ref_count
     public init(_ impl: AwsStream, allocator: Allocator = defaultAllocator) {
         length = Int64(impl.length)
         awsStream = AWSStreamClass(impl)
-        refCount = aws_ref_count()
-        aws_ref_count_init(&refCount, nil, { obj in })
-
-        rawValue = aws_input_stream(impl: Unmanaged<AWSStreamClass>.passRetained(awsStream).toOpaque(), vtable: &vtable, ref_count: refCount)
+        rawValue = aws_input_stream(impl: Unmanaged<AWSStreamClass>.passRetained(awsStream).toOpaque(), vtable: &vtable, ref_count: aws_ref_count())
     }
 }
 
