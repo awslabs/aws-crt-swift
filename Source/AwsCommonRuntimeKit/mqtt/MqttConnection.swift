@@ -292,8 +292,7 @@ public class MqttConnection {
                                                                 ptr.pointee.onPublishReceived(
                                                                     ptr.pointee.mqttConnection,
                                                                     topic,
-                                                                    payload.pointee.toData()
-                                                                )
+                                                                    payload.pointee.toData())
                                                             }, pubCallbackPtr, nil, { _, packetId, topicPtr, qos, errorCode, userData in
                                                                 guard let userData = userData, let topic = topicPtr?.pointee.toString() else {
                                                                     return

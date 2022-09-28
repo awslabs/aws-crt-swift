@@ -15,8 +15,7 @@ public class SocketOptions {
             keep_alive_interval_sec: 0,
             keep_alive_timeout_sec: 0,
             keep_alive_max_failed_probes: 0,
-            keepalive: false
-        )
+            keepalive: false)
         let ptr: UnsafeMutablePointer<aws_socket_options> = fromPointer(ptr: socketOptions)
         rawValue = ptr
     }

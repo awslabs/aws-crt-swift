@@ -27,8 +27,7 @@ public final class ClientBootstrap {
                 pointer.pointee.onShutDownComplete(pointer.pointee.shutDownSemaphore)
 
             },
-            user_data: callbackDataPointer
-        )
+            user_data: callbackDataPointer)
         guard let rawValue = aws_client_bootstrap_new(allocator.rawValue, &options) else {
             throw AWSCommonRuntimeError()
         }

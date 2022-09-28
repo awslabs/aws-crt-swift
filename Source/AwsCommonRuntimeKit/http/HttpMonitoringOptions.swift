@@ -21,8 +21,7 @@ public class HttpMonitoringOptions {
             minimum_throughput_bytes_per_second: UInt64(minThroughputBytesPerSecond),
             allowable_throughput_failure_interval_seconds: UInt32(allowableThroughputFailureInterval),
             statistics_observer_fn: nil,
-            statistics_observer_user_data: nil
-        )
+            statistics_observer_user_data: nil)
         rawValue = fromPointer(ptr: options)
     }
 

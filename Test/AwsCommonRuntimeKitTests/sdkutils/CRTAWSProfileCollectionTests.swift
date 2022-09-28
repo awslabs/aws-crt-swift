@@ -32,8 +32,7 @@ class CRTAWSProfileCollectionTests: CrtXCBaseTestCase {
         let mergedCollection = CRTAWSProfileCollection(
             configProfileCollection: profileCollectionConfig,
             credentialProfileCollection: profileCollectionCreds,
-            source: .credentials
-        )
+            source: .credentials)
         XCTAssertNotNil(mergedCollection)
     }
 }

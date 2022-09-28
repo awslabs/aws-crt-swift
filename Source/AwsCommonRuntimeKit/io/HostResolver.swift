@@ -40,8 +40,7 @@ public final class DefaultHostResolver: HostResolver {
         let config = aws_host_resolution_config(
             impl: aws_default_dns_resolve,
             max_ttl: maxTTL,
-            impl_data: nil
-        )
+            impl_data: nil)
 
         self.config = fromPointer(ptr: config)
     }

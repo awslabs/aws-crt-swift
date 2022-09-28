@@ -40,8 +40,7 @@ public final class CRTAWSCredentialsProvider {
                             allocator: Allocator = defaultAllocator) throws {
         var staticOptions = aws_credentials_provider_static_options()
         staticOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
-            shutDownOptions: config.shutDownOptions
-        )
+            shutDownOptions: config.shutDownOptions)
         staticOptions.access_key_id = config.accessKey.awsByteCursor
         staticOptions.secret_access_key = config.secret.awsByteCursor
         if let sessionToken = config.sessionToken?.awsByteCursor {
@@ -113,8 +112,7 @@ public final class CRTAWSCredentialsProvider {
         var imdsOptions = aws_credentials_provider_imds_options()
         imdsOptions.bootstrap = imdsConfig.bootstrap.rawValue
         imdsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
-            shutDownOptions: imdsConfig.shutdownOptions
-        )
+            shutDownOptions: imdsConfig.shutdownOptions)
 
         guard let provider = aws_credentials_provider_new_imds(allocator.rawValue,
                                                                &imdsOptions) else { throw AWSCommonRuntimeError() }
@@ -131,8 +129,7 @@ public final class CRTAWSCredentialsProvider {
                             allocator: Allocator = defaultAllocator) throws {
         var cachedOptions = aws_credentials_provider_cached_options()
         cachedOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
-            shutDownOptions: cachedConfig.shutDownOptions
-        )
+            shutDownOptions: cachedConfig.shutDownOptions)
 
         cachedOptions.source = cachedConfig.source.rawValue
         cachedOptions.refresh_time_in_milliseconds = UInt64(cachedConfig.refreshTime)
@@ -159,8 +156,7 @@ public final class CRTAWSCredentialsProvider {
                             allocator: Allocator = defaultAllocator) throws {
         var chainDefaultOptions = aws_credentials_provider_chain_default_options()
         chainDefaultOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
-            shutDownOptions: chainDefaultConfig.shutDownOptions
-        )
+            shutDownOptions: chainDefaultConfig.shutDownOptions)
         chainDefaultOptions.bootstrap = chainDefaultConfig.bootstrap.rawValue
 
         guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue,
@@ -180,8 +176,7 @@ public final class CRTAWSCredentialsProvider {
                                 allocator: Allocator = defaultAllocator) throws {
             var x509Options = aws_credentials_provider_x509_options()
             x509Options.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
-                shutDownOptions: x509Config.shutDownOptions
-            )
+                shutDownOptions: x509Config.shutDownOptions)
             x509Options.bootstrap = x509Config.bootstrap.rawValue
             x509Options.tls_connection_options = UnsafePointer(x509Config.tlsConnectionOptions.rawValue)
             x509Options.thing_name = x509Config.thingName.awsByteCursor
@@ -210,8 +205,7 @@ public final class CRTAWSCredentialsProvider {
         var stsOptions = aws_credentials_provider_sts_web_identity_options()
         stsOptions.bootstrap = webIdentityConfig.bootstrap.rawValue
         stsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
-            shutDownOptions: webIdentityConfig.shutDownOptions
-        )
+            shutDownOptions: webIdentityConfig.shutDownOptions)
         stsOptions.tls_ctx = webIdentityConfig.tlsContext.rawValue
         stsOptions.function_table = nil
         guard let provider = aws_credentials_provider_new_sts_web_identity(allocator.rawValue,
@@ -232,8 +226,7 @@ public final class CRTAWSCredentialsProvider {
         var stsOptions = aws_credentials_provider_sts_options()
         stsOptions.tls_ctx = stsConfig.tlsContext.rawValue
         stsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
-            shutDownOptions: stsConfig.shutDownOptions
-        )
+            shutDownOptions: stsConfig.shutDownOptions)
         stsOptions.creds_provider = stsConfig.credentialsProvider.rawValue
         stsOptions.role_arn = stsConfig.roleArn.awsByteCursor
         stsOptions.session_name = stsConfig.sessionName.awsByteCursor
@@ -257,8 +250,7 @@ public final class CRTAWSCredentialsProvider {
         var ecsOptions = aws_credentials_provider_ecs_options()
         ecsOptions.tls_ctx = containerConfig.tlsContext.rawValue
         ecsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
-            shutDownOptions: containerConfig.shutDownOptions
-        )
+            shutDownOptions: containerConfig.shutDownOptions)
         ecsOptions.bootstrap = containerConfig.bootstrap.rawValue
         if let host = containerConfig.host {
             ecsOptions.host = host.awsByteCursor
