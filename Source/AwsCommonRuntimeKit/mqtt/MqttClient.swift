@@ -3,17 +3,16 @@
 
 import AwsCMqtt
 
-//swiftlint:disable function_parameter_count
+// swiftlint:disable function_parameter_count
 public final class MqttClient {
-
     let rawValue: UnsafeMutablePointer<aws_mqtt_client>
 
-    init(rawValue: UnsafeMutablePointer<aws_mqtt_client>, clientBootstrap: ClientBootstrap) {
-        self.rawValue = aws_mqtt_client_new(defaultAllocator, clientBootstrap.rawValue)
+    init(rawValue _: UnsafeMutablePointer<aws_mqtt_client>, clientBootstrap: ClientBootstrap) {
+        rawValue = aws_mqtt_client_new(defaultAllocator, clientBootstrap.rawValue)
     }
 
     public init(clientBootstrap: ClientBootstrap, allocator: Allocator = defaultAllocator) throws {
-        self.rawValue = aws_mqtt_client_new(allocator.rawValue, clientBootstrap.rawValue)
+        rawValue = aws_mqtt_client_new(allocator.rawValue, clientBootstrap.rawValue)
     }
 
     /// Creates a new mqtt connection to the host on the port given using TLS
@@ -30,14 +29,15 @@ public final class MqttClient {
                               socketOptions: SocketOptions,
                               tlsContext: TlsContext,
                               useWebSockets: Bool,
-                              allocator: Allocator) -> MqttConnection {
-        return MqttConnection(clientPointer: rawValue,
-                              host: host,
-                              port: port,
-                              socketOptions: socketOptions,
-                              useWebSockets: useWebSockets,
-                              tlsContext: tlsContext,
-                              allocator: allocator)
+                              allocator: Allocator) -> MqttConnection
+    {
+        MqttConnection(clientPointer: rawValue,
+                       host: host,
+                       port: port,
+                       socketOptions: socketOptions,
+                       useWebSockets: useWebSockets,
+                       tlsContext: tlsContext,
+                       allocator: allocator)
     }
 
     /// Creaets a new mqtt connection to the host on the port given without TLS (not recommended).
@@ -52,13 +52,14 @@ public final class MqttClient {
                               port: Int16,
                               socketOptions: SocketOptions,
                               useWebSockets: Bool,
-                              allocator: Allocator) -> MqttConnection {
-        return MqttConnection(clientPointer: rawValue,
-                              host: host,
-                              port: port,
-                              socketOptions: socketOptions,
-                              useWebSockets: useWebSockets,
-                              allocator: allocator)
+                              allocator: Allocator) -> MqttConnection
+    {
+        MqttConnection(clientPointer: rawValue,
+                       host: host,
+                       port: port,
+                       socketOptions: socketOptions,
+                       useWebSockets: useWebSockets,
+                       allocator: allocator)
     }
 
     deinit {

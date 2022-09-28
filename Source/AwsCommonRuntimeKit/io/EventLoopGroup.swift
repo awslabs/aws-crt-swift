@@ -11,11 +11,12 @@ public final class EventLoopGroup {
 
     public init(threadCount: UInt16 = 0,
                 allocator: Allocator = defaultAllocator,
-                shutDownOptions: ShutDownCallbackOptions? = nil) {
+                shutDownOptions: ShutDownCallbackOptions? = nil)
+    {
         let ptr = shutDownOptions?.toShutDownCPointer()
         self.shutDownOptions = shutDownOptions
 
-        self.rawValue = aws_event_loop_group_new_default(allocator.rawValue, threadCount, ptr)
+        rawValue = aws_event_loop_group_new_default(allocator.rawValue, threadCount, ptr)
     }
 
     deinit {

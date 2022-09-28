@@ -1,18 +1,18 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
+import _Concurrency
 import AwsCommonRuntimeKit
 import Foundation
-import _Concurrency
 #if os(Linux)
-import Glibc
+    import Glibc
 #else
-import Darwin
+    import Darwin
 #endif
 
-//swiftlint:disable cyclomatic_complexity type_body_length
+// swiftlint:disable cyclomatic_complexity type_body_length
 struct Context {
-    //args
+    // args
     public var logLevel: LogLevel = .trace
     public var verb: String = "GET"
     public var caCert: String?
@@ -20,26 +20,24 @@ struct Context {
     public var certificate: String?
     public var privateKey: String?
     public var connectTimeout: Int = 3000
-    public var headers: [String: String] = [String: String]()
+    public var headers: [String: String] = .init()
     public var includeHeaders: Bool = false
     public var outputFileName: String?
     public var traceFile: String?
     public var insecure: Bool = false
-    public var url: URL = URL(fileURLWithPath: "")
+    public var url: URL = .init(fileURLWithPath: "")
     public var data: Data?
     public var alpnList: [String] = []
     public var outputStream = FileHandle.standardOutput
-
 }
 
 @main
-struct Elasticurl {
+enum Elasticurl {
     private static let version = "0.1.0"
     private static var context = Context()
     private static var logger = Logger(pipe: stdout, level: context.logLevel)
 
     static func parseArguments() {
-
         let optionString = "a:b:c:e:f:H:d:g:j:l:m:M:GPHiko:t:v:VwWh"
 
         let options = [ElasticurlOptions.caCert.rawValue,
@@ -107,7 +105,6 @@ struct Elasticurl {
         }
 
         if let dataFilePath = argumentsDict["g"] as? String {
-
             guard let url = URL(string: dataFilePath) else {
                 print("path to data file is incorrect or does not exist")
                 exit(-1)
@@ -168,7 +165,7 @@ struct Elasticurl {
             context.alpnList.append("h2")
         }
 
-        if argumentsDict["w"] == nil && argumentsDict["W"] == nil {
+        if argumentsDict["w"] == nil, argumentsDict["W"] == nil {
             context.alpnList.append("h2")
             context.alpnList.append("http/1.1")
         }
@@ -178,12 +175,13 @@ struct Elasticurl {
             exit(0)
         }
 
-        //make sure a url was given before we do anything else
+        // make sure a url was given before we do anything else
         guard let urlString = CommandLine.arguments.last,
-              let url = URL(string: urlString) else {
-                  print("Invalid URL: \(CommandLine.arguments.last!)")
-                  exit(-1)
-              }
+              let url = URL(string: urlString)
+        else {
+            print("Invalid URL: \(CommandLine.arguments.last!)")
+            exit(-1)
+        }
         context.url = url
     }
 
@@ -277,7 +275,7 @@ struct Elasticurl {
 
             var stream: HttpStream?
 
-            let httpRequest: HttpRequest = HttpRequest(allocator: allocator)
+            let httpRequest: HttpRequest = .init(allocator: allocator)
             httpRequest.method = context.verb
             let path = context.url.path == "" ? "/" : context.url.path
 
@@ -287,7 +285,8 @@ struct Elasticurl {
             if headers.add(name: "Host", value: host),
                headers.add(name: "User-Agent", value: "Elasticurl"),
                headers.add(name: "Accept", value: "*/*"),
-               headers.add(name: "Swift", value: "Version 5.4") {
+               headers.add(name: "Swift", value: "Version 5.4")
+            {
                 for header in context.headers {
                     _ = headers.add(name: header.key, value: header.value)
                 }
@@ -303,23 +302,21 @@ struct Elasticurl {
             }
             httpRequest.addHeaders(headers: headers)
 
-            let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
+            let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { _, _, headers in
                 let allHeaders = headers.getAll()
                 for header in allHeaders {
                     print(header.name + " : " + header.value)
-
                 }
             }
 
-            let onBody: HttpRequestOptions.OnIncomingBody = { stream, bodyChunk in
+            let onBody: HttpRequestOptions.OnIncomingBody = { _, bodyChunk in
                 writeData(data: bodyChunk)
             }
 
-            let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone = { stream, block in
-
+            let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone = { _, _ in
             }
 
-            let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
+            let onComplete: HttpRequestOptions.OnStreamComplete = { _, error in
                 if case let CRTError.crtError(unwrappedError) = error {
                     print(unwrappedError.errorMessage ?? "no error message")
                 }
@@ -348,7 +345,7 @@ struct Elasticurl {
                 stream!.activate()
 
             } catch {
-                print("connection has shut down with error: \(error.localizedDescription)" )
+                print("connection has shut down with error: \(error.localizedDescription)")
                 semaphore.signal()
             }
 

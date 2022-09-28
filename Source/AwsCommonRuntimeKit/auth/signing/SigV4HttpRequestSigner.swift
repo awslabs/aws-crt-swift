@@ -37,7 +37,7 @@ public class SigV4HttpRequestSigner {
             throw AWSCommonRuntimeError()
         }
 
-        if config.rawValue.credentials_provider == nil && config.rawValue.credentials == nil {
+        if config.rawValue.credentials_provider == nil, config.rawValue.credentials == nil {
             throw AWSCommonRuntimeError()
         }
 
@@ -56,9 +56,9 @@ public class SigV4HttpRequestSigner {
 
         let configPointer: UnsafeMutablePointer<aws_signing_config_aws> = fromPointer(ptr: config.rawValue)
         let base = configPointer.withMemoryRebound(to: aws_signing_config_base.self,
-                                                   capacity: 1) { (configPointer)
+                                                   capacity: 1) { configPointer
             -> UnsafeMutablePointer<aws_signing_config_base> in
-            return configPointer
+            configPointer
         }
         let configPtr = UnsafePointer(base)
 
@@ -70,37 +70,35 @@ public class SigV4HttpRequestSigner {
 
         aws_sign_request_aws(allocator.rawValue,
                              signable,
-                             configPtr, { (signingResult, errorCode, userData) -> Void in
-            guard let userData = userData else {
-                return
-            }
-            let callback = userData.assumingMemoryBound(to: SigningCallbackData.self)
-            defer {
-                aws_signable_destroy(callback.pointee.signable)
-                callback.deinitializeAndDeallocate()
-            }
+                             configPtr, { signingResult, errorCode, userData in
+                                 guard let userData = userData else {
+                                     return
+                                 }
+                                 let callback = userData.assumingMemoryBound(to: SigningCallbackData.self)
+                                 defer {
+                                     aws_signable_destroy(callback.pointee.signable)
+                                     callback.deinitializeAndDeallocate()
+                                 }
 
-            if let continuation = callback.pointee.continuation {
-                if errorCode == 0,
-                   let signingResult = signingResult {
+                                 if let continuation = callback.pointee.continuation {
+                                     if errorCode == 0,
+                                        let signingResult = signingResult
+                                     {
+                                         let signedRequest = aws_apply_signing_result_to_http_request(callback.pointee.request.rawValue,
+                                                                                                      callback.pointee.allocator.rawValue,
+                                                                                                      signingResult)
+                                         if signedRequest == 0 {
+                                             continuation.resume(returning: callback.pointee.request)
+                                         } else {
+                                             let awsError = AWSError(errorCode: signedRequest)
+                                             continuation.resume(throwing: CRTError.crtError(awsError))
+                                         }
+                                     } else {
+                                         let error = AWSError(errorCode: errorCode)
+                                         continuation.resume(throwing: CRTError.crtError(error))
+                                     }
+                                 }
 
-                    let signedRequest = aws_apply_signing_result_to_http_request(callback.pointee.request.rawValue,
-                                                                                 callback.pointee.allocator.rawValue,
-                                                                                 signingResult)
-                    if signedRequest == 0 {
-                        continuation.resume(returning: callback.pointee.request)
-                    } else {
-
-                        let awsError = AWSError(errorCode: signedRequest)
-                        continuation.resume(throwing: CRTError.crtError(awsError))
-                    }
-                } else {
-                    let error = AWSError(errorCode: errorCode)
-                    continuation.resume(throwing: CRTError.crtError(error))
-                }
-            }
-
-        }, callbackPointer)
-
+                             }, callbackPointer)
     }
 }

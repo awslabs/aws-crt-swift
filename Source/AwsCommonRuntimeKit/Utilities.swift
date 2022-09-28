@@ -1,11 +1,11 @@
+import AwsCCal
+import AwsCCommon
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCIo
-import struct Foundation.Date
 import struct Foundation.Data
+import struct Foundation.Date
 import class Foundation.FileHandle
-import AwsCCommon
-import AwsCCal
 
 @inlinable
 func zeroStruct<T>(_ ptr: UnsafeMutablePointer<T>) {
@@ -15,8 +15,8 @@ func zeroStruct<T>(_ ptr: UnsafeMutablePointer<T>) {
 extension Data {
     @inlinable
     var awsByteCursor: aws_byte_cursor {
-        return withUnsafeBytes { (rawPtr: UnsafeRawBufferPointer) -> aws_byte_cursor in
-            return aws_byte_cursor_from_array(rawPtr.baseAddress, self.count)
+        withUnsafeBytes { (rawPtr: UnsafeRawBufferPointer) -> aws_byte_cursor in
+            aws_byte_cursor_from_array(rawPtr.baseAddress, self.count)
         }
     }
 }
@@ -24,7 +24,7 @@ extension Data {
 extension String {
     @inlinable
     var awsByteCursor: aws_byte_cursor {
-        return aws_byte_cursor_from_c_str(self.asCStr())
+        aws_byte_cursor_from_c_str(self.asCStr())
     }
 
     public func base64EncodedMD5(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String? {
@@ -45,7 +45,7 @@ extension String {
 
 extension aws_byte_buf {
     func toByteBuffer() -> ByteBuffer {
-        return ByteBuffer(ptr: self.buffer, len: self.len, capacity: self.capacity)
+        ByteBuffer(ptr: self.buffer, len: self.len, capacity: self.capacity)
     }
 }
 
@@ -55,8 +55,8 @@ extension aws_array_list {
         var arrayList = self
         var newArray: [String] = Array(repeating: "", count: length)
 
-        for index  in 0..<length {
-            var val: UnsafeMutableRawPointer! = nil
+        for index in 0 ..< length {
+            var val: UnsafeMutableRawPointer!
             aws_array_list_get_at(&arrayList, &val, index)
             newArray[index] = val.bindMemory(to: String.self, capacity: 1).pointee
         }
@@ -92,7 +92,7 @@ extension Date {
 
 extension Bool {
     var uintValue: UInt32 {
-        return self ? 1 : 0
+        self ? 1 : 0
     }
 }
 
@@ -121,7 +121,7 @@ func allocatePointer<T>(_ capacity: Int = 1) -> UnsafeMutablePointer<T> {
 func toPointerArray<T, P: PointerConformance>(_ array: [T]) -> P {
     let pointers = UnsafeMutablePointer<T>.allocate(capacity: array.count)
 
-    for index in 0..<array.count {
+    for index in 0 ..< array.count {
         pointers.advanced(by: index).initialize(to: array[index])
     }
     return P(OpaquePointer(pointers))

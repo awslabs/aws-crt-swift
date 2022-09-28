@@ -3,7 +3,6 @@
 import AwsCAuth
 
 public enum SignedBodyHeaderType {
-
     /// Do not add a header
     case none
 
@@ -13,9 +12,10 @@ public enum SignedBodyHeaderType {
 
 extension SignedBodyHeaderType: RawRepresentable, CaseIterable {
     public init(rawValue: aws_signed_body_header_type) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        let value = Self.allCases.first(where: { $0.rawValue == rawValue })
         self = value ?? .none
     }
+
     public var rawValue: aws_signed_body_header_type {
         switch self {
         case .none: return AWS_SBHT_NONE

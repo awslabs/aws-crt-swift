@@ -26,6 +26,6 @@ public struct CRTAWSProfileProperty {
     }
 
     public var subPropertyCount: Int {
-        return aws_profile_property_get_sub_property_count(rawValue)
+        aws_profile_property_get_sub_property_count(rawValue)
     }
 }

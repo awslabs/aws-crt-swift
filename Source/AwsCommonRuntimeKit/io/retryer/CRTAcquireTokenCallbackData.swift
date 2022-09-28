@@ -8,7 +8,8 @@ public struct CRTAcquireTokenCallbackData {
     public let allocator: Allocator
 
     public init(allocator: Allocator = defaultAllocator,
-                continuation: TokenContinuation? = nil) {
+                continuation: TokenContinuation? = nil)
+    {
         self.continuation = continuation
         self.allocator = allocator
     }

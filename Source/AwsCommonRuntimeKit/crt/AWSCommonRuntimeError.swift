@@ -5,5 +5,5 @@ import AwsCCommon
 public struct AWSCommonRuntimeError: Error {
     let code = aws_last_error()
 
-  internal init() {}
+    internal init() {}
 }

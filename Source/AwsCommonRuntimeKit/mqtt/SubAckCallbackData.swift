@@ -10,7 +10,8 @@ struct SubAckCallbackData {
 
     init(onSubAck: @escaping OnSubAck,
          connection: MqttConnection,
-         topic: String?) {
+         topic: String?)
+    {
         self.onSubAck = onSubAck
         self.connection = connection
         self.topic = topic

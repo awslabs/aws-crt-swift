@@ -19,9 +19,10 @@ enum DateMonth {
 
 extension DateMonth: RawRepresentable, CaseIterable {
     public init(rawValue: aws_date_month) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        let value = Self.allCases.first(where: { $0.rawValue == rawValue })
         self = value ?? .january
     }
+
     public var rawValue: aws_date_month {
         switch self {
         case .january: return aws_date_month(0)

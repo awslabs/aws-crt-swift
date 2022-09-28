@@ -7,7 +7,7 @@ struct Atomic<I> {
     let rawValue: aws_atomic_var
     init(_ type: I) {
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: type)
-        self.rawValue = aws_atomic_var(value: pointer)
+        rawValue = aws_atomic_var(value: pointer)
         self.pointer = pointer
     }
 }

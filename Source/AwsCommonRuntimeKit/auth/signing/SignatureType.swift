@@ -26,16 +26,15 @@ public enum SignatureType {
      signable should contain the most recent signature value (either the original http request or the most recent
      event) in the "previous-signature" property as well as any event headers that should be signed with the
      exception of ":date"
-     
+
      This option is not yet supported.
      */
     case requestEvent
 }
 
 extension SignatureType: RawRepresentable, CaseIterable {
-
     public init(rawValue: aws_signature_type) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        let value = Self.allCases.first(where: { $0.rawValue == rawValue })
         self = value ?? .requestHeaders
     }
 

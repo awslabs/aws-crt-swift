@@ -1,9 +1,9 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-import XCTest
-import AwsCommonRuntimeKit
 import AwsCCommon
+import AwsCommonRuntimeKit
+import XCTest
 
 class CrtXCBaseTestCase: XCTestCase {
     internal let allocator = TracingAllocator(tracingStacksOf: defaultAllocator)
@@ -12,7 +12,7 @@ class CrtXCBaseTestCase: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        AwsCommonRuntimeKit.initialize(allocator: self.allocator)
+        AwsCommonRuntimeKit.initialize(allocator: allocator)
     }
 
     override func tearDown() {
@@ -26,13 +26,12 @@ class CrtXCBaseTestCase: XCTestCase {
     }
 }
 
-
 extension XCTestCase {
-   func skipIfiOS() throws {
-      if #available(iOS 10, *) {
-         throw XCTSkip("Skipping test on iOS")
-      }
-   }
+    func skipIfiOS() throws {
+        if #available(iOS 10, *) {
+            throw XCTSkip("Skipping test on iOS")
+        }
+    }
 
     func skipifmacOS() throws {
         if #available(macOS 10.14, *) {

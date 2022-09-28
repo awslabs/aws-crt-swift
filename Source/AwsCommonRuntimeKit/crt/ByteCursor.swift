@@ -9,27 +9,27 @@ public protocol ByteCursor {
 
 extension aws_byte_cursor: ByteCursor {
     public var rawValue: aws_byte_cursor {
-        get { return self }
+        get { self }
         set(value) {
             self = value
         }
     }
 }
 
-extension aws_byte_cursor {
-    public func toString() -> String? {
-        if self.len == 0 { return nil }
-        return String(bytesNoCopy: self.ptr, length: self.len, encoding: .utf8, freeWhenDone: false)
+public extension aws_byte_cursor {
+    func toString() -> String? {
+        if len == 0 { return nil }
+        return String(bytesNoCopy: ptr, length: len, encoding: .utf8, freeWhenDone: false)
     }
 
-    public func toData() -> Data {
-        return Data(bytesNoCopy: self.ptr, count: self.len, deallocator: .none)
+    func toData() -> Data {
+        Data(bytesNoCopy: ptr, count: len, deallocator: .none)
     }
 }
 
-extension String {
-    public func newByteCursor() -> ByteCursor {
-        return StringByteCursor(self)
+public extension String {
+    func newByteCursor() -> ByteCursor {
+        StringByteCursor(self)
     }
 }
 
@@ -39,8 +39,8 @@ private struct StringByteCursor: ByteCursor {
 
     init(_ string: String) {
         self.string = string.utf8CString
-        self.rawValue = aws_byte_cursor_from_array(
-            self.string.withUnsafeBufferPointer { ptr in return ptr.baseAddress },
+        rawValue = aws_byte_cursor_from_array(
+            self.string.withUnsafeBufferPointer { ptr in ptr.baseAddress },
             self.string.count - 1
         )
     }

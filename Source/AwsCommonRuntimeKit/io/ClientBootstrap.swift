@@ -11,8 +11,8 @@ public final class ClientBootstrap {
     public init(eventLoopGroup elg: EventLoopGroup,
                 hostResolver: HostResolver,
                 callbackData: ClientBootstrapCallbackData? = nil,
-                allocator: Allocator = defaultAllocator) throws {
-
+                allocator: Allocator = defaultAllocator) throws
+    {
         self.callbackData = callbackData
         let callbackDataPointer: UnsafeMutablePointer<ClientBootstrapCallbackData>? = fromOptionalPointer(ptr: callbackData)
 

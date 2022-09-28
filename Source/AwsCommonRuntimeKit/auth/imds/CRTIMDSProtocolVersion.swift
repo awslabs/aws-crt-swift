@@ -9,9 +9,8 @@ public enum CRTIMDSProtocolVersion {
 }
 
 extension CRTIMDSProtocolVersion: RawRepresentable, CaseIterable {
-
     public init(rawValue: aws_imds_protocol_version) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        let value = Self.allCases.first(where: { $0.rawValue == rawValue })
         self = value ?? .version2
     }
 

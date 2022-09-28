@@ -10,14 +10,13 @@ public let defaultAllocator = aws_default_allocator()!
 
 /// An allocator is used to allocate memory on the heap.
 public protocol Allocator {
-
     /// The raw `aws_allocator` pointer.
     var rawValue: UnsafeMutablePointer<aws_allocator> { get }
 }
 
 internal extension Allocator {
     func allocate<T>() throws -> UnsafeMutablePointer<T> {
-        guard let result = aws_mem_acquire(self.rawValue, MemoryLayout<T>.size) else {
+        guard let result = aws_mem_acquire(rawValue, MemoryLayout<T>.size) else {
             throw CRTError.memoryAllocationFailure
         }
         return result.bindMemory(to: T.self, capacity: 1)
@@ -33,7 +32,7 @@ internal extension Allocator {
      * - Throws AwsError.memoryAllocationFailure: If the allocation failed.
      */
     func allocate<T>(capacity: Int) throws -> UnsafeMutablePointer<T> {
-        guard let result = aws_mem_calloc(self.rawValue, capacity, MemoryLayout<T>.size) else {
+        guard let result = aws_mem_calloc(rawValue, capacity, MemoryLayout<T>.size) else {
             throw CRTError.memoryAllocationFailure
         }
         return result.bindMemory(to: T.self, capacity: capacity)
@@ -45,7 +44,7 @@ internal extension Allocator {
      * - Parameter pointer: The pointer to allocated data.
      */
     func release<T>(_ pointer: UnsafeMutablePointer<T>?) {
-        return aws_mem_release(self.rawValue, pointer)
+        return aws_mem_release(rawValue, pointer)
     }
 }
 
@@ -83,7 +82,7 @@ public final class TracingAllocator: Allocator {
     }
 
     private init(_ allocator: Allocator, level: TracingLevel, framesPerStack: Int) {
-        self.rawValue = aws_mem_tracer_new(allocator.rawValue, nil, aws_mem_trace_level(level.rawValue), framesPerStack)
+        rawValue = aws_mem_tracer_new(allocator.rawValue, nil, aws_mem_trace_level(level.rawValue), framesPerStack)
     }
 
     deinit {
@@ -92,12 +91,12 @@ public final class TracingAllocator: Allocator {
 
     /// The current number of bytes in outstanding allocations.
     public var bytes: Int {
-        return aws_mem_tracer_bytes(self.rawValue)
+        aws_mem_tracer_bytes(rawValue)
     }
 
     /// The current number of outstanding allocations.
     public var count: Int {
-        return aws_mem_tracer_count(self.rawValue)
+        aws_mem_tracer_count(rawValue)
     }
 
     /**
@@ -106,7 +105,7 @@ public final class TracingAllocator: Allocator {
       created.
      */
     public func dump() {
-        aws_mem_tracer_dump(self.rawValue)
+        aws_mem_tracer_dump(rawValue)
     }
 
     private enum TracingLevel: UInt32 {
@@ -121,5 +120,5 @@ public final class TracingAllocator: Allocator {
 
 extension UnsafeMutablePointer: Allocator where Pointee == aws_allocator {
     @inlinable
-    public var rawValue: UnsafeMutablePointer<Pointee> { return self }
+    public var rawValue: UnsafeMutablePointer<Pointee> { self }
 }

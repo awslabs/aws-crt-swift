@@ -12,7 +12,8 @@ struct HttpClientConnectionCallbackData {
     init(continuation: ConnectionContinuation,
          connectionManager: HttpClientConnectionManager,
          allocator: Allocator,
-         connectionCallback: ConnectionCallback? = nil) {
+         connectionCallback: ConnectionCallback? = nil)
+    {
         self.continuation = continuation
         self.connectionManager = connectionManager
         self.allocator = allocator

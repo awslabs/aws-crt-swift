@@ -21,7 +21,8 @@ public struct HttpRequestOptions {
                 onIncomingHeaders: @escaping OnIncomingHeaders,
                 onIncomingHeadersBlockDone: @escaping OnIncomingHeadersBlockDone,
                 onIncomingBody: OnIncomingBody? = nil,
-                onStreamComplete: OnStreamComplete? = nil) {
+                onStreamComplete: OnStreamComplete? = nil)
+    {
         self.request = request
         self.onIncomingHeaders = onIncomingHeaders
         self.onIncomingHeadersBlockDone = onIncomingHeadersBlockDone

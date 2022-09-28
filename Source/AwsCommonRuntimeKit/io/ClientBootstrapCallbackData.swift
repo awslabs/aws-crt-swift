@@ -10,6 +10,6 @@ public struct ClientBootstrapCallbackData {
 
     public init(onShutDownComplete: @escaping OnShutDownComplete) {
         self.onShutDownComplete = onShutDownComplete
-        self.shutDownSemaphore = DispatchSemaphore(value: 0)
+        shutDownSemaphore = DispatchSemaphore(value: 0)
     }
 }

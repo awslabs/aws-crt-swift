@@ -3,7 +3,6 @@
 import AwsCCommon
 
 public struct AWSError {
-
     public let errorCode: Int32
 
     public let errorMessage: String?
@@ -11,9 +10,9 @@ public struct AWSError {
     public init(errorCode: Int32) {
         self.errorCode = errorCode
         if let stringPtr = aws_error_str(errorCode) {
-            self.errorMessage = String(cString: stringPtr)
+            errorMessage = String(cString: stringPtr)
         } else {
-            self.errorMessage = nil
+            errorMessage = nil
         }
     }
 }

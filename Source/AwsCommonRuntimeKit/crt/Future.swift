@@ -6,37 +6,37 @@ import Foundation
 public final class Future<Value> {
     public typealias FutureResult = Result<Value, Error>
 
-    private var _value: FutureResult? //nil when pending
+    private var _value: FutureResult? // nil when pending
 
     private var waiter = DispatchSemaphore(value: 0)
 
-    private var _observers: [((FutureResult) -> Void)] = []
+    private var _observers: [(FutureResult) -> Void] = []
 
     private let lock = NSLock()
 
     public init(value: FutureResult? = nil) {
-        self._value = value
+        _value = value
     }
 
     public func get() throws -> Value {
         lock.lock()
-        if let value = self._value {
+        if let value = _value {
             lock.unlock()
             return try value.get()
         }
         lock.unlock()
         waiter.wait()
-        //can force unwrap here cuz if wait was lifted, future has completed
-        return try self._value!.get()
+        // can force unwrap here cuz if wait was lifted, future has completed
+        return try _value!.get()
     }
 
     public func fulfill(_ value: Value) {
         lock.lock()
-        guard self._value == nil else {
-            return lock.unlock() //already resolved
+        guard _value == nil else {
+            return lock.unlock() // already resolved
         }
         let result = FutureResult.success(value)
-        self._value = result
+        _value = result
         let observers = _observers
         _observers = []
         lock.unlock()
@@ -46,11 +46,11 @@ public final class Future<Value> {
 
     public func fail(_ error: Error) {
         lock.lock()
-        guard self._value == nil else {
+        guard _value == nil else {
             return lock.unlock()
         }
         let result = FutureResult.failure(error)
-        self._value = result
+        _value = result
         let observers = _observers
         _observers = []
         lock.unlock()
@@ -60,9 +60,9 @@ public final class Future<Value> {
 
     public func then(_ block: @escaping (FutureResult) -> Void) {
         lock.lock()
-        guard let value = self._value else {
-            self._observers.append(block)
-            return lock.unlock() //still pending, handlers attached
+        guard let value = _value else {
+            _observers.append(block)
+            return lock.unlock() // still pending, handlers attached
         }
         lock.unlock()
         block(value)
@@ -81,9 +81,9 @@ public extension Future {
 
             future.then { result in
                 switch result {
-                case .failure(let error):
+                case let .failure(error):
                     promise.fail(error)
-                case .success(let value):
+                case let .success(value):
                     promise.fulfill(value)
                 }
             }
@@ -111,7 +111,7 @@ public extension Future {
         }
 
         // Sends the result to `onValue` in case of success and succeeds/fails the input promise, if appropriate.
-        func processResult(_ index: Int, _ result: Result<Value, Error>) {
+        func processResult(_: Int, _ result: Result<Value, Error>) {
             switch result {
             case .success:
                 remainingCount -= 1
@@ -119,12 +119,12 @@ public extension Future {
                 if remainingCount == 0 {
                     future.fulfill(())
                 }
-            case .failure(let error):
+            case let .failure(error):
                 future.fail(error)
             }
         }
 
-        for(index, future) in futures.enumerated() {
+        for (index, future) in futures.enumerated() {
             if let result = future._value {
                 processResult(index, result)
             }

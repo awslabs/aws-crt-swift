@@ -13,14 +13,14 @@ public enum HttpProxyEnvType {
 }
 
 extension HttpProxyEnvType: RawRepresentable, CaseIterable {
-
     public init(rawValue: aws_http_proxy_env_var_type) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        let value = Self.allCases.first(where: { $0.rawValue == rawValue })
         self = value ?? .disable
     }
+
     public var rawValue: aws_http_proxy_env_var_type {
         switch self {
-        case .disable:  return AWS_HPEV_DISABLE
+        case .disable: return AWS_HPEV_DISABLE
         case .enable: return AWS_HPEV_ENABLE
         }
     }

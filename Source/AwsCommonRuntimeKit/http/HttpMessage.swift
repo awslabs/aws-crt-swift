@@ -10,21 +10,21 @@ public class HttpMessage {
     public var body: AwsInputStream? {
         willSet(value) {
             if let newBody = value {
-                aws_http_message_set_body_stream(self.rawValue, &newBody.rawValue)
+                aws_http_message_set_body_stream(rawValue, &newBody.rawValue)
             } else {
-                aws_http_message_set_body_stream(self.rawValue, nil)
+                aws_http_message_set_body_stream(rawValue, nil)
             }
         }
     }
 
     init(owningMessage message: OpaquePointer) {
-        self.owned = true
-        self.rawValue = message
+        owned = true
+        rawValue = message
     }
 
     init(borrowingMessage message: OpaquePointer) {
-        self.owned = false
-        self.rawValue = message
+        owned = false
+        rawValue = message
     }
 
     deinit {
@@ -33,15 +33,15 @@ public class HttpMessage {
         }
     }
 }
-//header handling
-public extension HttpMessage {
 
+// header handling
+public extension HttpMessage {
     var headerCount: Int {
-           return aws_http_message_get_header_count(rawValue)
+        aws_http_message_get_header_count(rawValue)
     }
 
     func addHeaders(headers: HttpHeaders) {
-        for index in 0...headers.count {
+        for index in 0 ... headers.count {
             var header = HttpHeader(name: "", value: "")
             if aws_http_headers_get_index(headers.rawValue, index, &header.rawValue) == AWS_OP_SUCCESS {
                 aws_http_message_add_header(rawValue, header.rawValue)
@@ -72,7 +72,7 @@ public extension HttpMessage {
         var headers = [HttpHeader]()
         var header = HttpHeader(name: "", value: "")
         if headerCount > 0 {
-            for index in 0...headerCount - 1 {
+            for index in 0 ... headerCount - 1 {
                 if aws_http_message_get_header(rawValue, &header.rawValue, index) == AWS_OP_SUCCESS {
                     headers.append(header)
                 }

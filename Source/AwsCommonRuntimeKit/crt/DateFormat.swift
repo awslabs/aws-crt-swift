@@ -12,9 +12,10 @@ enum DateFormat {
 
 extension DateFormat: CaseIterable, RawRepresentable {
     public init(rawValue: aws_date_format) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        let value = Self.allCases.first(where: { $0.rawValue == rawValue })
         self = value ?? .rfc822
     }
+
     public var rawValue: aws_date_format {
         switch self {
         case .rfc822: return aws_date_format(0)

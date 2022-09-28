@@ -38,7 +38,7 @@ public class AWSDate: Comparable {
     }
 
     public init() {
-        self.rawValue = fromPointer(ptr: aws_date_time())
+        rawValue = fromPointer(ptr: aws_date_time())
         aws_date_time_init_now(rawValue)
     }
 
@@ -47,40 +47,40 @@ public class AWSDate: Comparable {
     }
 
     public init(epochMs: UInt64) {
-        self.rawValue = allocatePointer()
+        rawValue = allocatePointer()
         aws_date_time_init_epoch_millis(rawValue, epochMs)
     }
 
     public init(epochS: Double) {
-        self.rawValue = allocatePointer()
+        rawValue = allocatePointer()
         aws_date_time_init_epoch_secs(rawValue, epochS)
     }
 
     public init(timestamp: String) {
-        self.rawValue = allocatePointer()
+        rawValue = allocatePointer()
         let pointer: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: timestamp.awsByteCursor)
-        defer { pointer.deinitializeAndDeallocate()}
+        defer { pointer.deinitializeAndDeallocate() }
         aws_date_time_init_from_str_cursor(rawValue, pointer, DateFormat.autoDetect.rawValue)
     }
 
     public static func == (lhs: AWSDate, rhs: AWSDate) -> Bool {
-        return aws_date_time_diff(lhs.rawValue, rhs.rawValue) == 0
+        aws_date_time_diff(lhs.rawValue, rhs.rawValue) == 0
     }
 
     public static func < (lhs: AWSDate, rhs: AWSDate) -> Bool {
-        return aws_date_time_diff(lhs.rawValue, rhs.rawValue) < 0
+        aws_date_time_diff(lhs.rawValue, rhs.rawValue) < 0
     }
 
     public static func > (lhs: AWSDate, rhs: AWSDate) -> Bool {
-        return aws_date_time_diff(lhs.rawValue, rhs.rawValue) > 0
+        aws_date_time_diff(lhs.rawValue, rhs.rawValue) > 0
     }
 
     public static func <= (lhs: AWSDate, rhs: AWSDate) -> Bool {
-        return aws_date_time_diff(lhs.rawValue, rhs.rawValue) <= 0
+        aws_date_time_diff(lhs.rawValue, rhs.rawValue) <= 0
     }
 
     public static func >= (lhs: AWSDate, rhs: AWSDate) -> Bool {
-        return aws_date_time_diff(lhs.rawValue, rhs.rawValue) >= 0
+        aws_date_time_diff(lhs.rawValue, rhs.rawValue) >= 0
     }
 
     static func - (lhs: AWSDate, rhs: AWSDate) -> AWSDate {
@@ -98,7 +98,7 @@ public class AWSDate: Comparable {
     }
 
     static func now() -> AWSDate {
-        return AWSDate()
+        AWSDate()
     }
 
     deinit {
@@ -128,10 +128,10 @@ extension AWSDate {
     }
 
     func toSecondsWithMsPrecision() -> Double {
-        return aws_date_time_as_epoch_secs(rawValue)
+        aws_date_time_as_epoch_secs(rawValue)
     }
 
     func asMillis() -> UInt64 {
-        return aws_date_time_as_millis(rawValue)
+        aws_date_time_as_millis(rawValue)
     }
 }

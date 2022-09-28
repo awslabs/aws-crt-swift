@@ -15,11 +15,11 @@ public enum SocketType {
 }
 
 extension SocketType: RawRepresentable, CaseIterable {
-
     public init(rawValue: aws_socket_type) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        let value = Self.allCases.first(where: { $0.rawValue == rawValue })
         self = value ?? .stream
     }
+
     public var rawValue: aws_socket_type {
         switch self {
         case .stream: return aws_socket_type(rawValue: 0)

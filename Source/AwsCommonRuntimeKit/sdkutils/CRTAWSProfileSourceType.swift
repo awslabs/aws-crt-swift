@@ -9,9 +9,8 @@ public enum CRTAWSProfileSourceType {
 }
 
 extension CRTAWSProfileSourceType: RawRepresentable, CaseIterable {
-
     public init(rawValue: aws_profile_source_type) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        let value = Self.allCases.first(where: { $0.rawValue == rawValue })
         self = value ?? .none
     }
 
