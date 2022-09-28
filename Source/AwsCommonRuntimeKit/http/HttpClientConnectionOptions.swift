@@ -53,8 +53,7 @@ public struct HttpClientConnectionOptions {
                 maxConnections: Int = 2,
                 enableManualWindowManagement: Bool = false,
                 maxConnectionIdleMs: UInt64 = 0,
-                shutDownOptions: ShutDownCallbackOptions? = nil)
-    {
+                shutDownOptions: ShutDownCallbackOptions? = nil) {
         clientBootstrap = bootstrap
         self.hostName = hostName
         self.initialWindowSize = initialWindowSize

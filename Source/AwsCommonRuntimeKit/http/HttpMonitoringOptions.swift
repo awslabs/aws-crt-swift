@@ -13,8 +13,7 @@ public class HttpMonitoringOptions {
     let rawValue: UnsafeMutablePointer<aws_http_connection_monitoring_options>
 
     init(minThroughputBytesPerSecond: Int = 0,
-         allowableThroughputFailureInterval: Int = 2)
-    {
+         allowableThroughputFailureInterval: Int = 2) {
         self.minThroughputBytesPerSecond = minThroughputBytesPerSecond
         self.allowableThroughputFailureInterval = allowableThroughputFailureInterval
 

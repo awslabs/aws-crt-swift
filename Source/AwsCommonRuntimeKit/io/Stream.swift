@@ -73,8 +73,7 @@ extension FileHandle: AwsStream {
 
 private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                     _ offset: Int64,
-                    _ seekBasis: aws_stream_seek_basis) -> Int32
-{
+                    _ seekBasis: aws_stream_seek_basis) -> Int32 {
     let inputStream = Unmanaged<AwsInputStream>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
     if inputStream.awsStream.seek(offset: offset, basis: seekBasis) {
         return AWS_OP_SUCCESS
@@ -83,8 +82,7 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
 }
 
 private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
-                    _ buffer: UnsafeMutablePointer<aws_byte_buf>!) -> Int32
-{
+                    _ buffer: UnsafeMutablePointer<aws_byte_buf>!) -> Int32 {
     let inputStream = Unmanaged<AwsInputStream>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
     if inputStream.awsStream.read(buffer: &buffer.pointee) {
         return AWS_OP_SUCCESS
@@ -93,16 +91,14 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
 }
 
 private func doGetStatus(_ stream: UnsafeMutablePointer<aws_input_stream>!,
-                         _ result: UnsafeMutablePointer<aws_stream_status>!) -> Int32
-{
+                         _ result: UnsafeMutablePointer<aws_stream_status>!) -> Int32 {
     let inputStream = Unmanaged<AwsInputStream>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
     result.pointee = inputStream.awsStream.status
     return AWS_OP_SUCCESS
 }
 
 private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
-                         _ result: UnsafeMutablePointer<Int64>!) -> Int32
-{
+                         _ result: UnsafeMutablePointer<Int64>!) -> Int32 {
     let inputStream = Unmanaged<AwsInputStream>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
     let length = inputStream.awsStream.length
 

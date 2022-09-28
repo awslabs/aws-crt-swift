@@ -8,8 +8,7 @@ public struct CRTScheduleRetryCallbackData {
     public let allocator: Allocator
 
     public init(allocator: Allocator = defaultAllocator,
-                continuation: ScheduleRetryContinuation? = nil)
-    {
+                continuation: ScheduleRetryContinuation? = nil) {
         self.continuation = continuation
         self.allocator = allocator
     }

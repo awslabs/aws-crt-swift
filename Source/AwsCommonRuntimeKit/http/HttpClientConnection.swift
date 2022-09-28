@@ -12,8 +12,7 @@ public class HttpClientConnection {
 
     init(manager: HttpClientConnectionManager,
          connection: UnsafeMutablePointer<aws_http_connection>,
-         allocator: Allocator = defaultAllocator)
-    {
+         allocator: Allocator = defaultAllocator) {
         self.manager = manager
         self.allocator = allocator
         rawValue = connection
@@ -68,8 +67,7 @@ public class HttpClientConnection {
             var headers = [HttpHeader]()
             for cHeader in UnsafeBufferPointer(start: headerArray, count: headersCount) {
                 if let name = cHeader.name.toString(),
-                   let value = cHeader.value.toString()
-                {
+                   let value = cHeader.value.toString() {
                     let swiftHeader = HttpHeader(name: name, value: value)
                     headers.append(swiftHeader)
                 }

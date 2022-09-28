@@ -6,8 +6,7 @@ public struct CRTIMDSClientInstanceCallbackData {
     public let allocator: Allocator
 
     public init(allocator: Allocator = defaultAllocator,
-                continuation: InstanceInfoContinuation?)
-    {
+                continuation: InstanceInfoContinuation?) {
         self.allocator = allocator
         self.continuation = continuation
     }

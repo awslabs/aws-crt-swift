@@ -9,8 +9,7 @@ struct PubCallbackData {
     unowned var mqttConnection: MqttConnection
 
     init(onPublishReceived: @escaping OnPublishReceived,
-         mqttConnection: MqttConnection)
-    {
+         mqttConnection: MqttConnection) {
         self.onPublishReceived = onPublishReceived
         self.mqttConnection = mqttConnection
     }

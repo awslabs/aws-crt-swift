@@ -6,8 +6,7 @@ public struct CRTIMDSClientArrayCallbackData {
     public let allocator: Allocator
 
     public init(allocator: Allocator = defaultAllocator,
-                continuation: ArrayContinuation?)
-    {
+                continuation: ArrayContinuation?) {
         self.allocator = allocator
         self.continuation = continuation
     }

@@ -14,8 +14,7 @@ public struct CRTExponentialBackoffRetryOptions {
                 maxRetries: Int = 10,
                 backOffScaleFactor: UInt32 = 25,
                 jitterMode: CRTExponentialBackoffJitterMode = .default,
-                generateRandom: GenerateRandom? = nil)
-    {
+                generateRandom: GenerateRandom? = nil) {
         self.eventLoopGroup = eventLoopGroup
         self.maxRetries = maxRetries
         self.backOffScaleFactor = backOffScaleFactor

@@ -34,8 +34,7 @@ struct MockRetryOptions: CRTRetryOptions {
     var backOffRetryOptions: CRTExponentialBackoffRetryOptions
 
     public init(initialBucketCapacity: Int = 500,
-                backOffRetryOptions: CRTExponentialBackoffRetryOptions)
-    {
+                backOffRetryOptions: CRTExponentialBackoffRetryOptions) {
         self.initialBucketCapacity = initialBucketCapacity
         self.backOffRetryOptions = backOffRetryOptions
     }

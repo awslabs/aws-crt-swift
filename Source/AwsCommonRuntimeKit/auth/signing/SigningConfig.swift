@@ -32,8 +32,7 @@ public struct SigningConfig {
                 shouldSignHeader: ShouldSignHeader? = nil,
                 signatureType: SignatureType = .requestHeaders,
                 signingAlgorithm: SigningAlgorithmType = .signingV4,
-                configType: SigningConfigType = .aws)
-    {
+                configType: SigningConfigType = .aws) {
         self.credentials = credentials
         self.credentialsProvider = credentialsProvider
         self.expiration = expiration
@@ -97,8 +96,7 @@ public extension SigningConfig {
 
         public init(useDoubleURIEncode: Bool = true,
                     shouldNormalizeURIPath: Bool = true,
-                    omitSessionToken: Bool = false)
-        {
+                    omitSessionToken: Bool = false) {
             self.useDoubleURIEncode = useDoubleURIEncode
             self.shouldNormalizeURIPath = shouldNormalizeURIPath
             self.omitSessionToken = omitSessionToken

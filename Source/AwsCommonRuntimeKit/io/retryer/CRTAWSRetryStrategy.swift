@@ -9,8 +9,7 @@ public final class CRTAWSRetryStrategy {
     var rawValue: UnsafeMutablePointer<aws_retry_strategy>
 
     init(retryStrategy: UnsafeMutablePointer<aws_retry_strategy>,
-         allocator: Allocator)
-    {
+         allocator: Allocator) {
         rawValue = retryStrategy
         self.allocator = allocator
     }
@@ -21,8 +20,7 @@ public final class CRTAWSRetryStrategy {
     ///   - options:  The `CRTRetryOptions` options object.
     /// - Returns: `CRTAWSRetryStrategy`
     public convenience init(options: CRTRetryOptions,
-                            allocator: Allocator = defaultAllocator) throws
-    {
+                            allocator: Allocator = defaultAllocator) throws {
         let exponentialBackOffOptions = aws_exponential_backoff_retry_options(el_group: options.backOffRetryOptions.eventLoopGroup.rawValue,
                                                                               max_retries: options.backOffRetryOptions.maxRetries,
                                                                               backoff_scale_factor_ms: options.backOffRetryOptions.backOffScaleFactor,

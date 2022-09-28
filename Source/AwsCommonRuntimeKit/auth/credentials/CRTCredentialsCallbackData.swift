@@ -6,8 +6,7 @@ public struct CRTCredentialsProviderCallbackData {
     public let allocator: Allocator
 
     public init(allocator: Allocator = defaultAllocator,
-                continuation: CredentialsContinuation? = nil)
-    {
+                continuation: CredentialsContinuation? = nil) {
         self.allocator = allocator
         self.continuation = continuation
     }

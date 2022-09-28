@@ -82,8 +82,7 @@ public class SigV4HttpRequestSigner {
 
                                  if let continuation = callback.pointee.continuation {
                                      if errorCode == 0,
-                                        let signingResult = signingResult
-                                     {
+                                        let signingResult = signingResult {
                                          let signedRequest = aws_apply_signing_result_to_http_request(callback.pointee.request.rawValue,
                                                                                                       callback.pointee.allocator.rawValue,
                                                                                                       signingResult)

@@ -285,8 +285,7 @@ enum Elasticurl {
             if headers.add(name: "Host", value: host),
                headers.add(name: "User-Agent", value: "Elasticurl"),
                headers.add(name: "Accept", value: "*/*"),
-               headers.add(name: "Swift", value: "Version 5.4")
-            {
+               headers.add(name: "Swift", value: "Version 5.4") {
                 for header in context.headers {
                     _ = headers.add(name: header.key, value: header.value)
                 }

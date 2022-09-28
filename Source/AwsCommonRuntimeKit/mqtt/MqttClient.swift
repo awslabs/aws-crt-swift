@@ -29,8 +29,7 @@ public final class MqttClient {
                               socketOptions: SocketOptions,
                               tlsContext: TlsContext,
                               useWebSockets: Bool,
-                              allocator: Allocator) -> MqttConnection
-    {
+                              allocator: Allocator) -> MqttConnection {
         MqttConnection(clientPointer: rawValue,
                        host: host,
                        port: port,
@@ -52,8 +51,7 @@ public final class MqttClient {
                               port: Int16,
                               socketOptions: SocketOptions,
                               useWebSockets: Bool,
-                              allocator: Allocator) -> MqttConnection
-    {
+                              allocator: Allocator) -> MqttConnection {
         MqttConnection(clientPointer: rawValue,
                        host: host,
                        port: port,

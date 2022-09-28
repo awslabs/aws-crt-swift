@@ -18,8 +18,7 @@ public final class CRTCredentials {
                 secret: String,
                 sessionToken: String?,
                 expirationTimeout: UInt64,
-                allocator: Allocator = defaultAllocator)
-    {
+                allocator: Allocator = defaultAllocator) {
         rawValue = aws_credentials_new(allocator.rawValue,
                                        accessKey.awsByteCursor,
                                        secret.awsByteCursor,

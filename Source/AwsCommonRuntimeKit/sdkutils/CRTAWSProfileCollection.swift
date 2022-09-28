@@ -8,13 +8,11 @@ public class CRTAWSProfileCollection {
 
     public init?(fromFile path: String,
                  source: CRTAWSProfileSourceType,
-                 allocator: Allocator = defaultAllocator)
-    {
+                 allocator: Allocator = defaultAllocator) {
         var finalizedPath = path
         if path.hasPrefix("~"),
            let homeDirectory = aws_get_home_directory(allocator.rawValue),
-           let homeDirectoryString = String(awsString: homeDirectory)
-        {
+           let homeDirectoryString = String(awsString: homeDirectory) {
             finalizedPath = homeDirectoryString + path.dropFirst()
         }
         let awsString = AWSString(finalizedPath, allocator: allocator)
@@ -29,8 +27,7 @@ public class CRTAWSProfileCollection {
 
     public init(fromBuffer buffer: ByteBuffer,
                 source: CRTAWSProfileSourceType,
-                allocator: Allocator = defaultAllocator)
-    {
+                allocator: Allocator = defaultAllocator) {
         var byteArray = buffer.toByteArray()
         let byteCount = byteArray.count
         let byteBuf = byteArray.withUnsafeMutableBufferPointer { pointer -> aws_byte_buf in
@@ -49,8 +46,7 @@ public class CRTAWSProfileCollection {
     public init(configProfileCollection: CRTAWSProfileCollection,
                 credentialProfileCollection: CRTAWSProfileCollection,
                 source _: CRTAWSProfileSourceType,
-                allocator: Allocator = defaultAllocator)
-    {
+                allocator: Allocator = defaultAllocator) {
         rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
                                                          configProfileCollection.rawValue,
                                                          credentialProfileCollection.rawValue)

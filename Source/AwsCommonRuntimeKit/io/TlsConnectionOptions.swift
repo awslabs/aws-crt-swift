@@ -30,8 +30,7 @@ public final class TlsConnectionOptions {
         var byteCur = serverName.newByteCursor()
         if aws_tls_connection_options_set_server_name(rawValue,
                                                       allocator.rawValue,
-                                                      &byteCur.rawValue) != AWS_OP_SUCCESS
-        {
+                                                      &byteCur.rawValue) != AWS_OP_SUCCESS {
             throw AWSCommonRuntimeError()
         }
     }

@@ -6,8 +6,7 @@ public struct CRTIMDSClientIAMProfileCallbackData {
     public let allocator: Allocator
 
     public init(allocator: Allocator = defaultAllocator,
-                continuation: IAMProfileContinuation?)
-    {
+                continuation: IAMProfileContinuation?) {
         self.allocator = allocator
         self.continuation = continuation
     }

@@ -19,8 +19,7 @@ private func acquireRetryToken(_ retryStrategy: UnsafeMutablePointer<aws_retry_s
                                                               Int32,
                                                               UnsafeMutablePointer<aws_retry_token>?,
                                                               UnsafeMutableRawPointer?) -> Void)?,
-                               userData: UnsafeMutableRawPointer?, wtf _: UInt64) -> Int32
-{
+                               userData: UnsafeMutableRawPointer?, wtf _: UInt64) -> Int32 {
     guard let retryStrategySwift = userData?.assumingMemoryBound(to: CRTRetryStrategy.self) else {
         return 1
     }
@@ -47,8 +46,7 @@ private func scheduleRetry(_ token: UnsafeMutablePointer<aws_retry_token>?,
                            _ callbackFn: (@convention(c) (UnsafeMutablePointer<aws_retry_token>?,
                                                           Int32,
                                                           UnsafeMutableRawPointer?) -> Void)?,
-                           userData: UnsafeMutableRawPointer?) -> Int32
-{
+                           userData: UnsafeMutableRawPointer?) -> Int32 {
     guard let retryStrategy = userData?.assumingMemoryBound(to: CRTRetryStrategy.self),
           let token = token
     else {
@@ -104,8 +102,7 @@ class WrappedCRTRetryStrategy {
     private let vTablePtr: UnsafeMutablePointer<aws_retry_strategy_vtable>
 
     init(impl: CRTRetryStrategy,
-         allocator: Allocator)
-    {
+         allocator: Allocator) {
         let vtable = aws_retry_strategy_vtable(destroy: destroy,
                                                acquire_token: acquireRetryToken,
                                                schedule_retry: scheduleRetry,

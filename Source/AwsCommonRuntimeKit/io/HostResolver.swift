@@ -24,8 +24,7 @@ public final class DefaultHostResolver: HostResolver {
                 maxHosts: Int,
                 maxTTL: Int,
                 allocator: Allocator = defaultAllocator,
-                shutDownOptions: ShutDownCallbackOptions? = nil)
-    {
+                shutDownOptions: ShutDownCallbackOptions? = nil) {
         self.allocator = allocator
 
         let shutdownCallbackOptionPtr = shutDownOptions?.toShutDownCPointer()
@@ -79,8 +78,7 @@ private func onHostResolved(_: UnsafeMutablePointer<aws_host_resolver>!,
                             _: UnsafePointer<aws_string>!,
                             _ errorCode: Int32,
                             _ hostAddresses: UnsafePointer<aws_array_list>!,
-                            _ userData: UnsafeMutableRawPointer!)
-{
+                            _ userData: UnsafeMutableRawPointer!) {
     let options = userData.assumingMemoryBound(to: ResolverOptions.self)
 
     let length = aws_array_list_length(hostAddresses)

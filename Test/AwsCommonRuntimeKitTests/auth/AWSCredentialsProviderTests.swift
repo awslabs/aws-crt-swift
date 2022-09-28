@@ -223,8 +223,7 @@ struct MockCredentialsProviderProfileOptions: CRTCredentialsProviderProfileOptio
     init(configFileNameOverride: String? = nil,
          profileFileNameOverride: String? = nil,
          credentialsFileNameOverride: String? = nil,
-         shutdownOptions: CRTCredentialsProviderShutdownOptions? = nil)
-    {
+         shutdownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
         self.configFileNameOverride = configFileNameOverride
         self.profileFileNameOverride = profileFileNameOverride
         self.credentialsFileNameOverride = credentialsFileNameOverride
@@ -241,8 +240,7 @@ struct MockCredentialsProviderStaticConfigOptions: CRTCredentialsProviderStaticC
     public init(accessKey: String,
                 secret: String,
                 sessionToken: String? = nil,
-                shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil)
-    {
+                shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
         self.accessKey = accessKey
         self.secret = secret
         self.sessionToken = sessionToken
@@ -255,8 +253,7 @@ public struct MockCredentialsProviderChainDefaultConfig: CRTCredentialsProviderC
     public var bootstrap: ClientBootstrap
 
     public init(bootstrap: ClientBootstrap,
-                shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil)
-    {
+                shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
         self.bootstrap = bootstrap
         self.shutDownOptions = shutDownOptions
     }
@@ -269,8 +266,7 @@ struct MockCredentialsProviderWebIdentityConfig: CRTCredentialsProviderWebIdenti
 
     init(bootstrap: ClientBootstrap,
          tlsContext: TlsContext,
-         shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil)
-    {
+         shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
         self.bootstrap = bootstrap
         self.tlsContext = tlsContext
         self.shutDownOptions = shutDownOptions
@@ -292,8 +288,7 @@ struct MockCredentialsProviderSTSConfig: CRTCredentialsProviderSTSConfig {
          roleArn: String,
          sessionName: String,
          durationSeconds: UInt16,
-         shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil)
-    {
+         shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
         self.bootstrap = bootstrap
         self.tlsContext = tlsContext
         self.credentialsProvider = credentialsProvider
@@ -317,8 +312,7 @@ struct MockCredentialsProviderContainerConfig: CRTCredentialsProviderContainerCo
          authToken: String? = nil,
          pathAndQuery: String? = nil,
          host: String? = nil,
-         shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil)
-    {
+         shutDownOptions: CRTCredentialsProviderShutdownOptions? = nil) {
         self.bootstrap = bootstrap
         self.tlsContext = tlsContext
         self.authToken = authToken

@@ -12,8 +12,7 @@ struct SigningCallbackData {
     public init(allocator: Allocator = defaultAllocator,
                 request: HttpRequest,
                 signable: UnsafeMutablePointer<aws_signable>?,
-                continuation: SignedContinuation? = nil)
-    {
+                continuation: SignedContinuation? = nil) {
         self.allocator = allocator
         self.request = request
         self.signable = signable

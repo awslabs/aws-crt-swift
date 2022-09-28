@@ -203,8 +203,7 @@ public class CRTIMDSClient {
             let error = AWSError(errorCode: errorCode)
             if errorCode == 0,
                let credentialsPointer = credentialsPointer,
-               let crtCredentials = CRTCredentials(rawValue: credentialsPointer)
-            {
+               let crtCredentials = CRTCredentials(rawValue: credentialsPointer) {
                 pointer.pointee.continuation?.resume(returning: crtCredentials)
             } else {
                 pointer.pointee.continuation?.resume(throwing: CRTError.crtError(error))
@@ -280,8 +279,7 @@ public class CRTIMDSClient {
     }
 
     static func setUpShutDownOptions(shutDownOptions: CRTIDMSClientShutdownOptions?)
-        -> aws_imds_client_shutdown_options
-    {
+        -> aws_imds_client_shutdown_options {
         let pointer: UnsafeMutablePointer<CRTIDMSClientShutdownOptions>? = fromOptionalPointer(ptr: shutDownOptions)
         let shutDownOptionsC = aws_imds_client_shutdown_options(shutdown_callback: { userData in
             guard let userData = userData else {
@@ -302,8 +300,7 @@ public class CRTIMDSClient {
 
 private func resourceCallback(_ byteBuf: UnsafePointer<aws_byte_buf>?,
                               _ errorCode: Int32,
-                              _ userData: UnsafeMutableRawPointer?)
-{
+                              _ userData: UnsafeMutableRawPointer?) {
     guard let userData = userData else {
         return
     }
@@ -323,8 +320,7 @@ private func resourceCallback(_ byteBuf: UnsafePointer<aws_byte_buf>?,
 
 private func arrayCallback(_ arrayListPointer: UnsafePointer<aws_array_list>?,
                            _ errorCode: Int32,
-                           _ userData: UnsafeMutableRawPointer?)
-{
+                           _ userData: UnsafeMutableRawPointer?) {
     guard let userData = userData else {
         return
     }

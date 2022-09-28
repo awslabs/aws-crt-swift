@@ -10,8 +10,7 @@ struct MultiSubAckCallbackData {
 
     init(onMultiSubAck: @escaping OnMultiSubAck,
          connection: MqttConnection,
-         topics: [String]?)
-    {
+         topics: [String]?) {
         self.onMultiSubAck = onMultiSubAck
         self.connection = connection
         self.topics = topics

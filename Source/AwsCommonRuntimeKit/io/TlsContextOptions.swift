@@ -17,8 +17,7 @@ public final class TlsContextOptions {
     #if os(macOS)
         public init(clientWithMtlsCertificatePath certPath: String,
                     keyPath: String,
-                    allocator: Allocator = defaultAllocator) throws
-        {
+                    allocator: Allocator = defaultAllocator) throws {
             let ptr: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: keyPath.awsByteCursor)
             rawValue = allocatePointer()
             if aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,
@@ -31,14 +30,12 @@ public final class TlsContextOptions {
 
         public init(clientWithMtlsCert cert: inout ByteCursor,
                     key: inout ByteCursor,
-                    allocator: Allocator = defaultAllocator) throws
-        {
+                    allocator: Allocator = defaultAllocator) throws {
             rawValue = allocatePointer()
             if aws_tls_ctx_options_init_client_mtls_pkcs12(rawValue,
                                                            allocator.rawValue,
                                                            &cert.rawValue,
-                                                           &key.rawValue) != AWS_OP_SUCCESS
-            {
+                                                           &key.rawValue) != AWS_OP_SUCCESS {
                 throw AWSCommonRuntimeError()
             }
         }
@@ -47,8 +44,7 @@ public final class TlsContextOptions {
     #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
         public init(clientWithMtlsPkcs12Path path: String,
                     password: String,
-                    allocator: Allocator = defaultAllocator) throws
-        {
+                    allocator: Allocator = defaultAllocator) throws {
             rawValue = allocatePointer()
             var passwordCursor = password.newByteCursor()
             if aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,
@@ -63,8 +59,7 @@ public final class TlsContextOptions {
     public func overrideDefaultTrustStore(caPath: String, caFile: String) throws {
         if aws_tls_ctx_options_override_default_trust_store_from_path(rawValue,
                                                                       caPath,
-                                                                      caFile) != AWS_OP_SUCCESS
-        {
+                                                                      caFile) != AWS_OP_SUCCESS {
             throw AWSCommonRuntimeError()
         }
     }
@@ -77,8 +72,7 @@ public final class TlsContextOptions {
 
     public func setAlpnList(_ alpnList: String?) throws {
         if let alpnList = alpnList,
-           aws_tls_ctx_options_set_alpn_list(rawValue, alpnList) != AWS_OP_SUCCESS
-        {
+           aws_tls_ctx_options_set_alpn_list(rawValue, alpnList) != AWS_OP_SUCCESS {
             throw AWSCommonRuntimeError()
         }
     }

@@ -46,8 +46,7 @@ public class MqttConnection {
          socketOptions: SocketOptions,
          useWebSockets: Bool,
          tlsContext: TlsContext? = nil,
-         allocator: Allocator = defaultAllocator)
-    {
+         allocator: Allocator = defaultAllocator) {
         self.allocator = allocator
         self.clientPointer = clientPointer
         self.port = port
@@ -137,8 +136,7 @@ public class MqttConnection {
     public func connect(clientId: String,
                         cleanSession: Bool,
                         keepAliveTime: Int16,
-                        requestTimeoutMs: Int32) -> Bool
-    {
+                        requestTimeoutMs: Int32) -> Bool {
         var mqttOptions = aws_mqtt_connection_options()
         mqttOptions.host_name = host.awsByteCursor
         mqttOptions.port = UInt16(port)
@@ -201,8 +199,7 @@ public class MqttConnection {
             if let proxyOptions = proxyOptions {
                 var pOptions = aws_http_proxy_options()
                 if let username = proxyOptions.basicAuthUsername?.awsByteCursor,
-                   let password = proxyOptions.basicAuthPassword?.awsByteCursor
-                {
+                   let password = proxyOptions.basicAuthPassword?.awsByteCursor {
                     pOptions.auth_username = username
                     pOptions.auth_password = password
                 }
@@ -276,8 +273,7 @@ public class MqttConnection {
     public func subscribe(topicFilter: String,
                           qos: MqttQos,
                           onPublishReceived: @escaping OnPublishReceived,
-                          onSubAck: @escaping OnSubAck) -> UInt16
-    {
+                          onSubAck: @escaping OnSubAck) -> UInt16 {
         let pubCallbackData = PubCallbackData(onPublishReceived: onPublishReceived, mqttConnection: self)
         let pubCallbackPtr: UnsafeMutablePointer<PubCallbackData> = fromPointer(ptr: pubCallbackData)
         let subAckCallbackData = SubAckCallbackData(onSubAck: onSubAck, connection: self, topic: nil)
@@ -320,8 +316,7 @@ public class MqttConnection {
     ///   - onMultiSubAck: Called when a SUBACK has been received from the server and the subscription is complete
     /// - Returns: The packet id of the subscribe packet if successfully sent, otherwise 0.
     public func subscribe(topicFilters: [String],
-                          onMultiSubAck: @escaping OnMultiSubAck) -> UInt16
-    {
+                          onMultiSubAck: @escaping OnMultiSubAck) -> UInt16 {
         let subAckCallbackData = MultiSubAckCallbackData(onMultiSubAck: onMultiSubAck,
                                                          connection: self,
                                                          topics: topicFilters)
@@ -396,8 +391,7 @@ public class MqttConnection {
                         qos: MqttQos,
                         retain: Bool,
                         payload: Data,
-                        onComplete: @escaping OnOperationComplete) -> UInt16
-    {
+                        onComplete: @escaping OnOperationComplete) -> UInt16 {
         let opCallbackData = OpCompleteCallbackData(topic: topic,
                                                     connection: self,
                                                     onOperationComplete: onComplete)
