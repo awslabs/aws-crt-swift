@@ -68,10 +68,9 @@ public class MqttConnection {
 
             let pointer = userData.assumingMemoryBound(to: MqttConnection.self)
 
-            let error = AWSError(errorCode: errorCode)
+            let error = CRTError(errorCode: errorCode)
 
-            pointer.pointee.onConnectionInterrupted(pointer.pointee.rawValue,
-                                                    CRTError.crtError(error))
+            pointer.pointee.onConnectionInterrupted(pointer.pointee.rawValue, error)
 
         }, nativePointer, { (_, connectReturnCode, sessionPresent, userData) in
             guard let userData = userData else {
@@ -165,9 +164,9 @@ public class MqttConnection {
                 callbackPtr.deinitializeAndDeallocate()
             }
 
-            let error = AWSError(errorCode: errorCode)
+            let error = CRTError(errorCode: errorCode)
             callbackPtr.pointee.onConnectionComplete(callbackPtr.pointee.rawValue,
-                                                     CRTError.crtError(error),
+                                                     error,
                                                      MqttReturnCode(rawValue: returnCode),
                                                      sessionPresent)
         }
@@ -184,9 +183,7 @@ public class MqttConnection {
                     let ptr = userData.assumingMemoryBound(to: MqttConnection.self)
 
                     let onInterceptComplete: OnWebSocketHandshakeInterceptComplete = {request, crtError in
-                        if case let CRTError.crtError(error) = crtError {
-                            completeFn!(httpRequest, error.errorCode, completeUserData)
-                        }
+                        completeFn!(httpRequest, crtError.errorCode, completeUserData)
                     }
                     defer { ptr.deinitializeAndDeallocate()}
                     //can unwrap here with ! because we know its not nil at this point
@@ -302,12 +299,12 @@ public class MqttConnection {
             }
             let ptr = userData.assumingMemoryBound(to: SubAckCallbackData.self)
 
-            let error = AWSError(errorCode: errorCode)
+            let error = CRTError(errorCode: errorCode)
             ptr.pointee.onSubAck(ptr.pointee.connection,
                                  Int16(packetId),
                                  topic,
                                  MqttQos(rawValue: qos),
-                                 CRTError.crtError(error))
+                                 error)
         }, subAckCallbackPtr)
 
         return packetId
@@ -347,11 +344,11 @@ public class MqttConnection {
                 let swiftString = pointer.assumingMemoryBound(to: String.self)
                 topics.append(swiftString.pointee)
             }
-            let error = AWSError(errorCode: errorCode)
+            let error = CRTError(errorCode: errorCode)
             ptr.pointee.onMultiSubAck(ptr.pointee.connection,
                                       Int16(packetId),
                                       topics,
-                                      CRTError.crtError(error))
+                                      error)
         }, subAckCallbackPtr)
 
         return packetId
@@ -374,10 +371,10 @@ public class MqttConnection {
             }
             let ptr = userData.assumingMemoryBound(to: OpCompleteCallbackData.self)
 
-            let error = AWSError(errorCode: errorCode)
+            let error = CRTError(errorCode: errorCode)
             ptr.pointee.onOperationComplete(ptr.pointee.connection,
                                             Int16(packetId),
-                                            CRTError.crtError(error))
+                                            error)
         }, opCallbackPtr)
         return packetId
     }
@@ -413,10 +410,10 @@ public class MqttConnection {
             }
             let ptr = userData.assumingMemoryBound(to: OpCompleteCallbackData.self)
 
-            let error = AWSError(errorCode: errorCode)
+            let error = CRTError(errorCode: errorCode)
             ptr.pointee.onOperationComplete(ptr.pointee.connection,
                                             Int16(packetId),
-                                            CRTError.crtError(error))
+                                            error)
         }, opCallbackPtr)
 
         return packetId

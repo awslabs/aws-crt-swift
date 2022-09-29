@@ -320,9 +320,7 @@ struct Elasticurl {
             }
 
             let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
-                if case let CRTError.crtError(unwrappedError) = error {
-                    print(unwrappedError.errorMessage ?? "no error message")
-                }
+                print(error.errorMessage ?? "no error message")
 
                 semaphore.signal()
             }
