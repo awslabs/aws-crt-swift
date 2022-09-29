@@ -54,12 +54,11 @@ public final class CRTAWSRetryStrategy {
             }
             let pointer = userdata.assumingMemoryBound(to: CRTAcquireTokenCallbackData.self)
             defer {pointer.deinitializeAndDeallocate()}
-            let error = CRTError(errorCode: errorCode)
             if let continuation = pointer.pointee.continuation {
                 if errorCode == 0 {
                     continuation.resume(returning: CRTAWSRetryToken(rawValue: token))
                 } else {
-                    continuation.resume(throwing: error)
+                    continuation.resume(throwing: CRTError(errorCode: errorCode))
                 }
             }
         }, pointer, timeout)
@@ -82,12 +81,11 @@ public final class CRTAWSRetryStrategy {
             }
             let pointer = userdata.assumingMemoryBound(to: CRTScheduleRetryCallbackData.self)
             defer { pointer.deinitializeAndDeallocate()}
-            let error = CRTError(errorCode: errorCode)
             if let continuation = pointer.pointee.continuation {
                 if errorCode == 0 {
                     continuation.resume(returning: CRTAWSRetryToken(rawValue: retryToken))
                 } else {
-                    continuation.resume(throwing: error)
+                    continuation.resume(throwing: CRTError(errorCode: errorCode))
                 }
             }
         }, pointer)

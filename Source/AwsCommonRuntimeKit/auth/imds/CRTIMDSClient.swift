@@ -199,13 +199,12 @@ public class CRTIMDSClient {
             }
             let pointer = userData.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
 
-            let error = CRTError(errorCode: errorCode)
             if errorCode == 0,
                let credentialsPointer = credentialsPointer,
                let crtCredentials = CRTCredentials(rawValue: credentialsPointer) {
                 pointer.pointee.continuation?.resume(returning: crtCredentials)
             } else {
-                pointer.pointee.continuation?.resume(throwing: error)
+                pointer.pointee.continuation?.resume(throwing: CRTError(errorCode: errorCode))
             }
             pointer.deinitializeAndDeallocate()
         }, pointer)
@@ -221,9 +220,8 @@ public class CRTIMDSClient {
                     return
                 }
                 let pointer = userData.assumingMemoryBound(to: CRTIMDSClientIAMProfileCallbackData.self)
-                let error = CRTError(errorCode: errorCode)
                 guard let profilePointer = profilePointer else {
-                    pointer.pointee.continuation?.resume(throwing: error)
+                    pointer.pointee.continuation?.resume(throwing: CRTError(errorCode: errorCode))
                     pointer.deinitializeAndDeallocate()
                     return
                 }
@@ -266,9 +264,8 @@ public class CRTIMDSClient {
                     return
                 }
                 let pointer = userData.assumingMemoryBound(to: CRTIMDSClientInstanceCallbackData.self)
-                let error = CRTError(errorCode: errorCode)
                 guard let instancePointer = instancePointer else {
-                    pointer.pointee.continuation?.resume(throwing: error)
+                    pointer.pointee.continuation?.resume(throwing: CRTError(errorCode: errorCode))
                     pointer.deinitializeAndDeallocate()
                     return
                 }
@@ -307,10 +304,9 @@ private func resourceCallback(_ byteBuf: UnsafePointer<aws_byte_buf>?,
     }
 
     let pointer = userData.assumingMemoryBound(to: CRTIMDSClientResourceCallbackData.self)
-    let error = CRTError(errorCode: errorCode)
     guard let byteBuf = byteBuf else {
 
-        pointer.pointee.continuation?.resume(throwing: error)
+        pointer.pointee.continuation?.resume(throwing: CRTError(errorCode: errorCode))
         pointer.deinitializeAndDeallocate()
         return
     }
@@ -327,9 +323,8 @@ private func arrayCallback(_ arrayListPointer: UnsafePointer<aws_array_list>?,
         return
     }
     let pointer = userData.assumingMemoryBound(to: CRTIMDSClientArrayCallbackData.self)
-    let error = CRTError(errorCode: errorCode)
-    if error.errorCode != 0 {
-        pointer.pointee.continuation?.resume(throwing: error)
+    if errorCode != 0 {
+        pointer.pointee.continuation?.resume(throwing: CRTError(errorCode: errorCode))
     }
     let amiIds = arrayListPointer?.pointee.toStringArray()
 

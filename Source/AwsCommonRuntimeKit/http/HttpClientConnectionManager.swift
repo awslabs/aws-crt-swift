@@ -72,8 +72,7 @@ public class HttpClientConnectionManager {
             let callbackData = userData.assumingMemoryBound(to: HttpClientConnectionCallbackData.self)
             defer {callbackData.deinitializeAndDeallocate()}
             guard let connection = connection else {
-                let error = CRTError(errorCode: errorCode)
-                callbackData.pointee.continuation.resume(throwing: error)
+                callbackData.pointee.continuation.resume(throwing: CRTError(errorCode: errorCode))
                 return
             }
             let httpConnection = HttpClientConnection(manager: callbackData.pointee.connectionManager,

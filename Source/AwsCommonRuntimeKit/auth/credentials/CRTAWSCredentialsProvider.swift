@@ -295,14 +295,13 @@ public final class CRTAWSCredentialsProvider {
             }
             let pointer = userdata.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
             defer { pointer.deinitializeAndDeallocate() }
-            let error = CRTError(errorCode: errorCode)
 
             if errorCode == 0,
                let credentials = credentials,
                let crtCredentials = CRTCredentials(rawValue: credentials) {
                 pointer.pointee.continuation?.resume(returning: crtCredentials)
             } else {
-                pointer.pointee.continuation?.resume(throwing: error)
+                pointer.pointee.continuation?.resume(throwing: CRTError(errorCode: errorCode))
             }
 
         }, pointer)
@@ -344,8 +343,8 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer?,
         do {
             let credentials = try await credentialsProvider.pointee.getCredentials()
             callbackFn?(credentials.rawValue, 0, callbackPointer)
-        } catch let error as CRTError {
-            callbackFn?(nil, error.errorCode, callbackPointer)
+        } catch let crtError as CRTError {
+            callbackFn?(nil, crtError.errorCode, callbackPointer)
         } catch {} //TODO: handle other errors
     }
     return 0

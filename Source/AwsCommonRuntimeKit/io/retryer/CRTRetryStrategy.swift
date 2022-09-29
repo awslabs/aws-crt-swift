@@ -32,8 +32,8 @@ private func acquireRetryToken(_ retryStrategy: UnsafeMutablePointer<aws_retry_s
         do {
             let result = try await retryStrategySwift.pointee.acquireRetryToken(partitionId: partitionId?.pointee.toString() ?? "")
             callbackFn?(retryStrategy, 0, result.rawValue, callbackPointer)
-        } catch let error as CRTError {
-                callbackFn?(retryStrategy, error.errorCode, nil, callbackPointer)
+        } catch let crtError as CRTError {
+                callbackFn?(retryStrategy, crtError.errorCode, nil, callbackPointer)
         } catch {} //TODO: handle other errors
     }
 
@@ -60,8 +60,8 @@ private func scheduleRetry(_ token: UnsafeMutablePointer<aws_retry_token>?,
             _ = try await retryStrategy.pointee.scheduleRetry(token: CRTAWSRetryToken(rawValue: token),
                                                                             errorType: CRTRetryError(rawValue: errorType))
             callbackFn?(token, 0, callbackPointer)
-        } catch let error as CRTError {
-            callbackFn?(token, error.errorCode, callbackPointer)
+        } catch let crtError as CRTError {
+            callbackFn?(token, crtError.errorCode, callbackPointer)
         } catch {} //TODO: handle other errors
     }
 
