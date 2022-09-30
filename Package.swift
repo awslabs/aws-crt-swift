@@ -116,7 +116,6 @@ var awsCCompressionPlatformExcludes = ["source/huffman_generator/", "CODE_OF_CON
 var awsCHttpPlatformExcludes = ["bin", "integration-testing", "include/aws/http/private",
                                 "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt", "codebuild/linux-integration-tests.yml"] + excludesFromAll
 let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
-let awsCMqttPlatformExcludes = ["bin", "CODE_OF_CONDUCT.md"] + excludesFromAll
 
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
 let cSettings: [CSetting] = [
@@ -186,18 +185,8 @@ packageTargets.append(contentsOf: [
         cSettings: cSettings
     ),
     .target(
-        name: "AwsCMqtt",
-        dependencies: ["AwsCHttp", "AwsCCompression", "AwsCIo", "AwsCCal", "AwsCCommon"],
-        path: "aws-common-runtime/aws-c-mqtt",
-        exclude: awsCMqttPlatformExcludes,
-        cSettings: cSettings + [
-            .define("AWS_MQTT_WITH_WEBSOCKETS")
-        ]
-    ),
-    .target(
         name: "AwsCommonRuntimeKit",
-        dependencies: [ "AwsCMqtt",
-                        "AwsCAuth",
+        dependencies: [ "AwsCAuth",
                         "AwsCHttp",
                         "AwsCCal",
                         "AwsCCompression",
