@@ -27,7 +27,7 @@ public final class CRTAWSCredentialsProvider {
                                                                 delegate_user_data: credProviderPtr)
 
         guard let credProvider = aws_credentials_provider_new_delegate(allocator.rawValue, &options) else {
-            throw AWSCommonRuntimeError() }
+            throw CRTError(errorCode: aws_last_error()) }
         self.init(credentialsProvider: credProvider, allocator: allocator)
     }
 
@@ -49,7 +49,7 @@ public final class CRTAWSCredentialsProvider {
         }
 
         guard let provider = aws_credentials_provider_new_static(allocator.rawValue,
-                                                                 &staticOptions) else { throw AWSCommonRuntimeError() }
+                                                                 &staticOptions) else { throw CRTError(errorCode: aws_last_error()) }
 
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -70,7 +70,7 @@ public final class CRTAWSCredentialsProvider {
 
         guard let provider = aws_credentials_provider_new_environment(allocator.rawValue,
                                                                       &envOptions)
-        else { throw AWSCommonRuntimeError() }
+        else { throw CRTError(errorCode: aws_last_error()) }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 
@@ -99,7 +99,7 @@ public final class CRTAWSCredentialsProvider {
 
         guard let provider = aws_credentials_provider_new_profile(allocator.rawValue,
                                                                   &profileOptionsC) else {
-            throw AWSCommonRuntimeError()
+            throw CRTError(errorCode: aws_last_error())
 
         }
 
@@ -120,7 +120,7 @@ public final class CRTAWSCredentialsProvider {
             shutDownOptions: imdsConfig.shutdownOptions)
 
         guard let provider = aws_credentials_provider_new_imds(allocator.rawValue,
-                                                               &imdsOptions) else {throw AWSCommonRuntimeError() }
+                                                               &imdsOptions) else {throw CRTError(errorCode: aws_last_error()) }
 
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -141,7 +141,7 @@ public final class CRTAWSCredentialsProvider {
         cachedOptions.refresh_time_in_milliseconds = UInt64(cachedConfig.refreshTime)
 
         guard let provider = aws_credentials_provider_new_cached(allocator.rawValue, &cachedOptions) else {
-            throw AWSCommonRuntimeError()
+            throw CRTError(errorCode: aws_last_error())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -168,7 +168,7 @@ public final class CRTAWSCredentialsProvider {
 
         guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue,
                                                                         &chainDefaultOptions) else {
-            throw AWSCommonRuntimeError()
+            throw CRTError(errorCode: aws_last_error())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -196,7 +196,7 @@ public final class CRTAWSCredentialsProvider {
 
         guard let provider = aws_credentials_provider_new_x509(allocator.rawValue,
                                                                &x509Options) else {
-            throw AWSCommonRuntimeError()
+            throw CRTError(errorCode: aws_last_error())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -217,7 +217,7 @@ public final class CRTAWSCredentialsProvider {
         stsOptions.function_table = nil
         guard let provider = aws_credentials_provider_new_sts_web_identity(allocator.rawValue,
                                                                            &stsOptions) else {
-            throw AWSCommonRuntimeError()
+            throw CRTError(errorCode: aws_last_error())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -242,7 +242,7 @@ public final class CRTAWSCredentialsProvider {
         stsOptions.system_clock_fn = nil
 
         guard let provider = aws_credentials_provider_new_sts(allocator.rawValue, &stsOptions) else {
-            throw AWSCommonRuntimeError()
+            throw CRTError(errorCode: aws_last_error())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -271,7 +271,7 @@ public final class CRTAWSCredentialsProvider {
         ecsOptions.function_table = nil
 
         guard let provider = aws_credentials_provider_new_ecs(allocator.rawValue, &ecsOptions) else {
-            throw AWSCommonRuntimeError()
+            throw CRTError(errorCode: aws_last_error())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -295,14 +295,13 @@ public final class CRTAWSCredentialsProvider {
             }
             let pointer = userdata.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
             defer { pointer.deinitializeAndDeallocate() }
-            let error = AWSError(errorCode: errorCode)
 
             if errorCode == 0,
                let credentials = credentials,
                let crtCredentials = CRTCredentials(rawValue: credentials) {
                 pointer.pointee.continuation?.resume(returning: crtCredentials)
             } else {
-                pointer.pointee.continuation?.resume(throwing: CRTError.crtError(error))
+                pointer.pointee.continuation?.resume(throwing: CRTError(errorCode: errorCode))
             }
 
         }, pointer)
@@ -344,11 +343,9 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer?,
         do {
             let credentials = try await credentialsProvider.pointee.getCredentials()
             callbackFn?(credentials.rawValue, 0, callbackPointer)
-        } catch let err {
-            if case let CRTError.crtError(crtError) = err {
-                callbackFn?(nil, crtError.errorCode, callbackPointer)
-            }
-        }
+        } catch let crtError as CRTError {
+            callbackFn?(nil, crtError.errorCode, callbackPointer)
+        } catch {} //TODO: handle other errors
     }
     return 0
 }
