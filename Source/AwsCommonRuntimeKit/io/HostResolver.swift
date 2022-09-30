@@ -98,8 +98,7 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!
     if errorCode == 0 {
         options.pointee.continuation.resume(returning: addresses)
     } else {
-        let error = AWSError(errorCode: errorCode)
-        options.pointee.continuation.resume(throwing: CRTError.crtError(error))
+        options.pointee.continuation.resume(throwing: CRTError(errorCode: errorCode))
     }
     options.deinitializeAndDeallocate()
 }

@@ -101,12 +101,11 @@ public class HttpClientConnection {
                 return
             }
             let httpStreamCbData = userData.assumingMemoryBound(to: HttpStreamCallbackData.self)
-            let error = AWSError(errorCode: errorCode)
             guard let stream = httpStreamCbData.pointee.stream,
                   let onStreamCompleteFn = httpStreamCbData.pointee.requestOptions.onStreamComplete else {
                       return
                   }
-            onStreamCompleteFn(stream, CRTError.crtError(error))
+            onStreamCompleteFn(stream, CRTError(errorCode: errorCode))
         }
 
         let cbData = HttpStreamCallbackData(requestOptions: requestOptions)
