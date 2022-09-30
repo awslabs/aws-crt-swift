@@ -6,22 +6,13 @@ public struct CRTError: Error {
 
     public let errorCode: Int32
 
-    public let errorMessage: String?
+    public let errorMessage: String
 
-    public let errorName: String?
+    public let errorName: String
 
     public init(errorCode: Int32) {
         self.errorCode = errorCode
-        if let stringPtr = aws_error_str(errorCode) {
-            self.errorMessage = String(cString: stringPtr)
-        } else {
-            self.errorMessage = nil
-        }
-        if let stringPtr = aws_error_name(errorCode) {
-            self.errorName = String(cString: stringPtr)
-        } else {
-            self.errorName = nil
-        }
-
+        self.errorMessage = String(cString: aws_error_str(errorCode))
+        self.errorName = String(cString: aws_error_name(errorCode))
     }
 }
