@@ -22,7 +22,7 @@ public final class TlsConnectionOptions {
 
 	public func setAlpnList(_ alpnList: String) throws {
 		if aws_tls_connection_options_set_alpn_list(rawValue, self.allocator.rawValue, alpnList) != AWS_OP_SUCCESS {
-			throw AWSCommonRuntimeError()
+			throw CRTError(errorCode: aws_last_error())
 		}
 	}
 
@@ -31,7 +31,7 @@ public final class TlsConnectionOptions {
 		if aws_tls_connection_options_set_server_name(rawValue,
                                                       self.allocator.rawValue,
                                                       &byteCur.rawValue) != AWS_OP_SUCCESS {
-			throw AWSCommonRuntimeError()
+			throw CRTError(errorCode: aws_last_error())
 		}
 	}
 
