@@ -35,6 +35,8 @@ opening_brace: error
 return_arrow_whitespace: error
 statement_position:
   severity: error
+#TODO: enable this after refactoring
+#TODO: warning
 trailing_semicolon: error
 file_length:
   warning: 500
