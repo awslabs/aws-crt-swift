@@ -10,7 +10,7 @@ public struct HttpHeader {
 
     }
     public var value: String {
-            return rawValue.value.toString() ?? ""
+        return rawValue.value.toString() ?? ""
 
     }
     public var compression: HttpHeaderCompression {
@@ -20,8 +20,10 @@ public struct HttpHeader {
     init(name: String,
          value: String,
          compression: HttpHeaderCompression = .useCache) {
-        self.rawValue = aws_http_header(name: name.awsByteCursor,
-                                        value: value.awsByteCursor,
-                                        compression: compression.rawValue)
+        self.rawValue = withByteCursorFromStrings(name, value) { name, value in
+            aws_http_header(name: name,
+                    value: value,
+                    compression: compression.rawValue)
+        }
     }
 }
