@@ -17,14 +17,11 @@ extension CRTError {
         }
     }
 
-    public var errorMessage: String? {
-            guard let stringPtr = aws_error_str(rawValue) else {
-                return nil
-            }
-            return String(cString: stringPtr)
+    public var errorMessage: String {
+            return String(cString: aws_error_str(rawValue))
     }
 
-    public var errorName: String? {
+    public var errorName: String {
         return String(describing: self)
     }
 }
