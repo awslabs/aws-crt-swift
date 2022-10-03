@@ -5,6 +5,7 @@
 
 import AwsCCommon
 
+/// Error type for CRT errors thrown from C code
 public enum CRTError: Int32, Error {
 
     case UNKNOWN_ERROR_CODE = -1

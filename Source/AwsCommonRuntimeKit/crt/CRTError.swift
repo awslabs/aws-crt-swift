@@ -11,6 +11,11 @@ extension CRTError {
         self = CRTError(rawValue: Int32(errorCode)) ?? .UNKNOWN_ERROR_CODE
     }
 
+    /// Use aws_last_error() as the error code
+    public init() {
+        self.init(fromErrorCode: aws_last_error())
+    }
+
     public var errorCode: Int32 {
         rawValue
     }

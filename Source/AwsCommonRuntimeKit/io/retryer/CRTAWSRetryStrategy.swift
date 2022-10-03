@@ -34,7 +34,7 @@ public final class CRTAWSRetryStrategy {
         guard let retryer = aws_retry_strategy_new_standard(
                 allocator.rawValue,
                 &options) else {
-                throw AWSCommonRuntimeError.CRTError(CRTError(fromErrorCode: aws_last_error()))}
+                throw AWSCommonRuntimeError.CRTError(CRTError())}
 
         self.init(retryStrategy: retryer, allocator: allocator)
     }

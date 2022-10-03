@@ -45,6 +45,7 @@ struct CRTErrorGenerator {
 
         outputStream.writeln("import AwsCCommon")
         outputStream.writeln()
+        outputStream.writeln("/// Error type for CRT errors thrown from C code")
         outputStream.writeln("public enum CRTError: Int32, Error {")
 
         /// Range is in Hexadecimal.
