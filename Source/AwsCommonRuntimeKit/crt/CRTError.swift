@@ -1,18 +1,32 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+////  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+////  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
 
-public struct CRTError: Error {
+extension CRTError {
+    public init(fromErrorCode errorCode: Int32) {
+        self = CRTError(rawValue: errorCode) ?? .UNKNOWN_ERROR_CODE
+    }
 
-    public let errorCode: Int32
+    public init(fromErrorCode errorCode: Int) {
+        self = CRTError(rawValue: Int32(errorCode)) ?? .UNKNOWN_ERROR_CODE
+    }
 
-    public let errorMessage: String
+    public var errorCode: Int32 {
+        get {
+            rawValue
+        }
+    }
 
-    public let errorName: String
+    public var errorMessage: String? {
+        get {
+            guard let stringPtr = aws_error_str(rawValue) else {
+                return nil
+            }
+            return String(cString: stringPtr)
+        }
+    }
 
-    public init(errorCode: Int32) {
-        self.errorCode = errorCode
-        self.errorMessage = String(cString: aws_error_str(errorCode))
-        self.errorName = String(cString: aws_error_name(errorCode))
+    public var errorName: String? {
+        return String(describing: self)
     }
 }

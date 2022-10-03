@@ -10,7 +10,8 @@ var package = Package(name: "AwsCrt",
                       platforms: [.iOS(.v13), .macOS(.v10_15), .tvOS(.v13), .watchOS(.v6)],
                       products: [
                         .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
-                        .executable(name: "Elasticurl", targets: ["Elasticurl"])
+                        .executable(name: "Elasticurl", targets: ["Elasticurl"]),
+                        .executable(name: "CRTErrorGenerator", targets: ["CRTErrorGenerator"]),
                       ],
                       dependencies: [.package(url: "https://github.com/apple/swift-collections", from: "1.0.2")]
 )
@@ -216,6 +217,16 @@ packageTargets.append(contentsOf: [
 //            .unsafeFlags(["-g"]),
 //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
+    ),
+    .executableTarget(
+            name: "CRTErrorGenerator",
+            dependencies: ["AwsCommonRuntimeKit"],
+            path: "Source/Script",
+            swiftSettings: [
+//            .unsafeFlags(["-g"]),
+//            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+            ]
     )
+
 ] )
 package.targets = packageTargets

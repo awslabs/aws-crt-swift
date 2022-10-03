@@ -320,7 +320,7 @@ struct Elasticurl {
             }
 
             let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
-                print(error.errorMessage)
+                print(error)
 
                 semaphore.signal()
             }
