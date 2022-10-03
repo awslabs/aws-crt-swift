@@ -12,13 +12,11 @@ extension CRTError {
     }
 
     public var errorCode: Int32 {
-        get {
-            rawValue
-        }
+        rawValue
     }
 
     public var errorMessage: String {
-            return String(cString: aws_error_str(rawValue))
+        return String(cString: aws_error_str(rawValue))
     }
 
     public var errorName: String {

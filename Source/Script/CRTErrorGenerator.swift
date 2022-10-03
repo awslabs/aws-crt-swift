@@ -60,8 +60,7 @@ struct CRTErrorGenerator {
         outputStream.writeln()
         outputStream.writeTab()
         outputStream.writeln("case UNKNOWN_ERROR_CODE = -1")
-
-
+        
         for (repoName, startRange, endRange) in repoNameAndRange {
             outputStream.writeln()
             outputStream.writeTab()
