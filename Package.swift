@@ -222,10 +222,7 @@ packageTargets.append(contentsOf: [
             name: "CRTErrorGenerator",
             dependencies: ["AwsCommonRuntimeKit"],
             path: "Source/Script",
-            swiftSettings: [
-//            .unsafeFlags(["-g"]),
-//            .unsafeFlags(["-Onone"], .when(configuration: .debug))
-            ]
+            swiftSettings: []
     )
 
 ] )
