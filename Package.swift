@@ -224,6 +224,5 @@ packageTargets.append(contentsOf: [
             path: "Source/Script",
             swiftSettings: []
     )
-
 ] )
 package.targets = packageTargets
