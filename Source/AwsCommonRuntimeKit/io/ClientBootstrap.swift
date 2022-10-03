@@ -31,7 +31,7 @@ public final class ClientBootstrap {
             user_data: callbackDataPointer
         )
         guard let rawValue = aws_client_bootstrap_new(allocator.rawValue, &options) else {
-            throw AWSCommonRuntimeError.CRTError(CRTError.init(fromErrorCode: aws_last_error()))
+            throw AWSCommonRuntimeError.CRTError(CRTError(fromErrorCode: aws_last_error()))
         }
 
         self.rawValue = rawValue

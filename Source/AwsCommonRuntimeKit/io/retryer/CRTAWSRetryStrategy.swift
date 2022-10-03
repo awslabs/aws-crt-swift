@@ -34,7 +34,7 @@ public final class CRTAWSRetryStrategy {
         guard let retryer = aws_retry_strategy_new_standard(
                 allocator.rawValue,
                 &options) else {
-                throw AWSCommonRuntimeError.CRTError(CRTError.init(fromErrorCode: aws_last_error()))}
+                throw AWSCommonRuntimeError.CRTError(CRTError(fromErrorCode: aws_last_error()))}
 
         self.init(retryStrategy: retryer, allocator: allocator)
     }
@@ -61,7 +61,7 @@ public final class CRTAWSRetryStrategy {
                 if errorCode == 0 {
                     continuation.resume(returning: CRTAWSRetryToken(rawValue: token))
                 } else {
-                    continuation.resume(throwing: AWSCommonRuntimeError.CRTError(CRTError.init(fromErrorCode: errorCode)))
+                    continuation.resume(throwing: AWSCommonRuntimeError.CRTError(CRTError(fromErrorCode: errorCode)))
                 }
             }
         }, pointer, timeout)
@@ -88,7 +88,7 @@ public final class CRTAWSRetryStrategy {
                 if errorCode == 0 {
                     continuation.resume(returning: CRTAWSRetryToken(rawValue: retryToken))
                 } else {
-                    continuation.resume(throwing: AWSCommonRuntimeError.CRTError(CRTError.init(fromErrorCode: errorCode)))
+                    continuation.resume(throwing: AWSCommonRuntimeError.CRTError(CRTError(fromErrorCode: errorCode)))
                 }
             }
         }, pointer)
