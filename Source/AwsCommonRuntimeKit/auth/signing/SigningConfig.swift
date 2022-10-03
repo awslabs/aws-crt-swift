@@ -46,33 +46,37 @@ public struct SigningConfig {
         self.signatureType = signatureType
         self.signingAlgorithm = signingAlgorithm
         self.configType = configType
-        self.rawValue = aws_signing_config_aws(config_type: configType.rawValue,
-                                               algorithm: signingAlgorithm.rawValue,
-                                               signature_type: signatureType.rawValue,
-                                               region: region.awsByteCursor,
-                                               service: service.awsByteCursor,
-                                               date: date.rawValue.pointee,
-                                               should_sign_header: { (name, userData) -> Bool in
-                                                guard let userData = userData,
-                                                      let name = name?.pointee.toString() else {
-                                                    return true
-                                                }
 
-                                                let callback = userData.assumingMemoryBound(to: ShouldSignHeader?.self)
+        self.rawValue = withByteCursorFromStrings(region, service, signedBodyValue.rawValue) { regionCursor, serviceCursor, signedBodyValueCursor in
+            aws_signing_config_aws(
+                    config_type: configType.rawValue,
+                    algorithm: signingAlgorithm.rawValue,
+                    signature_type: signatureType.rawValue,
+                    region: regionCursor,
+                    service: serviceCursor,
+                    date: date.rawValue.pointee,
+                    should_sign_header: { (name, userData) -> Bool in
+                        guard let userData = userData,
+                              let name = name?.pointee.toString() else {
+                            return true
+                        }
 
-                                                if let callbackFn = callback.pointee {
-                                                    return callbackFn(name)
-                                                } else {
-                                                    return true
-                                                }
-                                               },
-                                               should_sign_header_ud: fromOptionalPointer(ptr: shouldSignHeader),
-                                               flags: flags.rawValue,
-                                               signed_body_value: signedBodyValue.rawValue.awsByteCursor,
-                                               signed_body_header: signedBodyHeader.rawValue,
-                                               credentials: credentials?.rawValue,
-                                               credentials_provider: credentialsProvider?.rawValue,
-                                               expiration_in_seconds: UInt64(expiration))
+                        let callback = userData.assumingMemoryBound(to: ShouldSignHeader?.self)
+
+                        if let callbackFn = callback.pointee {
+                            return callbackFn(name)
+                        } else {
+                            return true
+                        }
+                    },
+                    should_sign_header_ud: fromOptionalPointer(ptr: shouldSignHeader),
+                    flags: flags.rawValue,
+                    signed_body_value: signedBodyValueCursor,
+                    signed_body_header: signedBodyHeader.rawValue,
+                    credentials: credentials?.rawValue,
+                    credentials_provider: credentialsProvider?.rawValue,
+                    expiration_in_seconds: UInt64(expiration))
+        }
     }
 }
 

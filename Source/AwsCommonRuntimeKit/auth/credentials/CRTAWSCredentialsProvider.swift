@@ -42,15 +42,17 @@ public final class CRTAWSCredentialsProvider {
         var staticOptions = aws_credentials_provider_static_options()
         staticOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
             shutDownOptions: config.shutDownOptions)
-        staticOptions.access_key_id = config.accessKey.awsByteCursor
-        staticOptions.secret_access_key = config.secret.awsByteCursor
-        if let sessionToken = config.sessionToken?.awsByteCursor {
-            staticOptions.session_token = sessionToken
+        let provider = withByteCursorFromStrings(config.accessKey, config.secret, config.sessionToken ?? "") { accessKeyCursor, secretCursor, sessionTokenCursor in
+            staticOptions.access_key_id = accessKeyCursor
+            staticOptions.secret_access_key = secretCursor
+            if let sessionToken = config.sessionToken {
+                staticOptions.session_token = sessionTokenCursor
+            }
+
+            guard let provider = aws_credentials_provider_new_static(allocator.rawValue,
+                    &staticOptions) else { throw CRTError(errorCode: aws_last_error()) }
+            return provider
         }
-
-        guard let provider = aws_credentials_provider_new_static(allocator.rawValue,
-                                                                 &staticOptions) else { throw CRTError(errorCode: aws_last_error()) }
-
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 

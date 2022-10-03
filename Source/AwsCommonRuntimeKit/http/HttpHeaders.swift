@@ -26,9 +26,9 @@ public final class HttpHeaders {
     ///   - value: The `HttpHeader value.
     /// - Returns: `Bool`: True on success
     public func add(name: String, value: String) -> Bool {
-        let nameByteCursor = name.awsByteCursor
-        let valueByteCursor = value.awsByteCursor
-        return aws_http_headers_add(self.rawValue, nameByteCursor, valueByteCursor) == AWS_OP_SUCCESS
+        return withByteCursorFromStrings(name, value) { nameCursor, valueCursor in
+            aws_http_headers_add(self.rawValue, nameByteCursor, valueByteCursor)
+        } == AWS_OP_SUCCESS
     }
 
     /// Appends an array of `HttpHeaders` into the c instance of headers.
