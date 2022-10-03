@@ -4,4 +4,3 @@
 public enum AWSCommonRuntimeError: Error {
     case CRTError(CRTError)
 }
-

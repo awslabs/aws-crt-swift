@@ -1,5 +1,5 @@
-////  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-////  SPDX-License-Identifier: Apache-2.0.
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
 
 extension CRTError {
@@ -18,12 +18,10 @@ extension CRTError {
     }
 
     public var errorMessage: String? {
-        get {
             guard let stringPtr = aws_error_str(rawValue) else {
                 return nil
             }
             return String(cString: stringPtr)
-        }
     }
 
     public var errorName: String? {

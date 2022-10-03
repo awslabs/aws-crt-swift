@@ -11,7 +11,7 @@ var package = Package(name: "AwsCrt",
                       products: [
                         .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
                         .executable(name: "Elasticurl", targets: ["Elasticurl"]),
-                        .executable(name: "CRTErrorGenerator", targets: ["CRTErrorGenerator"]),
+                        .executable(name: "CRTErrorGenerator", targets: ["CRTErrorGenerator"])
                       ],
                       dependencies: [.package(url: "https://github.com/apple/swift-collections", from: "1.0.2")]
 )

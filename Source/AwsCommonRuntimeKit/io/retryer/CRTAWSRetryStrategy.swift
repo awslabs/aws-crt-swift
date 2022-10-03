@@ -31,7 +31,10 @@ public final class CRTAWSRetryStrategy {
         var options = aws_standard_retry_options(backoff_retry_options: exponentialBackOffOptions,
                                                  initial_bucket_capacity: options.initialBucketCapacity)
 
-        guard let retryer = aws_retry_strategy_new_standard(allocator.rawValue, &options) else {throw AWSCommonRuntimeError.CRTError(CRTError.init(fromErrorCode: aws_last_error()))}
+        guard let retryer = aws_retry_strategy_new_standard(
+                allocator.rawValue,
+                &options) else {
+                throw AWSCommonRuntimeError.CRTError(CRTError.init(fromErrorCode: aws_last_error()))}
 
         self.init(retryStrategy: retryer, allocator: allocator)
     }

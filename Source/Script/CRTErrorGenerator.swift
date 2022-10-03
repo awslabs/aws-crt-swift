@@ -30,7 +30,6 @@ struct CRTErrorGenerator {
         return outputStream
     }
 
-
     static func main() {
 
         let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
@@ -38,10 +37,10 @@ struct CRTErrorGenerator {
         AwsCommonRuntimeKit.initialize(allocator: allocator)
         let outputStream = createFile()
         /// Generate Header
-        outputStream.writeln("/// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.")
-        outputStream.writeln("/// SPDX-License-Identifier: Apache-2.0.")
-        outputStream.writeln("/// This file is generated using Script/CRTErrorGenerator.swift.")
-        outputStream.writeln("/// Do not modify this file.")
+        outputStream.writeln("// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.")
+        outputStream.writeln("// SPDX-License-Identifier: Apache-2.0.")
+        outputStream.writeln("// This file is generated using Script/CRTErrorGenerator.swift.")
+        outputStream.writeln("// Do not modify this file.")
         outputStream.writeln()
 
         outputStream.writeln("import AwsCCommon")
@@ -56,7 +55,7 @@ struct CRTErrorGenerator {
                                 ("AWS-C-EVENTSTREAM", "1000", "1400"),
                                 ("AWS-C-AUTH", "1800", "1C00"),
                                 ("AWS-C-CAL", "1C00", "2000"),
-                                ("AWS-C-SDKUTILS", "3C00", "4000"),
+                                ("AWS-C-SDKUTILS", "3C00", "4000")
         ]
         outputStream.writeln()
         outputStream.writeTab()
@@ -75,7 +74,6 @@ struct CRTErrorGenerator {
                 }
             }
         }
-
 
         outputStream.writeln("}")
         AwsCommonRuntimeKit.cleanUp()

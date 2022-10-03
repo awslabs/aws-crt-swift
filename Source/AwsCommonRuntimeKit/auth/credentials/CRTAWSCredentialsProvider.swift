@@ -48,8 +48,10 @@ public final class CRTAWSCredentialsProvider {
             staticOptions.session_token = sessionToken
         }
 
-        guard let provider = aws_credentials_provider_new_static(allocator.rawValue,
-                                                                 &staticOptions) else { throw AWSCommonRuntimeError.CRTError(CRTError.init(fromErrorCode: aws_last_error())) }
+        guard let provider = aws_credentials_provider_new_static(
+                allocator.rawValue,
+                &staticOptions) else {
+                throw AWSCommonRuntimeError.CRTError(CRTError.init(fromErrorCode: aws_last_error()))}
 
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -119,8 +121,10 @@ public final class CRTAWSCredentialsProvider {
         imdsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
             shutDownOptions: imdsConfig.shutdownOptions)
 
-        guard let provider = aws_credentials_provider_new_imds(allocator.rawValue,
-                                                               &imdsOptions) else {throw AWSCommonRuntimeError.CRTError(CRTError.init(fromErrorCode: aws_last_error())) }
+        guard let provider = aws_credentials_provider_new_imds(
+                allocator.rawValue,
+                &imdsOptions) else {
+                throw AWSCommonRuntimeError.CRTError(CRTError.init(fromErrorCode: aws_last_error()))}
 
         self.init(credentialsProvider: provider, allocator: allocator)
     }
