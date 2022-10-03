@@ -72,7 +72,7 @@ public class HttpClientConnectionManager {
             let callbackData = userData.assumingMemoryBound(to: HttpClientConnectionCallbackData.self)
             defer {callbackData.deinitializeAndDeallocate()}
             guard let connection = connection else {
-                callbackData.pointee.continuation.resume(throwing: AWSCommonRuntimeError.CRTError(CRTError(fromErrorCode: errorCode)))
+                callbackData.pointee.continuation.resume(throwing: AWSCommonRuntimeError.AWSCRTError(CRTError(fromErrorCode: errorCode)))
                 return
             }
             let httpConnection = HttpClientConnection(manager: callbackData.pointee.connectionManager,

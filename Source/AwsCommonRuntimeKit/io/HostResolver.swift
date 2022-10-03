@@ -96,7 +96,7 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!
     if errorCode == 0 {
         options.pointee.continuation.resume(returning: addresses)
     } else {
-        options.pointee.continuation.resume(throwing: AWSCommonRuntimeError.CRTError(CRTError(fromErrorCode: errorCode)))
+        options.pointee.continuation.resume(throwing: AWSCommonRuntimeError.AWSCRTError(CRTError(fromErrorCode: errorCode)))
     }
     options.deinitializeAndDeallocate()
 }

@@ -3,5 +3,7 @@
 
 /// Error type for all errors thrown by the Swift code including C runtime errors
 public enum AWSCommonRuntimeError: Error {
-    case CRTError(CRTError)
+
+    /// Use aws_last_error() as the error code if no value is provided
+    case AWSCRTError(_ crtError: CRTError = CRTError())
 }

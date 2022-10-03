@@ -34,11 +34,11 @@ public class SigV4HttpRequestSigner {
     public func signRequest(request: HttpRequest, config: SigningConfig) async throws -> HttpRequest {
         typealias SignedContinuation = CheckedContinuation<HttpRequest, Error>
         if config.configType != .aws {
-            throw AWSCommonRuntimeError.CRTError(CRTError())
+            throw AWSCommonRuntimeError.AWSCRTError()
         }
 
         if config.rawValue.credentials_provider == nil && config.rawValue.credentials == nil {
-            throw AWSCommonRuntimeError.CRTError(CRTError())
+            throw AWSCommonRuntimeError.AWSCRTError()
         }
 
         return try await withCheckedThrowingContinuation { (continuation: SignedContinuation) in
@@ -91,10 +91,10 @@ public class SigV4HttpRequestSigner {
                         continuation.resume(returning: callback.pointee.request)
                     } else {
 
-                        continuation.resume(throwing: AWSCommonRuntimeError.CRTError(CRTError(fromErrorCode: signedRequest)))
+                        continuation.resume(throwing: AWSCommonRuntimeError.AWSCRTError(CRTError(fromErrorCode: signedRequest)))
                     }
                 } else {
-                    continuation.resume(throwing: AWSCommonRuntimeError.CRTError(CRTError(fromErrorCode: errorCode)))
+                    continuation.resume(throwing: AWSCommonRuntimeError.AWSCRTError(CRTError(fromErrorCode: errorCode)))
                 }
             }
 

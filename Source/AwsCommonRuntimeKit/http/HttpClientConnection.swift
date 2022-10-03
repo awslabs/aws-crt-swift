@@ -105,7 +105,7 @@ public class HttpClientConnection {
                   let onStreamCompleteFn = httpStreamCbData.pointee.requestOptions.onStreamComplete else {
                       return
                   }
-            onStreamCompleteFn(stream, AWSCommonRuntimeError.CRTError(CRTError(fromErrorCode: errorCode)))
+            onStreamCompleteFn(stream, AWSCommonRuntimeError.AWSCRTError(CRTError(fromErrorCode: errorCode)))
         }
 
         let cbData = HttpStreamCallbackData(requestOptions: requestOptions)
