@@ -16,7 +16,7 @@ public final class TlsContext {
             context = aws_tls_server_ctx_new(allocator.rawValue, options.rawValue)
         }
         guard let rawValue = context else {
-            throw AWSCommonRuntimeError.AWSCRTError()
+            throw AWSCommonRuntimeError.AWSCRTError(CRTError.makeFromLastError())
         }
         self.allocator = allocator
         self.rawValue = rawValue

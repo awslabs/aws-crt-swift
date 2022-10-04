@@ -5,5 +5,5 @@
 public enum AWSCommonRuntimeError: Error {
 
     /// Use aws_last_error() as the error code if no value is provided
-    case AWSCRTError(_ crtError: CRTError = CRTError())
+    case AWSCRTError(CRTError)
 }

@@ -34,11 +34,11 @@ public class SigV4HttpRequestSigner {
     public func signRequest(request: HttpRequest, config: SigningConfig) async throws -> HttpRequest {
         typealias SignedContinuation = CheckedContinuation<HttpRequest, Error>
         if config.configType != .aws {
-            throw AWSCommonRuntimeError.AWSCRTError()
+            throw AWSCommonRuntimeError.AWSCRTError(CRTError.makeFromLastError())
         }
 
         if config.rawValue.credentials_provider == nil && config.rawValue.credentials == nil {
-            throw AWSCommonRuntimeError.AWSCRTError()
+            throw AWSCommonRuntimeError.AWSCRTError(CRTError.makeFromLastError())
         }
 
         return try await withCheckedThrowingContinuation { (continuation: SignedContinuation) in
