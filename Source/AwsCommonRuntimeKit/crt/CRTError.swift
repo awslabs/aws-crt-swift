@@ -4,11 +4,11 @@ import AwsCCommon
 
 extension CRTError {
     public init(fromErrorCode errorCode: Int32) {
-        self = CRTError(rawValue: errorCode) ?? .UNKNOWN_ERROR_CODE
+        self = CRTError(rawValue: errorCode) ?? .unknownErrorCode
     }
 
     public init(fromErrorCode errorCode: Int) {
-        self = CRTError(rawValue: Int32(errorCode)) ?? .UNKNOWN_ERROR_CODE
+        self = CRTError(rawValue: Int32(errorCode)) ?? .unknownErrorCode
     }
 
     public static func makeFromLastError() -> CRTError {

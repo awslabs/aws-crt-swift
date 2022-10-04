@@ -18,16 +18,46 @@ extension FileHandle {
     }
 }
 
+extension String {
+    var uppercasingFirst: String {
+        return prefix(1).uppercased() + dropFirst()
+    }
+
+    var lowercasingFirst: String {
+        return prefix(1).lowercased() + dropFirst()
+    }
+
+    var camelized: String {
+        guard !isEmpty else {
+            return ""
+        }
+        let parts = self.components(separatedBy: "_")
+        let first = String(describing: parts.first!).lowercasingFirst
+        let rest = parts.dropFirst().map({String($0).uppercasingFirst})
+        return ([first] + rest).joined(separator: "")
+    }
+}
+
 @main
 struct CRTErrorGenerator {
 
-    static func createFile() -> FileHandle {
+    private static func createFile() -> FileHandle {
         let fileManager = FileManager.default
         let fileName = "CRTErrorGenerated.swift"
         let path = FileManager.default.currentDirectoryPath + "/Source/AwsCommonRuntimeKit/crt/" + fileName
         fileManager.createFile(atPath: path, contents: nil, attributes: nil)
         let outputStream = FileHandle(forWritingAtPath: path) ?? FileHandle.standardOutput
         return outputStream
+    }
+
+    private static func transformErrorName(_ errorName: String) -> String {
+        var errorNameReplaced = errorName.replacingOccurrences(of: "AWS_", with: "")
+        errorNameReplaced = errorNameReplaced.replacingOccurrences(of: "ERROR_", with: "")
+        errorNameReplaced = errorNameReplaced.replacingOccurrences(of: "COND", with: "CONDITION")
+        errorNameReplaced = errorNameReplaced.replacingOccurrences(of: "HASHTBL", with: "HASH_TABLE")
+        errorNameReplaced = errorNameReplaced.replacingOccurrences(of: "INTERUPTED", with: "INTERRUPTED")
+        errorNameReplaced = errorNameReplaced.lowercased().camelized
+        return errorNameReplaced
     }
 
     static func main() {
@@ -60,7 +90,7 @@ struct CRTErrorGenerator {
         ]
         outputStream.writeln()
         outputStream.writeTab()
-        outputStream.writeln("case UNKNOWN_ERROR_CODE = -1")
+        outputStream.writeln("case unknownErrorCode = -1")
         for (repoName, startRange, endRange) in repoNameAndRange {
             outputStream.writeln()
             outputStream.writeTab()
@@ -69,7 +99,7 @@ struct CRTErrorGenerator {
                 let errorName = String(cString: aws_error_name(Int32(errorCode)))
                 if errorName != "Unknown Error Code" {
                     outputStream.writeTab()
-                    outputStream.writeln("case \(errorName) = \(errorCode)")
+                    outputStream.writeln("case \(transformErrorName(errorName)) = \(errorCode)")
                 }
             }
         }
