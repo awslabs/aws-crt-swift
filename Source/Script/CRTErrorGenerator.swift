@@ -79,7 +79,7 @@ struct CRTErrorGenerator {
         outputStream.writeln("public enum CRTError: Int32, Error {")
 
         /// Range is in Hexadecimal.
-        let repoNameAndRange = [("AWS-C-COMMON", "0000", "0400"),
+        let repoNameAndRange = [("AWS-C-COMMON", "0001", "0400"),
                                 ("AWS-C-IO", "0400", "0800"),
                                 ("AWS-C-HTTP", "0800", "0C00"),
                                 ("AWS-C-COMPRESSION", "0C00", "1000"),

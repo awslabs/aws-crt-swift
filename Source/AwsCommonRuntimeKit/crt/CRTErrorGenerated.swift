@@ -11,7 +11,6 @@ public enum CRTError: Int32, Error {
     case unknownErrorCode = -1
 
     /// AWS-C-COMMON
-    case success = 0
     case oom = 1
     case noSpace = 2
     case unknown = 3
