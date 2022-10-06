@@ -36,6 +36,11 @@ extension String {
         let rest = parts.dropFirst().map({String($0).uppercasingFirst})
         return ([first] + rest).joined(separator: "")
     }
+
+    func replacingFirstOccurrence(of target: String, with replacement: String) -> String {
+        guard let range = self.range(of: target) else { return self }
+        return self.replacingCharacters(in: range, with: replacement)
+    }
 }
 
 @main
@@ -51,17 +56,24 @@ struct CRTErrorGenerator {
     }
 
     private static func transformErrorName(_ errorName: String) -> String {
-        var errorNameReplaced = errorName.replacingOccurrences(of: "AWS_", with: "")
-        errorNameReplaced = errorNameReplaced.replacingOccurrences(of: "ERROR_", with: "")
-        errorNameReplaced = errorNameReplaced.replacingOccurrences(of: "COND", with: "CONDITION")
-        errorNameReplaced = errorNameReplaced.replacingOccurrences(of: "HASHTBL", with: "HASH_TABLE")
-        errorNameReplaced = errorNameReplaced.replacingOccurrences(of: "INTERUPTED", with: "INTERRUPTED")
+        var errorNameReplaced = errorName.replacingOccurrences(of: "ERROR_ERROR", with: "ERROR")
+        errorNameReplaced = errorNameReplaced.replacingFirstOccurrence(of: "_ERROR_", with: "_")
+        errorNameReplaced = errorNameReplaced.replacingOccurrences(of: "_COND_", with: "_CONDITION_")
+        errorNameReplaced = errorNameReplaced.replacingOccurrences(of: "_HASHTBL_", with: "_HASH_TABLE_")
+        errorNameReplaced = errorNameReplaced.replacingOccurrences(of: "_INTERUPTED", with: "_INTERRUPTED")
+        errorNameReplaced = errorNameReplaced.replacingOccurrences(of: "^AWS_", with: "", options: .regularExpression)
         errorNameReplaced = errorNameReplaced.lowercased().camelized
+
+        // Special cases
+        if errorNameReplaced == "oom" {
+            return "outOfMemory"
+        }
+
         return errorNameReplaced
     }
 
     static func main() {
-
+        print(transformErrorName("STRAWS_ASD"))
         let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
 
         AwsCommonRuntimeKit.initialize(allocator: allocator)
@@ -97,8 +109,9 @@ struct CRTErrorGenerator {
             outputStream.writeln("/// \(repoName)")
             for errorCode in Int32(startRange, radix: 16)! ..< Int32(endRange, radix: 16)! {
                 let errorName = String(cString: aws_error_name(Int32(errorCode)))
-                if errorName != "Unknown Error Code" {
+                if (errorName != "Unknown Error Code" && errorName != "DEPRECATED_AWS_IO_INVALID_FILE_HANDLE") {
                     outputStream.writeTab()
+                    print("\(errorName)  -->  \(transformErrorName(errorName))")
                     outputStream.writeln("case \(transformErrorName(errorName)) = \(errorCode)")
                 }
             }

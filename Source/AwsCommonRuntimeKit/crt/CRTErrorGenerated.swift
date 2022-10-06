@@ -11,7 +11,7 @@ public enum CRTError: Int32, Error {
     case unknownErrorCode = -1
 
     /// AWS-C-COMMON
-    case oom = 1
+    case outOfMemory = 1
     case noSpace = 2
     case unknown = 3
     case shortBuffer = 4
@@ -33,7 +33,7 @@ public enum CRTError: Int32, Error {
     case mutexFailed = 20
     case conditionVariableInitFailed = 21
     case conditionVariableTimedOut = 22
-    case conditionVariableUnknown = 23
+    case conditionVariableErrorUnknown = 23
     case clockFailure = 24
     case listEmpty = 25
     case destCopyTooSmall = 26
@@ -106,7 +106,6 @@ public enum CRTError: Int32, Error {
     case ioDnsHostRemovedFromCache = 1061
     case ioStreamInvalidSeekPosition = 1062
     case ioStreamReadFailed = 1063
-    case deprecatedIoInvalidFileHandle = 1064
     case ioSharedLibraryLoadFailure = 1065
     case ioSharedLibraryFindSymbolFailure = 1066
     case ioTlsNegotiationTimeout = 1067
