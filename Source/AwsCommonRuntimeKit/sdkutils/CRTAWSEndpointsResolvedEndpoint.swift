@@ -49,7 +49,7 @@ public class CRTAWSEndpointResolvedEndpoint {
         guard let data = propsOut.pointee.toString()?.data(using: .utf8) else {
             return nil
         }
-        return try? JSONSerialization.jsonObject(with: data) as? [String: AnyHashable]
+        return try JSONSerialization.jsonObject(with: data) as? [String: AnyHashable]
     }
     
     
