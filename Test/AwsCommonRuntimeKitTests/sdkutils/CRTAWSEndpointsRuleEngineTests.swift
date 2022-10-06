@@ -79,4 +79,28 @@ class CRTAWSEndpointsRuleEngineTests: CrtXCBaseTestCase {
         XCTAssertNotNil(url)
         XCTAssertEqual("https://example.us-west-2.amazonaws.com", url!)
     }
+    
+    func testRuleSetParsingPerformance() {
+        measure {
+            _ = try! CRTAWSEndpointsRuleEngine(ruleSetString: ruleSetString)
+        }
+    }
+    
+    func testRuleSetEvaluationPerformance() {
+        let engine = try! CRTAWSEndpointsRuleEngine(ruleSetString: ruleSetString)
+        let context = try! CRTAWSEndpointsRequestContext()
+        try! context.add(name: "Region", value: "us-west-2")
+        measure {
+            let _ = try! engine.resolve(context: context)
+        }
+    }
+    
+    func testResolvePerformance() {
+        measure {
+            let engine = try! CRTAWSEndpointsRuleEngine(ruleSetString: ruleSetString)
+            let context = try! CRTAWSEndpointsRequestContext()
+            try! context.add(name: "Region", value: "us-west-2")
+            let _ = try! engine.resolve(context: context)
+        }
+    }
 }
