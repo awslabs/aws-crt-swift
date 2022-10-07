@@ -8,7 +8,7 @@ import XCTest
  #endif
 @testable import AwsCommonRuntimeKit
 
-class FutureTests: XCTestCase {
+class FutureTests: CrtXCBaseTestCase {
 
     func testFuture() throws {
         let future = Future<String>(value: .success("test"))
