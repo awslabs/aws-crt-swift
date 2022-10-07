@@ -17,6 +17,7 @@ public class HttpClientConnectionManager {
         self.allocator = allocator
         let shutDownPtr: UnsafeMutablePointer<ShutDownCallbackOptions>? = fromOptionalPointer(ptr: options.shutDownOptions)
         //Todo: add new http2 options as properties in HttpClientConnectionOptions
+
         self.manager = options.hostName.withByteCursor { hostName in
             var mgrOptions = aws_http_connection_manager_options(bootstrap: options.clientBootstrap.rawValue,
                     initial_window_size: options.initialWindowSize,
