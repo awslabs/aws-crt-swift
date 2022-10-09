@@ -10,33 +10,32 @@ public final class TlsConnectionOptions {
 	init(_ context: TlsContext, allocator: Allocator) {
 		self.allocator = allocator
 
-        var connectionsPointer: UnsafeMutablePointer<aws_tls_connection_options> = allocatePointer()
-		aws_tls_connection_options_init_from_ctx(connectionsPointer, context.rawValue)
+        self.rawValue = allocator.allocate(capacity: 1)
+		aws_tls_connection_options_init_from_ctx(rawValue, context.rawValue)
         #if os(iOS) || os(watchOS)
-        connectionsPointer.pointee.timeout_ms = 30_000
+		rawValue.pointee.timeout_ms = 30_000
         #else
-        connectionsPointer.pointee.timeout_ms = 3_000
+		rawValue.pointee.timeout_ms = 3_000
         #endif
-        self.rawValue = connectionsPointer
-	}
+    }
 
 	public func setAlpnList(_ alpnList: String) throws {
 		if aws_tls_connection_options_set_alpn_list(rawValue, self.allocator.rawValue, alpnList) != AWS_OP_SUCCESS {
-			throw CRTError(errorCode: aws_last_error())
+			throw CommonRunTimeError.crtError(.makeFromLastError())
 		}
 	}
 
 	public func setServerName(_ serverName: String) throws {
-		var byteCur = serverName.newByteCursor()
-		if aws_tls_connection_options_set_server_name(rawValue,
-                                                      self.allocator.rawValue,
-                                                      &byteCur.rawValue) != AWS_OP_SUCCESS {
-			throw CRTError(errorCode: aws_last_error())
-		}
+		if (serverName.withByteCursorPointer { serverNameCursorPointer in
+			aws_tls_connection_options_set_server_name(rawValue,
+                                                       self.allocator.rawValue,
+					                                   serverNameCursorPointer)
+		}) != AWS_OP_SUCCESS {
+			throw CommonRunTimeError.crtError(.makeFromLastError())		}
 	}
 
     deinit {
         aws_tls_connection_options_clean_up(rawValue)
-        rawValue.deallocate()
+        allocator.release(rawValue)
     }
 }

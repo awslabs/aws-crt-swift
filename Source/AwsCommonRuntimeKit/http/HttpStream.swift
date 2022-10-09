@@ -1,19 +1,11 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
-
+//TODO: tests?
 public class HttpStream {
     var httpStream: UnsafeMutablePointer<aws_http_stream>?
 
     public let httpConnection: HttpClientConnection
-
-    /// Retrieves the Http Response Status Code
-    /// - Returns: The status code as `Int32`
-    public var statusCode: Int32 {
-        var status: Int32 = 0
-        aws_http_stream_get_incoming_response_status(httpStream, &status)
-        return status
-    }
 
     init(httpConnection: HttpClientConnection) {
         self.httpConnection = httpConnection
@@ -29,9 +21,21 @@ public class HttpStream {
         aws_http_stream_update_window(httpStream, incrementBy)
     }
 
+    /// Retrieves the Http Response Status Code
+    /// - Returns: The status code as `Int32`
+    public func statusCode() throws -> Int {
+        var status: Int32 = 0
+        if aws_http_stream_get_incoming_response_status(httpStream, &status) != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+        return Int(status)
+    }
+
     ///Activates the client stream.
-    public func activate() {
-        aws_http_stream_activate(httpStream)
+    public func activate() throws {
+        if aws_http_stream_activate(httpStream) != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
     }
 
     deinit {

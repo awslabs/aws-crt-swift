@@ -10,12 +10,15 @@ public final class HttpHeaders {
         return aws_http_headers_count(self.rawValue)
     }
 
-    public init(allocator: Allocator = defaultAllocator) {
-        self.rawValue = aws_http_headers_new(allocator.rawValue)
+    public init(allocator: Allocator = defaultAllocator) throws {
+        guard let rawValue = aws_http_headers_new(allocator.rawValue) else {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+        self.rawValue = rawValue
     }
 
-    convenience init(allocator: Allocator = defaultAllocator, fromArray: [HttpHeader]) {
-        self.init(allocator: allocator)
+    convenience init(allocator: Allocator = defaultAllocator, fromArray: [HttpHeader]) throws {
+        try self.init(allocator: allocator)
         addArray(headers: fromArray)
     }
 
@@ -27,7 +30,7 @@ public final class HttpHeaders {
     /// - Returns: `Bool`: True on success
     public func add(name: String, value: String) -> Bool {
         return withByteCursorFromStrings(name, value) { nameCursor, valueCursor in
-            aws_http_headers_add(self.rawValue, nameByteCursor, valueByteCursor)
+            aws_http_headers_add(self.rawValue, nameCursor, valueCursor)
         } == AWS_OP_SUCCESS
     }
 
@@ -35,6 +38,7 @@ public final class HttpHeaders {
     ///
     /// - Parameters:
     ///   - headers: The array of `HttpHeader` .
+    /// TODO: handle error
     public func addArray(headers: [HttpHeader]) {
         for header in headers {
             _ = add(name: header.name, value: header.value)
@@ -55,36 +59,52 @@ public final class HttpHeaders {
     /// - Returns: `Bool`: True on success
     public func update(_ header: HttpHeader) -> Bool {
         //this function in c will update the header if it exists or create a new one if it's new.
-        let name = header.name.awsByteCursor
-        let value = header.value.awsByteCursor
-        return aws_http_headers_set(self.rawValue,
-                                    name,
-                                    value) == AWS_OP_SUCCESS
-
+        return withByteCursorFromStrings(header.name, header.value) { nameCursor, valueCursor in
+            aws_http_headers_set(self.rawValue, nameCursor, valueCursor)
+        } == AWS_OP_SUCCESS
     }
 
-    /// Gets a header by name from the  `aws_http_headers` instance
+    /// Gets a header by name from the `aws_http_headers` instance
     ///
     /// - Parameter name: The name of the header to get.
     /// - Returns: `String?`: The value of the Header
+    /// TODO: confirm my understanding
     public func get(name: String) -> String? {
         var value = aws_byte_cursor()
-        let nameByteCursor = name.awsByteCursor
-        if aws_http_headers_get(self.rawValue, nameByteCursor, &value) != AWS_OP_SUCCESS {
+        if name.withByteCursor ({ nameCursor in
+            aws_http_headers_get(self.rawValue, nameCursor, &value)
+        }) != AWS_OP_SUCCESS {
             return nil
         }
         return value.toString()
     }
 
+    /// Gets a header by name from the `aws_http_headers` instance
+    ///
+    /// - Parameter name: The name of the header to get.
+    /// - Returns: `String?`: The value of the Header
+    func get(index: Int) -> HttpHeader? {
+        var header = aws_http_header()
+        if aws_http_headers_get_index(self.rawValue, index, &header) == AWS_OP_SUCCESS {
+            if let name = header.name.toString(), let value = header.value.toString() {
+                return HttpHeader(name: name, value: value)
+            }
+        }
+        return nil
+    }
+
     /// Gets all headers from the `aws_http_headers` instance
     ///
     /// - Returns:`[HttpHeader]`: The array of headers saved
+    /// TODO: confirm what to do in error case
     public func getAll() -> [HttpHeader] {
         var headers = [HttpHeader]()
         for index in 0...count {
-            var header = HttpHeader(name: "", value: "")
-            if aws_http_headers_get_index(self.rawValue, index, &header.rawValue) == AWS_OP_SUCCESS {
-                headers.append(header)
+            var header = aws_http_header()
+            if aws_http_headers_get_index(self.rawValue, index, &header) == AWS_OP_SUCCESS {
+                if let name = header.name.toString(), let value = header.value.toString() {
+                    headers.append(HttpHeader(name: name, value: value))
+                }
             } else {
                 continue
             }
@@ -97,8 +117,9 @@ public final class HttpHeaders {
     /// - Parameter name: The name of the `HttpHeader` to remove.
     /// - Returns: `Bool`: True on success
     public func remove(name: String) -> Bool {
-        let nameByteCursor = name.awsByteCursor
-        return aws_http_headers_erase(self.rawValue, nameByteCursor) == AWS_OP_SUCCESS
+        return name.withByteCursor { nameCursor in
+            aws_http_headers_erase(self.rawValue, nameCursor)
+        } == AWS_OP_SUCCESS
     }
 
     /// Removes all headers from the array

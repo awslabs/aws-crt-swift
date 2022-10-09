@@ -4,15 +4,21 @@ import AwsCCommon
 
 public struct CRTError: Error {
 
-    public let errorCode: Int32
+    public let code: Int32
 
-    public let errorMessage: String
+    public let message: String
 
-    public let errorName: String
+    public let name: String
 
     public init(errorCode: Int32) {
-        self.errorCode = errorCode
-        self.errorMessage = String(cString: aws_error_str(errorCode))
-        self.errorName = String(cString: aws_error_name(errorCode))
+        self.code = errorCode
+        self.message = String(cString: aws_error_str(errorCode))
+        self.name = String(cString: aws_error_name(errorCode))
     }
+
+
+    public static func makeFromLastError() -> CRTError{
+        return CRTError(errorCode: aws_last_error())
+    }
+
 }

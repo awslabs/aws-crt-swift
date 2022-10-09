@@ -72,7 +72,7 @@ public final class DefaultHostResolver: HostResolver {
         if (aws_host_resolver_resolve_host(rawValue,
                                        options.host.rawValue,
                                        onHostResolved, config, pointer)) != AWS_OP_SUCCESS {
-            continuation.resume(throwing: CRTError.crtError(AWSError(errorCode: aws_last_error())))
+            continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
         }
     }
 }

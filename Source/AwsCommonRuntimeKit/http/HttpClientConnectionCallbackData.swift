@@ -3,7 +3,7 @@
 
 typealias ConnectionContinuation = CheckedContinuation<HttpClientConnection, Error>
 typealias ConnectionCallback = (HttpClientConnection) -> Void
-struct HttpClientConnectionCallbackData {
+class HttpClientConnectionCallbackData {
     let connectionManager: HttpClientConnectionManager
     let allocator: Allocator
     let continuation: ConnectionContinuation

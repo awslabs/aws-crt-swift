@@ -23,18 +23,19 @@ public class HttpClientConnection {
     }
 
     /// Close the http connection
-    public func close() {
-        manager.releaseConnection(connection: self)
+    public func close() throws {
+        try manager.releaseConnection(connection: self)
     }
 
     /// Creates a new http stream from the `HttpRequestOptions` given.
     /// - Parameter requestOptions: An `HttpRequestOptions` struct containing callbacks on
     /// the different events from the stream
     /// - Returns: An `HttpStream` containing the `HttpClientConnection`
-    public func makeRequest(requestOptions: HttpRequestOptions) -> HttpStream {
+    public func makeRequest(requestOptions: HttpRequestOptions) throws -> HttpStream {
         var options = aws_http_make_request_options()
         options.self_size = MemoryLayout<aws_http_make_request_options>.size
         options.request = requestOptions.request.rawValue
+        //TODO: where is return value used? change to AWS_OP_SUCCESS and Error
         options.on_response_body = {_, data, userData -> Int32 in
 
             guard let userData = userData else {
@@ -50,6 +51,7 @@ public class HttpClientConnection {
                       return -1
                   }
 
+            //TODO: who deallocates this data?
             let callbackBytes = Data(bytesNoCopy: bufPtr, count: bufLen, deallocator: .none)
 
             incomingBodyFn(stream, callbackBytes)
@@ -72,7 +74,8 @@ public class HttpClientConnection {
                 }
 
             }
-            let headersStruct = HttpHeaders(fromArray: headers)
+            //Todo: fix
+            let headersStruct = try! HttpHeaders(fromArray: headers)
 
             guard let stream = httpStreamCbData.pointee.stream else {
                 return -1
@@ -115,9 +118,14 @@ public class HttpClientConnection {
         cbData.stream = stream
         stream.httpStream = aws_http_connection_make_request(rawValue, &options)
 
+        if stream.httpStream == nil {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+
         return stream
     }
 
+    //TODO: discuss two release functions
     deinit {
         aws_http_connection_release(rawValue)
     }

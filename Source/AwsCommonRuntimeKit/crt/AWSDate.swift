@@ -51,7 +51,7 @@ public class AWSDate: Comparable {
         self.rawValue = allocatePointer()
         aws_date_time_init_epoch_millis(rawValue, epochMs)
     }
-
+    //Todo: this is being used
     public init(epochS: Double) {
         self.rawValue = allocatePointer()
         aws_date_time_init_epoch_secs(rawValue, epochS)
@@ -60,7 +60,7 @@ public class AWSDate: Comparable {
     public init(timestamp: String) {
         self.rawValue = allocatePointer()
         //Todo: handle error
-        timestamp.withByteCursorPointer { timeStampCursorPointer in
+        _ = timestamp.withByteCursorPointer { timeStampCursorPointer in
             aws_date_time_init_from_str_cursor(rawValue, timeStampCursorPointer, DateFormat.autoDetect.rawValue)
         }
     }

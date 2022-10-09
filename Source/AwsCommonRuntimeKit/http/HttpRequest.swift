@@ -2,23 +2,21 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
 import AwsCIo
-
+import AwsCCommon
 public final class HttpRequest: HttpMessage {
-    init(message: OpaquePointer) {
-        super.init(borrowingMessage: message)
+
+    public override init(allocator: Allocator = defaultAllocator) throws {
+        try super.init(allocator: allocator)
     }
 
-    public init(allocator: Allocator = defaultAllocator) {
-        super.init(owningMessage: aws_http_message_new_request(allocator.rawValue))
-    }
-
-    public init(allocator: Allocator = defaultAllocator, headers: HttpHeaders) {
-        super.init(owningMessage: aws_http_message_new_request_with_headers(allocator.rawValue, headers.rawValue))
+    public init(allocator: Allocator = defaultAllocator, headers: HttpHeaders) throws {
+        try super.init(rawValue: aws_http_message_new_request_with_headers(allocator.rawValue, headers.rawValue), allocator: allocator)
     }
 
     public var method: String? {
         get {
             var result = aws_byte_cursor()
+
             if aws_http_message_get_request_method(self.rawValue, &result) != AWS_OP_SUCCESS {
                 return nil
             }
@@ -26,7 +24,9 @@ public final class HttpRequest: HttpMessage {
         }
         set(value) {
             guard let value = value else { return }
-            if aws_http_message_set_request_method(self.rawValue, value.awsByteCursor) != AWS_OP_SUCCESS {
+            if value.withByteCursor { valueCursor in
+                aws_http_message_set_request_method(self.rawValue, valueCursor)
+            } != AWS_OP_SUCCESS {
                 self.method = nil
             }
         }
@@ -41,8 +41,9 @@ public final class HttpRequest: HttpMessage {
             return result.toString()
         }
         set(value) {
-            if aws_http_message_set_request_path(self.rawValue,
-                                                 value?.awsByteCursor ?? "".awsByteCursor) != AWS_OP_SUCCESS {
+            if (value ?? "").withByteCursor { valueCursor in
+                aws_http_message_set_request_path(self.rawValue, valueCursor)
+            } != AWS_OP_SUCCESS {
                 self.path = nil
             }
         }

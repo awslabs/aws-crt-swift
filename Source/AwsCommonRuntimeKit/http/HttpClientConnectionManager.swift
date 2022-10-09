@@ -7,18 +7,20 @@ typealias OnConnectionAcquired =  (HttpClientConnection?, Int32) -> Void
 
 public class HttpClientConnectionManager {
 
+    //TODO: why are we using this queue and can we get rid of it?
     var queue: Deque<HttpClientConnection> = Deque<HttpClientConnection>()
-    let manager: OpaquePointer
+    let manager: OpaquePointer?
     let allocator: Allocator
     let options: HttpClientConnectionOptions
 
-    public init(options: HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) {
+    public init(options: HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) throws {
         self.options = options
         self.allocator = allocator
+        //Todo: fix shutdown options
         let shutDownPtr: UnsafeMutablePointer<ShutDownCallbackOptions>? = fromOptionalPointer(ptr: options.shutDownOptions)
-        //Todo: add new http2 options as properties in HttpClientConnectionOptions
 
         self.manager = options.hostName.withByteCursor { hostName in
+
             var mgrOptions = aws_http_connection_manager_options(bootstrap: options.clientBootstrap.rawValue,
                     initial_window_size: options.initialWindowSize,
                     socket_options: options.socketOptions.rawValue,
@@ -50,8 +52,11 @@ public class HttpClientConnectionManager {
                     },
                     enable_read_back_pressure: options.enableManualWindowManagement,
                     max_connection_idle_in_milliseconds: options.maxConnectionIdleMs)
-
             return aws_http_connection_manager_new(allocator.rawValue, &mgrOptions)
+        }
+
+        if self.manager == nil {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
         }
     }
 
@@ -68,33 +73,31 @@ public class HttpClientConnectionManager {
                                                             allocator: allocator) { [weak self] connection in
                                                             self?.queue.append(connection)
         }
-        let cbData: UnsafeMutablePointer<HttpClientConnectionCallbackData> = fromPointer(ptr: callbackData)
 
         aws_http_connection_manager_acquire_connection(manager, { (connection, errorCode, userData) in
             guard let userData = userData else {
                 return
             }
-            let callbackData = userData.assumingMemoryBound(to: HttpClientConnectionCallbackData.self)
-            defer {callbackData.deinitializeAndDeallocate()}
+            let callbackData = Unmanaged<HttpClientConnectionCallbackData>.fromOpaque(userData).takeRetainedValue()
             guard let connection = connection else {
-                callbackData.pointee.continuation.resume(throwing: CRTError(errorCode: errorCode))
+                callbackData.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(errorCode: errorCode)))
                 return
             }
-            let httpConnection = HttpClientConnection(manager: callbackData.pointee.connectionManager,
+            let httpConnection = HttpClientConnection(manager: callbackData.connectionManager,
                                                       connection: connection)
-            if let connectionCallback = callbackData.pointee.connectionCallback {
+            if let connectionCallback = callbackData.connectionCallback {
                 connectionCallback(httpConnection)
             }
-
-            callbackData.pointee.continuation.resume(returning: httpConnection)
+            callbackData.continuation.resume(returning: httpConnection)
         },
-        cbData)
+        Unmanaged.passRetained(callbackData).toOpaque())
     }
 
+    //TODO: maybe not crashing and try to close all the connections?
     public func closePendingConnections() {
         while !queue.isEmpty {
             if let clientConnection = queue.popFirst() {
-                clientConnection.close()
+                try? clientConnection.close()
             }
         }
     }
@@ -104,8 +107,10 @@ public class HttpClientConnectionManager {
     /// - Parameters:
     ///     - connection:  `HttpClientConnection` to release
 
-    public func releaseConnection(connection: HttpClientConnection) {
-        aws_http_connection_manager_release_connection(manager, connection.rawValue)
+    public func releaseConnection(connection: HttpClientConnection) throws {
+        if aws_http_connection_manager_release_connection(manager, connection.rawValue) != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
     }
 
     deinit {

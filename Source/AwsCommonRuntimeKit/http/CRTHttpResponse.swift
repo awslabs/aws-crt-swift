@@ -4,9 +4,6 @@ import AwsCHttp
 import AwsCIo
 
 public final class CRTHttpResponse: HttpMessage {
-    init(message: OpaquePointer, allocator: Allocator) {
-        super.init(owningMessage: aws_http_message_new_response(allocator.rawValue))
-    }
 
     public var responseCode: Int? {
         get {

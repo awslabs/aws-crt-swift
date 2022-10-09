@@ -5,7 +5,8 @@ import AwsCIo
 
 public class HttpMessage {
     let rawValue: OpaquePointer
-    private let owned: Bool
+    let allocator: Allocator
+
     public var headers: HttpHeaders?
     public var body: AwsInputStream? {
         willSet(value) {
@@ -16,21 +17,23 @@ public class HttpMessage {
             }
         }
     }
-
-    init(owningMessage message: OpaquePointer) {
-        self.owned = true
-        self.rawValue = message
+    // internal initializer. Consumers will initialize HttpRequest subclass and
+    // not interact with this class directly.
+    init(allocator: Allocator = defaultAllocator) throws {
+        self.allocator = allocator;
+        self.rawValue = aws_http_message_new_request(allocator.rawValue)
+        if self.rawValue == nil {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
     }
 
-    init(borrowingMessage message: OpaquePointer) {
-        self.owned = false
-        self.rawValue = message
+    init(rawValue: OpaquePointer, allocator: Allocator = defaultAllocator) {
+        self.rawValue = rawValue
+        self.allocator = allocator
     }
 
     deinit {
-        if self.owned {
-            aws_http_message_destroy(rawValue)
-        }
+        aws_http_message_release(rawValue)
     }
 }
 //header handling
@@ -40,41 +43,43 @@ public extension HttpMessage {
            return aws_http_message_get_header_count(rawValue)
     }
 
+    //Todo: what to do in error?
     func addHeaders(headers: HttpHeaders) {
         for index in 0...headers.count {
-            var header = HttpHeader(name: "", value: "")
-            if aws_http_headers_get_index(headers.rawValue, index, &header.rawValue) == AWS_OP_SUCCESS {
-                aws_http_message_add_header(rawValue, header.rawValue)
-            } else {
-                continue
+            let header = headers.get(index: index)
+            if let header = header {
+                _ = withByteCursorFromStrings(header.name, header.value) { nameCursor, valueCursor in
+                    aws_http_headers_add(self.rawValue, nameCursor, valueCursor)
+                }
             }
         }
         self.headers = headers
     }
 
     func removeHeader(atIndex index: Int) -> Bool {
-        if aws_http_message_erase_header(rawValue, index) != AWS_OP_SUCCESS {
-            return false
-        }
-
-        return true
+        return aws_http_message_erase_header(rawValue, index) == AWS_OP_SUCCESS
     }
 
     func getHeader(atIndex index: Int) -> HttpHeader? {
-        var header = HttpHeader(name: "", value: "")
-        if aws_http_message_get_header(rawValue, &header.rawValue, index) != AWS_OP_SUCCESS {
-            return nil
+        var header = aws_http_header()
+        if aws_http_headers_get_index(self.rawValue, index, &header) == AWS_OP_SUCCESS {
+            if let name = header.name.toString(), let value = header.value.toString() {
+                return HttpHeader(name: name, value: value)
+            }
         }
-        return header
+        return nil
     }
 
+    //Todo: what to do in case of errors?
     func getHeaders() -> [HttpHeader] {
         var headers = [HttpHeader]()
-        var header = HttpHeader(name: "", value: "")
+        var header = aws_http_header()
         if headerCount > 0 {
             for index in 0...headerCount - 1 {
-                if aws_http_message_get_header(rawValue, &header.rawValue, index) == AWS_OP_SUCCESS {
-                    headers.append(header)
+                if aws_http_message_get_header(rawValue, &header, index) == AWS_OP_SUCCESS {
+                    if let name = header.name.toString(), let value = header.value.toString() {
+                        headers.append( HttpHeader(name: name, value: value))
+                    }
                 }
             }
         }

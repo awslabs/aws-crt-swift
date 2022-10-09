@@ -4,6 +4,7 @@
 import Foundation
 import AwsCCommon
 //swiftlint:disable trailing_whitespace
+//Todo: remove
 public struct CommandLineParser {
     /// A function to parse command line arguments
     /// - Parameters:
@@ -21,7 +22,7 @@ public struct CommandLineParser {
         var argumentsDict = [String: Any]()
         while true {
             var optionIndex: Int32 = 0
-            let opt = aws_cli_getopt_long(argc, arguments, optionString.asCStr(), options, &optionIndex)
+            let opt = aws_cli_getopt_long(argc, arguments, optionString, options, &optionIndex)
             if opt == -1 || opt == 0 {
                 break
             }
@@ -64,6 +65,6 @@ public struct AWSCLIOption {
     public let rawValue: aws_cli_option
     
     public init(name: String, hasArg: CLIHasArg, flag: UnsafeMutablePointer<Int32>? = nil, val: String) {
-        self.rawValue = aws_cli_option(name: name.asCStr(), has_arg: hasArg.rawValue, flag: flag, val: val.toInt32())
+        self.rawValue = aws_cli_option(name: name, has_arg: hasArg.rawValue, flag: flag, val: val.toInt32())
     }
 }
