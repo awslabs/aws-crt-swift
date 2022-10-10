@@ -11,12 +11,12 @@ public enum CRTAWSEndpointsResolvedEndpointType {
     case error
 }
 
-extension CRTAWSEndpointsResolvedEndpointType : RawRepresentable, CaseIterable {
+extension CRTAWSEndpointsResolvedEndpointType: RawRepresentable, CaseIterable {
     public init(rawValue: aws_endpoints_resolved_endpoint_type) {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})
         self = value ?? .endpoint
     }
-    
+
     public var rawValue: aws_endpoints_resolved_endpoint_type {
         switch self {
         case .endpoint:

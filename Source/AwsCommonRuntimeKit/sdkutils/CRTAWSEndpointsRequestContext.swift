@@ -6,19 +6,17 @@ import AwsCSdkUtils
 /// Request context used for resolving endpoint
 public class CRTAWSEndpointsRequestContext {
     let rawValue: OpaquePointer
-    
-    
+
     /// Initialize a new request context
     /// - Parameter allocator: Allocator to use for request context creation
     public init(allocator: Allocator = defaultAllocator) throws {
         guard let rawValue = aws_endpoints_request_context_new(allocator.rawValue) else {
             throw CRTError.awsError(AWSCommonRuntimeError())
         }
-        
+
         self.rawValue = rawValue
     }
 
-    
     /// Add a string endpoint parameter to the request context
     /// - Parameters:
     ///   - name: The name of the parameter

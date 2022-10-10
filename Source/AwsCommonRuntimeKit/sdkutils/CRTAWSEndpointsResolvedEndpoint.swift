@@ -7,25 +7,22 @@ import AwsCSdkUtils
 /// Resolved endpoint
 public class CRTAWSEndpointResolvedEndpoint {
     let rawValue: OpaquePointer
-    
-    
+
     /// Initialize a new resolved endpoint
     /// - Parameter rawValue: The raw value of the resolved endpoint
     public init(rawValue: OpaquePointer) {
         self.rawValue = rawValue
-        
+
         aws_endpoints_resolved_endpoint_acquire(rawValue)
     }
-    
-    
+
     /// Get the type of the resolved endpoint
     /// - Returns: The type of the resolved endpoint
     public func getType() -> CRTAWSEndpointsResolvedEndpointType {
         let type = aws_endpoints_resolved_endpoint_get_type(rawValue)
         return CRTAWSEndpointsResolvedEndpointType(rawValue: type)
     }
-    
-    
+
     /// Get the URL of the resolved endpoint
     /// - Returns: The URL of the resolved endpoint
     public func getURL() throws -> String? {
@@ -36,8 +33,7 @@ public class CRTAWSEndpointResolvedEndpoint {
         }
         return urlOut.pointee.toString()
     }
-    
-    
+
     /// Get the properties of the resolved endpoint
     /// - Returns: The properties of the resolved endpoint
     public func getProperties() throws -> [String: AnyHashable]? {
@@ -51,8 +47,7 @@ public class CRTAWSEndpointResolvedEndpoint {
         }
         return try JSONSerialization.jsonObject(with: data) as? [String: AnyHashable]
     }
-    
-    
+
     /// Get the error of the resolved endpoint
     /// - Parameter allocator: The allocator to use for the error
     public func getError() throws -> String? {
@@ -63,8 +58,7 @@ public class CRTAWSEndpointResolvedEndpoint {
         }
         return errorOut.pointee.toString()
     }
-    
-    
+
     /// Get headers of the resolved endpoint
     /// - Returns: The headers of the resolved endpoint
     public func getHeaders() throws -> [String: [String]]? {
@@ -73,20 +67,20 @@ public class CRTAWSEndpointResolvedEndpoint {
         if success != 0 {
             throw CRTError.awsError(AWSCommonRuntimeError())
         }
-        
+
         var headers: [String: [String]] = [:]
         var iter = aws_hash_iter_begin(headersOut.pointee)
-        
+
         while !aws_hash_iter_done(&iter) {
             let key = iter.element.key.bindMemory(to: String.self, capacity: 1).pointee
             let value = iter.element.value.bindMemory(to: aws_array_list.self, capacity: 1).pointee.toStringArray()
             headers[key] = value
             aws_hash_iter_next(&iter)
         }
-        
+
         return headers
     }
-    
+
     deinit {
         aws_endpoints_resolved_endpoint_release(rawValue)
     }

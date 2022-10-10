@@ -6,8 +6,7 @@ import AwsCSdkUtils
 /// Rule engine for matching endpoint rules
 public class CRTAWSEndpointsRuleEngine {
     let rawValue: OpaquePointer
-    
-    
+
     /// Initialize a new rule engine
     /// - Parameters:
     ///   - ruleSetString: The rule set string to use for the rule engine
@@ -20,8 +19,7 @@ public class CRTAWSEndpointsRuleEngine {
 
         self.rawValue = rawValue
     }
-    
-    
+
     /// Resolve an endpoint from the rule engine using the provided request context
     /// - Parameter context: The request context to use for endpoint resolution
     /// - Returns: The resolved endpoint
@@ -31,14 +29,14 @@ public class CRTAWSEndpointsRuleEngine {
         if success != 0 {
             throw CRTError.awsError(AWSCommonRuntimeError())
         }
-        
+
         guard let pointee = resolvedEndpoint?.pointee else {
             return nil
         }
-        
+
         return CRTAWSEndpointResolvedEndpoint(rawValue: pointee)
     }
-    
+
     deinit {
         aws_endpoints_rule_engine_release(rawValue)
     }
