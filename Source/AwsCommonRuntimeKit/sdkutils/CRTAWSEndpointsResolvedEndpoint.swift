@@ -62,7 +62,8 @@ public class CRTAWSEndpointResolvedEndpoint {
     /// Get headers of the resolved endpoint
     /// - Returns: The headers of the resolved endpoint
     public func getHeaders() throws -> [String: [String]]? {
-        let headersOut: UnsafeMutablePointer<UnsafePointer<aws_hash_table>?> = UnsafeMutablePointer<UnsafePointer<aws_hash_table>?>.allocate(capacity: 1)
+        let headersOut: UnsafeMutablePointer<UnsafePointer<aws_hash_table>?>
+            = UnsafeMutablePointer<UnsafePointer<aws_hash_table>?>.allocate(capacity: 1)
         let success = aws_endpoints_resolved_endpoint_get_headers(rawValue, headersOut)
         if success != 0 {
             throw CRTError.awsError(AWSCommonRuntimeError())

@@ -39,3 +39,5 @@ trailing_semicolon: error
 file_length:
   warning: 500
   error: 1200
+todo:
+  severity: warning
