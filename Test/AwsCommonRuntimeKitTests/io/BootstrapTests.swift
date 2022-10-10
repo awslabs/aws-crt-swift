@@ -18,12 +18,10 @@ class BootstrapTests: CrtXCBaseTestCase {
                                            maxTTL: 30,
                                            allocator: allocator,
                                            shutDownOptions: resolverShutDownOptions)
-    let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
-        sempahore.signal()
-    }
-    _ = try ClientBootstrap(eventLoopGroup: elg,
+
+    let bootStrap = try ClientBootstrap(eventLoopGroup: elg,
                             hostResolver: resolver,
-                            callbackData: clientBootstrapCallbackData,
+                            callbackData: nil,
                             allocator: allocator)
   }
 }

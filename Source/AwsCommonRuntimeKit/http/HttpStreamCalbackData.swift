@@ -4,6 +4,7 @@ import Foundation
 
 class HttpStreamCallbackData {
     let requestOptions: HttpRequestOptions
+    //Todo: How to acquire and release stream?
     var stream: HttpStream?
 
     init(requestOptions: HttpRequestOptions) {

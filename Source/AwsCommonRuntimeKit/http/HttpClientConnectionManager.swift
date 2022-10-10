@@ -70,9 +70,7 @@ public class HttpClientConnectionManager {
     private func acquireConnection(continuation: ConnectionContinuation) {
         let callbackData = HttpClientConnectionCallbackData(continuation: continuation,
                                                             connectionManager: self,
-                                                            allocator: allocator) { [weak self] connection in
-                                                            self?.queue.append(connection)
-        }
+                                                            allocator: allocator) {_ in}
 
         aws_http_connection_manager_acquire_connection(manager, { (connection, errorCode, userData) in
             guard let userData = userData else {

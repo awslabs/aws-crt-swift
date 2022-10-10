@@ -83,12 +83,10 @@ public final class HttpHeaders {
     ///
     /// - Parameter name: The name of the header to get.
     /// - Returns: `String?`: The value of the Header
-    func get(index: Int) -> HttpHeader? {
+    func get(index: Int) -> aws_http_header? {
         var header = aws_http_header()
         if aws_http_headers_get_index(self.rawValue, index, &header) == AWS_OP_SUCCESS {
-            if let name = header.name.toString(), let value = header.value.toString() {
-                return HttpHeader(name: name, value: value)
-            }
+            return header
         }
         return nil
     }

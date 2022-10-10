@@ -7,7 +7,7 @@ public class HttpMessage {
     let rawValue: OpaquePointer
     let allocator: Allocator
 
-    public var headers: HttpHeaders?
+    //public var headers: HttpHeaders?
     public var body: AwsInputStream? {
         willSet(value) {
             if let newBody = value {
@@ -43,17 +43,14 @@ public extension HttpMessage {
            return aws_http_message_get_header_count(rawValue)
     }
 
-    //Todo: what to do in error?
+    //Todo: what to do in error? Maybe refactor it to a better logic?
     func addHeaders(headers: HttpHeaders) {
         for index in 0...headers.count {
-            let header = headers.get(index: index)
-            if let header = header {
-                _ = withByteCursorFromStrings(header.name, header.value) { nameCursor, valueCursor in
-                    aws_http_headers_add(self.rawValue, nameCursor, valueCursor)
-                }
+            if let header = headers.get(index: index) {
+                aws_http_message_add_header(self.rawValue, header)
             }
         }
-        self.headers = headers
+       // self.headers = headers
     }
 
     func removeHeader(atIndex index: Int) -> Bool {
@@ -61,8 +58,9 @@ public extension HttpMessage {
     }
 
     func getHeader(atIndex index: Int) -> HttpHeader? {
+
         var header = aws_http_header()
-        if aws_http_headers_get_index(self.rawValue, index, &header) == AWS_OP_SUCCESS {
+        if aws_http_message_get_header(self.rawValue, &header, index) == AWS_OP_SUCCESS {
             if let name = header.name.toString(), let value = header.value.toString() {
                 return HttpHeader(name: name, value: value)
             }
