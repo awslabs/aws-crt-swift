@@ -8,8 +8,9 @@ import Foundation
 public class HttpClientConnection {
     private let allocator: Allocator
     let rawValue: UnsafeMutablePointer<aws_http_connection>
-    //Fix: lifetime management issue
-    unowned let manager: HttpClientConnectionManager
+
+    /// This will keep the connection manager alive until connection is alive
+    let manager: HttpClientConnectionManager
 
     /// Called by HttpClientConnectionManager
     init(manager: HttpClientConnectionManager,
@@ -25,9 +26,11 @@ public class HttpClientConnection {
     }
 
     /// Close the http connection
-    public func close() throws {
-        try manager.releaseConnection(connection: self)
-    }
+// TODO: do we need a explicit close function or deinit is enough?
+//    public func close() throws
+//        try manager.releaseConnection(connection: self)
+//        manager = nil
+//    }
 
     /// Creates a new http stream from the `HttpRequestOptions` given.
     /// - Parameter requestOptions: An `HttpRequestOptions` struct containing callbacks on
@@ -41,7 +44,7 @@ public class HttpClientConnection {
         options.on_response_body = {_, data, userData -> Int32 in
 
             guard let userData = userData else {
-                return -1
+                return AWS_OP_ERR
             }
 
             let httpStreamCbData = Unmanaged<HttpStreamCallbackData>.fromOpaque(userData).takeUnretainedValue()
@@ -50,7 +53,7 @@ public class HttpClientConnection {
                   let bufLen = data?.pointee.len,
                   let stream = httpStreamCbData.stream,
                   let incomingBodyFn = httpStreamCbData.requestOptions.onIncomingBody else {
-                      return -1
+                      return AWS_OP_ERR
                   }
 
             //TODO: who deallocates this data?
@@ -58,12 +61,12 @@ public class HttpClientConnection {
 
             incomingBodyFn(stream, callbackBytes)
 
-            return 0
+            return AWS_OP_SUCCESS
         }
         options.on_response_headers = {_, headerBlock, headerArray, headersCount, userData -> Int32 in
 
             guard let userData = userData else {
-                return -1
+                return AWS_OP_ERR
             }
 
             let httpStreamCbData: HttpStreamCallbackData = Unmanaged<HttpStreamCallbackData>.fromOpaque(userData).takeUnretainedValue()
@@ -76,29 +79,30 @@ public class HttpClientConnection {
                 }
 
             }
-            //Todo: fix
-            let headersStruct = try! HttpHeaders(fromArray: headers)
+            guard let headersStruct = try? HttpHeaders(fromArray: headers) else {
+                return AWS_OP_ERR
+            }
 
             guard let stream = httpStreamCbData.stream else {
-                return -1
+                return AWS_OP_ERR
             }
             httpStreamCbData.requestOptions.onIncomingHeaders(stream,
                                                                       HttpHeaderBlock(rawValue: headerBlock),
                                                                       headersStruct )
-            return 0
+            return AWS_OP_SUCCESS
         }
         options.on_response_header_block_done = {_, headerBlock, userData -> Int32 in
 
             guard let userData = userData else {
-                return -1
+                return AWS_OP_ERR
             }
             let httpStreamCbData = Unmanaged<HttpStreamCallbackData>.fromOpaque(userData).takeUnretainedValue()
             guard let stream = httpStreamCbData.stream else {
-                return -1
+                return AWS_OP_ERR
             }
             httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(stream, HttpHeaderBlock(rawValue: headerBlock))
 
-            return 0
+            return AWS_OP_SUCCESS
         }
         options.on_complete = {_, errorCode, userData in
 
@@ -111,28 +115,14 @@ public class HttpClientConnection {
                   let onStreamCompleteFn = httpStreamCbData.requestOptions.onStreamComplete else {
                       return
                   }
-            httpStreamCbData.stream = nil
             onStreamCompleteFn(stream, CRTError(errorCode: errorCode))
         }
-//
-//        options.on_destroy = { userData in
-//            guard let userData = userData else {
-//                return
-//            }
-//            let httpStreamCbData = Unmanaged<HttpStreamCallbackData>.fromOpaque(userData).takeRetainedValue()
-//
-//            httpStreamCbData.stream = nil
-//        }
 
         let cbData = HttpStreamCallbackData(requestOptions: requestOptions)
         options.user_data = Unmanaged.passRetained(cbData).toOpaque() //Todo: Confirm this logic
 
         let stream = try HttpStream(httpConnection: self, options: options)
         cbData.stream = stream
-
-        if stream.httpStream == nil {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
 
         return stream
     }

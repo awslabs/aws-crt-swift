@@ -91,14 +91,14 @@ public class HttpClientConnectionManager {
         Unmanaged.passRetained(callbackData).toOpaque())
     }
 
-    //TODO: maybe not crashing and try to close all the connections?
-    public func closePendingConnections() {
-        while !queue.isEmpty {
-            if let clientConnection = queue.popFirst() {
-                try? clientConnection.close()
-            }
-        }
-    }
+// TODO: Do we need this? In current implementation, manager doesn't hold a reference to Connections to avoid strong reference cycle.
+//    public func closePendingConnections() {
+//        while !queue.isEmpty {
+//            if let clientConnection = queue.popFirst() {
+//                try? releaseConnection(connection: clientConnection)
+//            }
+//        }
+//    }
 
     ///Releases this HttpClientConnection back into the Connection Pool, and allows another Request to acquire
     ///this connection.

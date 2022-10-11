@@ -3,7 +3,7 @@
 import AwsCHttp
 //TODO: tests?
 public class HttpStream {
-    var httpStream: UnsafeMutablePointer<aws_http_stream>?
+    var httpStream: UnsafeMutablePointer<aws_http_stream>
 
     public let httpConnection: HttpClientConnection
 
@@ -11,12 +11,10 @@ public class HttpStream {
     init(httpConnection: HttpClientConnection, options: aws_http_make_request_options) throws {
         self.httpConnection = httpConnection
 
-        httpStream = withUnsafePointer(to: options) { p in aws_http_connection_make_request(httpConnection.rawValue, p)}
-
-
-        if httpStream == nil {
+        guard let httpStream = withUnsafePointer(to: options, {optionsPointer in aws_http_connection_make_request(httpConnection.rawValue, optionsPointer)}) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
+        self.httpStream = httpStream
     }
 
     /// Opens the Sliding Read/Write Window by the number of bytes passed as an argument for this HttpStream.
@@ -48,7 +46,6 @@ public class HttpStream {
     }
 
     deinit {
-        //Todo: when the stream is released. Connection is released. Do we need to release it ourself?
         aws_http_stream_release(httpStream)
     }
 }

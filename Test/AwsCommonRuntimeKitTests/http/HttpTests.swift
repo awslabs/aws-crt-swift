@@ -20,28 +20,25 @@ class HttpTests: CrtXCBaseTestCase {
             }
             let port = UInt16(443)
 
-            let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator) //fine
+            let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
             try tlsContextOptions.setAlpnList("h2;http/1.1")
             let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
 
-            let tlsConnectionOptions = tlsContext.newConnectionOptions() //fine
+            let tlsConnectionOptions = tlsContext.newConnectionOptions()
 
             try tlsConnectionOptions.setServerName(host)
 
-            //these three are not released.
-            let elg = EventLoopGroup(threadCount: 1, allocator: allocator) //fine
-            let hostResolver = DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator) //fine
+            let elg = EventLoopGroup(threadCount: 1, allocator: allocator)
+            let hostResolver = DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
 
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                     hostResolver: hostResolver,
                     callbackData: nil,
-                    allocator: allocator) //fine
+                    allocator: allocator)
 
-            let socketOptions = SocketOptions(socketType: .stream) //fine
+            let socketOptions = SocketOptions(socketType: .stream)
 
             let semaphore = DispatchSemaphore(value: 0)
-
-
 
             let httpRequest: HttpRequest = try! HttpRequest(allocator: allocator)
             httpRequest.method = "GET"
@@ -49,20 +46,11 @@ class HttpTests: CrtXCBaseTestCase {
 
             httpRequest.path = path
 
-            let headers = try! HttpHeaders(allocator: allocator) //fine
+            let headers = try! HttpHeaders(allocator: allocator)
             headers.add(name: "Host", value: host)
             headers.add(name: "User-Agent", value: "Elasticurl")
             headers.add(name: "Accept", value: "*/*")
             headers.add(name: "Swift", value: "Version 5.4")
-
-//            if let data = context.data {
-//                let byteBuffer = ByteBuffer(data: data)
-//                let awsStream = AwsInputStream(byteBuffer)
-//                httpRequest.body = awsStream
-//                if headers.add(name: "Content-length", value: "\(data.count)") {
-//                    httpRequest.addHeaders(headers: headers)
-//                }
-//            }
 
             httpRequest.addHeaders(headers: headers)
 
@@ -83,6 +71,7 @@ class HttpTests: CrtXCBaseTestCase {
             }
 
             let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
+                XCTAssertEqual(error.code, AWS_OP_SUCCESS)
                 print(error.message)
                 semaphore.signal()
             }
@@ -96,9 +85,9 @@ class HttpTests: CrtXCBaseTestCase {
                     tlsOptions: tlsConnectionOptions,
                     monitoringOptions: nil)
 
-            let connectionManager = try! HttpClientConnectionManager(options: httpClientOptions) //fine
-            var connection: HttpClientConnection?
             let stream: HttpStream?
+            var connection: HttpClientConnection?
+            let connectionManager = try! HttpClientConnectionManager(options: httpClientOptions)
 
             do {
                 connection = try await connectionManager.acquireConnection()
@@ -110,8 +99,8 @@ class HttpTests: CrtXCBaseTestCase {
                 stream = try! connection?.makeRequest(requestOptions: requestOptions)
                 try! stream!.activate()
                 //try connection?.close()
-//                let stream2 = try! connection?.makeRequest(requestOptions: requestOptions)
-//                try! stream2!.activate()
+                let stream2 = try! connection?.makeRequest(requestOptions: requestOptions)
+                try! stream2!.activate()
             } catch {
                 print("connection has shut down with error: \(error.localizedDescription)" )
                 semaphore.signal()
