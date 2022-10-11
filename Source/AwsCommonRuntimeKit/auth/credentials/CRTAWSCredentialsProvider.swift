@@ -46,14 +46,15 @@ public final class CRTAWSCredentialsProvider {
         guard let provider = withByteCursorFromStrings(config.accessKey, config.secret, config.sessionToken ?? "" , { accessKeyCursor, secretCursor, sessionTokenCursor in
             staticOptions.access_key_id = accessKeyCursor
             staticOptions.secret_access_key = secretCursor
-            if let sessionToken = config.sessionToken {
+            if config.sessionToken != nil {
                 staticOptions.session_token = sessionTokenCursor
             }
 
             return aws_credentials_provider_new_static(allocator.rawValue,
                     &staticOptions)
         }) else {
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())        }
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 
@@ -77,36 +78,33 @@ public final class CRTAWSCredentialsProvider {
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 
-//    /// Creates a credentials provider that sources credentials from key-value profiles loaded from the aws credentials
-//    /// file ("~/.aws/credentials" by default) and the aws config file ("~/.aws/config" by default)
-//    ///
-//    /// - Parameters:
-//    ///   - profileOptions:  The `CredentialsProviderProfileOptions`options object.
-//    /// - Returns: `AWSCredentialsProvider`
-//    public convenience init(fromProfile profileOptions: CRTCredentialsProviderProfileOptions,
-//                            allocator: Allocator = defaultAllocator) throws {
-//
-//        var profileOptionsC = aws_credentials_provider_profile_options()
-//        if let configFileName = profileOptions.configFileNameOverride {
-//            profileOptionsC.config_file_name_override = configFileName.awsByteCursor
-//        }
-//
-//        if let credentialsFileName = profileOptions.credentialsFileNameOverride {
-//            profileOptionsC.credentials_file_name_override = credentialsFileName.awsByteCursor
-//        }
-//
-//        if let profileName = profileOptions.profileFileNameOverride {
-//            profileOptionsC.profile_name_override = profileName.awsByteCursor
-//        }
-//        profileOptionsC.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: profileOptions.shutdownOptions)
-//
-//        guard let provider = aws_credentials_provider_new_profile(allocator.rawValue,
-//                                                                  &profileOptionsC) else {
-//            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())//
-//        }
-//
-//        self.init(credentialsProvider: provider, allocator: allocator)
-//    }
+    /// Creates a credentials provider that sources credentials from key-value profiles loaded from the aws credentials
+    /// file ("~/.aws/credentials" by default) and the aws config file ("~/.aws/config" by default)
+    ///
+    /// - Parameters:
+    ///   - profileOptions:  The `CredentialsProviderProfileOptions`options object.
+    /// - Returns: `AWSCredentialsProvider`
+    public convenience init(fromProfile profileOptions: CRTCredentialsProviderProfileOptions,
+                            allocator: Allocator = defaultAllocator) throws {
+
+        var profileOptionsC = aws_credentials_provider_profile_options()
+
+        profileOptionsC.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: profileOptions.shutdownOptions)
+
+        guard let provider = withByteCursorFromStrings(
+                profileOptions.configFileNameOverride ?? "",
+                profileOptions.credentialsFileNameOverride ?? "",
+                profileOptions.profileFileNameOverride ?? "", {
+            configFileNameOverrideCursor, credentialsFileNameOverrideCursor, profileFileNameOverrideCursor in
+            profileOptionsC.config_file_name_override = configFileNameOverrideCursor
+            profileOptionsC.credentials_file_name_override = credentialsFileNameOverrideCursor
+            profileOptionsC.profile_name_override = profileFileNameOverrideCursor
+            return aws_credentials_provider_new_profile(allocator.rawValue, &profileOptionsC)
+        }) else {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())//
+        }
+        self.init(credentialsProvider: provider, allocator: allocator)
+    }
 
     /// Creates a credentials provider from the ec2 instance metadata service
     ///
@@ -185,20 +183,20 @@ public final class CRTAWSCredentialsProvider {
         var x509Options = aws_credentials_provider_x509_options()
         x509Options.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
             shutDownOptions: x509Config.shutDownOptions)
-        //Todo: fix
-//        x509Options.bootstrap = x509Config.bootstrap.rawValue
-//        x509Options.tls_connection_options = UnsafePointer(x509Config.tlsConnectionOptions.rawValue)
-//        x509Options.thing_name = x509Config.thingName.awsByteCursor
-//        x509Options.role_alias = x509Config.roleAlias.awsByteCursor
-//        x509Options.endpoint = x509Config.endpoint.awsByteCursor
-
+        x509Options.bootstrap = x509Config.bootstrap.rawValue
+        x509Options.tls_connection_options = UnsafePointer(x509Config.tlsConnectionOptions.rawValue)
         if let proxyOptions = x509Config.proxyOptions?.rawValue {
             x509Options.proxy_options = UnsafePointer(proxyOptions)
         }
 
-        guard let provider = aws_credentials_provider_new_x509(allocator.rawValue,
-                                                               &x509Options) else {
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())        }
+        guard let provider = (withByteCursorFromStrings(x509Config.thingName, x509Config.roleAlias, x509Config.endpoint) {thingNameCursor, roleAliasCursor, endPointCursor in
+            x509Options.thing_name = thingNameCursor
+            x509Options.role_alias = roleAliasCursor
+            x509Options.endpoint = endPointCursor
+            return aws_credentials_provider_new_x509(allocator.rawValue, &x509Options)
+        }) else {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 #endif
@@ -227,23 +225,27 @@ public final class CRTAWSCredentialsProvider {
     ///
     /// - Parameters:
     ///    - stsConfig: The `CRTCredentialsProviderSTSConfig` options object
+    ///    - allocator: Allocator
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromSTS stsConfig: CRTCredentialsProviderSTSConfig,
                             allocator: Allocator = defaultAllocator) throws {
         var stsOptions = aws_credentials_provider_sts_options()
-        //Todo: fix
-//        stsOptions.tls_ctx = stsConfig.tlsContext.rawValue
-//        stsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
-//            shutDownOptions: stsConfig.shutDownOptions)
-//        stsOptions.creds_provider = stsConfig.credentialsProvider.rawValue
-//        stsOptions.role_arn = stsConfig.roleArn.awsByteCursor
-//        stsOptions.session_name = stsConfig.sessionName.awsByteCursor
-//        stsOptions.duration_seconds = stsConfig.durationSeconds
-//        stsOptions.function_table = nil
-//        stsOptions.system_clock_fn = nil
+        stsOptions.tls_ctx = stsConfig.tlsContext.rawValue
+        stsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
+            shutDownOptions: stsConfig.shutDownOptions)
+        stsOptions.creds_provider = stsConfig.credentialsProvider.rawValue
+        stsOptions.duration_seconds = stsConfig.durationSeconds
+        stsOptions.function_table = nil
+        stsOptions.system_clock_fn = nil
 
-        guard let provider = aws_credentials_provider_new_sts(allocator.rawValue, &stsOptions) else {
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())        }
+        guard let provider = withByteCursorFromStrings(stsConfig.roleArn, stsConfig.sessionName, {roleArnCursor, sessionNameCursor in
+            stsOptions.role_arn = roleArnCursor
+            stsOptions.session_name = sessionNameCursor
+            return aws_credentials_provider_new_sts(allocator.rawValue, &stsOptions)
+        }) else {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 
@@ -255,24 +257,25 @@ public final class CRTAWSCredentialsProvider {
     public convenience init(fromContainer containerConfig: CRTCredentialsProviderContainerConfig,
                             allocator: Allocator = defaultAllocator) throws {
         var ecsOptions = aws_credentials_provider_ecs_options()
-        //Todo: fix
-//        ecsOptions.tls_ctx = containerConfig.tlsContext.rawValue
-//        ecsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
-//            shutDownOptions: containerConfig.shutDownOptions)
-//        ecsOptions.bootstrap = containerConfig.bootstrap.rawValue
-//        if let host = containerConfig.host {
-//            ecsOptions.host = host.awsByteCursor
-//        }
-//        if let authToken = containerConfig.authToken {
-//            ecsOptions.auth_token = authToken.awsByteCursor
-//        }
-//        if let pathAndQuery = containerConfig.pathAndQuery {
-//            ecsOptions.path_and_query = pathAndQuery.awsByteCursor
-//        }
-//        ecsOptions.function_table = nil
 
-        guard let provider = aws_credentials_provider_new_ecs(allocator.rawValue, &ecsOptions) else {
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())        }
+        ecsOptions.tls_ctx = containerConfig.tlsContext.rawValue
+        ecsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
+            shutDownOptions: containerConfig.shutDownOptions)
+        ecsOptions.bootstrap = containerConfig.bootstrap.rawValue
+        ecsOptions.function_table = nil
+
+        guard let provider = (withByteCursorFromStrings(
+                containerConfig.host ?? "",
+                containerConfig.authToken ?? "",
+                containerConfig.pathAndQuery ?? "") { hostCursor, authTokenCursor, pathAndQueryCursor in
+            ecsOptions.host = hostCursor
+            ecsOptions.auth_token = authTokenCursor
+            ecsOptions.path_and_query = pathAndQueryCursor
+            return  aws_credentials_provider_new_ecs(allocator.rawValue, &ecsOptions)
+        }) else {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 

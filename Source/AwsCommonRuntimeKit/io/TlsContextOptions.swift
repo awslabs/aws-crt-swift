@@ -53,11 +53,6 @@ public final class TlsContextOptions {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
-//  Todo: confirm not being used
-//    public func overrideDefaultTrustStore(cert: inout ByteCursor) throws {
-//        if aws_tls_ctx_options_override_default_trust_store(rawValue, &cert.rawValue) != AWS_OP_SUCCESS {
-//            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())//        }
-//    }
     
     public func setAlpnList(_ alpnList: String?) throws {
         if let alpnList = alpnList,
