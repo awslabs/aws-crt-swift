@@ -43,15 +43,12 @@ public class HttpClientConnection {
         var options = aws_http_make_request_options()
         options.self_size = MemoryLayout<aws_http_make_request_options>.size
         options.request = requestOptions.request.rawValue
-        //TODO: where is return value used? change to AWS_OP_SUCCESS and Error
         options.on_response_body = {_, data, userData -> Int32 in
 
             guard let userData = userData else {
                 return AWS_OP_ERR
             }
-
             let httpStreamCbData = Unmanaged<HttpStreamCallbackData>.fromOpaque(userData).takeUnretainedValue()
-
             guard let bufPtr = data?.pointee.ptr,
                   let bufLen = data?.pointee.len,
                   let stream = httpStreamCbData.stream,
@@ -59,15 +56,12 @@ public class HttpClientConnection {
                       return AWS_OP_ERR
                   }
 
-            //TODO: who deallocates this data?
             let callbackBytes = Data(bytesNoCopy: bufPtr, count: bufLen, deallocator: .none)
-
             incomingBodyFn(stream, callbackBytes)
-
             return AWS_OP_SUCCESS
         }
-        options.on_response_headers = {_, headerBlock, headerArray, headersCount, userData -> Int32 in
 
+        options.on_response_headers = {_, headerBlock, headerArray, headersCount, userData -> Int32 in
             guard let userData = userData else {
                 return AWS_OP_ERR
             }
@@ -90,9 +84,9 @@ public class HttpClientConnection {
                 return AWS_OP_ERR
             }
             httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(stream, HttpHeaderBlock(rawValue: headerBlock))
-
             return AWS_OP_SUCCESS
         }
+
         options.on_complete = {_, errorCode, userData in
 
             guard let userData = userData else {
@@ -107,11 +101,11 @@ public class HttpClientConnection {
             }
             onStreamCompleteFn(stream, CRTError(errorCode: errorCode))
         }
+
         let cbData = HttpStreamCallbackData(requestOptions: requestOptions)
         options.user_data = Unmanaged.passRetained(cbData).toOpaque() //Todo: Confirm this logic
         let stream = try HttpStream(httpConnection: self, options: options)
         cbData.stream = stream
-
         return stream
     }
 

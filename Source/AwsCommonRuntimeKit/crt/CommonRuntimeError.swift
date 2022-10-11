@@ -1,8 +1,6 @@
-//
-// Created by Khan, Waqar Ahmed on 10/6/22.
-//
+//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+//  SPDX-License-Identifier: Apache-2.0.
 
-import Foundation
 public enum CommonRunTimeError: Error {
     case crtError(CRTError)
 }
