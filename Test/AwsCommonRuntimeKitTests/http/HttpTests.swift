@@ -11,48 +11,59 @@ class HttpTests: CrtXCBaseTestCase {
         XCTAssertEqual(result, AWS_OP_SUCCESS)
     }
 
+    func getHttpConnection(host: String, port: UInt16)  async throws -> HttpClientConnection {
+        let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
+        try tlsContextOptions.setAlpnList("h2;http/1.1")
+        let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
+
+        let tlsConnectionOptions = tlsContext.newConnectionOptions()
+
+        try tlsConnectionOptions.setServerName(host)
+
+        let elg = EventLoopGroup(threadCount: 1, allocator: allocator)
+        let hostResolver = DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
+
+        let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
+                hostResolver: hostResolver,
+                callbackData: nil,
+                allocator: allocator)
+
+        let socketOptions = SocketOptions(socketType: .stream)
+        let httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
+                hostName: host,
+                initialWindowSize: Int.max,
+                port: port,
+                proxyOptions: nil,
+                socketOptions: socketOptions,
+                tlsOptions: tlsConnectionOptions,
+                monitoringOptions: nil)
+        let connectionManager = try HttpClientConnectionManager(options: httpClientOptions)
+        return try await connectionManager.acquireConnection()
+    }
+
+    func getHeaders(host: String) throws -> HttpHeaders {
+        let headers = try HttpHeaders(allocator: allocator)
+        XCTAssertTrue(headers.add(name: "Host", value: host))
+        return headers;
+    }
+
     func sendGetHttpRequest() async -> Int32 {
         do {
-            var url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
+            let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
             guard let host = url.host else {
                 print("no proper host was parsed from the url. quitting.")
                 exit(EXIT_FAILURE)
             }
             let port = UInt16(443)
 
-            let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
-            try tlsContextOptions.setAlpnList("h2;http/1.1")
-            let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
-
-            let tlsConnectionOptions = tlsContext.newConnectionOptions()
-
-            try tlsConnectionOptions.setServerName(host)
-
-            let elg = EventLoopGroup(threadCount: 1, allocator: allocator)
-            let hostResolver = DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
-
-            let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                    hostResolver: hostResolver,
-                    callbackData: nil,
-                    allocator: allocator)
-
-            let socketOptions = SocketOptions(socketType: .stream)
-
             let semaphore = DispatchSemaphore(value: 0)
 
-            let httpRequest: HttpRequest = try! HttpRequest(allocator: allocator)
+            let httpRequest: HttpRequest = try HttpRequest(allocator: allocator)
             httpRequest.method = "GET"
             let path = url.path == "" ? "/" : url.path
-
             httpRequest.path = path
 
-            let headers = try! HttpHeaders(allocator: allocator)
-            headers.add(name: "Host", value: host)
-            headers.add(name: "User-Agent", value: "Elasticurl")
-            headers.add(name: "Accept", value: "*/*")
-            headers.add(name: "Swift", value: "Version 5.4")
-
-            httpRequest.addHeaders(headers: headers)
+            httpRequest.addHeaders(headers: try getHeaders(host: host))
 
             let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
                 let allHeaders = headers.getAll()
@@ -72,35 +83,23 @@ class HttpTests: CrtXCBaseTestCase {
 
             let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
                 XCTAssertEqual(error.code, AWS_OP_SUCCESS)
+                XCTAssertEqual(try! stream.statusCode(), 200)
                 print(error.message)
                 semaphore.signal()
             }
 
-            let httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
-                    hostName: url.host!,
-                    initialWindowSize: Int.max,
-                    port: port,
-                    proxyOptions: nil,
-                    socketOptions: socketOptions,
-                    tlsOptions: tlsConnectionOptions,
-                    monitoringOptions: nil)
-
-            let stream: HttpStream?
-            var connection: HttpClientConnection?
-            let connectionManager = try! HttpClientConnectionManager(options: httpClientOptions)
-
             do {
-                connection = try await connectionManager.acquireConnection()
+                let connection = try await getHttpConnection(host: host, port: port)
                 let requestOptions = HttpRequestOptions(request: httpRequest,
                         onIncomingHeaders: onIncomingHeaders,
                         onIncomingHeadersBlockDone: onBlockDone,
                         onIncomingBody: onBody,
                         onStreamComplete: onComplete)
-                stream = try! connection?.makeRequest(requestOptions: requestOptions)
-                try! stream!.activate()
-                //try connection?.close()
-                let stream2 = try! connection?.makeRequest(requestOptions: requestOptions)
-                try! stream2!.activate()
+                let stream = try connection.makeRequest(requestOptions: requestOptions)
+                try stream.activate()
+//                //try connection?.close()
+//                let stream2 = try connection.makeRequest(requestOptions: requestOptions)
+//                try stream2.activate()
             } catch {
                 print("connection has shut down with error: \(error.localizedDescription)" )
                 semaphore.signal()

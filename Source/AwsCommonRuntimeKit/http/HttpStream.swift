@@ -11,7 +11,7 @@ public class HttpStream {
     init(httpConnection: HttpClientConnection, options: aws_http_make_request_options) throws {
         self.httpConnection = httpConnection
 
-        guard let httpStream = withUnsafePointer(to: options, {optionsPointer in aws_http_connection_make_request(httpConnection.rawValue, optionsPointer)}) else {
+        guard let httpStream = withUnsafePointer(to: options, {aws_http_connection_make_request(httpConnection.rawValue, $0)}) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.httpStream = httpStream

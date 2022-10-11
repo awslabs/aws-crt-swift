@@ -7,7 +7,10 @@ public final class TlsConnectionOptions {
 	private let allocator: Allocator
     var rawValue: UnsafeMutablePointer<aws_tls_connection_options>
 
+	/// Take a reference to keep it alive
+	private let tlsContext: TlsContext
 	init(_ context: TlsContext, allocator: Allocator) {
+		self.tlsContext = context
 		self.allocator = allocator
 
         self.rawValue = allocator.allocate(capacity: 1)

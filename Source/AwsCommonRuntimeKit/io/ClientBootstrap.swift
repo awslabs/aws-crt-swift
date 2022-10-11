@@ -8,11 +8,15 @@ public final class ClientBootstrap {
     var enableBlockingShutdown: Bool = false
     let callbackData: ClientBootstrapCallbackData?
 
+    /// Take a reference to keep it alive
+    private let elg: EventLoopGroup
+    private let hostResolver: HostResolver
     public init(eventLoopGroup elg: EventLoopGroup,
                 hostResolver: HostResolver,
                 callbackData: ClientBootstrapCallbackData? = nil,
                 allocator: Allocator = defaultAllocator) throws {
-
+        self.elg = elg
+        self.hostResolver = hostResolver
         self.callbackData = callbackData
         let callbackDataPointer: UnsafeMutablePointer<ClientBootstrapCallbackData>? = fromOptionalPointer(ptr: callbackData)
 
