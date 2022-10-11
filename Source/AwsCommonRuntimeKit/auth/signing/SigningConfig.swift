@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCAuth
-
+//TODO: verify callback logic, fix pointers, and maybe error handling
 public struct SigningConfig {
     public typealias ShouldSignHeader = (String) -> Bool
     public let rawValue: aws_signing_config_aws
@@ -47,7 +47,11 @@ public struct SigningConfig {
         self.signingAlgorithm = signingAlgorithm
         self.configType = configType
 
-        self.rawValue = withByteCursorFromStrings(region, service, signedBodyValue.rawValue) { regionCursor, serviceCursor, signedBodyValueCursor in
+        self.rawValue = withByteCursorFromStrings(
+                region,
+                service,
+                signedBodyValue.rawValue) { regionCursor, serviceCursor, signedBodyValueCursor in
+
             aws_signing_config_aws(
                     config_type: configType.rawValue,
                     algorithm: signingAlgorithm.rawValue,

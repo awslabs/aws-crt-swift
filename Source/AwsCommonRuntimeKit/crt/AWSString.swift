@@ -23,7 +23,4 @@ extension String {
         self.init(cString: aws_string_c_str(awsString), encoding: encoding)
     }
 
-    public func toInt32() -> Int32 {
-        return Int32(bitPattern: UnicodeScalar(self)?.value ?? 0)
-    }
 }

@@ -4,7 +4,7 @@
 import Foundation
 import AwsCCommon
 //swiftlint:disable trailing_whitespace
-//Todo: remove
+//Todo: remove/refactor
 public struct CommandLineParser {
     /// A function to parse command line arguments
     /// - Parameters:
@@ -65,6 +65,7 @@ public struct AWSCLIOption {
     public let rawValue: aws_cli_option
     
     public init(name: String, hasArg: CLIHasArg, flag: UnsafeMutablePointer<Int32>? = nil, val: String) {
-        self.rawValue = aws_cli_option(name: name, has_arg: hasArg.rawValue, flag: flag, val: val.toInt32())
+        // Todo: Commenting it temporarily as we will be refactoring this class anyhow to use https://github.com/apple/swift-argument-parser
+        // self.rawValue = aws_cli_option(name: name, has_arg: hasArg.rawValue, flag: flag, val: val.toInt32())
     }
 }

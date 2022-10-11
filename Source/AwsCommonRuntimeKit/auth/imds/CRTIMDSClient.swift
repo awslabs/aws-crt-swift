@@ -15,7 +15,7 @@ public class CRTIMDSClient {
                                                   imds_version: options.protocolVersion.rawValue,
                                                   function_table: nil)
         guard let rawValue = aws_imds_client_new(allocator.rawValue, &imdsOptions) else {
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())//
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.rawValue = rawValue
     }
@@ -29,7 +29,6 @@ public class CRTIMDSClient {
         return try await withCheckedThrowingContinuation { (continuation: ResourceContinuation) in
             let callbackData = CRTIMDSClientResourceCallbackData(continuation: continuation)
             let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
-
             aws_imds_client_get_resource_async(rawValue, aws_byte_cursor_from_string(awsResourcePath.rawValue), resourceCallback, pointer)
         }
     }
@@ -203,7 +202,7 @@ public class CRTIMDSClient {
 
         //Convert it to a AWSString to make it a reference counted string from which we can create a byte cursor for passing to async function
         let iamRoleNameAWSStr = AWSString(iamRoleName, allocator: allocator)
-        aws_imds_client_get_credentials(rawValue, aws_byte_cursor_from_string(iamRoleNameAWSStr.rawValue), { credentialsPointer, errorCode, userData in
+        if aws_imds_client_get_credentials(rawValue, aws_byte_cursor_from_string(iamRoleNameAWSStr.rawValue), { credentialsPointer, errorCode, userData in
             guard let userData = userData else {
                 return
             }
@@ -217,7 +216,9 @@ public class CRTIMDSClient {
                 pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(errorCode: errorCode)))
             }
             pointer.deinitializeAndDeallocate()
-        }, pointer)
+        }, pointer) != AWS_OP_SUCCESS {
+            continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
+        }
     }
 
     /// Gets the iam profile information of the ec2 instance from the instance metadata document

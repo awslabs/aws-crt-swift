@@ -46,9 +46,7 @@ public final class CRTAWSCredentialsProvider {
         guard let provider = withByteCursorFromStrings(config.accessKey, config.secret, config.sessionToken ?? "" , { accessKeyCursor, secretCursor, sessionTokenCursor in
             staticOptions.access_key_id = accessKeyCursor
             staticOptions.secret_access_key = secretCursor
-            if config.sessionToken != nil {
-                staticOptions.session_token = sessionTokenCursor
-            }
+            staticOptions.session_token = sessionTokenCursor
 
             return aws_credentials_provider_new_static(allocator.rawValue,
                     &staticOptions)
@@ -142,7 +140,8 @@ public final class CRTAWSCredentialsProvider {
         cachedOptions.refresh_time_in_milliseconds = UInt64(cachedConfig.refreshTime)
 
         guard let provider = aws_credentials_provider_new_cached(allocator.rawValue, &cachedOptions) else {
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())        }
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 
@@ -168,7 +167,8 @@ public final class CRTAWSCredentialsProvider {
 
         guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue,
                                                                         &chainDefaultOptions) else {
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())        }
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 #if os(macOS)
@@ -189,7 +189,11 @@ public final class CRTAWSCredentialsProvider {
             x509Options.proxy_options = UnsafePointer(proxyOptions)
         }
 
-        guard let provider = (withByteCursorFromStrings(x509Config.thingName, x509Config.roleAlias, x509Config.endpoint) {thingNameCursor, roleAliasCursor, endPointCursor in
+        guard let provider = (withByteCursorFromStrings(
+                x509Config.thingName,
+                x509Config.roleAlias,
+                x509Config.endpoint) { thingNameCursor, roleAliasCursor, endPointCursor in
+
             x509Options.thing_name = thingNameCursor
             x509Options.role_alias = roleAliasCursor
             x509Options.endpoint = endPointCursor
@@ -216,7 +220,8 @@ public final class CRTAWSCredentialsProvider {
         stsOptions.function_table = nil
         guard let provider = aws_credentials_provider_new_sts_web_identity(allocator.rawValue,
                                                                            &stsOptions) else {
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())        }
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 
@@ -245,7 +250,6 @@ public final class CRTAWSCredentialsProvider {
         }) else {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 
@@ -257,7 +261,6 @@ public final class CRTAWSCredentialsProvider {
     public convenience init(fromContainer containerConfig: CRTCredentialsProviderContainerConfig,
                             allocator: Allocator = defaultAllocator) throws {
         var ecsOptions = aws_credentials_provider_ecs_options()
-
         ecsOptions.tls_ctx = containerConfig.tlsContext.rawValue
         ecsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
             shutDownOptions: containerConfig.shutDownOptions)
@@ -275,7 +278,6 @@ public final class CRTAWSCredentialsProvider {
         }) else {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 

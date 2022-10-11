@@ -11,7 +11,7 @@ class AWSCredentialsTests: CrtXCBaseTestCase {
         let sessionToken = "Token"
         let expirationTimeout: UInt64 = 100
 
-        let credentials = CRTCredentials(accessKey: accessKey, secret: secret, sessionToken: sessionToken, expirationTimeout: expirationTimeout)
+        let credentials = try CRTCredentials(accessKey: accessKey, secret: secret, sessionToken: sessionToken, expirationTimeout: expirationTimeout)
 
         XCTAssertEqual(accessKey, credentials.getAccessKey())
         XCTAssertEqual(secret, credentials.getSecret())
@@ -24,7 +24,7 @@ class AWSCredentialsTests: CrtXCBaseTestCase {
         let secret = "Secret"
         let expirationTimeout: UInt64 = 100
 
-        let credentials = CRTCredentials(accessKey: accessKey, secret: secret, sessionToken: nil, expirationTimeout: expirationTimeout)
+        let credentials = try CRTCredentials(accessKey: accessKey, secret: secret, sessionToken: nil, expirationTimeout: expirationTimeout)
 
         XCTAssertEqual(accessKey, credentials.getAccessKey())
         XCTAssertEqual(secret, credentials.getSecret())
@@ -33,4 +33,11 @@ class AWSCredentialsTests: CrtXCBaseTestCase {
 
     }
 
+    func testCreateAWSCredentialsWithoutAccessKeyThrows() async {
+        let accessKey = ""
+        let secret = "Secret"
+        let expirationTimeout: UInt64 = 100
+
+        XCTAssertThrowsError(try CRTCredentials(accessKey: accessKey, secret: secret, sessionToken: nil, expirationTimeout: expirationTimeout))
+    }
 }
