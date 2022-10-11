@@ -16,9 +16,7 @@ public struct CRTError: Error {
         self.name = String(cString: aws_error_name(errorCode))
     }
 
-
-    public static func makeFromLastError() -> CRTError{
+    public static func makeFromLastError() -> CRTError {
         return CRTError(errorCode: aws_last_error())
     }
-
 }

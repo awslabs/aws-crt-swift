@@ -153,7 +153,7 @@ extension UnsafeRawPointer: PointerConformance {}
 
 
 func withByteCursorFromStrings<R>(
-        _ arg1: String, _ arg2: String, _ body: (aws_byte_cursor,aws_byte_cursor) -> R
+        _ arg1: String, _ arg2: String, _ body: (aws_byte_cursor, aws_byte_cursor) -> R
 ) -> R {
     return arg1.withCString { arg1C in
         return arg2.withCString { arg2C in

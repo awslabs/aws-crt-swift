@@ -10,19 +10,11 @@ public let defaultAllocator = aws_default_allocator()!
 
 /// An allocator is used to allocate memory on the heap.
 public protocol Allocator {
-
     /// The raw `aws_allocator` pointer.
     var rawValue: UnsafeMutablePointer<aws_allocator> { get }
 }
 
 internal extension Allocator {
-//    func allocate<T>() throws -> UnsafeMutablePointer<T> {
-//        guard let result = aws_mem_acquire(self.rawValue, MemoryLayout<T>.size) else {
-//            fatalError("Failed to allocate memory.")
-//        }
-//        return result.bindMemory(to: T.self, capacity: 1)
-//    }
-
     /**
      * Allocates memory on the heap.
      *

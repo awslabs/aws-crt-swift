@@ -43,13 +43,14 @@ public final class CRTAWSCredentialsProvider {
         var staticOptions = aws_credentials_provider_static_options()
         staticOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
             shutDownOptions: config.shutDownOptions)
-        guard let provider = withByteCursorFromStrings(config.accessKey, config.secret, config.sessionToken ?? "" , { accessKeyCursor, secretCursor, sessionTokenCursor in
+        guard let provider = withByteCursorFromStrings(
+                config.accessKey,
+                config.secret,
+                config.sessionToken ?? "", { accessKeyCursor, secretCursor, sessionTokenCursor in
             staticOptions.access_key_id = accessKeyCursor
             staticOptions.secret_access_key = secretCursor
             staticOptions.session_token = sessionTokenCursor
-
-            return aws_credentials_provider_new_static(allocator.rawValue,
-                    &staticOptions)
+            return aws_credentials_provider_new_static(allocator.rawValue, &staticOptions)
         }) else {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
