@@ -22,30 +22,24 @@ extension Data {
 }
 
 extension String {
-//    @inlinable
-//    var awsByteCursor: aws_byte_cursor {
-//        return aws_byte_cursor_from_c_str(self.asCStr())
-//    }
-//
-//    public func base64EncodedMD5(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String? {
-//        let input: UnsafePointer<aws_byte_cursor> = fromPointer(ptr: self.awsByteCursor)
-//        let emptyBuffer: UInt8 = 0
-//        let bufferPtr: UnsafeMutablePointer<UInt8> = fromPointer(ptr: emptyBuffer)
-//        let buffer = aws_byte_buf(len: 0, buffer: bufferPtr, capacity: 16, allocator: allocator.rawValue)
-//        let output: UnsafeMutablePointer<aws_byte_buf> = fromPointer(ptr: buffer)
-//
-//        guard AWS_OP_SUCCESS == aws_md5_compute(allocator.rawValue, input, output, truncate) else {
-//            return nil
-//        }
-//
-//        let byteCursor = aws_byte_cursor_from_buf(output)
-//        return byteCursor.toData().base64EncodedString()
-//    }
+
+    public func base64EncodedMD5(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String? {
+        let bufferPtr: UnsafeMutablePointer<UInt8> = allocator.allocate(capacity: 16)
+        var buffer = aws_byte_buf(len: 0, buffer: bufferPtr, capacity: 16, allocator: allocator.rawValue)
+
+        guard self.withByteCursorPointer ({ strCursorPointer in
+           aws_md5_compute(allocator.rawValue, strCursorPointer, &buffer, truncate)
+        }) == AWS_OP_SUCCESS else {
+            return nil
+        }
+
+        let byteCursor: aws_byte_cursor = withUnsafePointer(to: buffer) { aws_byte_cursor_from_buf($0) }
+        return byteCursor.toData().base64EncodedString()
+    }
 
 
     func withByteCursor<R>(_ body: (aws_byte_cursor) -> R
     ) -> R {
-
         return self.withCString { arg1C in
             return body(aws_byte_cursor_from_c_str(arg1C))
         }
@@ -159,9 +153,8 @@ extension UnsafeRawPointer: PointerConformance {}
 
 
 func withByteCursorFromStrings<R>(
-        _ arg1: String,_ arg2: String, _ body: (aws_byte_cursor,aws_byte_cursor) -> R
+        _ arg1: String, _ arg2: String, _ body: (aws_byte_cursor,aws_byte_cursor) -> R
 ) -> R {
-
     return arg1.withCString { arg1C in
         return arg2.withCString { arg2C in
                 return body(aws_byte_cursor_from_c_str(arg1C), aws_byte_cursor_from_c_str(arg2C))
@@ -170,9 +163,8 @@ func withByteCursorFromStrings<R>(
 }
 
 func withByteCursorFromStrings<R>(
-        _ arg1: String,_ arg2: String,_ arg3: String, _ body: (aws_byte_cursor,aws_byte_cursor,aws_byte_cursor) -> R
+        _ arg1: String, _ arg2: String, _ arg3: String, _ body: (aws_byte_cursor, aws_byte_cursor, aws_byte_cursor) -> R
 ) -> R {
-
     return arg1.withCString { arg1C in
         return arg2.withCString { arg2C in
             return arg3.withCString {arg3c in
