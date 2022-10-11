@@ -7,10 +7,7 @@ public final class TlsContext {
     private let allocator: Allocator
     var rawValue: UnsafeMutablePointer<aws_tls_ctx>
 
-    /// Take a reference to keep it alive
-    private let tlsContextOptions: TlsContextOptions
     public init(options: TlsContextOptions, mode: TlsMode, allocator: Allocator = defaultAllocator) throws {
-        self.tlsContextOptions = options
         let context: UnsafeMutablePointer<aws_tls_ctx>?
         switch mode {
         case .client:

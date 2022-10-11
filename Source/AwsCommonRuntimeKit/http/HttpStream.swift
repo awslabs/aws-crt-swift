@@ -1,7 +1,8 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
-//TODO: tests?
+
+//TODO: What to do after on complete callback? Should we call aws_http_stream_release and set httpConnection to nil?
 public class HttpStream {
     var httpStream: UnsafeMutablePointer<aws_http_stream>
 
