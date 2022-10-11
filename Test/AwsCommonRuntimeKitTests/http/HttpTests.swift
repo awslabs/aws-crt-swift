@@ -10,6 +10,8 @@ class HttpTests: CrtXCBaseTestCase {
     func testGetHttpRequest() async throws{
         let result = await sendGetHttpRequest()
         XCTAssertEqual(result, AWS_OP_SUCCESS)
+        let asyncResult = await sendGetHttpRequestAsync()
+        XCTAssertEqual(asyncResult, AWS_OP_SUCCESS)
     }
 
     func getHttpConnection(host: String, ssh: Bool)  async throws -> HttpClientConnection {
@@ -105,6 +107,30 @@ class HttpTests: CrtXCBaseTestCase {
             semaphore.wait()
             let status_code = try stream.statusCode()
             XCTAssertEqual(status_code, 200)
+            return AWS_OP_SUCCESS
+        } catch let err {
+            print(err)
+            return AWS_OP_ERR
+        }
+    }
+
+
+    func sendGetHttpRequestAsync() async -> Int32 {
+        do {
+            let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
+            guard let host = url.host else {
+                print("no proper host was parsed from the url. quitting.")
+                exit(EXIT_FAILURE)
+            }
+
+            let httpRequestOptions = try getHttpRequestOptions(method: "GET", path: url.path, host: host)
+
+            let connection = try await getHttpConnection(host: host, ssh: true)
+
+            async let status_code = try connection.makeRequestAsync(requestOptions: httpRequestOptions)
+            print("non blocking")
+            let status = try await status_code
+            XCTAssertEqual(status, 200)
             return AWS_OP_SUCCESS
         } catch let err {
             print(err)

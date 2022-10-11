@@ -5,8 +5,10 @@ import Foundation
 class HttpStreamCallbackData {
     let requestOptions: HttpRequestOptions
     var stream: HttpStream?
+    let continuation: CheckedContinuation<Int, Error>?
 
-    init(requestOptions: HttpRequestOptions) {
+    init(requestOptions: HttpRequestOptions, continuation: CheckedContinuation<Int, Error>? = nil) {
         self.requestOptions = requestOptions
+        self.continuation = continuation
     }
 }

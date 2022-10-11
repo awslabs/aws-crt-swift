@@ -3,6 +3,6 @@
 //
 
 import Foundation
-enum CommonRunTimeError: Error {
+public enum CommonRunTimeError: Error {
     case crtError(CRTError)
 }
