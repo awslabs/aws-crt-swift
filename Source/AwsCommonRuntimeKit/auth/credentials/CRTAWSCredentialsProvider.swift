@@ -351,7 +351,7 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer?,
             callbackFn?(credentials.rawValue, 0, callbackPointer)
         } catch let crtError as CRTError {
             callbackFn?(nil, crtError.code, callbackPointer)
-        } catch {} //TODO: handle other errors
+        } catch {} // TODO: handle other errors
     }
     return 0
 }

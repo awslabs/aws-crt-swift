@@ -58,7 +58,7 @@ public final class HttpHeaders {
     /// - Parameter header: The `HttpHeader` to update or append.
     /// - Returns: `Bool`: True on success
     public func update(_ header: HttpHeader) -> Bool {
-        //this function in c will update the header if it exists or create a new one if it's new.
+        // this function in c will update the header if it exists or create a new one if it's new.
         return withByteCursorFromStrings(header.name, header.value) { nameCursor, valueCursor in
             aws_http_headers_set(self.rawValue, nameCursor, valueCursor)
         } == AWS_OP_SUCCESS
@@ -70,7 +70,7 @@ public final class HttpHeaders {
     /// - Returns: `String?`: The value of the Header
     public func get(name: String) -> String? {
         var value = aws_byte_cursor()
-        if name.withByteCursor ({ nameCursor in
+        if name.withByteCursor({ nameCursor in
             aws_http_headers_get(self.rawValue, nameCursor, &value)
         }) != AWS_OP_SUCCESS {
             return nil

@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
 
-//TODO: What to do after on complete callback? Should we call aws_http_stream_release and set httpConnection to nil?
+// TODO: What to do after on complete callback? Should we call aws_http_stream_release and set httpConnection to nil?
 public class HttpStream {
     var httpStream: UnsafeMutablePointer<aws_http_stream>
 
@@ -38,7 +38,7 @@ public class HttpStream {
         return Int(status)
     }
 
-    ///Activates the client stream.
+    /// Activates the client stream.
     public func activate() throws {
         if aws_http_stream_activate(httpStream) != AWS_OP_SUCCESS {
             throw CommonRunTimeError.crtError(.makeFromLastError())

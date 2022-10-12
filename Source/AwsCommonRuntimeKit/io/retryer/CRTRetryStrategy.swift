@@ -34,7 +34,7 @@ private func acquireRetryToken(_ retryStrategy: UnsafeMutablePointer<aws_retry_s
             callbackFn?(retryStrategy, 0, result.rawValue, callbackPointer)
         } catch let crtError as CRTError {
                 callbackFn?(retryStrategy, crtError.code, nil, callbackPointer)
-        } catch {} //TODO: handle other errors
+        } catch {} // TODO: handle other errors
     }
 
     return 0
@@ -62,7 +62,7 @@ private func scheduleRetry(_ token: UnsafeMutablePointer<aws_retry_token>?,
             callbackFn?(token, 0, callbackPointer)
         } catch let crtError as CRTError {
             callbackFn?(token, crtError.code, callbackPointer)
-        } catch {} //TODO: handle other errors
+        } catch {} // TODO: handle other errors
     }
 
     return 0

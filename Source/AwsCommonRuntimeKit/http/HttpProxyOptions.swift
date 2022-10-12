@@ -2,13 +2,13 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
 import AwsCCommon
-//Todo: try to find a better for a persistent byte cursor
+// Todo: try to find a better for a persistent byte cursor
 public class HttpProxyOptions {
     private let allocator: Allocator
     let rawValue: UnsafeMutablePointer<aws_http_proxy_options>
 
     public var authType: HttpProxyAuthenticationType = .none {
-        didSet{
+        didSet {
             rawValue.pointee.auth_type = authType.rawValue
         }
     }
@@ -52,7 +52,7 @@ public class HttpProxyOptions {
     private var _hostName: AWSString
     public var hostName: String {
         get {
-            //As the encoding is Utf-8 this should never fail.
+            // As the encoding is Utf-8 this should never fail.
             return String(awsString: _hostName.rawValue)!
         }
         set(value) {
@@ -67,7 +67,7 @@ public class HttpProxyOptions {
         }
     }
     public var tlsOptions: TlsConnectionOptions? {
-        didSet{
+        didSet {
             rawValue.pointee.tls_options = UnsafePointer(tlsOptions?.rawValue)
         }
     }
@@ -78,12 +78,10 @@ public class HttpProxyOptions {
         self._hostName = AWSString(hostName, allocator: allocator)
         self.port = port
 
-        //Initialize rawValue as well because init doesn't trigger didSet
+        // Initialize rawValue as well because init doesn't trigger didSet
         rawValue.pointee.port = port
         rawValue.pointee.host = aws_byte_cursor_from_string(_hostName.rawValue)
     }
-
-
 
     deinit {
         allocator.release(rawValue)

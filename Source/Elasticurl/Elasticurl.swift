@@ -9,10 +9,10 @@ import Glibc
 #else
 import Darwin
 #endif
-//TODO: refactor
-//swiftlint:disable cyclomatic_complexity type_body_length
+// TODO: refactor
+// swiftlint:disable cyclomatic_complexity type_body_length
 struct Context {
-    //args
+    // args
     public var logLevel: LogLevel = .trace
     public var verb: String = "GET"
     public var caCert: String?

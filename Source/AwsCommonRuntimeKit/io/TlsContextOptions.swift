@@ -8,7 +8,7 @@ public final class TlsContextOptions {
     public static func isAlpnSupported() -> Bool {
         return aws_tls_is_alpn_available()
     }
-    
+
     public init(defaultClientWithAllocator allocator: Allocator = defaultAllocator) {
         self.allocator = allocator
         self.rawValue = allocator.allocate(capacity: 1)
@@ -52,18 +52,18 @@ public final class TlsContextOptions {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
-    
+
     public func setAlpnList(_ alpnList: String?) throws {
         if let alpnList = alpnList,
            aws_tls_ctx_options_set_alpn_list(rawValue, alpnList) != AWS_OP_SUCCESS {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
-    
+
     public func setVerifyPeer(_ verifyPeer: Bool) {
         aws_tls_ctx_options_set_verify_peer(rawValue, verifyPeer)
     }
-    
+
     deinit {
         aws_tls_ctx_options_clean_up(rawValue)
         allocator.release(rawValue)

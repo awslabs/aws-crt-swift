@@ -22,7 +22,6 @@ public class ProxyEnvSettings {
         }
     }
 
-
     public init(envVarType: HttpProxyEnvType = .disable,
                 proxyConnectionType: HttpProxyConnectionType = .forward,
                 tlsOptions: TlsConnectionOptions? = nil,
@@ -34,7 +33,7 @@ public class ProxyEnvSettings {
         self.tlsOptions = tlsOptions
         self.rawValue = allocator.allocate(capacity: 1)
 
-        //Set these values for rawValue as well because didSet is not triggered in init
+        // Set these values for rawValue as well because didSet is not triggered in init
         rawValue.pointee.env_var_type = envVarType.rawValue
         rawValue.pointee.connection_type = proxyConnectionType.rawValue
         rawValue.pointee.tls_options = UnsafePointer(tlsOptions?.rawValue)

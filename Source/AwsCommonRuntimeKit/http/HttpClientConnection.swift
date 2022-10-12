@@ -32,7 +32,6 @@ public class HttpClientConnection {
 //        manager = nil
 //    }
 
-
     // TODO: I have created an other async function which doesn't give access to HttpStream. So it is easier to manage the lifetime of HttpStream.
     // We might remove makeRequest or makeRequestAsync after discussion/review. For now, keeping both for easier comparison.
     /// Creates a new http stream from the `HttpRequestOptions` given.
@@ -103,12 +102,11 @@ public class HttpClientConnection {
         }
 
         let cbData = HttpStreamCallbackData(requestOptions: requestOptions)
-        options.user_data = Unmanaged.passRetained(cbData).toOpaque() //Todo: Confirm this logic
+        options.user_data = Unmanaged.passRetained(cbData).toOpaque() // Todo: Confirm this logic
         let stream = try HttpStream(httpConnection: self, options: options)
         cbData.stream = stream
         return stream
     }
-
 
     /// Sends an HTTP Request Asynchronously and returns Http Code after the on_complete callback has triggered
     /// - Parameter requestOptions: An `HttpRequestOptions` struct containing callbacks on
@@ -120,9 +118,9 @@ public class HttpClientConnection {
         })
     }
 
-    //Todo: This function has a lot of code duplication with makeRequest. Will refactor it if we decide to keep both functions. I like this one better because
-    //1. It doesn't exposes HTTPStream. So we can manage it's lifetime ourself.
-    //2. User doesn't need extra logic (Semaphore or implementing continuation etc) to wait until on_complete callback has fired.
+    // Todo: This function has a lot of code duplication with makeRequest. Will refactor it if we decide to keep both functions. I like this one better because
+    // 1. It doesn't exposes HTTPStream. So we can manage it's lifetime ourself.
+    // 2. User doesn't need extra logic (Semaphore or implementing continuation etc) to wait until on_complete callback has fired.
     private func makeRequestAsync(requestOptions: HttpRequestOptions, continuation: CheckedContinuation<Int, Error>) {
         var options = aws_http_make_request_options()
         options.self_size = MemoryLayout<aws_http_make_request_options>.size
@@ -213,7 +211,7 @@ public class HttpClientConnection {
 
         do {
             let cbData = HttpStreamCallbackData(requestOptions: requestOptions, continuation: continuation)
-            options.user_data = Unmanaged.passRetained(cbData).toOpaque() //Todo: Confirm this logic
+            options.user_data = Unmanaged.passRetained(cbData).toOpaque() // Todo: Confirm this logic
             let stream = try HttpStream(httpConnection: self, options: options)
             cbData.stream = stream
             try stream.activate()

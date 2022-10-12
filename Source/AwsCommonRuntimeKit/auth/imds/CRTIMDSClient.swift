@@ -2,11 +2,11 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCAuth
-//TODO: fix pointers and look for other errors
+// TODO: fix pointers and look for other errors
 public class CRTIMDSClient {
     let rawValue: OpaquePointer
     let allocator: Allocator
-    public init(options: CRTIMDSClientOptions, allocator: Allocator = defaultAllocator) throws{
+    public init(options: CRTIMDSClientOptions, allocator: Allocator = defaultAllocator) throws {
         self.allocator = allocator
         let shutDownOptions = CRTIMDSClient.setUpShutDownOptions(shutDownOptions: options.shutDownOptions)
         var imdsOptions = aws_imds_client_options(shutdown_options: shutDownOptions,
@@ -24,7 +24,7 @@ public class CRTIMDSClient {
     /// - Parameters:
     ///    - resourcePath: `String` path of the resource to query
     public func getResource(resourcePath: String) async throws -> String? {
-        //Convert it to a AWSString to make it a reference counted string from which we can create a byte cursor for passing to async function
+        // Convert it to a AWSString to make it a reference counted string from which we can create a byte cursor for passing to async function
         let awsResourcePath = AWSString(resourcePath, allocator: allocator)
         return try await withCheckedThrowingContinuation { (continuation: ResourceContinuation) in
             let callbackData = CRTIMDSClientResourceCallbackData(continuation: continuation)
@@ -200,7 +200,7 @@ public class CRTIMDSClient {
         let callbackData = CRTCredentialsProviderCallbackData(continuation: continuation)
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
 
-        //Convert it to a AWSString to make it a reference counted string from which we can create a byte cursor for passing to async function
+        // Convert it to a AWSString to make it a reference counted string from which we can create a byte cursor for passing to async function
         let iamRoleNameAWSStr = AWSString(iamRoleName, allocator: allocator)
         if aws_imds_client_get_credentials(rawValue, aws_byte_cursor_from_string(iamRoleNameAWSStr.rawValue), { credentialsPointer, errorCode, userData in
             guard let userData = userData else {

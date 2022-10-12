@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCAuth
-//TODO: verify callback logic, fix pointers, and maybe error handling
+// TODO: verify callback logic, fix pointers, and maybe error handling
 public struct SigningConfig {
     public typealias ShouldSignHeader = (String) -> Bool
     public let rawValue: aws_signing_config_aws

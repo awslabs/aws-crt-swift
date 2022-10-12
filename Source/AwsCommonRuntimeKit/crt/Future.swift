@@ -1,9 +1,9 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 // TODO: remove if not being used.
-//import Foundation
+// import Foundation
 //
-//public final class Future<Value> {
+// public final class Future<Value> {
 //    public typealias FutureResult = Result<Value, Error>
 //
 //    private var _value: FutureResult? //nil when pending
@@ -67,9 +67,9 @@
 //        lock.unlock()
 //        block(value)
 //    }
-//}
+// }
 //
-//public extension Future {
+// public extension Future {
 //    func chained<T>(closure: @escaping (FutureResult) -> Future<T>) -> Future<T> {
 //        // We'll start by constructing a "wrapper" promise that will be
 //        // returned from this method:
@@ -131,4 +131,4 @@
 //        }
 //        return future
 //    }
-//}
+// }

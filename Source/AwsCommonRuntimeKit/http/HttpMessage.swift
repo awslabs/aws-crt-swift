@@ -7,8 +7,8 @@ public class HttpMessage {
     let rawValue: OpaquePointer
     let allocator: Allocator
 
-    //Todo: do we need this?
-    //public var headers: HttpHeaders?
+    // Todo: do we need this?
+    // public var headers: HttpHeaders?
     public var body: AwsInputStream? {
         willSet(value) {
             if let newBody = value {
@@ -37,14 +37,14 @@ public class HttpMessage {
         aws_http_message_release(rawValue)
     }
 }
-//header handling
+// header handling
 public extension HttpMessage {
 
     var headerCount: Int {
            return aws_http_message_get_header_count(rawValue)
     }
 
-    //Todo: what to do in error? Maybe refactor it to a better logic?
+    // Todo: what to do in error? Maybe refactor it to a better logic?
     func addHeaders(headers: HttpHeaders) {
         for index in 0...headers.count {
             if let header = headers.get(index: index) {
@@ -69,7 +69,7 @@ public extension HttpMessage {
         return nil
     }
 
-    //Todo: what to do in case of errors?
+    // Todo: what to do in case of errors?
     func getHeaders() -> [HttpHeader] {
         var headers = [HttpHeader]()
         var header = aws_http_header()

@@ -13,7 +13,7 @@ public class HttpClientConnectionManager {
     public init(options: HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) throws {
         self.options = options
         self.allocator = allocator
-        //Todo: fix shutdown options
+        // Todo: fix shutdown options
         let shutDownPtr: UnsafeMutablePointer<ShutDownCallbackOptions>? = fromOptionalPointer(ptr: options.shutDownOptions)
 
         self.manager = options.hostName.withByteCursor { hostName in
@@ -88,8 +88,8 @@ public class HttpClientConnectionManager {
         Unmanaged.passRetained(callbackData).toOpaque())
     }
 
-    ///Releases this HttpClientConnection back into the Connection Pool, and allows another Request to acquire
-    ///this connection.
+    /// Releases this HttpClientConnection back into the Connection Pool, and allows another Request to acquire
+    /// this connection.
     /// - Parameters:
     ///     - connection:  `HttpClientConnection` to release
     public func releaseConnection(connection: HttpClientConnection) throws {

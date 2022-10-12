@@ -16,8 +16,8 @@ import AwsCCal
      import Darwin
  #endif
 
-//swiftlint:disable identifier_name superfluous_disable_command
-//Todo: this is being used.
+// swiftlint:disable identifier_name superfluous_disable_command
+// Todo: this is being used.
 public class ByteBuffer: Codable {
 
     public init(size: Int) {
@@ -333,10 +333,10 @@ extension ByteBuffer {
         while stream.hasBytesAvailable {
             let read = stream.read(buffer, maxLength: bufferSize)
             if read < 0 {
-                //Stream error occured
+                // Stream error occured
                 throw stream.streamError!
             } else if read == 0 {
-                //EOF
+                // EOF
                 break
             }
             allocate(read)

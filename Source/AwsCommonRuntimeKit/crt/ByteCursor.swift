@@ -5,7 +5,7 @@ import Foundation
 
 extension aws_byte_cursor {
     func toString() -> String? {
-        //Todo: refactor. cursor -> aws string -> c string -> swift string is not optimal.
+        // Todo: refactor. cursor -> aws string -> c string -> swift string is not optimal.
         // Will refactor after figuring out the encoding for authorization header.
         if self.len == 0 { return nil }
         let awsStr = withUnsafePointer(to: self) {aws_string_new_from_cursor(defaultAllocator, $0)}
