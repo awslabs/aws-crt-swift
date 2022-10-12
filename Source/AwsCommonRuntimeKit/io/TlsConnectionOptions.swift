@@ -6,10 +6,8 @@ import AwsCIo
 public final class TlsConnectionOptions {
 	private let allocator: Allocator
     var rawValue: UnsafeMutablePointer<aws_tls_connection_options>
-
 	init(_ context: TlsContext, allocator: Allocator) {
 		self.allocator = allocator
-
         self.rawValue = allocator.allocate(capacity: 1)
 		aws_tls_connection_options_init_from_ctx(rawValue, context.rawValue)
         #if os(iOS) || os(watchOS)
@@ -31,7 +29,8 @@ public final class TlsConnectionOptions {
                                                        self.allocator.rawValue,
 					                                   serverNameCursorPointer)
 		}) != AWS_OP_SUCCESS {
-			throw CommonRunTimeError.crtError(.makeFromLastError())		}
+			throw CommonRunTimeError.crtError(.makeFromLastError())
+		}
 	}
 
     deinit {

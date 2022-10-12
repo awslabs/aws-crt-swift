@@ -7,6 +7,7 @@ public class HttpMessage {
     let rawValue: OpaquePointer
     let allocator: Allocator
 
+    //Todo: do we need this?
     //public var headers: HttpHeaders?
     public var body: AwsInputStream? {
         willSet(value) {
@@ -20,11 +21,11 @@ public class HttpMessage {
     // internal initializer. Consumers will initialize HttpRequest subclass and
     // not interact with this class directly.
     init(allocator: Allocator = defaultAllocator) throws {
-        self.allocator = allocator;
-        self.rawValue = aws_http_message_new_request(allocator.rawValue)
-        if self.rawValue == nil {
+        self.allocator = allocator
+        guard let rawValue = aws_http_message_new_request(allocator.rawValue) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
+        self.rawValue = rawValue
     }
 
     init(rawValue: OpaquePointer, allocator: Allocator = defaultAllocator) {

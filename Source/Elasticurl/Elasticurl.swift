@@ -9,7 +9,7 @@ import Glibc
 #else
 import Darwin
 #endif
-
+//TODO: refactor
 //swiftlint:disable cyclomatic_complexity type_body_length
 struct Context {
     //args
@@ -25,7 +25,7 @@ struct Context {
     public var outputFileName: String?
     public var traceFile: String?
     public var insecure: Bool = false
-    public var url: URL = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
+    public var url: URL = URL(fileURLWithPath: "")
     public var data: Data?
     public var alpnList: [String] = []
     public var outputStream = FileHandle.standardOutput
@@ -277,13 +277,13 @@ struct Elasticurl {
 
             var stream: HttpStream?
 
-            let httpRequest: HttpRequest = try! HttpRequest(allocator: allocator)
+            let httpRequest: HttpRequest = try HttpRequest(allocator: allocator)
             httpRequest.method = context.verb
             let path = context.url.path == "" ? "/" : context.url.path
 
             httpRequest.path = path
 
-            let headers = try! HttpHeaders(allocator: allocator)
+            let headers = try HttpHeaders(allocator: allocator)
             if headers.add(name: "Host", value: host),
                headers.add(name: "User-Agent", value: "Elasticurl"),
                headers.add(name: "Accept", value: "*/*"),
@@ -334,7 +334,7 @@ struct Elasticurl {
                                                                 tlsOptions: tlsConnectionOptions,
                                                                 monitoringOptions: nil)
 
-            let connectionManager = try! HttpClientConnectionManager(options: httpClientOptions)
+            let connectionManager = try HttpClientConnectionManager(options: httpClientOptions)
             do {
                 let connection = try await connectionManager.acquireConnection()
                 let requestOptions = HttpRequestOptions(request: httpRequest,
@@ -342,8 +342,8 @@ struct Elasticurl {
                                                         onIncomingHeadersBlockDone: onBlockDone,
                                                         onIncomingBody: onBody,
                                                         onStreamComplete: onComplete)
-                stream = try! connection.makeRequest(requestOptions: requestOptions)
-                try! stream!.activate()
+                stream = try connection.makeRequest(requestOptions: requestOptions)
+                try stream!.activate()
 
             } catch {
                 print("connection has shut down with error: \(error.localizedDescription)" )

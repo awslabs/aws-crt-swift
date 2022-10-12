@@ -8,7 +8,7 @@ public class ProxyEnvSettings {
 
     public var envVarType: HttpProxyEnvType {
         didSet {
-            rawValue.pointee.env_var_type = envVarType.rawValue;
+            rawValue.pointee.env_var_type = envVarType.rawValue
         }
     }
     public var proxyConnectionType: HttpProxyConnectionType {
@@ -29,10 +29,10 @@ public class ProxyEnvSettings {
                 allocator: Allocator = defaultAllocator) {
 
         self.allocator = allocator
-        self.rawValue = allocator.allocate(capacity: 1)
         self.envVarType = envVarType
         self.proxyConnectionType = proxyConnectionType
         self.tlsOptions = tlsOptions
+        self.rawValue = allocator.allocate(capacity: 1)
 
         //Set these values for rawValue as well because didSet is not triggered in init
         rawValue.pointee.env_var_type = envVarType.rawValue

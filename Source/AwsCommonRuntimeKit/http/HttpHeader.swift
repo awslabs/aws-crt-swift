@@ -9,10 +9,9 @@ public struct HttpHeader {
 
     init(name: String,
          value: String,
-         compression: HttpHeaderCompression = .useCache,
-         allocator: Allocator = defaultAllocator) {
-        self.name = name;
-        self.value = value;
-        self.compression = compression;
+         compression: HttpHeaderCompression = .useCache) {
+        self.name = name
+        self.value = value
+        self.compression = compression
     }
 }

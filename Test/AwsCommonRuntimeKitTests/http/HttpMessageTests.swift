@@ -24,9 +24,25 @@ class HttpMessageTests: CrtXCBaseTestCase {
         _ = try HttpMessage(allocator: allocator)
     }
 
-    func testGetAllHttpHeaders() {
-        let allHeaders = httpMessage?.getHeaders()
+    func testAddHttpHeaders() throws {
+        let httpHeaders = try HttpHeaders(allocator: allocator)
+        let headerAdded = httpHeaders.add(name: "Test2", value: "Value2")
+        XCTAssertTrue(headerAdded)
+        httpMessage?.addHeaders(headers: httpHeaders)
+        XCTAssertEqual(httpMessage?.headerCount, 2)
+    }
+
+    func testGetAllHttpHeaders() throws {
+        var allHeaders = httpMessage?.getHeaders()
         XCTAssertEqual(allHeaders!.count, 1)
+
+        let httpHeaders = try HttpHeaders(allocator: allocator)
+        let headerAdded = httpHeaders.add(name: "Test2", value: "Value2")
+        XCTAssertTrue(headerAdded)
+        httpMessage?.addHeaders(headers: httpHeaders)
+
+        allHeaders = httpMessage?.getHeaders()
+        XCTAssertEqual(allHeaders!.count, 2)
     }
 
     func testGetHttpHeaders() {

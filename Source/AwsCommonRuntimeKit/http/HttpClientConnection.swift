@@ -212,7 +212,7 @@ public class HttpClientConnection {
         }
 
         do {
-            let cbData = HttpStreamCallbackData(requestOptions: requestOptions,  continuation: continuation)
+            let cbData = HttpStreamCallbackData(requestOptions: requestOptions, continuation: continuation)
             options.user_data = Unmanaged.passRetained(cbData).toOpaque() //Todo: Confirm this logic
             let stream = try HttpStream(httpConnection: self, options: options)
             cbData.stream = stream

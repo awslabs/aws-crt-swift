@@ -17,7 +17,6 @@ public class Logger {
 
     public init(filePath: String, level: LogLevel, allocator: Allocator = defaultAllocator) {
         logger = aws_logger()
-
         filePath.withCString { cFilePath in
             var options = aws_logger_standard_options()
             options.level = level.rawValue

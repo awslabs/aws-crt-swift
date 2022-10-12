@@ -68,7 +68,6 @@ public final class HttpHeaders {
     ///
     /// - Parameter name: The name of the header to get.
     /// - Returns: `String?`: The value of the Header
-    /// TODO: confirm my understanding
     public func get(name: String) -> String? {
         var value = aws_byte_cursor()
         if name.withByteCursor ({ nameCursor in
@@ -94,7 +93,7 @@ public final class HttpHeaders {
     /// Gets all headers from the `aws_http_headers` instance
     ///
     /// - Returns:`[HttpHeader]`: The array of headers saved
-    /// TODO: confirm what to do in error case
+    /// TODO: handle error
     public func getAll() -> [HttpHeader] {
         var headers = [HttpHeader]()
         for index in 0...count {

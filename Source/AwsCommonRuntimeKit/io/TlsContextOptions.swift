@@ -5,7 +5,6 @@ import AwsCIo
 public final class TlsContextOptions {
     private let allocator: Allocator
     var rawValue: UnsafeMutablePointer<aws_tls_ctx_options>
-    
     public static func isAlpnSupported() -> Bool {
         return aws_tls_is_alpn_available()
     }
@@ -15,7 +14,7 @@ public final class TlsContextOptions {
         self.rawValue = allocator.allocate(capacity: 1)
         aws_tls_ctx_options_init_default_client(rawValue, allocator.rawValue)
     }
-    
+
     #if os(macOS)
     public init(clientWithMtlsCertificatePath certPath: String,
                 keyPath: String,
@@ -27,10 +26,10 @@ public final class TlsContextOptions {
                     allocator.rawValue,
                     certPath, keyPathPointer)
         })  != AWS_OP_SUCCESS {
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())        }
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
     }
     #endif
-
     #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
     public init(clientWithMtlsPkcs12Path path: String,
                 password: String,
@@ -42,10 +41,10 @@ public final class TlsContextOptions {
                     allocator.rawValue,
                     path, passwordCursorPointer)
         }) != AWS_OP_SUCCESS {
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())        }
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
     }
     #endif
-    
     public func overrideDefaultTrustStore(caPath: String, caFile: String) throws {
         if aws_tls_ctx_options_override_default_trust_store_from_path(rawValue,
                                                                       caPath,
@@ -70,4 +69,3 @@ public final class TlsContextOptions {
         allocator.release(rawValue)
     }
 }
-

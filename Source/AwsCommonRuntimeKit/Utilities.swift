@@ -26,7 +26,6 @@ extension String {
     public func base64EncodedMD5(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String? {
         let bufferPtr: UnsafeMutablePointer<UInt8> = allocator.allocate(capacity: 16)
         var buffer = aws_byte_buf(len: 0, buffer: bufferPtr, capacity: 16, allocator: allocator.rawValue)
-
         guard self.withByteCursorPointer ({ strCursorPointer in
            aws_md5_compute(allocator.rawValue, strCursorPointer, &buffer, truncate)
         }) == AWS_OP_SUCCESS else {
@@ -36,7 +35,6 @@ extension String {
         let byteCursor: aws_byte_cursor = withUnsafePointer(to: buffer) { aws_byte_cursor_from_buf($0) }
         return byteCursor.toData().base64EncodedString()
     }
-
 
     func withByteCursor<R>(_ body: (aws_byte_cursor) -> R
     ) -> R {

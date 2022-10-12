@@ -16,7 +16,6 @@ public final class HttpRequest: HttpMessage {
     public var method: String? {
         get {
             var result = aws_byte_cursor()
-
             if aws_http_message_get_request_method(self.rawValue, &result) != AWS_OP_SUCCESS {
                 return nil
             }

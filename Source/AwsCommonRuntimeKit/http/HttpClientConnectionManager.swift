@@ -6,9 +6,6 @@ import Collections
 typealias OnConnectionAcquired =  (HttpClientConnection?, Int32) -> Void
 
 public class HttpClientConnectionManager {
-
-    //TODO: why are we using this queue and can we get rid of it?
-    var queue: Deque<HttpClientConnection> = Deque<HttpClientConnection>()
     let manager: OpaquePointer?
     let allocator: Allocator
     let options: HttpClientConnectionOptions
@@ -91,20 +88,10 @@ public class HttpClientConnectionManager {
         Unmanaged.passRetained(callbackData).toOpaque())
     }
 
-// TODO: Do we need this? In current implementation, manager doesn't hold a reference to Connections to avoid strong reference cycle.
-//    public func closePendingConnections() {
-//        while !queue.isEmpty {
-//            if let clientConnection = queue.popFirst() {
-//                try? releaseConnection(connection: clientConnection)
-//            }
-//        }
-//    }
-
     ///Releases this HttpClientConnection back into the Connection Pool, and allows another Request to acquire
     ///this connection.
     /// - Parameters:
     ///     - connection:  `HttpClientConnection` to release
-
     public func releaseConnection(connection: HttpClientConnection) throws {
         if aws_http_connection_manager_release_connection(manager, connection.rawValue) != AWS_OP_SUCCESS {
             throw CommonRunTimeError.crtError(.makeFromLastError())
