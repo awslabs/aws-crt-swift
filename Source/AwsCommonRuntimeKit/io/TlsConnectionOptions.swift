@@ -6,6 +6,7 @@ import AwsCIo
 public final class TlsConnectionOptions {
 	private let allocator: Allocator
     var rawValue: UnsafeMutablePointer<aws_tls_connection_options>
+
 	init(_ context: TlsContext, allocator: Allocator) {
 		self.allocator = allocator
         self.rawValue = allocator.allocate(capacity: 1)

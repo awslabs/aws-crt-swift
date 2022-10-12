@@ -30,6 +30,7 @@ public final class TlsContextOptions {
         }
     }
     #endif
+
     #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
     public init(clientWithMtlsPkcs12Path path: String,
                 password: String,
@@ -45,6 +46,7 @@ public final class TlsContextOptions {
         }
     }
     #endif
+
     public func overrideDefaultTrustStore(caPath: String, caFile: String) throws {
         if aws_tls_ctx_options_override_default_trust_store_from_path(rawValue,
                                                                       caPath,
