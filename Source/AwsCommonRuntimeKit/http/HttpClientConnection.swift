@@ -4,7 +4,7 @@
 import AwsCHttp
 import AwsCIo
 import Foundation
-
+// swiftlint:disable clomatic_complexity
 public class HttpClientConnection {
     private let allocator: Allocator
     let rawValue: UnsafeMutablePointer<aws_http_connection>
@@ -75,7 +75,7 @@ public class HttpClientConnection {
                 }
 
             }
-            guard let headersStruct = try? HttpHeaders(fromArray: headers) else {
+            guard let _ = try? HttpHeaders(fromArray: headers) else {
                 return AWS_OP_ERR
             }
 
@@ -118,7 +118,8 @@ public class HttpClientConnection {
         })
     }
 
-    // Todo: This function has a lot of code duplication with makeRequest. Will refactor it if we decide to keep both functions. I like this one better because
+    // Todo: This function has a lot of code duplication with makeRequest.
+    //  Will refactor it if we decide to keep both functions. I like this one better because
     // 1. It doesn't exposes HTTPStream. So we can manage it's lifetime ourself.
     // 2. User doesn't need extra logic (Semaphore or implementing continuation etc) to wait until on_complete callback has fired.
     private func makeRequestAsync(requestOptions: HttpRequestOptions, continuation: CheckedContinuation<Int, Error>) {

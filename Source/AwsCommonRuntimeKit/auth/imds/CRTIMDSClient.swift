@@ -202,7 +202,10 @@ public class CRTIMDSClient {
 
         // Convert it to a AWSString to make it a reference counted string from which we can create a byte cursor for passing to async function
         let iamRoleNameAWSStr = AWSString(iamRoleName, allocator: allocator)
-        if aws_imds_client_get_credentials(rawValue, aws_byte_cursor_from_string(iamRoleNameAWSStr.rawValue), { credentialsPointer, errorCode, userData in
+        if aws_imds_client_get_credentials(
+                rawValue,
+                aws_byte_cursor_from_string(iamRoleNameAWSStr.rawValue),
+                { credentialsPointer, errorCode, userData in
             guard let userData = userData else {
                 return
             }
