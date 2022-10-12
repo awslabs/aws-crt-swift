@@ -33,7 +33,9 @@ extension String {
         }
 
         let byteCursor: aws_byte_cursor = withUnsafePointer(to: buffer) { aws_byte_cursor_from_buf($0) }
-        return byteCursor.toData().base64EncodedString()
+        let result = byteCursor.toData().base64EncodedString()
+        allocator.release(bufferPtr)
+        return result
     }
 
     func withByteCursor<R>(_ body: (aws_byte_cursor) -> R
