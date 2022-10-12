@@ -24,6 +24,7 @@ public class CRTIMDSClient {
     /// - Parameters:
     ///    - resourcePath: `String` path of the resource to query
     public func getResource(resourcePath: String) async throws -> String? {
+        // Todo: improve
         // Convert it to a AWSString to make it a reference counted string from which we can create a byte cursor for passing to async function
         let awsResourcePath = AWSString(resourcePath, allocator: allocator)
         return try await withCheckedThrowingContinuation { (continuation: ResourceContinuation) in

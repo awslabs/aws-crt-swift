@@ -20,8 +20,10 @@ public final class CRTCredentials {
                 sessionToken: String?,
                 expirationTimeout: UInt64,
                 allocator: Allocator = defaultAllocator) throws {
-
-        guard let rawValue = (withByteCursorFromStrings(accessKey, secret, sessionToken ?? "") { accessKeyCursor, secretCursor, sessionTokenCursor in
+        guard let rawValue = (withByteCursorFromStrings(
+                accessKey,
+                secret,
+                sessionToken ?? "") { accessKeyCursor, secretCursor, sessionTokenCursor in
             aws_credentials_new(allocator.rawValue,
                     accessKeyCursor,
                     secretCursor,

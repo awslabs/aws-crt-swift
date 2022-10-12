@@ -194,7 +194,6 @@ public final class CRTAWSCredentialsProvider {
                 x509Config.thingName,
                 x509Config.roleAlias,
                 x509Config.endpoint) { thingNameCursor, roleAliasCursor, endPointCursor in
-
             x509Options.thing_name = thingNameCursor
             x509Options.role_alias = roleAliasCursor
             x509Options.endpoint = endPointCursor
@@ -244,7 +243,9 @@ public final class CRTAWSCredentialsProvider {
         stsOptions.function_table = nil
         stsOptions.system_clock_fn = nil
 
-        guard let provider = withByteCursorFromStrings(stsConfig.roleArn, stsConfig.sessionName, {roleArnCursor, sessionNameCursor in
+        guard let provider = withByteCursorFromStrings(
+                stsConfig.roleArn,
+                stsConfig.sessionName, {roleArnCursor, sessionNameCursor in
             stsOptions.role_arn = roleArnCursor
             stsOptions.session_name = sessionNameCursor
             return aws_credentials_provider_new_sts(allocator.rawValue, &stsOptions)
