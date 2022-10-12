@@ -13,51 +13,50 @@ public class HttpProxyOptions {
         }
     }
 
-    private var _basicAuthUsername: AWSString?
+    private var _basicAuthUsername: AWSStringByteCursor?
     public var basicAuthUsername: String? {
         get {
-            if let str = _basicAuthUsername {
-                return String(awsString: str.rawValue)
+            if let basicAuthUsername = _basicAuthUsername {
+                return basicAuthUsername.string
             }
             return nil
         }
         set(value) {
             if let value = value {
-                _basicAuthUsername = AWSString(value, allocator: allocator)
-                rawValue.pointee.auth_username = aws_byte_cursor_from_string(_basicAuthUsername?.rawValue)
+                _basicAuthUsername = AWSStringByteCursor(value, allocator: allocator)
+                rawValue.pointee.auth_username = _basicAuthUsername!.byteCursor
             } else {
                 _basicAuthUsername = nil
             }
         }
     }
 
-    private var _basicAuthPassword: AWSString?
+    private var _basicAuthPassword: AWSStringByteCursor?
     public var basicAuthPassword: String? {
         get {
-            if let str = _basicAuthPassword {
-                return String(awsString: str.rawValue)
+            if let basicAuthPassword = _basicAuthPassword {
+                return basicAuthPassword.string
             }
             return nil
         }
         set(value) {
             if let value = value {
-                _basicAuthPassword = AWSString(value, allocator: allocator)
-                rawValue.pointee.auth_password = aws_byte_cursor_from_string(_basicAuthPassword?.rawValue)
+                _basicAuthPassword = AWSStringByteCursor(value, allocator: allocator)
+                rawValue.pointee.auth_password = _basicAuthPassword!.byteCursor
             } else {
                 _basicAuthPassword = nil
             }
         }
     }
 
-    private var _hostName: AWSString
+    private var _hostName: AWSStringByteCursor
     public var hostName: String {
         get {
-            // As the encoding is Utf-8 this should never fail.
-            return String(awsString: _hostName.rawValue)!
+            return _hostName.string
         }
         set(value) {
-            _hostName = AWSString(value, allocator: allocator)
-            rawValue.pointee.host = aws_byte_cursor_from_string(_hostName.rawValue)
+            _hostName = AWSStringByteCursor(value, allocator: allocator)
+            rawValue.pointee.host = _hostName.byteCursor
         }
     }
 
@@ -75,12 +74,12 @@ public class HttpProxyOptions {
     public init(hostName: String, port: UInt16, allocator: Allocator = defaultAllocator) {
         self.allocator = allocator
         self.rawValue = allocator.allocate(capacity: 1)
-        self._hostName = AWSString(hostName, allocator: allocator)
+        self._hostName = AWSStringByteCursor(hostName, allocator: allocator)
         self.port = port
 
         // Initialize rawValue as well because init doesn't trigger didSet
         rawValue.pointee.port = port
-        rawValue.pointee.host = aws_byte_cursor_from_string(_hostName.rawValue)
+        rawValue.pointee.host = _hostName.byteCursor
     }
 
     deinit {

@@ -24,13 +24,11 @@ public class CRTIMDSClient {
     /// - Parameters:
     ///    - resourcePath: `String` path of the resource to query
     public func getResource(resourcePath: String) async throws -> String? {
-        // Todo: improve
-        // Convert it to a AWSString to make it a reference counted string from which we can create a byte cursor for passing to async function
-        let awsResourcePath = AWSString(resourcePath, allocator: allocator)
+        let resourcePathCursor = AWSStringByteCursor(resourcePath)
         return try await withCheckedThrowingContinuation { (continuation: ResourceContinuation) in
             let callbackData = CRTIMDSClientResourceCallbackData(continuation: continuation)
             let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
-            aws_imds_client_get_resource_async(rawValue, aws_byte_cursor_from_string(awsResourcePath.rawValue), resourceCallback, pointer)
+            aws_imds_client_get_resource_async(rawValue, resourcePathCursor.byteCursor, resourceCallback, pointer)
         }
     }
 
@@ -201,11 +199,10 @@ public class CRTIMDSClient {
         let callbackData = CRTCredentialsProviderCallbackData(continuation: continuation)
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
 
-        // Convert it to a AWSString to make it a reference counted string from which we can create a byte cursor for passing to async function
-        let iamRoleNameAWSStr = AWSString(iamRoleName, allocator: allocator)
+        let iamRoleNameAWSStr = AWSStringByteCursor(iamRoleName, allocator: allocator)
         if aws_imds_client_get_credentials(
                 rawValue,
-                aws_byte_cursor_from_string(iamRoleNameAWSStr.rawValue), { credentialsPointer, errorCode, userData in
+                iamRoleNameAWSStr.byteCursor, { credentialsPointer, errorCode, userData in
             guard let userData = userData else {
                 return
             }
