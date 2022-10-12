@@ -4,7 +4,7 @@
 import AwsCHttp
 import AwsCIo
 import Foundation
-// swiftlint:disable clomatic_complexity
+// swiftlint:disable cyclomatic_complexity
 public class HttpClientConnection {
     private let allocator: Allocator
     let rawValue: UnsafeMutablePointer<aws_http_connection>
@@ -75,7 +75,7 @@ public class HttpClientConnection {
                 }
 
             }
-            guard let _ = try? HttpHeaders(fromArray: headers) else {
+            guard let headersStruct = try? HttpHeaders(fromArray: headers) else {
                 return AWS_OP_ERR
             }
 

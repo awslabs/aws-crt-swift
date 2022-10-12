@@ -204,8 +204,7 @@ public class CRTIMDSClient {
         let iamRoleNameAWSStr = AWSString(iamRoleName, allocator: allocator)
         if aws_imds_client_get_credentials(
                 rawValue,
-                aws_byte_cursor_from_string(iamRoleNameAWSStr.rawValue),
-                { credentialsPointer, errorCode, userData in
+                aws_byte_cursor_from_string(iamRoleNameAWSStr.rawValue), { credentialsPointer, errorCode, userData in
             guard let userData = userData else {
                 return
             }
