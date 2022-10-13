@@ -31,9 +31,7 @@ extension String {
         }) == AWS_OP_SUCCESS else {
             return nil
         }
-        let result =  Data(bytesNoCopy: bufferPtr, count: 16, deallocator: .none).base64EncodedString()
-        allocator.release(bufferPtr)
-        return result
+        return Data(bytesNoCopy: bufferPtr, count: 16, deallocator: .none).base64EncodedString()
     }
 
     func withByteCursor<R>(_ body: (aws_byte_cursor) -> R
