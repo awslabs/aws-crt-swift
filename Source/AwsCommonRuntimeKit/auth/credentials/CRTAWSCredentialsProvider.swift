@@ -243,7 +243,7 @@ public final class CRTAWSCredentialsProvider {
         stsOptions.function_table = nil
         stsOptions.system_clock_fn = nil
 
-        guard let provider = withByteCursorFromStrings(
+        guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                 stsConfig.roleArn,
                 stsConfig.sessionName, {roleArnCursor, sessionNameCursor in
             stsOptions.role_arn = roleArnCursor
@@ -269,7 +269,7 @@ public final class CRTAWSCredentialsProvider {
         ecsOptions.bootstrap = containerConfig.bootstrap.rawValue
         ecsOptions.function_table = nil
 
-        guard let provider = (withByteCursorFromStrings(
+        guard let provider: UnsafeMutablePointer<aws_credentials_provider> = (withByteCursorFromStrings(
                 containerConfig.host ?? "",
                 containerConfig.authToken ?? "",
                 containerConfig.pathAndQuery ?? "") { hostCursor, authTokenCursor, pathAndQueryCursor in

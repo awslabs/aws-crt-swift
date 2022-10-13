@@ -35,7 +35,7 @@ extension String {
         }
         return Data(bytesNoCopy: buffer.buffer, count: buffer.len, deallocator: .custom { _, _ in
             aws_byte_buf_clean_up(&buffer)
-        }).base64EncodedString();
+        }).base64EncodedString()
     }
 
     func withByteCursor<R>(_ body: (aws_byte_cursor) -> R
