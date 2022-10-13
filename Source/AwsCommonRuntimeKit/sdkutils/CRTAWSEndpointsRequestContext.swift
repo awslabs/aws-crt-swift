@@ -52,4 +52,8 @@ public class CRTAWSEndpointsRequestContext {
             throw CRTError.awsError(AWSCommonRuntimeError())
         }
     }
+    
+    deinit {
+        aws_endpoints_request_context_release(rawValue)
+    }
 }
