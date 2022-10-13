@@ -65,8 +65,8 @@ public struct AWSCLIOption {
     public let rawValue: aws_cli_option
     
     public init(name: String, hasArg: CLIHasArg, flag: UnsafeMutablePointer<Int32>? = nil, val: String) {
-        // Todo: Changing it temporarily to get everything thing to compile.
-        // We will be refactoring this class anyhow to use https://github.com/apple/swift-argument-parser
-        self.rawValue = aws_cli_option(name: name, has_arg: hasArg.rawValue, flag: flag, val: 0)
+        self.rawValue = name.withCString { cName in
+            aws_cli_option(name: cName, has_arg: hasArg.rawValue, flag: flag, val: Int32(bitPattern: UnicodeScalar(val)?.value ?? 0))
+        }
     }
 }
