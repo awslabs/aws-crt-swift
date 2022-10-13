@@ -27,6 +27,9 @@ public class CRTAWSEndpointResolvedEndpoint {
     /// - Returns: The URL of the resolved endpoint
     public func getURL() throws -> String? {
         let urlOut = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
+        defer {
+            urlOut.deallocate()
+        }
         let success = aws_endpoints_resolved_endpoint_get_url(rawValue, urlOut)
         if success != 0 {
             throw CRTError.crtError(AWSError.makeFromLastError())
@@ -38,6 +41,9 @@ public class CRTAWSEndpointResolvedEndpoint {
     /// - Returns: The properties of the resolved endpoint
     public func getProperties() throws -> [String: AnyHashable]? {
         let propsOut = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
+        defer {
+            propsOut.deallocate()
+        }
         let success = aws_endpoints_resolved_endpoint_get_properties(rawValue, propsOut)
         if success != 0 {
             throw CRTError.crtError(AWSError.makeFromLastError())
@@ -52,6 +58,9 @@ public class CRTAWSEndpointResolvedEndpoint {
     /// - Parameter allocator: The allocator to use for the error
     public func getError() throws -> String? {
         let errorOut = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
+        defer {
+            errorOut.deallocate()
+        }
         let success = aws_endpoints_resolved_endpoint_get_error(rawValue, errorOut)
         if success != 0 {
             throw CRTError.crtError(AWSError.makeFromLastError())
@@ -64,6 +73,9 @@ public class CRTAWSEndpointResolvedEndpoint {
     public func getHeaders() throws -> [String: [String]]? {
         let headersOut: UnsafeMutablePointer<UnsafePointer<aws_hash_table>?>
             = UnsafeMutablePointer<UnsafePointer<aws_hash_table>?>.allocate(capacity: 1)
+        defer {
+            headersOut.deallocate()
+        }
         let success = aws_endpoints_resolved_endpoint_get_headers(rawValue, headersOut)
         if success != 0 {
             throw CRTError.crtError(AWSError.makeFromLastError())
