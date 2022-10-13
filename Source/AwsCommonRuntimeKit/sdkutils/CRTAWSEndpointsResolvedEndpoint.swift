@@ -85,8 +85,11 @@ public class CRTAWSEndpointResolvedEndpoint {
         var iter = aws_hash_iter_begin(headersOut.pointee)
 
         while !aws_hash_iter_done(&iter) {
-            let key = iter.element.key.bindMemory(to: String.self, capacity: 1).pointee
-            let value = iter.element.value.bindMemory(to: aws_array_list.self, capacity: 1).pointee.toStringArray()
+            let keyC = iter.element.key.bindMemory(to: UnsafePointer<aws_string>.self, capacity: 1).pointee
+            guard let key = String(awsString: keyC) else {
+                throw CRTError.stringConversionError(keyC)
+            }
+            let value = iter.element.value.bindMemory(to: UnsafePointer<aws_array_list>.self, capacity: 1).pointee.pointee.toStringArray()
             headers[key] = value
             aws_hash_iter_next(&iter)
         }

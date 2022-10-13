@@ -151,7 +151,25 @@ class CRTAWSEndpointsRuleEngineTests: CrtXCBaseTestCase {
                     }
                   ],
                   "endpoint": {
-                    "url": "https://example.{Region}.{partitionResult#dnsSuffix}"
+                    "url": "https://example.{Region}.{partitionResult#dnsSuffix}",
+                    "headers": {
+                      "x-amz-region": [
+                        "{Region}"
+                      ],
+                      "x-amz-multi": [
+                        "*",
+                        "{Region}"
+                      ]
+                    },
+                    "properties": {
+                      "authSchemes": [
+                        {
+                          "name": "sigv4",
+                          "signingName": "serviceName",
+                          "signingRegion": "{Region}"
+                        }
+                      ]
+                    }
                   }
                 },
                 {
@@ -182,6 +200,22 @@ class CRTAWSEndpointsRuleEngineTests: CrtXCBaseTestCase {
         let url = try endpoint?.getURL()
         XCTAssertNotNil(url)
         XCTAssertEqual("https://example.us-west-2.amazonaws.com", url!)
+        
+        let props = try endpoint?.getProperties()
+        XCTAssertNotNil(props)
+        let expectedProps = [
+            "authSchemes" : [
+                [
+                    "name": "sigv4",
+                    "signingName": "serviceName",
+                    "signingRegion": "us-west-2"
+                ]
+            ]
+        ]
+        XCTAssertEqual(expectedProps, props)
+        
+        let headers = try endpoint?.getHeaders()
+        XCTAssertNotNil(headers)
     }
     
     func testRuleSetParsingPerformance() {
