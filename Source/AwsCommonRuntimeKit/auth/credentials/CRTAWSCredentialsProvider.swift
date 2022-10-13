@@ -43,7 +43,7 @@ public final class CRTAWSCredentialsProvider {
         var staticOptions = aws_credentials_provider_static_options()
         staticOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
             shutDownOptions: config.shutDownOptions)
-        guard let provider = withByteCursorFromStrings(
+        guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                 config.accessKey,
                 config.secret,
                 config.sessionToken ?? "", { accessKeyCursor, secretCursor, sessionTokenCursor in
@@ -90,7 +90,7 @@ public final class CRTAWSCredentialsProvider {
 
         profileOptionsC.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: profileOptions.shutdownOptions)
 
-        guard let provider = withByteCursorFromStrings(
+        guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                 profileOptions.configFileNameOverride ?? "",
                 profileOptions.credentialsFileNameOverride ?? "",
                 profileOptions.profileFileNameOverride ?? "", {
@@ -190,7 +190,7 @@ public final class CRTAWSCredentialsProvider {
             x509Options.proxy_options = UnsafePointer(proxyOptions)
         }
 
-        guard let provider = (withByteCursorFromStrings(
+        guard let provider: UnsafeMutablePointer<aws_credentials_provider> = (withByteCursorFromStrings(
                 x509Config.thingName,
                 x509Config.roleAlias,
                 x509Config.endpoint) { thingNameCursor, roleAliasCursor, endPointCursor in

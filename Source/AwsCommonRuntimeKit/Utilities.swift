@@ -24,14 +24,18 @@ extension Data {
 extension String {
 
     public func base64EncodedMD5(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String? {
-        let bufferPtr: UnsafeMutablePointer<UInt8> = allocator.allocate(capacity: 16)
-        var buffer = aws_byte_buf(len: 0, buffer: bufferPtr, capacity: 16, allocator: allocator.rawValue)
+        var buffer = aws_byte_buf()
+        if aws_byte_buf_init(&buffer, allocator.rawValue, 16) != AWS_OP_SUCCESS {
+            return nil
+        }
         guard self.withByteCursorPointer({ strCursorPointer in
            aws_md5_compute(allocator.rawValue, strCursorPointer, &buffer, truncate)
         }) == AWS_OP_SUCCESS else {
             return nil
         }
-        return Data(bytesNoCopy: bufferPtr, count: 16, deallocator: .none).base64EncodedString()
+        return Data(bytesNoCopy: buffer.buffer, count: buffer.len, deallocator: .custom { _, _ in
+            aws_byte_buf_clean_up(&buffer)
+        }).base64EncodedString();
     }
 
     func withByteCursor<R>(_ body: (aws_byte_cursor) -> R

@@ -8,17 +8,18 @@ import XCTest
  #endif
 @testable import AwsCommonRuntimeKit
 
-class UtilityTests: XCTestCase {
+class UtilityTests: CrtXCBaseTestCase {
     func testMd5() throws {
         let hello = "Hello"
-        let md5 = hello.base64EncodedMD5()
+        let md5 = hello.base64EncodedMD5(allocator: allocator)
+        print(md5)
         XCTAssertEqual(md5, "ixqZU8RhEpaoJ6v4xHgE1w==")
     }
     
     func testMd5_payload() throws {
         let payload = "{\"foo\":\"base64 encoded md5 checksum\"}"
 
-        let md5 = payload.base64EncodedMD5()
+        let md5 = payload.base64EncodedMD5(allocator: allocator)
         
         XCTAssertEqual(md5, "iB0/3YSo7maijL0IGOgA9g==")
     }
