@@ -29,7 +29,7 @@ public class CRTAWSEndpointResolvedEndpoint {
         let urlOut = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
         let success = aws_endpoints_resolved_endpoint_get_url(rawValue, urlOut)
         if success != 0 {
-            throw CRTError.awsError(AWSCommonRuntimeError())
+            throw CRTError.crtError(AWSError.makeFromLastError())
         }
         return urlOut.pointee.toString()
     }
@@ -40,7 +40,7 @@ public class CRTAWSEndpointResolvedEndpoint {
         let propsOut = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
         let success = aws_endpoints_resolved_endpoint_get_properties(rawValue, propsOut)
         if success != 0 {
-            throw CRTError.awsError(AWSCommonRuntimeError())
+            throw CRTError.crtError(AWSError.makeFromLastError())
         }
         guard let data = propsOut.pointee.toString()?.data(using: .utf8) else {
             return nil
@@ -54,7 +54,7 @@ public class CRTAWSEndpointResolvedEndpoint {
         let errorOut = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: 1)
         let success = aws_endpoints_resolved_endpoint_get_error(rawValue, errorOut)
         if success != 0 {
-            throw CRTError.awsError(AWSCommonRuntimeError())
+            throw CRTError.crtError(AWSError.makeFromLastError())
         }
         return errorOut.pointee.toString()
     }
@@ -66,7 +66,7 @@ public class CRTAWSEndpointResolvedEndpoint {
             = UnsafeMutablePointer<UnsafePointer<aws_hash_table>?>.allocate(capacity: 1)
         let success = aws_endpoints_resolved_endpoint_get_headers(rawValue, headersOut)
         if success != 0 {
-            throw CRTError.awsError(AWSCommonRuntimeError())
+            throw CRTError.crtError(AWSError.makeFromLastError())
         }
 
         var headers: [String: [String]] = [:]
