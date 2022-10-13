@@ -28,9 +28,12 @@ public class HttpMessage {
         self.rawValue = rawValue
     }
 
-    init(rawValue: OpaquePointer, allocator: Allocator = defaultAllocator) {
-        self.rawValue = rawValue
+    init(headers: HttpHeaders, allocator: Allocator = defaultAllocator) throws {
         self.allocator = allocator
+        guard let rawValue = aws_http_message_new_request_with_headers(allocator.rawValue, headers.rawValue) else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+        self.rawValue = rawValue
     }
 
     deinit {

@@ -9,8 +9,8 @@ public final class HttpRequest: HttpMessage {
         try super.init(allocator: allocator)
     }
 
-    public init(allocator: Allocator = defaultAllocator, headers: HttpHeaders) throws {
-        try super.init(rawValue: aws_http_message_new_request_with_headers(allocator.rawValue, headers.rawValue), allocator: allocator)
+    public override init(headers: HttpHeaders, allocator: Allocator = defaultAllocator) throws {
+        try super.init(headers: headers, allocator: allocator)
     }
 
     public var method: String? {
@@ -23,9 +23,9 @@ public final class HttpRequest: HttpMessage {
         }
         set(value) {
             guard let value = value else { return }
-            if value.withByteCursor { valueCursor in
+            if (value.withByteCursor { valueCursor in
                 aws_http_message_set_request_method(self.rawValue, valueCursor)
-            } != AWS_OP_SUCCESS {
+            }) != AWS_OP_SUCCESS {
                 self.method = nil
             }
         }
@@ -40,9 +40,9 @@ public final class HttpRequest: HttpMessage {
             return result.toString()
         }
         set(value) {
-            if (value ?? "").withByteCursor { valueCursor in
+            if ((value ?? "").withByteCursor { valueCursor in
                 aws_http_message_set_request_path(self.rawValue, valueCursor)
-            } != AWS_OP_SUCCESS {
+            }) != AWS_OP_SUCCESS {
                 self.path = nil
             }
         }

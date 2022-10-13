@@ -82,6 +82,21 @@ public class HttpClientConnection {
             guard let stream = httpStreamCbData.stream else {
                 return AWS_OP_ERR
             }
+            httpStreamCbData.requestOptions.onIncomingHeaders(stream,
+                    HttpHeaderBlock(rawValue: headerBlock),
+                    headersStruct )
+            return AWS_OP_SUCCESS
+        }
+
+        options.on_response_header_block_done = {_, headerBlock, userData -> Int32 in
+
+            guard let userData = userData else {
+                return AWS_OP_ERR
+            }
+            let httpStreamCbData = Unmanaged<HttpStreamCallbackData>.fromOpaque(userData).takeUnretainedValue()
+            guard let stream = httpStreamCbData.stream else {
+                return AWS_OP_ERR
+            }
             httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(stream, HttpHeaderBlock(rawValue: headerBlock))
             return AWS_OP_SUCCESS
         }

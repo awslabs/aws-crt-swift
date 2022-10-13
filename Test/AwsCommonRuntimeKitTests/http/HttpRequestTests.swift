@@ -24,7 +24,7 @@ class HttpRequestTests: CrtXCBaseTestCase {
         let httpHeaders = try HttpHeaders(allocator: allocator)
         XCTAssertTrue(httpHeaders.add(name: "Test", value: "Value"))
 
-        let httpRequest = try HttpRequest(allocator: allocator, headers: httpHeaders)
+        let httpRequest = try HttpRequest(headers: httpHeaders, allocator: allocator)
         XCTAssertEqual(httpRequest.headerCount, 1)
         XCTAssertEqual(httpRequest.getHeader(atIndex: 0)?.value, "Value")
         XCTAssertNil(httpRequest.getHeader(atIndex: 1))
