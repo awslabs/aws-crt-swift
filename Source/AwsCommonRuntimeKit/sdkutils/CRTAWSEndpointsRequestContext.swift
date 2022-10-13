@@ -26,12 +26,10 @@ public class CRTAWSEndpointsRequestContext {
         guard let value = value else {
             return
         }
-        let namePtr: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: name.awsByteCursor)
-        let valuePtr: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: value.awsByteCursor)
         let success = aws_endpoints_request_context_add_string(allocator.rawValue,
                                                                rawValue,
-                                                               namePtr.pointee,
-                                                               valuePtr.pointee)
+                                                               name.awsByteCursor,
+                                                               value.awsByteCursor)
         if success != 0 {
             throw CRTError.crtError(AWSError.makeFromLastError())
         }
@@ -46,8 +44,7 @@ public class CRTAWSEndpointsRequestContext {
         guard let value = value else {
             return
         }
-        let namePtr: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: name.awsByteCursor)
-        let success = aws_endpoints_request_context_add_boolean(allocator.rawValue, rawValue, namePtr.pointee, value)
+        let success = aws_endpoints_request_context_add_boolean(allocator.rawValue, rawValue, name.awsByteCursor, value)
         if success != 0 {
             throw CRTError.crtError(AWSError.makeFromLastError())
         }
