@@ -49,7 +49,7 @@ public class CRTAWSEndpointsRequestContext {
             throw CRTError.crtError(AWSError.makeFromLastError())
         }
     }
-    
+
     deinit {
         aws_endpoints_request_context_release(rawValue)
     }
