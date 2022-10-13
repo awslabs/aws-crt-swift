@@ -10,7 +10,7 @@ public class CRTAWSEndpointResolvedEndpoint {
 
     /// Initialize a new resolved endpoint
     /// - Parameter rawValue: The raw value of the resolved endpoint
-    public init(rawValue: OpaquePointer) {
+    internal init(rawValue: OpaquePointer) {
         self.rawValue = rawValue
 
         aws_endpoints_resolved_endpoint_acquire(rawValue)
