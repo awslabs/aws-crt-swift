@@ -4,15 +4,12 @@ import AwsCCommon
 import Foundation
 
 extension aws_byte_cursor {
+
+    // Todo: try to improve this hacky solution
     func toString() -> String? {
-        // Todo: refactor. cursor -> aws string -> c string -> swift string is not optimal.
-        // Will refactor after figuring out the encoding for authorization header.
         if self.len == 0 { return nil }
-        let awsStr = withUnsafePointer(to: self) {aws_string_new_from_cursor(defaultAllocator, $0)}
-        guard let cStr = aws_string_c_str(awsStr) else {
-            return nil
-        }
-        return String(cString: cStr)
+        let data = Data(bytesNoCopy: self.ptr, count: self.len, deallocator: .none)
+        return String(data: data, encoding: .utf8)
     }
 
     func toData() -> Data {

@@ -4,6 +4,7 @@ import XCTest
 @testable import AwsCommonRuntimeKit
 
 @available(macOS 12.0, *)
+// TODO: improve tests to check header value as well.
 class SigV4SigningTests: CrtXCBaseTestCase {
     func testCreateSigV4Signer() {
         _ = SigV4HttpRequestSigner(allocator: allocator)
