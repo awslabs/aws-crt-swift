@@ -31,9 +31,7 @@ extension String {
         }) == AWS_OP_SUCCESS else {
             return nil
         }
-
-        let byteCursor: aws_byte_cursor = withUnsafePointer(to: buffer) { aws_byte_cursor_from_buf($0) }
-        let result = byteCursor.toData().base64EncodedString()
+        let result =  Data(bytesNoCopy: bufferPtr, count: 16, deallocator: .none).base64EncodedString()
         allocator.release(bufferPtr)
         return result
     }
