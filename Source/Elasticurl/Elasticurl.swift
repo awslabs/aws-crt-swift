@@ -178,13 +178,13 @@ struct Elasticurl {
             exit(0)
         }
 
-//        //make sure a url was given before we do anything else
-//        guard let urlString = CommandLine.arguments.last,
-//              let url = URL(string: urlString) else {
-//                  print("Invalid URL: \(CommandLine.arguments.last!)")
-//                  exit(-1)
-//              }
-//        context.url = url
+        //make sure a url was given before we do anything else
+        guard let urlString = CommandLine.arguments.last,
+              let url = URL(string: urlString) else {
+                  print("Invalid URL: \(CommandLine.arguments.last!)")
+                  exit(-1)
+              }
+        context.url = url
     }
 
     static func showHelp() {
