@@ -16,7 +16,7 @@ public class CRTAWSEndpointsRuleEngine {
         guard let partitions = aws_partitions_config_new_from_string(allocator.rawValue, partitions.newByteCursor().rawValue),
               let ruleSet = aws_endpoints_ruleset_new_from_string(allocator.rawValue, ruleSet.newByteCursor().rawValue),
               let rawValue = aws_endpoints_rule_engine_new(allocator.rawValue, ruleSet, partitions) else {
-            throw CRTError.awsError(AWSCommonRuntimeError())
+            throw CRTError.crtError(AWSError.makeFromLastError())
         }
 
         self.rawValue = rawValue
@@ -29,7 +29,7 @@ public class CRTAWSEndpointsRuleEngine {
         let resolvedEndpoint: UnsafeMutablePointer<OpaquePointer?>? = UnsafeMutablePointer.allocate(capacity: 1)
         let success = aws_endpoints_rule_engine_resolve(rawValue, context.rawValue, resolvedEndpoint)
         if success != 0 {
-            throw CRTError.awsError(AWSCommonRuntimeError())
+            throw CRTError.crtError(AWSError.makeFromLastError())
         }
 
         guard let pointee = resolvedEndpoint?.pointee else {

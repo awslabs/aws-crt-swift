@@ -11,7 +11,7 @@ public class CRTAWSEndpointsRequestContext {
     /// - Parameter allocator: Allocator to use for request context creation
     public init(allocator: Allocator = defaultAllocator) throws {
         guard let rawValue = aws_endpoints_request_context_new(allocator.rawValue) else {
-            throw CRTError.awsError(AWSCommonRuntimeError())
+            throw CRTError.crtError(AWSError.makeFromLastError())
         }
 
         self.rawValue = rawValue
@@ -33,7 +33,7 @@ public class CRTAWSEndpointsRequestContext {
                                                                namePtr.pointee,
                                                                valuePtr.pointee)
         if success != 0 {
-            throw CRTError.awsError(AWSCommonRuntimeError())
+            throw CRTError.crtError(AWSError.makeFromLastError())
         }
     }
 
@@ -49,7 +49,7 @@ public class CRTAWSEndpointsRequestContext {
         let namePtr: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: name.awsByteCursor)
         let success = aws_endpoints_request_context_add_boolean(allocator.rawValue, rawValue, namePtr.pointee, value)
         if success != 0 {
-            throw CRTError.awsError(AWSCommonRuntimeError())
+            throw CRTError.crtError(AWSError.makeFromLastError())
         }
     }
     
