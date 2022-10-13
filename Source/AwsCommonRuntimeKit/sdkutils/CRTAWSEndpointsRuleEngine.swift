@@ -27,6 +27,9 @@ public class CRTAWSEndpointsRuleEngine {
     /// - Returns: The resolved endpoint
     public func resolve(context: CRTAWSEndpointsRequestContext) throws -> CRTAWSEndpointResolvedEndpoint? {
         let resolvedEndpoint: UnsafeMutablePointer<OpaquePointer?>? = UnsafeMutablePointer.allocate(capacity: 1)
+        defer {
+            resolvedEndpoint?.deallocate()
+        }
         let success = aws_endpoints_rule_engine_resolve(rawValue, context.rawValue, resolvedEndpoint)
         if success != 0 {
             throw CRTError.crtError(AWSError.makeFromLastError())
