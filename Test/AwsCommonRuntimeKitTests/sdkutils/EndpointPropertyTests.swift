@@ -31,8 +31,15 @@ class EndpointPropertyTests: XCTestCase {
     }
 
     func testMixed() throws {
-        let data = "{\"hello\": [\"world\", \"universe\"]}".data(using: .utf8)!
+        let data = "{\"hello\": [\"world\", \"universe\"], \"isAlive\": true}".data(using: .utf8)!
         let actual = try JSONDecoder().decode(EndpointProperty.self, from: data)
-        XCTAssertEqual(["hello": ["world", "universe"]], actual.toAnyHashable())
+        let expected: [String: AnyHashable] = [
+            "hello": [
+                "world",
+                "universe"
+            ],
+            "isAlive": true
+        ]
+        XCTAssertEqual(expected, actual.toAnyHashable())
     }
 }
