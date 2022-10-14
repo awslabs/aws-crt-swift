@@ -6,7 +6,7 @@ import Collections
 typealias OnConnectionAcquired =  (HttpClientConnection?, Int32) -> Void
 
 public class HttpClientConnectionManager {
-    let manager: OpaquePointer?
+    let manager: OpaquePointer
     let allocator: Allocator
     let options: HttpClientConnectionOptions
 
@@ -16,7 +16,7 @@ public class HttpClientConnectionManager {
         // Todo: fix shutdown options
         let shutDownPtr: UnsafeMutablePointer<ShutDownCallbackOptions>? = fromOptionalPointer(ptr: options.shutDownOptions)
 
-        guard let manager = (options.hostName.withByteCursor { hostNameCursor in
+        guard let manager: OpaquePointer = (options.hostName.withByteCursor { hostNameCursor in
             var mgrOptions = aws_http_connection_manager_options(bootstrap: options.clientBootstrap.rawValue,
                                                                  initial_window_size: options.initialWindowSize,
                                                                  socket_options: options.socketOptions.rawValue,
