@@ -37,7 +37,6 @@ public class HttpClientConnectionManager {
                                                                     guard let userData = userData else {
                                                                         return
                                                                     }
-                                                                    
                                                                     let callbackOptions = userData.assumingMemoryBound(
                                                                         to: ShutDownCallbackOptions.self)
                                                                     defer {
