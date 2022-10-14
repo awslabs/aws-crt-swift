@@ -133,7 +133,7 @@ class HttpTests: CrtXCBaseTestCase {
             let connection = try await getHttpConnection(host: host, ssh: true)
 
             async let status_code = try connection.makeRequestAsync(requestOptions: httpRequestOptions)
-            // async, no need to manually wait for callback using semaphore
+            // async, no need to manually wait for callback using semaphore. We can also make the stream.activate function async. If we want to expose HttpStream
             let status = try await status_code
             XCTAssertEqual(status, 200)
             return AWS_OP_SUCCESS
