@@ -200,11 +200,11 @@ class CRTAWSEndpointsRuleEngineTests: CrtXCBaseTestCase {
         let url = try endpoint?.getURL()
         XCTAssertNotNil(url)
         XCTAssertEqual("https://example.us-west-2.amazonaws.com", url!)
-        
+
         let props = try endpoint?.getProperties()
         XCTAssertNotNil(props)
         let expectedProps = [
-            "authSchemes" : [
+            "authSchemes": [
                 [
                     "name": "sigv4",
                     "signingName": "serviceName",
@@ -216,6 +216,16 @@ class CRTAWSEndpointsRuleEngineTests: CrtXCBaseTestCase {
         
         let headers = try endpoint?.getHeaders()
         XCTAssertNotNil(headers)
+        let expectedHeaders = [
+            "x-amz-region": [
+                "us-west-2"
+            ],
+            "x-amz-multi": [
+                "*",
+                "us-west-2"
+            ]
+        ]
+        XCTAssertEqual(expectedHeaders, headers)
     }
     
     func testRuleSetParsingPerformance() {
