@@ -58,7 +58,7 @@ public final class DefaultHostResolver: HostResolver {
     }
 
     public func resolve(host: String) async throws -> [HostAddress] {
-         try await withCheckedThrowingContinuation({ (continuation: HostResolvedContinuation) in
+         return try await withCheckedThrowingContinuation({ (continuation: HostResolvedContinuation) in
             resolve(host: host, continuation: continuation)
         })
     }

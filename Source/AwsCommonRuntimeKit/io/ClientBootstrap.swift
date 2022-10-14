@@ -12,6 +12,7 @@ public final class ClientBootstrap {
                 hostResolver: HostResolver,
                 callbackData: ClientBootstrapCallbackData? = nil,
                 allocator: Allocator = defaultAllocator) throws {
+
         self.callbackData = callbackData
         let callbackDataPointer: UnsafeMutablePointer<ClientBootstrapCallbackData>? = fromOptionalPointer(ptr: callbackData)
 

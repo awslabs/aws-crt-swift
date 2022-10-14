@@ -72,6 +72,8 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                                    region: "us-east-1",
                                    signedBodyValue: .empty,
                                    shouldSignHeader: shouldSignHeader)
+
+
         let signedRequest = try await signer.signRequest(request: request, config: config)
 
         XCTAssertNotNil(signedRequest)
