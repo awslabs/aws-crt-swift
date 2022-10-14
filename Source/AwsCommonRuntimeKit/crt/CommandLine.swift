@@ -61,12 +61,15 @@ extension CLIHasArg: RawRepresentable, CaseIterable {
     }
 }
 
-public struct AWSCLIOption {
+public class AWSCLIOption {
     public let rawValue: aws_cli_option
-    
+    let name: UnsafeMutablePointer<CChar>
     public init(name: String, hasArg: CLIHasArg, flag: UnsafeMutablePointer<Int32>? = nil, val: String) {
-        self.rawValue = name.withCString { cName in
-            aws_cli_option(name: cName, has_arg: hasArg.rawValue, flag: flag, val: Int32(bitPattern: UnicodeScalar(val)?.value ?? 0))
-        }
+        self.name = strdup(name)!
+        self.rawValue = aws_cli_option(name: self.name, has_arg: hasArg.rawValue, flag: flag, val: Int32(bitPattern: UnicodeScalar(val)?.value ?? 0))
+    }
+
+    deinit {
+        free(name)
     }
 }
