@@ -45,7 +45,7 @@ public class HttpClientConnectionManager {
                                                                     }
                                                                     callbackOptions.pointee.shutDownCallback(
                                                                         callbackOptions.pointee.semaphore)
-                                                                },
+                                                                 },
                                                                  enable_read_back_pressure: options.enableManualWindowManagement,
                                                                  max_connection_idle_in_milliseconds: options.maxConnectionIdleMs)
             return aws_http_connection_manager_new(allocator.rawValue, &mgrOptions)
@@ -65,7 +65,7 @@ public class HttpClientConnectionManager {
     private func acquireConnection(continuation: ConnectionContinuation) {
         let callbackData = HttpClientConnectionCallbackData(continuation: continuation,
                                                             connectionManager: self,
-                                                            allocator: allocator) {_ in}
+                                                            allocator: allocator)
 
         aws_http_connection_manager_acquire_connection(manager, { (connection, errorCode, userData) in
             guard let userData = userData else {

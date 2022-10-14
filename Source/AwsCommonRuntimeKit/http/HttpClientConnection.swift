@@ -185,8 +185,8 @@ public class HttpClientConnection {
                 return AWS_OP_ERR
             }
             httpStreamCbData.requestOptions.onIncomingHeaders(stream,
-                    HttpHeaderBlock(rawValue: headerBlock),
-                    headersStruct )
+                                                              HttpHeaderBlock(rawValue: headerBlock),
+                                                              headersStruct )
             return AWS_OP_SUCCESS
         }
         options.on_response_header_block_done = {_, headerBlock, userData -> Int32 in
