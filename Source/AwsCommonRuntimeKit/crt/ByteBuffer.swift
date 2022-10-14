@@ -17,7 +17,7 @@ import AwsCCal
  #endif
 
 // swiftlint:disable identifier_name superfluous_disable_command
-// Todo: this is being used.
+// Todo: this is being used. Refactor
 public class ByteBuffer: Codable {
 
     public init(size: Int) {

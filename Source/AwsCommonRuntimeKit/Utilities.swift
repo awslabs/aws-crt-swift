@@ -12,15 +12,6 @@ func zeroStruct<T>(_ ptr: UnsafeMutablePointer<T>) {
     memset(ptr, 0x00, MemoryLayout<T>.size)
 }
 
-extension Data {
-    @inlinable
-    var awsByteCursor: aws_byte_cursor {
-        return withUnsafeBytes { (rawPtr: UnsafeRawBufferPointer) -> aws_byte_cursor in
-            return aws_byte_cursor_from_array(rawPtr.baseAddress, self.count)
-        }
-    }
-}
-
 extension String {
 
     public func base64EncodedMD5(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String? {
@@ -55,12 +46,14 @@ extension String {
     }
 }
 
+//Todo: refactor
 extension aws_byte_buf {
     func toByteBuffer() -> ByteBuffer {
         return ByteBuffer(ptr: self.buffer, len: self.len, capacity: self.capacity)
     }
 }
 
+//Todo: refactor
 extension aws_array_list {
     func toStringArray() -> [String] {
         let length = self.length
@@ -77,6 +70,7 @@ extension aws_array_list {
     }
 }
 
+//Todo: refactor
 public extension Int32 {
     func toString() -> String? {
         // Convert UnicodeScalar to a String.
@@ -87,18 +81,11 @@ public extension Int32 {
     }
 }
 
+//Todo: remove these pointers functions and use aws_allocator
 extension UnsafeMutablePointer {
     func deinitializeAndDeallocate() {
         self.deinitialize(count: 1)
         self.deallocate()
-    }
-}
-
-extension Date {
-    var awsDateTime: aws_date_time {
-        let datefrom1970 = UInt64(self.timeIntervalSince1970 * 1000)
-        let dateTime = AWSDate(epochMs: datefrom1970)
-        return dateTime.rawValue.pointee
     }
 }
 
@@ -108,6 +95,7 @@ extension Bool {
     }
 }
 
+//Todo: remove these pointers functions and use aws_allocator
 // Ensure that any UnsafeXXXPointer is ALWAYS initialized to either nil or a value in a single call. Prevents the
 // case where you create an UnsafeMutableWhatever and do not call `initialize()` on it, resulting in a non-null but
 // also invalid pointer
