@@ -6,31 +6,31 @@ import Foundation
 @testable import AwsCommonRuntimeKit
 
 class EndpointPropertyTests: XCTestCase {
-    func testBool() throws {
+    func testDecoderWithBool() throws {
         let data = "true".data(using: .utf8)!
         let actual = try JSONDecoder().decode(EndpointProperty.self, from: data)
         XCTAssertEqual(true, actual.toAnyHashable())
     }
     
-    func testString() throws {
+    func testDecoderWithString() throws {
         let data = "\"hello\"".data(using: .utf8)!
         let actual = try JSONDecoder().decode(EndpointProperty.self, from: data)
         XCTAssertEqual("hello", actual.toAnyHashable())
     }
 
-    func testArray() throws {
+    func testDecoderWithArray() throws {
         let data = "[\"hello\", \"world\"]".data(using: .utf8)!
         let actual = try JSONDecoder().decode(EndpointProperty.self, from: data)
         XCTAssertEqual(["hello", "world"], actual.toAnyHashable())
     }
 
-    func testDictionary() throws {
+    func testDecoderWithDictionary() throws {
         let data = "{\"hello\": \"world\"}".data(using: .utf8)!
         let actual = try JSONDecoder().decode(EndpointProperty.self, from: data)
         XCTAssertEqual(["hello": "world"], actual.toAnyHashable())
     }
 
-    func testMixed() throws {
+    func testDecoderWithMixed() throws {
         let data = "{\"hello\": [\"world\", \"universe\"], \"isAlive\": true}".data(using: .utf8)!
         let actual = try JSONDecoder().decode(EndpointProperty.self, from: data)
         let expected: [String: AnyHashable] = [
