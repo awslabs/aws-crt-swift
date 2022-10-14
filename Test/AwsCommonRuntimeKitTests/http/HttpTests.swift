@@ -10,9 +10,14 @@ class HttpTests: CrtXCBaseTestCase {
     func testGetHttpRequest() async throws{
         let result = await sendGetHttpRequest()
         XCTAssertEqual(result, AWS_OP_SUCCESS)
+    }
+
+    func testGetHttpRequestAsync() async throws{
         let asyncResult = await sendGetHttpRequestAsync()
         XCTAssertEqual(asyncResult, AWS_OP_SUCCESS)
     }
+
+
 
     func getHttpConnection(host: String, ssh: Bool)  async throws -> HttpClientConnection {
         let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
@@ -128,7 +133,7 @@ class HttpTests: CrtXCBaseTestCase {
             let connection = try await getHttpConnection(host: host, ssh: true)
 
             async let status_code = try connection.makeRequestAsync(requestOptions: httpRequestOptions)
-            print("non blocking")
+            // async, no need to manually wait for callback using semaphore
             let status = try await status_code
             XCTAssertEqual(status, 200)
             return AWS_OP_SUCCESS
@@ -137,6 +142,4 @@ class HttpTests: CrtXCBaseTestCase {
             return AWS_OP_ERR
         }
     }
-
-
 }
