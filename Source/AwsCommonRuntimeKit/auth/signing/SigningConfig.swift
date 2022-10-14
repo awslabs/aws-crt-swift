@@ -12,7 +12,6 @@ public struct SigningConfig {
     public let signedBodyHeader: SignedBodyHeaderType
     public let signedBodyValue: SignedBodyValue
     let signedBodyValueCursor: AWSStringByteCursor
-
     public let flags: Flags
     public let shouldSignHeader: ShouldSignHeader?
     public let date: AWSDate

@@ -65,6 +65,7 @@ public class AWSCLIOption {
     public let rawValue: aws_cli_option
     let name: UnsafeMutablePointer<CChar>
     public init(name: String, hasArg: CLIHasArg, flag: UnsafeMutablePointer<Int32>? = nil, val: String) {
+        // TODO: refactor the use of !
         self.name = strdup(name)!
         self.rawValue = aws_cli_option(name: self.name, has_arg: hasArg.rawValue, flag: flag, val: Int32(bitPattern: UnicodeScalar(val)?.value ?? 0))
     }

@@ -9,7 +9,6 @@ public class SigV4HttpRequestSigner {
     public init(allocator: Allocator = defaultAllocator) {
         self.allocator = allocator
     }
-    // Todo: what is the encoding of Authorization header?
     /// Signs an HttpRequest via the SigV4 algorithm.
     /// Do not add the following headers to requests before signing:
     ///   - x-amz-content-sha256,
