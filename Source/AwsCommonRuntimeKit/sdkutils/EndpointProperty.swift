@@ -29,6 +29,8 @@ extension EndpointProperty: Decodable {
             self = EndpointProperty(from: container)
         } else if let container = try? decoder.unkeyedContainer() {
             self = EndpointProperty(from: container)
+        } else if let container = try? decoder.singleValueContainer() {
+            self = EndpointProperty(from: container)
         } else {
             throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: [], debugDescription: ""))
         }
@@ -65,6 +67,17 @@ extension EndpointProperty: Decodable {
             }
         }
         self = .array(arr)
+    }
+
+    private init(from container: SingleValueDecodingContainer) {
+        if let value = try? container.decode(Bool.self) {
+            self = .bool(value)
+        } else if let value = try? container.decode(String.self) {
+            self = .string(value)
+        } else {
+            assertionFailure("Invalid EndpointProperty")
+            self = .string("")
+        }
     }
 }
 
