@@ -1,8 +1,8 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-import Foundation
 import AwsCSdkUtils
+import Foundation
 
 /// Resolved endpoint
 public class CRTAWSEndpointResolvedEndpoint {
@@ -51,7 +51,7 @@ public class CRTAWSEndpointResolvedEndpoint {
         guard let data = propsOut.pointee.toString()?.data(using: .utf8) else {
             return nil
         }
-        return try JSONSerialization.jsonObject(with: data) as? [String: AnyHashable]
+        return try JSONDecoder().decode([String: EndpointProperty].self, from: data).toStringHashableDictionary()
     }
 
     /// Get the error of the resolved endpoint
