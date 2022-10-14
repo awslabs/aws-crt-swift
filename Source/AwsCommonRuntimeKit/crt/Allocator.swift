@@ -10,6 +10,7 @@ public let defaultAllocator = aws_default_allocator()!
 
 /// An allocator is used to allocate memory on the heap.
 public protocol Allocator {
+
     /// The raw `aws_allocator` pointer.
     var rawValue: UnsafeMutablePointer<aws_allocator> { get }
 }

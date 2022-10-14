@@ -9,6 +9,7 @@ public class SigV4HttpRequestSigner {
     public init(allocator: Allocator = defaultAllocator) {
         self.allocator = allocator
     }
+
     /// Signs an HttpRequest via the SigV4 algorithm.
     /// Do not add the following headers to requests before signing:
     ///   - x-amz-content-sha256,
