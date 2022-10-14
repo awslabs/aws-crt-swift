@@ -81,7 +81,7 @@ extension EndpointProperty: Decodable {
     }
 }
 
-extension [String: EndpointProperty] {
+extension Dictionary where Key == String, Value == EndpointProperty {
     /// Converts EndpointProperty to a dictionary of `String`: `AnyHashable`
     /// - Returns: Dictionary of `String`: `AnyHashable`
     func toStringHashableDictionary() -> [String: AnyHashable] {
