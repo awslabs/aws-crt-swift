@@ -8,7 +8,7 @@ internal enum EndpointProperty {
     indirect case array([EndpointProperty])
     indirect case dictionary([String: EndpointProperty])
 
-    internal func toAnyHashable() -> AnyHashable {
+    func toAnyHashable() -> AnyHashable {
         switch self {
         case .bool(let value):
             return AnyHashable(value)
@@ -24,7 +24,7 @@ internal enum EndpointProperty {
 
 /// Decodable conformance 
 extension EndpointProperty: Decodable {
-    internal init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         if let container = try? decoder.container(keyedBy: EndpointPropertyCodingKeys.self) {
             self = EndpointProperty(from: container)
         } else if let container = try? decoder.unkeyedContainer() {
@@ -36,7 +36,7 @@ extension EndpointProperty: Decodable {
         }
     }
 
-    private init(from container: KeyedDecodingContainer<EndpointPropertyCodingKeys>) {
+    init(from container: KeyedDecodingContainer<EndpointPropertyCodingKeys>) {
         var dict: [String: EndpointProperty] = [:]
         for key in container.allKeys {
             if let value = try? container.decode(Bool.self, forKey: key) {
@@ -52,7 +52,7 @@ extension EndpointProperty: Decodable {
         self = .dictionary(dict)
     }
 
-    private init(from container: UnkeyedDecodingContainer) {
+    init(from container: UnkeyedDecodingContainer) {
         var container = container
         var arr: [EndpointProperty] = []
         while !container.isAtEnd {
@@ -69,7 +69,7 @@ extension EndpointProperty: Decodable {
         self = .array(arr)
     }
 
-    private init(from container: SingleValueDecodingContainer) {
+    init(from container: SingleValueDecodingContainer) {
         if let value = try? container.decode(Bool.self) {
             self = .bool(value)
         } else if let value = try? container.decode(String.self) {
