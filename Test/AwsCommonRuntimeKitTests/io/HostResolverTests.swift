@@ -6,7 +6,7 @@ import XCTest
 class HostResolverTests: CrtXCBaseTestCase {
     
     func testCanResolveHosts() async throws {
-        let elg = EventLoopGroup(allocator: self.allocator)
+        let elg = try EventLoopGroup(allocator: self.allocator)
         let resolver = DefaultHostResolver(eventLoopGroup: elg,
                                            maxHosts: 8,
                                            maxTTL: 5,

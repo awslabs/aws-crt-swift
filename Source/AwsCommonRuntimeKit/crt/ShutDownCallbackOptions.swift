@@ -4,32 +4,30 @@
 import AwsCCommon
 import Foundation
 
-public struct ShutDownCallbackOptions {
-    public typealias ShutDownCallback = (DispatchSemaphore) -> Void
-
+public class ShutDownCallbackOptions {
+    public typealias ShutDownCallback = (_ userData: Any?) -> Void
+    let rawValue: UnsafeMutablePointer<aws_shutdown_callback_options>
     public let shutDownCallback: ShutDownCallback
-
-    public let semaphore: DispatchSemaphore
-
-    public init(shutDownCallback: @escaping ShutDownCallback) {
+    let userData: Any?
+    let allocator: Allocator
+    public init(shutDownCallback: @escaping ShutDownCallback, userData: Any? = nil, allocator: Allocator = defaultAllocator) {
+        self.allocator = allocator
         self.shutDownCallback = shutDownCallback
-        self.semaphore = DispatchSemaphore(value: 0)
-    }
-}
-
-extension ShutDownCallbackOptions {
-    func toShutDownCPointer() -> UnsafePointer<aws_shutdown_callback_options>? {
-        let shutDownPtr: UnsafeMutablePointer<ShutDownCallbackOptions>? = fromOptionalPointer(ptr: self)
-        let options = aws_shutdown_callback_options(shutdown_callback_fn: { (userData) in
-            guard let userdata = userData else {
+        self.userData = userData
+        rawValue = allocator.allocate(capacity: 1)
+        rawValue.pointee.shutdown_callback_fn = { rawValue in
+            guard let rawValue = rawValue else {
                 return
             }
-            let pointer = userdata.assumingMemoryBound(to: ShutDownCallbackOptions.self)
-            pointer.pointee.shutDownCallback(pointer.pointee.semaphore)
-            pointer.deinitializeAndDeallocate()
-        }, shutdown_callback_user_data: shutDownPtr)
-        let ptr: UnsafePointer<aws_shutdown_callback_options>? = fromOptionalPointer(ptr: options)
-
-        return ptr
+            let shutdownCallbackOptions = Unmanaged<ShutDownCallbackOptions>.fromOpaque(rawValue).takeRetainedValue()
+            shutdownCallbackOptions.shutDownCallback(shutdownCallbackOptions.userData)
+        }
+        rawValue.pointee.shutdown_callback_user_data = Unmanaged<ShutDownCallbackOptions>.passRetained(self).toOpaque()
     }
+
+    deinit {
+        allocator.release(rawValue)
+    }
+
 }
+

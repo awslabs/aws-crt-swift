@@ -14,8 +14,6 @@ public class HttpClientConnectionManager {
         self.options = options
         self.allocator = allocator
         // Todo: fix shutdown options
-        let shutDownPtr: UnsafeMutablePointer<ShutDownCallbackOptions>? = fromOptionalPointer(ptr: options.shutDownOptions)
-
         guard let manager: OpaquePointer = (options.hostName.withByteCursor { hostNameCursor in
             var mgrOptions = aws_http_connection_manager_options(bootstrap: options.clientBootstrap.rawValue,
                                                                  initial_window_size: options.initialWindowSize,
@@ -32,19 +30,8 @@ public class HttpClientConnectionManager {
                                                                  proxy_options: options.proxyOptions?.rawValue,
                                                                  proxy_ev_settings: options.proxyEnvSettings?.rawValue,
                                                                  max_connections: options.maxConnections,
-                                                                 shutdown_complete_user_data: shutDownPtr,
-                                                                 shutdown_complete_callback: { (userData) in
-                                                                    guard let userData = userData else {
-                                                                        return
-                                                                    }
-                                                                    let callbackOptions = userData.assumingMemoryBound(
-                                                                        to: ShutDownCallbackOptions.self)
-                                                                    defer {
-                                                                        callbackOptions.deinitializeAndDeallocate()
-                                                                    }
-                                                                    callbackOptions.pointee.shutDownCallback(
-                                                                        callbackOptions.pointee.semaphore)
-                                                                 },
+                                                                 shutdown_complete_user_data: nil,
+                                                                 shutdown_complete_callback: nil,
                                                                  enable_read_back_pressure: options.enableManualWindowManagement,
                                                                  max_connection_idle_in_milliseconds: options.maxConnectionIdleMs)
             return aws_http_connection_manager_new(allocator.rawValue, &mgrOptions)
