@@ -3,6 +3,7 @@
 import AwsCHttp
 
 // TODO: What to do after on complete callback? Should we call aws_http_stream_release and set httpConnection to nil?
+// TODO: Should we provide a function to block until on complete callback is triggered?
 public class HttpStream {
     var rawValue: UnsafeMutablePointer<aws_http_stream>
     public let httpConnection: HttpClientConnection

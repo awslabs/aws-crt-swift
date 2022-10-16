@@ -3,7 +3,6 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 import AwsCCommon
-
 class HttpTests: CrtXCBaseTestCase {
     let semaphore = DispatchSemaphore(value: 0)
 

@@ -5,6 +5,7 @@ import AwsCHttp
 import AwsCIo
 import Foundation
 
+// swiftlint:disable cyclomatic_complexity
 public class HttpClientConnection {
     private let allocator: Allocator
     let rawValue: UnsafeMutablePointer<aws_http_connection>
@@ -112,6 +113,7 @@ public class HttpClientConnection {
                       return
                   }
             onStreamCompleteFn(stream, CRTError(errorCode: errorCode))
+            //TODO: what to do with after completion?
         }
 
         let cbData = HttpStreamCallbackData(requestOptions: requestOptions)
