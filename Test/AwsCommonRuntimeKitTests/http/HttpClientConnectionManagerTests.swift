@@ -39,7 +39,7 @@ class HttpClientConnectionManagerTests: CrtXCBaseTestCase {
                     tlsOptions: tlsConnectionOptions,
                     monitoringOptions: nil,
                     shutDownOptions: shutDownCallbackOptions)
-            let connectionManager = try HttpClientConnectionManager(options: httpClientOptions)
+            _ = try HttpClientConnectionManager(options: httpClientOptions)
         }
         await waitForExpectations(timeout: 10, handler:nil)
     }

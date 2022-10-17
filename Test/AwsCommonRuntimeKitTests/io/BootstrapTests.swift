@@ -34,7 +34,7 @@ class BootstrapTests: CrtXCBaseTestCase {
               allocator: allocator,
               shutDownOptions: shutDownCallbackOptions)
 
-      let bt = try ClientBootstrap(eventLoopGroup: elg,
+      _ = try ClientBootstrap(eventLoopGroup: elg,
               hostResolver: resolver,
               shutDownCallbackOptions: shutDownCallbackOptions,
               allocator: allocator)

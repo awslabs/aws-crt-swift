@@ -25,8 +25,9 @@ public class ShutDownCallbackOptions {
         rawValue.pointee.shutdown_callback_user_data = Unmanaged<ShutDownCallbackOptions>.passUnretained(self).toOpaque()
     }
 
+    //TODO: try to call retain instead of passRetained
     func retain(){
-        Unmanaged<ShutDownCallbackOptions>.passRetained(self)
+        _ = Unmanaged<ShutDownCallbackOptions>.passRetained(self)
     }
 
     deinit {
