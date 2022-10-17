@@ -2,15 +2,14 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
 
-// TODO: What to do after on complete callback? Should we call aws_http_stream_release and set httpConnection to nil?
 // TODO: Should we provide a function to block until on complete callback is triggered?
 public class HttpStream {
     var rawValue: UnsafeMutablePointer<aws_http_stream>
-    public let httpConnection: HttpClientConnection
+    var callbackData: HttpStreamCallbackData
 
     // Created by HttpClientConnection
-    init(httpConnection: HttpClientConnection, options: aws_http_make_request_options) throws {
-        self.httpConnection = httpConnection
+    init(httpConnection: HttpClientConnection, options: aws_http_make_request_options, callbackData: HttpStreamCallbackData) throws {
+        self.callbackData = callbackData
         guard let rawValue = withUnsafePointer(to: options, {aws_http_connection_make_request(httpConnection.rawValue, $0)}) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
@@ -23,7 +22,6 @@ public class HttpStream {
     /// number of un-acked bytes.
     /// - Parameters:
     ///   - incrementBy:  How many bytes to increment the sliding window by.
-    // TODO: what happens if request is already complete?
     public func updateWindow(incrementBy: Int) {
         aws_http_stream_update_window(rawValue, incrementBy)
     }
@@ -43,6 +41,7 @@ public class HttpStream {
         if aws_http_stream_activate(rawValue) != AWS_OP_SUCCESS {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
+        callbackData.stream = self
     }
 
     deinit {

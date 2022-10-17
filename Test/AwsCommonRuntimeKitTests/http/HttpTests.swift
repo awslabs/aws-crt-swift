@@ -6,9 +6,28 @@ import AwsCCommon
 class HttpTests: CrtXCBaseTestCase {
     let semaphore = DispatchSemaphore(value: 0)
 
-    func testGetHttpRequest() async throws{
+    func testGetHttpRequest() async throws {
         let result = await sendGetHttpRequest()
         XCTAssertEqual(result, AWS_OP_SUCCESS)
+    }
+
+    func testHttpStreamIsReleasedIfNotActivated() async throws {
+        do {
+            let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
+            guard let host = url.host else {
+                print("no proper host was parsed from the url. quitting.")
+                exit(EXIT_FAILURE)
+            }
+
+            let httpRequestOptions = try getHttpRequestOptions(method: "GET", path: url.path, host: host)
+
+            let connection = try await getHttpConnection(host: host, ssh: true)
+
+            let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+        } catch let err {
+            print(err)
+        }
+
     }
 
     func getHttpConnection(host: String, ssh: Bool)  async throws -> HttpClientConnection {

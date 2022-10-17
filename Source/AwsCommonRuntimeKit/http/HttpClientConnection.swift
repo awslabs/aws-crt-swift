@@ -107,20 +107,24 @@ public class HttpClientConnection {
             guard let userData = userData else {
                 return
             }
-            let httpStreamCbData = Unmanaged<HttpStreamCallbackData>.fromOpaque(userData).takeRetainedValue()
+            let httpStreamCbData = Unmanaged<HttpStreamCallbackData>.fromOpaque(userData).takeUnretainedValue()
             guard let stream = httpStreamCbData.stream,
                   let onStreamCompleteFn = httpStreamCbData.requestOptions.onStreamComplete else {
                       return
                   }
             onStreamCompleteFn(stream, CRTError(errorCode: errorCode))
-            //TODO: what to do with after completion?
+            httpStreamCbData.stream = nil
+        }
+        options.on_destroy = { userData in
+            guard let userData = userData else {
+                return
+            }
+           Unmanaged<HttpStreamCallbackData>.fromOpaque(userData).release()
         }
 
         let cbData = HttpStreamCallbackData(requestOptions: requestOptions)
-        options.user_data = Unmanaged.passRetained(cbData).toOpaque() // Todo: Confirm this logic
-        let stream = try HttpStream(httpConnection: self, options: options)
-        cbData.stream = stream
-        return stream
+        options.user_data = Unmanaged.passRetained(cbData).toOpaque()
+        return try HttpStream(httpConnection: self, options: options, callbackData: cbData)
     }
 
     deinit {
