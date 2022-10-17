@@ -27,7 +27,6 @@ class HttpTests: CrtXCBaseTestCase {
         } catch let err {
             print(err)
         }
-
     }
 
     func getHttpConnection(host: String, ssh: Bool)  async throws -> HttpClientConnection {
