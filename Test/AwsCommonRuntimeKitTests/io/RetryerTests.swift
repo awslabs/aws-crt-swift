@@ -7,10 +7,6 @@ class RetryerTests: CrtXCBaseTestCase {
     let expectation = XCTestExpectation(description: "Credentials callback was called")
     
     func testCreateAWSRetryer() throws {
-        //TODO: resolve
-//        let shutDownOptions = ShutDownCallbackOptions { semaphore in
-//            semaphore.signal()
-//        }
         let elg = try EventLoopGroup(threadCount: 1, allocator: allocator, shutDownOptions: nil )
         let backOffRetryOptions = CRTExponentialBackoffRetryOptions(eventLoopGroup: elg)
         let config = MockRetryOptions(backOffRetryOptions: backOffRetryOptions)
@@ -18,10 +14,6 @@ class RetryerTests: CrtXCBaseTestCase {
     }
     
     func testAcquireToken() async throws {
-        //TODO:
-//        let shutDownOptions = ShutDownCallbackOptions { semaphore in
-//            semaphore.signal()
-//        }
         let elg = try EventLoopGroup(threadCount: 1, allocator: allocator, shutDownOptions: nil )
         let backOffRetryOptions = CRTExponentialBackoffRetryOptions(eventLoopGroup: elg)
         let config = MockRetryOptions(backOffRetryOptions: backOffRetryOptions)

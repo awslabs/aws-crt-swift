@@ -26,13 +26,9 @@ public final class DefaultHostResolver: HostResolver {
                 allocator: Allocator = defaultAllocator,
                 shutDownOptions: ShutDownCallbackOptions? = nil) {
         self.allocator = allocator
-        //TODO: fix
-//        let shutdownCallbackOptionPtr = shutDownOptions?.toShutDownCPointer()
-//
-//        self.shutDownOptions = shutDownOptions
         let options = aws_host_resolver_default_options(max_entries: maxHosts,
                                                         el_group: elg.rawValue,
-                                                        shutdown_options: nil,
+                                                        shutdown_options: shutDownOptions?.rawValue,
                                                         system_clock_override_fn: nil)
         self.hostResolverOptionsPtr = fromPointer(ptr: options)
         self.rawValue = aws_host_resolver_new_default(allocator.rawValue, hostResolverOptionsPtr)
@@ -51,10 +47,6 @@ public final class DefaultHostResolver: HostResolver {
         config.deinitializeAndDeallocate()
         hostResolverOptionsPtr.deinitializeAndDeallocate()
         aws_host_resolver_release(rawValue)
-//        if let shutDownOptions = shutDownOptions {
-//            shutDownOptions.semaphore.wait()
-//            shutdownCallbackOptionPtr?.deallocate()
-//        }
     }
 
     public func resolve(host: String) async throws -> [HostAddress] {

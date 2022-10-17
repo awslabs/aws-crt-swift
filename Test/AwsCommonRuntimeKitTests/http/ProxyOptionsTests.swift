@@ -31,8 +31,6 @@ class ProxyOptionsTests: CrtXCBaseTestCase {
         password.withByteCursorPointer { passwordCursorPointer in
             XCTAssertTrue(aws_byte_cursor_eq(&proxyOptions.rawValue.pointee.auth_password, passwordCursorPointer))
         }
-
-
     }
 
     func testProxyOptionsStringOutOfScope() {

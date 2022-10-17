@@ -5,22 +5,21 @@ import AwsCCommon
 import Foundation
 
 public class ShutDownCallbackOptions {
-    public typealias ShutDownCallback = (_ userData: Any?) -> Void
+    public typealias ShutDownCallback = () -> Void
     let rawValue: UnsafeMutablePointer<aws_shutdown_callback_options>
-    public let shutDownCallback: ShutDownCallback
-    let userData: Any?
+    let shutdownCallback: ShutDownCallback
     let allocator: Allocator
-    public init(shutDownCallback: @escaping ShutDownCallback, userData: Any? = nil, allocator: Allocator = defaultAllocator) {
+
+    public init(allocator: Allocator = defaultAllocator, shutDownCallback: @escaping ShutDownCallback) {
         self.allocator = allocator
-        self.shutDownCallback = shutDownCallback
-        self.userData = userData
         rawValue = allocator.allocate(capacity: 1)
+        self.shutdownCallback = shutDownCallback
         rawValue.pointee.shutdown_callback_fn = { rawValue in
             guard let rawValue = rawValue else {
                 return
             }
-            let shutdownCallbackOptions = Unmanaged<ShutDownCallbackOptions>.fromOpaque(rawValue).takeRetainedValue()
-            shutdownCallbackOptions.shutDownCallback(shutdownCallbackOptions.userData)
+            let shutDownCallbackOptions = Unmanaged<ShutDownCallbackOptions>.fromOpaque(rawValue).takeRetainedValue()
+            shutDownCallbackOptions.shutdownCallback()
         }
         rawValue.pointee.shutdown_callback_user_data = Unmanaged<ShutDownCallbackOptions>.passRetained(self).toOpaque()
     }

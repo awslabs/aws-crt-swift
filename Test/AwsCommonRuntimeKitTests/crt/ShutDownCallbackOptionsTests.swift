@@ -10,14 +10,15 @@ class ShutDownCallbackOptionsTests: CrtXCBaseTestCase {
 
     func testShutdownCallback() async throws {
             var closureCalled = false
+            let userData = "hello"
             // Encapsulating 
             do {
-                let shutDownOptions = ShutDownCallbackOptions(shutDownCallback: { userData in
-                    XCTAssertEqual(userData as! String, "hello")
+                let shutDownOptions = ShutDownCallbackOptions(allocator: allocator) {
+                    XCTAssertEqual(userData, "hello")
                     closureCalled = true
-                }, userData: "hello", allocator: allocator)
+                }
 
-                let elg = try EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
+                _ = try EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
             }
 
             //Wait for few seconds to make sure callback is triggerred

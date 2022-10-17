@@ -33,7 +33,7 @@ class HttpTests: CrtXCBaseTestCase {
 
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                 hostResolver: hostResolver,
-                callbackData: nil,
+                shutDownCallbackOptions: nil,
                 allocator: allocator)
 
         let socketOptions = SocketOptions(socketType: .stream)
