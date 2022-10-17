@@ -11,6 +11,7 @@ public class HttpClientConnectionManager {
     let options: HttpClientConnectionOptions
 
     public init(options: HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) throws {
+        options.shutDownOptions?.retain()
         self.options = options
         self.allocator = allocator
         guard let manager: OpaquePointer = (options.hostName.withByteCursor { hostNameCursor in

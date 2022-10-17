@@ -10,6 +10,7 @@ public class ShutDownCallbackOptions {
     let shutdownCallback: ShutDownCallback
     let allocator: Allocator
 
+    /// If you are passed a reference to ShutdownCallbackOptions, you need to call retain on it.
     public init(allocator: Allocator = defaultAllocator, shutDownCallback: @escaping ShutDownCallback) {
         self.allocator = allocator
         rawValue = allocator.allocate(capacity: 1)
@@ -21,7 +22,11 @@ public class ShutDownCallbackOptions {
             let shutDownCallbackOptions = Unmanaged<ShutDownCallbackOptions>.fromOpaque(rawValue).takeRetainedValue()
             shutDownCallbackOptions.shutdownCallback()
         }
-        rawValue.pointee.shutdown_callback_user_data = Unmanaged<ShutDownCallbackOptions>.passRetained(self).toOpaque()
+        rawValue.pointee.shutdown_callback_user_data = Unmanaged<ShutDownCallbackOptions>.passUnretained(self).toOpaque()
+    }
+
+    func retain(){
+        Unmanaged<ShutDownCallbackOptions>.passRetained(self)
     }
 
     deinit {

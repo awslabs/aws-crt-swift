@@ -19,30 +19,27 @@ class BootstrapTests: CrtXCBaseTestCase {
                             allocator: allocator)
   }
 
-  func testBootstrapShutdownCallback() async throws {
-    var closureCalled = false
-    let userData = "hello"
-    let shutDownOptions = ShutDownCallbackOptions(allocator: allocator) {
-      XCTAssertEqual(userData, "hello")
-      closureCalled = true
+  func testBootstrapShutdownCallback2() async throws {
+    let shutdownWasCalled = expectation(description: "Shutdown callback was called")
+    shutdownWasCalled.expectedFulfillmentCount = 3
+    let shutDownCallbackOptions = ShutDownCallbackOptions(allocator: allocator) {
+      shutdownWasCalled.fulfill()
     }
 
     do {
-      let elg = try EventLoopGroup(allocator: allocator, shutDownOptions: nil)
+      let elg = try EventLoopGroup(allocator: allocator, shutDownOptions: shutDownCallbackOptions)
       let resolver = DefaultHostResolver(eventLoopGroup: elg,
               maxHosts: 8,
               maxTTL: 30,
               allocator: allocator,
-              shutDownOptions: nil)
+              shutDownOptions: shutDownCallbackOptions)
 
-      _ = try ClientBootstrap(eventLoopGroup: elg,
+      let bt = try ClientBootstrap(eventLoopGroup: elg,
               hostResolver: resolver,
-              shutDownCallbackOptions: shutDownOptions,
+              shutDownCallbackOptions: shutDownCallbackOptions,
               allocator: allocator)
     }
-
-    //Wait for few seconds to make sure callback is triggerred
-    try await Task.sleep(nanoseconds: 4_000_000_000)
-    XCTAssertTrue(closureCalled)
+    await waitForExpectations(timeout: 10, handler:nil)
   }
+
 }

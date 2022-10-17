@@ -25,6 +25,7 @@ public final class DefaultHostResolver: HostResolver {
                 maxTTL: Int,
                 allocator: Allocator = defaultAllocator,
                 shutDownOptions: ShutDownCallbackOptions? = nil) {
+        shutDownOptions?.retain()
         self.allocator = allocator
         let options = aws_host_resolver_default_options(max_entries: maxHosts,
                                                         el_group: elg.rawValue,

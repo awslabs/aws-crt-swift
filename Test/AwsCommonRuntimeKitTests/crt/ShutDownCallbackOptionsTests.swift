@@ -9,21 +9,16 @@ import Darwin
 class ShutDownCallbackOptionsTests: CrtXCBaseTestCase {
 
     func testShutdownCallback() async throws {
-            var closureCalled = false
-            let userData = "hello"
+        let shutdownWasCalled = expectation(description: "Shutdown callback was called")
             // Encapsulating 
             do {
                 let shutDownOptions = ShutDownCallbackOptions(allocator: allocator) {
-                    XCTAssertEqual(userData, "hello")
-                    closureCalled = true
+                    shutdownWasCalled.fulfill()
                 }
 
                 _ = try EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
             }
-
-            //Wait for few seconds to make sure callback is triggerred
-            try await Task.sleep(nanoseconds: 4_000_000_000)
-            XCTAssertTrue(closureCalled)
+        await waitForExpectations(timeout: 10, handler:nil)
     }
 
 }

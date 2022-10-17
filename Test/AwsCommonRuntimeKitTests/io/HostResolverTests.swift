@@ -20,9 +20,9 @@ class HostResolverTests: CrtXCBaseTestCase {
     }
 
     func testHotResolverShutdownCallback() async throws {
-        var closureCalled = false
+        let shutdownWasCalled = expectation(description: "Shutdown callback was called")
         let shutDownOptions = ShutDownCallbackOptions(allocator: allocator) {
-            closureCalled = true
+            shutdownWasCalled.fulfill()
         }
         do {
             let elg = try EventLoopGroup(allocator: self.allocator)
@@ -32,8 +32,6 @@ class HostResolverTests: CrtXCBaseTestCase {
                     allocator: self.allocator,
                     shutDownOptions: shutDownOptions)
         }
-        //Wait for few seconds to make sure callback is triggerred
-        try await Task.sleep(nanoseconds: 4_000_000_000)
-        XCTAssertTrue(closureCalled)
+        await waitForExpectations(timeout: 10, handler:nil)
     }
 }
