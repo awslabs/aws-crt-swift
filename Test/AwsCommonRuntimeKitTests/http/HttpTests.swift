@@ -119,7 +119,7 @@ class HttpTests: CrtXCBaseTestCase {
             let connection = try await getHttpConnection(host: host, ssh: true)
 
             let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
-            try stream.activate()
+            await try stream.activate()
             semaphore.wait()
             let status_code = try stream.statusCode()
             XCTAssertEqual(status_code, 200)

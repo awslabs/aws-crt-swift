@@ -343,7 +343,7 @@ struct Elasticurl {
                                                         onIncomingBody: onBody,
                                                         onStreamComplete: onComplete)
                 stream = try connection.makeRequest(requestOptions: requestOptions)
-                try stream!.activate()
+                try await stream!.activate()
 
             } catch {
                 print("connection has shut down with error: \(error.localizedDescription)" )
