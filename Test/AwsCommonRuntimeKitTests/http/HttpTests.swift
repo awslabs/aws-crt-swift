@@ -1,8 +1,10 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+
 import XCTest
 @testable import AwsCommonRuntimeKit
 import AwsCCommon
+
 class HttpTests: CrtXCBaseTestCase {
     let semaphore = DispatchSemaphore(value: 0)
 
@@ -27,7 +29,7 @@ class HttpTests: CrtXCBaseTestCase {
         }
     }
 
-    func getHttpConnection(host: String, ssh: Bool)  async throws -> HttpClientConnection {
+    func getHttpConnection(host: String, ssh: Bool) async throws -> HttpClientConnection {
         let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
         try tlsContextOptions.setAlpnList("h2;http/1.1")
         let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
