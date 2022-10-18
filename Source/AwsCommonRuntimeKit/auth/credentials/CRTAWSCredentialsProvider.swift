@@ -316,15 +316,16 @@ public final class CRTAWSCredentialsProvider {
 
     static func setUpShutDownOptions(shutDownOptions: CRTCredentialsProviderShutdownOptions?)
     -> aws_credentials_provider_shutdown_options {
-
-        let pointer: UnsafeMutablePointer<CRTCredentialsProviderShutdownOptions>? = fromOptionalPointer(ptr: shutDownOptions)
+        guard let shutDownOptions = shutDownOptions else {
+            return aws_credentials_provider_shutdown_options()
+        }
+        let pointer = Unmanaged<CRTCredentialsProviderShutdownOptions>.passRetained(shutDownOptions).toOpaque()
         let shutDownOptionsC = aws_credentials_provider_shutdown_options(shutdown_callback: { userData in
             guard let userData = userData else {
                 return
             }
-            let pointer = userData.assumingMemoryBound(to: CRTCredentialsProviderShutdownOptions.self)
-            pointer.pointee.shutDownCallback()
-            pointer.deinitializeAndDeallocate()
+            let pointer = Unmanaged<CRTCredentialsProviderShutdownOptions>.fromOpaque(userData).takeRetainedValue()
+            pointer.shutDownCallback()
         }, shutdown_user_data: pointer)
 
         return shutDownOptionsC
