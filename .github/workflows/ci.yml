@@ -45,9 +45,13 @@ jobs:
           ./linux-container-ci.sh ${{ env.BUILDER_VERSION }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
   osx:
     runs-on: macos-11
+
     env:
       DEVELOPER_DIR: /Applications/Xcode_13.2.1.app
     steps:
+      - uses: fwal/setup-swift@2040b795e5c453c3a05fcb8316496afc8a74f192
+        with:
+          swift-version: "5.7"
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
@@ -65,6 +69,9 @@ jobs:
           - tvos
           - watchos
     steps:
+      - uses: fwal/setup-swift@2040b795e5c453c3a05fcb8316496afc8a74f192
+        with:
+          swift-version: "5.7"
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
