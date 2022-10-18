@@ -39,4 +39,18 @@ public class ShutDownCallbackOptions {
         shutdown_options.shutdown_user_data = Unmanaged<ShutDownCallbackOptions>.passRetained(self).toOpaque()
         return shutdown_options
     }
+
+    func getIMDSClientShutdownOptions() -> aws_imds_client_shutdown_options {
+        var shutdown_options = aws_imds_client_shutdown_options()
+
+        shutdown_options.shutdown_callback = { rawValue in
+            guard let rawValue = rawValue else {
+                return
+            }
+            let shutDownCallbackOptions = Unmanaged<ShutDownCallbackOptions>.fromOpaque(rawValue).takeRetainedValue()
+            shutDownCallbackOptions.shutdownCallback()
+        }
+        shutdown_options.shutdown_user_data = Unmanaged<ShutDownCallbackOptions>.passRetained(self).toOpaque()
+        return shutdown_options
+    }
 }

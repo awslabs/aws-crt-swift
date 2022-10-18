@@ -8,7 +8,7 @@ public class CRTIMDSClient {
     let allocator: Allocator
     public init(options: CRTIMDSClientOptions, allocator: Allocator = defaultAllocator) throws {
         self.allocator = allocator
-        let shutDownOptions = CRTIMDSClient.setUpShutDownOptions(shutDownOptions: options.shutDownOptions)
+        let shutDownOptions = options.shutDownOptions?.getIMDSClientShutdownOptions() ?? aws_imds_client_shutdown_options()
         var imdsOptions = aws_imds_client_options(shutdown_options: shutDownOptions,
                                                   bootstrap: options.bootstrap.rawValue,
                                                   retry_strategy: options.retryStrategy.rawValue,
@@ -284,22 +284,6 @@ public class CRTIMDSClient {
                 pointer.deinitializeAndDeallocate()
             }, pointer)
         })
-    }
-
-    static func setUpShutDownOptions(shutDownOptions: CRTIDMSClientShutdownOptions?)
-    -> aws_imds_client_shutdown_options {
-
-        let pointer: UnsafeMutablePointer<CRTIDMSClientShutdownOptions>? = fromOptionalPointer(ptr: shutDownOptions)
-        let shutDownOptionsC = aws_imds_client_shutdown_options(shutdown_callback: { userData in
-            guard let userData = userData else {
-                return
-            }
-            let pointer = userData.assumingMemoryBound(to: CRTIDMSClientShutdownOptions.self)
-            pointer.pointee.shutDownCallback()
-            pointer.deinitializeAndDeallocate()
-        }, shutdown_user_data: pointer)
-
-        return shutDownOptionsC
     }
 
     deinit {
