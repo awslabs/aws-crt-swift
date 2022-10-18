@@ -1,6 +1,5 @@
-//
-// Created by Khan, Waqar Ahmed on 10/15/22.
-//
+//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+//  SPDX-License-Identifier: Apache-2.0.
 
 import XCTest
 @testable import AwsCommonRuntimeKit

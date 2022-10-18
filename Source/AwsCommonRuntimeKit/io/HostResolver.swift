@@ -42,6 +42,7 @@ public final class DefaultHostResolver: HostResolver {
         )
 
         self.config = fromPointer(ptr: config)
+
     }
 
     deinit {
