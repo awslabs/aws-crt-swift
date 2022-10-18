@@ -1,6 +1,6 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
-
+// TODO: do we need set here? How is this being used in the SDK?
 public protocol CRTCredentialsProviderCachedConfig {
     var shutDownOptions: ShutDownCallbackOptions? {get set}
     var source: CRTAWSCredentialsProvider {get set}
