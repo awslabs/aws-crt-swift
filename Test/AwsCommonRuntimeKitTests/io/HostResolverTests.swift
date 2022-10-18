@@ -7,7 +7,7 @@ class HostResolverTests: CrtXCBaseTestCase {
     
     func testCanResolveHosts() async throws {
         let elg = try EventLoopGroup(allocator: self.allocator)
-        let resolver = DefaultHostResolver(eventLoopGroup: elg,
+        let resolver = try DefaultHostResolver(eventLoopGroup: elg,
                                            maxHosts: 8,
                                            maxTTL: 5,
                                            allocator: self.allocator,
@@ -21,12 +21,13 @@ class HostResolverTests: CrtXCBaseTestCase {
 
     func testHotResolverShutdownCallback() async throws {
         let shutdownWasCalled = expectation(description: "Shutdown callback was called")
-        let shutDownOptions = ShutDownCallbackOptions(allocator: allocator) {
+        shutdownWasCalled.expectedFulfillmentCount = 2
+        let shutDownOptions = ShutDownCallbackOptions() {
             shutdownWasCalled.fulfill()
         }
         do {
-            let elg = try EventLoopGroup(allocator: self.allocator)
-            _ = DefaultHostResolver(eventLoopGroup: elg,
+            let elg = try EventLoopGroup(allocator: self.allocator, shutDownOptions: shutDownOptions)
+            _ = try DefaultHostResolver(eventLoopGroup: elg,
                     maxHosts: 8,
                     maxTTL: 5,
                     allocator: self.allocator,

@@ -11,9 +11,9 @@ public class HttpClientConnectionManager {
     let options: HttpClientConnectionOptions
 
     public init(options: HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) throws {
-        options.shutDownOptions?.retain()
         self.options = options
         self.allocator = allocator
+        let cShutdownOptions = options.shutDownOptions?.getCShutdownOptions()
         guard let manager: OpaquePointer = (options.hostName.withByteCursor { hostNameCursor in
             var mgrOptions = aws_http_connection_manager_options(bootstrap: options.clientBootstrap.rawValue,
                                                                  initial_window_size: options.initialWindowSize,
@@ -30,8 +30,8 @@ public class HttpClientConnectionManager {
                                                                  proxy_options: options.proxyOptions?.rawValue,
                                                                  proxy_ev_settings: options.proxyEnvSettings?.rawValue,
                                                                  max_connections: options.maxConnections,
-                                                                 shutdown_complete_user_data: options.shutDownOptions?.rawValue.pointee.shutdown_callback_user_data,
-                                                                 shutdown_complete_callback: options.shutDownOptions?.rawValue.pointee.shutdown_callback_fn,
+                                                                 shutdown_complete_user_data: cShutdownOptions?.shutdown_callback_user_data,
+                                                                 shutdown_complete_callback: cShutdownOptions?.shutdown_callback_fn,
                                                                  enable_read_back_pressure: options.enableManualWindowManagement,
                                                                  max_connection_idle_in_milliseconds: options.maxConnectionIdleMs)
             return aws_http_connection_manager_new(allocator.rawValue, &mgrOptions)

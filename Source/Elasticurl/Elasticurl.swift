@@ -260,7 +260,7 @@ struct Elasticurl {
             try tlsConnectionOptions.setServerName(host)
 
             let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-            let hostResolver = DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
+            let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
 
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                                 hostResolver: hostResolver,
