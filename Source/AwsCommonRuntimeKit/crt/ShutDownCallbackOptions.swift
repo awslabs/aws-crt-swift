@@ -2,6 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCCommon
+import AwsCAuth
 import Foundation
 
 public class ShutDownCallbackOptions {
@@ -24,5 +25,18 @@ public class ShutDownCallbackOptions {
         shutdown_options.shutdown_callback_user_data = Unmanaged<ShutDownCallbackOptions>.passRetained(self).toOpaque()
         return shutdown_options
     }
-}
 
+    func getCredentialProviderShutdownOptions() -> aws_credentials_provider_shutdown_options {
+        var shutdown_options = aws_credentials_provider_shutdown_options()
+
+        shutdown_options.shutdown_callback = { rawValue in
+            guard let rawValue = rawValue else {
+                return
+            }
+            let shutDownCallbackOptions = Unmanaged<ShutDownCallbackOptions>.fromOpaque(rawValue).takeRetainedValue()
+            shutDownCallbackOptions.shutdownCallback()
+        }
+        shutdown_options.shutdown_user_data = Unmanaged<ShutDownCallbackOptions>.passRetained(self).toOpaque()
+        return shutdown_options
+    }
+}

@@ -4,5 +4,5 @@ public protocol CRTCredentialsProviderStaticConfigOptions {
     var accessKey: String { get set}
     var secret: String { get set}
     var sessionToken: String? { get set}
-    var shutDownOptions: CRTCredentialsProviderShutdownOptions? { get set}
+    var shutDownOptions: ShutDownCallbackOptions? { get set}
 }

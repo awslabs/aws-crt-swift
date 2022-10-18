@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 public protocol CRTCredentialsProviderCachedConfig {
-    var shutDownOptions: CRTCredentialsProviderShutdownOptions? {get set}
+    var shutDownOptions: ShutDownCallbackOptions? {get set}
     var source: CRTAWSCredentialsProvider {get set}
     /// refresh time in ms
     var refreshTime: Int64 {get set}
