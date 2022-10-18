@@ -12,7 +12,6 @@ public class ShutDownCallbackOptions {
         self.shutdownCallback = shutDownCallback
     }
 
-    /// If you are passed a reference to ShutdownCallbackOptions, you need to call retain on it.
     func getCShutdownOptions() -> aws_shutdown_callback_options {
         var shutdown_options = aws_shutdown_callback_options()
         shutdown_options.shutdown_callback_fn = { rawValue in
@@ -25,11 +24,5 @@ public class ShutDownCallbackOptions {
         shutdown_options.shutdown_callback_user_data = Unmanaged<ShutDownCallbackOptions>.passRetained(self).toOpaque()
         return shutdown_options
     }
-
-    //TODO: try to call retain instead of passRetained
-//    func retain(){
-//        _ = Unmanaged<ShutDownCallbackOptions>.passRetained(self)
-//    }
-
 }
 
