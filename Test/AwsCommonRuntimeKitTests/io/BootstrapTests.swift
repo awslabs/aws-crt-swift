@@ -19,7 +19,7 @@ class BootstrapTests: CrtXCBaseTestCase {
                             allocator: allocator)
   }
 
-  func testBootstrapShutdownCallback2() async throws {
+  func testBootstrapShutdownCallback() async throws {
     let shutdownWasCalled = expectation(description: "Shutdown callback was called")
     shutdownWasCalled.expectedFulfillmentCount = 3
     let shutDownCallbackOptions = ShutDownCallbackOptions() {
