@@ -31,8 +31,6 @@ class ProxyOptionsTests: CrtXCBaseTestCase {
         password.withByteCursorPointer { passwordCursorPointer in
             XCTAssertTrue(aws_byte_cursor_eq(&proxyOptions.rawValue.pointee.auth_password, passwordCursorPointer))
         }
-
-
     }
 
     func testProxyOptionsStringOutOfScope() {
@@ -43,7 +41,6 @@ class ProxyOptionsTests: CrtXCBaseTestCase {
             let newHost = "newHost";
             proxyOptions.hostName = newHost;
         }
-
         XCTAssertEqual(proxyOptions.hostName, "newHost")
         "newHost".withByteCursorPointer { passwordCursorPointer in
             XCTAssertTrue(aws_byte_cursor_eq(&proxyOptions.rawValue.pointee.host, passwordCursorPointer))
@@ -58,5 +55,4 @@ class ProxyOptionsTests: CrtXCBaseTestCase {
         XCTAssertNotNil(proxyOptions.tlsOptions)
         XCTAssertNotNil(proxyOptions.rawValue.pointee.tls_options)
     }
-
 }

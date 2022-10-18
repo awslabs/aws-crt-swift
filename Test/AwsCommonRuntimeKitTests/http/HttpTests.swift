@@ -20,9 +20,7 @@ class HttpTests: CrtXCBaseTestCase {
             }
 
             let httpRequestOptions = try getHttpRequestOptions(method: "GET", path: url.path, host: host)
-
             let connection = try await getHttpConnection(host: host, ssh: true)
-
             let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
         } catch let err {
             print(err)
@@ -33,14 +31,11 @@ class HttpTests: CrtXCBaseTestCase {
         let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
         try tlsContextOptions.setAlpnList("h2;http/1.1")
         let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
-
         let tlsConnectionOptions = tlsContext.newConnectionOptions()
-
         try tlsConnectionOptions.setServerName(host)
 
         let elg = EventLoopGroup(threadCount: 1, allocator: allocator)
         let hostResolver = DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
-
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                 hostResolver: hostResolver,
                 callbackData: nil,
@@ -100,8 +95,6 @@ class HttpTests: CrtXCBaseTestCase {
                 onIncomingHeadersBlockDone: onBlockDone,
                 onIncomingBody: onBody,
                 onStreamComplete: onComplete)
-
-
         return requestOptions
     }
 

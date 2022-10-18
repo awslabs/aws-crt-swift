@@ -27,5 +27,4 @@ class ProxyEnvSettingsTests: CrtXCBaseTestCase {
         XCTAssertEqual(proxyEnvSetting.rawValue.pointee.env_var_type, envVarType.rawValue)
         XCTAssertNotNil(proxyEnvSetting.rawValue.pointee.tls_options)
     }
-
 }
