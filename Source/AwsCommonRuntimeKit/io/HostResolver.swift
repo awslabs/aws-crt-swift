@@ -24,13 +24,14 @@ public final class DefaultHostResolver: HostResolver {
                 shutDownOptions: ShutDownCallbackOptions? = nil) throws {
 
         self.allocator = allocator
-        guard let rawValue: UnsafeMutablePointer<aws_host_resolver> = withOptionalUnsafePointer(
+        guard var rawValue: UnsafeMutablePointer<aws_host_resolver> = withOptionalUnsafePointer(
                 shutDownOptions?.getCShutdownOptions(), { shutdownOptionsPointer in
-            let options = aws_host_resolver_default_options(max_entries: maxHosts,
+            var options = aws_host_resolver_default_options(max_entries: maxHosts,
                     el_group: elg.rawValue,
                     shutdown_options: shutdownOptionsPointer,
                     system_clock_override_fn: nil)
-            return withUnsafePointer(to: options) { aws_host_resolver_new_default(allocator.rawValue, $0) }
+            //TODO: use const in C-IO to avoid mutable pointer here
+            return withUnsafeMutablePointer(to: &options) { aws_host_resolver_new_default(allocator.rawValue, $0) }
         }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
