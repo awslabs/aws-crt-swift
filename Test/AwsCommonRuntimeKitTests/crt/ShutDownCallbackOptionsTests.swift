@@ -3,8 +3,7 @@
 
 import XCTest
 @testable import AwsCommonRuntimeKit
-import Foundation
-import Darwin
+
 class ShutDownCallbackOptionsTests: CrtXCBaseTestCase {
 
     func testShutdownCallback() async throws {

@@ -3,7 +3,6 @@
 
 import AwsCCommon
 import AwsCAuth
-import Foundation
 
 public class ShutDownCallbackOptions {
     public typealias ShutDownCallback = () -> Void
