@@ -1,5 +1,6 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+
 import XCTest
 @testable import AwsCommonRuntimeKit
 
@@ -27,5 +28,4 @@ class ProxyEnvSettingsTests: CrtXCBaseTestCase {
         XCTAssertEqual(proxyEnvSetting.rawValue.pointee.env_var_type, envVarType.rawValue)
         XCTAssertNotNil(proxyEnvSetting.rawValue.pointee.tls_options)
     }
-
 }

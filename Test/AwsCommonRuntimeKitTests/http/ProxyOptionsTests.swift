@@ -1,5 +1,6 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+
 import XCTest
 import AwsCCommon
 @testable import AwsCommonRuntimeKit
@@ -41,7 +42,6 @@ class ProxyOptionsTests: CrtXCBaseTestCase {
             let newHost = "newHost";
             proxyOptions.hostName = newHost;
         }
-
         XCTAssertEqual(proxyOptions.hostName, "newHost")
         "newHost".withByteCursorPointer { passwordCursorPointer in
             XCTAssertTrue(aws_byte_cursor_eq(&proxyOptions.rawValue.pointee.host, passwordCursorPointer))
@@ -56,5 +56,4 @@ class ProxyOptionsTests: CrtXCBaseTestCase {
         XCTAssertNotNil(proxyOptions.tlsOptions)
         XCTAssertNotNil(proxyOptions.rawValue.pointee.tls_options)
     }
-
 }

@@ -1,5 +1,6 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+
 import XCTest
 @testable import AwsCommonRuntimeKit
 import AwsCCommon
@@ -7,30 +8,36 @@ import AwsCCommon
 class HttpTests: CrtXCBaseTestCase {
     let semaphore = DispatchSemaphore(value: 0)
 
-    func testGetHttpRequest() async throws{
+    func testGetHttpRequest() async throws {
         let result = await sendGetHttpRequest()
         XCTAssertEqual(result, AWS_OP_SUCCESS)
     }
 
-    func testGetHttpRequestAsync() async throws{
-        let asyncResult = await sendGetHttpRequestAsync()
-        XCTAssertEqual(asyncResult, AWS_OP_SUCCESS)
+    func testHttpStreamIsReleasedIfNotActivated() async throws {
+        do {
+            let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
+            guard let host = url.host else {
+                print("no proper host was parsed from the url. quitting.")
+                exit(EXIT_FAILURE)
+            }
+
+            let httpRequestOptions = try getHttpRequestOptions(method: "GET", path: url.path, host: host)
+            let connection = try await getHttpConnection(host: host, ssh: true)
+            let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+        } catch let err {
+            print(err)
+        }
     }
 
-
-
-    func getHttpConnection(host: String, ssh: Bool)  async throws -> HttpClientConnection {
+    func getHttpConnection(host: String, ssh: Bool) async throws -> HttpClientConnection {
         let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
         try tlsContextOptions.setAlpnList("h2;http/1.1")
         let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
-
         let tlsConnectionOptions = tlsContext.newConnectionOptions()
-
         try tlsConnectionOptions.setServerName(host)
 
         let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
         let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
-
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                 hostResolver: hostResolver,
                 shutDownCallbackOptions: nil,
@@ -90,8 +97,6 @@ class HttpTests: CrtXCBaseTestCase {
                 onIncomingHeadersBlockDone: onBlockDone,
                 onIncomingBody: onBody,
                 onStreamComplete: onComplete)
-
-
         return requestOptions
     }
 
@@ -108,34 +113,10 @@ class HttpTests: CrtXCBaseTestCase {
             let connection = try await getHttpConnection(host: host, ssh: true)
 
             let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
-            try stream.activate()
+            try await stream.activate()
             semaphore.wait()
             let status_code = try stream.statusCode()
             XCTAssertEqual(status_code, 200)
-            return AWS_OP_SUCCESS
-        } catch let err {
-            print(err)
-            return AWS_OP_ERR
-        }
-    }
-
-
-    func sendGetHttpRequestAsync() async -> Int32 {
-        do {
-            let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
-            guard let host = url.host else {
-                print("no proper host was parsed from the url. quitting.")
-                exit(EXIT_FAILURE)
-            }
-
-            let httpRequestOptions = try getHttpRequestOptions(method: "GET", path: url.path, host: host)
-
-            let connection = try await getHttpConnection(host: host, ssh: true)
-
-            async let status_code = try connection.makeRequestAsync(requestOptions: httpRequestOptions)
-            // async, no need to manually wait for callback using semaphore. We can also make the stream.activate function async. If we want to expose HttpStream
-            let status = try await status_code
-            XCTAssertEqual(status, 200)
             return AWS_OP_SUCCESS
         } catch let err {
             print(err)
