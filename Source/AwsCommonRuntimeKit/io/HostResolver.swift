@@ -29,7 +29,7 @@ public final class DefaultHostResolver: HostResolver {
                     el_group: elg.rawValue,
                     shutdown_options: shutdownOptionsPointer,
                     system_clock_override_fn: nil)
-            return withUnsafePointer(to: options) {aws_host_resolver_new_default(allocator.rawValue, $0)}
+            return withUnsafePointer(to: options) { aws_host_resolver_new_default(allocator.rawValue, $0) }
         }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
