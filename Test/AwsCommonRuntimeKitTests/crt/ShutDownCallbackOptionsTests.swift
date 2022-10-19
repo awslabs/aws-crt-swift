@@ -15,5 +15,4 @@ class ShutdownCallbackOptionsTests: CrtXCBaseTestCase {
         }
         wait(for: [shutdownWasCalled], timeout: 15)
     }
-
 }

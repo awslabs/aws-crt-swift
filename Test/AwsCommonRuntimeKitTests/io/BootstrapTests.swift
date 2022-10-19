@@ -10,8 +10,7 @@ class BootstrapTests: CrtXCBaseTestCase {
     let resolver = try DefaultHostResolver(eventLoopGroup: elg,
                                            maxHosts: 8,
                                            maxTTL: 30,
-                                           allocator: allocator,
-                                           shutdownCallback: nil)
+                                           allocator: allocator)
 
     _ = try ClientBootstrap(eventLoopGroup: elg,
                             hostResolver: resolver,
