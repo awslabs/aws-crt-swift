@@ -17,27 +17,27 @@ class BootstrapTests: CrtXCBaseTestCase {
                             hostResolver: resolver,
                             allocator: allocator)
   }
-
-  func testBootstrapShutdownCallback() async throws {
-    let shutdownWasCalled = expectation(description: "Shutdown callback was called")
-    shutdownWasCalled.expectedFulfillmentCount = 3
-    let shutdownCallback =  {
-      shutdownWasCalled.fulfill()
-    }
-
-    do {
-      let elg = try EventLoopGroup(allocator: allocator, shutdownCallback: shutdownCallback)
-      let resolver = try DefaultHostResolver(eventLoopGroup: elg,
-              maxHosts: 8,
-              maxTTL: 30,
-              allocator: allocator,
-              shutdownCallback: shutdownCallback)
-
-      _ = try ClientBootstrap(eventLoopGroup: elg,
-              hostResolver: resolver,
-              allocator: allocator,
-              shutdownCallback: shutdownCallback)
-    }
-    await waitForExpectations(timeout: 15, handler:nil)
-  }
+//
+//  func testBootstrapShutdownCallback() async throws {
+//    let shutdownWasCalled = expectation(description: "Shutdown callback was called")
+//    shutdownWasCalled.expectedFulfillmentCount = 3
+//    let shutdownCallback =  {
+//      shutdownWasCalled.fulfill()
+//    }
+//
+//    do {
+//      let elg = try EventLoopGroup(allocator: allocator, shutdownCallback: shutdownCallback)
+//      let resolver = try DefaultHostResolver(eventLoopGroup: elg,
+//              maxHosts: 8,
+//              maxTTL: 30,
+//              allocator: allocator,
+//              shutdownCallback: shutdownCallback)
+//
+//      _ = try ClientBootstrap(eventLoopGroup: elg,
+//              hostResolver: resolver,
+//              allocator: allocator,
+//              shutdownCallback: shutdownCallback)
+//    }
+//    await waitForExpectations(timeout: 15, handler:nil)
+//  }
 }
