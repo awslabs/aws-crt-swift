@@ -18,20 +18,20 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         super.tearDown()
     }
 
-    func setUpShutDownOptions() -> ShutDownCallbackOptions {
-        let shutDownOptions = ShutDownCallbackOptions {
+    func setUpShutDownOptions() -> ShutdownCallback {
+        let shutdownCallback =  {
             XCTAssert(true)
-            //self.expectation2.fulfill()
+            self.expectation2.fulfill()
         }
-        return shutDownOptions
+        return shutdownCallback
     }
 
     func testCreateAWSCredentialsProviderStatic() async throws {
-        let shutDownOptions = setUpShutDownOptions()
+        let shutdownCallback = setUpShutDownOptions()
         let config = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
                                                                 secret: secret,
                                                                 sessionToken: sessionToken,
-                                                                shutDownOptions: shutDownOptions)
+                                                                shutdownCallback: shutdownCallback)
         let provider = try CRTAWSCredentialsProvider(fromStatic: config, allocator: allocator)
         let credentials = try await provider.getCredentials()
         XCTAssertNotNil(credentials)
@@ -39,8 +39,8 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 
     func testCreateAWSCredentialsProviderEnv() async {
         do {
-            let shutDownOptions = setUpShutDownOptions()
-            let provider = try CRTAWSCredentialsProvider(fromEnv: shutDownOptions, allocator: allocator)
+            let shutdownCallback = setUpShutDownOptions()
+            let provider = try CRTAWSCredentialsProvider(fromEnv: shutdownCallback, allocator: allocator)
             _ = try await provider.getCredentials()
 
         } catch let err {
@@ -55,8 +55,8 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         try skipifmacOS()
         try skipIfLinux()
         //uses default paths to credentials and config
-        let shutDownOptions = setUpShutDownOptions()
-        let config = MockCredentialsProviderProfileOptions(shutdownOptions: shutDownOptions)
+        let shutdownCallback = setUpShutDownOptions()
+        let config = MockCredentialsProviderProfileOptions(shutdownCallback: shutdownCallback)
 
         let provider = try CRTAWSCredentialsProvider(fromProfile: config, allocator: allocator)
 
@@ -75,13 +75,12 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                             hostResolver: hostResolver,
-                                            shutDownCallbackOptions: nil,
                                             allocator: allocator)
 
 
-        let shutDownOptions = setUpShutDownOptions()
+        let shutdownCallback = setUpShutDownOptions()
 
-        let config = MockCredentialsProviderChainDefaultConfig(bootstrap: bootstrap, shutDownOptions: shutDownOptions)
+        let config = MockCredentialsProviderChainDefaultConfig(bootstrap: bootstrap, shutdownCallback: shutdownCallback)
 
         let provider = try CRTAWSCredentialsProvider(fromChainDefault: config)
 
@@ -142,11 +141,11 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                 allocator: allocator)
                 let options = TlsContextOptions(defaultClientWithAllocator: allocator)
             let context = try TlsContext(options: options, mode: .client, allocator: allocator)
-            let shutDownOptions = setUpShutDownOptions()
+            let shutdownCallback = setUpShutDownOptions()
 
             let config = MockCredentialsProviderContainerConfig(bootstrap: bootstrap,
                                                                 tlsContext: context,
-                                                                shutDownOptions: shutDownOptions)
+                                                                shutdownCallback: shutdownCallback)
             let provider = try CRTAWSCredentialsProvider(fromContainer: config)
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
@@ -157,7 +156,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 }
 
 struct MockCredentialsProviderProfileOptions: CRTCredentialsProviderProfileOptions {
-    var shutdownOptions: ShutDownCallbackOptions?
+    var shutdownCallback: ShutdownCallback?
 
     var configFileNameOverride: String?
 
@@ -168,11 +167,11 @@ struct MockCredentialsProviderProfileOptions: CRTCredentialsProviderProfileOptio
     init(configFileNameOverride: String? = nil,
          profileFileNameOverride: String? = nil,
          credentialsFileNameOverride: String? = nil,
-         shutdownOptions: ShutDownCallbackOptions? = nil) {
+         shutdownCallback: ShutdownCallback? = nil) {
         self.configFileNameOverride = configFileNameOverride
         self.profileFileNameOverride = profileFileNameOverride
         self.credentialsFileNameOverride = credentialsFileNameOverride
-        self.shutdownOptions = shutdownOptions
+        self.shutdownCallback = shutdownCallback
     }
 }
 
@@ -180,46 +179,46 @@ struct MockCredentialsProviderStaticConfigOptions: CRTCredentialsProviderStaticC
     public var accessKey: String
     public var secret: String
     public var sessionToken: String?
-    public var shutDownOptions: ShutDownCallbackOptions?
+    public var shutdownCallback: ShutdownCallback?
 
     public init(accessKey: String,
                 secret: String,
                 sessionToken: String? = nil,
-                shutDownOptions: ShutDownCallbackOptions? = nil) {
+                shutdownCallback: ShutdownCallback? = nil) {
         self.accessKey = accessKey
         self.secret = secret
         self.sessionToken = sessionToken
-        self.shutDownOptions = shutDownOptions
+        self.shutdownCallback = shutdownCallback
     }
 }
 
 public struct MockCredentialsProviderChainDefaultConfig: CRTCredentialsProviderChainDefaultConfig {
-    public var shutDownOptions: ShutDownCallbackOptions?
+    public var shutdownCallback: ShutdownCallback?
     public var bootstrap: ClientBootstrap
 
     public init(bootstrap: ClientBootstrap,
-                shutDownOptions: ShutDownCallbackOptions? = nil) {
+                shutdownCallback: ShutdownCallback? = nil) {
         self.bootstrap = bootstrap
-        self.shutDownOptions = shutDownOptions
+        self.shutdownCallback = shutdownCallback
     }
 }
 
 struct MockCredentialsProviderWebIdentityConfig: CRTCredentialsProviderWebIdentityConfig {
-    var shutDownOptions: ShutDownCallbackOptions?
+    var shutdownCallback: ShutdownCallback?
     var bootstrap: ClientBootstrap
     var tlsContext: TlsContext
 
     init(bootstrap: ClientBootstrap,
          tlsContext: TlsContext,
-         shutDownOptions: ShutDownCallbackOptions? = nil) {
+         shutdownCallback: ShutdownCallback? = nil) {
         self.bootstrap = bootstrap
         self.tlsContext = tlsContext
-        self.shutDownOptions = shutDownOptions
+        self.shutdownCallback = shutdownCallback
     }
 }
 
 struct MockCredentialsProviderSTSConfig: CRTCredentialsProviderSTSConfig {
-    var shutDownOptions: ShutDownCallbackOptions?
+    var shutdownCallback: ShutdownCallback?
     var bootstrap: ClientBootstrap
     var tlsContext: TlsContext
     var credentialsProvider: CRTAWSCredentialsProvider
@@ -233,19 +232,19 @@ struct MockCredentialsProviderSTSConfig: CRTCredentialsProviderSTSConfig {
          roleArn: String,
          sessionName: String,
          durationSeconds: UInt16,
-         shutDownOptions: ShutDownCallbackOptions? = nil) {
+         shutdownCallback: ShutdownCallback? = nil) {
         self.bootstrap = bootstrap
         self.tlsContext = tlsContext
         self.credentialsProvider = credentialsProvider
         self.roleArn = roleArn
         self.sessionName = sessionName
         self.durationSeconds = durationSeconds
-        self.shutDownOptions = shutDownOptions
+        self.shutdownCallback = shutdownCallback
     }
 }
 
 struct MockCredentialsProviderContainerConfig: CRTCredentialsProviderContainerConfig {
-    var shutDownOptions: ShutDownCallbackOptions?
+    var shutdownCallback: ShutdownCallback?
     var bootstrap: ClientBootstrap
     var tlsContext: TlsContext
     var authToken: String?
@@ -257,12 +256,12 @@ struct MockCredentialsProviderContainerConfig: CRTCredentialsProviderContainerCo
          authToken: String? = nil,
          pathAndQuery: String? = nil,
          host: String? = nil,
-         shutDownOptions: ShutDownCallbackOptions? = nil) {
+         shutdownCallback: ShutdownCallback? = nil) {
         self.bootstrap = bootstrap
         self.tlsContext = tlsContext
         self.authToken = authToken
         self.pathAndQuery = pathAndQuery
         self.host = host
-        self.shutDownOptions = shutDownOptions
+        self.shutdownCallback = shutdownCallback
     }
 }
