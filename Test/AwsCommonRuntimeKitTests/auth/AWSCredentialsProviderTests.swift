@@ -57,11 +57,8 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         //uses default paths to credentials and config
         do {
             let config = MockCredentialsProviderProfileOptions(shutdownCallback: getShutdownCallback())
-
             let provider = try CRTAWSCredentialsProvider(fromProfile: config, allocator: allocator)
-
             let credentials = try await provider.getCredentials()
-
             XCTAssertNotNil(credentials)
         }
         wait(for: [shutdownWasCalled], timeout: 15)
@@ -74,7 +71,6 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                maxHosts: 8,
                                                maxTTL: 30,
                                                allocator: allocator)
-
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                             hostResolver: hostResolver,
                                             allocator: allocator)
@@ -100,10 +96,8 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                             allocator: allocator)
         let options = TlsContextOptions(defaultClientWithAllocator: allocator)
         let context = try TlsContext(options: options, mode: .client, allocator: allocator)
-        do {
-            let config = MockCredentialsProviderWebIdentityConfig(bootstrap: bootstrap, tlsContext: context)
-            XCTAssertThrowsError(try CRTAWSCredentialsProvider(fromWebIdentity: config))
-        }
+        let config = MockCredentialsProviderWebIdentityConfig(bootstrap: bootstrap, tlsContext: context)
+        XCTAssertThrowsError(try CRTAWSCredentialsProvider(fromWebIdentity: config))
     }
 
     func testCreateDestroyStsInvalidRole() async throws {
@@ -112,7 +106,6 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                maxHosts: 8,
                                                maxTTL: 30,
                                                allocator: allocator)
-
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                             hostResolver: hostResolver,
                                             allocator: allocator)
@@ -122,15 +115,13 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                                       secret: secret,
                                                                       sessionToken: sessionToken)
         let provider = try CRTAWSCredentialsProvider(fromStatic: staticConfig, allocator: allocator)
-        do {
-            let config = MockCredentialsProviderSTSConfig(bootstrap: bootstrap,
-                    tlsContext: context,
-                    credentialsProvider: provider,
-                    roleArn: "invalid-role-arn",
-                    sessionName: "test-session",
-                    durationSeconds: 10)
-            XCTAssertThrowsError(try CRTAWSCredentialsProvider(fromSTS: config))
-        }
+        let config = MockCredentialsProviderSTSConfig(bootstrap: bootstrap,
+                tlsContext: context,
+                credentialsProvider: provider,
+                roleArn: "invalid-role-arn",
+                sessionName: "test-session",
+                durationSeconds: 10)
+        XCTAssertThrowsError(try CRTAWSCredentialsProvider(fromSTS: config))
     }
 
     func testCreateDestroyEcsMissingCreds() async throws {
