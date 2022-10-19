@@ -20,11 +20,11 @@ public final class CRTAWSCredentialsProvider {
     public convenience init(fromProvider impl: CRTCredentialsProvider,
                             allocator: Allocator = defaultAllocator,
                             shutdownCallback: ShutdownCallback? = nil) throws {
-        let shutdownOptions = ShutdownCallbackCore(shutdownCallback)?
+        let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)?
                 .getRetainedCredentialProviderShutdownOptions()
                 ?? aws_credentials_provider_shutdown_options()
         let credProviderPtr: UnsafeMutablePointer<CRTCredentialsProvider> = fromPointer(ptr: impl)
-        var options = aws_credentials_provider_delegate_options(shutdown_options: shutdownOptions,
+        var options = aws_credentials_provider_delegate_options(shutdown_options: shutdownCallbackCore,
                                                                 get_credentials: getCredentialsDelegateFn,
                                                                 delegate_user_data: credProviderPtr)
 
