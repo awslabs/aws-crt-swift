@@ -38,6 +38,6 @@ class BootstrapTests: CrtXCBaseTestCase {
               allocator: allocator,
               shutdownCallback: shutdownCallback)
     }
-    await waitForExpectations(timeout: 10, handler:nil)
+    await waitForExpectations(timeout: 15, handler:nil)
   }
 }
