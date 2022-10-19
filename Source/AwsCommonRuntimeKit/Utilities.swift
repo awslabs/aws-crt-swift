@@ -139,9 +139,9 @@ extension UnsafePointer: PointerConformance {}
 
 extension UnsafeRawPointer: PointerConformance {}
 
-func withByteCursorFromStrings<R>(
-        _ arg1: String, _ arg2: String, _ body: (aws_byte_cursor, aws_byte_cursor) -> R
-) -> R {
+func withByteCursorFromStrings<Result>(
+        _ arg1: String, _ arg2: String, _ body: (aws_byte_cursor, aws_byte_cursor) -> Result
+) -> Result {
     return arg1.withCString { arg1C in
         return arg2.withCString { arg2C in
                 return body(aws_byte_cursor_from_c_str(arg1C), aws_byte_cursor_from_c_str(arg2C))
@@ -149,9 +149,9 @@ func withByteCursorFromStrings<R>(
     }
 }
 
-func withByteCursorFromStrings<R>(
-        _ arg1: String, _ arg2: String, _ arg3: String, _ body: (aws_byte_cursor, aws_byte_cursor, aws_byte_cursor) -> R
-) -> R {
+func withByteCursorFromStrings<Result>(
+        _ arg1: String, _ arg2: String, _ arg3: String, _ body: (aws_byte_cursor, aws_byte_cursor, aws_byte_cursor) -> Result
+) -> Result {
     return arg1.withCString { arg1C in
         return arg2.withCString { arg2C in
             return arg3.withCString {arg3c in
