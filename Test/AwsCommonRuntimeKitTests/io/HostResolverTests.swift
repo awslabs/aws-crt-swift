@@ -20,7 +20,7 @@ class HostResolverTests: CrtXCBaseTestCase {
     }
 
     func testHotResolverShutdownCallback() async throws {
-        let shutdownWasCalled = expectation(description: "Shutdown callback was called")
+        let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
         shutdownWasCalled.expectedFulfillmentCount = 2
         let shutdownCallback = {
             shutdownWasCalled.fulfill()
@@ -33,6 +33,6 @@ class HostResolverTests: CrtXCBaseTestCase {
                     allocator: self.allocator,
                     shutdownCallback: shutdownCallback)
         }
-        await waitForExpectations(timeout: 10, handler:nil)
+        wait(for: [shutdownWasCalled], timeout: 15)
     }
 }

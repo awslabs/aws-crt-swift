@@ -7,13 +7,13 @@ import XCTest
 class ShutdownCallbackOptionsTests: CrtXCBaseTestCase {
 
     func testShutdownCallback() async throws {
-        let shutdownWasCalled = expectation(description: "Shutdown callback was called")
+        let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
         do {
             _ = try EventLoopGroup {
                 shutdownWasCalled.fulfill()
             }
         }
-        await waitForExpectations(timeout: 15, handler:nil)
+        wait(for: [shutdownWasCalled], timeout: 15)
     }
 
 }

@@ -6,7 +6,7 @@ import XCTest
 class HttpClientConnectionManagerTests: CrtXCBaseTestCase {
 
     func testCanCreateConnectionManager() async throws {
-        let shutdownWasCalled = expectation(description: "Shutdown callback was called")
+        let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
         do {
             let host = "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt"
             let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
@@ -38,6 +38,6 @@ class HttpClientConnectionManagerTests: CrtXCBaseTestCase {
             }
             _ = try HttpClientConnectionManager(options: httpClientOptions)
         }
-        await waitForExpectations(timeout: 10, handler:nil)
+        wait(for: [shutdownWasCalled], timeout: 15)
     }
 }
