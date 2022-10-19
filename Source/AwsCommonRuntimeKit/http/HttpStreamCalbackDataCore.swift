@@ -5,6 +5,8 @@ import AwsCHttp
 import AwsCCommon
 import Foundation
 
+/// Core classes have manual memory management.
+/// You have to balance the retain & release calls in all cases to avoid leaking memory.
 class HttpStreamCallbackDataCore {
     let requestOptions: HttpRequestOptions
     var stream: HttpStream?
@@ -14,7 +16,7 @@ class HttpStreamCallbackDataCore {
     }
 
     /// This function does a manual retain on HttpStreamCallbackDataCore
-    /// to keep it until until on_destroy callback has fired.
+    /// to keep it until until on_destroy callback has fired which will do the release.
     func getRetainedHttpMakeRequestOptions() -> aws_http_make_request_options {
         var options = aws_http_make_request_options()
         options.self_size = MemoryLayout<aws_http_make_request_options>.size
@@ -87,8 +89,8 @@ func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
 }
 
 func onResponseHeaderBlockDone(stream: UnsafeMutablePointer<aws_http_stream>?,
-                       headerBlock: aws_http_header_block,
-                       userData: UnsafeMutableRawPointer?) -> Int32 {
+                               headerBlock: aws_http_header_block,
+                               userData: UnsafeMutableRawPointer?) -> Int32 {
     guard let userData = userData else {
         return AWS_OP_ERR
     }
@@ -101,8 +103,8 @@ func onResponseHeaderBlockDone(stream: UnsafeMutablePointer<aws_http_stream>?,
 }
 
 func onComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
-                               errorCode: Int32,
-                               userData: UnsafeMutableRawPointer?) {
+                errorCode: Int32,
+                userData: UnsafeMutableRawPointer?) {
     guard let userData = userData else {
         return
     }

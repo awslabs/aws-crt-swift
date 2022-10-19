@@ -38,7 +38,9 @@ public class HttpClientConnection {
     /// - Returns: An `HttpStream` containing the `HttpClientConnection`
     public func makeRequest(requestOptions: HttpRequestOptions) throws -> HttpStream {
         let httpStreamCallbackDataCore = HttpStreamCallbackDataCore(requestOptions: requestOptions)
-        return try HttpStream(httpConnection: self, options: httpStreamCallbackDataCore.getRetainedHttpMakeRequestOptions(), callbackData: httpStreamCallbackDataCore)
+        return try HttpStream(httpConnection: self,
+                              options: httpStreamCallbackDataCore.getRetainedHttpMakeRequestOptions(),
+                              callbackData: httpStreamCallbackDataCore)
     }
 
     deinit {
