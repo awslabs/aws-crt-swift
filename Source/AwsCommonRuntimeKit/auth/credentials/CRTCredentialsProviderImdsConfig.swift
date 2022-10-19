@@ -5,6 +5,6 @@ import AwsCAuth
 
 public protocol CRTCredentialsProviderImdsConfig {
     var bootstrap: ClientBootstrap { get }
-    var shutdownOptions: ShutDownCallbackOptions? { get }
+    var shutdownCallback: ShutdownCallback? { get }
     var imdsVersion: aws_imds_protocol_version { get }
 }

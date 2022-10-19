@@ -3,7 +3,7 @@
 #if os(macOS)
 
 public protocol CRTCredentialsProviderX509Config {
-    var shutDownOptions: ShutDownCallbackOptions? { get }
+    var shutdownCallback: ShutdownCallback? { get }
     var bootstrap: ClientBootstrap { get }
     var tlsConnectionOptions: TlsConnectionOptions { get }
     var thingName: String { get }

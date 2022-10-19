@@ -26,9 +26,6 @@ class HttpClientConnectionManagerTests: CrtXCBaseTestCase {
 
             let socketOptions = SocketOptions(socketType: .stream)
             let port = UInt16(443)
-            let shutDownCallbackOptions = ShutDownCallbackOptions() {
-                shutdownWasCalled.fulfill()
-            }
             let httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
                     hostName: host,
                     initialWindowSize: Int.max,
@@ -36,8 +33,9 @@ class HttpClientConnectionManagerTests: CrtXCBaseTestCase {
                     proxyOptions: nil,
                     socketOptions: socketOptions,
                     tlsOptions: tlsConnectionOptions,
-                    monitoringOptions: nil,
-                    shutDownOptions: shutDownCallbackOptions)
+                    monitoringOptions: nil) {
+                shutdownWasCalled.fulfill()
+            }
             _ = try HttpClientConnectionManager(options: httpClientOptions)
         }
         await waitForExpectations(timeout: 10, handler:nil)
