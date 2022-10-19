@@ -161,9 +161,9 @@ func withByteCursorFromStrings<Result>(
     }
 }
 
-func withOptionalUnsafePointer<T, R>(
-        _ arg1: T?, _ body: (UnsafePointer<T>?) -> R
-) -> R {
+func withOptionalUnsafePointer<T, Result>(
+        _ arg1: T?, _ body: (UnsafePointer<T>?) -> Result
+) -> Result {
     if let arg1 = arg1 {
         return withUnsafePointer(to: arg1) { arg1Pointer in
             body(arg1Pointer)

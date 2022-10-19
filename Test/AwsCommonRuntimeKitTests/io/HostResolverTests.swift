@@ -6,12 +6,11 @@ import XCTest
 class HostResolverTests: CrtXCBaseTestCase {
     
     func testCanResolveHosts() async throws {
-        let elg = try EventLoopGroup(allocator: self.allocator)
+        let elg = try EventLoopGroup(allocator: allocator)
         let resolver = try DefaultHostResolver(eventLoopGroup: elg,
                                            maxHosts: 8,
                                            maxTTL: 5,
-                                           allocator: self.allocator,
-                                           shutDownOptions: nil)
+                                           allocator: allocator)
         
         let addresses = try await resolver.resolve(host: "localhost")
         XCTAssertNoThrow(addresses)
@@ -20,19 +19,19 @@ class HostResolverTests: CrtXCBaseTestCase {
     }
 
     func testHotResolverShutdownCallback() async throws {
-        let shutdownWasCalled = expectation(description: "Shutdown callback was called")
+        let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
         shutdownWasCalled.expectedFulfillmentCount = 2
-        let shutDownOptions = ShutDownCallbackOptions() {
+        let shutdownCallback = {
             shutdownWasCalled.fulfill()
         }
         do {
-            let elg = try EventLoopGroup(allocator: self.allocator, shutDownOptions: shutDownOptions)
+            let elg = try EventLoopGroup(allocator: self.allocator, shutdownCallback: shutdownCallback)
             _ = try DefaultHostResolver(eventLoopGroup: elg,
                     maxHosts: 8,
                     maxTTL: 5,
                     allocator: self.allocator,
-                    shutDownOptions: shutDownOptions)
+                    shutdownCallback: shutdownCallback)
         }
-        await waitForExpectations(timeout: 10, handler:nil)
+        wait(for: [shutdownWasCalled], timeout: 15)
     }
 }

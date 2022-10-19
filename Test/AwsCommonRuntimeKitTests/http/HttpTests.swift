@@ -40,7 +40,6 @@ class HttpTests: CrtXCBaseTestCase {
         let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                 hostResolver: hostResolver,
-                shutDownCallbackOptions: nil,
                 allocator: allocator)
 
         let socketOptions = SocketOptions(socketType: .stream)

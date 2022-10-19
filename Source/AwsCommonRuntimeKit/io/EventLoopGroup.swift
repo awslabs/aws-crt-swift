@@ -5,14 +5,16 @@ import AwsCIo
 import Foundation
 
 public final class EventLoopGroup {
-    public var rawValue: UnsafeMutablePointer<aws_event_loop_group>
+    let rawValue: UnsafeMutablePointer<aws_event_loop_group>
     public init(threadCount: UInt16 = 0,
                 allocator: Allocator = defaultAllocator,
-                shutDownOptions: ShutDownCallbackOptions? = nil) throws {
+                shutdownCallback: ShutdownCallback? = nil) throws {
+        let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         guard let rawValue: UnsafeMutablePointer<aws_event_loop_group> = withOptionalUnsafePointer(
-                shutDownOptions?.getCShutdownOptions(), { shutdownOptionsPointer in
+                shutdownCallbackCore?.getRetainedShutdownOptions(), { shutdownOptionsPointer in
             aws_event_loop_group_new_default(allocator.rawValue, threadCount, shutdownOptionsPointer)
         }) else {
+            shutdownCallbackCore?.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue

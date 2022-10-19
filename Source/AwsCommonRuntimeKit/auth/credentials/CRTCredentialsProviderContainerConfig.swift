@@ -2,10 +2,10 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 public protocol CRTCredentialsProviderContainerConfig {
-    var shutDownOptions: ShutDownCallbackOptions? {get set}
-    var bootstrap: ClientBootstrap {get set}
-    var tlsContext: TlsContext {get set}
-    var authToken: String? {get set}
-    var pathAndQuery: String? {get set}
-    var host: String? {get set}
+    var shutdownCallback: ShutdownCallback? { get }
+    var bootstrap: ClientBootstrap { get }
+    var tlsContext: TlsContext { get }
+    var authToken: String? { get }
+    var pathAndQuery: String? { get }
+    var host: String? { get }
 }

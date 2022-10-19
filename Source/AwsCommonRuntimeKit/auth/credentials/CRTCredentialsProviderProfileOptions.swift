@@ -2,8 +2,8 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 public protocol CRTCredentialsProviderProfileOptions {
-    var shutdownOptions: ShutDownCallbackOptions? {get set}
-    var configFileNameOverride: String? {get set}
-    var profileFileNameOverride: String? {get set}
-    var credentialsFileNameOverride: String? {get set}
+    var shutdownCallback: ShutdownCallback? { get }
+    var configFileNameOverride: String? { get }
+    var profileFileNameOverride: String? { get }
+    var credentialsFileNameOverride: String? { get }
 }
