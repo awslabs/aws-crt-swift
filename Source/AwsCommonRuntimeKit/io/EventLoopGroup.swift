@@ -11,7 +11,7 @@ public final class EventLoopGroup {
                 shutdownCallback: ShutdownCallback? = nil) throws {
         let shutdownCallbackOptions = ShutdownCallbackCore(shutdownCallback)
         guard let rawValue: UnsafeMutablePointer<aws_event_loop_group> = withOptionalUnsafePointer(
-                shutdownCallbackOptions?.getCShutdownOptions(), { shutdownOptionsPointer in
+                shutdownCallbackOptions?.getRetainedShutdownOptions(), { shutdownOptionsPointer in
             aws_event_loop_group_new_default(allocator.rawValue, threadCount, shutdownOptionsPointer)
         }) else {
             shutdownCallbackOptions?.release()

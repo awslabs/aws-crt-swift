@@ -25,7 +25,7 @@ public final class DefaultHostResolver: HostResolver {
         let shutdownCallbackOptions = ShutdownCallbackCore(shutdownCallback)
         self.allocator = allocator
         guard let rawValue: UnsafeMutablePointer<aws_host_resolver> = withOptionalUnsafePointer(
-                shutdownCallbackOptions?.getCShutdownOptions(), { shutdownOptionsPointer in
+                shutdownCallbackOptions?.getRetainedShutdownOptions(), { shutdownOptionsPointer in
             var options = aws_host_resolver_default_options(max_entries: maxHosts,
                     el_group: elg.rawValue,
                     shutdown_options: shutdownOptionsPointer,
@@ -45,7 +45,7 @@ public final class DefaultHostResolver: HostResolver {
         )
 
         self.config = fromPointer(ptr: config)
-        
+
     }
 
     deinit {

@@ -6,6 +6,8 @@ import AwsCAuth
 
 public typealias ShutdownCallback = () -> Void
 
+/// Core classes have manual memory management.
+/// You have to balance the retain & release calls in all cases to avoid leaking memory.
 class ShutdownCallbackCore {
     let shutdownCallback: ShutdownCallback
     init?(_ shutdownCallback: ShutdownCallback?) {
@@ -21,7 +23,7 @@ class ShutdownCallbackCore {
     ///
     /// If you fail to create something that uses the aws_shutdown_callback_options,
     /// you must call release() to avoid leaking memory.
-    func getCShutdownOptions() -> aws_shutdown_callback_options {
+    func getRetainedShutdownOptions() -> aws_shutdown_callback_options {
         var shutdown_options = aws_shutdown_callback_options()
         shutdown_options.shutdown_callback_fn = { rawValue in
             guard let rawValue = rawValue else {
@@ -34,6 +36,7 @@ class ShutdownCallbackCore {
         return shutdown_options
     }
 
+    /// Manually release the reference If you fail to create something that uses the ShutdownCallbackCore
     func release() {
         Unmanaged<ShutdownCallbackCore>.passUnretained(self).release()
     }
@@ -44,7 +47,7 @@ class ShutdownCallbackCore {
     ///
     /// If you fail to create something that uses the aws_credentials_provider_shutdown_options,
     /// you must call release() to avoid leaking memory.
-    func getCredentialProviderShutdownOptions() -> aws_credentials_provider_shutdown_options {
+    func getRetainedCredentialProviderShutdownOptions() -> aws_credentials_provider_shutdown_options {
         var shutdown_options = aws_credentials_provider_shutdown_options()
 
         shutdown_options.shutdown_callback = { rawValue in
@@ -64,7 +67,7 @@ class ShutdownCallbackCore {
     ///
     /// If you fail to create something that uses the aws_imds_client_shutdown_options,
     /// you must call release() to avoid leaking memory.
-    func getIMDSClientShutdownOptions() -> aws_imds_client_shutdown_options {
+    func getRetainedIMDSClientShutdownOptions() -> aws_imds_client_shutdown_options {
         var shutdown_options = aws_imds_client_shutdown_options()
 
         shutdown_options.shutdown_callback = { rawValue in
