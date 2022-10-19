@@ -4,11 +4,14 @@
 import AwsCCommon
 import AwsCAuth
 
+public typealias ShutdownCallback = () -> Void
 public class ShutDownCallbackOptions {
     public typealias ShutDownCallback = () -> Void
     let shutdownCallback: ShutDownCallback
-
-    public init(shutDownCallback: @escaping ShutDownCallback) {
+    init?(_ shutDownCallback: ShutDownCallback?) {
+        guard let shutDownCallback = shutDownCallback else {
+            return nil
+        }
         self.shutdownCallback = shutDownCallback
     }
 
@@ -23,6 +26,10 @@ public class ShutDownCallbackOptions {
         }
         shutdown_options.shutdown_callback_user_data = Unmanaged<ShutDownCallbackOptions>.passRetained(self).toOpaque()
         return shutdown_options
+    }
+
+    func release() {
+        Unmanaged<ShutDownCallbackOptions>.passUnretained(self).release()
     }
 
     func getCredentialProviderShutdownOptions() -> aws_credentials_provider_shutdown_options {
@@ -51,5 +58,9 @@ public class ShutDownCallbackOptions {
         }
         shutdown_options.shutdown_user_data = Unmanaged<ShutDownCallbackOptions>.passRetained(self).toOpaque()
         return shutdown_options
+    }
+
+    deinit {
+        print("release shutdown callback")
     }
 }

@@ -9,9 +9,9 @@ public final class ClientBootstrap {
 
     public init(eventLoopGroup elg: EventLoopGroup,
                 hostResolver: HostResolver,
-                shutDownCallbackOptions: ShutDownCallbackOptions? = nil,
-                allocator: Allocator = defaultAllocator) throws {
-        let shutdownOptions = shutDownCallbackOptions?.getCShutdownOptions()
+                allocator: Allocator = defaultAllocator,
+                shutdownCallback: ShutdownCallback? = nil) throws {
+        let shutdownOptions = ShutDownCallbackOptions(shutdownCallback)?.getCShutdownOptions()
         var options = aws_client_bootstrap_options(
             event_loop_group: elg.rawValue,
             host_resolver: hostResolver.rawValue,

@@ -2,8 +2,8 @@
 //  SPDX-License-Identifier: Apache-2.0.
 // TODO: do we need set here? How is this being used in the SDK?
 public protocol CRTCredentialsProviderCachedConfig {
-    var shutDownOptions: ShutDownCallbackOptions? {get set}
-    var source: CRTAWSCredentialsProvider {get set}
+    var shutDownOptions: ShutDownCallbackOptions? { get }
+    var source: CRTAWSCredentialsProvider { get }
     /// refresh time in ms
-    var refreshTime: Int64 {get set}
+    var refreshTime: Int64 { get }
 }

@@ -21,11 +21,11 @@ public final class DefaultHostResolver: HostResolver {
                 maxHosts: Int,
                 maxTTL: Int,
                 allocator: Allocator = defaultAllocator,
-                shutDownOptions: ShutDownCallbackOptions? = nil) throws {
-
+                shutdownCallback: ShutdownCallback? = nil) throws {
+        let shutdownCallbackOptions = ShutDownCallbackOptions(shutdownCallback)
         self.allocator = allocator
         guard var rawValue: UnsafeMutablePointer<aws_host_resolver> = withOptionalUnsafePointer(
-                shutDownOptions?.getCShutdownOptions(), { shutdownOptionsPointer in
+                shutdownCallbackOptions?.getCShutdownOptions(), { shutdownOptionsPointer in
             var options = aws_host_resolver_default_options(max_entries: maxHosts,
                     el_group: elg.rawValue,
                     shutdown_options: shutdownOptionsPointer,
@@ -33,6 +33,7 @@ public final class DefaultHostResolver: HostResolver {
             //TODO: use const in C-IO to avoid mutable pointer here
             return withUnsafeMutablePointer(to: &options) { aws_host_resolver_new_default(allocator.rawValue, $0) }
         }) else {
+            shutdownCallbackOptions?.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
 

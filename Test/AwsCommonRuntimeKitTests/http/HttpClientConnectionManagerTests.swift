@@ -22,7 +22,6 @@ class HttpClientConnectionManagerTests: CrtXCBaseTestCase {
 
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                     hostResolver: hostResolver,
-                    shutDownCallbackOptions: nil,
                     allocator: allocator)
 
             let socketOptions = SocketOptions(socketType: .stream)
