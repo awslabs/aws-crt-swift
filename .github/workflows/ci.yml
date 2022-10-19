@@ -39,6 +39,10 @@ jobs:
          # issue to fix centos opened against apple here: https://github.com/apple/swift-docker/issues/258
          # - centos-x64
     steps:
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v1.18.0
+        with:
+          swift-version: "5.7"
       - name: Build ${{ env.PACKAGE_NAME }}
         run: |
           aws s3 cp --debug s3://aws-crt-test-stuff/ci/${{ env.BUILDER_VERSION }}/linux-container-ci.sh ./linux-container-ci.sh && chmod a+x ./linux-container-ci.sh
