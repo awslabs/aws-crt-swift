@@ -49,7 +49,8 @@ jobs:
     env:
       DEVELOPER_DIR: /Applications/Xcode_13.2.1.app
     steps:
-      - uses: fwal/setup-swift@2040b795e5c453c3a05fcb8316496afc8a74f192
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v1.18.0
         with:
           swift-version: "5.7"
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
@@ -69,7 +70,8 @@ jobs:
           - tvos
           - watchos
     steps:
-      - uses: fwal/setup-swift@2040b795e5c453c3a05fcb8316496afc8a74f192
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v1.18.0
         with:
           swift-version: "5.7"
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
