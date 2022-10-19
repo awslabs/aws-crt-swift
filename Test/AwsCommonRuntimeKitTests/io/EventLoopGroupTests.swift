@@ -7,11 +7,11 @@ import Foundation
 class EventLoopGroupTests: CrtXCBaseTestCase {
 
     func testCanCreateGroup() async throws {
-        let shutdownWasCalled = expectation(description: "Shutdown callback was called")
+        let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
         _ = try EventLoopGroup(allocator: allocator) {
             shutdownWasCalled.fulfill()
         }
-        await waitForExpectations(timeout: 15, handler:nil)
+        wait(for: [shutdownWasCalled], timeout: 15)
     }
 
     func testCanCreateGroupWithThreads() throws {
