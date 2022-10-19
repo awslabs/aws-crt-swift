@@ -23,7 +23,7 @@ class HttpTests: CrtXCBaseTestCase {
 
             let httpRequestOptions = try getHttpRequestOptions(method: "GET", path: url.path, host: host)
             let connection = try await getHttpConnection(host: host, ssh: true)
-            let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+            _ = try connection.makeRequest(requestOptions: httpRequestOptions)
         } catch let err {
             print(err)
         }
