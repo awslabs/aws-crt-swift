@@ -22,7 +22,7 @@ public final class DefaultHostResolver: HostResolver {
                 maxTTL: Int,
                 allocator: Allocator = defaultAllocator,
                 shutdownCallback: ShutdownCallback? = nil) throws {
-        let shutdownCallbackOptions = ShutdownCallbackOptions(shutdownCallback)
+        let shutdownCallbackOptions = ShutdownCallbackCore(shutdownCallback)
         self.allocator = allocator
         guard let rawValue: UnsafeMutablePointer<aws_host_resolver> = withOptionalUnsafePointer(
                 shutdownCallbackOptions?.getCShutdownOptions(), { shutdownOptionsPointer in
@@ -45,7 +45,7 @@ public final class DefaultHostResolver: HostResolver {
         )
 
         self.config = fromPointer(ptr: config)
-
+        
     }
 
     deinit {
