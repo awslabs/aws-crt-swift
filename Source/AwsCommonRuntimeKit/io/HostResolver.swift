@@ -28,7 +28,7 @@ public final class DefaultHostResolver: HostResolver {
                 shutDownOptions?.getCShutdownOptions(), { shutdownOptionsPointer in
             let options = aws_host_resolver_default_options(max_entries: maxHosts,
                     el_group: elg.rawValue,
-                    shutdown_options: shutdownOptionsPointer,
+                    shutdown_options: nil,
                     system_clock_override_fn: nil)
             return withUnsafePointer(to: options) { aws_host_resolver_new_default(allocator.rawValue, $0) }
         }) else {
