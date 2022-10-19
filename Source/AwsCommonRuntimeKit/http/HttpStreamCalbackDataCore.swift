@@ -31,7 +31,6 @@ class HttpStreamCallbackDataCore {
     }
 
 }
-
 func onResponseBody(stream: UnsafeMutablePointer<aws_http_stream>?,
                     data: UnsafePointer<aws_byte_cursor>?,
                     userData: UnsafeMutableRawPointer?) -> Int32 {
@@ -55,6 +54,7 @@ func onResponseBody(stream: UnsafeMutablePointer<aws_http_stream>?,
     return AWS_OP_SUCCESS
 }
 
+// TODO: Maybe update to fire three headers callback (informational, main, and trailing) only once
 func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
                        headerBlock: aws_http_header_block,
                        headerArray: UnsafePointer<aws_http_header>?,
