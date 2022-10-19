@@ -90,7 +90,6 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                maxHosts: 8,
                                                maxTTL: 30,
                                                allocator: allocator)
-
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                             hostResolver: hostResolver,
                                             allocator: allocator)
@@ -116,11 +115,11 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                                       sessionToken: sessionToken)
         let provider = try CRTAWSCredentialsProvider(fromStatic: staticConfig, allocator: allocator)
         let config = MockCredentialsProviderSTSConfig(bootstrap: bootstrap,
-                tlsContext: context,
-                credentialsProvider: provider,
-                roleArn: "invalid-role-arn",
-                sessionName: "test-session",
-                durationSeconds: 10)
+                                                      tlsContext: context,
+                                                      credentialsProvider: provider,
+                                                      roleArn: "invalid-role-arn",
+                                                      sessionName: "test-session",
+                                                      durationSeconds: 10)
         XCTAssertThrowsError(try CRTAWSCredentialsProvider(fromSTS: config))
     }
 
