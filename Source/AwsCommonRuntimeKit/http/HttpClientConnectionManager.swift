@@ -13,7 +13,7 @@ public class HttpClientConnectionManager {
     public init(options: HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) throws {
         self.options = options
         self.allocator = allocator
-        let cShutdownOptions = ShutDownCallbackOptions(options.shutdownCallback)?.getCShutdownOptions()
+        let cShutdownOptions = ShutdownCallbackOptions(options.shutdownCallback)?.getCShutdownOptions()
         guard let manager: OpaquePointer = (options.hostName.withByteCursor { hostNameCursor in
             var mgrOptions = aws_http_connection_manager_options(bootstrap: options.clientBootstrap.rawValue,
                                                                  initial_window_size: options.initialWindowSize,

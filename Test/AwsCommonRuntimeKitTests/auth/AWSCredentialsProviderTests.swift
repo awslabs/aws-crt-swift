@@ -18,7 +18,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         super.tearDown()
     }
 
-    func setUpShutDownOptions() -> ShutdownCallback {
+    func setUpShutdownOptions() -> ShutdownCallback {
         let shutdownCallback =  {
             XCTAssert(true)
             self.expectation2.fulfill()
@@ -27,7 +27,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     }
 
     func testCreateAWSCredentialsProviderStatic() async throws {
-        let shutdownCallback = setUpShutDownOptions()
+        let shutdownCallback = setUpShutdownOptions()
         let config = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
                                                                 secret: secret,
                                                                 sessionToken: sessionToken,
@@ -39,7 +39,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 
     func testCreateAWSCredentialsProviderEnv() async {
         do {
-            let shutdownCallback = setUpShutDownOptions()
+            let shutdownCallback = setUpShutdownOptions()
             let provider = try CRTAWSCredentialsProvider(fromEnv: shutdownCallback, allocator: allocator)
             _ = try await provider.getCredentials()
 
@@ -55,7 +55,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         try skipifmacOS()
         try skipIfLinux()
         //uses default paths to credentials and config
-        let shutdownCallback = setUpShutDownOptions()
+        let shutdownCallback = setUpShutdownOptions()
         let config = MockCredentialsProviderProfileOptions(shutdownCallback: shutdownCallback)
 
         let provider = try CRTAWSCredentialsProvider(fromProfile: config, allocator: allocator)
@@ -78,7 +78,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                             allocator: allocator)
 
 
-        let shutdownCallback = setUpShutDownOptions()
+        let shutdownCallback = setUpShutdownOptions()
 
         let config = MockCredentialsProviderChainDefaultConfig(bootstrap: bootstrap, shutdownCallback: shutdownCallback)
 
@@ -141,7 +141,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                 allocator: allocator)
                 let options = TlsContextOptions(defaultClientWithAllocator: allocator)
             let context = try TlsContext(options: options, mode: .client, allocator: allocator)
-            let shutdownCallback = setUpShutDownOptions()
+            let shutdownCallback = setUpShutdownOptions()
 
             let config = MockCredentialsProviderContainerConfig(bootstrap: bootstrap,
                                                                 tlsContext: context,

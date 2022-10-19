@@ -21,22 +21,22 @@ class BootstrapTests: CrtXCBaseTestCase {
   func testBootstrapShutdownCallback() async throws {
     let shutdownWasCalled = expectation(description: "Shutdown callback was called")
     shutdownWasCalled.expectedFulfillmentCount = 3
-    let shutDownCallback =  {
+    let shutdownCallback =  {
       shutdownWasCalled.fulfill()
     }
 
     do {
-      let elg = try EventLoopGroup(allocator: allocator, shutdownCallback: shutDownCallback)
+      let elg = try EventLoopGroup(allocator: allocator, shutdownCallback: shutdownCallback)
       let resolver = try DefaultHostResolver(eventLoopGroup: elg,
               maxHosts: 8,
               maxTTL: 30,
               allocator: allocator,
-              shutdownCallback: shutDownCallback)
+              shutdownCallback: shutdownCallback)
 
       _ = try ClientBootstrap(eventLoopGroup: elg,
               hostResolver: resolver,
               allocator: allocator,
-              shutdownCallback: shutDownCallback)
+              shutdownCallback: shutdownCallback)
     }
     await waitForExpectations(timeout: 10, handler:nil)
   }

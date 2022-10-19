@@ -11,7 +11,7 @@ public final class ClientBootstrap {
                 hostResolver: HostResolver,
                 allocator: Allocator = defaultAllocator,
                 shutdownCallback: ShutdownCallback? = nil) throws {
-        let shutdownOptions = ShutDownCallbackOptions(shutdownCallback)?.getCShutdownOptions()
+        let shutdownOptions = ShutdownCallbackOptions(shutdownCallback)?.getCShutdownOptions()
         var options = aws_client_bootstrap_options(
             event_loop_group: elg.rawValue,
             host_resolver: hostResolver.rawValue,

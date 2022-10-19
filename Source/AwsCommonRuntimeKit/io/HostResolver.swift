@@ -22,9 +22,9 @@ public final class DefaultHostResolver: HostResolver {
                 maxTTL: Int,
                 allocator: Allocator = defaultAllocator,
                 shutdownCallback: ShutdownCallback? = nil) throws {
-        let shutdownCallbackOptions = ShutDownCallbackOptions(shutdownCallback)
+        let shutdownCallbackOptions = ShutdownCallbackOptions(shutdownCallback)
         self.allocator = allocator
-        guard var rawValue: UnsafeMutablePointer<aws_host_resolver> = withOptionalUnsafePointer(
+        guard let rawValue: UnsafeMutablePointer<aws_host_resolver> = withOptionalUnsafePointer(
                 shutdownCallbackOptions?.getCShutdownOptions(), { shutdownOptionsPointer in
             var options = aws_host_resolver_default_options(max_entries: maxHosts,
                     el_group: elg.rawValue,

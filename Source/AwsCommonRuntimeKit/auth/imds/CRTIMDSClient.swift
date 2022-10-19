@@ -8,9 +8,9 @@ public class CRTIMDSClient {
     let allocator: Allocator
     public init(options: CRTIMDSClientOptions, allocator: Allocator = defaultAllocator) throws {
         self.allocator = allocator
-        let shutDownOptions = ShutDownCallbackOptions(options.shutdownCallback)?.getIMDSClientShutdownOptions()
+        let shutdownOptions = ShutdownCallbackOptions(options.shutdownCallback)?.getIMDSClientShutdownOptions()
                 ?? aws_imds_client_shutdown_options()
-        var imdsOptions = aws_imds_client_options(shutdown_options: shutDownOptions,
+        var imdsOptions = aws_imds_client_options(shutdown_options: shutdownOptions,
                                                   bootstrap: options.bootstrap.rawValue,
                                                   retry_strategy: options.retryStrategy.rawValue,
                                                   imds_version: options.protocolVersion.rawValue,

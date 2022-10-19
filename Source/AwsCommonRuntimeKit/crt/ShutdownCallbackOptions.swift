@@ -5,14 +5,13 @@ import AwsCCommon
 import AwsCAuth
 
 public typealias ShutdownCallback = () -> Void
-public class ShutDownCallbackOptions {
-    public typealias ShutDownCallback = () -> Void
-    let shutdownCallback: ShutDownCallback
-    init?(_ shutDownCallback: ShutDownCallback?) {
-        guard let shutDownCallback = shutDownCallback else {
+public class ShutdownCallbackOptions {
+    let shutdownCallback: ShutdownCallback
+    init?(_ shutdownCallback: ShutdownCallback?) {
+        guard let shutdownCallback = shutdownCallback else {
             return nil
         }
-        self.shutdownCallback = shutDownCallback
+        self.shutdownCallback = shutdownCallback
     }
 
     func getCShutdownOptions() -> aws_shutdown_callback_options {
@@ -21,15 +20,15 @@ public class ShutDownCallbackOptions {
             guard let rawValue = rawValue else {
                 return
             }
-            let shutDownCallbackOptions = Unmanaged<ShutDownCallbackOptions>.fromOpaque(rawValue).takeRetainedValue()
-            shutDownCallbackOptions.shutdownCallback()
+            let shutdownCallbackOptions = Unmanaged<ShutdownCallbackOptions>.fromOpaque(rawValue).takeRetainedValue()
+            shutdownCallbackOptions.shutdownCallback()
         }
-        shutdown_options.shutdown_callback_user_data = Unmanaged<ShutDownCallbackOptions>.passRetained(self).toOpaque()
+        shutdown_options.shutdown_callback_user_data = Unmanaged<ShutdownCallbackOptions>.passRetained(self).toOpaque()
         return shutdown_options
     }
 
     func release() {
-        Unmanaged<ShutDownCallbackOptions>.passUnretained(self).release()
+        Unmanaged<ShutdownCallbackOptions>.passUnretained(self).release()
     }
 
     func getCredentialProviderShutdownOptions() -> aws_credentials_provider_shutdown_options {
@@ -39,10 +38,10 @@ public class ShutDownCallbackOptions {
             guard let rawValue = rawValue else {
                 return
             }
-            let shutDownCallbackOptions = Unmanaged<ShutDownCallbackOptions>.fromOpaque(rawValue).takeRetainedValue()
-            shutDownCallbackOptions.shutdownCallback()
+            let shutdownCallbackOptions = Unmanaged<ShutdownCallbackOptions>.fromOpaque(rawValue).takeRetainedValue()
+            shutdownCallbackOptions.shutdownCallback()
         }
-        shutdown_options.shutdown_user_data = Unmanaged<ShutDownCallbackOptions>.passRetained(self).toOpaque()
+        shutdown_options.shutdown_user_data = Unmanaged<ShutdownCallbackOptions>.passRetained(self).toOpaque()
         return shutdown_options
     }
 
@@ -53,10 +52,10 @@ public class ShutDownCallbackOptions {
             guard let rawValue = rawValue else {
                 return
             }
-            let shutDownCallbackOptions = Unmanaged<ShutDownCallbackOptions>.fromOpaque(rawValue).takeRetainedValue()
-            shutDownCallbackOptions.shutdownCallback()
+            let shutdownCallbackOptions = Unmanaged<ShutdownCallbackOptions>.fromOpaque(rawValue).takeRetainedValue()
+            shutdownCallbackOptions.shutdownCallback()
         }
-        shutdown_options.shutdown_user_data = Unmanaged<ShutDownCallbackOptions>.passRetained(self).toOpaque()
+        shutdown_options.shutdown_user_data = Unmanaged<ShutdownCallbackOptions>.passRetained(self).toOpaque()
         return shutdown_options
     }
 
