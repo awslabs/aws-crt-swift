@@ -2,6 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
 import AwsCCommon
+
 // Todo: try to find a better for a persistent byte cursor
 public class HttpProxyOptions {
     private let allocator: Allocator
