@@ -1,5 +1,6 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+import struct Foundation.TimeInterval
 
 public protocol CRTCredentialsProviderSTSConfig {
     var shutdownCallback: ShutdownCallback? { get }
@@ -8,5 +9,5 @@ public protocol CRTCredentialsProviderSTSConfig {
     var credentialsProvider: CRTAWSCredentialsProvider { get }
     var roleArn: String { get }
     var sessionName: String { get }
-    var durationSeconds: UInt16 { get }
+    var durationSeconds: TimeInterval { get }
 }

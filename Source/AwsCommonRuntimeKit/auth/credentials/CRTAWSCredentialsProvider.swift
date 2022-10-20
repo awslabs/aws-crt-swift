@@ -136,6 +136,7 @@ public final class CRTAWSCredentialsProvider {
     ///
     /// - Parameters:
     ///   - cachedConfig:  The `CredentialsProviderCachedConfig`options object.
+    ///   - allocator: defaultAllocator
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromCached cachedConfig: inout CRTCredentialsProviderCachedConfig,
                             allocator: Allocator = defaultAllocator) throws {
@@ -145,7 +146,7 @@ public final class CRTAWSCredentialsProvider {
         cachedOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
         cachedOptions.source = cachedConfig.source.rawValue
-        cachedOptions.refresh_time_in_milliseconds = UInt64(cachedConfig.refreshTime)
+        cachedOptions.refresh_time_in_milliseconds = cachedConfig.refreshTime.millisecond
 
         guard let provider = aws_credentials_provider_new_cached(allocator.rawValue, &cachedOptions) else {
             shutdownCallbackCore.release()
@@ -250,7 +251,7 @@ public final class CRTAWSCredentialsProvider {
         stsOptions.tls_ctx = stsConfig.tlsContext.rawValue
         stsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         stsOptions.creds_provider = stsConfig.credentialsProvider.rawValue
-        stsOptions.duration_seconds = stsConfig.durationSeconds
+        stsOptions.duration_seconds = UInt16(stsConfig.durationSeconds)
         stsOptions.function_table = nil
         stsOptions.system_clock_fn = nil
 

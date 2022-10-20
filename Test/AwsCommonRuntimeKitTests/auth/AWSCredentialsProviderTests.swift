@@ -217,14 +217,14 @@ struct MockCredentialsProviderSTSConfig: CRTCredentialsProviderSTSConfig {
     var credentialsProvider: CRTAWSCredentialsProvider
     var roleArn: String
     var sessionName: String
-    var durationSeconds: UInt16
+    var durationSeconds: TimeInterval
 
     init(bootstrap: ClientBootstrap,
          tlsContext: TlsContext,
          credentialsProvider: CRTAWSCredentialsProvider,
          roleArn: String,
          sessionName: String,
-         durationSeconds: UInt16,
+         durationSeconds: TimeInterval,
          shutdownCallback: ShutdownCallback? = nil) {
         self.bootstrap = bootstrap
         self.tlsContext = tlsContext

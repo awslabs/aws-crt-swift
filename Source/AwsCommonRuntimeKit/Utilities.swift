@@ -4,6 +4,7 @@ import AwsCIo
 import struct Foundation.Date
 import struct Foundation.Data
 import class Foundation.FileHandle
+import struct Foundation.TimeInterval
 import AwsCCommon
 import AwsCCal
 
@@ -43,6 +44,12 @@ extension String {
                 return body(byteCursorPointer)
             }
         }
+    }
+}
+
+extension TimeInterval {
+    var millisecond: UInt64 {
+        UInt64(self*1000)
     }
 }
 
