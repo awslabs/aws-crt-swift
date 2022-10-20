@@ -29,15 +29,15 @@ extension String {
         }).base64EncodedString()
     }
 
-    func withByteCursor<R>(_ body: (aws_byte_cursor) -> R
-    ) -> R {
+    func withByteCursor<Result>(_ body: (aws_byte_cursor) -> Result
+    ) -> Result {
         return self.withCString { arg1C in
             return body(aws_byte_cursor_from_c_str(arg1C))
         }
     }
 
-    func withByteCursorPointer<R>(_ body: (UnsafePointer<aws_byte_cursor>) -> R
-    ) -> R {
+    func withByteCursorPointer<Result>(_ body: (UnsafePointer<aws_byte_cursor>) -> Result
+    ) -> Result {
         return self.withCString { arg1C in
             return withUnsafePointer(to: aws_byte_cursor_from_c_str(arg1C)) { byteCursorPointer in
                 return body(byteCursorPointer)
