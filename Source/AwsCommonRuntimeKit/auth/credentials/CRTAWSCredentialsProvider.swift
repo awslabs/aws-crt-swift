@@ -186,7 +186,7 @@ public final class CRTAWSCredentialsProvider {
             shutDownOptions: x509Config.shutDownOptions)
         x509Options.bootstrap = x509Config.bootstrap.rawValue
         x509Options.tls_connection_options = UnsafePointer(x509Config.tlsConnectionOptions.rawValue)
-        if let proxyOptions = x509Config.proxyOptions?.rawValue {
+        if let proxyOptions = x509Config.proxyOptions?.getRawValue() {
             x509Options.proxy_options = UnsafePointer(proxyOptions)
         }
 

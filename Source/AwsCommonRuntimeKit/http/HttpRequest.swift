@@ -3,6 +3,7 @@
 import AwsCHttp
 import AwsCIo
 import AwsCCommon
+
 public final class HttpRequest: HttpMessage {
 
     public override init(allocator: Allocator = defaultAllocator) throws {

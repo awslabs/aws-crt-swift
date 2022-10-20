@@ -5,81 +5,37 @@ import AwsCCommon
 // Todo: try to find a better for a persistent byte cursor
 public class HttpProxyOptions {
     private let allocator: Allocator
-    let rawValue: UnsafeMutablePointer<aws_http_proxy_options>
-
-    public var authType: HttpProxyAuthenticationType = .none {
-        didSet {
-            rawValue.pointee.auth_type = authType.rawValue
-        }
-    }
-
+    private var rawValue: UnsafeMutablePointer<aws_http_proxy_options>
     private var _basicAuthUsername: AWSStringByteCursor?
-    public var basicAuthUsername: String? {
-        get {
-            if let basicAuthUsername = _basicAuthUsername {
-                return basicAuthUsername.string
-            }
-            return nil
-        }
-        set(value) {
-            if let value = value {
-                _basicAuthUsername = AWSStringByteCursor(value, allocator: allocator)
-                rawValue.pointee.auth_username = _basicAuthUsername!.byteCursor
-            } else {
-                _basicAuthUsername = nil
-            }
-        }
-    }
-
     private var _basicAuthPassword: AWSStringByteCursor?
-    public var basicAuthPassword: String? {
-        get {
-            if let basicAuthPassword = _basicAuthPassword {
-                return basicAuthPassword.string
-            }
-            return nil
-        }
-        set(value) {
-            if let value = value {
-                _basicAuthPassword = AWSStringByteCursor(value, allocator: allocator)
-                rawValue.pointee.auth_password = _basicAuthPassword!.byteCursor
-            } else {
-                _basicAuthPassword = nil
-            }
-        }
-    }
+    private var _hostName: AWSStringByteCursor?
 
-    private var _hostName: AWSStringByteCursor
-    public var hostName: String {
-        get {
-            return _hostName.string
-        }
-        set(value) {
-            _hostName = AWSStringByteCursor(value, allocator: allocator)
-            rawValue.pointee.host = _hostName.byteCursor
-        }
-    }
-
-    public var port: UInt16 {
-        didSet {
-            rawValue.pointee.port = port
-        }
-    }
-    public var tlsOptions: TlsConnectionOptions? {
-        didSet {
-            rawValue.pointee.tls_options = UnsafePointer(tlsOptions?.rawValue)
-        }
-    }
+    public var authType: HttpProxyAuthenticationType = .none
+    public var basicAuthUsername: String?
+    public var basicAuthPassword: String?
+    public var hostName: String
+    public var port: UInt16
+    public var tlsOptions: TlsConnectionOptions?
 
     public init(hostName: String, port: UInt16, allocator: Allocator = defaultAllocator) {
         self.allocator = allocator
         self.rawValue = allocator.allocate(capacity: 1)
-        self._hostName = AWSStringByteCursor(hostName, allocator: allocator)
+        self.hostName = hostName
         self.port = port
+    }
 
-        // Initialize rawValue as well because init doesn't trigger didSet
+    func getRawValue() -> UnsafeMutablePointer<aws_http_proxy_options> {
+        _basicAuthUsername = AWSStringByteCursor(basicAuthUsername ?? "", allocator: allocator)
+        _basicAuthPassword = AWSStringByteCursor(basicAuthPassword ?? "", allocator: allocator)
+        _hostName = AWSStringByteCursor(hostName, allocator: allocator)
         rawValue.pointee.port = port
-        rawValue.pointee.host = _hostName.byteCursor
+        rawValue.pointee.host = _hostName!.byteCursor
+        rawValue.pointee.auth_username = _basicAuthUsername!.byteCursor
+        rawValue.pointee.auth_password = _basicAuthPassword!.byteCursor
+        rawValue.pointee.tls_options = UnsafePointer(tlsOptions?.rawValue)
+        rawValue.pointee.auth_type = authType.rawValue
+
+        return rawValue
     }
 
     deinit {
