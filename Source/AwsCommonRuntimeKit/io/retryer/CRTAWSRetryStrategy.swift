@@ -31,7 +31,7 @@ public final class CRTAWSRetryStrategy {
         var options = aws_standard_retry_options(backoff_retry_options: exponentialBackOffOptions,
                                                  initial_bucket_capacity: options.initialBucketCapacity)
 
-        guard let retryer = aws_retry_strategy_new_standard(allocator.rawValue, &options) else {throw CRTError(errorCode: aws_last_error())}
+        guard let retryer = aws_retry_strategy_new_standard(allocator.rawValue, &options) else {throw CRTError(code: aws_last_error())}
 
         self.init(retryStrategy: retryer, allocator: allocator)
     }
@@ -63,7 +63,7 @@ public final class CRTAWSRetryStrategy {
                         if errorCode == 0 {
                             continuation.resume(returning: CRTAWSRetryToken(rawValue: token))
                         } else {
-                            continuation.resume(throwing: CRTError(errorCode: errorCode))
+                            continuation.resume(throwing: CRTError(code: errorCode))
                         }
                     }
                 }, pointer, timeout)
@@ -93,7 +93,7 @@ public final class CRTAWSRetryStrategy {
                 if errorCode == 0 {
                     continuation.resume(returning: CRTAWSRetryToken(rawValue: retryToken))
                 } else {
-                    continuation.resume(throwing: CRTError(errorCode: errorCode))
+                    continuation.resume(throwing: CRTError(code: errorCode))
                 }
             }
         }, pointer)

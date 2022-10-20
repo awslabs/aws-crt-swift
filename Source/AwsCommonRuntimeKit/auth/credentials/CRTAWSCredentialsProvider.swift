@@ -308,7 +308,7 @@ public final class CRTAWSCredentialsProvider {
                let crtCredentials = CRTCredentials(rawValue: credentials) {
                 pointer.pointee.continuation?.resume(returning: crtCredentials)
             } else {
-                pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(errorCode: errorCode)))
+                pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
             }
 
         }, pointer)

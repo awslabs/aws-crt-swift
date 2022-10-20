@@ -66,7 +66,7 @@ public class HttpClientConnectionManager {
         aws_http_connection_manager_acquire_connection(manager, { (connection, errorCode, userData) in
             let callbackData = Unmanaged<HttpClientConnectionCallbackData>.fromOpaque(userData!).takeRetainedValue()
             guard let connection = connection else {
-                callbackData.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(errorCode: errorCode)))
+                callbackData.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
                 return
             }
             let httpConnection = HttpClientConnection(manager: callbackData.connectionManager,
