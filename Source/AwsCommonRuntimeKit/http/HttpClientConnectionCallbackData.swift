@@ -5,17 +5,14 @@ typealias ConnectionContinuation = CheckedContinuation<HttpClientConnection, Err
 typealias ConnectionCallback = (HttpClientConnection) -> Void
 class HttpClientConnectionCallbackData {
     let connectionManager: HttpClientConnectionManager
-    let allocator: Allocator
     let continuation: ConnectionContinuation
     let connectionCallback: ConnectionCallback?
 
     init(continuation: ConnectionContinuation,
          connectionManager: HttpClientConnectionManager,
-         allocator: Allocator,
          connectionCallback: ConnectionCallback? = nil) {
         self.continuation = continuation
         self.connectionManager = connectionManager
-        self.allocator = allocator
         self.connectionCallback = connectionCallback
     }
 }
