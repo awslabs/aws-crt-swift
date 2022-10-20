@@ -10,11 +10,11 @@ public final class EventLoopGroup {
                 allocator: Allocator = defaultAllocator,
                 shutdownCallback: ShutdownCallback? = nil) throws {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
-        guard let rawValue: UnsafeMutablePointer<aws_event_loop_group> = withOptionalUnsafePointer(
-                shutdownCallbackCore?.getRetainedShutdownOptions(), { shutdownOptionsPointer in
-            aws_event_loop_group_new_default(allocator.rawValue, threadCount, shutdownOptionsPointer)
+        guard let rawValue: UnsafeMutablePointer<aws_event_loop_group> = withUnsafePointer(
+                to: shutdownCallbackCore.getRetainedShutdownOptions(), { shutdownCallbackCorePointer in
+            aws_event_loop_group_new_default(allocator.rawValue, threadCount, shutdownCallbackCorePointer)
         }) else {
-            shutdownCallbackCore?.release()
+            shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue

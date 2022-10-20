@@ -20,15 +20,15 @@ public final class CRTAWSCredentialsProvider {
     public convenience init(fromProvider impl: CRTCredentialsProvider,
                             allocator: Allocator = defaultAllocator,
                             shutdownCallback: ShutdownCallback? = nil) throws {
-        let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)?
-                .getRetainedCredentialProviderShutdownOptions()
-                ?? aws_credentials_provider_shutdown_options()
+        let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
+        let shutdownOptions =  shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         let credProviderPtr: UnsafeMutablePointer<CRTCredentialsProvider> = fromPointer(ptr: impl)
-        var options = aws_credentials_provider_delegate_options(shutdown_options: shutdownCallbackCore,
+        var options = aws_credentials_provider_delegate_options(shutdown_options: shutdownOptions,
                                                                 get_credentials: getCredentialsDelegateFn,
                                                                 delegate_user_data: credProviderPtr)
 
         guard let credProvider = aws_credentials_provider_new_delegate(allocator.rawValue, &options) else {
+            shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.init(credentialsProvider: credProvider, allocator: allocator)
@@ -42,10 +42,9 @@ public final class CRTAWSCredentialsProvider {
     public convenience init(fromStatic config: CRTCredentialsProviderStaticConfigOptions,
                             allocator: Allocator = defaultAllocator) throws {
 
+        let shutdownCallbackCore = ShutdownCallbackCore(config.shutdownCallback)
         var staticOptions = aws_credentials_provider_static_options()
-        staticOptions.shutdown_options = ShutdownCallbackCore(config.shutdownCallback)?
-                .getRetainedCredentialProviderShutdownOptions()
-                ?? aws_credentials_provider_shutdown_options()
+        staticOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                 config.accessKey,
                 config.secret,
@@ -55,6 +54,7 @@ public final class CRTAWSCredentialsProvider {
             staticOptions.session_token = sessionTokenCursor
             return aws_credentials_provider_new_static(allocator.rawValue, &staticOptions)
         }) else {
+            shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
@@ -71,14 +71,16 @@ public final class CRTAWSCredentialsProvider {
     public convenience init(fromEnv shutdownCallback: ShutdownCallback?,
                             allocator: Allocator = defaultAllocator) throws {
 
+        let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         var envOptions = aws_credentials_provider_environment_options()
-        envOptions.shutdown_options = ShutdownCallbackCore(shutdownCallback)?
-                .getRetainedCredentialProviderShutdownOptions()
-                ?? aws_credentials_provider_shutdown_options()
+        envOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
         guard let provider = aws_credentials_provider_new_environment(allocator.rawValue,
                                                                       &envOptions)
-        else { throw CommonRunTimeError.crtError(CRTError.makeFromLastError()) }
+        else {
+            shutdownCallbackCore.release()
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 
@@ -90,13 +92,10 @@ public final class CRTAWSCredentialsProvider {
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromProfile profileOptions: CRTCredentialsProviderProfileOptions,
                             allocator: Allocator = defaultAllocator) throws {
-
+        let shutdownCallbackCore = ShutdownCallbackCore(profileOptions.shutdownCallback)
         var profileOptionsC = aws_credentials_provider_profile_options()
 
-        profileOptionsC.shutdown_options = ShutdownCallbackCore(profileOptions.shutdownCallback)?
-                .getRetainedCredentialProviderShutdownOptions()
-                ?? aws_credentials_provider_shutdown_options()
-
+        profileOptionsC.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                 profileOptions.configFileNameOverride ?? "",
                 profileOptions.credentialsFileNameOverride ?? "",
@@ -107,6 +106,7 @@ public final class CRTAWSCredentialsProvider {
             profileOptionsC.profile_name_override = profileFileNameOverrideCursor
             return aws_credentials_provider_new_profile(allocator.rawValue, &profileOptionsC)
         }) else {
+            shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())//
         }
         self.init(credentialsProvider: provider, allocator: allocator)
@@ -119,17 +119,16 @@ public final class CRTAWSCredentialsProvider {
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromImds imdsConfig: CRTCredentialsProviderImdsConfig,
                             allocator: Allocator = defaultAllocator) throws {
-
+        let shutdownCallbackCore = ShutdownCallbackCore(imdsConfig.shutdownCallback)
         var imdsOptions = aws_credentials_provider_imds_options()
         imdsOptions.bootstrap = imdsConfig.bootstrap.rawValue
-        imdsOptions.shutdown_options = ShutdownCallbackCore(imdsConfig.shutdownCallback)?
-                .getRetainedCredentialProviderShutdownOptions()
-                ?? aws_credentials_provider_shutdown_options()
+        imdsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
-        guard let provider = aws_credentials_provider_new_imds(
-                allocator.rawValue,
-                &imdsOptions) else {
-                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())}
+        guard let provider = aws_credentials_provider_new_imds(allocator.rawValue,
+                                                               &imdsOptions) else {
+            shutdownCallbackCore.release()
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 
@@ -140,16 +139,16 @@ public final class CRTAWSCredentialsProvider {
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromCached cachedConfig: inout CRTCredentialsProviderCachedConfig,
                             allocator: Allocator = defaultAllocator) throws {
+        let shutdownCallbackCore = ShutdownCallbackCore(cachedConfig.shutdownCallback)
 
         var cachedOptions = aws_credentials_provider_cached_options()
-        cachedOptions.shutdown_options = ShutdownCallbackCore(cachedConfig.shutdownCallback)?
-                .getRetainedCredentialProviderShutdownOptions()
-                ?? aws_credentials_provider_shutdown_options()
+        cachedOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
         cachedOptions.source = cachedConfig.source.rawValue
         cachedOptions.refresh_time_in_milliseconds = UInt64(cachedConfig.refreshTime)
 
         guard let provider = aws_credentials_provider_new_cached(allocator.rawValue, &cachedOptions) else {
+            shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
@@ -169,15 +168,15 @@ public final class CRTAWSCredentialsProvider {
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromChainDefault chainDefaultConfig: CRTCredentialsProviderChainDefaultConfig,
                             allocator: Allocator = defaultAllocator) throws {
+        let shutdownCallbackCore = ShutdownCallbackCore(chainDefaultConfig.shutdownCallback)
 
         var chainDefaultOptions = aws_credentials_provider_chain_default_options()
-        chainDefaultOptions.shutdown_options = ShutdownCallbackCore(chainDefaultConfig.shutdownCallback)?
-                .getRetainedCredentialProviderShutdownOptions()
-                ?? aws_credentials_provider_shutdown_options()
+        chainDefaultOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         chainDefaultOptions.bootstrap = chainDefaultConfig.bootstrap.rawValue
 
         guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue,
                                                                         &chainDefaultOptions) else {
+            shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
@@ -190,11 +189,10 @@ public final class CRTAWSCredentialsProvider {
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromx509 x509Config: CRTCredentialsProviderX509Config,
                             allocator: Allocator = defaultAllocator) throws {
+        let shutdownCallbackCore = ShutdownCallbackCore(x509Config.shutdownCallback)
 
         var x509Options = aws_credentials_provider_x509_options()
-        x509Options.shutdown_options = ShutdownCallbackCore(x509Config.shutdownCallback)?
-                .getRetainedCredentialProviderShutdownOptions()
-                ?? aws_credentials_provider_shutdown_options()
+        x509Options.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         x509Options.bootstrap = x509Config.bootstrap.rawValue
         x509Options.tls_connection_options = UnsafePointer(x509Config.tlsConnectionOptions.rawValue)
         if let proxyOptions = x509Config.proxyOptions?.rawValue {
@@ -210,6 +208,7 @@ public final class CRTAWSCredentialsProvider {
             x509Options.endpoint = endPointCursor
             return aws_credentials_provider_new_x509(allocator.rawValue, &x509Options)
         }) else {
+            shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
@@ -223,15 +222,15 @@ public final class CRTAWSCredentialsProvider {
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromWebIdentity webIdentityConfig: CRTCredentialsProviderWebIdentityConfig,
                             allocator: Allocator = defaultAllocator) throws {
+        let shutdownCallbackCore = ShutdownCallbackCore(webIdentityConfig.shutdownCallback)
         var stsOptions = aws_credentials_provider_sts_web_identity_options()
         stsOptions.bootstrap = webIdentityConfig.bootstrap.rawValue
-        stsOptions.shutdown_options = ShutdownCallbackCore(webIdentityConfig.shutdownCallback)?
-                .getRetainedCredentialProviderShutdownOptions()
-                ?? aws_credentials_provider_shutdown_options()
+        stsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         stsOptions.tls_ctx = webIdentityConfig.tlsContext.rawValue
         stsOptions.function_table = nil
         guard let provider = aws_credentials_provider_new_sts_web_identity(allocator.rawValue,
                                                                            &stsOptions) else {
+            shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
@@ -246,11 +245,10 @@ public final class CRTAWSCredentialsProvider {
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromSTS stsConfig: CRTCredentialsProviderSTSConfig,
                             allocator: Allocator = defaultAllocator) throws {
+        let shutdownCallbackCore = ShutdownCallbackCore(stsConfig.shutdownCallback)
         var stsOptions = aws_credentials_provider_sts_options()
         stsOptions.tls_ctx = stsConfig.tlsContext.rawValue
-        stsOptions.shutdown_options = ShutdownCallbackCore(stsConfig.shutdownCallback)?
-                .getRetainedCredentialProviderShutdownOptions()
-                ?? aws_credentials_provider_shutdown_options()
+        stsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         stsOptions.creds_provider = stsConfig.credentialsProvider.rawValue
         stsOptions.duration_seconds = stsConfig.durationSeconds
         stsOptions.function_table = nil
@@ -263,6 +261,7 @@ public final class CRTAWSCredentialsProvider {
             stsOptions.session_name = sessionNameCursor
             return aws_credentials_provider_new_sts(allocator.rawValue, &stsOptions)
         }) else {
+            shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
@@ -275,11 +274,10 @@ public final class CRTAWSCredentialsProvider {
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromContainer containerConfig: CRTCredentialsProviderContainerConfig,
                             allocator: Allocator = defaultAllocator) throws {
+        let shutdownCallbackCore = ShutdownCallbackCore(containerConfig.shutdownCallback)
         var ecsOptions = aws_credentials_provider_ecs_options()
         ecsOptions.tls_ctx = containerConfig.tlsContext.rawValue
-        ecsOptions.shutdown_options = ShutdownCallbackCore(containerConfig.shutdownCallback)?
-                .getRetainedCredentialProviderShutdownOptions()
-                ?? aws_credentials_provider_shutdown_options()
+        ecsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         ecsOptions.bootstrap = containerConfig.bootstrap.rawValue
         ecsOptions.function_table = nil
 
@@ -292,6 +290,7 @@ public final class CRTAWSCredentialsProvider {
             ecsOptions.path_and_query = pathAndQueryCursor
             return  aws_credentials_provider_new_ecs(allocator.rawValue, &ecsOptions)
         }) else {
+            shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.init(credentialsProvider: provider, allocator: allocator)

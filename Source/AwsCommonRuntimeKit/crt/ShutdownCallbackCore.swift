@@ -10,11 +10,13 @@ public typealias ShutdownCallback = () -> Void
 /// You have to balance the retain & release calls in all cases to avoid leaking memory.
 class ShutdownCallbackCore {
     let shutdownCallback: ShutdownCallback
-    init?(_ shutdownCallback: ShutdownCallback?) {
-        guard let shutdownCallback = shutdownCallback else {
-            return nil
+    init(_ shutdownCallback: ShutdownCallback?) {
+        if let shutdownCallback = shutdownCallback {
+            self.shutdownCallback = shutdownCallback
+        } else {
+            /// Pass an empty shutdown callback to make manual reference counting easier and avoid null checks.
+            self.shutdownCallback = { }
         }
-        self.shutdownCallback = shutdownCallback
     }
 
     /// Calling this function performs a manual retain on the ShutdownCallbackCore.

@@ -13,7 +13,8 @@ public class HttpClientConnectionManager {
     public init(options: HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) throws {
         self.options = options
         self.allocator = allocator
-        let shutdownCallbackCore = ShutdownCallbackCore(options.shutdownCallback)?.getRetainedShutdownOptions()
+        let shutdownCallbackCore = ShutdownCallbackCore(options.shutdownCallback)
+        let shutdownOptions = shutdownCallbackCore.getRetainedShutdownOptions()
         guard let manager: OpaquePointer = (options.hostName.withByteCursor { hostNameCursor in
             var mgrOptions = aws_http_connection_manager_options(bootstrap: options.clientBootstrap.rawValue,
                                                                  initial_window_size: options.initialWindowSize,
@@ -30,12 +31,13 @@ public class HttpClientConnectionManager {
                                                                  proxy_options: options.proxyOptions?.rawValue,
                                                                  proxy_ev_settings: options.proxyEnvSettings?.rawValue,
                                                                  max_connections: options.maxConnections,
-                                                                 shutdown_complete_user_data: shutdownCallbackCore?.shutdown_callback_user_data,
-                                                                 shutdown_complete_callback: shutdownCallbackCore?.shutdown_callback_fn,
+                                                                 shutdown_complete_user_data: shutdownOptions.shutdown_callback_user_data,
+                                                                 shutdown_complete_callback: shutdownOptions.shutdown_callback_fn,
                                                                  enable_read_back_pressure: options.enableManualWindowManagement,
                                                                  max_connection_idle_in_milliseconds: options.maxConnectionIdleMs)
             return aws_http_connection_manager_new(allocator.rawValue, &mgrOptions)
         }) else {
+            shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.manager = manager
