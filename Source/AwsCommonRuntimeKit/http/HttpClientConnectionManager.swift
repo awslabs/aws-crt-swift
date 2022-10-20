@@ -60,20 +60,20 @@ public class HttpClientConnectionManager {
     }
 
     private func acquireConnection(continuation: ConnectionContinuation) {
-        let callbackData = HttpClientConnectionCallbackData(continuation: continuation,
+        let callbackDataCore = HttpClientConnectionCallbackData(continuation: continuation,
                                                             connectionManager: self)
 
         aws_http_connection_manager_acquire_connection(manager, { (connection, errorCode, userData) in
-            let callbackData = Unmanaged<HttpClientConnectionCallbackData>.fromOpaque(userData!).takeRetainedValue()
+            let callbackDataCore = Unmanaged<HttpClientConnectionCallbackData>.fromOpaque(userData!).takeRetainedValue()
             guard let connection = connection else {
-                callbackData.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+                callbackDataCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
                 return
             }
-            let httpConnection = HttpClientConnection(manager: callbackData.connectionManager,
+            let httpConnection = HttpClientConnection(manager: callbackDataCore.connectionManager,
                                                       connection: connection)
-            callbackData.continuation.resume(returning: httpConnection)
+            callbackDataCore.continuation.resume(returning: httpConnection)
         },
-        Unmanaged.passRetained(callbackData).toOpaque())
+        Unmanaged.passRetained(callbackDataCore).toOpaque())
     }
 
     /// Releases this HttpClientConnection back into the Connection Pool, and allows another Request to acquire
