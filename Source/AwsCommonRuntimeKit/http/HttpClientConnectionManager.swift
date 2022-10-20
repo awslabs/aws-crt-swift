@@ -71,9 +71,6 @@ public class HttpClientConnectionManager {
             }
             let httpConnection = HttpClientConnection(manager: callbackData.connectionManager,
                                                       connection: connection)
-            if let connectionCallback = callbackData.connectionCallback {
-                connectionCallback(httpConnection)
-            }
             callbackData.continuation.resume(returning: httpConnection)
         },
         Unmanaged.passRetained(callbackData).toOpaque())
