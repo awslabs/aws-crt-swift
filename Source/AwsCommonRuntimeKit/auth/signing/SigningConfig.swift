@@ -35,13 +35,15 @@ public struct SigningConfig {
                 shouldSignHeader: ShouldSignHeader? = nil,
                 signatureType: SignatureType = .requestHeaders,
                 signingAlgorithm: SigningAlgorithmType = .signingV4,
-                configType: SigningConfigType = .aws) {
+                configType: SigningConfigType = .aws,
+                allocator: Allocator = defaultAllocator) {
+
         self.credentials = credentials
         self.credentialsProvider = credentialsProvider
         self.expiration = expiration
         self.date = date
-        self._service = AWSStringByteCursor(service)
-        self._region = AWSStringByteCursor(region)
+        self._service = AWSStringByteCursor(service, allocator: allocator)
+        self._region = AWSStringByteCursor(region, allocator: allocator)
         self.service = service
         self.region = region
         self.signedBodyHeader = signedBodyHeader
@@ -51,7 +53,7 @@ public struct SigningConfig {
         self.signatureType = signatureType
         self.signingAlgorithm = signingAlgorithm
         self.configType = configType
-        self.signedBodyValueCursor = AWSStringByteCursor(signedBodyValue.rawValue)
+        self.signedBodyValueCursor = AWSStringByteCursor(signedBodyValue.rawValue, allocator: allocator)
         self.rawValue = aws_signing_config_aws(config_type: configType.rawValue,
                                                algorithm: signingAlgorithm.rawValue,
                                                signature_type: signatureType.rawValue,

@@ -24,7 +24,7 @@ public class CRTIMDSClient {
     /// - Parameters:
     ///    - resourcePath: `String` path of the resource to query
     public func getResource(resourcePath: String) async throws -> String? {
-        let resourcePathCursor = AWSStringByteCursor(resourcePath)
+        let resourcePathCursor = AWSStringByteCursor(resourcePath, allocator: allocator)
         return try await withCheckedThrowingContinuation { (continuation: ResourceContinuation) in
             let callbackData = CRTIMDSClientResourceCallbackData(continuation: continuation)
             let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)

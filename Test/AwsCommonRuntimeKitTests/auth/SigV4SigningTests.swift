@@ -25,7 +25,8 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                                    date: awsDate,
                                    service: "service",
                                    region: "us-east-1",
-                                   shouldSignHeader: shouldSignHeader)
+                                   shouldSignHeader: shouldSignHeader,
+                                   allocator: allocator)
 
         let signedRequest = try await signer.signRequest(request: request, config: config)
 
@@ -48,7 +49,8 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                                    service: "service",
                                    region: "us-east-1",
                                    signedBodyValue: .empty,
-                                   shouldSignHeader: shouldSignHeader)
+                                   shouldSignHeader: shouldSignHeader,
+                                   allocator: allocator)
 
         let signedRequest = try await signer.signRequest(request: request, config: config)
 
@@ -71,7 +73,8 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                                    service: "service",
                                    region: "us-east-1",
                                    signedBodyValue: .empty,
-                                   shouldSignHeader: shouldSignHeader)
+                                   shouldSignHeader: shouldSignHeader,
+                                   allocator: allocator)
         let signedRequest = try await signer.signRequest(request: request, config: config)
 
         XCTAssertNotNil(signedRequest)

@@ -19,12 +19,11 @@ final class AWSString {
 }
 
 // TODO: try to find a better way to get a long lived byte cursor from String without making a copy.
-// TODO: do not use default allocator
 class AWSStringByteCursor {
     let awsString: AWSString
     let byteCursor: aws_byte_cursor
 
-    init(_ string: String, allocator: Allocator = defaultAllocator) {
+    init(_ string: String, allocator: Allocator) {
         self.awsString = AWSString(string, allocator: allocator)
         self.byteCursor = aws_byte_cursor_from_string(awsString.rawValue)
     }
