@@ -49,11 +49,8 @@ class ShutdownCallbackCore {
     func getRetainedCredentialProviderShutdownOptions() -> aws_credentials_provider_shutdown_options {
         var shutdown_options = aws_credentials_provider_shutdown_options()
 
-        shutdown_options.shutdown_callback = { rawValue in
-            guard let rawValue = rawValue else {
-                return
-            }
-            let shutdownCallbackOptions = Unmanaged<ShutdownCallbackCore>.fromOpaque(rawValue).takeRetainedValue()
+        shutdown_options.shutdown_callback = { userData in
+            let shutdownCallbackOptions = Unmanaged<ShutdownCallbackCore>.fromOpaque(userData!).takeRetainedValue()
             shutdownCallbackOptions.shutdownCallback()
         }
         shutdown_options.shutdown_user_data = Unmanaged<ShutdownCallbackCore>.passRetained(self).toOpaque()
@@ -69,11 +66,8 @@ class ShutdownCallbackCore {
     func getRetainedIMDSClientShutdownOptions() -> aws_imds_client_shutdown_options {
         var shutdown_options = aws_imds_client_shutdown_options()
 
-        shutdown_options.shutdown_callback = { rawValue in
-            guard let rawValue = rawValue else {
-                return
-            }
-            let shutdownCallbackOptions = Unmanaged<ShutdownCallbackCore>.fromOpaque(rawValue).takeRetainedValue()
+        shutdown_options.shutdown_callback = { userData in
+            let shutdownCallbackOptions = Unmanaged<ShutdownCallbackCore>.fromOpaque(userData!).takeRetainedValue()
             shutdownCallbackOptions.shutdownCallback()
         }
         shutdown_options.shutdown_user_data = Unmanaged<ShutdownCallbackCore>.passRetained(self).toOpaque()
