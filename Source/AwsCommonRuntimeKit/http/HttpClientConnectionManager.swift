@@ -28,7 +28,7 @@ public class HttpClientConnectionManager {
                                                                  max_closed_streams: 0,
                                                                  http2_conn_manual_window_management: false,
                                                                  proxy_options: options.proxyOptions?.getRawValue(),
-                                                                 proxy_ev_settings: options.proxyEnvSettings?.rawValue,
+                                                                 proxy_ev_settings: options.proxyEnvSettings?.getRawValue(),
                                                                  max_connections: options.maxConnections,
                                                                  shutdown_complete_user_data: shutDownPtr,
                                                                  shutdown_complete_callback: { (userData) in

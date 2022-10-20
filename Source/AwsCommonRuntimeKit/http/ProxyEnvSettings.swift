@@ -3,24 +3,12 @@
 import AwsCHttp
 
 public class ProxyEnvSettings {
-    let rawValue: UnsafeMutablePointer<proxy_env_var_settings>
+    private let rawValue: UnsafeMutablePointer<proxy_env_var_settings>
     let allocator: Allocator
 
-    public var envVarType: HttpProxyEnvType {
-        didSet {
-            rawValue.pointee.env_var_type = envVarType.rawValue
-        }
-    }
-    public var proxyConnectionType: HttpProxyConnectionType {
-        didSet {
-            rawValue.pointee.connection_type = proxyConnectionType.rawValue
-        }
-    }
-    public var tlsOptions: TlsConnectionOptions? {
-        didSet {
-            rawValue.pointee.tls_options = UnsafePointer(tlsOptions?.rawValue)
-        }
-    }
+    public var envVarType: HttpProxyEnvType
+    public var proxyConnectionType: HttpProxyConnectionType
+    public var tlsOptions: TlsConnectionOptions?
 
     public init(envVarType: HttpProxyEnvType = .disable,
                 proxyConnectionType: HttpProxyConnectionType = .forward,
@@ -32,11 +20,14 @@ public class ProxyEnvSettings {
         self.proxyConnectionType = proxyConnectionType
         self.tlsOptions = tlsOptions
         self.rawValue = allocator.allocate(capacity: 1)
+    }
 
-        // Set these values for rawValue as well because didSet is not triggered in init
+    func getRawValue() -> UnsafeMutablePointer<proxy_env_var_settings> {
         rawValue.pointee.env_var_type = envVarType.rawValue
         rawValue.pointee.connection_type = proxyConnectionType.rawValue
         rawValue.pointee.tls_options = UnsafePointer(tlsOptions?.rawValue)
+
+        return rawValue
     }
 
     deinit {
