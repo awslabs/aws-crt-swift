@@ -4,13 +4,13 @@ import AwsCHttp
 
 public actor HttpStream {
     nonisolated let rawValue: UnsafeMutablePointer<aws_http_stream>
-    var callbackData: HttpStreamCallbackData
+    var callbackData: HttpStreamCallbackDataCore
     private var activated: Bool = false
 
     // Called by HttpClientConnection
-    init(httpConnection: HttpClientConnection, options: aws_http_make_request_options, callbackData: HttpStreamCallbackData) throws {
+    init(httpConnection: HttpClientConnection, options: aws_http_make_request_options, callbackData: HttpStreamCallbackDataCore) throws {
         self.callbackData = callbackData
-        guard let rawValue = withUnsafePointer(to: options, {aws_http_connection_make_request(httpConnection.rawValue, $0)}) else {
+        guard let rawValue = withUnsafePointer(to: options, { aws_http_connection_make_request(httpConnection.rawValue, $0) }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue
@@ -38,6 +38,7 @@ public actor HttpStream {
 
     /// Activates the client stream.
     /// Multiple calls to activate have no effect if the stream is already activated
+    /// This is thread safe because HttpStream is an actor
     public func activate() throws {
         if !activated {
             activated = true

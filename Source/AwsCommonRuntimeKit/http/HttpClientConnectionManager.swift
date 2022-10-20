@@ -7,12 +7,10 @@ typealias OnConnectionAcquired =  (HttpClientConnection?, Int32) -> Void
 
 public class HttpClientConnectionManager {
     let manager: OpaquePointer
-    let allocator: Allocator
     let options: HttpClientConnectionOptions
 
     public init(options: HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) throws {
         self.options = options
-        self.allocator = allocator
         let shutdownCallbackCore = ShutdownCallbackCore(options.shutdownCallback)
         let shutdownOptions = shutdownCallbackCore.getRetainedShutdownOptions()
         guard let manager: OpaquePointer = (options.hostName.withByteCursor { hostNameCursor in
@@ -52,23 +50,16 @@ public class HttpClientConnectionManager {
 
     private func acquireConnection(continuation: ConnectionContinuation) {
         let callbackData = HttpClientConnectionCallbackData(continuation: continuation,
-                                                            connectionManager: self,
-                                                            allocator: allocator)
+                                                            connectionManager: self)
 
         aws_http_connection_manager_acquire_connection(manager, { (connection, errorCode, userData) in
-            guard let userData = userData else {
-                return
-            }
-            let callbackData = Unmanaged<HttpClientConnectionCallbackData>.fromOpaque(userData).takeRetainedValue()
+            let callbackData = Unmanaged<HttpClientConnectionCallbackData>.fromOpaque(userData!).takeRetainedValue()
             guard let connection = connection else {
                 callbackData.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(errorCode: errorCode)))
                 return
             }
             let httpConnection = HttpClientConnection(manager: callbackData.connectionManager,
                                                       connection: connection)
-            if let connectionCallback = callbackData.connectionCallback {
-                connectionCallback(httpConnection)
-            }
             callbackData.continuation.resume(returning: httpConnection)
         },
         Unmanaged.passRetained(callbackData).toOpaque())
