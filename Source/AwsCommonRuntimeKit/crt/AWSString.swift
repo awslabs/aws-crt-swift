@@ -22,11 +22,9 @@ final class AWSString {
 // TODO: do not use default allocator
 class AWSStringByteCursor {
     let awsString: AWSString
-    let string: String
     let byteCursor: aws_byte_cursor
 
     init(_ string: String, allocator: Allocator = defaultAllocator) {
-        self.string = string
         self.awsString = AWSString(string, allocator: allocator)
         self.byteCursor = aws_byte_cursor_from_string(awsString.rawValue)
     }
