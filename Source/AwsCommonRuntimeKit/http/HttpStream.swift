@@ -10,7 +10,7 @@ public actor HttpStream {
     // Called by HttpClientConnection
     init(httpConnection: HttpClientConnection, options: aws_http_make_request_options, callbackData: HttpStreamCallbackDataCore) throws {
         self.callbackData = callbackData
-        guard let rawValue = withUnsafePointer(to: options, {aws_http_connection_make_request(httpConnection.rawValue, $0)}) else {
+        guard let rawValue = withUnsafePointer(to: options, { aws_http_connection_make_request(httpConnection.rawValue, $0) }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue

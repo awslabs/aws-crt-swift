@@ -17,6 +17,8 @@ class HttpStreamCallbackDataCore {
 
     /// This function does a manual retain on HttpStreamCallbackDataCore
     /// to keep it until until on_destroy callback has fired which will do the release.
+    /// If you fail to create something that uses the aws_http_make_request_options,
+    /// you must call release() to avoid leaking memory.
     func getRetainedHttpMakeRequestOptions() -> aws_http_make_request_options {
         var options = aws_http_make_request_options()
         options.self_size = MemoryLayout<aws_http_make_request_options>.size
@@ -30,6 +32,10 @@ class HttpStreamCallbackDataCore {
         return options
     }
 
+    /// Manually release the reference If you fail to create something that uses the HttpStreamCallbackDataCore
+    func release() {
+        Unmanaged.passUnretained(self).release()
+    }
 }
 // TODO: Maybe update to fire three headers callback (informational, main, and trailing) only once
 func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
