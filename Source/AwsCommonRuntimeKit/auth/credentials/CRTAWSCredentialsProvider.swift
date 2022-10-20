@@ -121,7 +121,6 @@ public final class CRTAWSCredentialsProvider {
         var imdsOptions = aws_credentials_provider_imds_options()
         imdsOptions.bootstrap = imdsConfig.bootstrap.rawValue
         imdsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
-        
         guard let provider = aws_credentials_provider_new_imds(allocator.rawValue,
                                                                &imdsOptions) else {
             shutdownCallbackCore.release()
