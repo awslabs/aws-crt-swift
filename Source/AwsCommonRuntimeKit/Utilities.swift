@@ -15,30 +15,29 @@ func zeroStruct<T>(_ ptr: UnsafeMutablePointer<T>) {
 
 extension String {
 
-    public func base64EncodedMD5(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String? {
-        var buffer = aws_byte_buf()
-        if aws_byte_buf_init(&buffer, allocator.rawValue, 16) != AWS_OP_SUCCESS {
-            return nil
+    public func base64EncodedMD5(allocator: Allocator = defaultAllocator, truncate: Int = 0) throws -> String {
+        let bufferSize = 16
+        var bufferData = Data(count: bufferSize)
+        try bufferData.withUnsafeMutableBytes { bufferPointer in
+            var buffer = aws_byte_buf_from_empty_array(bufferPointer.baseAddress, bufferSize)
+            guard self.withByteCursorPointer({ strCursorPointer in
+                aws_md5_compute(allocator.rawValue, strCursorPointer, &buffer, truncate)
+            }) == AWS_OP_SUCCESS else {
+                throw CommonRunTimeError.crtError(.makeFromLastError())
+            }
         }
-        guard self.withByteCursorPointer({ strCursorPointer in
-           aws_md5_compute(allocator.rawValue, strCursorPointer, &buffer, truncate)
-        }) == AWS_OP_SUCCESS else {
-            return nil
-        }
-        return Data(bytesNoCopy: buffer.buffer, count: buffer.len, deallocator: .custom { _, _ in
-            aws_byte_buf_clean_up(&buffer)
-        }).base64EncodedString()
+        return bufferData.base64EncodedString()
     }
 
-    func withByteCursor<R>(_ body: (aws_byte_cursor) -> R
-    ) -> R {
+    func withByteCursor<Result>(_ body: (aws_byte_cursor) -> Result
+    ) -> Result {
         return self.withCString { arg1C in
             return body(aws_byte_cursor_from_c_str(arg1C))
         }
     }
 
-    func withByteCursorPointer<R>(_ body: (UnsafePointer<aws_byte_cursor>) -> R
-    ) -> R {
+    func withByteCursorPointer<Result>(_ body: (UnsafePointer<aws_byte_cursor>) -> Result
+    ) -> Result {
         return self.withCString { arg1C in
             return withUnsafePointer(to: aws_byte_cursor_from_c_str(arg1C)) { byteCursorPointer in
                 return body(byteCursorPointer)

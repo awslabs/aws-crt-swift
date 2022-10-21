@@ -10,13 +10,13 @@ public struct CRTError: Error {
 
     public let name: String
 
-    public init(errorCode: Int32) {
-        self.code = errorCode
-        self.message = String(cString: aws_error_str(errorCode))
-        self.name = String(cString: aws_error_name(errorCode))
+    public init(code: Int32) {
+        self.code = code
+        self.message = String(cString: aws_error_str(code))
+        self.name = String(cString: aws_error_name(code))
     }
 
     public static func makeFromLastError() -> CRTError {
-        return CRTError(errorCode: aws_last_error())
+        return CRTError(code: aws_last_error())
     }
 }

@@ -26,8 +26,8 @@ public class HttpClientConnectionManager {
                                                                  num_initial_settings: 0,
                                                                  max_closed_streams: 0,
                                                                  http2_conn_manual_window_management: false,
-                                                                 proxy_options: options.proxyOptions?.rawValue,
-                                                                 proxy_ev_settings: options.proxyEnvSettings?.rawValue,
+                                                                 proxy_options: options.proxyOptions?.getRawValue(),
+                                                                 proxy_ev_settings: options.proxyEnvSettings?.getRawValue(),
                                                                  max_connections: options.maxConnections,
                                                                  shutdown_complete_user_data: shutdownOptions.shutdown_callback_user_data,
                                                                  shutdown_complete_callback: shutdownOptions.shutdown_callback_fn,
@@ -49,20 +49,20 @@ public class HttpClientConnectionManager {
     }
 
     private func acquireConnection(continuation: ConnectionContinuation) {
-        let callbackData = HttpClientConnectionCallbackData(continuation: continuation,
+        let callbackDataCore = HttpClientConnectionCallbackDataCore(continuation: continuation,
                                                             connectionManager: self)
 
         aws_http_connection_manager_acquire_connection(manager, { (connection, errorCode, userData) in
-            let callbackData = Unmanaged<HttpClientConnectionCallbackData>.fromOpaque(userData!).takeRetainedValue()
+            let callbackDataCore = Unmanaged<HttpClientConnectionCallbackDataCore>.fromOpaque(userData!).takeRetainedValue()
             guard let connection = connection else {
-                callbackData.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(errorCode: errorCode)))
+                callbackDataCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
                 return
             }
-            let httpConnection = HttpClientConnection(manager: callbackData.connectionManager,
+            let httpConnection = HttpClientConnection(manager: callbackDataCore.connectionManager,
                                                       connection: connection)
-            callbackData.continuation.resume(returning: httpConnection)
+            callbackDataCore.continuation.resume(returning: httpConnection)
         },
-        Unmanaged.passRetained(callbackData).toOpaque())
+        Unmanaged.passRetained(callbackDataCore).toOpaque())
     }
 
     /// Releases this HttpClientConnection back into the Connection Pool, and allows another Request to acquire

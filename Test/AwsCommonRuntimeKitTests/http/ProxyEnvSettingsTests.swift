@@ -18,14 +18,16 @@ class ProxyEnvSettingsTests: CrtXCBaseTestCase {
         let tlsOptions = TlsConnectionOptions(context, allocator: allocator)
 
         let proxyEnvSetting = ProxyEnvSettings(envVarType: envVarType, proxyConnectionType: connectionType, tlsOptions: tlsOptions, allocator: allocator)
+        let rawValue = proxyEnvSetting.getRawValue()
         XCTAssertNotNil(proxyEnvSetting)
+        XCTAssertNotNil(rawValue)
 
         XCTAssertEqual(proxyEnvSetting.proxyConnectionType, connectionType)
         XCTAssertEqual(proxyEnvSetting.envVarType, envVarType)
         XCTAssertNotNil(proxyEnvSetting.tlsOptions)
 
-        XCTAssertEqual(proxyEnvSetting.rawValue.pointee.connection_type, connectionType.rawValue)
-        XCTAssertEqual(proxyEnvSetting.rawValue.pointee.env_var_type, envVarType.rawValue)
-        XCTAssertNotNil(proxyEnvSetting.rawValue.pointee.tls_options)
+        XCTAssertEqual(rawValue.pointee.connection_type, connectionType.rawValue)
+        XCTAssertEqual(rawValue.pointee.env_var_type, envVarType.rawValue)
+        XCTAssertNotNil(rawValue.pointee.tls_options)
     }
 }

@@ -30,6 +30,7 @@ public class ByteBuffer: Codable {
         self.capacity = bytes.count
     }
 
+    //Todo: do not expose pointer
     public init(ptr: UnsafeMutablePointer<UInt8>, len: Int, capacity: Int) {
         let buffer = UnsafeBufferPointer(start: ptr, count: len)
         self.array = Array(buffer)

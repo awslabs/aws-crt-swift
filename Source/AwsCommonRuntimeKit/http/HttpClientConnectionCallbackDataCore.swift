@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 typealias ConnectionContinuation = CheckedContinuation<HttpClientConnection, Error>
-class HttpClientConnectionCallbackData {
+class HttpClientConnectionCallbackDataCore {
     let connectionManager: HttpClientConnectionManager
     let continuation: ConnectionContinuation
 

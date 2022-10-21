@@ -26,7 +26,7 @@ public class CRTIMDSClient {
     /// - Parameters:
     ///    - resourcePath: `String` path of the resource to query
     public func getResource(resourcePath: String) async throws -> String? {
-        let resourcePathCursor = AWSStringByteCursor(resourcePath)
+        let resourcePathCursor = AWSStringByteCursor(resourcePath, allocator: allocator)
         return try await withCheckedThrowingContinuation { (continuation: ResourceContinuation) in
             let callbackData = CRTIMDSClientResourceCallbackData(continuation: continuation)
             let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
@@ -215,7 +215,7 @@ public class CRTIMDSClient {
                let crtCredentials = CRTCredentials(rawValue: credentialsPointer) {
                 pointer.pointee.continuation?.resume(returning: crtCredentials)
             } else {
-                pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(errorCode: errorCode)))
+                pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
             }
             pointer.deinitializeAndDeallocate()
         }, pointer) != AWS_OP_SUCCESS {
@@ -234,7 +234,7 @@ public class CRTIMDSClient {
                 }
                 let pointer = userData.assumingMemoryBound(to: CRTIMDSClientIAMProfileCallbackData.self)
                 guard let profilePointer = profilePointer else {
-                    pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(errorCode: errorCode)))
+                    pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
                     pointer.deinitializeAndDeallocate()
                     return
                 }
@@ -278,7 +278,7 @@ public class CRTIMDSClient {
                 }
                 let pointer = userData.assumingMemoryBound(to: CRTIMDSClientInstanceCallbackData.self)
                 guard let instancePointer = instancePointer else {
-                    pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(errorCode: errorCode)))
+                    pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
                     pointer.deinitializeAndDeallocate()
                     return
                 }
@@ -303,7 +303,7 @@ private func resourceCallback(_ byteBuf: UnsafePointer<aws_byte_buf>?,
     let pointer = userData.assumingMemoryBound(to: CRTIMDSClientResourceCallbackData.self)
     guard let byteBuf = byteBuf else {
 
-        pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(errorCode: errorCode)))
+        pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         pointer.deinitializeAndDeallocate()
         return
     }
@@ -321,7 +321,7 @@ private func arrayCallback(_ arrayListPointer: UnsafePointer<aws_array_list>?,
     }
     let pointer = userData.assumingMemoryBound(to: CRTIMDSClientArrayCallbackData.self)
     if errorCode != 0 {
-        pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(errorCode: errorCode)))
+        pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
     }
     let amiIds = arrayListPointer?.pointee.toStringArray()
 

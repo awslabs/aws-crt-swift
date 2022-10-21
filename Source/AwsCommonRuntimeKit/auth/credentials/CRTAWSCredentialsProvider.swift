@@ -191,7 +191,7 @@ public final class CRTAWSCredentialsProvider {
         var x509Options = aws_credentials_provider_x509_options()
         x509Options.bootstrap = x509Config.bootstrap.rawValue
         x509Options.tls_connection_options = UnsafePointer(x509Config.tlsConnectionOptions.rawValue)
-        if let proxyOptions = x509Config.proxyOptions?.rawValue {
+        if let proxyOptions = x509Config.proxyOptions?.getRawValue() {
             x509Options.proxy_options = UnsafePointer(proxyOptions)
         }
         x509Options.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
@@ -319,7 +319,7 @@ public final class CRTAWSCredentialsProvider {
                let crtCredentials = CRTCredentials(rawValue: credentials) {
                 pointer.pointee.continuation?.resume(returning: crtCredentials)
             } else {
-                pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(errorCode: errorCode)))
+                pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
             }
 
         }, pointer)
