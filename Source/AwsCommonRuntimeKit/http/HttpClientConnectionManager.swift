@@ -60,11 +60,11 @@ public class HttpClientConnectionManager {
     }
 
     private func acquireConnection(continuation: ConnectionContinuation) {
-        let callbackDataCore = HttpClientConnectionCallbackData(continuation: continuation,
+        let callbackDataCore = HttpClientConnectionCallbackDataCore(continuation: continuation,
                                                             connectionManager: self)
 
         aws_http_connection_manager_acquire_connection(manager, { (connection, errorCode, userData) in
-            let callbackDataCore = Unmanaged<HttpClientConnectionCallbackData>.fromOpaque(userData!).takeRetainedValue()
+            let callbackDataCore = Unmanaged<HttpClientConnectionCallbackDataCore>.fromOpaque(userData!).takeRetainedValue()
             guard let connection = connection else {
                 callbackDataCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
                 return
