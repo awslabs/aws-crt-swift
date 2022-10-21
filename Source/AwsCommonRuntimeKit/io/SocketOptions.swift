@@ -5,20 +5,15 @@ import AwsCIo
 
 public class SocketOptions {
     var rawValue: UnsafeMutablePointer<aws_socket_options>
-    let defaultSocketTimeMsec = UInt32(3_000)
-
-    public init(socketType: SocketType = .stream) {
-        let socketOptions = aws_socket_options(
-            type: socketType.rawValue,
-            domain: SocketDomain.ipv4.rawValue,
-            connect_timeout_ms: defaultSocketTimeMsec,
-            keep_alive_interval_sec: 0,
-            keep_alive_timeout_sec: 0,
-            keep_alive_max_failed_probes: 0,
-            keepalive: false
-        )
-        let ptr: UnsafeMutablePointer<aws_socket_options> = fromPointer(ptr: socketOptions)
-        self.rawValue = ptr
+    private let defaultSocketTimeMsec = UInt32(3_000)
+    private let allocator: Allocator
+    public init(socketType: SocketType = .stream, allocator: Allocator = defaultAllocator) {
+        self.allocator = allocator
+        self.rawValue = allocator.allocate(capacity: 1)
+        rawValue.pointee.type = socketType.rawValue
+        rawValue.pointee.domain = SocketDomain.ipv4.rawValue
+        rawValue.pointee.connect_timeout_ms = defaultSocketTimeMsec
+        rawValue.pointee.keepalive = false
     }
 
     public var connectTimeoutMs: UInt32 {
@@ -57,6 +52,6 @@ public class SocketOptions {
     }
 
     deinit {
-        rawValue.deinitializeAndDeallocate()
+        allocator.release(rawValue)
     }
 }
