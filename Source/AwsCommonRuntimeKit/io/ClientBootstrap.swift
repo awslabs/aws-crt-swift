@@ -22,7 +22,7 @@ public final class ClientBootstrap {
         )
         guard let rawValue = aws_client_bootstrap_new(allocator.rawValue, &options) else {
             shutdownCallbackCore.release()
-            throw CRTError(errorCode: aws_last_error())
+            throw CommonRunTimeError.crtError(.makeFromLastError())
         }
 
         self.rawValue = rawValue
