@@ -36,5 +36,3 @@ func onConnectionSetup(connection: UnsafeMutablePointer<aws_http_connection>?,
             connection: connection)
     callbackDataCore.continuation.resume(returning: httpConnection)
 }
-
-
