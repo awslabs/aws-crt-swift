@@ -37,13 +37,13 @@ public class HttpClientConnection {
     /// the different events from the stream
     /// - Returns: An `HttpStream` containing the `HttpClientConnection`
     public func makeRequest(requestOptions: HttpRequestOptions) throws -> HttpStream {
-        let httpStreamCallbackDataCore = HttpStreamCallbackDataCore(requestOptions: requestOptions)
+        let httpStreamCallbackCore = HttpStreamCallbackCore(requestOptions: requestOptions)
         do {
             return try HttpStream(httpConnection: self,
-                    options: httpStreamCallbackDataCore.getRetainedHttpMakeRequestOptions(),
-                    callbackData: httpStreamCallbackDataCore)
+                    options: httpStreamCallbackCore.getRetainedHttpMakeRequestOptions(),
+                    callbackData: httpStreamCallbackCore)
         } catch {
-            httpStreamCallbackDataCore.release()
+            httpStreamCallbackCore.release()
             throw error
         }
     }

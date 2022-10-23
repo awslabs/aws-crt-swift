@@ -4,11 +4,11 @@ import AwsCHttp
 
 public actor HttpStream {
     nonisolated let rawValue: UnsafeMutablePointer<aws_http_stream>
-    var callbackData: HttpStreamCallbackDataCore
+    var callbackData: HttpStreamCallbackCore
     private var activated: Bool = false
 
     // Called by HttpClientConnection
-    init(httpConnection: HttpClientConnection, options: aws_http_make_request_options, callbackData: HttpStreamCallbackDataCore) throws {
+    init(httpConnection: HttpClientConnection, options: aws_http_make_request_options, callbackData: HttpStreamCallbackCore) throws {
         self.callbackData = callbackData
         guard let rawValue = withUnsafePointer(to: options, { aws_http_connection_make_request(httpConnection.rawValue, $0) }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())

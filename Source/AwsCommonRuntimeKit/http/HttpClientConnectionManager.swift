@@ -6,7 +6,7 @@ import Collections
 typealias OnConnectionAcquired =  (HttpClientConnection?, Int32) -> Void
 
 public class HttpClientConnectionManager {
-    let manager: OpaquePointer
+    let rawValue: OpaquePointer
     let options: HttpClientConnectionOptions
 
     public init(options: HttpClientConnectionOptions, allocator: Allocator = defaultAllocator) throws {
@@ -14,7 +14,7 @@ public class HttpClientConnectionManager {
         // Todo: fix shutdown options
         let shutDownPtr: UnsafeMutablePointer<ShutDownCallbackOptions>? = fromOptionalPointer(ptr: options.shutDownOptions)
 
-        guard let manager: OpaquePointer = (options.hostName.withByteCursor { hostNameCursor in
+        guard let rawValue: OpaquePointer = (options.hostName.withByteCursor { hostNameCursor in
             var mgrOptions = aws_http_connection_manager_options(bootstrap: options.clientBootstrap.rawValue,
                                                                  initial_window_size: options.initialWindowSize,
                                                                  socket_options: options.socketOptions.rawValue,
@@ -49,31 +49,16 @@ public class HttpClientConnectionManager {
         }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-        self.manager = manager
+        self.rawValue = rawValue
     }
 
     /// Acquires an `HttpClientConnection` asynchronously.
     public func acquireConnection() async throws -> HttpClientConnection {
         return try await withCheckedThrowingContinuation({ (continuation: ConnectionContinuation) in
-            acquireConnection(continuation: continuation)
+            let connectionManagerCallbackCore = HttpClientConnectionManagerCallbackCore(continuation: continuation,
+                                                                        connectionManager: self)
+            connectionManagerCallbackCore.retainedAcquireConnection()
         })
-    }
-
-    private func acquireConnection(continuation: ConnectionContinuation) {
-        let callbackDataCore = HttpClientConnectionCallbackDataCore(continuation: continuation,
-                                                            connectionManager: self)
-
-        aws_http_connection_manager_acquire_connection(manager, { (connection, errorCode, userData) in
-            let callbackDataCore = Unmanaged<HttpClientConnectionCallbackDataCore>.fromOpaque(userData!).takeRetainedValue()
-            guard let connection = connection else {
-                callbackDataCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
-                return
-            }
-            let httpConnection = HttpClientConnection(manager: callbackDataCore.connectionManager,
-                                                      connection: connection)
-            callbackDataCore.continuation.resume(returning: httpConnection)
-        },
-        Unmanaged.passRetained(callbackDataCore).toOpaque())
     }
 
     /// Releases this HttpClientConnection back into the Connection Pool, and allows another Request to acquire
@@ -81,12 +66,12 @@ public class HttpClientConnectionManager {
     /// - Parameters:
     ///     - connection:  `HttpClientConnection` to release
     public func releaseConnection(connection: HttpClientConnection) throws {
-        if aws_http_connection_manager_release_connection(manager, connection.rawValue) != AWS_OP_SUCCESS {
+        if aws_http_connection_manager_release_connection(rawValue, connection.rawValue) != AWS_OP_SUCCESS {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
     }
 
     deinit {
-        aws_http_connection_manager_release(manager)
+        aws_http_connection_manager_release(rawValue)
     }
 }
