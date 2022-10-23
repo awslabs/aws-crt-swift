@@ -16,7 +16,7 @@ public final class ClientBootstrap {
         var options = aws_client_bootstrap_options(
             event_loop_group: elg.rawValue,
             host_resolver: hostResolver.rawValue,
-            host_resolution_config: hostResolver.config,
+            host_resolution_config: hostResolver.config.rawValue,
             on_shutdown_complete: shutdownOptions.shutdown_callback_fn,
             user_data: shutdownOptions.shutdown_callback_user_data
         )

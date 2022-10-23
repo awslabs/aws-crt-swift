@@ -41,7 +41,6 @@ struct Elasticurl {
     static func parseArguments() {
 
         let optionString = "a:b:c:e:f:H:d:g:j:l:m:M:GPHiko:t:v:VwWh"
-
         let options = [ElasticurlOptions.caCert.rawValue,
                        ElasticurlOptions.caPath.rawValue,
                        ElasticurlOptions.cert.rawValue,
@@ -260,7 +259,7 @@ struct Elasticurl {
             try tlsConnectionOptions.setServerName(host)
 
             let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-            let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
+            let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
 
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                                 hostResolver: hostResolver,

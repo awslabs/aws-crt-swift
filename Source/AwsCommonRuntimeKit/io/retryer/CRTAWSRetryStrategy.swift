@@ -2,107 +2,55 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCIo
-
-public final class CRTAWSRetryStrategy {
+//TODO: rename class to CRTAWSRetryStrategy or RetryStrategy. We have inconsistent CRT as a prefix of some classes.
+// I am not renaming it for now because it messes up the git change log. Will create a separate PR for just renaming.
+public class CRTAWSRetryStrategy {
     let allocator: Allocator
-
-    var rawValue: UnsafeMutablePointer<aws_retry_strategy>
-
-    init(retryStrategy: UnsafeMutablePointer<aws_retry_strategy>,
-         allocator: Allocator) {
-        self.rawValue = retryStrategy
-        self.allocator = allocator
-    }
+    let rawValue: UnsafeMutablePointer<aws_retry_strategy>
 
     /// Creates an AWS Retryer implementing the correct retry strategy.
     ///
     /// - Parameters:
-    ///   - options:  The `CRTRetryOptions` options object.
+    ///   - exponentialBackoffRetryOptions:  The `CRTRetryOptions` options object.
+    ///   - initialBucketCapacity: Capacity for partitions. Defaults to 500
     /// - Returns: `CRTAWSRetryStrategy`
-    public convenience init(options: CRTRetryOptions,
-                            allocator: Allocator = defaultAllocator) throws {
-
-        let exponentialBackOffOptions = aws_exponential_backoff_retry_options(el_group: options.backOffRetryOptions.eventLoopGroup.rawValue,
-                                                                              max_retries: options.backOffRetryOptions.maxRetries,
-                                                                              backoff_scale_factor_ms: options.backOffRetryOptions.backOffScaleFactor,
-                                                                              jitter_mode: options.backOffRetryOptions.jitterMode.rawValue,
+    public init(crtRetryOptions: CRTRetryOptions, allocator: Allocator = defaultAllocator) throws {
+        self.allocator = allocator
+        //TODO: Update generate random
+        let exponentialBackOffOptions = aws_exponential_backoff_retry_options(el_group: crtRetryOptions.exponentialBackoffRetryOptions.eventLoopGroup.rawValue,
+                                                                              max_retries: crtRetryOptions.exponentialBackoffRetryOptions.maxRetries,
+                                                                              backoff_scale_factor_ms: crtRetryOptions.exponentialBackoffRetryOptions.backOffScaleFactor,
+                                                                              jitter_mode: crtRetryOptions.exponentialBackoffRetryOptions.jitterMode.rawValue,
                                                                               generate_random: nil)
 
         var options = aws_standard_retry_options(backoff_retry_options: exponentialBackOffOptions,
-                                                 initial_bucket_capacity: options.initialBucketCapacity)
+                                                 initial_bucket_capacity: crtRetryOptions.initialBucketCapacity)
 
-        guard let retryer = aws_retry_strategy_new_standard(allocator.rawValue, &options) else {throw CRTError(code: aws_last_error())}
-
-        self.init(retryStrategy: retryer, allocator: allocator)
+        guard let rawValue = aws_retry_strategy_new_standard(allocator.rawValue, &options) else {
+            throw CRTError(code: aws_last_error())
+        }
+        self.rawValue = rawValue
     }
 
     public func acquireToken(timeout: UInt64 = 0, partitionId: String) async throws -> CRTAWSRetryToken {
-        return try await withCheckedThrowingContinuation { (continuation: TokenContinuation) in
-            acquireTokenFromCRT(timeout: timeout, partitionId: partitionId, continuation: continuation)
-        }
-
-    }
-
-    private func acquireTokenFromCRT(timeout: UInt64, partitionId: String, continuation: TokenContinuation) {
-        let callbackData = CRTAcquireTokenCallbackData(allocator: allocator, continuation: continuation)
-        let pointer: UnsafeMutablePointer<CRTAcquireTokenCallbackData> = fromPointer(ptr: callbackData)
-        if (partitionId.withByteCursorPointer { partitionIdCursorPointer in
-                aws_retry_strategy_acquire_retry_token(
-                        rawValue,
-                        partitionIdCursorPointer, { retryerPointer, errorCode, token, userdata in
-                    guard let userdata = userdata,
-                          let token = token
-                    else {
-                        return
-                    }
-                    let pointer = userdata.assumingMemoryBound(to: CRTAcquireTokenCallbackData.self)
-                    defer {
-                        pointer.deinitializeAndDeallocate()
-                    }
-                    if let continuation = pointer.pointee.continuation {
-                        if errorCode == 0 {
-                            continuation.resume(returning: CRTAWSRetryToken(rawValue: token))
-                        } else {
-                            continuation.resume(throwing: CRTError(code: errorCode))
-                        }
-                    }
-                }, pointer, timeout)
-        }) != AWS_OP_SUCCESS {
-            continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
+        return try await withCheckedThrowingContinuation { (continuation: CRTRetryStrategyContinuation) in
+            let crtRetryStrategyCore = CRTRetryStrategyCore(continuation: continuation)
+            crtRetryStrategyCore.acquireTokenFromCRT(timeout: timeout, partitionId: partitionId, crtAWSRetryStrategy: self)
         }
     }
 
     public func scheduleRetry(token: CRTAWSRetryToken, errorType: CRTRetryError) async throws -> CRTAWSRetryToken {
-        return try await withCheckedThrowingContinuation({ (continuation: ScheduleRetryContinuation) in
-            scheduleRetryToCRT(token: token, errorType: errorType, continuation: continuation)
+        return try await withCheckedThrowingContinuation({ (continuation: CRTRetryStrategyContinuation) in
+            let crtRetryStrategyCore = CRTRetryStrategyCore(continuation: continuation)
+            crtRetryStrategyCore.scheduleRetryToCRT(token: token, errorType: errorType)
         })
-    }
-
-    private func scheduleRetryToCRT(token: CRTAWSRetryToken, errorType: CRTRetryError, continuation: ScheduleRetryContinuation) {
-        let callbackData = CRTScheduleRetryCallbackData(allocator: allocator)
-        let pointer: UnsafeMutablePointer<CRTScheduleRetryCallbackData> = fromPointer(ptr: callbackData)
-
-        aws_retry_strategy_schedule_retry(token.rawValue, errorType.rawValue, { retryToken, errorCode, userdata in
-            guard let userdata = userdata,
-                  let retryToken = retryToken else {
-                return
-            }
-            let pointer = userdata.assumingMemoryBound(to: CRTScheduleRetryCallbackData.self)
-            defer { pointer.deinitializeAndDeallocate()}
-            if let continuation = pointer.pointee.continuation {
-                if errorCode == 0 {
-                    continuation.resume(returning: CRTAWSRetryToken(rawValue: retryToken))
-                } else {
-                    continuation.resume(throwing: CRTError(code: errorCode))
-                }
-            }
-        }, pointer)
     }
 
     public func recordSuccess(token: CRTAWSRetryToken) {
         aws_retry_token_record_success(token.rawValue)
     }
 
+    //TODO: deprecated in SDK. Why?
     public func releaseToken(token: CRTAWSRetryToken) {
         aws_retry_token_release(token.rawValue)
     }
