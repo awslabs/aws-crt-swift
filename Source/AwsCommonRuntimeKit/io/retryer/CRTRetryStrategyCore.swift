@@ -50,7 +50,6 @@ func onRetryReady(token: UnsafeMutablePointer<aws_retry_token>?,
         crtRetryStrategyCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
-    //TODO: confirm
     guard let token = token else {
         crtRetryStrategyCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
@@ -67,7 +66,7 @@ func onRetryTokenAcquired(retry_strategy: UnsafeMutablePointer<aws_retry_strateg
         crtRetryStrategyCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
-    //TODO: confirm
+    /// Token should always be NON-NULL If error code was non-zero.
     guard let token = token else {
         crtRetryStrategyCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return

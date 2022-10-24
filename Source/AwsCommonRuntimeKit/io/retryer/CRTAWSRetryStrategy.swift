@@ -46,15 +46,17 @@ public class CRTAWSRetryStrategy {
         })
     }
 
+    /// Records a successful retry.You should always call it after a successful operation
+    /// or your system will never recover during an outage.
     public func recordSuccess(token: CRTAWSRetryToken) {
         aws_retry_token_record_success(token.rawValue)
     }
 
     //TODO: deprecated in SDK. https://github.com/awslabs/aws-crt-swift/issues/66.
     // Need to learn more about this and when to call this. Should this be public etc?
-    public func releaseToken(token: CRTAWSRetryToken) {
-        aws_retry_token_release(token.rawValue)
-    }
+//    public func releaseToken(token: CRTAWSRetryToken) {
+//        aws_retry_token_release(token.rawValue)
+//    }
 
     deinit {
         aws_retry_strategy_release(rawValue)

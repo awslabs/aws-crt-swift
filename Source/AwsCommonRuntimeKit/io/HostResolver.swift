@@ -8,6 +8,7 @@ typealias HostResolvedContinuation = CheckedContinuation<[HostAddress], Error>
 
 public class HostResolver {
     let rawValue: UnsafeMutablePointer<aws_host_resolver>
+    //TODO: where to put the config?
     let config: HostResolutionConfig
     private let allocator: Allocator
 

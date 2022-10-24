@@ -32,7 +32,7 @@ class HostResolverCore {
         }
     }
 
-    func release() {
+    private func release() {
         Unmanaged.passUnretained(self).release()
     }
 }
