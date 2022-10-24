@@ -22,13 +22,13 @@ class CRTRetryStrategyCore {
                                              errorType.rawValue,
                                              onRetryReady,
                                              getRetainedSelf()) != AWS_OP_SUCCESS {
+            //TODO: Do we need to call token_release here?
             release()
             continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
         }
     }
 
     func retainedAcquireTokenFromCRT(timeout: UInt64, partitionId: String, crtAWSRetryStrategy: CRTAWSRetryStrategy) {
-        //TODO: callback is called if an error occurred?
         if (partitionId.withByteCursorPointer { partitionIdCursorPointer in
             aws_retry_strategy_acquire_retry_token(crtAWSRetryStrategy.rawValue, partitionIdCursorPointer, onRetryTokenAcquired, getRetainedSelf(), timeout)
         }) != AWS_OP_SUCCESS {

@@ -27,7 +27,7 @@ public class CRTAWSRetryStrategy {
                                                  initial_bucket_capacity: crtRetryOptions.initialBucketCapacity)
 
         guard let rawValue = aws_retry_strategy_new_standard(allocator.rawValue, &options) else {
-            throw CRTError(code: aws_last_error())
+            throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue
     }
@@ -50,7 +50,8 @@ public class CRTAWSRetryStrategy {
         aws_retry_token_record_success(token.rawValue)
     }
 
-    //TODO: deprecated in SDK. Why?
+    //TODO: deprecated in SDK. https://github.com/awslabs/aws-crt-swift/issues/66.
+    // Need to learn more about this and when to call this. Should this be public etc?
     public func releaseToken(token: CRTAWSRetryToken) {
         aws_retry_token_release(token.rawValue)
     }
