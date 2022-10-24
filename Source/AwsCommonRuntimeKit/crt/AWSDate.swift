@@ -51,6 +51,7 @@ public class AWSDate: Comparable {
         self.rawValue = allocatePointer()
         aws_date_time_init_epoch_millis(rawValue, epochMs)
     }
+
     // Todo: this is being used
     public init(epochS: Double) {
         self.rawValue = allocatePointer()

@@ -2,6 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCAuth
+
 // TODO: verify callback logic, fix pointers, and maybe error handling
 public struct SigningConfig {
     public typealias ShouldSignHeader = (String) -> Bool

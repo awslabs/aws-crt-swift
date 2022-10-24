@@ -2,6 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCHttp
+
 public struct HttpHeader {
     public let name: String
     public let value: String

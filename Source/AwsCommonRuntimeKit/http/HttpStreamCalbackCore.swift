@@ -7,12 +7,16 @@ import Foundation
 
 /// Core classes have manual memory management.
 /// You have to balance the retain & release calls in all cases to avoid leaking memory.
-class HttpStreamCallbackDataCore {
+class HttpStreamCallbackCore {
     let requestOptions: HttpRequestOptions
     var stream: HttpStream?
 
     init(requestOptions: HttpRequestOptions) {
         self.requestOptions = requestOptions
+    }
+
+    private func getRetainedSelf() -> UnsafeMutableRawPointer {
+        return Unmanaged.passRetained(self).toOpaque()
     }
 
     /// This function does a manual retain on HttpStreamCallbackDataCore
@@ -28,7 +32,7 @@ class HttpStreamCallbackDataCore {
         options.on_response_header_block_done = onResponseHeaderBlockDone
         options.on_complete = onComplete
         options.on_destroy = onDestroy
-        options.user_data = Unmanaged.passRetained(self).toOpaque()
+        options.user_data = getRetainedSelf()
         return options
     }
 
@@ -37,13 +41,14 @@ class HttpStreamCallbackDataCore {
         Unmanaged.passUnretained(self).release()
     }
 }
+
 // TODO: Maybe update to fire three headers callback (informational, main, and trailing) only once
 func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
                        headerBlock: aws_http_header_block,
                        headerArray: UnsafePointer<aws_http_header>?,
                        headersCount: Int,
                        userData: UnsafeMutableRawPointer!) -> Int32 {
-    let httpStreamCbData: HttpStreamCallbackDataCore = Unmanaged<HttpStreamCallbackDataCore>.fromOpaque(userData).takeUnretainedValue()
+    let httpStreamCbData: HttpStreamCallbackCore = Unmanaged<HttpStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
     var headers = [HttpHeader]()
 
     for cHeader in UnsafeBufferPointer(start: headerArray, count: headersCount) {
@@ -68,7 +73,7 @@ func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
 func onResponseHeaderBlockDone(stream: UnsafeMutablePointer<aws_http_stream>?,
                                headerBlock: aws_http_header_block,
                                userData: UnsafeMutableRawPointer!) -> Int32 {
-    let httpStreamCbData = Unmanaged<HttpStreamCallbackDataCore>.fromOpaque(userData).takeUnretainedValue()
+    let httpStreamCbData = Unmanaged<HttpStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
     let stream = httpStreamCbData.stream!
 
     httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(stream, HttpHeaderBlock(rawValue: headerBlock))
@@ -78,7 +83,7 @@ func onResponseHeaderBlockDone(stream: UnsafeMutablePointer<aws_http_stream>?,
 func onResponseBody(stream: UnsafeMutablePointer<aws_http_stream>?,
                     data: UnsafePointer<aws_byte_cursor>?,
                     userData: UnsafeMutableRawPointer!) -> Int32 {
-    let httpStreamCbData = Unmanaged<HttpStreamCallbackDataCore>.fromOpaque(userData).takeUnretainedValue()
+    let httpStreamCbData = Unmanaged<HttpStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
     guard let bufPtr = data?.pointee.ptr,
           let bufLen = data?.pointee.len else {
         return AWS_OP_ERR
@@ -94,7 +99,7 @@ func onComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
                 errorCode: Int32,
                 userData: UnsafeMutableRawPointer!) {
 
-    let httpStreamCbData = Unmanaged<HttpStreamCallbackDataCore>.fromOpaque(userData).takeUnretainedValue()
+    let httpStreamCbData = Unmanaged<HttpStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
     let stream = httpStreamCbData.stream!
     let onStreamCompleteFn = httpStreamCbData.requestOptions.onStreamComplete
     onStreamCompleteFn(stream, CRTError(code: errorCode))
@@ -102,5 +107,5 @@ func onComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
 }
 
 func onDestroy(userData: UnsafeMutableRawPointer!) {
-    Unmanaged<HttpStreamCallbackDataCore>.fromOpaque(userData).release()
+    Unmanaged<HttpStreamCallbackCore>.fromOpaque(userData).release()
 }
