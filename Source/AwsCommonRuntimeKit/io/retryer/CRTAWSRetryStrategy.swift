@@ -35,14 +35,14 @@ public class CRTAWSRetryStrategy {
     public func acquireToken(timeout: UInt64 = 0, partitionId: String) async throws -> CRTAWSRetryToken {
         return try await withCheckedThrowingContinuation { (continuation: CRTRetryStrategyContinuation) in
             let crtRetryStrategyCore = CRTRetryStrategyCore(continuation: continuation)
-            crtRetryStrategyCore.acquireTokenFromCRT(timeout: timeout, partitionId: partitionId, crtAWSRetryStrategy: self)
+            crtRetryStrategyCore.retainedAcquireTokenFromCRT(timeout: timeout, partitionId: partitionId, crtAWSRetryStrategy: self)
         }
     }
 
     public func scheduleRetry(token: CRTAWSRetryToken, errorType: CRTRetryError) async throws -> CRTAWSRetryToken {
         return try await withCheckedThrowingContinuation({ (continuation: CRTRetryStrategyContinuation) in
             let crtRetryStrategyCore = CRTRetryStrategyCore(continuation: continuation)
-            crtRetryStrategyCore.scheduleRetryToCRT(token: token, errorType: errorType)
+            crtRetryStrategyCore.retainedScheduleRetryToCRT(token: token, errorType: errorType)
         })
     }
 

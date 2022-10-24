@@ -16,7 +16,7 @@ class CRTRetryStrategyCore {
         return Unmanaged<CRTRetryStrategyCore>.passRetained(self).toOpaque()
     }
 
-    func scheduleRetryToCRT(token: CRTAWSRetryToken, errorType: CRTRetryError) {
+    func retainedScheduleRetryToCRT(token: CRTAWSRetryToken, errorType: CRTRetryError) {
         //TODO: callback is called if an error occurred?
         if aws_retry_strategy_schedule_retry(token.rawValue,
                                              errorType.rawValue,
@@ -27,10 +27,10 @@ class CRTRetryStrategyCore {
         }
     }
 
-    func acquireTokenFromCRT(timeout: UInt64, partitionId: String, crtAWSRetryStrategy: CRTAWSRetryStrategy) {
+    func retainedAcquireTokenFromCRT(timeout: UInt64, partitionId: String, crtAWSRetryStrategy: CRTAWSRetryStrategy) {
         //TODO: callback is called if an error occurred?
         if (partitionId.withByteCursorPointer { partitionIdCursorPointer in
-            aws_retry_strategy_acquire_retry_token(crtAWSRetryStrategy.rawValue, partitionIdCursorPointer, onTokenReceived, getRetainedSelf(), timeout)
+            aws_retry_strategy_acquire_retry_token(crtAWSRetryStrategy.rawValue, partitionIdCursorPointer, onRetryTokenAcquired, getRetainedSelf(), timeout)
         }) != AWS_OP_SUCCESS {
             release()
             continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
@@ -58,7 +58,7 @@ func onRetryReady(token: UnsafeMutablePointer<aws_retry_token>?,
     crtRetryStrategyCore.continuation.resume(returning: CRTAWSRetryToken(rawValue: token))
 }
 
-func onTokenReceived(retry_strategy: UnsafeMutablePointer<aws_retry_strategy>?,
+func onRetryTokenAcquired(retry_strategy: UnsafeMutablePointer<aws_retry_strategy>?,
                      errorCode: Int32,
                      token: UnsafeMutablePointer<aws_retry_token>?,
                      userData: UnsafeMutableRawPointer!) {
