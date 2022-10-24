@@ -15,6 +15,10 @@ class HttpStreamCallbackCore {
         self.requestOptions = requestOptions
     }
 
+    private func getRetainedSelf() -> UnsafeMutableRawPointer {
+        return Unmanaged.passRetained(self).toOpaque()
+    }
+
     /// This function does a manual retain on HttpStreamCallbackDataCore
     /// to keep it until until on_destroy callback has fired which will do the release.
     /// If you fail to create something that uses the aws_http_make_request_options,
@@ -28,7 +32,7 @@ class HttpStreamCallbackCore {
         options.on_response_header_block_done = onResponseHeaderBlockDone
         options.on_complete = onComplete
         options.on_destroy = onDestroy
-        options.user_data = Unmanaged.passRetained(self).toOpaque()
+        options.user_data = getRetainedSelf()
         return options
     }
 
