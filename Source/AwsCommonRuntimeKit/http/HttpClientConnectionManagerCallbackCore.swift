@@ -3,6 +3,8 @@
 import AwsCHttp
 
 typealias ConnectionContinuation = CheckedContinuation<HttpClientConnection, Error>
+/// Core classes have manual memory management.
+/// You have to balance the retain & release calls in all cases to avoid leaking memory.
 class HttpClientConnectionManagerCallbackCore {
     let connectionManager: HttpClientConnectionManager
     let continuation: ConnectionContinuation
