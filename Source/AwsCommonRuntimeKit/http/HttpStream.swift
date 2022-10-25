@@ -2,10 +2,13 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
 
-public actor HttpStream {
-    nonisolated let rawValue: UnsafeMutablePointer<aws_http_stream>
+public class HttpStream {
+    let rawValue: UnsafeMutablePointer<aws_http_stream>
     var callbackData: HttpStreamCallbackCore
     private var activated: Bool = false
+
+    /// Stream keeps a reference to HttpConnection to keep it alive
+    private let httpConnection: HttpClientConnection
 
     // Called by HttpClientConnection
     init(httpConnection: HttpClientConnection, options: aws_http_make_request_options, callbackData: HttpStreamCallbackCore) throws {
@@ -14,6 +17,7 @@ public actor HttpStream {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue
+        self.httpConnection = httpConnection
     }
 
     /// Opens the Sliding Read/Write Window by the number of bytes passed as an argument for this HttpStream.
@@ -22,13 +26,13 @@ public actor HttpStream {
     /// number of un-acked bytes.
     /// - Parameters:
     ///   - incrementBy:  How many bytes to increment the sliding window by.
-    public nonisolated func updateWindow(incrementBy: Int) {
+    public func updateWindow(incrementBy: Int) {
         aws_http_stream_update_window(rawValue, incrementBy)
     }
 
     /// Retrieves the Http Response Status Code
     /// - Returns: The status code as `Int32`
-    public nonisolated func statusCode() throws -> Int {
+    public func statusCode() throws -> Int {
         var status: Int32 = 0
         if aws_http_stream_get_incoming_response_status(rawValue, &status) != AWS_OP_SUCCESS {
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -39,15 +43,12 @@ public actor HttpStream {
     /// Activates the client stream.
     /// Multiple calls to activate have no effect if the stream is already activated
     /// This is thread safe because HttpStream is an actor
+    // TODO: make it thread safe
     public func activate() throws {
-        if !activated {
-            activated = true
-            callbackData.stream = self
-            if aws_http_stream_activate(rawValue) != AWS_OP_SUCCESS {
-                activated = false
-                callbackData.stream = nil
-                throw CommonRunTimeError.crtError(.makeFromLastError())
-            }
+        callbackData.stream = self
+        if aws_http_stream_activate(rawValue) != AWS_OP_SUCCESS {
+            callbackData.stream = nil
+            throw CommonRunTimeError.crtError(.makeFromLastError())
         }
     }
 
