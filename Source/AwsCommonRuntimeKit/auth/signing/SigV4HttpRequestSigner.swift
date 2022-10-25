@@ -90,10 +90,12 @@ public class SigV4HttpRequestSigner {
                     if signedRequest == 0 {
                         continuation.resume(returning: callback.pointee.request)
                     } else {
-                        continuation.resume(throwing: CRTError(code: signedRequest))
+                        continuation.resume(throwing: CommonRunTimeError
+                                .crtError(CRTError(code: signedRequest)))
                     }
                 } else {
-                    continuation.resume(throwing: CRTError(code: errorCode))
+                    continuation.resume(throwing: CommonRunTimeError
+                            .crtError(CRTError(code: errorCode)))
                 }
             }
 
