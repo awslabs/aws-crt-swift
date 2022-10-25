@@ -13,27 +13,8 @@ public class HttpClientConnectionManager {
         self.options = options
         let shutdownCallbackCore = ShutdownCallbackCore(options.shutdownCallback)
         let shutdownOptions = shutdownCallbackCore.getRetainedShutdownOptions()
-        guard let rawValue: OpaquePointer = (options.hostName.withByteCursor { hostNameCursor in
-            var mgrOptions = aws_http_connection_manager_options(bootstrap: options.clientBootstrap.rawValue,
-                                                                 initial_window_size: options.initialWindowSize,
-                                                                 socket_options: options.socketOptions.rawValue,
-                                                                 tls_connection_options: options.tlsOptions?.rawValue,
-                                                                 http2_prior_knowledge: false,
-                                                                 monitoring_options: options.monitoringOptions?.rawValue,
-                                                                 host: hostNameCursor,
-                                                                 port: options.port,
-                                                                 initial_settings_array: nil,
-                                                                 num_initial_settings: 0,
-                                                                 max_closed_streams: 0,
-                                                                 http2_conn_manual_window_management: false,
-                                                                 proxy_options: options.proxyOptions?.getRawValue(),
-                                                                 proxy_ev_settings: options.proxyEnvSettings?.getRawValue(),
-                                                                 max_connections: options.maxConnections,
-                                                                 shutdown_complete_user_data: shutdownOptions.shutdown_callback_user_data,
-                                                                 shutdown_complete_callback: shutdownOptions.shutdown_callback_fn,
-                                                                 enable_read_back_pressure: options.enableManualWindowManagement,
-                                                                 max_connection_idle_in_milliseconds: options.maxConnectionIdleMs)
-            return aws_http_connection_manager_new(allocator.rawValue, &mgrOptions)
+        guard let rawValue: OpaquePointer = (options.withCManagerOptions(shutdownOptions: shutdownOptions) { cManagerOptions in
+            return aws_http_connection_manager_new(allocator.rawValue, cManagerOptions)
         }) else {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -44,9 +25,8 @@ public class HttpClientConnectionManager {
     /// Acquires an `HttpClientConnection` asynchronously.
     public func acquireConnection() async throws -> HttpClientConnection {
         return try await withCheckedThrowingContinuation({ (continuation: ConnectionContinuation) in
-            let connectionManagerCallbackCore = HttpClientConnectionManagerCallbackCore(continuation: continuation,
-                                                                        connectionManager: self)
-            connectionManagerCallbackCore.retainedAcquireConnection()
+            HttpClientConnectionManagerCallbackCore(continuation: continuation,
+                                                    connectionManager: self).retainedAcquireConnection()
         })
     }
 

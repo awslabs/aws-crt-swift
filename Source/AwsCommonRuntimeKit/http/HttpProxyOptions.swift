@@ -25,21 +25,32 @@ public class HttpProxyOptions {
         self.port = port
     }
 
-    func getRawValue() -> UnsafeMutablePointer<aws_http_proxy_options> {
-        _basicAuthUsername = AWSStringByteCursor(basicAuthUsername ?? "", allocator: allocator)
-        _basicAuthPassword = AWSStringByteCursor(basicAuthPassword ?? "", allocator: allocator)
-        _hostName = AWSStringByteCursor(hostName, allocator: allocator)
-        rawValue.pointee.port = port
-        rawValue.pointee.host = _hostName!.byteCursor
-        rawValue.pointee.auth_username = _basicAuthUsername!.byteCursor
-        rawValue.pointee.auth_password = _basicAuthPassword!.byteCursor
-        rawValue.pointee.tls_options = UnsafePointer(tlsOptions?.rawValue)
-        rawValue.pointee.auth_type = authType.rawValue
+    static func withCPointer<Result>(proxyOptions: HttpProxyOptions?,
+                                     _ body: (UnsafePointer<aws_http_proxy_options>?
+                                     ) -> Result
+    ) -> Result {
+        guard let proxyOptions = proxyOptions else {
+            return body(nil)
+        }
+        var cProxyOptions = aws_http_proxy_options()
+        cProxyOptions.port = proxyOptions.port
+        cProxyOptions.auth_type = proxyOptions.authType.rawValue
+        cProxyOptions.tls_options = UnsafePointer(proxyOptions.tlsOptions?.rawValue)
 
-        return rawValue
+        return withByteCursorFromStrings(proxyOptions.basicAuthUsername ?? "",
+                proxyOptions.basicAuthPassword ?? "",
+                proxyOptions.hostName) {
+            userNamePointer, passwordPointer, hostPointer in
+            cProxyOptions.host = hostPointer
+            cProxyOptions.auth_username = userNamePointer
+            cProxyOptions.auth_password = passwordPointer
+
+            return withUnsafePointer(to: &cProxyOptions) { body($0) }
+        }
     }
 
     deinit {
         allocator.release(rawValue)
     }
 }
+
