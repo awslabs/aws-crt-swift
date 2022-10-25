@@ -64,9 +64,7 @@ public extension HttpMessage {
     func getHeader(atIndex index: Int) -> HttpHeader? {
         var header = aws_http_header()
         if aws_http_message_get_header(self.rawValue, &header, index) == AWS_OP_SUCCESS {
-            if let name = header.name.toString(), let value = header.value.toString() {
-                return HttpHeader(name: name, value: value)
-            }
+            return HttpHeader(rawValue: header)
         }
         return nil
     }
@@ -77,9 +75,7 @@ public extension HttpMessage {
         var header = aws_http_header()
         for index in 0 ..< headerCount {
             if aws_http_message_get_header(rawValue, &header, index) == AWS_OP_SUCCESS {
-                if let name = header.name.toString(), let value = header.value.toString() {
-                    headers.append( HttpHeader(name: name, value: value))
-                }
+                headers.append(HttpHeader(rawValue: header))
             }
         }
         return headers

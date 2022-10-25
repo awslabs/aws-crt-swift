@@ -99,9 +99,7 @@ public final class HttpHeaders {
         for index in 0...count {
             var header = aws_http_header()
             if aws_http_headers_get_index(self.rawValue, index, &header) == AWS_OP_SUCCESS {
-                if let name = header.name.toString(), let value = header.value.toString() {
-                    headers.append(HttpHeader(name: name, value: value))
-                }
+                headers.append(HttpHeader(rawValue: header))
             } else {
                 continue
             }
