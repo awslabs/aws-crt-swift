@@ -6,6 +6,7 @@ import AwsCAuth
 public class CRTIMDSClient {
     let rawValue: OpaquePointer
     let allocator: Allocator
+
     public init(options: CRTIMDSClientOptions, allocator: Allocator = defaultAllocator) throws {
         self.allocator = allocator
         let shutDownOptions = CRTIMDSClient.setUpShutDownOptions(shutDownOptions: options.shutDownOptions)
