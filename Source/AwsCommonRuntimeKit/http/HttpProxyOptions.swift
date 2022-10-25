@@ -5,12 +5,6 @@ import AwsCCommon
 
 // Todo: try to find a better for a persistent byte cursor
 public class HttpProxyOptions {
-    private let allocator: Allocator
-    private var rawValue: UnsafeMutablePointer<aws_http_proxy_options>
-    private var _basicAuthUsername: AWSStringByteCursor?
-    private var _basicAuthPassword: AWSStringByteCursor?
-    private var _hostName: AWSStringByteCursor?
-
     public var authType: HttpProxyAuthenticationType = .none
     public var basicAuthUsername: String?
     public var basicAuthPassword: String?
@@ -18,9 +12,7 @@ public class HttpProxyOptions {
     public var port: UInt16
     public var tlsOptions: TlsConnectionOptions?
 
-    public init(hostName: String, port: UInt16, allocator: Allocator = defaultAllocator) {
-        self.allocator = allocator
-        self.rawValue = allocator.allocate(capacity: 1)
+    public init(hostName: String, port: UInt16) {
         self.hostName = hostName
         self.port = port
     }
@@ -47,10 +39,6 @@ public class HttpProxyOptions {
 
             return withUnsafePointer(to: &cProxyOptions) { body($0) }
         }
-    }
-
-    deinit {
-        allocator.release(rawValue)
     }
 }
 
