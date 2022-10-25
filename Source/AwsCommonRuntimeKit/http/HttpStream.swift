@@ -7,6 +7,9 @@ public actor HttpStream {
     var callbackData: HttpStreamCallbackCore
     private var activated: Bool = false
 
+    /// Stream keeps a reference to HttpConnection to keep it alive
+    private let httpConnection: HttpClientConnection
+
     // Called by HttpClientConnection
     init(httpConnection: HttpClientConnection, options: aws_http_make_request_options, callbackData: HttpStreamCallbackCore) throws {
         self.callbackData = callbackData
@@ -14,6 +17,7 @@ public actor HttpStream {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue
+        self.httpConnection = httpConnection
     }
 
     /// Opens the Sliding Read/Write Window by the number of bytes passed as an argument for this HttpStream.

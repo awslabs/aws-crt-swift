@@ -65,7 +65,7 @@ public class HttpClientConnectionManager {
     /// this connection.
     /// - Parameters:
     ///     - connection:  `HttpClientConnection` to release
-    public func releaseConnection(connection: HttpClientConnection) throws {
+    func releaseConnection(connection: HttpClientConnection) throws {
         if aws_http_connection_manager_release_connection(rawValue, connection.rawValue) != AWS_OP_SUCCESS {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
