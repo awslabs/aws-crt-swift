@@ -36,9 +36,7 @@ public class HttpProxyOptions {
             cProxyOptions.host = hostPointer
             cProxyOptions.auth_username = userNamePointer
             cProxyOptions.auth_password = passwordPointer
-
             return withUnsafePointer(to: &cProxyOptions) { body($0) }
         }
     }
 }
-
