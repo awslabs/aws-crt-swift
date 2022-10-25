@@ -9,8 +9,8 @@ public class HttpHeader {
     public let compression: HttpHeaderCompression
 
     public init(name: String,
-         value: String,
-         compression: HttpHeaderCompression = .useCache) {
+                value: String,
+                compression: HttpHeaderCompression = .useCache) {
         self.name = name
         self.value = value
         self.compression = compression
