@@ -14,14 +14,14 @@ public struct HttpRequestOptions {
     let request: HttpRequest
     public let onIncomingHeaders: OnIncomingHeaders
     public let onIncomingHeadersBlockDone: OnIncomingHeadersBlockDone
-    public let onIncomingBody: OnIncomingBody?
-    public let onStreamComplete: OnStreamComplete?
+    public let onIncomingBody: OnIncomingBody
+    public let onStreamComplete: OnStreamComplete
 
     public init(request: HttpRequest,
                 onIncomingHeaders: @escaping OnIncomingHeaders,
                 onIncomingHeadersBlockDone: @escaping OnIncomingHeadersBlockDone,
-                onIncomingBody: OnIncomingBody? = nil,
-                onStreamComplete: OnStreamComplete? = nil) {
+                onIncomingBody: @escaping OnIncomingBody,
+                onStreamComplete: @escaping OnStreamComplete) {
         self.request = request
         self.onIncomingHeaders = onIncomingHeaders
         self.onIncomingHeadersBlockDone = onIncomingHeadersBlockDone

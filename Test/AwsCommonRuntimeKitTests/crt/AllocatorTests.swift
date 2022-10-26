@@ -10,11 +10,11 @@ class TracingAllocatorTests: CrtXCBaseTestCase {
     XCTAssertEqual(allocator.bytes, 0)
     XCTAssertEqual(allocator.count, 0)
 
-    let ptr1: UnsafeMutablePointer<UInt32> = try allocator.allocate(capacity: 5)
+    let ptr1: UnsafeMutablePointer<UInt32> =  allocator.allocate(capacity: 5)
     XCTAssertEqual(allocator.bytes, 20)
     XCTAssertEqual(allocator.count, 1)
 
-    let ptr2: UnsafeMutablePointer<UInt8> = try allocator.allocate(capacity: 1_024)
+    let ptr2: UnsafeMutablePointer<UInt8> =  allocator.allocate(capacity: 1_024)
     XCTAssertEqual(allocator.bytes, 1_044)
     XCTAssertEqual(allocator.count, 2)
 

@@ -6,6 +6,8 @@ disabled_rules:
     - closure_parameter_position
     - superfluous_disable_command
     - todo
+    - identifier_name
+    - force_try
 excluded:
     - Test
 

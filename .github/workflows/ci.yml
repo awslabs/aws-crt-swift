@@ -1,13 +1,7 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - '*'
-      - '!main'
   pull_request:
-    branches:
-      - 'main'
 
 env:
   BUILDER_VERSION: v0.9.7
