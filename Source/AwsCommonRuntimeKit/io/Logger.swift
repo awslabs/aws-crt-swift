@@ -17,11 +17,13 @@ public class Logger {
 
     public init(filePath: String, level: LogLevel, allocator: Allocator = defaultAllocator) {
         logger = aws_logger()
-        var options = aws_logger_standard_options()
-        options.level = level.rawValue
-        options.filename = filePath.asCStr()
-        aws_logger_init_standard(&logger, allocator.rawValue, &options)
-        aws_logger_set(&logger)
+        filePath.withCString { cFilePath in
+            var options = aws_logger_standard_options()
+            options.level = level.rawValue
+            options.filename = cFilePath
+            aws_logger_init_standard(&logger, allocator.rawValue, &options)
+            aws_logger_set(&logger)
+        }
     }
 
     deinit {

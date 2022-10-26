@@ -44,7 +44,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             _ = try await provider.getCredentials()
             
         } catch let err {
-            let crtError = err as? CRTError
+            let crtError = err as? CommonRunTimeError
             XCTAssertNotNil(crtError)
         }
     }

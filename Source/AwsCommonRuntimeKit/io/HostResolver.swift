@@ -58,8 +58,8 @@ public final class DefaultHostResolver: HostResolver {
     }
 
     public func resolve(host: String) async throws -> [HostAddress] {
-        return try await withCheckedThrowingContinuation({ (continuation: HostResolvedContinuation) in
-            resolve(host: host, continuation: continuation)
+         return try await withCheckedThrowingContinuation({ (continuation: HostResolvedContinuation) in
+             resolve(host: host, continuation: continuation)
         })
     }
 
@@ -72,7 +72,11 @@ public final class DefaultHostResolver: HostResolver {
         if (aws_host_resolver_resolve_host(rawValue,
                                        options.host.rawValue,
                                        onHostResolved, config, pointer)) != AWS_OP_SUCCESS {
+<<<<<<< HEAD
             continuation.resume(throwing: CRTError.crtError(AWSError(errorCode: aws_last_error())))
+=======
+            continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+>>>>>>> add0cc7 (Refactor Http Layer, Error Handling, and ByteCursor (#84))
         }
     }
 }
@@ -98,7 +102,8 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!
     if errorCode == 0 {
         options.pointee.continuation.resume(returning: addresses)
     } else {
-        options.pointee.continuation.resume(throwing: CRTError(errorCode: errorCode))
+        options.pointee.continuation.resume(throwing: CommonRunTimeError
+                .crtError(CRTError(code: errorCode)))
     }
     options.deinitializeAndDeallocate()
 }

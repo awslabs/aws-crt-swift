@@ -3,25 +3,22 @@
 
 import AwsCHttp
 
-public struct HttpHeader {
-    public var rawValue: aws_http_header
-    public var name: String {
-        return rawValue.name.toString() ?? ""
+public class HttpHeader {
+    public let name: String
+    public let value: String
+    public let compression: HttpHeaderCompression
 
+    public init(name: String,
+                value: String,
+                compression: HttpHeaderCompression = .useCache) {
+        self.name = name
+        self.value = value
+        self.compression = compression
     }
-    public var value: String {
-            return rawValue.value.toString() ?? ""
 
-    }
-    public var compression: HttpHeaderCompression {
-        return HttpHeaderCompression(rawValue: rawValue.compression)
-    }
-
-    init(name: String,
-         value: String,
-         compression: HttpHeaderCompression = .useCache) {
-        self.rawValue = aws_http_header(name: name.awsByteCursor,
-                                        value: value.awsByteCursor,
-                                        compression: compression.rawValue)
+    init(rawValue: aws_http_header) {
+        self.name = rawValue.name.toString() ?? ""
+        self.value = rawValue.value.toString() ?? ""
+        self.compression = HttpHeaderCompression(rawValue: rawValue.compression)
     }
 }

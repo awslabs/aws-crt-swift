@@ -19,11 +19,19 @@ public final class CRTCredentials {
                 secret: String,
                 sessionToken: String?,
                 expirationTimeout: UInt64,
-                allocator: Allocator = defaultAllocator) {
-        self.rawValue = aws_credentials_new(allocator.rawValue,
-                                            accessKey.awsByteCursor,
-                                            secret.awsByteCursor,
-                                            sessionToken?.awsByteCursor ?? "".awsByteCursor, expirationTimeout)
+                allocator: Allocator = defaultAllocator) throws {
+        guard let rawValue = (withByteCursorFromStrings(
+                accessKey,
+                secret,
+                sessionToken ?? "") { accessKeyCursor, secretCursor, sessionTokenCursor in
+            aws_credentials_new(allocator.rawValue,
+                    accessKeyCursor,
+                    secretCursor,
+                    sessionTokenCursor, expirationTimeout)
+        }) else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+        self.rawValue = rawValue
     }
 
     /// Gets the access key from the `aws_credentials` instance
