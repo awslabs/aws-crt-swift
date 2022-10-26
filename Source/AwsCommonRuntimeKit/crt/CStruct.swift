@@ -2,8 +2,8 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCIo
 import AwsCCommon
-/// This file defines the protocols & helper functions for C Structs.
-/// Instances implementing this protocol should define RawType as their C Struct.
+// This file defines the protocols & helper functions for C Structs.
+// Instances implementing this protocol should define RawType as their C Struct.
 protocol CStruct<RawType> {
     associatedtype RawType
     func withCStruct<Result>(shutdownOptions: aws_shutdown_callback_options?, _ body: (RawType) -> Result) -> Result

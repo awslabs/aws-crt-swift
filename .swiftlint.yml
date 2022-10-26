@@ -8,6 +8,7 @@ disabled_rules:
     - todo
     - identifier_name
     - force_try
+    - force_cast
 excluded:
     - Test
 
