@@ -3,7 +3,8 @@
 
 import Foundation
 import AwsCCommon
-//swiftlint:disable trailing_whitespace
+// swiftlint:disable trailing_whitespace
+// Todo: remove/refactor
 public struct CommandLineParser {
     /// A function to parse command line arguments
     /// - Parameters:
@@ -21,7 +22,7 @@ public struct CommandLineParser {
         var argumentsDict = [String: Any]()
         while true {
             var optionIndex: Int32 = 0
-            let opt = aws_cli_getopt_long(argc, arguments, optionString.asCStr(), options, &optionIndex)
+            let opt = aws_cli_getopt_long(argc, arguments, optionString, options, &optionIndex)
             if opt == -1 || opt == 0 {
                 break
             }
@@ -30,7 +31,7 @@ public struct CommandLineParser {
                 if aws_cli_optarg != nil {
                     argumentsDict[char] = String(cString: aws_cli_optarg)
                 } else {
-                    //if argument doesnt have a value just mark it as present in the dictionary
+                    // if argument doesnt have a value just mark it as present in the dictionary
                     argumentsDict[char] = true
                 }
             }
@@ -60,10 +61,16 @@ extension CLIHasArg: RawRepresentable, CaseIterable {
     }
 }
 
-public struct AWSCLIOption {
+public class AWSCLIOption {
     public let rawValue: aws_cli_option
-    
+    let name: UnsafeMutablePointer<CChar>
     public init(name: String, hasArg: CLIHasArg, flag: UnsafeMutablePointer<Int32>? = nil, val: String) {
-        self.rawValue = aws_cli_option(name: name.asCStr(), has_arg: hasArg.rawValue, flag: flag, val: val.toInt32())
+        // TODO: refactor the use of !
+        self.name = strdup(name)!
+        self.rawValue = aws_cli_option(name: self.name, has_arg: hasArg.rawValue, flag: flag, val: Int32(bitPattern: UnicodeScalar(val)?.value ?? 0))
+    }
+
+    deinit {
+        free(name)
     }
 }

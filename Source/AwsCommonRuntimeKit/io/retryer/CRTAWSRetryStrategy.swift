@@ -31,7 +31,9 @@ public final class CRTAWSRetryStrategy {
         var options = aws_standard_retry_options(backoff_retry_options: exponentialBackOffOptions,
                                                  initial_bucket_capacity: options.initialBucketCapacity)
 
-        guard let retryer = aws_retry_strategy_new_standard(allocator.rawValue, &options) else {throw CRTError(errorCode: aws_last_error())}
+        guard let retryer = aws_retry_strategy_new_standard(allocator.rawValue, &options) else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
 
         self.init(retryStrategy: retryer, allocator: allocator)
     }
@@ -46,22 +48,30 @@ public final class CRTAWSRetryStrategy {
     private func acquireTokenFromCRT(timeout: UInt64, partitionId: String, continuation: TokenContinuation) {
         let callbackData = CRTAcquireTokenCallbackData(allocator: allocator, continuation: continuation)
         let pointer: UnsafeMutablePointer<CRTAcquireTokenCallbackData> = fromPointer(ptr: callbackData)
-        let partitionPtr: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: partitionId.awsByteCursor)
-        aws_retry_strategy_acquire_retry_token(rawValue, partitionPtr, { retryerPointer, errorCode, token, userdata in
-            guard let userdata = userdata,
-                  let token = token else {
-                return
-            }
-            let pointer = userdata.assumingMemoryBound(to: CRTAcquireTokenCallbackData.self)
-            defer {pointer.deinitializeAndDeallocate()}
-            if let continuation = pointer.pointee.continuation {
-                if errorCode == 0 {
-                    continuation.resume(returning: CRTAWSRetryToken(rawValue: token))
-                } else {
-                    continuation.resume(throwing: CRTError(errorCode: errorCode))
-                }
-            }
-        }, pointer, timeout)
+        if (partitionId.withByteCursorPointer { partitionIdCursorPointer in
+                aws_retry_strategy_acquire_retry_token(
+                        rawValue,
+                        partitionIdCursorPointer, { retryerPointer, errorCode, token, userdata in
+                    guard let userdata = userdata,
+                          let token = token
+                    else {
+                        return
+                    }
+                    let pointer = userdata.assumingMemoryBound(to: CRTAcquireTokenCallbackData.self)
+                    defer {
+                        pointer.deinitializeAndDeallocate()
+                    }
+                    if let continuation = pointer.pointee.continuation {
+                        if errorCode == 0 {
+                            continuation.resume(returning: CRTAWSRetryToken(rawValue: token))
+                        } else {
+                            continuation.resume(throwing: CRTError(code: errorCode))
+                        }
+                    }
+                }, pointer, timeout)
+        }) != AWS_OP_SUCCESS {
+            continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
+        }
     }
 
     public func scheduleRetry(token: CRTAWSRetryToken, errorType: CRTRetryError) async throws -> CRTAWSRetryToken {
@@ -85,7 +95,7 @@ public final class CRTAWSRetryStrategy {
                 if errorCode == 0 {
                     continuation.resume(returning: CRTAWSRetryToken(rawValue: retryToken))
                 } else {
-                    continuation.resume(throwing: CRTError(errorCode: errorCode))
+                    continuation.resume(throwing: CRTError(code: errorCode))
                 }
             }
         }, pointer)

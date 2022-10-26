@@ -27,7 +27,8 @@ public final class CRTAWSCredentialsProvider {
                                                                 delegate_user_data: credProviderPtr)
 
         guard let credProvider = aws_credentials_provider_new_delegate(allocator.rawValue, &options) else {
-            throw CRTError(errorCode: aws_last_error()) }
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
         self.init(credentialsProvider: credProvider, allocator: allocator)
     }
 
@@ -42,15 +43,17 @@ public final class CRTAWSCredentialsProvider {
         var staticOptions = aws_credentials_provider_static_options()
         staticOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
             shutDownOptions: config.shutDownOptions)
-        staticOptions.access_key_id = config.accessKey.awsByteCursor
-        staticOptions.secret_access_key = config.secret.awsByteCursor
-        if let sessionToken = config.sessionToken?.awsByteCursor {
-            staticOptions.session_token = sessionToken
+        guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
+                config.accessKey,
+                config.secret,
+                config.sessionToken ?? "", { accessKeyCursor, secretCursor, sessionTokenCursor in
+            staticOptions.access_key_id = accessKeyCursor
+            staticOptions.secret_access_key = secretCursor
+            staticOptions.session_token = sessionTokenCursor
+            return aws_credentials_provider_new_static(allocator.rawValue, &staticOptions)
+        }) else {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-
-        guard let provider = aws_credentials_provider_new_static(allocator.rawValue,
-                                                                 &staticOptions) else { throw CRTError(errorCode: aws_last_error()) }
-
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 
@@ -70,7 +73,7 @@ public final class CRTAWSCredentialsProvider {
 
         guard let provider = aws_credentials_provider_new_environment(allocator.rawValue,
                                                                       &envOptions)
-        else { throw CRTError(errorCode: aws_last_error()) }
+        else { throw CommonRunTimeError.crtError(CRTError.makeFromLastError()) }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 
@@ -84,25 +87,21 @@ public final class CRTAWSCredentialsProvider {
                             allocator: Allocator = defaultAllocator) throws {
 
         var profileOptionsC = aws_credentials_provider_profile_options()
-        if let configFileName = profileOptions.configFileNameOverride {
-            profileOptionsC.config_file_name_override = configFileName.awsByteCursor
-        }
 
-        if let credentialsFileName = profileOptions.credentialsFileNameOverride {
-            profileOptionsC.credentials_file_name_override = credentialsFileName.awsByteCursor
-        }
-
-        if let profileName = profileOptions.profileFileNameOverride {
-            profileOptionsC.profile_name_override = profileName.awsByteCursor
-        }
         profileOptionsC.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: profileOptions.shutdownOptions)
 
-        guard let provider = aws_credentials_provider_new_profile(allocator.rawValue,
-                                                                  &profileOptionsC) else {
-            throw CRTError(errorCode: aws_last_error())
-
+        guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
+                profileOptions.configFileNameOverride ?? "",
+                profileOptions.credentialsFileNameOverride ?? "",
+                profileOptions.profileFileNameOverride ?? "", {
+            configFileNameOverrideCursor, credentialsFileNameOverrideCursor, profileFileNameOverrideCursor in
+            profileOptionsC.config_file_name_override = configFileNameOverrideCursor
+            profileOptionsC.credentials_file_name_override = credentialsFileNameOverrideCursor
+            profileOptionsC.profile_name_override = profileFileNameOverrideCursor
+            return aws_credentials_provider_new_profile(allocator.rawValue, &profileOptionsC)
+        }) else {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())//
         }
-
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 
@@ -119,9 +118,10 @@ public final class CRTAWSCredentialsProvider {
         imdsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
             shutDownOptions: imdsConfig.shutdownOptions)
 
-        guard let provider = aws_credentials_provider_new_imds(allocator.rawValue,
-                                                               &imdsOptions) else {throw CRTError(errorCode: aws_last_error()) }
-
+        guard let provider = aws_credentials_provider_new_imds(
+                allocator.rawValue,
+                &imdsOptions) else {
+                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())}
         self.init(credentialsProvider: provider, allocator: allocator)
     }
 
@@ -141,7 +141,7 @@ public final class CRTAWSCredentialsProvider {
         cachedOptions.refresh_time_in_milliseconds = UInt64(cachedConfig.refreshTime)
 
         guard let provider = aws_credentials_provider_new_cached(allocator.rawValue, &cachedOptions) else {
-            throw CRTError(errorCode: aws_last_error())
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -168,7 +168,7 @@ public final class CRTAWSCredentialsProvider {
 
         guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue,
                                                                         &chainDefaultOptions) else {
-            throw CRTError(errorCode: aws_last_error())
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -186,17 +186,20 @@ public final class CRTAWSCredentialsProvider {
             shutDownOptions: x509Config.shutDownOptions)
         x509Options.bootstrap = x509Config.bootstrap.rawValue
         x509Options.tls_connection_options = UnsafePointer(x509Config.tlsConnectionOptions.rawValue)
-        x509Options.thing_name = x509Config.thingName.awsByteCursor
-        x509Options.role_alias = x509Config.roleAlias.awsByteCursor
-        x509Options.endpoint = x509Config.endpoint.awsByteCursor
-
-        if let proxyOptions = x509Config.proxyOptions?.rawValue {
+        if let proxyOptions = x509Config.proxyOptions?.getRawValue() {
             x509Options.proxy_options = UnsafePointer(proxyOptions)
         }
 
-        guard let provider = aws_credentials_provider_new_x509(allocator.rawValue,
-                                                               &x509Options) else {
-            throw CRTError(errorCode: aws_last_error())
+        guard let provider: UnsafeMutablePointer<aws_credentials_provider> = (withByteCursorFromStrings(
+                x509Config.thingName,
+                x509Config.roleAlias,
+                x509Config.endpoint) { thingNameCursor, roleAliasCursor, endPointCursor in
+            x509Options.thing_name = thingNameCursor
+            x509Options.role_alias = roleAliasCursor
+            x509Options.endpoint = endPointCursor
+            return aws_credentials_provider_new_x509(allocator.rawValue, &x509Options)
+        }) else {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -217,7 +220,7 @@ public final class CRTAWSCredentialsProvider {
         stsOptions.function_table = nil
         guard let provider = aws_credentials_provider_new_sts_web_identity(allocator.rawValue,
                                                                            &stsOptions) else {
-            throw CRTError(errorCode: aws_last_error())
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -227,6 +230,7 @@ public final class CRTAWSCredentialsProvider {
     ///
     /// - Parameters:
     ///    - stsConfig: The `CRTCredentialsProviderSTSConfig` options object
+    ///    - allocator: Allocator
     /// - Returns: `AWSCredentialsProvider`
     public convenience init(fromSTS stsConfig: CRTCredentialsProviderSTSConfig,
                             allocator: Allocator = defaultAllocator) throws {
@@ -235,14 +239,18 @@ public final class CRTAWSCredentialsProvider {
         stsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
             shutDownOptions: stsConfig.shutDownOptions)
         stsOptions.creds_provider = stsConfig.credentialsProvider.rawValue
-        stsOptions.role_arn = stsConfig.roleArn.awsByteCursor
-        stsOptions.session_name = stsConfig.sessionName.awsByteCursor
         stsOptions.duration_seconds = stsConfig.durationSeconds
         stsOptions.function_table = nil
         stsOptions.system_clock_fn = nil
 
-        guard let provider = aws_credentials_provider_new_sts(allocator.rawValue, &stsOptions) else {
-            throw CRTError(errorCode: aws_last_error())
+        guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
+                stsConfig.roleArn,
+                stsConfig.sessionName, {roleArnCursor, sessionNameCursor in
+            stsOptions.role_arn = roleArnCursor
+            stsOptions.session_name = sessionNameCursor
+            return aws_credentials_provider_new_sts(allocator.rawValue, &stsOptions)
+        }) else {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -259,19 +267,18 @@ public final class CRTAWSCredentialsProvider {
         ecsOptions.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
             shutDownOptions: containerConfig.shutDownOptions)
         ecsOptions.bootstrap = containerConfig.bootstrap.rawValue
-        if let host = containerConfig.host {
-            ecsOptions.host = host.awsByteCursor
-        }
-        if let authToken = containerConfig.authToken {
-            ecsOptions.auth_token = authToken.awsByteCursor
-        }
-        if let pathAndQuery = containerConfig.pathAndQuery {
-            ecsOptions.path_and_query = pathAndQuery.awsByteCursor
-        }
         ecsOptions.function_table = nil
 
-        guard let provider = aws_credentials_provider_new_ecs(allocator.rawValue, &ecsOptions) else {
-            throw CRTError(errorCode: aws_last_error())
+        guard let provider: UnsafeMutablePointer<aws_credentials_provider> = (withByteCursorFromStrings(
+                containerConfig.host ?? "",
+                containerConfig.authToken ?? "",
+                containerConfig.pathAndQuery ?? "") { hostCursor, authTokenCursor, pathAndQueryCursor in
+            ecsOptions.host = hostCursor
+            ecsOptions.auth_token = authTokenCursor
+            ecsOptions.path_and_query = pathAndQueryCursor
+            return  aws_credentials_provider_new_ecs(allocator.rawValue, &ecsOptions)
+        }) else {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.init(credentialsProvider: provider, allocator: allocator)
     }
@@ -301,7 +308,7 @@ public final class CRTAWSCredentialsProvider {
                let crtCredentials = CRTCredentials(rawValue: credentials) {
                 pointer.pointee.continuation?.resume(returning: crtCredentials)
             } else {
-                pointer.pointee.continuation?.resume(throwing: CRTError(errorCode: errorCode))
+                pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
             }
 
         }, pointer)
@@ -344,8 +351,8 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer?,
             let credentials = try await credentialsProvider.pointee.getCredentials()
             callbackFn?(credentials.rawValue, 0, callbackPointer)
         } catch let crtError as CRTError {
-            callbackFn?(nil, crtError.errorCode, callbackPointer)
-        } catch {} //TODO: handle other errors
+            callbackFn?(nil, crtError.code, callbackPointer)
+        } catch {} // TODO: handle other errors
     }
     return 0
 }
