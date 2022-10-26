@@ -5,6 +5,8 @@ import AwsCSdkUtils
 
 /// Rule engine for matching endpoint rules
 public class CRTAWSEndpointsRuleEngine {
+    let partitions: UnsafeMutablePointer<aws_partitions_config>
+    let ruleSet: UnsafeMutablePointer<aws_endpoints_ruleset>
     let rawValue: OpaquePointer
 
     /// Initialize a new rule engine
@@ -19,6 +21,8 @@ public class CRTAWSEndpointsRuleEngine {
             throw CRTError.crtError(AWSError.makeFromLastError())
         }
 
+        self.partitions = partitions
+        self.ruleSet = ruleSet
         self.rawValue = rawValue
     }
 
@@ -43,6 +47,8 @@ public class CRTAWSEndpointsRuleEngine {
     }
 
     deinit {
+        aws_partitions_config_release(partitions)
         aws_endpoints_rule_engine_release(rawValue)
+        aws_endpoints_ruleset_release(ruleSet)
     }
 }
