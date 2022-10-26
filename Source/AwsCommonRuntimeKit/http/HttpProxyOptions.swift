@@ -15,9 +15,10 @@ public class HttpProxyOptions: CStruct {
         self.hostName = hostName
         self.port = port
     }
-    
-    typealias cStructType = aws_http_proxy_options
-    func withCStruct<Result>(_ body: (aws_http_proxy_options) -> Result
+
+    typealias CStructType = aws_http_proxy_options
+    func withCStruct<Result>(shutdownOptions _: aws_shutdown_callback_options? = nil,
+                             _ body: (aws_http_proxy_options) -> Result
     ) -> Result {
         var cProxyOptions = aws_http_proxy_options()
         cProxyOptions.port = port
