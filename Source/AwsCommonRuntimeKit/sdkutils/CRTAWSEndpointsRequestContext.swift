@@ -5,7 +5,7 @@ import AwsCSdkUtils
 
 /// Request context used for resolving endpoint
 public class CRTAWSEndpointsRequestContext {
-    let rawValue: OpaquePointer
+    let rawValue: UnsafeMutablePointer<aws_endpoints_request_context>
 
     /// Initialize a new request context
     /// - Parameter allocator: Allocator to use for request context creation
