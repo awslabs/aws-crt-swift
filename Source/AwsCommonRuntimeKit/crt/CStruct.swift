@@ -3,13 +3,13 @@
 import AwsCIo
 import AwsCCommon
 
-protocol CStruct<cStructType> {
-    associatedtype cStructType
-    func withCStruct<Result>(_ body: (cStructType) -> Result) -> Result
+protocol CStruct<CStructType> {
+    associatedtype CStructType
+    func withCStruct<Result>(_ body: (CStructType) -> Result) -> Result
 }
 
 extension CStruct {
-    func withCPointer<Result>(_ body: (UnsafePointer<cStructType>) -> Result) -> Result {
+    func withCPointer<Result>(_ body: (UnsafePointer<CStructType>) -> Result) -> Result {
         return withCStruct { cStruct in
             return withUnsafePointer(to: cStruct) { body($0) }
         }
@@ -17,17 +17,16 @@ extension CStruct {
 }
 
 protocol CStructWithShutdownOptions: CStruct {
-    associatedtype cStructType
-    func withCStruct<Result>(shutdownOptions: aws_shutdown_callback_options, _ body: (cStructType) -> Result) -> Result
+    func withCStruct<Result>(shutdownOptions: aws_shutdown_callback_options, _ body: (CStructType) -> Result) -> Result
 }
 
 extension CStructWithShutdownOptions {
 
-    func withCStruct<Result>( _ body: (cStructType) -> Result) -> Result {
+    func withCStruct<Result>( _ body: (CStructType) -> Result) -> Result {
         withCStruct(shutdownOptions: aws_shutdown_callback_options(), body)
     }
 
-    func withCPointer<Result>(shutdownOptions: aws_shutdown_callback_options, _ body: (UnsafePointer<cStructType>) -> Result) -> Result {
+    func withCPointer<Result>(shutdownOptions: aws_shutdown_callback_options, _ body: (UnsafePointer<CStructType>) -> Result) -> Result {
         return withCStruct(shutdownOptions: shutdownOptions) { cStruct in
             return withUnsafePointer(to: cStruct) { body($0) }
         }

@@ -4,7 +4,6 @@ import AwsCHttp
 import AwsCCommon
 
 public class HttpProxyOptions: CStruct {
-    typealias cStructType = aws_http_proxy_options
     public var authType: HttpProxyAuthenticationType = .none
     public var basicAuthUsername: String?
     public var basicAuthPassword: String?
@@ -16,7 +15,8 @@ public class HttpProxyOptions: CStruct {
         self.hostName = hostName
         self.port = port
     }
-
+    
+    typealias cStructType = aws_http_proxy_options
     func withCStruct<Result>(_ body: (aws_http_proxy_options) -> Result
     ) -> Result {
         var cProxyOptions = aws_http_proxy_options()
