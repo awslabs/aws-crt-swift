@@ -13,17 +13,14 @@ public class HttpMonitoringOptions {
     let rawValue: UnsafeMutablePointer<aws_http_connection_monitoring_options>
 
     init(minThroughputBytesPerSecond: Int = 0,
-         allowableThroughputFailureInterval: Int = 2) {
+         allowableThroughputFailureInterval: Int = 2,
+         allocator: Allocator = defaultAllocator) {
         self.minThroughputBytesPerSecond = minThroughputBytesPerSecond
         self.allowableThroughputFailureInterval = allowableThroughputFailureInterval
 
-        let options = aws_http_connection_monitoring_options(
-            minimum_throughput_bytes_per_second: UInt64(minThroughputBytesPerSecond),
-            allowable_throughput_failure_interval_seconds: UInt32(allowableThroughputFailureInterval),
-            statistics_observer_fn: nil,
-            statistics_observer_user_data: nil)
-        self.rawValue = fromPointer(ptr: options)
-
+        self.rawValue = allocator.allocate(capacity: 1)
+        rawValue.pointee.minimum_throughput_bytes_per_second = UInt64(minThroughputBytesPerSecond)
+        rawValue.pointee.allowable_throughput_failure_interval_seconds = UInt32(allowableThroughputFailureInterval)
     }
 
     deinit {

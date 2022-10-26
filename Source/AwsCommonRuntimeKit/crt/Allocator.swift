@@ -16,13 +16,6 @@ public protocol Allocator {
 }
 
 internal extension Allocator {
-    func allocate<T>() throws -> UnsafeMutablePointer<T> {
-        guard let result = aws_mem_acquire(self.rawValue, MemoryLayout<T>.size) else {
-            fatalError("Failed to allocate memory.")
-        }
-        return result.bindMemory(to: T.self, capacity: 1)
-    }
-
     /**
      * Allocates memory on the heap.
      *
@@ -32,7 +25,7 @@ internal extension Allocator {
      * - Returns: The allocated memory
      * - Throws AwsError.memoryAllocationFailure: If the allocation failed.
      */
-    func allocate<T>(capacity: Int) throws -> UnsafeMutablePointer<T> {
+    func allocate<T>(capacity: Int) -> UnsafeMutablePointer<T> {
         guard let result = aws_mem_calloc(self.rawValue, capacity, MemoryLayout<T>.size) else {
             fatalError("Failed to allocate memory.")
         }

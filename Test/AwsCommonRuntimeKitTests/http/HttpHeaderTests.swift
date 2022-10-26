@@ -9,7 +9,7 @@ class HttpHeaderTests: CrtXCBaseTestCase {
     
     override func setUp() {
         super.setUp()
-        httpHeaders = HttpHeaders(allocator: allocator)
+        httpHeaders = try? HttpHeaders(allocator: allocator)
         let headerAdded = httpHeaders?.add(name: "Test", value: "Value")
         XCTAssertTrue(headerAdded!)
     }
@@ -18,8 +18,8 @@ class HttpHeaderTests: CrtXCBaseTestCase {
         httpHeaders = nil
     }
     
-    func testCreateHttpHeaders() {
-        _ = HttpHeaders(allocator: allocator)
+    func testCreateHttpHeaders() throws {
+        _ = try HttpHeaders(allocator: allocator)
     }
     
     func testGetAllHttpHeaders() {
