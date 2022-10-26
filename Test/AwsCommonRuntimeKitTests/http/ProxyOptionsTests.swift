@@ -23,15 +23,15 @@ class ProxyOptionsTests: CrtXCBaseTestCase {
         XCTAssertEqual(proxyOptions.basicAuthUsername, username)
         XCTAssertEqual(proxyOptions.basicAuthPassword, password)
 
-        HttpProxyOptions.withCPointer(proxyOptions: proxyOptions) { proxyOptionsPointer in
+        proxyOptions.withCPointer { proxyOptionsPointer in
             XCTAssertNotNil(proxyOptionsPointer)
-            XCTAssertEqual(proxyOptionsPointer?.pointee.auth_type, authType.rawValue)
+            XCTAssertEqual(proxyOptionsPointer.pointee.auth_type, authType.rawValue)
             username.withByteCursorPointer { usernameCursorPointer in
-                var cUserName = proxyOptionsPointer!.pointee.auth_username
+                var cUserName = proxyOptionsPointer.pointee.auth_username
                 XCTAssertTrue(aws_byte_cursor_eq(&cUserName, usernameCursorPointer))
             }
             password.withByteCursorPointer { passwordCursorPointer in
-                var cPassword = proxyOptionsPointer!.pointee.auth_password
+                var cPassword = proxyOptionsPointer.pointee.auth_password
                 XCTAssertTrue(aws_byte_cursor_eq(&cPassword, passwordCursorPointer))
             }
         }
@@ -45,10 +45,10 @@ class ProxyOptionsTests: CrtXCBaseTestCase {
         }
         XCTAssertNotNil(proxyOptions)
         XCTAssertEqual(proxyOptions.hostName, "newHost")
-        HttpProxyOptions.withCPointer(proxyOptions: proxyOptions) { proxyOptionsPointer in
+        proxyOptions.withCPointer { proxyOptionsPointer in
             XCTAssertNotNil(proxyOptionsPointer)
             "newHost".withByteCursorPointer { hostCursorPointer in
-                var cHost = proxyOptionsPointer!.pointee.host
+                var cHost = proxyOptionsPointer.pointee.host
                 XCTAssertTrue(aws_byte_cursor_eq(&cHost, hostCursorPointer))
             }
         }
@@ -61,9 +61,9 @@ class ProxyOptionsTests: CrtXCBaseTestCase {
 
         XCTAssertNotNil(proxyOptions)
         XCTAssertNotNil(proxyOptions.tlsOptions)
-        HttpProxyOptions.withCPointer(proxyOptions: proxyOptions) { proxyOptionsPointer in
+        proxyOptions.withCPointer { proxyOptionsPointer in
             XCTAssertNotNil(proxyOptionsPointer)
-            XCTAssertNotNil(proxyOptionsPointer?.pointee.tls_options)
+            XCTAssertNotNil(proxyOptionsPointer.pointee.tls_options)
         }
     }
 }

@@ -200,8 +200,8 @@ public final class CRTAWSCredentialsProvider {
             x509Options.thing_name = thingNameCursor
             x509Options.role_alias = roleAliasCursor
             x509Options.endpoint = endPointCursor
-            return HttpProxyOptions.withCPointer(proxyOptions: x509Config.proxyOptions) { proxyOptions in
-                x509Options.proxy_options = proxyOptions
+            return withOptionalCStructPointer(to: x509Config.proxyOptions) { proxyOptionsPointer in
+                x509Options.proxy_options = proxyOptionsPointer
                 return aws_credentials_provider_new_x509(allocator.rawValue, &x509Options)
             }
         }) else {

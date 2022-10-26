@@ -3,8 +3,8 @@
 import AwsCHttp
 import AwsCCommon
 
-// Todo: try to find a better for a persistent byte cursor
-public class HttpProxyOptions {
+public class HttpProxyOptions: CStruct {
+    typealias cStructType = aws_http_proxy_options
     public var authType: HttpProxyAuthenticationType = .none
     public var basicAuthUsername: String?
     public var basicAuthPassword: String?
@@ -17,26 +17,21 @@ public class HttpProxyOptions {
         self.port = port
     }
 
-    static func withCPointer<Result>(proxyOptions: HttpProxyOptions?,
-                                     _ body: (UnsafePointer<aws_http_proxy_options>?
-                                     ) -> Result
+    func withCStruct<Result>(_ body: (aws_http_proxy_options) -> Result
     ) -> Result {
-        guard let proxyOptions = proxyOptions else {
-            return body(nil)
-        }
         var cProxyOptions = aws_http_proxy_options()
-        cProxyOptions.port = proxyOptions.port
-        cProxyOptions.auth_type = proxyOptions.authType.rawValue
-        cProxyOptions.tls_options = UnsafePointer(proxyOptions.tlsOptions?.rawValue)
+        cProxyOptions.port = port
+        cProxyOptions.auth_type = authType.rawValue
+        cProxyOptions.tls_options = UnsafePointer(tlsOptions?.rawValue)
 
-        return withByteCursorFromStrings(proxyOptions.basicAuthUsername ?? "",
-                proxyOptions.basicAuthPassword ?? "",
-                proxyOptions.hostName) {
+        return withByteCursorFromStrings(basicAuthUsername ?? "",
+                                         basicAuthPassword ?? "",
+                                         hostName) {
             userNamePointer, passwordPointer, hostPointer in
             cProxyOptions.host = hostPointer
             cProxyOptions.auth_username = userNamePointer
             cProxyOptions.auth_password = passwordPointer
-            return withUnsafePointer(to: &cProxyOptions) { body($0) }
+            return body(cProxyOptions)
         }
     }
 }
