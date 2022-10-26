@@ -26,9 +26,7 @@ public final class TlsConnectionOptions {
 
 	public func setServerName(_ serverName: String) throws {
 		if (serverName.withByteCursorPointer { serverNameCursorPointer in
-			aws_tls_connection_options_set_server_name(rawValue,
-                                                       self.allocator.rawValue,
-													   serverNameCursorPointer)
+			aws_tls_connection_options_set_server_name(rawValue, allocator.rawValue, serverNameCursorPointer)
 		}) != AWS_OP_SUCCESS {
 			throw CommonRunTimeError.crtError(.makeFromLastError())
 		}
