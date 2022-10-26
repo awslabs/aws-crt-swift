@@ -2,6 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
 
+// Todo: handle errors and fix allocations, and make this internal
 public class AWSDate: Comparable {
     let rawValue: UnsafeMutablePointer<aws_date_time>
 
@@ -51,6 +52,7 @@ public class AWSDate: Comparable {
         aws_date_time_init_epoch_millis(rawValue, epochMs)
     }
 
+    // Todo: this is being used
     public init(epochS: Double) {
         self.rawValue = allocatePointer()
         aws_date_time_init_epoch_secs(rawValue, epochS)
@@ -58,9 +60,10 @@ public class AWSDate: Comparable {
 
     public init(timestamp: String) {
         self.rawValue = allocatePointer()
-        let pointer: UnsafeMutablePointer<aws_byte_cursor> = fromPointer(ptr: timestamp.awsByteCursor)
-        defer { pointer.deinitializeAndDeallocate()}
-        aws_date_time_init_from_str_cursor(rawValue, pointer, DateFormat.autoDetect.rawValue)
+        // Todo: handle error
+        _ = timestamp.withByteCursorPointer { timeStampCursorPointer in
+            aws_date_time_init_from_str_cursor(rawValue, timeStampCursorPointer, DateFormat.autoDetect.rawValue)
+        }
     }
 
     public static func == (lhs: AWSDate, rhs: AWSDate) -> Bool {

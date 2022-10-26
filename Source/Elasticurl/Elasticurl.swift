@@ -9,10 +9,10 @@ import Glibc
 #else
 import Darwin
 #endif
-
-//swiftlint:disable cyclomatic_complexity type_body_length
+// TODO: refactor
+// swiftlint:disable cyclomatic_complexity type_body_length
 struct Context {
-    //args
+    // args
     public var logLevel: LogLevel = .trace
     public var verb: String = "GET"
     public var caCert: String?
@@ -277,13 +277,13 @@ struct Elasticurl {
 
             var stream: HttpStream?
 
-            let httpRequest: HttpRequest = HttpRequest(allocator: allocator)
+            let httpRequest: HttpRequest = try HttpRequest(allocator: allocator)
             httpRequest.method = context.verb
             let path = context.url.path == "" ? "/" : context.url.path
 
             httpRequest.path = path
 
-            let headers = HttpHeaders(allocator: allocator)
+            let headers = try HttpHeaders(allocator: allocator)
             if headers.add(name: "Host", value: host),
                headers.add(name: "User-Agent", value: "Elasticurl"),
                headers.add(name: "Accept", value: "*/*"),
@@ -320,7 +320,7 @@ struct Elasticurl {
             }
 
             let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
-                print(error.errorMessage)
+                print(error.message)
 
                 semaphore.signal()
             }
@@ -334,7 +334,7 @@ struct Elasticurl {
                                                                 tlsOptions: tlsConnectionOptions,
                                                                 monitoringOptions: nil)
 
-            let connectionManager = HttpClientConnectionManager(options: httpClientOptions)
+            let connectionManager = try HttpClientConnectionManager(options: httpClientOptions)
             do {
                 let connection = try await connectionManager.acquireConnection()
                 let requestOptions = HttpRequestOptions(request: httpRequest,
@@ -342,8 +342,8 @@ struct Elasticurl {
                                                         onIncomingHeadersBlockDone: onBlockDone,
                                                         onIncomingBody: onBody,
                                                         onStreamComplete: onComplete)
-                stream = connection.makeRequest(requestOptions: requestOptions)
-                stream!.activate()
+                stream = try connection.makeRequest(requestOptions: requestOptions)
+                try stream!.activate()
 
             } catch {
                 print("connection has shut down with error: \(error.localizedDescription)" )

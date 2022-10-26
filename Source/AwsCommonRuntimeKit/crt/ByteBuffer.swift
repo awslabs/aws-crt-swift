@@ -16,7 +16,8 @@ import AwsCCal
      import Darwin
  #endif
 
-//swiftlint:disable identifier_name superfluous_disable_command
+// swiftlint:disable identifier_name superfluous_disable_command
+// Todo: this is being used. Refactor
 public class ByteBuffer: Codable {
 
     public init(size: Int) {
@@ -29,6 +30,7 @@ public class ByteBuffer: Codable {
         self.capacity = bytes.count
     }
 
+    //Todo: do not expose pointer
     public init(ptr: UnsafeMutablePointer<UInt8>, len: Int, capacity: Int) {
         let buffer = UnsafeBufferPointer(start: ptr, count: len)
         self.array = Array(buffer)
@@ -332,10 +334,10 @@ extension ByteBuffer {
         while stream.hasBytesAvailable {
             let read = stream.read(buffer, maxLength: bufferSize)
             if read < 0 {
-                //Stream error occured
+                // Stream error occured
                 throw stream.streamError!
             } else if read == 0 {
-                //EOF
+                // EOF
                 break
             }
             allocate(read)
