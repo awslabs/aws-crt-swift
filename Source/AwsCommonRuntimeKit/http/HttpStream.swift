@@ -5,7 +5,6 @@ import AwsCHttp
 public class HttpStream {
     let rawValue: UnsafeMutablePointer<aws_http_stream>
     var callbackData: HttpStreamCallbackCore
-    private var activated: Bool = false
 
     /// Stream keeps a reference to HttpConnection to keep it alive
     private let httpConnection: HttpClientConnection
@@ -41,8 +40,6 @@ public class HttpStream {
     }
 
     /// Activates the client stream.
-    /// Multiple calls to activate have no effect if the stream is already activated
-    /// This is thread safe because HttpStream is an actor
     // TODO: make it thread safe
     public func activate() throws {
         callbackData.stream = self

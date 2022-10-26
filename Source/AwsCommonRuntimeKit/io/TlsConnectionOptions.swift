@@ -28,7 +28,7 @@ public final class TlsConnectionOptions {
 		if (serverName.withByteCursorPointer { serverNameCursorPointer in
 			aws_tls_connection_options_set_server_name(rawValue,
                                                        self.allocator.rawValue,
-					                                   serverNameCursorPointer)
+													   serverNameCursorPointer)
 		}) != AWS_OP_SUCCESS {
 			throw CommonRunTimeError.crtError(.makeFromLastError())
 		}

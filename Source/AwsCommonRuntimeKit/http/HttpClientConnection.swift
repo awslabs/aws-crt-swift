@@ -26,7 +26,7 @@ public class HttpClientConnection {
     }
 
     /// Close the http connection
-    public func close() throws {
+    public func close() {
         aws_http_connection_close(rawValue)
     }
 
