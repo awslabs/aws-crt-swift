@@ -3,6 +3,7 @@
 import AwsCHttp
 
 public class HttpClientConnectionOptions: CStruct {
+
     /// The client bootstrap instance to use to create the pool's connections
     public let clientBootstrap: ClientBootstrap
     /// The host name to use for connections in the connection pool
@@ -71,7 +72,7 @@ public class HttpClientConnectionOptions: CStruct {
         self.shutdownCallback = shutdownCallback
     }
 
-    typealias CStructType = aws_http_connection_manager_options
+    typealias RawType = aws_http_connection_manager_options
     func withCStruct<Result>(shutdownOptions: aws_shutdown_callback_options?, _ body: (aws_http_connection_manager_options) -> Result
     ) -> Result {
         return hostName.withByteCursor { hostNameCursor in
