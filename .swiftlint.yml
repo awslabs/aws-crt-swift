@@ -8,10 +8,8 @@ disabled_rules:
     - todo
     - identifier_name
     - force_try
-<<<<<<< HEAD
     - force_cast
-=======
->>>>>>> crt-refactor
+
 excluded:
     - Test
 
