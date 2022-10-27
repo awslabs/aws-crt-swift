@@ -24,7 +24,7 @@ class HttpClientConnectionManagerCallbackCore {
     }
 }
 
-func onConnectionSetup(connection: UnsafeMutablePointer<aws_http_connection>?,
+private func onConnectionSetup(connection: UnsafeMutablePointer<aws_http_connection>?,
                        errorCode: Int32,
                        userData: UnsafeMutableRawPointer!) {
     let callbackDataCore = Unmanaged<HttpClientConnectionManagerCallbackCore>.fromOpaque(userData!).takeRetainedValue()
