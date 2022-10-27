@@ -58,9 +58,7 @@ class HttpHeaderTests: CrtXCBaseTestCase {
         let header = HttpHeader(name: "AddMe", value: "Please")
         let header1 = HttpHeader(name: "DontForget", value: "AboutMe")
         let header2 = HttpHeader(name: "How", value: "CouldI")
-        let header3 = HttpHeader(name: "", value: "")
-
-        headersToAdd = [header, header1, header2, header3]
+        headersToAdd = [header, header1, header2]
         
         httpHeaders?.addArray(headers: headersToAdd)
         XCTAssertEqual(httpHeaders?.count, 4)

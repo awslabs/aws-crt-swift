@@ -35,7 +35,7 @@ public class SigV4HttpRequestSigner {
         typealias SignedContinuation = CheckedContinuation<HttpRequest, Error>
 
         //TODO: Fix. This is weird. We should not throw make from last error here.
-        if config.configType != .aws || (config.credentialsProvider == nil && config.credentials == nil)  {
+        if config.configType != .aws || (config.credentialsProvider == nil && config.credentials == nil) {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
 

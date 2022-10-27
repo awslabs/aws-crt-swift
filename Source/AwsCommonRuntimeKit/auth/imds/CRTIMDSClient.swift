@@ -273,6 +273,7 @@ public class CRTIMDSClient {
     }
 }
 
+//TODO: fix callback
 private func onGetCredentialsCallback(credentialsPointer: OpaquePointer?,
                                       errorCode: Int32,
                                       userData: UnsafeMutableRawPointer!) {
