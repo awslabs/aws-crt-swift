@@ -34,7 +34,7 @@ public struct HttpClientConnectionOptions {
     public let maxConnections: Int
 
     /// Add a shut down callback using these options
-    public let shutDownOptions: ShutDownCallbackOptions?
+    public let shutdownCallback: ShutdownCallback?
 
     /// If set to a non-zero value, then connections that stay in the pool longer than the specified
     /// timeout will be closed automatically.
@@ -54,7 +54,7 @@ public struct HttpClientConnectionOptions {
                 maxConnections: Int = 2,
                 enableManualWindowManagement: Bool = false,
                 maxConnectionIdleMs: UInt64 = 0,
-                shutDownOptions: ShutDownCallbackOptions? = nil) {
+                shutdownCallback: ShutdownCallback? = nil) {
 
         self.clientBootstrap = bootstrap
         self.hostName = hostName
@@ -68,6 +68,6 @@ public struct HttpClientConnectionOptions {
         self.maxConnections = maxConnections
         self.enableManualWindowManagement = enableManualWindowManagement
         self.maxConnectionIdleMs = maxConnectionIdleMs
-        self.shutDownOptions = shutDownOptions
+        self.shutdownCallback = shutdownCallback
     }
 }
