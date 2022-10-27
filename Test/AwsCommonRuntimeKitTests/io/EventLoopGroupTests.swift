@@ -6,17 +6,15 @@ import Foundation
 
 class EventLoopGroupTests: CrtXCBaseTestCase {
 
-    func testCanCreateGroup() {
-        let shutDownOptions = ShutDownCallbackOptions { semaphore in
-            semaphore.signal()
+    func testCanCreateGroup() async throws {
+        let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
+        _ = try EventLoopGroup(allocator: allocator) {
+            shutdownWasCalled.fulfill()
         }
-        _ = EventLoopGroup(allocator: allocator, shutDownOptions: shutDownOptions)
+        wait(for: [shutdownWasCalled], timeout: 15)
     }
 
-    func testCanCreateGroupWithThreads() {
-        let shutDownOptions = ShutDownCallbackOptions { semaphore in
-            semaphore.signal()
-        }
-        _ = EventLoopGroup(threadCount: 2, allocator: allocator, shutDownOptions: shutDownOptions)
+    func testCanCreateGroupWithThreads() throws {
+        _ = try EventLoopGroup(threadCount: 2, allocator: allocator)
     }
 }
