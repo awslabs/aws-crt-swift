@@ -5,15 +5,15 @@ public struct CRTIMDSClientOptions {
     public let bootstrap: ClientBootstrap
     public let retryStrategy: CRTAWSRetryStrategy
     public let protocolVersion: CRTIMDSProtocolVersion
-    public let shutDownOptions: CRTIDMSClientShutdownOptions?
+    public let shutdownCallback: ShutdownCallback?
 
     public init(bootstrap: ClientBootstrap,
                 retryStrategy: CRTAWSRetryStrategy,
                 protocolVersion: CRTIMDSProtocolVersion = .version2,
-                shutDownOptions: CRTIDMSClientShutdownOptions? = nil) {
+                shutdownCallback: ShutdownCallback? = nil) {
         self.bootstrap = bootstrap
         self.retryStrategy = retryStrategy
         self.protocolVersion = protocolVersion
-        self.shutDownOptions = shutDownOptions
+        self.shutdownCallback = shutdownCallback
     }
 }

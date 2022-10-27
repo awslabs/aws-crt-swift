@@ -9,13 +9,15 @@ public class CRTIMDSClient {
 
     public init(options: CRTIMDSClientOptions, allocator: Allocator = defaultAllocator) throws {
         self.allocator = allocator
-        let shutDownOptions = CRTIMDSClient.setUpShutDownOptions(shutDownOptions: options.shutDownOptions)
-        var imdsOptions = aws_imds_client_options(shutdown_options: shutDownOptions,
+        let shutdownCallbackCore = ShutdownCallbackCore(options.shutdownCallback)
+        let shutdownOptions = shutdownCallbackCore.getRetainedIMDSClientShutdownOptions()
+        var imdsOptions = aws_imds_client_options(shutdown_options: shutdownOptions,
                                                   bootstrap: options.bootstrap.rawValue,
                                                   retry_strategy: options.retryStrategy.rawValue,
                                                   imds_version: options.protocolVersion.rawValue,
                                                   function_table: nil)
         guard let rawValue = aws_imds_client_new(allocator.rawValue, &imdsOptions) else {
+            shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.rawValue = rawValue
@@ -285,22 +287,6 @@ public class CRTIMDSClient {
                 pointer.deinitializeAndDeallocate()
             }, pointer)
         })
-    }
-
-    static func setUpShutDownOptions(shutDownOptions: CRTIDMSClientShutdownOptions?)
-    -> aws_imds_client_shutdown_options {
-
-        let pointer: UnsafeMutablePointer<CRTIDMSClientShutdownOptions>? = fromOptionalPointer(ptr: shutDownOptions)
-        let shutDownOptionsC = aws_imds_client_shutdown_options(shutdown_callback: { userData in
-            guard let userData = userData else {
-                return
-            }
-            let pointer = userData.assumingMemoryBound(to: CRTIDMSClientShutdownOptions.self)
-            pointer.pointee.shutDownCallback()
-            pointer.deinitializeAndDeallocate()
-        }, shutdown_user_data: pointer)
-
-        return shutDownOptionsC
     }
 
     deinit {
