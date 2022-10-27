@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
 
-public class HttpClientConnectionOptions: CStruct {
+public class HttpClientConnectionOptions: CStructWithShutdownOptions {
 
     /// The client bootstrap instance to use to create the pool's connections
     public let clientBootstrap: ClientBootstrap
@@ -73,7 +73,7 @@ public class HttpClientConnectionOptions: CStruct {
     }
 
     typealias RawType = aws_http_connection_manager_options
-    func withCStruct<Result>(shutdownOptions: aws_shutdown_callback_options?, _ body: (aws_http_connection_manager_options) -> Result
+    func withCStruct<Result>(shutdownOptions: aws_shutdown_callback_options, _ body: (aws_http_connection_manager_options) -> Result
     ) -> Result {
         return hostName.withByteCursor { hostNameCursor in
             return withOptionalCStructPointer(to: proxyOptions) { proxyOptionsPointer in
@@ -91,8 +91,8 @@ public class HttpClientConnectionOptions: CStruct {
                 cManagerOptions.max_closed_streams = 0
                 cManagerOptions.http2_conn_manual_window_management = false
                 cManagerOptions.proxy_options = proxyOptionsPointer
-                cManagerOptions.shutdown_complete_user_data = shutdownOptions?.shutdown_callback_user_data
-                cManagerOptions.shutdown_complete_callback = shutdownOptions?.shutdown_callback_fn
+                cManagerOptions.shutdown_complete_user_data = shutdownOptions.shutdown_callback_user_data
+                cManagerOptions.shutdown_complete_callback = shutdownOptions.shutdown_callback_fn
                 cManagerOptions.proxy_ev_settings = UnsafePointer(proxyEnvSettings?.getRawValue())
                 cManagerOptions.max_connections = maxConnections
                 cManagerOptions.enable_read_back_pressure = enableManualWindowManagement

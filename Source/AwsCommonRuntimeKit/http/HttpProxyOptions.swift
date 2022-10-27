@@ -17,9 +17,7 @@ public class HttpProxyOptions: CStruct {
     }
 
     typealias RawType = aws_http_proxy_options
-    func withCStruct<Result>(shutdownOptions _: aws_shutdown_callback_options? = nil,
-                             _ body: (aws_http_proxy_options) -> Result
-    ) -> Result {
+    func withCStruct<Result>(_ body: (aws_http_proxy_options) -> Result) -> Result {
         var cProxyOptions = aws_http_proxy_options()
         cProxyOptions.port = port
         cProxyOptions.auth_type = authType.rawValue
