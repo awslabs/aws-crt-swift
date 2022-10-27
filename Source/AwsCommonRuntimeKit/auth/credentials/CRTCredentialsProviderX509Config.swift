@@ -3,13 +3,13 @@
 #if os(macOS)
 
 public protocol CRTCredentialsProviderX509Config {
-    var shutDownOptions: CRTCredentialsProviderShutdownOptions? {get set}
-    var bootstrap: ClientBootstrap {get set}
-    var tlsConnectionOptions: TlsConnectionOptions { get set}
-    var thingName: String { get set}
-    var roleAlias: String { get set}
-    var endpoint: String { get set}
-    var proxyOptions: HttpProxyOptions? {get set}
+    var shutdownCallback: ShutdownCallback? { get }
+    var bootstrap: ClientBootstrap { get }
+    var tlsConnectionOptions: TlsConnectionOptions { get }
+    var thingName: String { get }
+    var roleAlias: String { get }
+    var endpoint: String { get }
+    var proxyOptions: HttpProxyOptions? { get }
 }
 
 #endif
