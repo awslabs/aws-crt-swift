@@ -92,7 +92,7 @@ public final class CRTAWSCredentialsProvider {
                             allocator: Allocator = defaultAllocator) throws {
         let shutdownCallbackCore = ShutdownCallbackCore(profileOptions.shutdownCallback)
         var profileOptionsC = aws_credentials_provider_profile_options()
-
+        
         profileOptionsC.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                 profileOptions.configFileNameOverride ?? "",
