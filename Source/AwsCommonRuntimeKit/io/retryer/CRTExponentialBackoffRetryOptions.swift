@@ -1,6 +1,6 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
-
+import AwsCIo
 public typealias GenerateRandom = () -> UInt64
 
 public struct CRTExponentialBackoffRetryOptions: CStruct {
@@ -25,10 +25,11 @@ public struct CRTExponentialBackoffRetryOptions: CStruct {
     typealias RawType = aws_exponential_backoff_retry_options
     func withCStruct<Result>(_ body: (aws_exponential_backoff_retry_options) -> Result) -> Result {
         var cExponentialBackoffRetryOptions = aws_exponential_backoff_retry_options()
-        cExponentialBackoffRetryOptions.el_group = options.backOffRetryOptions.eventLoopGroup.rawValue
-        cExponentialBackoffRetryOptions.max_retries = options.backOffRetryOptions.maxRetries
-        cExponentialBackoffRetryOptions.backoff_scale_factor_ms = options.backOffRetryOptions.backOffScaleFactor
-        cExponentialBackoffRetryOptions.jitter_mode = options.backOffRetryOptions.jitterMode.rawValue
-        cExponentialBackoffRetryOptions.generate_random = ni
+        cExponentialBackoffRetryOptions.el_group = eventLoopGroup.rawValue
+        cExponentialBackoffRetryOptions.max_retries = maxRetries
+        cExponentialBackoffRetryOptions.backoff_scale_factor_ms = backOffScaleFactor
+        cExponentialBackoffRetryOptions.jitter_mode = jitterMode.rawValue
+        //TODO: fix generate random
+        return body(cExponentialBackoffRetryOptions)
     }
 }
