@@ -3,7 +3,7 @@
 
 public typealias GenerateRandom = () -> UInt64
 
-public struct CRTExponentialBackoffRetryOptions {
+public struct CRTExponentialBackoffRetryOptions: CStruct {
     let eventLoopGroup: EventLoopGroup
     let maxRetries: Int
     let backOffScaleFactor: UInt32
@@ -20,5 +20,15 @@ public struct CRTExponentialBackoffRetryOptions {
         self.backOffScaleFactor = backOffScaleFactor
         self.jitterMode = jitterMode
         self.generateRandom = generateRandom
+    }
+
+    typealias RawType = aws_exponential_backoff_retry_options
+    func withCStruct<Result>(_ body: (aws_exponential_backoff_retry_options) -> Result) -> Result {
+        var cExponentialBackoffRetryOptions = aws_exponential_backoff_retry_options()
+        cExponentialBackoffRetryOptions.el_group = options.backOffRetryOptions.eventLoopGroup.rawValue
+        cExponentialBackoffRetryOptions.max_retries = options.backOffRetryOptions.maxRetries
+        cExponentialBackoffRetryOptions.backoff_scale_factor_ms = options.backOffRetryOptions.backOffScaleFactor
+        cExponentialBackoffRetryOptions.jitter_mode = options.backOffRetryOptions.jitterMode.rawValue
+        cExponentialBackoffRetryOptions.generate_random = ni
     }
 }

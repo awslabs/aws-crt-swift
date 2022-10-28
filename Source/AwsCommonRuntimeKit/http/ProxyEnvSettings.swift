@@ -21,7 +21,6 @@ public class ProxyEnvSettings: CStruct {
         cProxyEnvSettings.env_var_type = envVarType.rawValue
         cProxyEnvSettings.connection_type = proxyConnectionType.rawValue
         cProxyEnvSettings.tls_options = tlsOptions?.rawValue
-
         return body(cProxyEnvSettings)
     }
 }

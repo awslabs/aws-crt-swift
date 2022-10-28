@@ -47,3 +47,24 @@ func withOptionalCStructPointer<T, Result>(
     }
     return body(nil)
 }
+
+func withOptionalCStructPointer<Arg1Type, Arg2Type, Arg3Type, Arg4Type, Result>(
+        _ arg1: (any CStruct)?,
+        _ arg2: (any CStruct)?,
+        _ arg3: (any CStruct)?,
+        _ arg4: (any CStruct)?,
+        _ body: (UnsafePointer<Arg1Type>?,
+                 UnsafePointer<Arg2Type>?,
+                 UnsafePointer<Arg3Type>?,
+                 UnsafePointer<Arg4Type>?) -> Result
+) -> Result {
+    return withOptionalCStructPointer(to: arg1) { arg1Pointer in
+        return withOptionalCStructPointer(to: arg2) { arg2Pointer in
+            return withOptionalCStructPointer(to: arg3) { arg3Pointer in
+                return withOptionalCStructPointer(to: arg4) { arg4Pointer in
+                    return body(arg1Pointer, arg2Pointer, arg3Pointer, arg4Pointer)
+                }
+            }
+        }
+    }
+}
