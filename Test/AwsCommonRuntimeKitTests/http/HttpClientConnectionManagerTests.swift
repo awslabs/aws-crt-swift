@@ -30,7 +30,7 @@ class HttpClientConnectionManagerTests: CrtXCBaseTestCase {
                     hostName: host,
                     initialWindowSize: Int.max,
                     port: port,
-                    proxyOptions: nil,
+                    proxyOptions: HttpProxyOptions(hostName: "localhost", port: 80),
                     socketOptions: socketOptions,
                     tlsOptions: tlsConnectionOptions,
                     monitoringOptions: nil) {

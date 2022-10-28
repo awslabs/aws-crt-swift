@@ -2,10 +2,11 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCAuth
-// TODO: fix pointers and look for other errors
+// TODO: fix pointers and look for other errors, continue continuation if error during sync call, Use core class and Unmanaged
 public class CRTIMDSClient {
     let rawValue: OpaquePointer
     let allocator: Allocator
+
     public init(options: CRTIMDSClientOptions, allocator: Allocator = defaultAllocator) throws {
         self.allocator = allocator
         let shutdownCallbackCore = ShutdownCallbackCore(options.shutdownCallback)
@@ -26,11 +27,12 @@ public class CRTIMDSClient {
     /// - Parameters:
     ///    - resourcePath: `String` path of the resource to query
     public func getResource(resourcePath: String) async throws -> String? {
-        let resourcePathCursor = AWSStringByteCursor(resourcePath, allocator: allocator)
         return try await withCheckedThrowingContinuation { (continuation: ResourceContinuation) in
-            let callbackData = CRTIMDSClientResourceCallbackData(continuation: continuation)
-            let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
-            aws_imds_client_get_resource_async(rawValue, resourcePathCursor.byteCursor, resourceCallback, pointer)
+            resourcePath.withByteCursor { resourcePathCursor in
+                let callbackData = CRTIMDSClientResourceCallbackData(continuation: continuation)
+                let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
+                aws_imds_client_get_resource_async(rawValue, resourcePathCursor, resourceCallback, pointer)
+            }
         }
     }
 
@@ -193,34 +195,12 @@ public class CRTIMDSClient {
     ///    - callbackData: The `CRTCredentialsCallbackData` object with an async callback
     public func getCredentials(iamRoleName: String) async throws -> CRTCredentials {
         return try await withCheckedThrowingContinuation({ (continuation: CredentialsContinuation) in
-            getCredentialsFromCRT(iamRoleName: iamRoleName, continuation: continuation)
+            iamRoleName.withByteCursor { iamRoleNameCursor in
+                let callbackData = CRTCredentialsProviderCallbackData(continuation: continuation)
+                let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
+                aws_imds_client_get_credentials(rawValue, iamRoleNameCursor, onGetCredentialsCallback, pointer)
+            }
         })
-    }
-
-    public func getCredentialsFromCRT(iamRoleName: String, continuation: CredentialsContinuation) {
-        let callbackData = CRTCredentialsProviderCallbackData(continuation: continuation)
-        let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
-
-        let iamRoleNameAWSStr = AWSStringByteCursor(iamRoleName, allocator: allocator)
-        if aws_imds_client_get_credentials(
-                rawValue,
-                iamRoleNameAWSStr.byteCursor, { credentialsPointer, errorCode, userData in
-            guard let userData = userData else {
-                return
-            }
-            let pointer = userData.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
-
-            if errorCode == 0,
-               let credentialsPointer = credentialsPointer,
-               let crtCredentials = CRTCredentials(rawValue: credentialsPointer) {
-                pointer.pointee.continuation?.resume(returning: crtCredentials)
-            } else {
-                pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
-            }
-            pointer.deinitializeAndDeallocate()
-        }, pointer) != AWS_OP_SUCCESS {
-            continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
-        }
     }
 
     /// Gets the iam profile information of the ec2 instance from the instance metadata document
@@ -291,6 +271,24 @@ public class CRTIMDSClient {
     deinit {
         aws_imds_client_release(rawValue)
     }
+}
+
+//TODO: fix callback
+private func onGetCredentialsCallback(credentialsPointer: OpaquePointer?,
+                                      errorCode: Int32,
+                                      userData: UnsafeMutableRawPointer!) {
+        let pointer = userData.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
+        if errorCode != AWS_OP_SUCCESS {
+            pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+            return
+        }
+        if let credentialsPointer = credentialsPointer,
+        let crtCredentials = CRTCredentials(rawValue: credentialsPointer) {
+            pointer.pointee.continuation?.resume(returning: crtCredentials)
+        } else {
+            pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        }
+        pointer.deinitializeAndDeallocate()
 }
 
 private func resourceCallback(_ byteBuf: UnsafePointer<aws_byte_buf>?,

@@ -92,7 +92,6 @@ public final class CRTAWSCredentialsProvider {
                             allocator: Allocator = defaultAllocator) throws {
         let shutdownCallbackCore = ShutdownCallbackCore(profileOptions.shutdownCallback)
         var profileOptionsC = aws_credentials_provider_profile_options()
-
         profileOptionsC.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                 profileOptions.configFileNameOverride ?? "",
@@ -191,9 +190,6 @@ public final class CRTAWSCredentialsProvider {
         var x509Options = aws_credentials_provider_x509_options()
         x509Options.bootstrap = x509Config.bootstrap.rawValue
         x509Options.tls_connection_options = UnsafePointer(x509Config.tlsConnectionOptions.rawValue)
-        if let proxyOptions = x509Config.proxyOptions?.getRawValue() {
-            x509Options.proxy_options = UnsafePointer(proxyOptions)
-        }
         x509Options.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
         guard let provider: UnsafeMutablePointer<aws_credentials_provider> = (withByteCursorFromStrings(
@@ -203,7 +199,10 @@ public final class CRTAWSCredentialsProvider {
             x509Options.thing_name = thingNameCursor
             x509Options.role_alias = roleAliasCursor
             x509Options.endpoint = endPointCursor
-            return aws_credentials_provider_new_x509(allocator.rawValue, &x509Options)
+            return withOptionalCStructPointer(to: x509Config.proxyOptions) { proxyOptionsPointer in
+                x509Options.proxy_options = proxyOptionsPointer
+                return aws_credentials_provider_new_x509(allocator.rawValue, &x509Options)
+            }
         }) else {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())

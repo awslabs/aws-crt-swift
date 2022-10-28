@@ -25,7 +25,7 @@ class HttpTests: CrtXCBaseTestCase {
         let connection = try await connectionManager.acquireConnection()
 
         let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
-        try await stream.activate()
+        try stream.activate()
         semaphore.wait()
         let status_code = try stream.statusCode()
         XCTAssertEqual(status_code, 200)

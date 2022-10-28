@@ -26,29 +26,27 @@ public class HttpClientConnection {
     }
 
     /// Close the http connection
-// TODO: do we need a explicit close function or deinit is enough?
-//    public func close() throws
-//        try manager.releaseConnection(connection: self)
-//        manager = nil
-//    }
+    public func close() {
+        aws_http_connection_close(rawValue)
+    }
 
     /// Creates a new http stream from the `HttpRequestOptions` given.
     /// - Parameter requestOptions: An `HttpRequestOptions` struct containing callbacks on
     /// the different events from the stream
     /// - Returns: An `HttpStream` containing the `HttpClientConnection`
     public func makeRequest(requestOptions: HttpRequestOptions) throws -> HttpStream {
-        let httpStreamCallbackDataCore = HttpStreamCallbackDataCore(requestOptions: requestOptions)
+        let httpStreamCallbackCore = HttpStreamCallbackCore(requestOptions: requestOptions)
         do {
             return try HttpStream(httpConnection: self,
-                    options: httpStreamCallbackDataCore.getRetainedHttpMakeRequestOptions(),
-                    callbackData: httpStreamCallbackDataCore)
+                    options: httpStreamCallbackCore.getRetainedHttpMakeRequestOptions(),
+                    callbackData: httpStreamCallbackCore)
         } catch {
-            httpStreamCallbackDataCore.release()
+            httpStreamCallbackCore.release()
             throw error
         }
     }
 
     deinit {
-      try? manager.releaseConnection(connection: self)
+      try! manager.releaseConnection(connection: self)
     }
 }

@@ -3,14 +3,7 @@
 import AwsCHttp
 import AwsCCommon
 
-// Todo: try to find a better for a persistent byte cursor
-public class HttpProxyOptions {
-    private let allocator: Allocator
-    private var rawValue: UnsafeMutablePointer<aws_http_proxy_options>
-    private var _basicAuthUsername: AWSStringByteCursor?
-    private var _basicAuthPassword: AWSStringByteCursor?
-    private var _hostName: AWSStringByteCursor?
-
+public class HttpProxyOptions: CStruct {
     public var authType: HttpProxyAuthenticationType = .none
     public var basicAuthUsername: String?
     public var basicAuthPassword: String?
@@ -18,28 +11,26 @@ public class HttpProxyOptions {
     public var port: UInt16
     public var tlsOptions: TlsConnectionOptions?
 
-    public init(hostName: String, port: UInt16, allocator: Allocator = defaultAllocator) {
-        self.allocator = allocator
-        self.rawValue = allocator.allocate(capacity: 1)
+    public init(hostName: String, port: UInt16) {
         self.hostName = hostName
         self.port = port
     }
 
-    func getRawValue() -> UnsafeMutablePointer<aws_http_proxy_options> {
-        _basicAuthUsername = AWSStringByteCursor(basicAuthUsername ?? "", allocator: allocator)
-        _basicAuthPassword = AWSStringByteCursor(basicAuthPassword ?? "", allocator: allocator)
-        _hostName = AWSStringByteCursor(hostName, allocator: allocator)
-        rawValue.pointee.port = port
-        rawValue.pointee.host = _hostName!.byteCursor
-        rawValue.pointee.auth_username = _basicAuthUsername!.byteCursor
-        rawValue.pointee.auth_password = _basicAuthPassword!.byteCursor
-        rawValue.pointee.tls_options = UnsafePointer(tlsOptions?.rawValue)
-        rawValue.pointee.auth_type = authType.rawValue
+    typealias RawType = aws_http_proxy_options
+    func withCStruct<Result>(_ body: (aws_http_proxy_options) -> Result) -> Result {
+        var cProxyOptions = aws_http_proxy_options()
+        cProxyOptions.port = port
+        cProxyOptions.auth_type = authType.rawValue
+        cProxyOptions.tls_options = UnsafePointer(tlsOptions?.rawValue)
 
-        return rawValue
-    }
-
-    deinit {
-        allocator.release(rawValue)
+        return withByteCursorFromStrings(basicAuthUsername ?? "",
+                                         basicAuthPassword ?? "",
+                                         hostName) {
+            userNamePointer, passwordPointer, hostPointer in
+            cProxyOptions.host = hostPointer
+            cProxyOptions.auth_username = userNamePointer
+            cProxyOptions.auth_password = passwordPointer
+            return body(cProxyOptions)
+        }
     }
 }

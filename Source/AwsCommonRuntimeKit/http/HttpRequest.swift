@@ -3,8 +3,8 @@
 import AwsCHttp
 import AwsCIo
 import AwsCCommon
-
-public final class HttpRequest: HttpMessage {
+// TODO: HttpRequest & HttpMessage relationship
+public class HttpRequest: HttpMessage {
 
     public override init(allocator: Allocator = defaultAllocator) throws {
         try super.init(allocator: allocator)
