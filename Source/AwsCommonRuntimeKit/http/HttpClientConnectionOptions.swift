@@ -77,27 +77,29 @@ public class HttpClientConnectionOptions: CStructWithShutdownOptions {
     ) -> Result {
         return hostName.withByteCursor { hostNameCursor in
             return withOptionalCStructPointer(to: proxyOptions) { proxyOptionsPointer in
-                var cManagerOptions = aws_http_connection_manager_options()
-                cManagerOptions.bootstrap = clientBootstrap.rawValue
-                cManagerOptions.initial_window_size = initialWindowSize
-                cManagerOptions.socket_options = UnsafePointer(socketOptions.rawValue) //TODO: fix
-                cManagerOptions.tls_connection_options = UnsafePointer(tlsOptions?.rawValue)
-                cManagerOptions.http2_prior_knowledge = false
-                cManagerOptions.monitoring_options = UnsafePointer(monitoringOptions?.rawValue)
-                cManagerOptions.host = hostNameCursor
-                cManagerOptions.port = port
-                cManagerOptions.initial_settings_array = nil
-                cManagerOptions.num_initial_settings = 0
-                cManagerOptions.max_closed_streams = 0
-                cManagerOptions.http2_conn_manual_window_management = false
-                cManagerOptions.proxy_options = proxyOptionsPointer
-                cManagerOptions.shutdown_complete_user_data = shutdownOptions.shutdown_callback_user_data
-                cManagerOptions.shutdown_complete_callback = shutdownOptions.shutdown_callback_fn
-                cManagerOptions.proxy_ev_settings = UnsafePointer(proxyEnvSettings?.getRawValue())
-                cManagerOptions.max_connections = maxConnections
-                cManagerOptions.enable_read_back_pressure = enableManualWindowManagement
-                cManagerOptions.max_connection_idle_in_milliseconds = maxConnectionIdleMs
-                return body(cManagerOptions)
+                return withOptionalCStructPointer(to: proxyEnvSettings) { proxyEnvSettingsPointer in
+                    var cManagerOptions = aws_http_connection_manager_options()
+                    cManagerOptions.bootstrap = clientBootstrap.rawValue
+                    cManagerOptions.initial_window_size = initialWindowSize
+                    cManagerOptions.socket_options = UnsafePointer(socketOptions.rawValue) //TODO: fix
+                    cManagerOptions.tls_connection_options = UnsafePointer(tlsOptions?.rawValue)
+                    cManagerOptions.http2_prior_knowledge = false
+                    cManagerOptions.monitoring_options = UnsafePointer(monitoringOptions?.rawValue)
+                    cManagerOptions.host = hostNameCursor
+                    cManagerOptions.port = port
+                    cManagerOptions.initial_settings_array = nil
+                    cManagerOptions.num_initial_settings = 0
+                    cManagerOptions.max_closed_streams = 0
+                    cManagerOptions.http2_conn_manual_window_management = false
+                    cManagerOptions.proxy_options = proxyOptionsPointer
+                    cManagerOptions.shutdown_complete_user_data = shutdownOptions.shutdown_callback_user_data
+                    cManagerOptions.shutdown_complete_callback = shutdownOptions.shutdown_callback_fn
+                    cManagerOptions.proxy_ev_settings = proxyEnvSettingsPointer
+                    cManagerOptions.max_connections = maxConnections
+                    cManagerOptions.enable_read_back_pressure = enableManualWindowManagement
+                    cManagerOptions.max_connection_idle_in_milliseconds = maxConnectionIdleMs
+                    return body(cManagerOptions)
+                }
             }
         }
     }
