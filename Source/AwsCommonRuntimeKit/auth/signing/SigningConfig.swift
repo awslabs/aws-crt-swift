@@ -52,7 +52,6 @@ public class SigningConfig: CStruct {
     }
 
     typealias RawType = aws_signing_config_aws
-
     func withCStruct<Result>(_ body: (aws_signing_config_aws) -> Result) -> Result {
         var cSigningConfig = aws_signing_config_aws()
         cSigningConfig.config_type = configType.rawValue
