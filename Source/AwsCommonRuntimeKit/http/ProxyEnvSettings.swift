@@ -20,7 +20,7 @@ public class ProxyEnvSettings: CStruct {
         var cProxyEnvSettings = proxy_env_var_settings()
         cProxyEnvSettings.env_var_type = envVarType.rawValue
         cProxyEnvSettings.connection_type = proxyConnectionType.rawValue
-        cProxyEnvSettings.tls_options = UnsafePointer(tlsOptions?.rawValue)
+        cProxyEnvSettings.tls_options = tlsOptions?.rawValue
 
         return body(cProxyEnvSettings)
     }

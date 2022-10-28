@@ -82,7 +82,7 @@ public class HttpClientConnectionOptions: CStructWithShutdownOptions {
                     cManagerOptions.bootstrap = clientBootstrap.rawValue
                     cManagerOptions.initial_window_size = initialWindowSize
                     cManagerOptions.socket_options = UnsafePointer(socketOptions.rawValue) //TODO: fix
-                    cManagerOptions.tls_connection_options = UnsafePointer(tlsOptions?.rawValue)
+                    cManagerOptions.tls_connection_options = tlsOptions?.rawValue
                     cManagerOptions.http2_prior_knowledge = false
                     cManagerOptions.monitoring_options = UnsafePointer(monitoringOptions?.rawValue)
                     cManagerOptions.host = hostNameCursor

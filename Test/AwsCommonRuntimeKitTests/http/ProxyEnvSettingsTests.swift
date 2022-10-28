@@ -28,6 +28,5 @@ class ProxyEnvSettingsTests: CrtXCBaseTestCase {
             XCTAssertEqual(cProxyEnvSetting.env_var_type, envVarType.rawValue)
             XCTAssertNotNil(cProxyEnvSetting.tls_options)
         }
-
     }
 }
