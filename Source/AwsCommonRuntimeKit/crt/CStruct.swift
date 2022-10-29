@@ -63,7 +63,6 @@ func withOptionalCStructPointer<Arg1Type,
     }
 }
 
-
 func withOptionalCStructPointer<Arg1Type,
                                 Arg2Type,
                                 Arg3Type,

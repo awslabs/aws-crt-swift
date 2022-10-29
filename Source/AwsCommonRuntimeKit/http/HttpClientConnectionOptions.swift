@@ -2,24 +2,24 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
 
-public class HttpClientConnectionOptions: CStructWithShutdownOptions {
+public struct HttpClientConnectionOptions: CStructWithShutdownOptions {
 
     /// The client bootstrap instance to use to create the pool's connections
-    public let clientBootstrap: ClientBootstrap
+    public var clientBootstrap: ClientBootstrap
     /// The host name to use for connections in the connection pool
-    public let hostName: String
+    public var hostName: String
     /// The IO channel window size to use for connections in the connection pool
-    public let initialWindowSize: Int
+    public var initialWindowSize: Int
     /// The port to connect to for connections in the connection pool
-    public let port: UInt16
+    public var port: UInt16
     /// The proxy options for connections in the connection pool
-    public let proxyOptions: HttpProxyOptions?
+    public var proxyOptions: HttpProxyOptions?
     /// Configuration for using proxy from environment variable. Only works when proxyOptions is not set.
-    public let proxyEnvSettings: ProxyEnvSettings?
+    public var proxyEnvSettings: ProxyEnvSettings?
     /// The socket options to use for connections in the connection pool
     public var socketOptions: SocketOptions
     /// The tls options to use for connections in the connection pool
-    public let tlsOptions: TlsConnectionOptions?
+    public var tlsOptions: TlsConnectionOptions?
     /**
      If set to true, then the TCP read back pressure mechanism will be enabled. You should
      only use this if you're allowing http response body data to escape the callbacks. E.g. you're
@@ -29,19 +29,19 @@ public class HttpClientConnectionOptions: CStructWithShutdownOptions {
      byte read from the OnIncomingBody callback.
      Will be true if manual window management is used, but defaults to false
      */
-    public let enableManualWindowManagement: Bool
+    public var enableManualWindowManagement: Bool
 
     /// Max connections the manager can contain
-    public let maxConnections: Int
+    public var maxConnections: Int
 
     /// Add a shut down callback using these options
     public let shutdownCallback: ShutdownCallback?
 
     /// If set to a non-zero value, then connections that stay in the pool longer than the specified
     /// timeout will be closed automatically.
-    public let maxConnectionIdleMs: UInt64
+    public var maxConnectionIdleMs: UInt64
 
-    public let monitoringOptions: HttpMonitoringOptions?
+    public var monitoringOptions: HttpMonitoringOptions?
 
     public init(clientBootstrap bootstrap: ClientBootstrap,
                 hostName: String,

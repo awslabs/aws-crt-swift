@@ -4,21 +4,21 @@
 import AwsCAuth
 
 // TODO: verify callback logic, fix pointers, and maybe error handling
-public class SigningConfig: CStruct {
+public struct SigningConfig: CStruct {
     public typealias ShouldSignHeader = (String) -> Bool
-    public let credentials: CRTCredentials?
-    public let credentialsProvider: CRTAWSCredentialsProvider?
-    public let expiration: Int64
-    public let signedBodyHeader: SignedBodyHeaderType
-    public let signedBodyValue: SignedBodyValue
-    public let flags: Flags
-    public let shouldSignHeader: ShouldSignHeader?
-    public let date: AWSDate
-    public let service: String
-    public let region: String
-    public let signatureType: SignatureType
-    public let signingAlgorithm: SigningAlgorithmType
-    public let configType: SigningConfigType
+    public var credentials: CRTCredentials?
+    public var credentialsProvider: CRTAWSCredentialsProvider?
+    public var expiration: Int64
+    public var signedBodyHeader: SignedBodyHeaderType
+    public var signedBodyValue: SignedBodyValue
+    public var flags: Flags
+    public var shouldSignHeader: ShouldSignHeader?
+    public var date: AWSDate
+    public var service: String
+    public var region: String
+    public var signatureType: SignatureType
+    public var signingAlgorithm: SigningAlgorithmType
+    public var configType: SigningConfigType
 
     public init(credentials: CRTCredentials? = nil,
                 credentialsProvider: CRTAWSCredentialsProvider? = nil,
@@ -48,7 +48,6 @@ public class SigningConfig: CStruct {
         self.signatureType = signatureType
         self.signingAlgorithm = signingAlgorithm
         self.configType = configType
-
     }
 
     typealias RawType = aws_signing_config_aws
