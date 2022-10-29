@@ -48,22 +48,43 @@ func withOptionalCStructPointer<T, Result>(
     return body(nil)
 }
 
-func withOptionalCStructPointer<Arg1Type, Arg2Type, Arg3Type, Arg4Type, Result>(
+func withOptionalCStructPointer<Arg1Type,
+                                Arg2Type,
+                                Result>(
+        _ arg1: (any CStruct)?,
+        _ arg2: (any CStruct)?,
+        _ body: (UnsafePointer<Arg1Type>?,
+                 UnsafePointer<Arg2Type>?) -> Result
+) -> Result {
+    return withOptionalCStructPointer(to: arg1) { arg1Pointer in
+        return withOptionalCStructPointer(to: arg2) { arg2Pointer in
+            return body(arg1Pointer, arg2Pointer)
+        }
+    }
+}
+
+
+func withOptionalCStructPointer<Arg1Type,
+                                Arg2Type,
+                                Arg3Type,
+                                Arg4Type,
+                                Arg5Type,
+                                Result>(
         _ arg1: (any CStruct)?,
         _ arg2: (any CStruct)?,
         _ arg3: (any CStruct)?,
         _ arg4: (any CStruct)?,
+        _ arg5: (any CStruct)?,
         _ body: (UnsafePointer<Arg1Type>?,
                  UnsafePointer<Arg2Type>?,
                  UnsafePointer<Arg3Type>?,
-                 UnsafePointer<Arg4Type>?) -> Result
+                 UnsafePointer<Arg4Type>?,
+                 UnsafePointer<Arg5Type>?) -> Result
 ) -> Result {
-    return withOptionalCStructPointer(to: arg1) { arg1Pointer in
-        return withOptionalCStructPointer(to: arg2) { arg2Pointer in
-            return withOptionalCStructPointer(to: arg3) { arg3Pointer in
-                return withOptionalCStructPointer(to: arg4) { arg4Pointer in
-                    return body(arg1Pointer, arg2Pointer, arg3Pointer, arg4Pointer)
-                }
+    return withOptionalCStructPointer(arg1, arg2) { arg1Pointer, arg2Pointer in
+        return withOptionalCStructPointer(arg3, arg4) { arg3Pointer, arg4Pointer in
+            return withOptionalCStructPointer(to: arg5) { arg5Pointer in
+                return body(arg1Pointer, arg2Pointer, arg3Pointer, arg4Pointer, arg5Pointer)
             }
         }
     }

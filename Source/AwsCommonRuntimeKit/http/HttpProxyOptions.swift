@@ -21,7 +21,6 @@ public class HttpProxyOptions: CStruct {
         var cProxyOptions = aws_http_proxy_options()
         cProxyOptions.port = port
         cProxyOptions.auth_type = authType.rawValue
-        cProxyOptions.tls_options = tlsOptions?.rawValue
 
         return withByteCursorFromStrings(basicAuthUsername ?? "",
                                          basicAuthPassword ?? "",
@@ -30,7 +29,10 @@ public class HttpProxyOptions: CStruct {
             cProxyOptions.host = hostPointer
             cProxyOptions.auth_username = userNamePointer
             cProxyOptions.auth_password = passwordPointer
-            return body(cProxyOptions)
+            return withOptionalCStructPointer(to: tlsOptions) { tlsOptionsPointer in
+                cProxyOptions.tls_options = tlsOptionsPointer
+                return body(cProxyOptions)
+            }
         }
     }
 }
