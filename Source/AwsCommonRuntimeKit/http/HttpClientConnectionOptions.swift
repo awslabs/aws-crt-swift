@@ -89,14 +89,9 @@ public class HttpClientConnectionOptions: CStructWithShutdownOptions {
                 cManagerOptions.initial_window_size = initialWindowSize
                 cManagerOptions.socket_options = socketOptionsPointer
                 cManagerOptions.tls_connection_options = tlsOptions?.rawValue
-                cManagerOptions.http2_prior_knowledge = false
                 cManagerOptions.monitoring_options = monitoringOptionsPointer
                 cManagerOptions.host = hostNameCursor
                 cManagerOptions.port = port
-                cManagerOptions.initial_settings_array = nil
-                cManagerOptions.num_initial_settings = 0
-                cManagerOptions.max_closed_streams = 0
-                cManagerOptions.http2_conn_manual_window_management = false
                 cManagerOptions.proxy_options = proxyOptionsPointer
                 cManagerOptions.shutdown_complete_user_data = shutdownOptions.shutdown_callback_user_data
                 cManagerOptions.shutdown_complete_callback = shutdownOptions.shutdown_callback_fn
