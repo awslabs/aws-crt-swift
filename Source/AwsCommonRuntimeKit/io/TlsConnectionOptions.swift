@@ -33,10 +33,8 @@ public struct TlsConnectionOptions: CStruct {
 		if let alpnList = alpnList {
 			_ = aws_tls_connection_options_set_alpn_list(rawValue, self.allocator.rawValue, alpnList)
 		}
-		if let serverName = serverName {
-			_ = serverName.withByteCursorPointer { serverNameCursorPointer in
+		_ = serverName?.withByteCursorPointer { serverNameCursorPointer in
 				aws_tls_connection_options_set_server_name(rawValue, allocator.rawValue, serverNameCursorPointer)
-			}
 		}
 		return body(rawValue.pointee)
 	}
