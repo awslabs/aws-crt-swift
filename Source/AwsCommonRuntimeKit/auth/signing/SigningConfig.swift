@@ -60,12 +60,11 @@ public struct SigningConfig: CStruct {
         cSigningConfig.date = date.rawValue.pointee
         //TODO: fix callback
         cSigningConfig.should_sign_header = { (name, userData) -> Bool in
-            guard let userData = userData,
-                  let name = name?.pointee.toString()
+            guard let name = name?.pointee.toString()
             else {
                 return true
             }
-            let callback = userData.assumingMemoryBound(to: ShouldSignHeader?.self)
+            let callback = userData!.assumingMemoryBound(to: ShouldSignHeader?.self)
             if let callbackFn = callback.pointee {
                 return callbackFn(name)
             } else {
