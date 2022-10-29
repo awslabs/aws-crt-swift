@@ -35,10 +35,10 @@ public class SocketOptions: CStruct {
         cSocketOptions.type = socketType.rawValue
         cSocketOptions.domain = SocketDomain.ipv4.rawValue
         cSocketOptions.connect_timeout_ms = connectTimeoutMs
-        cSocketOptions.keep_alive_interval_sec = 0
-        cSocketOptions.keep_alive_timeout_sec = 0
-        cSocketOptions.keep_alive_max_failed_probes = 0
-        cSocketOptions.keepalive = false
+        cSocketOptions.keep_alive_interval_sec = keepaliveIntervalSec
+        cSocketOptions.keep_alive_timeout_sec = keepaliveTimeoutSec
+        cSocketOptions.keep_alive_max_failed_probes = keepaliveMaxFailedProbes
+        cSocketOptions.keepalive = keepAlive
         return body(cSocketOptions)
     }
 }
