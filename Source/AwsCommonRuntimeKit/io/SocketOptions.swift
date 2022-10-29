@@ -32,7 +32,7 @@ public struct SocketOptions: CStruct {
     func withCStruct<Result>(_ body: (aws_socket_options) -> Result) -> Result {
         var cSocketOptions = aws_socket_options()
         cSocketOptions.type = socketType.rawValue
-        cSocketOptions.domain = SocketDomain.ipv4.rawValue
+        cSocketOptions.domain = socketDomain.rawValue
         cSocketOptions.connect_timeout_ms = connectTimeoutMs
         cSocketOptions.keep_alive_interval_sec = keepaliveIntervalSec
         cSocketOptions.keep_alive_timeout_sec = keepaliveTimeoutSec
