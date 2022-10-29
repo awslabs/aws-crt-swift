@@ -58,10 +58,8 @@ public class SigV4HttpRequestSigner {
                 aws_sign_request_aws(allocator.rawValue,
                         signable,
                         configBasePointer, { (signingResult, errorCode, userData) -> Void in
-                    guard let userData = userData else {
-                        return
-                    }
-                    let callback = userData.assumingMemoryBound(to: SigningCallbackData.self)
+
+                    let callback = userData!.assumingMemoryBound(to: SigningCallbackData.self)
                     defer {
                         aws_signable_destroy(callback.pointee.signable)
                         callback.deinitializeAndDeallocate()

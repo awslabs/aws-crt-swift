@@ -79,9 +79,11 @@ public class SigningConfig: CStruct {
         cSigningConfig.credentials = credentials?.rawValue
         cSigningConfig.credentials_provider = credentialsProvider?.rawValue
         cSigningConfig.expiration_in_seconds = UInt64(expiration)
-        return withByteCursorFromStrings(region, service, signedBodyValue.rawValue) { regionCursor,
-                                                                             serviceCursor,
-                                                                             signedBodyValueCursor in
+        return withByteCursorFromStrings(region,
+                                         service,
+                                         signedBodyValue.rawValue) { regionCursor,
+                                                                     serviceCursor,
+                                                                     signedBodyValueCursor in
             cSigningConfig.region = regionCursor
             cSigningConfig.service = serviceCursor
             cSigningConfig.signed_body_value = signedBodyValueCursor
