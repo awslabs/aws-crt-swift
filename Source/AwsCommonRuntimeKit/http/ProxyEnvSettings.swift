@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
 
-public class ProxyEnvSettings: CStruct {
+public struct ProxyEnvSettings: CStruct {
     public var envVarType: HttpProxyEnvType
     public var proxyConnectionType: HttpProxyConnectionType
     public var tlsOptions: TlsConnectionOptions?

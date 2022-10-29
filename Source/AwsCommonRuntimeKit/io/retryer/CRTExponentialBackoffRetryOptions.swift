@@ -4,11 +4,11 @@ import AwsCIo
 public typealias GenerateRandom = () -> UInt64
 
 public struct CRTExponentialBackoffRetryOptions: CStruct {
-    let eventLoopGroup: EventLoopGroup
-    let maxRetries: Int
-    let backOffScaleFactor: UInt32
-    let generateRandom: GenerateRandom?
-    let jitterMode: CRTExponentialBackoffJitterMode
+    public var eventLoopGroup: EventLoopGroup
+    public var maxRetries: Int
+    public var backOffScaleFactor: UInt32
+    public var jitterMode: CRTExponentialBackoffJitterMode
+    public let generateRandom: GenerateRandom?
 
     public init(eventLoopGroup: EventLoopGroup,
                 maxRetries: Int = 10,

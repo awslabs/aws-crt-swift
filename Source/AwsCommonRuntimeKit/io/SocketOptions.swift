@@ -3,7 +3,7 @@
 
 import AwsCIo
 
-public class SocketOptions: CStruct {
+public struct SocketOptions: CStruct {
     public var socketType: SocketType
     public var socketDomain: SocketDomain
     public var connectTimeoutMs: UInt32
@@ -26,7 +26,6 @@ public class SocketOptions: CStruct {
         self.keepaliveMaxFailedProbes = keepaliveMaxFailedProbes
         self.keepaliveTimeoutSec = keepaliveTimeoutSec
         self.keepAlive = keepAlive
-
     }
 
     typealias RawType = aws_socket_options

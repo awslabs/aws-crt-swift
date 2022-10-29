@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
 
-public class HttpMonitoringOptions: CStruct {
+public struct HttpMonitoringOptions: CStruct {
     /// Minimum amount of throughput, in bytes per second, for a connection to be considered healthy
     public var minThroughputBytesPerSecond: UInt64
 

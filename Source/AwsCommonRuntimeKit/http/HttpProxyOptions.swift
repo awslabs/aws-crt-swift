@@ -3,7 +3,7 @@
 import AwsCHttp
 import AwsCCommon
 
-public class HttpProxyOptions: CStruct {
+public struct HttpProxyOptions: CStruct {
     public var authType: HttpProxyAuthenticationType = .none
     public var basicAuthUsername: String?
     public var basicAuthPassword: String?
