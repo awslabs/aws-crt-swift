@@ -282,12 +282,10 @@ private func onGetCredentialsCallback(credentialsPointer: OpaquePointer?,
             pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
             return
         }
-        if let credentialsPointer = credentialsPointer,
-        let crtCredentials = CRTCredentials(rawValue: credentialsPointer) {
-            pointer.pointee.continuation?.resume(returning: crtCredentials)
-        } else {
-            pointer.pointee.continuation?.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
-        }
+
+        // Success
+        let crtCredentials = CRTCredentials(rawValue: credentialsPointer!)
+        pointer.pointee.continuation?.resume(returning: crtCredentials!)
         pointer.deinitializeAndDeallocate()
 }
 

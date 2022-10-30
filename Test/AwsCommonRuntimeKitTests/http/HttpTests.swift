@@ -52,8 +52,8 @@ class HttpTests: CrtXCBaseTestCase {
         let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
         try tlsContextOptions.setAlpnList("h2;http/1.1")
         let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
-        let tlsConnectionOptions = tlsContext.newConnectionOptions()
-        try tlsConnectionOptions.setServerName(host)
+        var tlsConnectionOptions = tlsContext.newConnectionOptions()
+        tlsConnectionOptions.serverName = host
 
         let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
         let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)

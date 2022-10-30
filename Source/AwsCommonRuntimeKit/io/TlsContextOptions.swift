@@ -2,9 +2,9 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCIo
-public final class TlsContextOptions {
+public class TlsContextOptions: CStruct {
     private let allocator: Allocator
-    var rawValue: UnsafeMutablePointer<aws_tls_ctx_options>
+    private var rawValue: UnsafeMutablePointer<aws_tls_ctx_options>
     public static func isAlpnSupported() -> Bool {
         return aws_tls_is_alpn_available()
     }
@@ -64,6 +64,11 @@ public final class TlsContextOptions {
 
     public func setVerifyPeer(_ verifyPeer: Bool) {
         aws_tls_ctx_options_set_verify_peer(rawValue, verifyPeer)
+    }
+
+    typealias RawType = aws_tls_ctx_options
+    func withCStruct<Result>(_ body: (aws_tls_ctx_options) -> Result) -> Result {
+        return body(rawValue.pointee)
     }
 
     deinit {

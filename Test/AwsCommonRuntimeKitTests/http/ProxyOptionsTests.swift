@@ -8,7 +8,7 @@ import AwsCCommon
 class ProxyOptionsTests: CrtXCBaseTestCase {
 
     func testCreateProxyOptions() throws {
-        let proxyOptions = HttpProxyOptions(hostName: "test", port: 80)
+        var proxyOptions = HttpProxyOptions(hostName: "test", port: 80)
         let username = "testName"
         proxyOptions.basicAuthUsername = username
         let password = "password"
@@ -38,7 +38,7 @@ class ProxyOptionsTests: CrtXCBaseTestCase {
     }
 
     func testProxyOptionsStringOutOfScope() {
-        let proxyOptions = HttpProxyOptions(hostName: "test", port: 80)
+        var proxyOptions = HttpProxyOptions(hostName: "test", port: 80)
         do {
             let newHost = "newHost";
             proxyOptions.hostName = newHost;
@@ -55,9 +55,9 @@ class ProxyOptionsTests: CrtXCBaseTestCase {
     }
 
     func testProxyOptionsWithTls() throws {
-        let proxyOptions = HttpProxyOptions(hostName: "test", port: 80)
+        var proxyOptions = HttpProxyOptions(hostName: "test", port: 80)
         let context = try TlsContext(options: TlsContextOptions(defaultClientWithAllocator: allocator), mode: TlsMode.client)
-        proxyOptions.tlsOptions = TlsConnectionOptions(context, allocator: allocator)
+        proxyOptions.tlsOptions = TlsConnectionOptions(context: context, allocator: allocator)
         XCTAssertNotNil(proxyOptions)
         XCTAssertNotNil(proxyOptions.tlsOptions)
         proxyOptions.withCPointer { proxyOptionsPointer in

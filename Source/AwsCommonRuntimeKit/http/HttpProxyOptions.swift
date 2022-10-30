@@ -3,7 +3,7 @@
 import AwsCHttp
 import AwsCCommon
 
-public class HttpProxyOptions: CStruct {
+public struct HttpProxyOptions: CStruct {
     public var authType: HttpProxyAuthenticationType = .none
     public var basicAuthUsername: String?
     public var basicAuthPassword: String?
@@ -21,7 +21,6 @@ public class HttpProxyOptions: CStruct {
         var cProxyOptions = aws_http_proxy_options()
         cProxyOptions.port = port
         cProxyOptions.auth_type = authType.rawValue
-        cProxyOptions.tls_options = UnsafePointer(tlsOptions?.rawValue)
 
         return withByteCursorFromStrings(basicAuthUsername ?? "",
                                          basicAuthPassword ?? "",
@@ -30,7 +29,10 @@ public class HttpProxyOptions: CStruct {
             cProxyOptions.host = hostPointer
             cProxyOptions.auth_username = userNamePointer
             cProxyOptions.auth_password = passwordPointer
-            return body(cProxyOptions)
+            return withOptionalCStructPointer(to: tlsOptions) { tlsOptionsPointer in
+                cProxyOptions.tls_options = tlsOptionsPointer
+                return body(cProxyOptions)
+            }
         }
     }
 }
