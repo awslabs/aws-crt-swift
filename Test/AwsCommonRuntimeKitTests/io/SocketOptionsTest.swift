@@ -8,12 +8,12 @@ import AwsCCommon
 class SocketOptionsTests: CrtXCBaseTestCase {
 
     func testCreateSocketOptions() throws {
-        let socketOptions = SocketOptions(socketType: SocketType.datagram, allocator: allocator)
+        let socketOptions = SocketOptions(socketType: SocketType.datagram)
         XCTAssertNotNil(socketOptions)
     }
 
     func testCanModifySocketOptions() throws {
-        let socketOptions = SocketOptions(socketType: SocketType.datagram, allocator: allocator)
+        var socketOptions = SocketOptions(socketType: SocketType.datagram)
         XCTAssertNotNil(socketOptions)
 
         socketOptions.connectTimeoutMs = 1_000
