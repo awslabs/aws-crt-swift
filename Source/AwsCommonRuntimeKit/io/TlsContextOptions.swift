@@ -9,7 +9,7 @@ public class TlsContextOptions: CStruct {
         return aws_tls_is_alpn_available()
     }
 
-    public init(defaultClientWithAllocator allocator: Allocator = defaultAllocator) {
+    public init(allocator: Allocator = defaultAllocator) {
         self.allocator = allocator
         self.rawValue = allocator.allocate(capacity: 1)
         aws_tls_ctx_options_init_default_client(rawValue, allocator.rawValue)
