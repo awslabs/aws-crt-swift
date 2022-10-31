@@ -19,12 +19,12 @@ public struct TlsConnectionOptions: CStruct {
 	typealias RawType = aws_tls_connection_options
 	func withCStruct<Result>(_ body: (aws_tls_connection_options) -> Result) -> Result {
 		var rawValue: UnsafeMutablePointer<aws_tls_connection_options> = allocator.allocate(capacity: 1)
+		aws_tls_connection_options_init_from_ctx(rawValue, context.rawValue)
 		defer {
 			aws_tls_connection_options_clean_up(rawValue)
 			allocator.release(rawValue)
 		}
 
-		aws_tls_connection_options_init_from_ctx(rawValue, context.rawValue)
 		#if os(iOS) || os(watchOS)
 		rawValue.pointee.timeout_ms = 30_000
 		#else
