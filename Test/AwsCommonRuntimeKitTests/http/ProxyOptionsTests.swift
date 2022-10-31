@@ -56,7 +56,7 @@ class ProxyOptionsTests: CrtXCBaseTestCase {
 
     func testProxyOptionsWithTls() throws {
         var proxyOptions = HttpProxyOptions(hostName: "test", port: 80)
-        let context = try TlsContext(options: TlsContextOptions(defaultClientWithAllocator: allocator), mode: TlsMode.client)
+        let context = try TlsContext(options: TlsContextOptions(allocator: allocator), mode: TlsMode.client)
         proxyOptions.tlsOptions = TlsConnectionOptions(context: context, allocator: allocator)
         XCTAssertNotNil(proxyOptions)
         XCTAssertNotNil(proxyOptions.tlsOptions)

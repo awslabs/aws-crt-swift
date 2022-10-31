@@ -93,7 +93,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                             hostResolver: hostResolver,
                                             allocator: allocator)
-        let options = TlsContextOptions(defaultClientWithAllocator: allocator)
+        let options = TlsContextOptions(allocator: allocator)
         let context = try TlsContext(options: options, mode: .client, allocator: allocator)
         let config = MockCredentialsProviderWebIdentityConfig(bootstrap: bootstrap, tlsContext: context)
         XCTAssertThrowsError(try CRTAWSCredentialsProvider(fromWebIdentity: config))
@@ -108,7 +108,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                             hostResolver: hostResolver,
                                             allocator: allocator)
-        let options = TlsContextOptions(defaultClientWithAllocator: allocator)
+        let options = TlsContextOptions(allocator: allocator)
         let context = try TlsContext(options: options, mode: .client, allocator: allocator)
         let staticConfig = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
                                                                       secret: secret,
@@ -133,7 +133,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                                 hostResolver: hostResolver,
                                                 allocator: allocator)
-                let options = TlsContextOptions(defaultClientWithAllocator: allocator)
+                let options = TlsContextOptions(allocator: allocator)
             let context = try TlsContext(options: options, mode: .client, allocator: allocator)
             let config = MockCredentialsProviderContainerConfig(bootstrap: bootstrap,
                                                                 tlsContext: context,

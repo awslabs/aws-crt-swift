@@ -49,7 +49,7 @@ class HttpTests: CrtXCBaseTestCase {
     }
 
     func getHttpConnectionManager(host: String, ssh: Bool) async throws -> HttpClientConnectionManager {
-        let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
+        let tlsContextOptions = TlsContextOptions(allocator: allocator)
         tlsContextOptions.setAlpnList("h2;http/1.1")
         let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
         var tlsConnectionOptions = TlsConnectionOptions(context: tlsContext, allocator: allocator)
