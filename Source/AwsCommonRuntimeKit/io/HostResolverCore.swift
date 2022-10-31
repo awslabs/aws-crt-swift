@@ -21,10 +21,10 @@ class HostResolverCore {
     /// to keep it until until onHostResolved callback has fired which will do the release.
     func retainedResolve() {
         if aws_host_resolver_resolve_host(hostResolver.rawValue,
-                host.rawValue,
-                onHostResolved,
-                hostResolver.config.rawValue,
-                getRetainedSelf()) != AWS_OP_SUCCESS {
+                                          host.rawValue,
+                                          onHostResolved,
+                                          hostResolver.config.rawValue,
+                                          getRetainedSelf()) != AWS_OP_SUCCESS {
             //TODO: this is wrong. Sometimes it triggers the error callback and sometimes it doesn't.
             //I have a fix in progress.
             release()

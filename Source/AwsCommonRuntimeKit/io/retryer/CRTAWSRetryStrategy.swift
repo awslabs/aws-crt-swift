@@ -16,17 +16,13 @@ public class CRTAWSRetryStrategy {
     /// - Returns: `CRTAWSRetryStrategy`
     public init(crtRetryOptions: CRTRetryOptions, allocator: Allocator = defaultAllocator) throws {
         self.allocator = allocator
-        //TODO: Update generate random
-        let exponentialBackOffOptions = aws_exponential_backoff_retry_options(el_group: crtRetryOptions.exponentialBackoffRetryOptions.eventLoopGroup.rawValue,
-                                                                              max_retries: crtRetryOptions.exponentialBackoffRetryOptions.maxRetries,
-                                                                              backoff_scale_factor_ms: crtRetryOptions.exponentialBackoffRetryOptions.backOffScaleFactor,
-                                                                              jitter_mode: crtRetryOptions.exponentialBackoffRetryOptions.jitterMode.rawValue,
-                                                                              generate_random: nil)
+        guard let rawValue = (crtRetryOptions.exponentialBackoffRetryOptions.withCStruct {
+            cExponentialBackoffRetryOptions in
 
-        var options = aws_standard_retry_options(backoff_retry_options: exponentialBackOffOptions,
-                                                 initial_bucket_capacity: crtRetryOptions.initialBucketCapacity)
-
-        guard let rawValue = aws_retry_strategy_new_standard(allocator.rawValue, &options) else {
+            var options = aws_standard_retry_options(backoff_retry_options: cExponentialBackoffRetryOptions,
+                    initial_bucket_capacity: crtRetryOptions.initialBucketCapacity)
+            return aws_retry_strategy_new_standard(allocator.rawValue, &options)
+        }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue

@@ -274,8 +274,8 @@ public class ByteBuffer: Codable {
 }
 
 extension ByteBuffer: AwsStream {
-    public var status: aws_stream_status {
-        return aws_stream_status(is_end_of_stream: self.currentIndex == array.count, is_valid: true)
+    public var isEndOfStream: Bool {
+        return self.currentIndex == array.count
     }
 
     public var length: UInt {
@@ -306,7 +306,7 @@ extension ByteBuffer: AwsStream {
             buffer.len += dataArray.count
             return true
         }
-        return !self.status.is_end_of_stream
+        return !self.isEndOfStream
     }
 }
 
