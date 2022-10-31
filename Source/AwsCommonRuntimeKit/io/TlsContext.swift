@@ -4,7 +4,6 @@
 import AwsCIo
 
 public class TlsContext {
-    private let allocator: Allocator
     var rawValue: UnsafeMutablePointer<aws_tls_ctx>
 
     public init(options: TlsContextOptions, mode: TlsMode, allocator: Allocator = defaultAllocator) throws {
@@ -20,15 +19,10 @@ public class TlsContext {
         })  else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-        self.allocator = allocator
         self.rawValue = rawValue
     }
 
     deinit {
         aws_tls_ctx_release(rawValue)
-    }
-
-    public func newConnectionOptions() -> TlsConnectionOptions {
-        return TlsConnectionOptions(context: self, allocator: self.allocator)
     }
 }

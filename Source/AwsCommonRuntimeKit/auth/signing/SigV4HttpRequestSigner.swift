@@ -64,26 +64,23 @@ public class SigV4HttpRequestSigner {
                         aws_signable_destroy(callback.pointee.signable)
                         callback.deinitializeAndDeallocate()
                     }
-
-                    if let continuation = callback.pointee.continuation {
-                        if errorCode == 0,
-                           let signingResult = signingResult {
-
-                            let signedRequest = aws_apply_signing_result_to_http_request(callback.pointee.request.rawValue,
-                                    callback.pointee.allocator.rawValue,
-                                    signingResult)
-                            if signedRequest == 0 {
-                                continuation.resume(returning: callback.pointee.request)
-                            } else {
-                                continuation.resume(throwing: CommonRunTimeError
-                                        .crtError(CRTError(code: signedRequest)))
-                            }
-                        } else {
-                            continuation.resume(throwing: CommonRunTimeError
-                                    .crtError(CRTError(code: errorCode)))
-                        }
+                    let continuation =  callback.pointee.continuation
+                    if errorCode != AWS_OP_SUCCESS {
+                        continuation.resume(throwing: CommonRunTimeError
+                                .crtError(CRTError(code: errorCode)))
+                        return
                     }
 
+                    //Success
+                    let signedRequest = aws_apply_signing_result_to_http_request(callback.pointee.request.rawValue,
+                                                                                 callback.pointee.allocator.rawValue,
+                                                                                 signingResult!)
+                    if signedRequest == AWS_OP_SUCCESS {
+                        continuation.resume(returning: callback.pointee.request)
+                    } else {
+                        continuation.resume(throwing: CommonRunTimeError
+                                .crtError(CRTError(code: signedRequest)))
+                    }
                 }, callbackPointer)
             }
         }
