@@ -26,3 +26,8 @@ public class TlsContext {
         aws_tls_ctx_release(rawValue)
     }
 }
+
+public enum TlsMode {
+    case client
+    case server
+}
