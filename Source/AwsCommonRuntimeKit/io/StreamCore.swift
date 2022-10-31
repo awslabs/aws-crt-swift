@@ -20,7 +20,7 @@ class AwsInputStreamVtable: CStruct {
     private let _rawValue: UnsafeMutablePointer<aws_input_stream_vtable>
     var rawValue: UnsafePointer<aws_input_stream_vtable> { UnsafePointer(_rawValue) }
     let allocator: Allocator
-    init(allocator: Allocator){
+    init(allocator: Allocator) {
         self.allocator = allocator
         _rawValue = allocator.allocate(capacity: 1)
         _rawValue.pointee.seek = doSeek

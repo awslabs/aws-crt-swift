@@ -37,7 +37,7 @@ class HostResolverCore {
     }
 }
 
-func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!,
+private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!,
                             _ hostName: UnsafePointer<aws_string>!,
                             _ errorCode: Int32,
                             _ hostAddresses: UnsafePointer<aws_array_list>!,

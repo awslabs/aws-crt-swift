@@ -30,7 +30,11 @@ class CRTRetryStrategyCore {
 
     func retainedAcquireTokenFromCRT(timeout: UInt64, partitionId: String, crtAWSRetryStrategy: CRTAWSRetryStrategy) {
         if (partitionId.withByteCursorPointer { partitionIdCursorPointer in
-            aws_retry_strategy_acquire_retry_token(crtAWSRetryStrategy.rawValue, partitionIdCursorPointer, onRetryTokenAcquired, getRetainedSelf(), timeout)
+            aws_retry_strategy_acquire_retry_token(crtAWSRetryStrategy.rawValue,
+                                                   partitionIdCursorPointer,
+                                                   onRetryTokenAcquired,
+                                                   getRetainedSelf(),
+                                                   timeout)
         }) != AWS_OP_SUCCESS {
             release()
             continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
@@ -58,18 +62,15 @@ func onRetryReady(token: UnsafeMutablePointer<aws_retry_token>?,
 }
 
 func onRetryTokenAcquired(retry_strategy: UnsafeMutablePointer<aws_retry_strategy>?,
-                     errorCode: Int32,
-                     token: UnsafeMutablePointer<aws_retry_token>?,
-                     userData: UnsafeMutableRawPointer!) {
+                          errorCode: Int32,
+                          token: UnsafeMutablePointer<aws_retry_token>?,
+                          userData: UnsafeMutableRawPointer!) {
     let crtRetryStrategyCore = Unmanaged<CRTRetryStrategyCore>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         crtRetryStrategyCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
-    /// Token should always be NON-NULL If error code was non-zero.
-    guard let token = token else {
-        crtRetryStrategyCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
-        return
-    }
-    crtRetryStrategyCore.continuation.resume(returning: CRTAWSRetryToken(rawValue: token))
+
+    // Success
+    crtRetryStrategyCore.continuation.resume(returning: CRTAWSRetryToken(rawValue: token!))
 }
