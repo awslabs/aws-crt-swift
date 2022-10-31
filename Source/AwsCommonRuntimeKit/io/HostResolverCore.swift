@@ -47,6 +47,8 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!
         userData.continuation.resume(throwing: CRTError(code: errorCode))
         return
     }
+
+    // Success
     let length = aws_array_list_length(hostAddresses)
     var addresses: [HostAddress] = Array(repeating: HostAddress(), count: length)
 
