@@ -4,10 +4,10 @@ import AwsCAuth
 
 typealias SignedContinuation = CheckedContinuation<HttpRequest, Error>
 struct SigningCallbackData {
-    public let allocator: Allocator
-    public unowned var request: HttpRequest
-    public var continuation: SignedContinuation
-    public let signable: UnsafeMutablePointer<aws_signable>?
+    let allocator: Allocator
+    unowned var request: HttpRequest
+    var continuation: SignedContinuation
+    let signable: UnsafeMutablePointer<aws_signable>?
 
     init(allocator: Allocator = defaultAllocator,
                 request: HttpRequest,
