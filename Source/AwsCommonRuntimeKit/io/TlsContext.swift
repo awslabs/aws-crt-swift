@@ -27,8 +27,4 @@ public class TlsContext {
     deinit {
         aws_tls_ctx_release(rawValue)
     }
-
-    public func newConnectionOptions() -> TlsConnectionOptions {
-        return TlsConnectionOptions(context: self, allocator: self.allocator)
-    }
 }

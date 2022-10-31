@@ -255,7 +255,7 @@ struct Elasticurl {
             tlsContextOptions.setAlpnList(context.alpnList.joined(separator: ";"))
             let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
 
-            var tlsConnectionOptions = tlsContext.newConnectionOptions()
+            var tlsConnectionOptions = TlsConnectionOptions(context: tlsContext, allocator: allocator)
 
             tlsConnectionOptions.serverName = host
 

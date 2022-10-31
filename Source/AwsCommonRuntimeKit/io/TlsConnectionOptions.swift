@@ -9,7 +9,7 @@ public struct TlsConnectionOptions: CStruct {
 	public var alpnList: String?
 	public var serverName: String?
 
-	init(context: TlsContext, alpnList: String? = nil, serverName: String? = nil, allocator: Allocator) {
+	public init(context: TlsContext, alpnList: String? = nil, serverName: String? = nil, allocator: Allocator) {
 		self.allocator = allocator
 		self.context = context
 		self.alpnList = alpnList
