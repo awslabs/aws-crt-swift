@@ -34,7 +34,7 @@ public struct TlsConnectionOptions: CStruct {
 			_ = aws_tls_connection_options_set_alpn_list(rawValue, self.allocator.rawValue, alpnList)
 		}
 		_ = serverName?.withByteCursorPointer { serverNameCursorPointer in
-				aws_tls_connection_options_set_server_name(rawValue, allocator.rawValue, serverNameCursorPointer)
+			aws_tls_connection_options_set_server_name(rawValue, allocator.rawValue, serverNameCursorPointer)
 		}
 		return body(rawValue.pointee)
 	}

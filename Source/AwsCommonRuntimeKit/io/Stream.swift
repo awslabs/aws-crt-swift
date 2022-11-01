@@ -8,8 +8,9 @@ public protocol AwsStream {
     var isEndOfStream: Bool { get }
     var length: UInt { get }
 
-    func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool
-    func read(buffer: inout aws_byte_buf) -> Bool
+    func seek(offset: Int64, basis: StreamSeekType) -> Bool
+    /// Data.count should not greater than length.
+    func read(length: Int) -> Data
 }
 
 public class AwsInputStream {
@@ -36,9 +37,9 @@ extension FileHandle: AwsStream {
     }
 
     @inlinable
-    public func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool {
+    public func seek(offset: Int64, basis: StreamSeekType) -> Bool {
         let targetOffset: UInt64
-        if basis.rawValue == AWS_SSB_BEGIN.rawValue {
+        if basis == .begin {
             targetOffset = self.offsetInFile + UInt64(offset)
         } else {
             targetOffset = self.offsetInFile - UInt64(offset)
@@ -48,14 +49,7 @@ extension FileHandle: AwsStream {
     }
 
     @inlinable
-    public func read(buffer: inout aws_byte_buf) -> Bool {
-        let data = self.readData(ofLength: buffer.capacity - buffer.len)
-        if data.count > 0 {
-            let result = buffer.buffer.advanced(by: buffer.len)
-            data.copyBytes(to: result, count: data.count)
-            buffer.len += data.count
-            return true
-        }
-        return !isEndOfStream
+    public func read(length: Int) -> Data {
+        return self.readData(ofLength: length)
     }
 }

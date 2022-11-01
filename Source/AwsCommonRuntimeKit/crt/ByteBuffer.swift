@@ -282,7 +282,7 @@ extension ByteBuffer: AwsStream {
         return UInt(array.count)
     }
 
-    public func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool {
+    public func seek(offset: Int64, basis: StreamSeekType) -> Bool {
         let targetOffset: Int64
         if basis.rawValue == AWS_SSB_BEGIN.rawValue {
             targetOffset = offset
@@ -294,19 +294,10 @@ extension ByteBuffer: AwsStream {
         return true
     }
 
-    public func read(buffer: inout aws_byte_buf) -> Bool {
-        let bufferCapacity = buffer.capacity - buffer.len
-        let arrayEnd = (bufferCapacity + self.currentIndex) < array.count ? bufferCapacity + self.currentIndex : array.count
+    public func read(length: Int) -> Data {
+        let arrayEnd = (length + self.currentIndex) < array.count ? length + self.currentIndex : array.count
         let dataArray = array[self.currentIndex..<(arrayEnd)]
-        if dataArray.count > 0 {
-            let result = buffer.buffer.advanced(by: buffer.len)
-            let resultBufferPointer = UnsafeMutableBufferPointer.init(start: result, count: dataArray.count)
-            dataArray.copyBytes(to: resultBufferPointer)
-            self.currentIndex = arrayEnd
-            buffer.len += dataArray.count
-            return true
-        }
-        return !self.isEndOfStream
+        return Data(dataArray)
     }
 }
 

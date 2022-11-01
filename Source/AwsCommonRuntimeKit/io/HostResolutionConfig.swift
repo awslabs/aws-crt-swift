@@ -2,18 +2,19 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCIo
 
-public class HostResolutionConfig {
+public struct HostResolutionConfig: CStruct {
 
-    let rawValue: UnsafeMutablePointer<aws_host_resolution_config>
-    let allocator: Allocator
-    public init(maxTTL: Int, allocator: Allocator = defaultAllocator) {
-        self.allocator = allocator
-        rawValue = allocator.allocate(capacity: 1)
-        rawValue.pointee.max_ttl = maxTTL
-        rawValue.pointee.impl = aws_default_dns_resolve
+    public var maxTTL: Int
+    public init(maxTTL: Int) {
+        self.maxTTL = maxTTL
     }
 
-    deinit {
-        allocator.release(rawValue)
+    typealias RawType = aws_host_resolution_config
+    func withCStruct<Result>(_ body: (aws_host_resolution_config) -> Result) -> Result {
+        var cHostResolutionConfig = aws_host_resolution_config()
+        cHostResolutionConfig.max_ttl = maxTTL
+        cHostResolutionConfig.impl = aws_default_dns_resolve
+        return body(cHostResolutionConfig)
     }
+
 }

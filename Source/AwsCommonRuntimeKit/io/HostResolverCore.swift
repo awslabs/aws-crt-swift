@@ -2,15 +2,17 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCIo
 
+typealias HostResolvedContinuation = CheckedContinuation<[HostAddress], Error>
+
 class HostResolverCore {
     let host: AWSString
     let hostResolver: HostResolver
     let continuation: HostResolvedContinuation
 
-    init(resolver: HostResolver, host: String, continuation: HostResolvedContinuation, allocator: Allocator) {
+    init(hostResolver: HostResolver, host: String, continuation: HostResolvedContinuation, allocator: Allocator) {
         self.host = AWSString(host, allocator: allocator)
         self.continuation = continuation
-        self.hostResolver = resolver
+        self.hostResolver = hostResolver
     }
 
     private func getRetainedSelf() -> UnsafeMutableRawPointer {
@@ -20,15 +22,17 @@ class HostResolverCore {
     /// This function does a manual retain on HostResolverCore
     /// to keep it until until onHostResolved callback has fired which will do the release.
     func retainedResolve() {
-        if aws_host_resolver_resolve_host(hostResolver.rawValue,
-                                          host.rawValue,
-                                          onHostResolved,
-                                          hostResolver.config.rawValue,
-                                          getRetainedSelf()) != AWS_OP_SUCCESS {
-            //TODO: this is wrong. Sometimes it triggers the error callback and sometimes it doesn't.
-            //I have a fix in progress.
-            release()
-            continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+        hostResolver.config.withCPointer { hostResolverConfigPointer in
+            if aws_host_resolver_resolve_host(hostResolver.rawValue,
+                    host.rawValue,
+                    onHostResolved,
+                    hostResolverConfigPointer,
+                    getRetainedSelf()) != AWS_OP_SUCCESS {
+                //TODO: this is wrong. Sometimes it triggers the error callback and sometimes it doesn't.
+                // I have a fix in progress in aws-c-io
+                release()
+                continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+            }
         }
     }
 
@@ -44,7 +48,7 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!
                             _ userData: UnsafeMutableRawPointer!) {
     let userData = Unmanaged<HostResolverCore>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
-        userData.continuation.resume(throwing: CRTError(code: errorCode))
+        userData.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 

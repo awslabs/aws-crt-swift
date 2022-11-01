@@ -49,7 +49,7 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                     _ offset: Int64,
                     _ seekBasis: aws_stream_seek_basis) -> Int32 {
     let inputStream = Unmanaged<AwsInputStreamCore>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
-    if inputStream.awsStream.seek(offset: offset, basis: seekBasis) {
+    if inputStream.awsStream.seek(offset: offset, basis: StreamSeekType(rawValue: seekBasis.rawValue)!) {
         return AWS_OP_SUCCESS
     }
     return AWS_OP_ERR
@@ -58,10 +58,20 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
 private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                     _ buffer: UnsafeMutablePointer<aws_byte_buf>!) -> Int32 {
     let inputStream = Unmanaged<AwsInputStreamCore>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
-    if inputStream.awsStream.read(buffer: &buffer.pointee) {
+    let length = buffer.pointee.len
+    let data = inputStream.awsStream.read(length: buffer.pointee.len)
+    if data.count > length {
+        //TODO: throw error
+    }
+    /// We get a "safe" buffer from C that starts where the existing data ends.
+    /// So we can't accidentally override it.
+    if data.count > 0 {
+        data.copyBytes(to: buffer.pointee.buffer, count: data.count)
+        buffer.pointee.len = data.count
         return AWS_OP_SUCCESS
     }
-    return AWS_OP_ERR
+
+    return inputStream.awsStream.isEndOfStream ? AWS_OP_SUCCESS : AWS_OP_ERR
 }
 
 private func doGetStatus(_ stream: UnsafeMutablePointer<aws_input_stream>!,

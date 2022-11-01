@@ -4,8 +4,6 @@
 import AwsCCommon
 import AwsCIo
 
-typealias HostResolvedContinuation = CheckedContinuation<[HostAddress], Error>
-
 public class HostResolver {
     let rawValue: UnsafeMutablePointer<aws_host_resolver>
     let config: HostResolutionConfig
@@ -20,12 +18,11 @@ public class HostResolver {
         self.allocator = allocator
         guard let rawValue: UnsafeMutablePointer<aws_host_resolver> = withUnsafePointer(
                 to: shutdownCallbackCore.getRetainedShutdownOptions(), { shutdownCallbackCorePointer in
-            var options = aws_host_resolver_default_options(max_entries: maxHosts,
-                    el_group: elg.rawValue,
-                    shutdown_options: shutdownCallbackCorePointer,
-                    system_clock_override_fn: nil)
-            //TODO: use const in C-IO to avoid mutable pointer here
-            return withUnsafeMutablePointer(to: &options) { aws_host_resolver_new_default(allocator.rawValue, $0) }
+            var options = aws_host_resolver_default_options()
+            options.max_entries = maxHosts
+            options.el_group = elg.rawValue
+            options.shutdown_options = shutdownCallbackCorePointer
+            return aws_host_resolver_new_default(allocator.rawValue, &options)
         }) else {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -35,14 +32,13 @@ public class HostResolver {
         self.config = HostResolutionConfig(maxTTL: maxTTL)
     }
 
-    deinit {
-        aws_host_resolver_release(rawValue)
-    }
-
     public func resolve(host: String) async throws -> [HostAddress] {
          return try await withCheckedThrowingContinuation({ (continuation: HostResolvedContinuation) in
-             let hostResolverCore = HostResolverCore(resolver: self, host: host, continuation: continuation, allocator: allocator)
-             hostResolverCore.retainedResolve()
+             HostResolverCore(hostResolver: self, host: host, continuation: continuation, allocator: allocator).retainedResolve()
         })
+    }
+
+    deinit {
+        aws_host_resolver_release(rawValue)
     }
 }
