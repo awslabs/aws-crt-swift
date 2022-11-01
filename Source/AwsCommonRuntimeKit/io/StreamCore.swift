@@ -63,8 +63,8 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     if data.count > length {
         //TODO: throw error
     }
-    /// We get a "safe" buffer from C that starts where the existing data ends.
-    /// So we can't accidentally override it.
+    // We get a "safe" buffer from C that starts where the existing data ends.
+    // So we can't accidentally override it.
     if data.count > 0 {
         data.copyBytes(to: buffer.pointee.buffer, count: data.count)
         buffer.pointee.len = data.count
