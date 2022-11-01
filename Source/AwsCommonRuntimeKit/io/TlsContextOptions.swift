@@ -55,8 +55,8 @@ public class TlsContextOptions: CStruct {
         }
     }
 
-    public func setAlpnList(_ alpnList: String) {
-        aws_tls_ctx_options_set_alpn_list(rawValue, alpnList)
+    public func setAlpnList(_ alpnList: [String]) {
+        aws_tls_ctx_options_set_alpn_list(rawValue, alpnList.joined(separator: ";"))
     }
 
     public func setVerifyPeer(_ verifyPeer: Bool) {
