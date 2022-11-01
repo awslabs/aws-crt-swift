@@ -35,7 +35,7 @@ public struct HttpClientConnectionOptions: CStructWithShutdownOptions {
     public var maxConnections: Int
 
     /// Add a shut down callback using these options
-    public let shutdownCallback: ShutdownCallback?
+    public var shutdownCallback: ShutdownCallback?
 
     /// If set to a non-zero value, then connections that stay in the pool longer than the specified
     /// timeout will be closed automatically.
