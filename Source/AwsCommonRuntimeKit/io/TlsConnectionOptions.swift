@@ -29,7 +29,7 @@ public struct TlsConnectionOptions: CStruct {
 			#else
 			tlsConnectionsOptionsPointer.pointee.timeout_ms = 3_000
 			#endif
-			if let alpnList = alpnList{
+			if let alpnList = alpnList {
 				_ = aws_tls_connection_options_set_alpn_list(tlsConnectionsOptionsPointer, self.allocator.rawValue, alpnList.joined(separator: ";"))
 			}
 			_ = serverName?.withByteCursorPointer { serverNameCursorPointer in
