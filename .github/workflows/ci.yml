@@ -4,9 +4,7 @@ on:
   pull_request:
 
 env:
-  BUILDER_VERSION: v0.9.22
-  # Temporary change to test until PR is merged in aws-crt-builder
-  BUILDER_VERSION_LINUX: update-swift
+  BUILDER_VERSION: v0.9.23
   BUILDER_SOURCE: releases
   BUILDER_HOST: https://d19elf31gohf1l.cloudfront.net
   PACKAGE_NAME: aws-crt-swift
@@ -44,7 +42,7 @@ jobs:
       - name: Build ${{ env.PACKAGE_NAME }}
         run: |
           aws s3 cp --debug s3://aws-crt-test-stuff/ci/${{ env.BUILDER_VERSION }}/linux-container-ci.sh ./linux-container-ci.sh && chmod a+x ./linux-container-ci.sh
-          ./linux-container-ci.sh ${{ env.BUILDER_VERSION_LINUX }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
+          ./linux-container-ci.sh ${{ env.BUILDER_VERSION }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
   osx:
     runs-on: macos-12
     env:
