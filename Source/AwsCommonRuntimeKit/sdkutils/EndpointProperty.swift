@@ -43,7 +43,10 @@ extension EndpointProperty: Decodable {
                 dict[key.stringValue] = .bool(value)
             } else if let value = try? container.decode(String.self, forKey: key) {
                 dict[key.stringValue] = .string(value)
-            } else if let value = try? container.nestedContainer(keyedBy: EndpointPropertyCodingKeys.self, forKey: key) {
+            } else if let value = try? container.nestedContainer(
+                keyedBy: EndpointPropertyCodingKeys.self,
+                forKey: key
+            ) {
                 dict[key.stringValue] = EndpointProperty(from: value)
             } else if let value = try? container.nestedUnkeyedContainer(forKey: key) {
                 dict[key.stringValue] = EndpointProperty(from: value)
