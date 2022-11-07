@@ -16,7 +16,6 @@ import AwsCCal
      import Darwin
  #endif
 
-//swiftlint:disable identifier_name superfluous_disable_command
 public class ByteBuffer: Codable {
 
     public init(size: Int) {
@@ -248,7 +247,7 @@ public class ByteBuffer: Codable {
     }
 
     public func readIntoBuffer(buffer: inout ByteBuffer) -> Int {
-        guard array.count > 0 else {
+        guard !array.isEmpty else {
             return 0
         }
 
@@ -261,7 +260,7 @@ public class ByteBuffer: Codable {
             arrayEnd = array.count
         }
         let dataArray = Array(array[currentIndex..<(arrayEnd)])
-        if dataArray.count > 0 {
+        if !dataArray.isEmpty {
             _ = buffer.put(dataArray)
             self.currentIndex = arrayEnd
             return dataArray.count
@@ -294,9 +293,11 @@ extension ByteBuffer: AwsStream {
 
     public func read(buffer: inout aws_byte_buf) -> Bool {
         let bufferCapacity = buffer.capacity - buffer.len
-        let arrayEnd = (bufferCapacity + self.currentIndex) < array.count ? bufferCapacity + self.currentIndex : array.count
+        let arrayEnd = (bufferCapacity + self.currentIndex) < array.count
+        ? bufferCapacity + self.currentIndex
+        : array.count
         let dataArray = array[self.currentIndex..<(arrayEnd)]
-        if dataArray.count > 0 {
+        if !dataArray.isEmpty {
             let result = buffer.buffer.advanced(by: buffer.len)
             let resultBufferPointer = UnsafeMutableBufferPointer.init(start: result, count: dataArray.count)
             dataArray.copyBytes(to: resultBufferPointer)
@@ -332,10 +333,10 @@ extension ByteBuffer {
         while stream.hasBytesAvailable {
             let read = stream.read(buffer, maxLength: bufferSize)
             if read < 0 {
-                //Stream error occured
+                // Stream error occured
                 throw stream.streamError!
             } else if read == 0 {
-                //EOF
+                // EOF
                 break
             }
             allocate(read)
@@ -397,7 +398,12 @@ public extension ByteBuffer {
 
         var bytes = [UInt8](repeating: 0, count: Int(AWS_SHA256_LEN))
         let result: ByteBuffer = bytes.withUnsafeMutableBufferPointer { pointer in
-            var buffer = aws_byte_buf(len: 0, buffer: pointer.baseAddress, capacity: Int(AWS_SHA256_LEN), allocator: allocator.rawValue)
+            var buffer = aws_byte_buf(
+                len: 0,
+                buffer: pointer.baseAddress,
+                capacity: Int(AWS_SHA256_LEN),
+                allocator: allocator.rawValue
+            )
             aws_sha256_compute(allocator.rawValue, &byteCursor, &buffer, truncate)
             return buffer.toByteBuffer()
         }

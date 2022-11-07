@@ -33,7 +33,8 @@ public class HttpMessage {
         }
     }
 }
-//header handling
+// header handling
+// swiftlint:disable for_where
 public extension HttpMessage {
 
     var headerCount: Int {

@@ -91,7 +91,10 @@ public class HttpClientConnection {
             guard let stream = httpStreamCbData.pointee.stream else {
                 return -1
             }
-            httpStreamCbData.pointee.requestOptions.onIncomingHeadersBlockDone(stream, HttpHeaderBlock(rawValue: headerBlock))
+            httpStreamCbData.pointee.requestOptions.onIncomingHeadersBlockDone(
+                stream,
+                HttpHeaderBlock(rawValue: headerBlock)
+            )
 
             return 0
         }
