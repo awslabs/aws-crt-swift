@@ -251,7 +251,7 @@ struct Elasticurl {
             let port = UInt16(443)
 
             let tlsContextOptions = TlsContextOptions(allocator: allocator)
-            tlsContextOptions.setAlpnList(context.alpnList.joined(separator: ";"))
+            tlsContextOptions.setAlpnList(context.alpnList)
             let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
 
             var tlsConnectionOptions = TlsConnectionOptions(context: tlsContext, allocator: allocator)

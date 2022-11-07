@@ -10,7 +10,7 @@ class HttpClientConnectionManagerTests: CrtXCBaseTestCase {
         do {
             let host = "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt"
             let tlsContextOptions = TlsContextOptions(allocator: allocator)
-            tlsContextOptions.setAlpnList("h2;http/1.1")
+            tlsContextOptions.setAlpnList(["h2","http/1.1"])
             let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
 
             var tlsConnectionOptions = TlsConnectionOptions(context: tlsContext, allocator: allocator)
