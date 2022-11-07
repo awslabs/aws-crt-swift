@@ -9,13 +9,13 @@ class HttpClientConnectionManagerTests: CrtXCBaseTestCase {
         let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
         do {
             let host = "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt"
-            let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
-            try tlsContextOptions.setAlpnList("h2;http/1.1")
+            let tlsContextOptions = TlsContextOptions(allocator: allocator)
+            tlsContextOptions.setAlpnList(["h2","http/1.1"])
             let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
 
-            let tlsConnectionOptions = tlsContext.newConnectionOptions()
+            var tlsConnectionOptions = TlsConnectionOptions(context: tlsContext, allocator: allocator)
 
-            try tlsConnectionOptions.setServerName(host)
+            tlsConnectionOptions.serverName = host
 
             let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
             let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
@@ -30,7 +30,7 @@ class HttpClientConnectionManagerTests: CrtXCBaseTestCase {
                     hostName: host,
                     initialWindowSize: Int.max,
                     port: port,
-                    proxyOptions: nil,
+                    proxyOptions: HttpProxyOptions(hostName: "localhost", port: 80),
                     socketOptions: socketOptions,
                     tlsOptions: tlsConnectionOptions,
                     monitoringOptions: nil) {
