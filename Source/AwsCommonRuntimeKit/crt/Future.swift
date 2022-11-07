@@ -6,7 +6,7 @@ import Foundation
 public final class Future<Value> {
     public typealias FutureResult = Result<Value, Error>
 
-    private var _value: FutureResult? //nil when pending
+    private var _value: FutureResult? // nil when pending
 
     private var waiter = DispatchSemaphore(value: 0)
 
@@ -26,14 +26,14 @@ public final class Future<Value> {
         }
         lock.unlock()
         waiter.wait()
-        //can force unwrap here cuz if wait was lifted, future has completed
+        // can force unwrap here cuz if wait was lifted, future has completed
         return try self._value!.get()
     }
 
     public func fulfill(_ value: Value) {
         lock.lock()
         guard self._value == nil else {
-            return lock.unlock() //already resolved
+            return lock.unlock() // already resolved
         }
         let result = FutureResult.success(value)
         self._value = result
@@ -62,7 +62,7 @@ public final class Future<Value> {
         lock.lock()
         guard let value = self._value else {
             self._observers.append(block)
-            return lock.unlock() //still pending, handlers attached
+            return lock.unlock() // still pending, handlers attached
         }
         lock.unlock()
         block(value)

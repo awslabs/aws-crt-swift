@@ -4,8 +4,6 @@
 import AwsCIo
 import Foundation
 
-//swiftlint:disable trailing_whitespace
-
 private var vtable = aws_input_stream_vtable(seek: doSeek,
         read: doRead,
         get_status: doGetStatus,
@@ -63,7 +61,7 @@ extension FileHandle: AwsStream {
     @inlinable
     public func read(buffer: inout aws_byte_buf) -> Bool {
         let data = self.readData(ofLength: buffer.capacity - buffer.len)
-        if data.count > 0 {
+        if !data.isEmpty {
             let result = buffer.buffer.advanced(by: buffer.len)
             data.copyBytes(to: result, count: data.count)
             buffer.len += data.count

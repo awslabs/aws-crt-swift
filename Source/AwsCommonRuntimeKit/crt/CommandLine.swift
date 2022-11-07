@@ -3,7 +3,7 @@
 
 import Foundation
 import AwsCCommon
-//swiftlint:disable trailing_whitespace
+
 public struct CommandLineParser {
     /// A function to parse command line arguments
     /// - Parameters:
@@ -30,7 +30,7 @@ public struct CommandLineParser {
                 if aws_cli_optarg != nil {
                     argumentsDict[char] = String(cString: aws_cli_optarg)
                 } else {
-                    //if argument doesnt have a value just mark it as present in the dictionary
+                    // if argument doesnt have a value just mark it as present in the dictionary
                     argumentsDict[char] = true
                 }
             }
