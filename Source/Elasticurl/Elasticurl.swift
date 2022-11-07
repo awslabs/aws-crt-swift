@@ -10,9 +10,9 @@ import Glibc
 import Darwin
 #endif
 
-//swiftlint:disable cyclomatic_complexity type_body_length
+// swiftlint:disable type_body_length
 struct Context {
-    //args
+    // args
     public var logLevel: LogLevel = .trace
     public var verb: String = "GET"
     public var caCert: String?
@@ -178,7 +178,7 @@ struct Elasticurl {
             exit(0)
         }
 
-        //make sure a url was given before we do anything else
+        // make sure a url was given before we do anything else
         guard let urlString = CommandLine.arguments.last,
               let url = URL(string: urlString) else {
                   print("Invalid URL: \(CommandLine.arguments.last!)")
@@ -303,23 +303,20 @@ struct Elasticurl {
             }
             httpRequest.addHeaders(headers: headers)
 
-            let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
+            let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { _, _, headers in
                 let allHeaders = headers.getAll()
                 for header in allHeaders {
                     print(header.name + " : " + header.value)
-
                 }
             }
 
-            let onBody: HttpRequestOptions.OnIncomingBody = { stream, bodyChunk in
+            let onBody: HttpRequestOptions.OnIncomingBody = { _, bodyChunk in
                 writeData(data: bodyChunk)
             }
 
-            let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone = { stream, block in
+            let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone = { _, _ in }
 
-            }
-
-            let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
+            let onComplete: HttpRequestOptions.OnStreamComplete = { _, error in
                 if case let CRTError.crtError(unwrappedError) = error {
                     print(unwrappedError.errorMessage ?? "no error message")
                 }

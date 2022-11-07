@@ -3,7 +3,6 @@
 
 import AwsCommonRuntimeKit
 
-//swiftlint:disable identifier_name
 public struct ElasticurlOptions {
     public static let caCert = AWSCLIOption(name: "cacert",
                                             hasArg: .required,

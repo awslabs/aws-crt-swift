@@ -3,7 +3,6 @@
 
 import AwsCMqtt
 
-//swiftlint:disable function_parameter_count
 public final class MqttClient {
 
     let rawValue: UnsafeMutablePointer<aws_mqtt_client>
