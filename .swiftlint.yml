@@ -8,6 +8,8 @@ disabled_rules:
     - todo
     - identifier_name
     - force_try
+    - force_cast
+    - function_parameter_count
 excluded:
     - Test
 
