@@ -251,13 +251,13 @@ struct Elasticurl {
 
             let port = UInt16(443)
 
-            let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
-            try tlsContextOptions.setAlpnList(context.alpnList.joined(separator: ";"))
+            let tlsContextOptions = TlsContextOptions(allocator: allocator)
+            tlsContextOptions.setAlpnList(context.alpnList)
             let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
 
-            let tlsConnectionOptions = tlsContext.newConnectionOptions()
+            var tlsConnectionOptions = TlsConnectionOptions(context: tlsContext, allocator: allocator)
 
-            try tlsConnectionOptions.setServerName(host)
+            tlsConnectionOptions.serverName = host
 
             let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
             let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)

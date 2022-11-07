@@ -6,8 +6,8 @@ import XCTest
 class TlsContextTests: CrtXCBaseTestCase {
 
   func testCreateTlsContextWithOptions() throws {
-    let options = TlsContextOptions(defaultClientWithAllocator: allocator)
+    let options = TlsContextOptions(allocator: allocator)
     let context = try TlsContext(options: options, mode: .client, allocator: allocator)
-    _ = context.newConnectionOptions()
+    _ = TlsConnectionOptions(context: context, allocator: allocator)
   }
 }
