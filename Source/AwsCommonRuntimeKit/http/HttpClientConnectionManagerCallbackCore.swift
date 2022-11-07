@@ -24,9 +24,9 @@ class HttpClientConnectionManagerCallbackCore {
     }
 }
 
-func onConnectionSetup(connection: UnsafeMutablePointer<aws_http_connection>?,
-                       errorCode: Int32,
-                       userData: UnsafeMutableRawPointer!) {
+private func onConnectionSetup(connection: UnsafeMutablePointer<aws_http_connection>?,
+                               errorCode: Int32,
+                               userData: UnsafeMutableRawPointer!) {
     let callbackDataCore = Unmanaged<HttpClientConnectionManagerCallbackCore>.fromOpaque(userData!).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         callbackDataCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))

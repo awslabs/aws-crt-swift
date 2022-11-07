@@ -43,11 +43,11 @@ class HttpStreamCallbackCore {
 }
 
 // TODO: Maybe update to fire three headers callback (informational, main, and trailing) only once
-func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
-                       headerBlock: aws_http_header_block,
-                       headerArray: UnsafePointer<aws_http_header>?,
-                       headersCount: Int,
-                       userData: UnsafeMutableRawPointer!) -> Int32 {
+private func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
+                               headerBlock: aws_http_header_block,
+                               headerArray: UnsafePointer<aws_http_header>?,
+                               headersCount: Int,
+                               userData: UnsafeMutableRawPointer!) -> Int32 {
     let httpStreamCbData: HttpStreamCallbackCore = Unmanaged<HttpStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
     var headers = [HttpHeader]()
 
@@ -70,9 +70,9 @@ func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
     return AWS_OP_SUCCESS
 }
 
-func onResponseHeaderBlockDone(stream: UnsafeMutablePointer<aws_http_stream>?,
-                               headerBlock: aws_http_header_block,
-                               userData: UnsafeMutableRawPointer!) -> Int32 {
+private func onResponseHeaderBlockDone(stream: UnsafeMutablePointer<aws_http_stream>?,
+                                       headerBlock: aws_http_header_block,
+                                       userData: UnsafeMutableRawPointer!) -> Int32 {
     let httpStreamCbData = Unmanaged<HttpStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
     let stream = httpStreamCbData.stream!
 
@@ -80,9 +80,9 @@ func onResponseHeaderBlockDone(stream: UnsafeMutablePointer<aws_http_stream>?,
     return AWS_OP_SUCCESS
 }
 
-func onResponseBody(stream: UnsafeMutablePointer<aws_http_stream>?,
-                    data: UnsafePointer<aws_byte_cursor>?,
-                    userData: UnsafeMutableRawPointer!) -> Int32 {
+private func onResponseBody(stream: UnsafeMutablePointer<aws_http_stream>?,
+                            data: UnsafePointer<aws_byte_cursor>?,
+                            userData: UnsafeMutableRawPointer!) -> Int32 {
     let httpStreamCbData = Unmanaged<HttpStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
     guard let bufPtr = data?.pointee.ptr,
           let bufLen = data?.pointee.len else {
@@ -95,9 +95,9 @@ func onResponseBody(stream: UnsafeMutablePointer<aws_http_stream>?,
     return AWS_OP_SUCCESS
 }
 
-func onComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
-                errorCode: Int32,
-                userData: UnsafeMutableRawPointer!) {
+private func onComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
+                        errorCode: Int32,
+                        userData: UnsafeMutableRawPointer!) {
 
     let httpStreamCbData = Unmanaged<HttpStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
     let stream = httpStreamCbData.stream!
@@ -106,6 +106,6 @@ func onComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
     httpStreamCbData.stream = nil
 }
 
-func onDestroy(userData: UnsafeMutableRawPointer!) {
+private func onDestroy(userData: UnsafeMutableRawPointer!) {
     Unmanaged<HttpStreamCallbackCore>.fromOpaque(userData).release()
 }

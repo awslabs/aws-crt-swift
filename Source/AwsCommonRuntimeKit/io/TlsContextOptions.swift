@@ -2,14 +2,14 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCIo
-public final class TlsContextOptions {
+public class TlsContextOptions: CStruct {
     private let allocator: Allocator
-    var rawValue: UnsafeMutablePointer<aws_tls_ctx_options>
+    private var rawValue: UnsafeMutablePointer<aws_tls_ctx_options>
     public static func isAlpnSupported() -> Bool {
         return aws_tls_is_alpn_available()
     }
 
-    public init(defaultClientWithAllocator allocator: Allocator = defaultAllocator) {
+    public init(allocator: Allocator = defaultAllocator) {
         self.allocator = allocator
         self.rawValue = allocator.allocate(capacity: 1)
         aws_tls_ctx_options_init_default_client(rawValue, allocator.rawValue)
@@ -55,15 +55,17 @@ public final class TlsContextOptions {
         }
     }
 
-    public func setAlpnList(_ alpnList: String?) throws {
-        if let alpnList = alpnList,
-           aws_tls_ctx_options_set_alpn_list(rawValue, alpnList) != AWS_OP_SUCCESS {
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
-        }
+    public func setAlpnList(_ alpnList: [String]) {
+        aws_tls_ctx_options_set_alpn_list(rawValue, alpnList.joined(separator: ";"))
     }
 
     public func setVerifyPeer(_ verifyPeer: Bool) {
         aws_tls_ctx_options_set_verify_peer(rawValue, verifyPeer)
+    }
+
+    typealias RawType = aws_tls_ctx_options
+    func withCStruct<Result>(_ body: (aws_tls_ctx_options) -> Result) -> Result {
+        return body(rawValue.pointee)
     }
 
     deinit {
