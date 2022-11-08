@@ -10,11 +10,11 @@ public class HostResolver {
     private let allocator: Allocator
 
 
-    public static func makeDefaultHostResolver(eventLoopGroup: EventLoopGroup,
-                                               maxHosts: Int,
-                                               maxTTL: Int,
-                                               allocator: Allocator = defaultAllocator,
-                                               shutdownCallback: ShutdownCallback? = nil) throws -> HostResolver {
+    public static func makeDefault(eventLoopGroup: EventLoopGroup,
+                                   maxHosts: Int,
+                                   maxTTL: Int,
+                                   allocator: Allocator = defaultAllocator,
+                                   shutdownCallback: ShutdownCallback? = nil) throws -> HostResolver {
         try HostResolver(eventLoopGroup: eventLoopGroup, maxHosts: maxHosts, maxTTL: maxTTL, allocator: allocator, shutdownCallback: shutdownCallback)
     }
 
