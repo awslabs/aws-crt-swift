@@ -27,8 +27,9 @@ public class TlsContextOptions: CStruct {
         self.rawValue = allocator.allocate(capacity: 1)
         if (password.withByteCursorPointer { passwordCursorPointer in
             aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,
-                    allocator.rawValue,
-                    path, passwordCursorPointer)
+                                                                  allocator.rawValue,
+                                                                  path,
+                                                                  passwordCursorPointer)
         }) != AWS_OP_SUCCESS {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }

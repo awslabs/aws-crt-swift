@@ -8,14 +8,12 @@ public class TlsContext {
 
     public init(options: TlsContextOptions, mode: TlsMode, allocator: Allocator = defaultAllocator) throws {
         guard let rawValue = (options.withCPointer { optionsPointer in
-            let context: UnsafeMutablePointer<aws_tls_ctx>?
             switch mode {
             case .client:
-                context = aws_tls_client_ctx_new(allocator.rawValue, optionsPointer)
+                return aws_tls_client_ctx_new(allocator.rawValue, optionsPointer)
             case .server:
-                context = aws_tls_server_ctx_new(allocator.rawValue, optionsPointer)
+                return aws_tls_server_ctx_new(allocator.rawValue, optionsPointer)
             }
-            return context
         })  else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
