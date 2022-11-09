@@ -3,28 +3,17 @@
 
 import AwsCIo
 
-typealias CRTRetryStrategyContinuation = CheckedContinuation<CRTAWSRetryToken, Error>
+typealias RetryStrategyAcquireTokenContinuation = CheckedContinuation<CRTAWSRetryToken, Error>
 
-class CRTRetryStrategyCore {
-    var continuation: CRTRetryStrategyContinuation
+class CRTRetryStrategyAcquireTokenCore {
+    var continuation: RetryStrategyAcquireTokenContinuation
 
-    init(continuation: CRTRetryStrategyContinuation) {
+    init(continuation: RetryStrategyAcquireTokenContinuation) {
         self.continuation = continuation
     }
 
     private func getRetainedSelf() -> UnsafeMutableRawPointer {
-        return Unmanaged<CRTRetryStrategyCore>.passRetained(self).toOpaque()
-    }
-
-    func retainedScheduleRetryToCRT(token: CRTAWSRetryToken, errorType: CRTRetryError) {
-        let retainedSelf = getRetainedSelf()
-        if aws_retry_strategy_schedule_retry(token.rawValue,
-                                             errorType.rawValue,
-                                             onRetryReady,
-                                             retainedSelf) != AWS_OP_SUCCESS {
-            release()
-            continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
-        }
+        return Unmanaged<CRTRetryStrategyAcquireTokenCore>.passRetained(self).toOpaque()
     }
 
     func retainedAcquireTokenFromCRT(timeout: UInt64, partitionId: String, crtAWSRetryStrategy: CRTAWSRetryStrategy) {
@@ -46,10 +35,12 @@ class CRTRetryStrategyCore {
     }
 }
 
-private func onRetryReady(token: UnsafeMutablePointer<aws_retry_token>?,
-                          errorCode: Int32,
-                          userData: UnsafeMutableRawPointer!) {
-    let crtRetryStrategyCore = Unmanaged<CRTRetryStrategyCore>.fromOpaque(userData).takeRetainedValue()
+
+private func onRetryTokenAcquired(retry_strategy: UnsafeMutablePointer<aws_retry_strategy>?,
+                                  errorCode: Int32,
+                                  token: UnsafeMutablePointer<aws_retry_token>?,
+                                  userData: UnsafeMutableRawPointer!) {
+    let crtRetryStrategyCore = Unmanaged<CRTRetryStrategyAcquireTokenCore>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         crtRetryStrategyCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
@@ -59,16 +50,44 @@ private func onRetryReady(token: UnsafeMutablePointer<aws_retry_token>?,
     crtRetryStrategyCore.continuation.resume(returning: CRTAWSRetryToken(rawValue: token!))
 }
 
-private func onRetryTokenAcquired(retry_strategy: UnsafeMutablePointer<aws_retry_strategy>?,
-                                  errorCode: Int32,
-                                  token: UnsafeMutablePointer<aws_retry_token>?,
-                                  userData: UnsafeMutableRawPointer!) {
-    let crtRetryStrategyCore = Unmanaged<CRTRetryStrategyCore>.fromOpaque(userData).takeRetainedValue()
+typealias RetryStrategyScheduleRetryContinuation = CheckedContinuation<(), Error>
+
+class CRTRetryStrategyScheduleCore {
+    var continuation: RetryStrategyScheduleRetryContinuation
+
+    init(continuation: RetryStrategyScheduleRetryContinuation) {
+        self.continuation = continuation
+    }
+
+    private func getRetainedSelf() -> UnsafeMutableRawPointer {
+        return Unmanaged<CRTRetryStrategyScheduleCore>.passRetained(self).toOpaque()
+    }
+
+    func retainedScheduleRetryToCRT(token: CRTAWSRetryToken, errorType: CRTRetryError) {
+        let retainedSelf = getRetainedSelf()
+        if aws_retry_strategy_schedule_retry(token.rawValue,
+                errorType.rawValue,
+                onRetryReady,
+                retainedSelf) != AWS_OP_SUCCESS {
+            release()
+            continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
+        }
+    }
+
+    private func release() {
+        Unmanaged.passUnretained(self).release()
+    }
+}
+
+private func onRetryReady(token: UnsafeMutablePointer<aws_retry_token>?,
+                          errorCode: Int32,
+                          userData: UnsafeMutableRawPointer!) {
+    let crtRetryStrategyCore = Unmanaged<CRTRetryStrategyScheduleCore>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         crtRetryStrategyCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
     // Success
-    crtRetryStrategyCore.continuation.resume(returning: CRTAWSRetryToken(rawValue: token!))
+    crtRetryStrategyCore.continuation.resume()
 }

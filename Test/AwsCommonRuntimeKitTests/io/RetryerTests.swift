@@ -21,4 +21,14 @@ class RetryerTests: CrtXCBaseTestCase {
         let result = try await retryer.acquireToken(timeout: 0, partitionId: "partition1")
         XCTAssertNotNil(result)
     }
+
+    func testSechudleRetry() async throws {
+        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
+        let exponentialBackoffRetryOptions = CRTExponentialBackoffRetryOptions(eventLoopGroup: elg)
+        let config = CRTStandardRetryOptions(exponentialBackoffRetryOptions: exponentialBackoffRetryOptions)
+        let retryer = try CRTAWSRetryStrategy(crtStandardRetryOptions: config, allocator: allocator)
+        let token = try await retryer.acquireToken(timeout: 0, partitionId: "partition1")
+        XCTAssertNotNil(token)
+        try await retryer.scheduleRetry(token: token, errorType: CRTRetryError.serverError)
+    }
 }
