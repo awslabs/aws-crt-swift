@@ -8,9 +8,17 @@ public protocol AwsStream {
     var isEndOfStream: Bool { get }
     var length: UInt { get }
 
-    func seek(offset: Int64, basis: StreamSeekType) -> Bool
+    func seek(offset: Int64, streamSeekType: StreamSeekType) -> Bool
     /// Data.count should not greater than length.
     func read(length: Int) -> Data
+}
+
+/// Direction to seek the stream.
+public enum StreamSeekType: UInt32 {
+    /// Seek the stream starting from beginning
+    case begin = 0
+    /// Seek the stream of End.
+    case end = 2
 }
 
 public class AwsInputStream {
@@ -37,12 +45,11 @@ extension FileHandle: AwsStream {
     }
 
     @inlinable
-    public func seek(offset: Int64, basis: StreamSeekType) -> Bool {
+    public func seek(offset: Int64, streamSeekType: StreamSeekType) -> Bool {
         let targetOffset: UInt64
-        if basis == .begin {
-            targetOffset = self.offsetInFile + UInt64(offset)
-        } else {
-            targetOffset = self.offsetInFile - UInt64(offset)
+        switch(streamSeekType){
+        case .begin: targetOffset = self.offsetInFile + UInt64(offset)
+        case .end: targetOffset = self.offsetInFile - UInt64(offset)
         }
         self.seek(toFileOffset: targetOffset)
         return true

@@ -282,9 +282,9 @@ extension ByteBuffer: AwsStream {
         return UInt(array.count)
     }
 
-    public func seek(offset: Int64, basis: StreamSeekType) -> Bool {
+    public func seek(offset: Int64, streamSeekType: StreamSeekType) -> Bool {
         let targetOffset: Int64
-        if basis.rawValue == AWS_SSB_BEGIN.rawValue {
+        if streamSeekType.rawValue == AWS_SSB_BEGIN.rawValue {
             targetOffset = offset
 
         } else {
@@ -297,6 +297,7 @@ extension ByteBuffer: AwsStream {
     public func read(length: Int) -> Data {
         let arrayEnd = (length + self.currentIndex) < array.count ? length + self.currentIndex : array.count
         let dataArray = array[self.currentIndex..<(arrayEnd)]
+        currentIndex = arrayEnd
         return Data(dataArray)
     }
 }
