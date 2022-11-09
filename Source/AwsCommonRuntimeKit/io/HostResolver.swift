@@ -9,7 +9,6 @@ public class HostResolver {
     let config: HostResolutionConfig
     private let allocator: Allocator
 
-
     public static func makeDefault(eventLoopGroup: EventLoopGroup,
                                    maxHosts: Int,
                                    maxTTL: Int,

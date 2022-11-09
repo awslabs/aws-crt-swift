@@ -47,7 +47,7 @@ extension FileHandle: AwsStream {
     @inlinable
     public func seek(offset: Int64, streamSeekType: StreamSeekType) -> Bool {
         let targetOffset: UInt64
-        switch(streamSeekType){
+        switch streamSeekType {
         case .begin: targetOffset = self.offsetInFile + UInt64(offset)
         case .end: targetOffset = self.offsetInFile - UInt64(offset)
         }
