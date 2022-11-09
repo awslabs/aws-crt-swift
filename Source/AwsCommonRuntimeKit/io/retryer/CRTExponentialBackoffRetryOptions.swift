@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCIo
 
-public typealias GenerateRandom = () -> UInt64
+public typealias GenerateRandom = @convention(c) () -> UInt64
 
 public struct CRTExponentialBackoffRetryOptions: CStruct {
     public var eventLoopGroup: EventLoopGroup
@@ -30,7 +30,9 @@ public struct CRTExponentialBackoffRetryOptions: CStruct {
         cExponentialBackoffRetryOptions.max_retries = maxRetries
         cExponentialBackoffRetryOptions.backoff_scale_factor_ms = backOffScaleFactor
         cExponentialBackoffRetryOptions.jitter_mode = jitterMode.rawValue
-        //TODO: fix generate random
+        if let generateRandom = generateRandom {
+            cExponentialBackoffRetryOptions.generate_random = generateRandom
+        }
         return body(cExponentialBackoffRetryOptions)
     }
 }
