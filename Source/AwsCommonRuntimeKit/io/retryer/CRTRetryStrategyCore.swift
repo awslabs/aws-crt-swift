@@ -35,7 +35,6 @@ class CRTRetryStrategyAcquireTokenCore {
     }
 }
 
-
 private func onRetryTokenAcquired(retry_strategy: UnsafeMutablePointer<aws_retry_strategy>?,
                                   errorCode: Int32,
                                   token: UnsafeMutablePointer<aws_retry_token>?,
