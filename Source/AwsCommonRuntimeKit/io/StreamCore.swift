@@ -61,8 +61,7 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     let length = buffer.pointee.capacity
     let data = inputStream.awsStream.read(length: length)
     if data.count > length {
-        //TODO: discuss proper error handling here
-        return AWS_OP_ERR
+        return aws_raise_error(Int32(AWS_IO_STREAM_READ_FAILED.rawValue));
     }
 
     // We get a "safe" buffer from C that starts where the existing data ends.
@@ -79,7 +78,6 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
 private func doGetStatus(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                          _ result: UnsafeMutablePointer<aws_stream_status>!) -> Int32 {
     let inputStream = Unmanaged<AwsInputStreamCore>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
-    //TODO: discuss is it valid to send is valid as always true?
     result.pointee = aws_stream_status(is_end_of_stream: inputStream.awsStream.isEndOfStream, is_valid: true)
     return AWS_OP_SUCCESS
 }
