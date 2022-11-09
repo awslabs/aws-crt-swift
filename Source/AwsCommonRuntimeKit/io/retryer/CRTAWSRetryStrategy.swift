@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCIo
-//TODO: rename class to CRTAWSRetryStrategy or RetryStrategy. We have inconsistent CRT as a prefix of some classes.
+//TODO: rename class to RetryStrategy or CRTRetryStrategy. We have inconsistent CRT/AWS as a prefix of some classes.
 // I am not renaming it for now because it messes up the git change log. Will create a separate PR for just renaming.
 public class CRTAWSRetryStrategy {
     let allocator: Allocator
@@ -11,17 +11,12 @@ public class CRTAWSRetryStrategy {
     /// Creates an AWS Retryer implementing the correct retry strategy.
     ///
     /// - Parameters:
-    ///   - exponentialBackoffRetryOptions:  The `CRTRetryOptions` options object.
-    ///   - initialBucketCapacity: Capacity for partitions. Defaults to 500
+    ///   - crtStandardRetryOptions:  The `CRTStandardRetryOptions` options object.
     /// - Returns: `CRTAWSRetryStrategy`
-    public init(crtRetryOptions: CRTRetryOptions, allocator: Allocator = defaultAllocator) throws {
+    public init(crtStandardRetryOptions: CRTStandardRetryOptions, allocator: Allocator = defaultAllocator) throws {
         self.allocator = allocator
-        guard let rawValue = (crtRetryOptions.exponentialBackoffRetryOptions.withCStruct {
-            cExponentialBackoffRetryOptions in
-
-            var options = aws_standard_retry_options(backoff_retry_options: cExponentialBackoffRetryOptions,
-                    initial_bucket_capacity: crtRetryOptions.initialBucketCapacity)
-            return aws_retry_strategy_new_standard(allocator.rawValue, &options)
+        guard let rawValue = (crtStandardRetryOptions.withCPointer { retryOptionsPointer in
+            return aws_retry_strategy_new_standard(allocator.rawValue, retryOptionsPointer)
         }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }

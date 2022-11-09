@@ -4,13 +4,13 @@
 import AwsCIo
 
 public struct HostAddress {
-    public let host: String?
-    public let address: String?
-    public let recordType: AddressRecordType
-    public let expiry: UInt64
-    public let useCount: Int
-    public let connectionFailureCount: Int
-    public let weight: UInt8
+    public var host: String?
+    public var address: String?
+    public var recordType: AddressRecordType
+    public var expiry: UInt64
+    public var useCount: Int
+    public var connectionFailureCount: Int
+    public var weight: UInt8
 
     init(hostAddress: aws_host_address) {
         self.host = String(awsString: hostAddress.host)
@@ -22,13 +22,19 @@ public struct HostAddress {
         self.weight = hostAddress.weight
     }
 
-    init() {
-        self.host = nil
-        self.address = nil
-        self.recordType = .typeA
-        self.expiry = 0
-        self.useCount = 0
-        self.connectionFailureCount = 0
-        self.weight = 0
+    public init(host: String? = nil,
+                address:String? = nil,
+                recordType: AddressRecordType = .typeA,
+                expiry: UInt64 = 0,
+                useCount: Int = 0,
+                connectionFailureCount: Int = 0,
+                weight: UInt8 = 0) {
+        self.host = host
+        self.address = address
+        self.recordType = recordType
+        self.expiry = expiry
+        self.useCount = useCount
+        self.connectionFailureCount = connectionFailureCount
+        self.weight = weight
     }
 }

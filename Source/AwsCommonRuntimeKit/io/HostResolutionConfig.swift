@@ -16,5 +16,4 @@ public struct HostResolutionConfig: CStruct {
         cHostResolutionConfig.impl = aws_default_dns_resolve
         return body(cHostResolutionConfig)
     }
-
 }
