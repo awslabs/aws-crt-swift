@@ -47,8 +47,8 @@ class CRTRetryStrategyCore {
 }
 
 private func onRetryReady(token: UnsafeMutablePointer<aws_retry_token>?,
-                  errorCode: Int32,
-                  userData: UnsafeMutableRawPointer!) {
+                          errorCode: Int32,
+                          userData: UnsafeMutableRawPointer!) {
     let crtRetryStrategyCore = Unmanaged<CRTRetryStrategyCore>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         crtRetryStrategyCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
@@ -60,9 +60,9 @@ private func onRetryReady(token: UnsafeMutablePointer<aws_retry_token>?,
 }
 
 private func onRetryTokenAcquired(retry_strategy: UnsafeMutablePointer<aws_retry_strategy>?,
-                          errorCode: Int32,
-                          token: UnsafeMutablePointer<aws_retry_token>?,
-                          userData: UnsafeMutableRawPointer!) {
+                                  errorCode: Int32,
+                                  token: UnsafeMutablePointer<aws_retry_token>?,
+                                  userData: UnsafeMutableRawPointer!) {
     let crtRetryStrategyCore = Unmanaged<CRTRetryStrategyCore>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         crtRetryStrategyCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))

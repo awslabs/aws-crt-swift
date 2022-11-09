@@ -9,7 +9,7 @@ public struct CRTExponentialBackoffRetryOptions: CStruct {
     public var maxRetries: Int
     public var backOffScaleFactor: UInt32
     public var jitterMode: CRTExponentialBackoffJitterMode
-    public let generateRandom: GenerateRandom?
+    public var generateRandom: GenerateRandom?
 
     public init(eventLoopGroup: EventLoopGroup,
                 maxRetries: Int = 10,

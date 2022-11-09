@@ -23,7 +23,7 @@ public struct HostAddress {
     }
 
     public init(host: String? = nil,
-                address:String? = nil,
+                address: String? = nil,
                 recordType: AddressRecordType = .typeA,
                 expiry: UInt64 = 0,
                 useCount: Int = 0,
