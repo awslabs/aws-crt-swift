@@ -19,9 +19,12 @@ public class ClientBootstrap {
 
     public convenience init(eventLoopGroup: EventLoopGroup,
                             hostResolver: HostResolver,
-                            shutdownCallback: ShutdownCallback? = nil,
-                            allocator: Allocator = defaultAllocator) throws {
-        try self.init(clientBootstrapOptions: ClientBootstrapOptions(eventLoopGroup: eventLoopGroup, hostResolver: hostResolver, shutdownCallback: shutdownCallback), allocator: allocator)
+                            allocator: Allocator = defaultAllocator,
+                            shutdownCallback: ShutdownCallback? = nil) throws {
+        try self.init(clientBootstrapOptions: ClientBootstrapOptions(eventLoopGroup: eventLoopGroup,
+                                                                     hostResolver: hostResolver,
+                                                                     shutdownCallback: shutdownCallback),
+                      allocator: allocator)
     }
 
     deinit {
