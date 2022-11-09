@@ -61,7 +61,7 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     let length = buffer.pointee.capacity
     let data = inputStream.awsStream.read(length: length)
     if data.count > length {
-        return aws_raise_error(Int32(AWS_IO_STREAM_READ_FAILED.rawValue));
+        return aws_raise_error(Int32(AWS_IO_STREAM_READ_FAILED.rawValue))
     }
 
     // We get a "safe" buffer from C that starts where the existing data ends.
