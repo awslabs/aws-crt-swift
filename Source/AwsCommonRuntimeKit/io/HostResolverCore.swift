@@ -41,10 +41,10 @@ class HostResolverCore {
     }
 }
 
-private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!,
-                            _ hostName: UnsafePointer<aws_string>!,
+private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>?,
+                            _ hostName: UnsafePointer<aws_string>?,
                             _ errorCode: Int32,
-                            _ hostAddresses: UnsafePointer<aws_array_list>!,
+                            _ hostAddresses: UnsafePointer<aws_array_list>?,
                             _ userData: UnsafeMutableRawPointer!) {
     let userData = Unmanaged<HostResolverCore>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
@@ -53,12 +53,12 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!
     }
 
     // Success
-    let length = aws_array_list_length(hostAddresses)
+    let length = aws_array_list_length(hostAddresses!)
     var addresses: [HostAddress] = Array(repeating: HostAddress(), count: length)
 
     for index in 0..<length {
         var address: UnsafeMutableRawPointer! = nil
-        aws_array_list_get_at_ptr(hostAddresses, &address, index)
+        aws_array_list_get_at_ptr(hostAddresses!, &address, index)
         let hostAddressCType = address.bindMemory(to: aws_host_address.self, capacity: 1).pointee
         let hostAddress = HostAddress(hostAddress: hostAddressCType)
         addresses[index] = hostAddress
