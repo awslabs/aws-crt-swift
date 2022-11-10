@@ -284,11 +284,9 @@ extension ByteBuffer: AwsStream {
 
     public func seek(offset: Int64, streamSeekType: StreamSeekType) -> Bool {
         let targetOffset: Int64
-        if streamSeekType.rawValue == AWS_SSB_BEGIN.rawValue {
-            targetOffset = offset
-
-        } else {
-            targetOffset = Int64(length) - offset
+        switch streamSeekType {
+        case .begin: targetOffset = offset
+        case .end: targetOffset = Int64(length) - offset
         }
         currentIndex = Int(targetOffset)
         return true
