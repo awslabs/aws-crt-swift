@@ -17,7 +17,7 @@ public protocol AwsStream {
 public enum StreamSeekType: UInt32 {
     /// Seek the stream starting from beginning
     case begin = 0
-    /// Seek the stream of End.
+    /// Seek the stream from End.
     case end = 2
 }
 
