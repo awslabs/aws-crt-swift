@@ -3,46 +3,36 @@
 
 import AwsCIo
 
+
 /// aws_input_stream has acquire and release functions which manage the lifetime of this object.
 class AwsInputStreamCore {
     var rawValue: aws_input_stream
     let awsStream: AwsStream
-    let vtable: AwsInputStreamVtable
+
+    private let allocator: Allocator
+    private var vtable = aws_input_stream_vtable(seek: doSeek,
+            read: doRead,
+            get_status: doGetStatus,
+            get_length: doGetLength,
+            acquire: { _ = Unmanaged<AwsInputStream>.fromOpaque($0!.pointee.impl).retain() },
+            release: { Unmanaged<AwsInputStream>.fromOpaque($0!.pointee.impl).release() })
+    private let vtablePointer: UnsafeMutablePointer<aws_input_stream_vtable>
+
     init(awsStream: AwsStream, allocator: Allocator) {
+        self.allocator = allocator
         self.awsStream = awsStream
         rawValue = aws_input_stream()
-        self.vtable = AwsInputStreamVtable(allocator: allocator)
-        rawValue.vtable = vtable.rawValue
+
+        // Use a manually managed vtable pointer to avoid undefined behavior
+        self.vtablePointer = allocator.allocate(capacity: 1)
+        self.vtablePointer.initialize(to: vtable)
+        rawValue.vtable = UnsafePointer(vtablePointer)
+
         rawValue.impl = Unmanaged<AwsInputStreamCore>.passUnretained(self).toOpaque()
-    }
-}
-
-class AwsInputStreamVtable: CStruct {
-    private let _rawValue: UnsafeMutablePointer<aws_input_stream_vtable>
-    var rawValue: UnsafePointer<aws_input_stream_vtable> { UnsafePointer(_rawValue) }
-    let allocator: Allocator
-    init(allocator: Allocator) {
-        self.allocator = allocator
-        _rawValue = allocator.allocate(capacity: 1)
-        _rawValue.pointee.seek = doSeek
-        _rawValue.pointee.read = doRead
-        _rawValue.pointee.get_status = doGetStatus
-        _rawValue.pointee.get_length = doGetLength
-        _rawValue.pointee.acquire = {
-            _ = Unmanaged<AwsInputStreamCore>.fromOpaque($0!.pointee.impl).retain()
-        }
-        _rawValue.pointee.release = {
-            Unmanaged<AwsInputStreamCore>.fromOpaque($0!.pointee.impl).release()
-        }
-    }
-
-    typealias RawType = aws_input_stream_vtable
-    func withCStruct<Result>(_ body: (aws_input_stream_vtable) -> Result) -> Result {
-        return body(_rawValue.pointee)
     }
 
     deinit {
-        allocator.release(_rawValue)
+        allocator.release(vtablePointer)
     }
 }
 
