@@ -6,7 +6,6 @@ public struct ClientBootstrapOptions: CStructWithShutdownOptions {
     public var eventLoopGroup: EventLoopGroup
     public var hostResolver: HostResolver
     public var shutdownCallback: ShutdownCallback?
-    var enableBlockingShutdown: Bool = false
 
     public init(eventLoopGroup: EventLoopGroup,
                 hostResolver: HostResolver,
