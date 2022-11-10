@@ -57,10 +57,12 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
 
 private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                     _ buffer: UnsafeMutablePointer<aws_byte_buf>!) -> Int32 {
-    let inputStream = Unmanaged<AwsInputStreamCore>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
+    let awsStream = Unmanaged<AwsInputStreamCore>.fromOpaque(stream.pointee.impl).takeUnretainedValue().awsStream
     let length = buffer.pointee.capacity
-    let data = inputStream.awsStream.read(length: length)
-    if data.count > length {
+    let data = awsStream.read(length: length)
+
+    // Invalid data length
+    if data.count > length || (data.count == 0 && !awsStream.isEndOfStream) {
         return aws_raise_error(Int32(AWS_IO_STREAM_READ_FAILED.rawValue))
     }
 
@@ -69,10 +71,9 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     if data.count > 0 {
         data.copyBytes(to: buffer.pointee.buffer, count: data.count)
         buffer.pointee.len = data.count
-        return AWS_OP_SUCCESS
     }
 
-    return inputStream.awsStream.isEndOfStream ? AWS_OP_SUCCESS : AWS_OP_ERR
+    return AWS_OP_SUCCESS
 }
 
 private func doGetStatus(_ stream: UnsafeMutablePointer<aws_input_stream>!,
