@@ -24,8 +24,7 @@ class AwsInputStreamCore {
         rawValue = aws_input_stream()
 
         // Use a manually managed vtable pointer to avoid undefined behavior
-        self.vtablePointer = allocator.allocate(capacity: 1)
-        self.vtablePointer.initialize(to: vtable)
+        self.vtablePointer = allocator.allocate(capacity: 1).initialize(to: vtable)
         rawValue.vtable = UnsafePointer(vtablePointer)
 
         rawValue.impl = Unmanaged<AwsInputStreamCore>.passUnretained(self).toOpaque()
