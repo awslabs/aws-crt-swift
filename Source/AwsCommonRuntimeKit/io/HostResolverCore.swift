@@ -24,12 +24,13 @@ class HostResolverCore {
     /// This function does a manual retain on HostResolverCore
     /// to keep it until until onHostResolved callback has fired which will do the release.
     func retainedResolve() {
+        let retainedSelf = getRetainedSelf()
         hostResolver.config.withCPointer { hostResolverConfigPointer in
             if aws_host_resolver_resolve_host(hostResolver.rawValue,
                     host.rawValue,
                     onHostResolved,
                     hostResolverConfigPointer,
-                    getRetainedSelf()) != AWS_OP_SUCCESS {
+                    retainedSelf) != AWS_OP_SUCCESS {
                 //TODO: this is wrong. Sometimes it triggers the error callback and sometimes it doesn't.
                 // I have a fix in progress in aws-c-io
                 release()
