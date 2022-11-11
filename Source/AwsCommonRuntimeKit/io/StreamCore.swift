@@ -3,7 +3,6 @@
 
 import AwsCIo
 
-
 /// aws_input_stream has acquire and release functions which manage the lifetime of this object.
 class AwsInputStreamCore {
     var rawValue: aws_input_stream
