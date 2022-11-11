@@ -3,9 +3,11 @@
 
 import AwsCIo
 
-typealias RetryStrategyAcquireTokenContinuation = CheckedContinuation<CRTAWSRetryToken, Error>
-typealias RetryStrategyScheduleRetryContinuation = CheckedContinuation<(), Error>
+typealias AcquireTokenContinuation = CheckedContinuation<CRTAWSRetryToken, Error>
+typealias ScheduleRetryContinuation = CheckedContinuation<(), Error>
 
+/// Core classes have manual memory management.
+/// You have to balance the retain & release calls in all cases to avoid leaking memory.
 class CRTRetryStrategyCore<T> {
     var continuation: CheckedContinuation<T, Error>
 

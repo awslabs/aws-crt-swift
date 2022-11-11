@@ -4,6 +4,8 @@ import AwsCIo
 
 typealias HostResolvedContinuation = CheckedContinuation<[HostAddress], Error>
 
+/// Core classes have manual memory management.
+/// You have to balance the retain & release calls in all cases to avoid leaking memory.
 class HostResolverCore {
     let host: AWSString
     let hostResolver: HostResolver
