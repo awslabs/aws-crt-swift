@@ -42,7 +42,7 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     if inputStream.awsStream.seek(offset: offset, streamSeekType: StreamSeekType(rawValue: seekBasis.rawValue)!) {
         return AWS_OP_SUCCESS
     }
-    return AWS_OP_ERR
+    return aws_raise_error(Int32(AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
 }
 
 private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
