@@ -6,7 +6,7 @@ import AwsCIo
 
 public class HostResolver {
     let rawValue: UnsafeMutablePointer<aws_host_resolver>
-    let config: HostResolutionConfig
+    let maxTTL: Int
     private let allocator: Allocator
 
     public static func makeDefault(eventLoopGroup: EventLoopGroup,
@@ -36,13 +36,20 @@ public class HostResolver {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue
-        self.config = HostResolutionConfig(maxTTL: maxTTL)
+        self.maxTTL = maxTTL
     }
 
     public func resolve(host: String) async throws -> [HostAddress] {
         return try await withCheckedThrowingContinuation({ (continuation: HostResolvedContinuation) in
             HostResolverCore(hostResolver: self, host: host, continuation: continuation, allocator: allocator).retainedResolve()
         })
+    }
+
+    func getHostResolutionConfig() -> aws_host_resolution_config {
+        var cHostResolutionConfig = aws_host_resolution_config()
+        cHostResolutionConfig.max_ttl = maxTTL
+        cHostResolutionConfig.impl = aws_default_dns_resolve
+        return cHostResolutionConfig
     }
 
     deinit {
