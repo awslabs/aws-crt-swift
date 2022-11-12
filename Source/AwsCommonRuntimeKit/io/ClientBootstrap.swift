@@ -11,15 +11,16 @@ public class ClientBootstrap {
                 shutdownCallback: ShutdownCallback? = nil) throws {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         let shutdownOptions = shutdownCallbackCore.getRetainedShutdownOptions()
-        var hostResolutionConfig = hostResolver.getHostResolutionConfig()
-        var options = aws_client_bootstrap_options(
-            event_loop_group: elg.rawValue,
-            host_resolver: hostResolver.rawValue,
-            host_resolution_config: &hostResolutionConfig,
-            on_shutdown_complete: shutdownOptions.shutdown_callback_fn,
-            user_data: shutdownOptions.shutdown_callback_user_data
-        )
-        guard let rawValue = aws_client_bootstrap_new(allocator.rawValue, &options) else {
+        guard let rawValue = (withUnsafePointer(to: hostResolver.getHostResolutionConfig()) { hostResolutionConfigPointer in
+            var options = aws_client_bootstrap_options(
+                    event_loop_group: elg.rawValue,
+                    host_resolver: hostResolver.rawValue,
+                    host_resolution_config: hostResolutionConfigPointer,
+                    on_shutdown_complete: shutdownOptions.shutdown_callback_fn,
+                    user_data: shutdownOptions.shutdown_callback_user_data
+            )
+           return aws_client_bootstrap_new(allocator.rawValue, &options)
+        }) else {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
