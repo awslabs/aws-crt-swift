@@ -41,7 +41,7 @@ public class HostResolver {
 
     public func resolve(host: String) async throws -> [HostAddress] {
         return try await withCheckedThrowingContinuation({ (continuation: HostResolvedContinuation) in
-            HostResolverCore(hostResolver: self, host: host, continuation: continuation, allocator: allocator).retainedResolve()
+            HostResolveCore(hostResolver: self, host: host, continuation: continuation, allocator: allocator).retainedResolve()
         })
     }
 

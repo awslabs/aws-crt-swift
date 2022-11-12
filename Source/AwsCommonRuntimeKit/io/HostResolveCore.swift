@@ -6,7 +6,7 @@ typealias HostResolvedContinuation = CheckedContinuation<[HostAddress], Error>
 
 /// Core classes have manual memory management.
 /// You have to balance the retain & release calls in all cases to avoid leaking memory.
-class HostResolverCore {
+class HostResolveCore {
     let host: AWSString
     let hostResolver: HostResolver
     let continuation: HostResolvedContinuation
@@ -18,7 +18,7 @@ class HostResolverCore {
     }
 
     private func getRetainedSelf() -> UnsafeMutableRawPointer {
-        return Unmanaged<HostResolverCore>.passRetained(self).toOpaque()
+        return Unmanaged<HostResolveCore>.passRetained(self).toOpaque()
     }
 
     /// This function does a manual retain on HostResolverCore
@@ -49,7 +49,7 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>?
                             _ errorCode: Int32,
                             _ hostAddresses: UnsafePointer<aws_array_list>?,
                             _ userData: UnsafeMutableRawPointer!) {
-    let userData = Unmanaged<HostResolverCore>.fromOpaque(userData).takeRetainedValue()
+    let userData = Unmanaged<HostResolveCore>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         userData.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
