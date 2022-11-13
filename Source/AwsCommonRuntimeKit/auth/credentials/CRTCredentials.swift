@@ -3,15 +3,13 @@
 
 import AwsCAuth
 
-public final class CRTCredentials {
+public class CRTCredentials {
 
     let rawValue: OpaquePointer
 
-    public init?(rawValue: OpaquePointer?) {
-        guard let rawValue = rawValue else {
-            return nil
-        }
+    public init(rawValue: OpaquePointer) {
         self.rawValue = rawValue
+        //TODO: needed?
         aws_credentials_acquire(rawValue)
     }
 
