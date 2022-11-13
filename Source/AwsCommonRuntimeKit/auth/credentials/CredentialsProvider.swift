@@ -18,22 +18,22 @@ public class CredentialsProvider {
     }
 
     //TODO: fix
-    public convenience init(fromDelegate impl: CRTCredentialsProvider,
-                            allocator: Allocator = defaultAllocator,
-                            shutdownCallback: ShutdownCallback? = nil) throws {
-        let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
-        let credProviderPtr: UnsafeMutablePointer<CRTCredentialsProvider> = fromPointer(ptr: impl)
-        let shutdownOptions =  shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
-        var options = aws_credentials_provider_delegate_options(shutdown_options: shutdownOptions,
-                                                                get_credentials: getCredentialsDelegateFn,
-                                                                delegate_user_data: credProviderPtr)
-
-        guard let credProvider = aws_credentials_provider_new_delegate(allocator.rawValue, &options) else {
-            shutdownCallbackCore.release()
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
-        }
-        self.init(credentialsProvider: credProvider, allocator: allocator)
-    }
+//    public convenience init(fromDelegate impl: CRTCredentialsProvider,
+//                            allocator: Allocator = defaultAllocator,
+//                            shutdownCallback: ShutdownCallback? = nil) throws {
+//        let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
+//        let credProviderPtr: UnsafeMutablePointer<CRTCredentialsProvider> = fromPointer(ptr: impl)
+//        let shutdownOptions =  shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
+//        var options = aws_credentials_provider_delegate_options(shutdown_options: shutdownOptions,
+//                                                                get_credentials: getCredentialsDelegateFn,
+//                                                                delegate_user_data: credProviderPtr)
+//
+//        guard let credProvider = aws_credentials_provider_new_delegate(allocator.rawValue, &options) else {
+//            shutdownCallbackCore.release()
+//            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+//        }
+//        self.init(credentialsProvider: credProvider, allocator: allocator)
+//    }
 
 
     /// Creates a credentials provider containing a fixed set of credentials.
@@ -138,7 +138,7 @@ public class CredentialsProvider {
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func makeImds(bootstrap: ClientBootstrap,
-                                imdsVersion: ImdsProtocolVersion = ImdsProtocolVersion.imds_protocol_v2,
+                                imdsVersion: CRTIMDSProtocolVersion = CRTIMDSProtocolVersion.version2,
                                 shutdownCallback: ShutdownCallback? = nil,
                                 allocator: Allocator = defaultAllocator) throws -> CredentialsProvider {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
