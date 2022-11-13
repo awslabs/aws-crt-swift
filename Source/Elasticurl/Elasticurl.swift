@@ -289,8 +289,7 @@ struct Elasticurl {
 
             if let data = context.data {
                 let byteBuffer = ByteBuffer(data: data)
-                let awsStream = AwsInputStream(byteBuffer)
-                httpRequest.body = awsStream
+                httpRequest.body = byteBuffer
                 if headers.add(name: "Content-length", value: "\(data.count)") {
                     httpRequest.addHeaders(headers: headers)
                 }

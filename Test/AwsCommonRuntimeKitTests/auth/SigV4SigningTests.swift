@@ -103,7 +103,7 @@ class SigV4SigningTests: CrtXCBaseTestCase {
         request.method = "GET"
         request.path = "/"
         let byteBuffer = ByteBuffer(data: "{}".data(using: .utf8)!)
-        request.body = AwsInputStream(byteBuffer)
+        request.body = byteBuffer
 
         let headers = try HttpHeaders()
         let headerAdded = headers.add(name: "Host", value: "example.amazonaws.com")

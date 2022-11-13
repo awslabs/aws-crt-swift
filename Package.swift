@@ -6,8 +6,9 @@ let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
                         "CMakeLists.txt", "README.md"]
 var packageTargets: [Target] = []
 
+//TODO: fix. We might not be able to bump up the version
 var package = Package(name: "AwsCrt",
-                      platforms: [.iOS(.v13), .macOS(.v10_15), .tvOS(.v13), .watchOS(.v6)],
+                      platforms: [.iOS(.v13), .macOS(.v11), .tvOS(.v13), .watchOS(.v6)],
                       products: [
                         .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
                         .executable(name: "Elasticurl", targets: ["Elasticurl"])

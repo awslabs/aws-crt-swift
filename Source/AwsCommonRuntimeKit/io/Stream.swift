@@ -4,13 +4,13 @@
 import AwsCIo
 import Foundation
 
-public protocol AwsStream {
-    var isEndOfStream: Bool { get }
-    var length: UInt { get }
+public protocol IStreamable {
+    func isEndOfStream() throws -> Bool
+    func length() throws -> UInt64
 
-    func seek(offset: Int64, streamSeekType: StreamSeekType) -> Bool
+    func seek(offset: UInt64) throws
     /// Data.count should not greater than length.
-    func read(length: Int) -> Data
+    func read(buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) throws -> Int
 }
 
 /// Direction to seek the stream.
@@ -21,42 +21,37 @@ public enum StreamSeekType: UInt32 {
     case end = 2
 }
 
-public class AwsInputStream {
-    public var length: Int64
-    let awsInputStreamCore: AwsInputStreamCore
-    public init(_ impl: AwsStream, allocator: Allocator = defaultAllocator) {
-        length = Int64(impl.length)
-        awsInputStreamCore = AwsInputStreamCore(awsStream: impl, allocator: allocator)
-    }
-}
 
-extension FileHandle: AwsStream {
+extension FileHandle: IStreamable {
     @inlinable
-    public var isEndOfStream: Bool {
-        self.length == self.offsetInFile
+    public func isEndOfStream() throws -> Bool {
+        return try self.length() == self.offset()
     }
 
     @inlinable
-    public var length: UInt {
-        let savedPos = self.offsetInFile
-        defer { self.seek(toFileOffset: savedPos ) }
-        self.seekToEndOfFile()
-        return UInt(self.offsetInFile)
-    }
-
-    @inlinable
-    public func seek(offset: Int64, streamSeekType: StreamSeekType) -> Bool {
-        let targetOffset: UInt64
-        switch streamSeekType {
-        case .begin: targetOffset = self.offsetInFile + UInt64(offset)
-        case .end: targetOffset = self.offsetInFile - UInt64(offset)
+    public func length() throws -> UInt64 {
+        let savedPos = try self.offset()
+        defer {
+            self.seek(toFileOffset: savedPos)
         }
-        self.seek(toFileOffset: targetOffset)
-        return true
+        try self.seekToEnd()
+        return try self.offset()
     }
 
     @inlinable
-    public func read(length: Int) -> Data {
-        return self.readData(ofLength: length)
+    public func seek(offset: UInt64) throws {
+        try self.seek(toOffset: offset)
+    }
+
+    @inlinable
+    public func read(buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) throws -> Int {
+        let data = try self.read(upToCount: maxLength)
+        guard let data = data else {
+            return 0
+        }
+        if data.count > 0 {
+            data.copyBytes(to: buffer, count: data.count)
+        }
+        return data.count
     }
 }
