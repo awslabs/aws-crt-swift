@@ -77,7 +77,7 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
         return AWS_OP_SUCCESS
     } catch {
         //TODO: throw proper error
-        return AWS_OP_ERR;
+        return AWS_OP_ERR
     }
 
 }
@@ -91,7 +91,7 @@ private func doGetStatus(_ stream: UnsafeMutablePointer<aws_input_stream>!,
         return AWS_OP_SUCCESS
     } catch {
         //TODO: throw proper error
-        return AWS_OP_ERR;
+        return AWS_OP_ERR
     }
 }
 
@@ -104,6 +104,6 @@ private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
         return AWS_OP_SUCCESS
     } catch {
         //TODO: throw proper error
-        return AWS_OP_ERR;
+        return AWS_OP_ERR
     }
 }

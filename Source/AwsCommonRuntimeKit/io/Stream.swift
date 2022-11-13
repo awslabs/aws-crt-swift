@@ -21,7 +21,6 @@ public enum StreamSeekType: UInt32 {
     case end = 2
 }
 
-
 extension FileHandle: IStreamable {
     @inlinable
     public func isEndOfStream() throws -> Bool {
