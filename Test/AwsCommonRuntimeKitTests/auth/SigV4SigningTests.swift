@@ -13,10 +13,10 @@ class SigV4SigningTests: CrtXCBaseTestCase {
     func testSimpleSigningWithCredentialsProvider() async throws {
         let signer = SigV4HttpRequestSigner(allocator: allocator)
         let request = try makeMockRequest()
-        let staticConfig = MockCredentialsProviderStaticConfigOptions(accessKey: "access",
-                                                                      secret: "key",
-                                                                      sessionToken: "token")
-        let provider = try CRTAWSCredentialsProvider(fromStatic: staticConfig, allocator: allocator)
+        let provider = try CredentialsProvider.makeStatic(accessKey: "access",
+                                                                secret: "key",
+                                                                sessionToken: "token",
+                                                                allocator: allocator)
         let shouldSignHeader: SigningConfig.ShouldSignHeader = { header in
             return true
         }

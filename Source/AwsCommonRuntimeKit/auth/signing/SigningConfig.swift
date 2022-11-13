@@ -7,7 +7,7 @@ import AwsCAuth
 public struct SigningConfig: CStruct {
     public typealias ShouldSignHeader = (String) -> Bool
     public var credentials: CRTCredentials?
-    public var credentialsProvider: CRTAWSCredentialsProvider?
+    public var credentialsProvider: CredentialsProvider?
     public var expiration: Int64
     public var signedBodyHeader: SignedBodyHeaderType
     public var signedBodyValue: SignedBodyValue
@@ -21,7 +21,7 @@ public struct SigningConfig: CStruct {
     public var configType: SigningConfigType
 
     public init(credentials: CRTCredentials? = nil,
-                credentialsProvider: CRTAWSCredentialsProvider? = nil,
+                credentialsProvider: CredentialsProvider? = nil,
                 date: AWSDate,
                 service: String,
                 region: String,
