@@ -57,7 +57,7 @@ public class CredentialsProvider {
         guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                 accessKey,
                 secret,
-                sessionToken ?? "", { accessKeyCursor, secretCursor, sessionTokenCursor in
+                sessionToken, { accessKeyCursor, secretCursor, sessionTokenCursor in
             staticOptions.access_key_id = accessKeyCursor
             staticOptions.secret_access_key = secretCursor
             staticOptions.session_token = sessionTokenCursor
@@ -113,9 +113,9 @@ public class CredentialsProvider {
         var profileOptionsC = aws_credentials_provider_profile_options()
         profileOptionsC.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
-                configFileNameOverride ?? "",
-                credentialsFileNameOverride ?? "",
-                profileFileNameOverride ?? "", {
+                configFileNameOverride,
+                credentialsFileNameOverride,
+                profileFileNameOverride, {
             configFileNameOverrideCursor, credentialsFileNameOverrideCursor, profileFileNameOverrideCursor in
             profileOptionsC.config_file_name_override = configFileNameOverrideCursor
             profileOptionsC.credentials_file_name_override = credentialsFileNameOverrideCursor
@@ -293,10 +293,10 @@ public class CredentialsProvider {
     ///   - allocator: (Optional) allocator to override
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
-    public static func makeWebIdentity(bootstrap: ClientBootstrap,
-                                       tlsContext: TlsContext,
-                                       shutdownCallback: ShutdownCallback? = nil,
-                                       allocator: Allocator = defaultAllocator) throws -> CredentialsProvider {
+    public static func makeSTSWebIdentity(bootstrap: ClientBootstrap,
+                                          tlsContext: TlsContext,
+                                          shutdownCallback: ShutdownCallback? = nil,
+                                          allocator: Allocator = defaultAllocator) throws -> CredentialsProvider {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         var stsOptions = aws_credentials_provider_sts_web_identity_options()
         stsOptions.bootstrap = bootstrap.rawValue
@@ -393,7 +393,7 @@ public class CredentialsProvider {
             ecsOptions.host = hostCursor
             ecsOptions.auth_token = authTokenCursor
             ecsOptions.path_and_query = pathAndQueryCursor
-            return  aws_credentials_provider_new_ecs(allocator.rawValue, &ecsOptions)
+            return aws_credentials_provider_new_ecs(allocator.rawValue, &ecsOptions)
         }) else {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
@@ -401,17 +401,16 @@ public class CredentialsProvider {
         return CredentialsProvider(credentialsProvider: provider, allocator: allocator)
     }
 
-    typealias CredentialsContinuation = CheckedContinuation<CRTCredentials, Error>
+    typealias CredentialsContinuation = CheckedContinuation<Credentials, Error>
 
     /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
     /// the callback passed in.
     ///
     /// - Returns: `Result<CRTCredentials, CRTError>`
     /// - Throws: CommonRuntimeError.crtError
-    public func getCredentials() async throws -> CRTCredentials {
+    public func getCredentials() async throws -> Credentials {
         return try await withCheckedThrowingContinuation { (continuation: CredentialsContinuation) in
-            GetCredentialsCore(continuation: continuation)
-                    .getRetainedCredentials(credentialProvider: self)
+            GetCredentialsCore.getRetainedCredentials(credentialProvider: self, continuation: continuation)
         }
     }
 

@@ -114,8 +114,8 @@ class SigV4SigningTests: CrtXCBaseTestCase {
         return request
     }
 
-    func makeMockCredentials() throws -> CRTCredentials {
-        let credentials = try CRTCredentials(accessKey: "access",
+    func makeMockCredentials() throws -> Credentials {
+        let credentials = try Credentials(accessKey: "access",
                                       secret: "secret",
                                       sessionToken: "token",
                                       expirationTimeout: UInt64.max,

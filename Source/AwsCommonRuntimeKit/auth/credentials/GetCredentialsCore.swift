@@ -3,14 +3,14 @@
 
 import AwsCAuth
 
-typealias CredentialsContinuation = CheckedContinuation<CRTCredentials, Error>
+typealias CredentialsContinuation = CheckedContinuation<Credentials, Error>
 
 /// Core classes have manual memory management.
 /// You have to balance the retain & release calls in all cases to avoid leaking memory.
 class GetCredentialsCore {
-    public var continuation: CredentialsContinuation
+    var continuation: CredentialsContinuation
 
-    public init(continuation: CredentialsContinuation) {
+    init(continuation: CredentialsContinuation) {
         self.continuation = continuation
     }
 
@@ -18,10 +18,11 @@ class GetCredentialsCore {
         return Unmanaged<GetCredentialsCore>.passRetained(self).toOpaque()
     }
 
-    func getRetainedCredentials(credentialProvider: CredentialsProvider) {
-        let retainedSelf = getRetainedSelf()
+    static func getRetainedCredentials(credentialProvider: CredentialsProvider, continuation: CredentialsContinuation) {
+        let core = GetCredentialsCore(continuation: continuation)
+        let retainedSelf = core.getRetainedSelf()
         if aws_credentials_provider_get_credentials(credentialProvider.rawValue, onGetCredentials, retainedSelf) != AWS_OP_SUCCESS {
-            release()
+            core.release()
             continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
         }
     }
@@ -44,6 +45,6 @@ private func onGetCredentials(credentials: OpaquePointer?,
     }
 
     //Success
-    let crtCredentials = CRTCredentials(rawValue: credentials!)
+    let crtCredentials = Credentials(rawValue: credentials!)
     credentialsProviderCore.continuation.resume(returning: crtCredentials)
 }

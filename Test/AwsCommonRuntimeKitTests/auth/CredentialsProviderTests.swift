@@ -24,59 +24,116 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         }
     }
 
+    func assertCredentials(credentials: Credentials) {
+        XCTAssertEqual(accessKey, credentials.getAccessKey())
+        XCTAssertEqual(secret, credentials.getSecret())
+        XCTAssertEqual(sessionToken, credentials.getSessionToken())
+    }
+
+    func getClientBootstrap() throws -> ClientBootstrap {
+        let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
+        let hostResolver = try HostResolver(eventLoopGroup: elg,
+                maxHosts: 8,
+                maxTTL: 30,
+                allocator: allocator)
+        let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
+                hostResolver: hostResolver,
+                allocator: allocator)
+        return bootstrap
+    }
+
+    func getTlsContext() throws -> TlsContext {
+        let options = TlsContextOptions(allocator: allocator)
+        let context = try TlsContext(options: options, mode: .client, allocator: allocator)
+        return context
+    }
+
     func testCreateCredentialsProviderStatic() async throws {
         do {
             let provider = try CredentialsProvider.makeStatic(accessKey: accessKey,
-                                                                    secret: secret,
-                                                                    sessionToken: sessionToken,
-                                                                    shutdownCallback: getShutdownCallback())
+                                                              secret: secret,
+                                                              sessionToken: sessionToken,
+                                                              shutdownCallback: getShutdownCallback(),
+                                                              allocator: allocator)
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
+            assertCredentials(credentials: credentials)
         }
         wait(for: [shutdownWasCalled], timeout: 15)
     }
 
-    //TODO: fix
-    func testCreateCredentialsProviderEnv() async {
+    func testCredentialsProviderEnvThrow() async {
+        let exceptionWasThrown = XCTestExpectation(description: "Exception was thrown because of missing credentials in environment")
         do {
-            let provider = try CredentialsProvider.makeEnvironment(shutdownCallback: getShutdownCallback(), allocator: allocator)
+            let provider = try CredentialsProvider.makeEnvironment()
             _ = try await provider.getCredentials()
-
-        } catch let err {
-            let crtError = err as? CommonRunTimeError
-            XCTAssertNotNil(crtError)
+        } catch {
+           exceptionWasThrown.fulfill()
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        wait(for: [exceptionWasThrown], timeout: 15)
+    }
+
+    func testCreateCredentialsProviderEnv() async throws {
+        setenv("AWS_ACCESS_KEY_ID", accessKey, 1)
+        setenv("AWS_SECRET_ACCESS_KEY", secret, 1)
+        setenv("AWS_SESSION_TOKEN", sessionToken, 1)
+        defer {
+            unsetenv("AWS_ACCESS_KEY_ID")
+            unsetenv("AWS_SECRET_ACCESS_KEY")
+            unsetenv("AWS_SESSION_TOKEN")
+        }
+        let provider = try CredentialsProvider.makeEnvironment()
+        let credentials = try await provider.getCredentials()
+        assertCredentials(credentials: credentials)
+
     }
 
     func testCreateCredentialsProviderProfile() async throws {
-        //skip this test if it is running on macosx or on iOS
-        try skipIfiOS()
-        try skipifmacOS()
-        try skipIfLinux()
-        //uses default paths to credentials and config
         do {
-            let provider = try CredentialsProvider.makeProfile(shutdownCallback: getShutdownCallback(), allocator: allocator)
+
+            let provider = try CredentialsProvider.makeProfile(configFileNameOverride:  Bundle.module.path(forResource: "example_config", ofType: "txt")!,
+                    credentialsFileNameOverride: Bundle.module.path(forResource: "example_profile", ofType: "txt")!,
+                                                               shutdownCallback: getShutdownCallback(),
+                                                               allocator: allocator)
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
+            XCTAssertEqual("default_access_key_id", credentials.getAccessKey())
+            XCTAssertEqual("default_secret_access_key", credentials.getSecret())
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
+    }
+
+    func testCreateCredentialsProviderImds() async throws {
+        do {
+            _ = try CredentialsProvider.makeImds(bootstrap: getClientBootstrap(),
+                                                 shutdownCallback: getShutdownCallback(),
+                                                 allocator: allocator)
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
+    }
+
+    func testCreateCredentialsProviderCache() async throws {
+        do {
+            let staticProvider = try CredentialsProvider.makeStatic(accessKey: accessKey,
+                    secret: secret,
+                    sessionToken: sessionToken,
+                    allocator: allocator)
+            let cacheProvider = try CredentialsProvider.makeCached(source: staticProvider,
+                                                                   shutdownCallback: getShutdownCallback(),
+                                                                   allocator: allocator)
+            let credentials = try await cacheProvider.getCredentials()
+            XCTAssertNotNil(credentials)
+            assertCredentials(credentials: credentials)
         }
         wait(for: [shutdownWasCalled], timeout: 15)
     }
 
     func testCreateAWSCredentialsProviderChain() async throws {
         try skipIfLinux()
-        let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
-        let hostResolver = try HostResolver(eventLoopGroup: elg,
-                                               maxHosts: 8,
-                                               maxTTL: 30,
-                                               allocator: allocator)
-        let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                                            hostResolver: hostResolver,
-                                            allocator: allocator)
         do {
-            let provider = try CredentialsProvider.makeDefaultChain(bootstrap: bootstrap,
-                                                                  shutdownCallback: getShutdownCallback(),
-                                                                  allocator: allocator)
+            let provider = try CredentialsProvider.makeDefaultChain(bootstrap: getClientBootstrap(),
+                                                                    shutdownCallback: getShutdownCallback(),
+                                                                    allocator: allocator)
 
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
@@ -85,35 +142,17 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     }
 
     func testCreateDestroyStsWebIdentityInvalidEnv() async throws {
-        let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
-        let hostResolver = try HostResolver(eventLoopGroup: elg,
-                                               maxHosts: 8,
-                                               maxTTL: 30,
-                                               allocator: allocator)
-        let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                                            hostResolver: hostResolver,
-                                            allocator: allocator)
-        let options = TlsContextOptions(allocator: allocator)
-        let context = try TlsContext(options: options, mode: .client, allocator: allocator)
-        XCTAssertThrowsError(try CredentialsProvider.makeWebIdentity(bootstrap: bootstrap, tlsContext: context, allocator: allocator))
+        XCTAssertThrowsError(try CredentialsProvider.makeSTSWebIdentity(bootstrap: getClientBootstrap(),
+                                                                        tlsContext: getTlsContext(),
+                                                                        allocator: allocator))
     }
 
     func testCreateDestroyStsInvalidRole() async throws {
-        let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
-        let hostResolver = try HostResolver(eventLoopGroup: elg,
-                                               maxHosts: 8,
-                                               maxTTL: 30,
-                                               allocator: allocator)
-        let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                                            hostResolver: hostResolver,
-                                            allocator: allocator)
-        let options = TlsContextOptions(allocator: allocator)
-        let context = try TlsContext(options: options, mode: .client, allocator: allocator)
         let provider = try CredentialsProvider.makeStatic(accessKey: accessKey,
-                                                                secret: secret,
-                                                                sessionToken: sessionToken)
-        XCTAssertThrowsError(try CredentialsProvider.makeSTS(bootstrap: bootstrap,
-                                                             tlsContext: context,
+                                                          secret: secret,
+                                                          sessionToken: sessionToken)
+        XCTAssertThrowsError(try CredentialsProvider.makeSTS(bootstrap: getClientBootstrap(),
+                                                             tlsContext: getTlsContext(),
                                                              credentialsProvider: provider,
                                                              roleArn: "invalid-role-arn",
                                                              sessionName: "test-session",
@@ -121,28 +160,20 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                              allocator: allocator))
     }
 
-// TODO: default values for host
-//    func testCreateDestroyEcsMissingCreds() async throws {
-//        let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
-//        let hostResolver = try HostResolver(eventLoopGroup: elg,
-//                                               maxHosts: 8,
-//                                               maxTTL: 30,
-//                                               allocator: allocator)
-//        do {
-//            let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-//                                                hostResolver: hostResolver,
-//                                                allocator: allocator)
-//                let options = TlsContextOptions(allocator: allocator)
-//            let context = try TlsContext(options: options, mode: .client, allocator: allocator)
-//            let provider = try CredentialsProvider.makeContainer(bootstrap: bootstrap,
-//                                                                 tlsContext: context,
-//                                                                 shutdownCallback: getShutdownCallback(),
-//                                                                 allocator: allocator)
-//            let credentials = try await provider.getCredentials()
-//            XCTAssertNotNil(credentials)
-//        } catch let err {
-//            XCTAssertNotNil(err)
-//        }
-//        wait(for: [shutdownWasCalled], timeout: 15)
-//    }
+    func testCreateDestroyEcsMissingCreds() async throws {
+        let exceptionWasThrown = XCTestExpectation(description: "Exception was thrown")
+        do {
+            let provider = try CredentialsProvider.makeECS(bootstrap: getClientBootstrap(),
+                                                           tlsContext: getTlsContext(),
+                                                           authToken: "",
+                                                           pathAndQuery: "",
+                                                           host: "",
+                                                           shutdownCallback: getShutdownCallback(),
+                                                           allocator: allocator)
+            _ = try await provider.getCredentials()
+        } catch {
+            exceptionWasThrown.fulfill()
+        }
+        wait(for: [exceptionWasThrown], timeout: 15)
+    }
 }

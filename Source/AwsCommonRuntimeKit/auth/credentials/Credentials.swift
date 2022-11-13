@@ -3,7 +3,7 @@
 
 import AwsCAuth
 
-public class CRTCredentials {
+public class Credentials {
 
     let rawValue: OpaquePointer
 
@@ -21,7 +21,7 @@ public class CRTCredentials {
         guard let rawValue = (withByteCursorFromStrings(
                 accessKey,
                 secret,
-                sessionToken ?? "") { accessKeyCursor, secretCursor, sessionTokenCursor in
+                sessionToken) { accessKeyCursor, secretCursor, sessionTokenCursor in
             aws_credentials_new(allocator.rawValue,
                     accessKeyCursor,
                     secretCursor,

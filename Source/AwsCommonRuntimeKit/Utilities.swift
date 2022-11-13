@@ -145,22 +145,41 @@ extension UnsafePointer: PointerConformance {}
 
 extension UnsafeRawPointer: PointerConformance {}
 
-func withByteCursorFromStrings<Result>(
-        _ arg1: String, _ arg2: String, _ body: (aws_byte_cursor, aws_byte_cursor) -> Result
+func withOptionalCString<Result>(
+        to arg1: String?, _ body: (UnsafePointer<Int8>?) -> Result
 ) -> Result {
-    return arg1.withCString { arg1C in
-        return arg2.withCString { arg2C in
+    if let arg1 = arg1 {
+        return arg1.withCString { cString in
+            return body(cString)
+        }
+    }
+    return body(nil)
+}
+
+func withByteCursorFromStrings<Result>(
+        _ arg1: String?, _ body: (aws_byte_cursor) -> Result
+) -> Result {
+    return withOptionalCString(to: arg1) { arg1C in
+        return body(aws_byte_cursor_from_c_str(arg1C))
+    }
+}
+
+func withByteCursorFromStrings<Result>(
+        _ arg1: String?, _ arg2: String?, _ body: (aws_byte_cursor, aws_byte_cursor) -> Result
+) -> Result {
+    return withOptionalCString(to: arg1) { arg1C in
+        return withOptionalCString(to: arg2) { arg2C in
                 return body(aws_byte_cursor_from_c_str(arg1C), aws_byte_cursor_from_c_str(arg2C))
         }
     }
 }
 
 func withByteCursorFromStrings<Result>(
-        _ arg1: String, _ arg2: String, _ arg3: String, _ body: (aws_byte_cursor, aws_byte_cursor, aws_byte_cursor) -> Result
+        _ arg1: String?, _ arg2: String?, _ arg3: String?, _ body: (aws_byte_cursor, aws_byte_cursor, aws_byte_cursor) -> Result
 ) -> Result {
-    return arg1.withCString { arg1C in
-        return arg2.withCString { arg2C in
-            return arg3.withCString {arg3c in
+    return withOptionalCString(to: arg1) { arg1C in
+        return withOptionalCString(to: arg2) { arg2C in
+            return withOptionalCString(to: arg3) {arg3c in
                 return body(aws_byte_cursor_from_c_str(arg1C), aws_byte_cursor_from_c_str(arg2C), aws_byte_cursor_from_c_str(arg3c))
             }
         }
