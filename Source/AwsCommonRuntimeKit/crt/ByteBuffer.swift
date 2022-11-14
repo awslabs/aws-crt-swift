@@ -284,17 +284,12 @@ extension ByteBuffer: IStreamable {
     }
 
     public func read(buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) throws -> Int {
-        //TODO: fix overflow
-        let curMaxLength = array.count - self.currentIndex
-        let max = min(curMaxLength, maxLength)
-        let arrayEnd = self.currentIndex + max
-        //let bufferCapacity = maxLength
-        //let arrayEnd = (bufferCapacity + self.currentIndex) < array.count ? bufferCapacity + self.currentIndex : array.count
+        let endIndex = self.currentIndex + min(array.count - self.currentIndex, maxLength)
 
-        let data = Data(array[self.currentIndex..<arrayEnd])
+        let data = Data(array[self.currentIndex..<endIndex])
         if data.count > 0 {
             data.copyBytes(to: buffer, count: data.count)
-            self.currentIndex = arrayEnd
+            self.currentIndex = endIndex
         }
         return data.count
     }
