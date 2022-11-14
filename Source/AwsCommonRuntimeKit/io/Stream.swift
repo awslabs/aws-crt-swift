@@ -5,11 +5,15 @@ import AwsCIo
 import Foundation
 
 public protocol IStreamable {
+
     /// Optional, throws length not supported error by default
     func length() throws -> UInt64
-    /// (Optional) throws Seek not supported error by default
+
+    /// (Optional) throws Seek not supported error by default.
+    /// You can not use Signing if seek is not supported.
     func seek(offset: UInt64) throws
-    /// Data.count should not greater than length.
+
+    /// buffer count should not be modified.
     func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int
 }
 
