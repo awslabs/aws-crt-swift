@@ -21,10 +21,11 @@ class HostResolveCore {
     /// to keep it until until onHostResolved callback has fired which will do the release.
     static func retainedResolve(hostResolver: HostResolver, host: String, continuation: HostResolvedContinuation, allocator: Allocator) {
         let core = HostResolveCore(continuation)
+        let hostStr = AWSString(host, allocator: allocator)
         let retainedSelf = core.getRetainedSelf()
         withUnsafePointer(to: hostResolver.getHostResolutionConfig()) { hostResolutionConfigPointer in
             if aws_host_resolver_resolve_host(hostResolver.rawValue,
-                    AWSString(host, allocator: allocator).rawValue,
+                    hostStr.rawValue,
                     onHostResolved,
                     hostResolutionConfigPointer,
                     retainedSelf) != AWS_OP_SUCCESS {

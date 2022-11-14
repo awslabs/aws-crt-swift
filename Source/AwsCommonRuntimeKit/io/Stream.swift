@@ -5,7 +5,6 @@ import AwsCIo
 import Foundation
 
 public protocol IStreamable {
-    func isEndOfStream() throws -> Bool
     func length() throws -> UInt64
 
     func seek(offset: UInt64) throws
@@ -22,19 +21,22 @@ public enum StreamSeekType: UInt32 {
 }
 
 extension FileHandle: IStreamable {
-    @inlinable
-    public func isEndOfStream() throws -> Bool {
-        return try self.length() == self.offset()
-    }
 
     @inlinable
     public func length() throws -> UInt64 {
-        let savedPos = try self.offset()
-        defer {
-            self.seek(toFileOffset: savedPos)
+        let length: UInt64
+        let savedPos: UInt64
+        if #available(macOS 11, *) {
+            savedPos = try self.offset()
+            try self.seekToEnd()
+            length = try self.offset()
+        } else {
+            savedPos = self.offsetInFile
+            self.seekToEndOfFile()
+            length = self.offsetInFile
         }
-        try self.seekToEnd()
-        return try self.offset()
+        try self.seek(toOffset: savedPos)
+        return length
     }
 
     @inlinable
@@ -44,7 +46,12 @@ extension FileHandle: IStreamable {
 
     @inlinable
     public func read(buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) throws -> Int {
-        let data = try self.read(upToCount: maxLength)
+        let data: Data?
+        if #available(macOS 11, *) {
+            data = try self.read(upToCount: maxLength)
+        } else {
+            data = self.readData(ofLength: maxLength)
+        }
         guard let data = data else {
             return 0
         }

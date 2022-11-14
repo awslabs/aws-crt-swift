@@ -40,21 +40,27 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                     _ seekBasis: aws_stream_seek_basis) -> Int32 {
     let iStreamCore = Unmanaged<IStreamCore>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
     let iStreamable = iStreamCore.iStreamable
-    //TODO: Handle Invalid Offset
     do {
         let streamSeekType = StreamSeekType(rawValue: seekBasis.rawValue)!
         let targetOffset: UInt64
+        let length = try iStreamable.length()
         switch streamSeekType {
-        case .begin: targetOffset = UInt64(offset)
-        case .end: targetOffset = try iStreamable.length() - UInt64(abs(offset))
+        case .begin:
+            if offset < 0 {
+                return aws_raise_error(Int32(AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
+            }
+            targetOffset = UInt64(offset)
+        case .end:
+            if offset > 0 {
+                return aws_raise_error(Int32(AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
+            }
+            targetOffset = length - UInt64(abs(offset))
         }
-
         try iStreamable.seek(offset: targetOffset)
         iStreamCore.isEndOfStream = false
         return AWS_OP_SUCCESS
     } catch {
-        //TODO: fix error
-        return aws_raise_error(Int32(AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
+        return aws_raise_error(Int32(AWS_ERROR_STREAM_UNSEEKABLE.rawValue))
     }
 }
 
@@ -76,23 +82,16 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
 
         return AWS_OP_SUCCESS
     } catch {
-        //TODO: throw proper error
-        return AWS_OP_ERR
+        return aws_raise_error(Int32(AWS_IO_STREAM_READ_FAILED.rawValue))
     }
 
 }
 
 private func doGetStatus(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                          _ result: UnsafeMutablePointer<aws_stream_status>!) -> Int32 {
-    let iStreamable = Unmanaged<IStreamCore>.fromOpaque(stream.pointee.impl).takeUnretainedValue().iStreamable
-    do {
-        let isEndOfStream = try iStreamable.isEndOfStream()
-        result.pointee = aws_stream_status(is_end_of_stream: isEndOfStream, is_valid: true)
-        return AWS_OP_SUCCESS
-    } catch {
-        //TODO: throw proper error
-        return AWS_OP_ERR
-    }
+    let iStreamCore = Unmanaged<IStreamCore>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
+    result.pointee = aws_stream_status(is_end_of_stream: iStreamCore.isEndOfStream, is_valid: true)
+    return AWS_OP_SUCCESS
 }
 
 private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
