@@ -60,7 +60,7 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
         iStreamCore.isEndOfStream = false
         return AWS_OP_SUCCESS
     } catch {
-        return aws_raise_error(Int32(AWS_ERROR_STREAM_UNSEEKABLE.rawValue))
+        return aws_raise_error(Int32(AWS_IO_STREAM_SEEK_FAILED.rawValue))
     }
 }
 
@@ -97,7 +97,6 @@ private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
         result.pointee = Int64(length)
         return AWS_OP_SUCCESS
     } catch {
-        //TODO: throw proper error
-        return AWS_OP_ERR
+        return aws_raise_error(Int32(AWS_IO_STREAM_GET_LENGTH_FAILED.rawValue))
     }
 }

@@ -5,11 +5,23 @@ import AwsCIo
 import Foundation
 
 public protocol IStreamable {
+    /// Optional, throws length not supported error by default
     func length() throws -> UInt64
-
+    /// (Optional) throws Seek not supported error by default
     func seek(offset: UInt64) throws
     /// Data.count should not greater than length.
     func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int
+}
+
+extension IStreamable {
+
+    func seek(offset: UInt64) throws {
+        throw CRTError(code: Int32(AWS_IO_STREAM_SEEK_UNSUPPORTED.rawValue))
+    }
+
+    func length() throws -> UInt64 {
+        throw CRTError(code: Int32(AWS_IO_STREAM_GET_LENGTH_UNSUPPORTED.rawValue))
+    }
 }
 
 /// Direction to seek the stream.
