@@ -12,6 +12,7 @@ class HttpTests: CrtXCBaseTestCase {
         try await sendGetHttpRequest()
     }
 
+
     func sendGetHttpRequest() async throws {
         let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
         guard let host = url.host else {
@@ -21,6 +22,32 @@ class HttpTests: CrtXCBaseTestCase {
 
         let httpRequestOptions = try getHttpRequestOptions(method: "GET", path: url.path, host: host)
 
+        let connectionManager = try await getHttpConnectionManager(host: host, ssh: true)
+        let connection = try await connectionManager.acquireConnection()
+
+        let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+        try stream.activate()
+        semaphore.wait()
+        let status_code = try stream.statusCode()
+        XCTAssertEqual(status_code, 200)
+    }
+
+
+    func testSendPostRequest() async throws {
+        let url = URL(string: "https://httpbin.org/post")!
+        guard let host = url.host else {
+            print("no proper host was parsed from the url. quitting.")
+            exit(EXIT_FAILURE)
+        }
+
+        let httpRequestOptions = try getHttpRequestOptions(method: "POST", path: url.path, host: host)
+       // httpRequestOptions.request.addHeaders(headers: [HttpHeader(name: "content-type", value: "application/json")])
+        let byteBuffer = ByteBuffer(data: "{'test':'testval'}".data(using: .utf8)!)
+        httpRequestOptions.request.body = byteBuffer
+        let headers = try HttpHeaders(allocator: allocator)
+        if headers.add(name: "Content-length", value: "\(try byteBuffer.length())") {
+            httpRequestOptions.request.addHeaders(headers: headers)
+        }
         let connectionManager = try await getHttpConnectionManager(host: host, ssh: true)
         let connection = try await connectionManager.acquireConnection()
 
