@@ -47,9 +47,9 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>?
                             _ errorCode: Int32,
                             _ hostAddresses: UnsafePointer<aws_array_list>?,
                             _ userData: UnsafeMutableRawPointer!) {
-    let userData = Unmanaged<HostResolveCore>.fromOpaque(userData).takeRetainedValue()
+    let hostResolverCore = Unmanaged<HostResolveCore>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
-        userData.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        hostResolverCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
@@ -66,5 +66,5 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>?
         }
     }
 
-    userData.continuation.resume(returning: addresses)
+    hostResolverCore.continuation.resume(returning: addresses)
 }
