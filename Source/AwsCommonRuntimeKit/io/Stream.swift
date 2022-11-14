@@ -26,7 +26,7 @@ extension FileHandle: IStreamable {
     public func length() throws -> UInt64 {
         let length: UInt64
         let savedPos: UInt64
-        if #available(macOS 11, *) {
+        if #available(macOS 11, tvOS 13.4, iOS 13.4, watchOS 6.2, *) {
             savedPos = try self.offset()
             try self.seekToEnd()
             length = try self.offset()
@@ -47,7 +47,7 @@ extension FileHandle: IStreamable {
     @inlinable
     public func read(buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) throws -> Int {
         let data: Data?
-        if #available(macOS 11, *) {
+        if #available(macOS 11, tvOS 13.4, iOS 13.4, watchOS 6.2, *) {
             data = try self.read(upToCount: maxLength)
         } else {
             data = self.readData(ofLength: maxLength)
