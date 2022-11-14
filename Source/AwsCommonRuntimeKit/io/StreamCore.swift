@@ -70,7 +70,8 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     let iStreamCore = Unmanaged<IStreamCore>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
     let iStreamable = iStreamCore.iStreamable
     do {
-        let length = try iStreamable.read(buffer: buffer.pointee.buffer, maxLength: buffer.pointee.capacity)
+        let bufferPointer = UnsafeMutableBufferPointer.init(start: buffer.pointee.buffer, count: buffer.pointee.capacity)
+        let length = try iStreamable.read(buffer: bufferPointer)
         // Invalid data length
         if length > buffer.pointee.capacity {
             return aws_raise_error(Int32(AWS_IO_STREAM_READ_FAILED.rawValue))

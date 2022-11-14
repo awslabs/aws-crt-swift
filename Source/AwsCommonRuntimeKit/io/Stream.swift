@@ -9,7 +9,7 @@ public protocol IStreamable {
 
     func seek(offset: UInt64) throws
     /// Data.count should not greater than length.
-    func read(buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) throws -> Int
+    func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int
 }
 
 /// Direction to seek the stream.
@@ -45,18 +45,23 @@ extension FileHandle: IStreamable {
     }
 
     @inlinable
-    public func read(buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) throws -> Int {
+    public func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int {
         let data: Data?
         if #available(macOS 11, tvOS 13.4, iOS 13.4, watchOS 6.2, *) {
-            data = try self.read(upToCount: maxLength)
+            data = try self.read(upToCount: buffer.count)
         } else {
-            data = self.readData(ofLength: maxLength)
+            data = self.readData(ofLength: buffer.count)
         }
         guard let data = data else {
             return 0
         }
+
+        guard let baseAddress = buffer.baseAddress else {
+            throw CRTError(code: Int32(AWS_IO_STREAM_READ_FAILED.rawValue))
+        }
+
         if data.count > 0 {
-            data.copyBytes(to: buffer, count: data.count)
+            data.copyBytes(to: baseAddress, count: data.count)
         }
         return data.count
     }
