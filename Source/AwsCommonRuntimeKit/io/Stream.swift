@@ -13,7 +13,7 @@ public protocol IStreamable {
 }
 
 /// Direction to seek the stream.
-public enum StreamSeekType: UInt32 {
+enum StreamSeekType: UInt32 {
     /// Seek the stream starting from beginning
     case begin = 0
     /// Seek the stream from End.

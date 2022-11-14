@@ -46,12 +46,12 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
         let length = try iStreamable.length()
         switch streamSeekType {
         case .begin:
-            if offset < 0 {
+            if offset < 0 || offset >= length {
                 return aws_raise_error(Int32(AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
             }
             targetOffset = UInt64(offset)
         case .end:
-            if offset > 0 {
+            if offset > 0 || abs(offset) >= length {
                 return aws_raise_error(Int32(AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
             }
             targetOffset = length - UInt64(abs(offset))
@@ -64,7 +64,6 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     }
 }
 
-//TODO: Fix read
 private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                     _ buffer: UnsafeMutablePointer<aws_byte_buf>!) -> Int32 {
     let iStreamCore = Unmanaged<IStreamCore>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
@@ -72,10 +71,6 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     do {
         let bufferPointer = UnsafeMutableBufferPointer.init(start: buffer.pointee.buffer, count: buffer.pointee.capacity)
         let length = try iStreamable.read(buffer: bufferPointer)
-        // Invalid data length
-        if length > buffer.pointee.capacity {
-            return aws_raise_error(Int32(AWS_IO_STREAM_READ_FAILED.rawValue))
-        }
         buffer.pointee.len = length
         if length == 0 {
             iStreamCore.isEndOfStream = true
@@ -85,7 +80,6 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     } catch {
         return aws_raise_error(Int32(AWS_IO_STREAM_READ_FAILED.rawValue))
     }
-
 }
 
 private func doGetStatus(_ stream: UnsafeMutablePointer<aws_input_stream>!,
