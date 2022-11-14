@@ -20,11 +20,11 @@ public protocol IStreamable {
 extension IStreamable {
 
     func seek(offset: UInt64) throws {
-        throw CRTError(code: Int32(AWS_IO_STREAM_SEEK_UNSUPPORTED.rawValue))
+        throw CommonRunTimeError.crtError(CRTError(code: Int32(AWS_IO_STREAM_SEEK_UNSUPPORTED.rawValue)))
     }
 
     func length() throws -> UInt64 {
-        throw CRTError(code: Int32(AWS_IO_STREAM_GET_LENGTH_UNSUPPORTED.rawValue))
+        throw CommonRunTimeError.crtError(CRTError(code: Int32(AWS_IO_STREAM_GET_LENGTH_UNSUPPORTED.rawValue)))
     }
 }
 
@@ -73,7 +73,7 @@ extension FileHandle: IStreamable {
         }
 
         guard let baseAddress = buffer.baseAddress else {
-            throw CRTError(code: Int32(AWS_IO_STREAM_READ_FAILED.rawValue))
+            throw CommonRunTimeError.crtError(CRTError(code: Int32(AWS_IO_STREAM_READ_FAILED.rawValue)))
         }
 
         if data.count > 0 {
