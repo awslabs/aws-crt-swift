@@ -275,10 +275,6 @@ public class ByteBuffer: Codable {
 
 extension ByteBuffer: IStreamable {
 
-    public func isEndOfStream() throws -> Bool {
-        return self.currentIndex == array.count
-    }
-
     public func length() throws -> UInt64 {
         return UInt64(array.count)
     }
@@ -289,7 +285,7 @@ extension ByteBuffer: IStreamable {
 
     public func read(buffer: UnsafeMutablePointer<UInt8>, maxLength: Int) throws -> Int {
         let curMaxLength = array.count - self.currentIndex
-        let arrayEnd = min(curMaxLength, maxLength)
+        let arrayEnd = self.currentIndex + min(curMaxLength, maxLength)
         let data = Data(array[self.currentIndex..<(arrayEnd)])
         if data.count > 0 {
             data.copyBytes(to: buffer, count: data.count)
