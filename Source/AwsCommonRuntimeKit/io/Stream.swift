@@ -10,7 +10,6 @@ public protocol IStreamable {
     func length() throws -> UInt64
 
     /// (Optional) throws Seek not supported error by default.
-    /// You can not use Signing if seek is not supported.
     func seek(offset: UInt64) throws
 
     /// buffer count should not be modified.
