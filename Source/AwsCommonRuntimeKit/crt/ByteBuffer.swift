@@ -286,15 +286,12 @@ extension ByteBuffer: IStreamable {
     public func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int {
         let endIndex = self.currentIndex + min(array.count - self.currentIndex, buffer.count)
 
-        let data = Data(array[self.currentIndex..<endIndex])
-        guard let baseAddress = buffer.baseAddress else {
-            throw CRTError(code: Int32(AWS_IO_STREAM_READ_FAILED.rawValue))
-        }
-        if data.count > 0 {
-            data.copyBytes(to: baseAddress, count: data.count)
+        let dataArray = array[self.currentIndex..<endIndex]
+        if dataArray.count > 0 {
+            dataArray.copyBytes(to: buffer, count: dataArray.count)
             self.currentIndex = endIndex
         }
-        return data.count
+        return dataArray.count
     }
 }
 
