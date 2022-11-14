@@ -43,15 +43,15 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     do {
         let streamSeekType = StreamSeekType(rawValue: seekBasis.rawValue)!
         let targetOffset: UInt64
-        let length = try iStreamable.length()
         switch streamSeekType {
         case .begin:
-            if offset < 0 || offset >= length {
+            if offset < 0 {
                 return aws_raise_error(Int32(AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
             }
             targetOffset = UInt64(offset)
         case .end:
-            if offset > 0 || abs(offset) >= length {
+            let length = try iStreamable.length()
+            if offset > 0 {
                 return aws_raise_error(Int32(AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
             }
             targetOffset = length - UInt64(abs(offset))

@@ -16,7 +16,7 @@ public protocol IStreamable {
     func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int
 }
 
-extension IStreamable {
+public extension IStreamable {
 
     func seek(offset: UInt64) throws {
         throw CommonRunTimeError.crtError(CRTError(code: Int32(AWS_IO_STREAM_SEEK_UNSUPPORTED.rawValue)))
