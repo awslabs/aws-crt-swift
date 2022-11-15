@@ -155,7 +155,7 @@ private func onGetCredentialsCallback(credentialsPointer: OpaquePointer?,
 
 private func onGetIAMProfileCallback(profilePointer: UnsafePointer<aws_imds_iam_profile>?,
                                      errorCode: Int32,
-                                     userData: UnsafeMutableRawPointer!){
+                                     userData: UnsafeMutableRawPointer!) {
     let imdsClientCore = Unmanaged<IMDSClientCore<CRTIAMProfile>>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         imdsClientCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
