@@ -5,10 +5,21 @@ import AwsCCommon
 import AwsCAuth
 
 typealias ResourceContinuation = CheckedContinuation<String, Error>
-class IMDSClientCore {
-    let continuation: ResourceContinuation
+typealias ResourceListContinuation = CheckedContinuation<[String], Error>
+typealias GetIMDSCredentialsContinuation = CheckedContinuation<Credentials, Error>
+typealias GetIMDSProfileContinuation = CheckedContinuation<CRTIAMProfile, Error>
+typealias GetInstanceInfo = CheckedContinuation<CRTIMDSInstanceInfo, Error>
 
-    init(continuation: ResourceContinuation) {
+typealias CGetIMDSResourceFunctionPointer = (OpaquePointer?,
+                                            (@convention(c) (UnsafePointer<aws_byte_buf>?, Int32, UnsafeMutableRawPointer?) -> Void)?,
+                                            UnsafeMutableRawPointer?) -> Int32
+typealias CGetIMDSResourceListFunctionPointer = (OpaquePointer?,
+                                                (@convention(c) (UnsafePointer<aws_array_list>?, Int32, UnsafeMutableRawPointer?) -> Void)?,
+                                                UnsafeMutableRawPointer?) -> Int32
+class IMDSClientCore<T> {
+    let continuation: CheckedContinuation<T, Error>
+
+    init(continuation: CheckedContinuation<T, Error>) {
         self.continuation = continuation
     }
 
@@ -16,8 +27,10 @@ class IMDSClientCore {
         return Unmanaged<IMDSClientCore>.passRetained(self).toOpaque()
     }
 
-    public static func getRetainedResource(resourcePath: String, client: IMDSClient, continuation: ResourceContinuation) {
-        let core = IMDSClientCore(continuation: continuation)
+    static func getRetainedResource(resourcePath: String,
+                                    client: IMDSClient,
+                                    continuation: ResourceContinuation) {
+        let core = IMDSClientCore<String>(continuation: continuation)
         let retainedSelf = core.getRetainedSelf()
         resourcePath.withByteCursor { resourcePathCursor in
             if(aws_imds_client_get_resource_async(client.rawValue,
@@ -31,6 +44,68 @@ class IMDSClientCore {
         }
     }
 
+    static func getRetainedResource(client: IMDSClient,
+                                    continuation: ResourceContinuation,
+                                    functionPointer: CGetIMDSResourceFunctionPointer) {
+        let core = IMDSClientCore<String>(continuation: continuation)
+        let retainedSelf = core.getRetainedSelf()
+        if(functionPointer(client.rawValue,
+                resourceCallback,
+                retainedSelf)) != AWS_OP_SUCCESS {
+            core.release()
+            continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
+        }
+    }
+
+    static func getRetainedResourcesList(client: IMDSClient,
+                                         continuation: ResourceListContinuation,
+                                         functionPointer: CGetIMDSResourceListFunctionPointer) {
+        let core = IMDSClientCore<[String]>(continuation: continuation)
+        let retainedSelf = core.getRetainedSelf()
+        if(functionPointer(client.rawValue,
+                resourceListCallback,
+                retainedSelf)) != AWS_OP_SUCCESS {
+            core.release()
+            continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
+        }
+    }
+
+    static func getRetainedCredentials(iamRoleName: String,
+                                       client: IMDSClient,
+                                       continuation: GetIMDSCredentialsContinuation) {
+        let core = IMDSClientCore<Credentials>(continuation: continuation)
+        let retainedSelf = core.getRetainedSelf()
+        iamRoleName.withByteCursor { iamRoleNameCursor in
+            if(aws_imds_client_get_credentials(client.rawValue,
+                    iamRoleNameCursor,
+                    onGetCredentialsCallback,
+                    retainedSelf)) != AWS_OP_SUCCESS {
+                core.release()
+                continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
+            }
+        }
+    }
+
+    static func getRetainedIAMProfile(client: IMDSClient,
+                                      continuation: GetIMDSProfileContinuation) {
+        let core = IMDSClientCore<CRTIAMProfile>(continuation: continuation)
+        let retainedSelf = core.getRetainedSelf()
+        if(aws_imds_client_get_iam_profile(client.rawValue, onGetIAMProfileCallback, retainedSelf)) != AWS_OP_SUCCESS {
+            core.release()
+            continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
+        }
+    }
+
+    static func getRetainedInstanceInfo(client: IMDSClient,
+                                        continuation: GetInstanceInfo) {
+        let core = IMDSClientCore<CRTIMDSInstanceInfo>(continuation: continuation)
+        let retainedSelf = core.getRetainedSelf()
+        if(aws_imds_client_get_instance_info(client.rawValue, onGetInstanceInfoCallback, retainedSelf)) != AWS_OP_SUCCESS {
+            core.release()
+            continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
+        }
+    }
+
     private func release() {
         Unmanaged.passUnretained(self).release()
     }
@@ -39,13 +114,67 @@ class IMDSClientCore {
 private func resourceCallback(_ byteBuf: UnsafePointer<aws_byte_buf>?,
                               _ errorCode: Int32,
                               _ userData: UnsafeMutableRawPointer!) {
-    let imdsClientCore = Unmanaged<IMDSClientCore>.fromOpaque(userData).takeRetainedValue()
+    let imdsClientCore = Unmanaged<IMDSClientCore<String>>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         imdsClientCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
     // Success
-    //TODO: do we need to make a copy?
+    //TODO: test
     imdsClientCore.continuation.resume(returning: String(cString: byteBuf!.pointee.buffer))
+}
+
+private func resourceListCallback(_ arrayListPointer: UnsafePointer<aws_array_list>?,
+                                   _ errorCode: Int32,
+                                   _ userData: UnsafeMutableRawPointer!) {
+    let imdsClientCore = Unmanaged<IMDSClientCore<[String]>>.fromOpaque(userData).takeRetainedValue()
+    if errorCode != AWS_OP_SUCCESS {
+        imdsClientCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        return
+    }
+
+    // Success
+    //TODO: verify to String Array implementation
+    imdsClientCore.continuation.resume(returning: arrayListPointer!.pointee.toStringArray())
+}
+
+private func onGetCredentialsCallback(credentialsPointer: OpaquePointer?,
+                                      errorCode: Int32,
+                                      userData: UnsafeMutableRawPointer!) {
+    let imdsClientCore = Unmanaged<IMDSClientCore<Credentials>>.fromOpaque(userData).takeRetainedValue()
+    if errorCode != AWS_OP_SUCCESS {
+        imdsClientCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        return
+    }
+
+    // Success
+    let crtCredentials = Credentials(rawValue: credentialsPointer!)
+    imdsClientCore.continuation.resume(returning: crtCredentials)
+}
+
+private func onGetIAMProfileCallback(profilePointer: UnsafePointer<aws_imds_iam_profile>?,
+                                     errorCode: Int32,
+                                     userData: UnsafeMutableRawPointer!){
+    let imdsClientCore = Unmanaged<IMDSClientCore<CRTIAMProfile>>.fromOpaque(userData).takeRetainedValue()
+    if errorCode != AWS_OP_SUCCESS {
+        imdsClientCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        return
+    }
+
+    // Success
+    imdsClientCore.continuation.resume(returning: CRTIAMProfile(pointer: profilePointer!))
+}
+
+private func onGetInstanceInfoCallback(infoPointer: UnsafePointer<aws_imds_instance_info>?,
+                                       errorCode: Int32,
+                                       userData: UnsafeMutableRawPointer!){
+    let imdsClientCore = Unmanaged<IMDSClientCore<CRTIMDSInstanceInfo>>.fromOpaque(userData).takeRetainedValue()
+    if errorCode != AWS_OP_SUCCESS {
+        imdsClientCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        return
+    }
+
+    // Success
+    imdsClientCore.continuation.resume(returning: CRTIMDSInstanceInfo(pointer: infoPointer!))
 }
