@@ -24,7 +24,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         }
     }
 
-    func assertCredentials(credentials: Credentials) {
+    func assertCredentials(credentials: CRTCredentials) {
         XCTAssertEqual(accessKey, credentials.getAccessKey())
         XCTAssertEqual(secret, credentials.getSecret())
         XCTAssertEqual(sessionToken, credentials.getSessionToken())
@@ -46,6 +46,25 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         let options = TlsContextOptions(allocator: allocator)
         let context = try TlsContext(options: options, mode: .client, allocator: allocator)
         return context
+    }
+
+    func testDelegateCredentialsProvider() async throws {
+        shutdownWasCalled.expectedFulfillmentCount = 2
+        do {
+            let staticProvider = try CredentialsProvider.makeStatic(accessKey: accessKey,
+                    secret: secret,
+                    sessionToken: sessionToken,
+                    shutdownCallback: getShutdownCallback(),
+                    allocator: allocator)
+
+            let delegateProvider = try CredentialsProvider.makeDelegate(getCredentials: staticProvider,
+                                                                        allocator: allocator,
+                                                                        shutdownCallback: getShutdownCallback())
+            let credentials = try await delegateProvider.getCredentials()
+            XCTAssertNotNil(credentials)
+            assertCredentials(credentials: credentials)
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
     }
 
     func testCreateCredentialsProviderStatic() async throws {

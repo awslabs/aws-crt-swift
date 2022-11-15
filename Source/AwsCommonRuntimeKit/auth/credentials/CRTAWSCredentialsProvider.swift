@@ -6,35 +6,45 @@ import AwsCIo
 import AwsCHttp
 import Foundation
 
+public protocol GetCredentials {
+    func getCredentials() async throws -> CRTCredentials
+}
+
 //TODO: Rename file name
-public class CredentialsProvider {
+public class CredentialsProvider: GetCredentials {
 
     let allocator: Allocator
     let rawValue: UnsafeMutablePointer<aws_credentials_provider>
 
+    // Optional reference to delegate Get Credentials to keep it alive
+    let delegateGetCredentials: GetCredentialsContainer?
     init(credentialsProvider: UnsafeMutablePointer<aws_credentials_provider>,
-         allocator: Allocator) {
+         allocator: Allocator,
+         delegateGetCredentials: GetCredentialsContainer? = nil) {
         self.rawValue = credentialsProvider
         self.allocator = allocator
+        self.delegateGetCredentials = delegateGetCredentials
     }
 
-    //TODO: fix
-//    public convenience init(fromDelegate impl: CRTCredentialsProvider,
-//                            allocator: Allocator = defaultAllocator,
-//                            shutdownCallback: ShutdownCallback? = nil) throws {
-//        let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
-//        let credProviderPtr: UnsafeMutablePointer<CRTCredentialsProvider> = fromPointer(ptr: impl)
-//        let shutdownOptions =  shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
-//        var options = aws_credentials_provider_delegate_options(shutdown_options: shutdownOptions,
-//                                                                get_credentials: getCredentialsDelegateFn,
-//                                                                delegate_user_data: credProviderPtr)
-//
-//        guard let credProvider = aws_credentials_provider_new_delegate(allocator.rawValue, &options) else {
-//            shutdownCallbackCore.release()
-//            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
-//        }
-//        self.init(credentialsProvider: credProvider, allocator: allocator)
-//    }
+    public static func makeDelegate(getCredentials: GetCredentials,
+                                    allocator: Allocator = defaultAllocator,
+                                    shutdownCallback: ShutdownCallback? = nil) throws -> CredentialsProvider {
+        let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
+        let getCredentialsContainer = GetCredentialsContainer(getCredentials)
+        let getCredentialsPointer = getCredentialsContainer.getUnretainedSelf()
+        let shutdownOptions =  shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
+        var options = aws_credentials_provider_delegate_options(shutdown_options: shutdownOptions,
+                                                                get_credentials: getCredentialsDelegateFn,
+                                                                delegate_user_data: getCredentialsPointer)
+
+        guard let provider = aws_credentials_provider_new_delegate(allocator.rawValue, &options) else {
+            shutdownCallbackCore.release()
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+        return CredentialsProvider(credentialsProvider: provider,
+                                   allocator: allocator,
+                                   delegateGetCredentials: getCredentialsContainer)
+    }
 
     /// Creates a credentials provider containing a fixed set of credentials.
     ///
@@ -402,14 +412,14 @@ public class CredentialsProvider {
         return CredentialsProvider(credentialsProvider: provider, allocator: allocator)
     }
 
-    typealias CredentialsContinuation = CheckedContinuation<Credentials, Error>
+    typealias CredentialsContinuation = CheckedContinuation<CRTCredentials, Error>
 
     /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
     /// the callback passed in.
     ///
     /// - Returns: `Result<CRTCredentials, CRTError>`
     /// - Throws: CommonRuntimeError.crtError
-    public func getCredentials() async throws -> Credentials {
+    public func getCredentials() async throws -> CRTCredentials {
         return try await withCheckedThrowingContinuation { (continuation: CredentialsContinuation) in
             GetCredentialsCore.getRetainedCredentials(credentialProvider: self, continuation: continuation)
         }
@@ -420,24 +430,24 @@ public class CredentialsProvider {
     }
 }
 
-private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer?,
-                                      _ callbackFn: (@convention(c)(OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
-                                      _ userData: UnsafeMutableRawPointer?) -> Int32 {
-//    guard let credentialsProvider = delegatePtr?.assumingMemoryBound(to: CRTCredentialsProvider.self) else {
-//        return 1
-//    }
-//    guard let credentialCallbackData = userData?.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self) else {
-//        return 1
-//    }
-//    let callbackPointer = UnsafeMutablePointer<CRTCredentialsProviderCallbackData>.allocate(capacity: 1)
-//    callbackPointer.initialize(to: credentialCallbackData.pointee)
-//    Task {
-//        do {
-//            let credentials = try await credentialsProvider.pointee.getCredentials()
-//            callbackFn?(credentials.rawValue, 0, callbackPointer)
-//        } catch let crtError as CRTError {
-//            callbackFn?(nil, crtError.code, callbackPointer)
-//        } catch {} // TODO: handle other errors
-//    }
-    return 0
+private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
+                                      _ callbackFn: (@convention(c)(OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)!,
+                                      _ userData: UnsafeMutableRawPointer!) -> Int32 {
+    let getCredentials = Unmanaged<GetCredentialsContainer>.fromOpaque(delegatePtr)
+                                                           .takeUnretainedValue()
+                                                           .getCredentials
+    Task {
+        do {
+            let credentials = try await getCredentials.getCredentials()
+            callbackFn(credentials.rawValue, AWS_OP_SUCCESS, userData)
+        } catch let crtError as CRTError {
+            callbackFn(nil, crtError.code, userData)
+        } catch CommonRunTimeError.crtError(let crtError) {
+            callbackFn(nil, crtError.code, userData)
+        } catch {
+            callbackFn(nil, Int32(AWS_AUTH_CREDENTIALS_PROVIDER_DELEGATE_FAILURE.rawValue), userData)
+        }
+    }
+
+    return AWS_OP_SUCCESS
 }

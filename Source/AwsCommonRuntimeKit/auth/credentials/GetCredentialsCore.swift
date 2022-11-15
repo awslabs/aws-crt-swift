@@ -3,7 +3,7 @@
 
 import AwsCAuth
 
-typealias CredentialsContinuation = CheckedContinuation<Credentials, Error>
+typealias CredentialsContinuation = CheckedContinuation<CRTCredentials, Error>
 
 /// Core classes have manual memory management.
 /// You have to balance the retain & release calls in all cases to avoid leaking memory.
@@ -32,6 +32,18 @@ class GetCredentialsCore {
     }
 }
 
+/// A container class to wrap a protocol so that we use it with Unmanaged
+class GetCredentialsContainer {
+    let getCredentials: GetCredentials
+    init(_ getCredentials: GetCredentials) {
+        self.getCredentials = getCredentials
+    }
+
+    func getUnretainedSelf() -> UnsafeMutableRawPointer {
+        return Unmanaged<GetCredentialsContainer>.passUnretained(self).toOpaque()
+    }
+}
+
 private func onGetCredentials(credentials: OpaquePointer?,
                               errorCode: Int32,
                               userData: UnsafeMutableRawPointer!) {
@@ -44,6 +56,6 @@ private func onGetCredentials(credentials: OpaquePointer?,
     }
 
     //Success
-    let crtCredentials = Credentials(rawValue: credentials!)
+    let crtCredentials = CRTCredentials(rawValue: credentials!)
     credentialsProviderCore.continuation.resume(returning: crtCredentials)
 }

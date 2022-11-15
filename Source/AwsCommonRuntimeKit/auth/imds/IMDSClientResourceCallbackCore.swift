@@ -6,7 +6,7 @@ import AwsCAuth
 
 typealias ResourceContinuation = CheckedContinuation<String, Error>
 typealias ResourceListContinuation = CheckedContinuation<[String], Error>
-typealias GetIMDSCredentialsContinuation = CheckedContinuation<Credentials, Error>
+typealias GetIMDSCredentialsContinuation = CheckedContinuation<CRTCredentials, Error>
 typealias GetIMDSProfileContinuation = CheckedContinuation<CRTIAMProfile, Error>
 typealias GetInstanceInfo = CheckedContinuation<CRTIMDSInstanceInfo, Error>
 
@@ -73,7 +73,7 @@ class IMDSClientCore<T> {
     static func getRetainedCredentials(iamRoleName: String,
                                        client: IMDSClient,
                                        continuation: GetIMDSCredentialsContinuation) {
-        let core = IMDSClientCore<Credentials>(continuation: continuation)
+        let core = IMDSClientCore<CRTCredentials>(continuation: continuation)
         let retainedSelf = core.getRetainedSelf()
         iamRoleName.withByteCursor { iamRoleNameCursor in
             if(aws_imds_client_get_credentials(client.rawValue,
@@ -142,14 +142,14 @@ private func resourceListCallback(_ arrayListPointer: UnsafePointer<aws_array_li
 private func onGetCredentialsCallback(credentialsPointer: OpaquePointer?,
                                       errorCode: Int32,
                                       userData: UnsafeMutableRawPointer!) {
-    let imdsClientCore = Unmanaged<IMDSClientCore<Credentials>>.fromOpaque(userData).takeRetainedValue()
+    let imdsClientCore = Unmanaged<IMDSClientCore<CRTCredentials>>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         imdsClientCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
     // Success
-    let crtCredentials = Credentials(rawValue: credentialsPointer!)
+    let crtCredentials = CRTCredentials(rawValue: credentialsPointer!)
     imdsClientCore.continuation.resume(returning: crtCredentials)
 }
 

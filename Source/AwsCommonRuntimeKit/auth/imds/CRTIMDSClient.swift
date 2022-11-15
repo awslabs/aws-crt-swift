@@ -182,10 +182,10 @@ public class IMDSClient {
     ///
     /// - Parameters:
     ///    - iamRoleName: iam role name to get temporary credentials through
-    public func getCredentials(iamRoleName: String) async throws -> Credentials {
+    public func getCredentials(iamRoleName: String) async throws -> CRTCredentials {
         return try await withCheckedThrowingContinuation({ (continuation: CredentialsContinuation) in
             iamRoleName.withByteCursor { iamRoleNameCursor in
-               IMDSClientCore<Credentials>.getRetainedCredentials(iamRoleName: iamRoleName,
+               IMDSClientCore<CRTCredentials>.getRetainedCredentials(iamRoleName: iamRoleName,
                                                                   client: self,
                                                                   continuation: continuation)
             }
