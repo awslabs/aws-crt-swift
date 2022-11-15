@@ -46,14 +46,18 @@ public class IMDSClient {
     /// Gets the ami launch index of the ec2 instance from the instance metadata document
     public func getAmiLaunchIndex() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            IMDSClientCore<String>.getRetainedResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_ami_launch_index)
+            IMDSClientCore<String>.getRetainedResource(client: self,
+                                                       continuation: continuation,
+                                                       functionPointer: aws_imds_client_get_ami_launch_index)
         })
     }
 
     /// Gets the ami manifest path of the ec2 instance from the instance metadata document
     public func getAmiManifestPath() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            IMDSClientCore<String>.getRetainedResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_ami_manifest_path)
+            IMDSClientCore<String>.getRetainedResource(client: self,
+                                                       continuation: continuation,
+                                                       functionPointer: aws_imds_client_get_ami_manifest_path)
         })
     }
 
@@ -88,14 +92,18 @@ public class IMDSClient {
     /// Gets the private ip address of the ec2 instance from the instance metadata document
     public func getPrivateIpAddress() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            IMDSClientCore<String>.getRetainedResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_private_ip_address)
+            IMDSClientCore<String>.getRetainedResource(client: self,
+                                                       continuation: continuation,
+                                                       functionPointer: aws_imds_client_get_private_ip_address)
         })
     }
 
     /// Gets the availability zone of the ec2 instance from the instance metadata document
     public func getAvailabilityZone() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            IMDSClientCore<String>.getRetainedResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_availability_zone)
+            IMDSClientCore<String>.getRetainedResource(client: self,
+                                                       continuation: continuation,
+                                                       functionPointer: aws_imds_client_get_availability_zone)
         })
     }
 

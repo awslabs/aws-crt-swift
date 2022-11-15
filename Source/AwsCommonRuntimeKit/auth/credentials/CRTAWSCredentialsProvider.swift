@@ -365,7 +365,8 @@ public class CredentialsProvider {
     /// manager, more specifically, host and http scheme (tls or not) from endpoint are needed.
     ///  - Parameters:
     ///    - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials
-    ///    - tlsContext: (Optional) Client TLS context to use when querying STS web identity provider. If set, port 443 is used. If NULL, port 80 is used.
+    ///    - tlsContext: (Optional) Client TLS context to use when querying STS web identity provider.
+    ///                  If set, port 443 is used. If NULL, port 80 is used.
     ///    - authToken: Authorization token to include in the credentials query.
     ///    - pathAndQuery: Http path and query string for the credentials query.
     ///    - host: Host to query credentials from.
@@ -418,9 +419,6 @@ public class CredentialsProvider {
         aws_credentials_provider_release(rawValue)
     }
 }
-
-
-
 
 private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer?,
                                       _ callbackFn: (@convention(c)(OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,

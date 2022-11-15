@@ -7,7 +7,7 @@ public class Credentials {
 
     let rawValue: OpaquePointer
 
-    public init(rawValue: OpaquePointer) {
+    init(rawValue: OpaquePointer) {
         self.rawValue = rawValue
         //TODO: needed?
         aws_credentials_acquire(rawValue)
