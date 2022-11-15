@@ -219,7 +219,7 @@ public class CredentialsProvider {
     /// The x509 credentials provider sources temporary credentials from AWS IoT Core using TLS mutual authentication.<br>
     /// See details: [link](https://docs.aws.amazon.com/iot/latest/developerguide/authorizing-direct-aws.html)<br>
     /// For an end to end demo with detailed steps:
-    /// [link](https://aws.amazon.com/blogs/security/how-to-eliminate-the-need-for-hardcoded-aws-credentials-in-devices-by-using-the-aws-iot-credentials-provider/)
+    /// [link](https://tinyurl.com/ewd66jbf)
     ///
     /// - Parameters:
     ///   - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials.
