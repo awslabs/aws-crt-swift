@@ -46,6 +46,13 @@ extension String {
     }
 }
 
+extension aws_date_time {
+    func toDate() -> Date {
+        let timeInterval = withUnsafePointer(to: self) { aws_date_time_as_epoch_secs($0) }
+        return Date(timeIntervalSince1970: timeInterval)
+    }
+}
+
 extension TimeInterval {
     var millisecond: UInt64 {
         UInt64(self*1000)

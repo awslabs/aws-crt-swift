@@ -163,7 +163,7 @@ private func onGetIAMProfileCallback(profilePointer: UnsafePointer<aws_imds_iam_
     }
 
     // Success
-    imdsClientCore.continuation.resume(returning: CRTIAMProfile(pointer: profilePointer!))
+    imdsClientCore.continuation.resume(returning: CRTIAMProfile(profile: profilePointer!.pointee))
 }
 
 private func onGetInstanceInfoCallback(infoPointer: UnsafePointer<aws_imds_instance_info>?,
@@ -176,5 +176,5 @@ private func onGetInstanceInfoCallback(infoPointer: UnsafePointer<aws_imds_insta
     }
 
     // Success
-    imdsClientCore.continuation.resume(returning: CRTIMDSInstanceInfo(pointer: infoPointer!))
+    imdsClientCore.continuation.resume(returning: CRTIMDSInstanceInfo(instanceInfo: infoPointer!.pointee))
 }
