@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCAuth
-// TODO: fix pointers and look for other errors, continue continuation if error during sync call, Use core class and Unmanaged
+// TODO: rename file name
 public class IMDSClient {
     let rawValue: OpaquePointer
     let allocator: Allocator
@@ -170,8 +170,6 @@ public class IMDSClient {
         })
     }
 
-
-
     /// Gets temporary credentials based on the attached iam role of the ec2 instance
     ///
     /// - Parameters:
@@ -193,7 +191,6 @@ public class IMDSClient {
         })
     }
 
-
     /// Gets the instance information data block of the ec2 instance from the instance metadata document
     ///
     /// - Parameters:
@@ -208,5 +205,3 @@ public class IMDSClient {
         aws_imds_client_release(rawValue)
     }
 }
-
-

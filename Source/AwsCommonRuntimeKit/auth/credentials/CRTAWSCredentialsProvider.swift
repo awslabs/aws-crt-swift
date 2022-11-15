@@ -6,6 +6,7 @@ import AwsCIo
 import AwsCHttp
 import Foundation
 
+//TODO: Rename file name
 public class CredentialsProvider {
 
     let allocator: Allocator
@@ -34,7 +35,6 @@ public class CredentialsProvider {
 //        }
 //        self.init(credentialsProvider: credProvider, allocator: allocator)
 //    }
-
 
     /// Creates a credentials provider containing a fixed set of credentials.
     ///
