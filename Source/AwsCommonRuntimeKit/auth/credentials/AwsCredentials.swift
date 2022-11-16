@@ -22,7 +22,7 @@ public class AwsCredentials {
                 accessKey,
                 secret,
                 sessionToken) { accessKeyCursor, secretCursor, sessionTokenCursor in
-            aws_credentials_new(allocator.rawValue,
+            return aws_credentials_new(allocator.rawValue,
                     accessKeyCursor,
                     secretCursor,
                     sessionTokenCursor, expirationTimeout)
