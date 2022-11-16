@@ -138,43 +138,54 @@ public class IMDSClient {
     /// Gets the attached iam role of the ec2 instance from the instance metadata document
     public func getAttachedIAMRole() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            IMDSClientCore<String>.getRetainedResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_attached_iam_role)
+            IMDSClientCore<String>.getRetainedResource(client: self,
+                                                       continuation: continuation,
+                                                       functionPointer: aws_imds_client_get_attached_iam_role)
         })
     }
 
     /// Gets the user data of the ec2 instance from the instance metadata document
     public func getUserData() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            IMDSClientCore<String>.getRetainedResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_user_data)
+            IMDSClientCore<String>.getRetainedResource(client: self,
+                                                       continuation: continuation,
+                                                       functionPointer: aws_imds_client_get_user_data)
         })
     }
 
     /// Gets the signature of the ec2 instance from the instance metadata document
     public func getInstanceSignature() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            IMDSClientCore<String>.getRetainedResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_instance_signature)
+            IMDSClientCore<String>.getRetainedResource(client: self,
+                                                       continuation: continuation,
+                                                       functionPointer: aws_imds_client_get_instance_signature)
         })
     }
-
 
     /// Gets the list of ancestor ami ids of the ec2 instance from the instance metadata document
     public func getAncestorAmiIDs() async throws -> [String]? {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceListContinuation) in
-            IMDSClientCore<[String]>.getRetainedResourcesList(client: self, continuation: continuation, functionPointer: aws_imds_client_get_ancestor_ami_ids)
+            IMDSClientCore<[String]>.getRetainedResourcesList(client: self,
+                                                              continuation: continuation,
+                                                              functionPointer: aws_imds_client_get_ancestor_ami_ids)
         })
     }
 
     /// Gets the list of the security groups of the ec2 instance from the instance metadata document
     public func getSecurityGroups() async throws -> [String]? {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceListContinuation) in
-            IMDSClientCore<[String]>.getRetainedResourcesList(client: self, continuation: continuation, functionPointer: aws_imds_client_get_security_groups)
+            IMDSClientCore<[String]>.getRetainedResourcesList(client: self,
+                                                              continuation: continuation,
+                                                              functionPointer: aws_imds_client_get_security_groups)
         })
     }
 
     /// Gets the list of block device mappings of the ec2 instance from the instance metadata document
     public func getBlockDeviceMapping() async throws -> [String]? {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceListContinuation) in
-            IMDSClientCore<[String]>.getRetainedResourcesList(client: self, continuation: continuation, functionPointer: aws_imds_client_get_block_device_mapping)
+            IMDSClientCore<[String]>.getRetainedResourcesList(client: self,
+                                                              continuation: continuation,
+                                                              functionPointer: aws_imds_client_get_block_device_mapping)
         })
     }
 
@@ -186,8 +197,8 @@ public class IMDSClient {
         return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<AwsCredentials, Error>) in
             iamRoleName.withByteCursor { iamRoleNameCursor in
                IMDSClientCore<AwsCredentials>.getRetainedCredentials(iamRoleName: iamRoleName,
-                                                                  client: self,
-                                                                  continuation: continuation)
+                                                                     client: self,
+                                                                     continuation: continuation)
             }
         })
     }
