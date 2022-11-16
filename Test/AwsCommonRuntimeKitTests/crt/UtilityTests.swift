@@ -64,7 +64,6 @@ class UtilityTests: CrtXCBaseTestCase {
                     XCTAssertEqual(result, ["third", "second", "first"])
                 }
             }
-
         }
     }
 

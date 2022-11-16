@@ -14,9 +14,9 @@ class SigV4SigningTests: CrtXCBaseTestCase {
         let signer = SigV4HttpRequestSigner(allocator: allocator)
         let request = try makeMockRequest()
         let provider = try AwsCredentialsProvider.makeStatic(accessKey: "access",
-                                                                secret: "key",
-                                                                sessionToken: "token",
-                                                                allocator: allocator)
+                                                             secret: "key",
+                                                             sessionToken: "token",
+                                                             allocator: allocator)
         let shouldSignHeader: SigningConfig.ShouldSignHeader = { header in
             return true
         }
