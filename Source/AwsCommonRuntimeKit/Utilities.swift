@@ -72,7 +72,7 @@ extension aws_array_list {
         var result = [String]()
 
         for index in 0..<self.length {
-            var val: UnsafeMutableRawPointer! = nil
+            var val: UnsafeMutableRawPointer!
             aws_array_list_get_at_ptr(&arrayList, &val, index)
             let byteCursor = val.bindMemory(to: aws_byte_cursor.self, capacity: 1).pointee
             result.append(byteCursor.toString()!)
