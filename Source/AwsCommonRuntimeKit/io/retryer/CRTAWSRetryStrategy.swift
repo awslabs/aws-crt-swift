@@ -27,12 +27,11 @@ public class CRTAWSRetryStrategy {
     public func acquireToken(timeout: UInt64 = 0, partitionId: String) async throws -> CRTAWSRetryToken {
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<CRTAWSRetryToken, Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
-            let retainedContinuation = continuationCore.passRetained()
             if (partitionId.withByteCursorPointer { partitionIdCursorPointer in
                 aws_retry_strategy_acquire_retry_token(rawValue,
                         partitionIdCursorPointer,
                         onRetryTokenAcquired,
-                        retainedContinuation,
+                        continuationCore.passRetained(),
                         timeout)
             }) != AWS_OP_SUCCESS {
                 continuationCore.release()
@@ -44,11 +43,10 @@ public class CRTAWSRetryStrategy {
     public func scheduleRetry(token: CRTAWSRetryToken, errorType: CRTRetryError) async throws {
         try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
-            let retainedContinuation = continuationCore.passRetained()
             if aws_retry_strategy_schedule_retry(token.rawValue,
                     errorType.rawValue,
                     onRetryReady,
-                    retainedContinuation) != AWS_OP_SUCCESS {
+                    continuationCore.passRetained()) != AWS_OP_SUCCESS {
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
             }

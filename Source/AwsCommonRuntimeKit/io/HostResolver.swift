@@ -42,14 +42,13 @@ public class HostResolver {
     public func resolve(host: String) async throws -> [HostAddress] {
         return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<[HostAddress], Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
-            let retainedContinuation = continuationCore.passRetained()
             let hostStr = AWSString(host, allocator: allocator)
             withUnsafePointer(to: getHostResolutionConfig()) { hostResolutionConfigPointer in
                 if aws_host_resolver_resolve_host(rawValue,
                         hostStr.rawValue,
                         onHostResolved,
                         hostResolutionConfigPointer,
-                        retainedContinuation) != AWS_OP_SUCCESS {
+                        continuationCore.passRetained()) != AWS_OP_SUCCESS {
                     // TODO: this is wrong. Sometimes it triggers the error callback and sometimes it doesn't.
                     // I have a fix in progress in aws-c-io
                     continuationCore.release()
