@@ -21,12 +21,12 @@ public struct CRTIMDSInstanceInfo {
     public var region: String?
 
     init(instanceInfo: aws_imds_instance_info) {
-        self.marketPlaceProductCodes = instanceInfo.marketplace_product_codes.toStringArray()
+        self.marketPlaceProductCodes = instanceInfo.marketplace_product_codes.byteCursorListToStringArray()
         self.availabilityZone = instanceInfo.availability_zone.toString()
         self.privateIp = instanceInfo.private_ip.toString()
         self.version = instanceInfo.version.toString()
         self.instanceId = instanceInfo.instance_id.toString()
-        self.billingProducts = instanceInfo.billing_products.toStringArray()
+        self.billingProducts = instanceInfo.billing_products.byteCursorListToStringArray()
         self.instanceType = instanceInfo.instance_type.toString()
         self.accountId = instanceInfo.account_id.toString()
         self.imageId = instanceInfo.image_id.toString()

@@ -66,20 +66,21 @@ extension aws_byte_buf {
     }
 }
 
-//Todo: refactor
 extension aws_array_list {
-    func toStringArray() -> [String] {
+    func byteCursorListToStringArray() -> [String] {
         let length = self.length
         var arrayList = self
-        var newArray: [String] = Array(repeating: "", count: length)
+        var result = [String]()
 
-        for index  in 0..<length {
-            var val: UnsafeMutableRawPointer! = nil
-            aws_array_list_get_at(&arrayList, &val, index)
-            newArray[index] = val.bindMemory(to: String.self, capacity: 1).pointee
+        for index in 0..<length {
+            var val = aws_byte_cursor()
+            withUnsafeMutableBytes(of: &val) { bufferPointer in
+                aws_array_list_get_at(&arrayList, bufferPointer.baseAddress, index)
+            }
+            result.append(val.toString()!)
         }
 
-        return newArray
+        return result
     }
 }
 
