@@ -121,7 +121,6 @@ private func resourceCallback(_ byteBuf: UnsafePointer<aws_byte_buf>?,
     }
 
     // Success
-    //TODO: test
     imdsClientCore.continuation.resume(returning: String(cString: byteBuf!.pointee.buffer))
 }
 
@@ -167,7 +166,7 @@ private func onGetIAMProfileCallback(profilePointer: UnsafePointer<aws_imds_iam_
 
 private func onGetInstanceInfoCallback(infoPointer: UnsafePointer<aws_imds_instance_info>?,
                                        errorCode: Int32,
-                                       userData: UnsafeMutableRawPointer!){
+                                       userData: UnsafeMutableRawPointer!) {
     let imdsClientCore = Unmanaged<IMDSClientCore<CRTIMDSInstanceInfo>>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         imdsClientCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
