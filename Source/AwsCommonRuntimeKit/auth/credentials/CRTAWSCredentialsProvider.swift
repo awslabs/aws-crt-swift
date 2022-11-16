@@ -457,19 +457,18 @@ private func onGetCredentials(credentials: OpaquePointer?,
     }
 
     //Success
-    let crtCredentials = AwsCredentials(rawValue: credentials!)
-    continuationCore.continuation.resume(returning: crtCredentials)
+    continuationCore.continuation.resume(returning: AwsCredentials(rawValue: credentials!))
 }
 
 private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
                                       _ callbackFn: (@convention(c)(OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)!,
                                       _ userData: UnsafeMutableRawPointer!) -> Int32 {
-    let getCredentials = Unmanaged<CredentialsProviderCore>.fromOpaque(delegatePtr)
-                                                           .takeUnretainedValue()
-                                                           .credentialsProvider
+    let credentialsProvider = Unmanaged<CredentialsProviderCore>.fromOpaque(delegatePtr)
+                                                                .takeUnretainedValue()
+                                                                .credentialsProvider
     Task {
         do {
-            let credentials = try await getCredentials.getCredentials()
+            let credentials = try await credentialsProvider.getCredentials()
             callbackFn(credentials.rawValue, AWS_OP_SUCCESS, userData)
         } catch let crtError as CRTError {
             callbackFn(nil, crtError.code, userData)
