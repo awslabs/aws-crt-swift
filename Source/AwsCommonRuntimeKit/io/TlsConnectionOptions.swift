@@ -24,7 +24,6 @@ public struct TlsConnectionOptions: CStruct {
 			defer {
 				aws_tls_connection_options_clean_up(tlsConnectionsOptionsPointer)
 			}
-			//TODO: confirm these values, do we need different values bases on OS?
 			#if os(iOS) || os(watchOS)
 			tlsConnectionsOptionsPointer.pointee.timeout_ms = 30_000
 			#else

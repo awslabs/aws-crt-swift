@@ -71,8 +71,8 @@ public class ByteBuffer: Codable {
         return self
     }
 
-    public func put(_ value: ByteBuffer, offset: UInt = 0, maxBytes: UInt? = nil) {
-        var end: UInt = UInt(value.length)
+    public func put(_ value: ByteBuffer, offset: UInt = 0, maxBytes: UInt? = nil) throws {
+        var end: UInt = try UInt(value.length())
         if let maxBytes = maxBytes {
              end = maxBytes
         }
@@ -273,30 +273,25 @@ public class ByteBuffer: Codable {
     }
 }
 
-extension ByteBuffer: AwsStream {
-    public var isEndOfStream: Bool {
-        return self.currentIndex == array.count
+extension ByteBuffer: IStreamable {
+
+    public func length() throws -> UInt64 {
+        return UInt64(array.count)
     }
 
-    public var length: UInt {
-        return UInt(array.count)
+    public func seek(offset: UInt64) throws {
+        currentIndex = Int(offset)
     }
 
-    public func seek(offset: Int64, streamSeekType: StreamSeekType) -> Bool {
-        let targetOffset: Int64
-        switch streamSeekType {
-        case .begin: targetOffset = offset
-        case .end: targetOffset = Int64(length) - offset
+    public func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int {
+        let endIndex = self.currentIndex + min(array.count - self.currentIndex, buffer.count)
+
+        let dataArray = array[self.currentIndex..<endIndex]
+        if dataArray.count > 0 {
+            dataArray.copyBytes(to: buffer, count: dataArray.count)
+            self.currentIndex = endIndex
         }
-        currentIndex = Int(targetOffset)
-        return true
-    }
-
-    public func read(length: Int) -> Data {
-        let arrayEnd = (length + self.currentIndex) < array.count ? length + self.currentIndex : array.count
-        let dataArray = array[self.currentIndex..<(arrayEnd)]
-        currentIndex = arrayEnd
-        return Data(dataArray)
+        return dataArray.count
     }
 }
 

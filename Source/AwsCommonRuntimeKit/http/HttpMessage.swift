@@ -9,10 +9,11 @@ public class HttpMessage {
 
     // Todo: do we need this?
     // public var headers: HttpHeaders?
-    public var body: AwsInputStream? {
+    public var body: IStreamable? {
         willSet(value) {
             if let newBody = value {
-                aws_http_message_set_body_stream(self.rawValue, &newBody.awsInputStreamCore.rawValue)
+                let iStreamCore = IStreamCore(iStreamable: newBody, allocator: allocator)
+                aws_http_message_set_body_stream(self.rawValue, &iStreamCore.rawValue)
             } else {
                 aws_http_message_set_body_stream(self.rawValue, nil)
             }

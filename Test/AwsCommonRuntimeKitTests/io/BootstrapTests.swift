@@ -15,6 +15,9 @@ class BootstrapTests: CrtXCBaseTestCase {
     _ = try ClientBootstrap(eventLoopGroup: elg,
                             hostResolver: resolver,
                             allocator: allocator)
+    let test: Int64 = 10
+    let test2: UInt64 = UInt64(test)
+    print(test2)
   }
 
   func testBootstrapShutdownCallback() async throws {

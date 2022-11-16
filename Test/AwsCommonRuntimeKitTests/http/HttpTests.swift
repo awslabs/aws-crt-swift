@@ -11,7 +11,7 @@ class HttpTests: CrtXCBaseTestCase {
     func testGetHttpRequest() async throws {
         try await sendGetHttpRequest()
     }
-
+    
     func sendGetHttpRequest() async throws {
         let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
         guard let host = url.host else {
