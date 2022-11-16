@@ -147,8 +147,7 @@ private func onGetCredentialsCallback(credentialsPointer: OpaquePointer?,
     }
 
     // Success
-    let crtCredentials = AwsCredentials(rawValue: credentialsPointer!)
-    imdsClientCore.continuation.resume(returning: crtCredentials)
+    imdsClientCore.continuation.resume(returning: AwsCredentials(rawValue: credentialsPointer!))
 }
 
 private func onGetIAMProfileCallback(profilePointer: UnsafePointer<aws_imds_iam_profile>?,
