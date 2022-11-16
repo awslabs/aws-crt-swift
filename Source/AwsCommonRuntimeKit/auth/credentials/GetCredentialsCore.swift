@@ -32,8 +32,6 @@ class GetCredentialsCore {
     }
 }
 
-
-
 private func onGetCredentials(credentials: OpaquePointer?,
                               errorCode: Int32,
                               userData: UnsafeMutableRawPointer!) {
