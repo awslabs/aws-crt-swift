@@ -183,7 +183,7 @@ public class IMDSClient {
     /// - Parameters:
     ///    - iamRoleName: iam role name to get temporary credentials through
     public func getCredentials(iamRoleName: String) async throws -> AwsCredentials {
-        return try await withCheckedThrowingContinuation({ (continuation: CredentialsContinuation) in
+        return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<AwsCredentials, Error>) in
             iamRoleName.withByteCursor { iamRoleNameCursor in
                IMDSClientCore<AwsCredentials>.getRetainedCredentials(iamRoleName: iamRoleName,
                                                                   client: self,

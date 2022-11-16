@@ -44,8 +44,14 @@ public class AwsCredentialsProvider: CredentialsProvider {
     /// - Returns: `Result<CRTCredentials, CRTError>`
     /// - Throws: CommonRuntimeError.crtError
     public func getCredentials() async throws -> AwsCredentials {
-        return try await withCheckedThrowingContinuation { (continuation: CredentialsContinuation) in
-            GetCredentialsCore.getRetainedCredentials(credentialProvider: self, continuation: continuation)
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AwsCredentials, Error>) in
+            let continuationCore = ContinuationCore(continuation: continuation)
+            if aws_credentials_provider_get_credentials(rawValue,
+                                                        onGetCredentials,
+                                                        continuationCore.passRetained()) != AWS_OP_SUCCESS {
+                continuationCore.release()
+                continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+            }
         }
     }
 
@@ -444,16 +450,16 @@ private func onGetCredentials(credentials: OpaquePointer?,
                               errorCode: Int32,
                               userData: UnsafeMutableRawPointer!) {
 
-    let credentialsProviderCore = Unmanaged<GetCredentialsCore>.fromOpaque(userData).takeRetainedValue()
+    let continuationCore = Unmanaged<ContinuationCore<AwsCredentials>>.fromOpaque(userData).takeRetainedValue()
 
     if errorCode != AWS_OP_SUCCESS {
-        credentialsProviderCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
     //Success
     let crtCredentials = AwsCredentials(rawValue: credentials!)
-    credentialsProviderCore.continuation.resume(returning: crtCredentials)
+    continuationCore.continuation.resume(returning: crtCredentials)
 }
 
 private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
