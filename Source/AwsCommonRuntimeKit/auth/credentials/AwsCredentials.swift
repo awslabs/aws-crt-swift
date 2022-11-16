@@ -10,7 +10,6 @@ public class AwsCredentials {
 
     init(rawValue: OpaquePointer) {
         self.rawValue = rawValue
-        //TODO: needed?
         aws_credentials_acquire(rawValue)
     }
 
