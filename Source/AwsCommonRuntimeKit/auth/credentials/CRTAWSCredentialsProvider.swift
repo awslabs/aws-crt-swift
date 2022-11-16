@@ -55,16 +55,15 @@ public class AwsCredentialsProvider: CredentialsProvider {
         }
     }
 
-    public static func makeDelegate(getCredentials: CredentialsProvider,
+    public static func makeDelegate(credentialsProvider: CredentialsProvider,
                                     allocator: Allocator = defaultAllocator,
                                     shutdownCallback: ShutdownCallback? = nil) throws -> AwsCredentialsProvider {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
-        let getCredentialsContainer = CredentialsProviderCore(getCredentials)
-        let getCredentialsPointer = getCredentialsContainer.passUnretained()
+        let credentialsProviderCore = CredentialsProviderCore(credentialsProvider)
         let shutdownOptions =  shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         var options = aws_credentials_provider_delegate_options(shutdown_options: shutdownOptions,
                                                                 get_credentials: getCredentialsDelegateFn,
-                                                                delegate_user_data: getCredentialsPointer)
+                                                                delegate_user_data: credentialsProviderCore.passUnretained())
 
         guard let provider = aws_credentials_provider_new_delegate(allocator.rawValue, &options) else {
             shutdownCallbackCore.release()
@@ -72,7 +71,7 @@ public class AwsCredentialsProvider: CredentialsProvider {
         }
         return AwsCredentialsProvider(credentialsProvider: provider,
                                    allocator: allocator,
-                                   delegateGetCredentials: getCredentialsContainer)
+                                   delegateGetCredentials: credentialsProviderCore)
     }
 
     /// Creates a credentials provider containing a fixed set of credentials.

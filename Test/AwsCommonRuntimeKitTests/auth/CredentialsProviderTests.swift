@@ -52,14 +52,14 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
         shutdownWasCalled.expectedFulfillmentCount = 2
         do {
             let staticProvider = try AwsCredentialsProvider.makeStatic(accessKey: accessKey,
-                    secret: secret,
-                    sessionToken: sessionToken,
-                    shutdownCallback: getShutdownCallback(),
-                    allocator: allocator)
+                                                                       secret: secret,
+                                                                       sessionToken: sessionToken,
+                                                                       shutdownCallback: getShutdownCallback(),
+                                                                       allocator: allocator)
 
-            let delegateProvider = try AwsCredentialsProvider.makeDelegate(getCredentials: staticProvider,
-                                                                        allocator: allocator,
-                                                                        shutdownCallback: getShutdownCallback())
+            let delegateProvider = try AwsCredentialsProvider.makeDelegate(credentialsProvider: staticProvider,
+                                                                           allocator: allocator,
+                                                                           shutdownCallback: getShutdownCallback())
             let credentials = try await delegateProvider.getCredentials()
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
