@@ -40,8 +40,22 @@ public class HostResolver {
     }
 
     public func resolve(host: String) async throws -> [HostAddress] {
-        return try await withCheckedThrowingContinuation({ (continuation: HostResolvedContinuation) in
-            HostResolveCore.retainedResolve(hostResolver: self, host: host, continuation: continuation, allocator: allocator)
+        return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<[HostAddress], Error>) in
+            let continuationCore = ContinuationCore(continuation: continuation)
+            let retainedContinuation = continuationCore.passRetained()
+            let hostStr = AWSString(host, allocator: allocator)
+            withUnsafePointer(to: getHostResolutionConfig()) { hostResolutionConfigPointer in
+                if aws_host_resolver_resolve_host(rawValue,
+                        hostStr.rawValue,
+                        onHostResolved,
+                        hostResolutionConfigPointer,
+                        retainedContinuation) != AWS_OP_SUCCESS {
+                    // TODO: this is wrong. Sometimes it triggers the error callback and sometimes it doesn't.
+                    // I have a fix in progress in aws-c-io
+                    continuationCore.release()
+                    continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                }
+            }
         })
     }
 
@@ -55,4 +69,29 @@ public class HostResolver {
     deinit {
         aws_host_resolver_release(rawValue)
     }
+}
+
+private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>?,
+                            _ hostName: UnsafePointer<aws_string>?,
+                            _ errorCode: Int32,
+                            _ hostAddresses: UnsafePointer<aws_array_list>?,
+                            _ userData: UnsafeMutableRawPointer!) {
+    let hostResolverCore = Unmanaged<ContinuationCore<[HostAddress]>>.fromOpaque(userData).takeRetainedValue()
+    if errorCode != AWS_OP_SUCCESS {
+        hostResolverCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        return
+    }
+
+    // Success
+    let length = aws_array_list_length(hostAddresses!)
+    var addresses = [HostAddress]()
+
+    for index in 0..<length {
+        var address: UnsafeMutableRawPointer! = nil
+        aws_array_list_get_at_ptr(hostAddresses!, &address, index)
+        let hostAddressCType = address.bindMemory(to: aws_host_address.self, capacity: 1).pointee
+        addresses.append(HostAddress(hostAddress: hostAddressCType))
+    }
+
+    hostResolverCore.continuation.resume(returning: addresses)
 }
