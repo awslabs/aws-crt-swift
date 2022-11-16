@@ -6,8 +6,8 @@ import AwsCAuth
 // TODO: verify callback logic, fix pointers, and maybe error handling
 public struct SigningConfig: CStruct {
     public typealias ShouldSignHeader = (String) -> Bool
-    public var credentials: CRTCredentials?
-    public var credentialsProvider: CredentialsProvider?
+    public var credentials: AwsCredentials?
+    public var credentialsProvider: AwsCredentialsProvider?
     public var expiration: Int64
     public var signedBodyHeader: SignedBodyHeaderType
     public var signedBodyValue: SignedBodyValue
@@ -20,8 +20,8 @@ public struct SigningConfig: CStruct {
     public var signingAlgorithm: SigningAlgorithmType
     public var configType: SigningConfigType
 
-    public init(credentials: CRTCredentials? = nil,
-                credentialsProvider: CredentialsProvider? = nil,
+    public init(credentials: AwsCredentials? = nil,
+                credentialsProvider: AwsCredentialsProvider? = nil,
                 date: AWSDate,
                 service: String,
                 region: String,

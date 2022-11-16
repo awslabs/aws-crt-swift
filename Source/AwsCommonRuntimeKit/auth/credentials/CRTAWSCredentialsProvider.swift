@@ -6,32 +6,55 @@ import AwsCIo
 import AwsCHttp
 import Foundation
 
-public protocol GetCredentials {
-    func getCredentials() async throws -> CRTCredentials
+public protocol CredentialsProvider: AnyObject {
+    func getCredentials() async throws -> AwsCredentials
+}
+
+/// A container class to wrap a protocol so that we use it with Unmanaged
+class CredentialsProviderCore {
+    let credentialsProvider: CredentialsProvider
+    init(_ credentialsProvider: CredentialsProvider) {
+        self.credentialsProvider = credentialsProvider
+    }
+
+    func passUnretained() -> UnsafeMutableRawPointer {
+        return Unmanaged<CredentialsProviderCore>.passUnretained(self).toOpaque()
+    }
 }
 
 //TODO: Rename file name
-public class CredentialsProvider: GetCredentials {
+public class AwsCredentialsProvider: CredentialsProvider {
 
     let allocator: Allocator
     let rawValue: UnsafeMutablePointer<aws_credentials_provider>
 
     // Optional reference to delegate Get Credentials to keep it alive
-    let delegateGetCredentials: GetCredentialsContainer?
+    let delegateGetCredentials: CredentialsProviderCore?
     init(credentialsProvider: UnsafeMutablePointer<aws_credentials_provider>,
          allocator: Allocator,
-         delegateGetCredentials: GetCredentialsContainer? = nil) {
+         delegateGetCredentials: CredentialsProviderCore? = nil) {
         self.rawValue = credentialsProvider
         self.allocator = allocator
         self.delegateGetCredentials = delegateGetCredentials
     }
 
-    public static func makeDelegate(getCredentials: GetCredentials,
+    /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
+    /// the callback passed in.
+    ///
+    /// - Returns: `Result<CRTCredentials, CRTError>`
+    /// - Throws: CommonRuntimeError.crtError
+    public func getCredentials() async throws -> AwsCredentials {
+        return try await withCheckedThrowingContinuation { (continuation: CredentialsContinuation) in
+            GetCredentialsCore.getRetainedCredentials(credentialProvider: self, continuation: continuation)
+        }
+    }
+
+    public static func makeDelegate(getCredentials: CredentialsProvider,
                                     allocator: Allocator = defaultAllocator,
-                                    shutdownCallback: ShutdownCallback? = nil) throws -> CredentialsProvider {
+                                    shutdownCallback: ShutdownCallback? = nil) throws -> AwsCredentialsProvider {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
-        let getCredentialsContainer = GetCredentialsContainer(getCredentials)
-        let getCredentialsPointer = getCredentialsContainer.getUnretainedSelf()
+        let getCredentialsContainer = CredentialsProviderCore(getCredentials)
+        let getCredentialsPointer = getCredentialsContainer.passUnretained()
         let shutdownOptions =  shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         var options = aws_credentials_provider_delegate_options(shutdown_options: shutdownOptions,
                                                                 get_credentials: getCredentialsDelegateFn,
@@ -41,7 +64,7 @@ public class CredentialsProvider: GetCredentials {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-        return CredentialsProvider(credentialsProvider: provider,
+        return AwsCredentialsProvider(credentialsProvider: provider,
                                    allocator: allocator,
                                    delegateGetCredentials: getCredentialsContainer)
     }
@@ -60,7 +83,7 @@ public class CredentialsProvider: GetCredentials {
                                   secret: String,
                                   sessionToken: String? = nil,
                                   shutdownCallback: ShutdownCallback? = nil,
-                                  allocator: Allocator = defaultAllocator) throws -> CredentialsProvider {
+                                  allocator: Allocator = defaultAllocator) throws -> AwsCredentialsProvider {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         var staticOptions = aws_credentials_provider_static_options()
         staticOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
@@ -76,7 +99,7 @@ public class CredentialsProvider: GetCredentials {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-        return CredentialsProvider(credentialsProvider: provider, allocator: allocator)
+        return AwsCredentialsProvider(credentialsProvider: provider, allocator: allocator)
     }
 
     /// Creates a credentials provider that returns credentials based on environment variable values:
@@ -90,7 +113,7 @@ public class CredentialsProvider: GetCredentials {
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func makeEnvironment(shutdownCallback: ShutdownCallback? = nil,
-                                       allocator: Allocator = defaultAllocator) throws -> CredentialsProvider {
+                                       allocator: Allocator = defaultAllocator) throws -> AwsCredentialsProvider {
 
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         var envOptions = aws_credentials_provider_environment_options()
@@ -100,7 +123,7 @@ public class CredentialsProvider: GetCredentials {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-        return CredentialsProvider(credentialsProvider: provider, allocator: allocator)
+        return AwsCredentialsProvider(credentialsProvider: provider, allocator: allocator)
     }
 
     /// Creates a credentials provider that sources credentials from the aws profile and credentials files
@@ -118,7 +141,7 @@ public class CredentialsProvider: GetCredentials {
                                    profileFileNameOverride: String? = nil,
                                    credentialsFileNameOverride: String? = nil,
                                    shutdownCallback: ShutdownCallback? = nil,
-                                   allocator: Allocator = defaultAllocator) throws -> CredentialsProvider {
+                                   allocator: Allocator = defaultAllocator) throws -> AwsCredentialsProvider {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         var profileOptionsC = aws_credentials_provider_profile_options()
         profileOptionsC.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
@@ -135,7 +158,7 @@ public class CredentialsProvider: GetCredentials {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-        return CredentialsProvider(credentialsProvider: provider, allocator: allocator)
+        return AwsCredentialsProvider(credentialsProvider: provider, allocator: allocator)
     }
 
     /// Creates a credentials provider that sources credentials from ec2 instance metadata.
@@ -150,7 +173,7 @@ public class CredentialsProvider: GetCredentials {
     public static func makeImds(bootstrap: ClientBootstrap,
                                 imdsVersion: CRTIMDSProtocolVersion = CRTIMDSProtocolVersion.version2,
                                 shutdownCallback: ShutdownCallback? = nil,
-                                allocator: Allocator = defaultAllocator) throws -> CredentialsProvider {
+                                allocator: Allocator = defaultAllocator) throws -> AwsCredentialsProvider {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         var imdsOptions = aws_credentials_provider_imds_options()
         imdsOptions.bootstrap = bootstrap.rawValue
@@ -161,7 +184,7 @@ public class CredentialsProvider: GetCredentials {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-        return CredentialsProvider(credentialsProvider: provider, allocator: allocator)
+        return AwsCredentialsProvider(credentialsProvider: provider, allocator: allocator)
     }
 
     /// Configuration options for a provider that functions as a caching decorator. Credentials sourced through this
@@ -176,10 +199,10 @@ public class CredentialsProvider: GetCredentials {
     ///   - allocator: (Optional) allocator to override.
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
-    public static func makeCached(source: CredentialsProvider,
+    public static func makeCached(source: AwsCredentialsProvider,
                                   refreshTime: TimeInterval = 0,
                                   shutdownCallback: ShutdownCallback? = nil,
-                                  allocator: Allocator = defaultAllocator) throws -> CredentialsProvider {
+                                  allocator: Allocator = defaultAllocator) throws -> AwsCredentialsProvider {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
 
         var cachedOptions = aws_credentials_provider_cached_options()
@@ -191,7 +214,7 @@ public class CredentialsProvider: GetCredentials {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-        return CredentialsProvider(credentialsProvider: provider, allocator: allocator)
+        return AwsCredentialsProvider(credentialsProvider: provider, allocator: allocator)
     }
 
     /// Creates the default provider chain used by most AWS SDKs.
@@ -210,7 +233,7 @@ public class CredentialsProvider: GetCredentials {
     /// - Throws: CommonRuntimeError.crtError
     public static func makeDefaultChain(bootstrap: ClientBootstrap,
                                         shutdownCallback: ShutdownCallback? = nil,
-                                        allocator: Allocator = defaultAllocator) throws -> CredentialsProvider {
+                                        allocator: Allocator = defaultAllocator) throws -> AwsCredentialsProvider {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
 
         var chainDefaultOptions = aws_credentials_provider_chain_default_options()
@@ -222,7 +245,7 @@ public class CredentialsProvider: GetCredentials {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-        return CredentialsProvider(credentialsProvider: provider, allocator: allocator)
+        return AwsCredentialsProvider(credentialsProvider: provider, allocator: allocator)
     }
 
     /// Creates a credentials provider that sources credentials from IoT Core.
@@ -249,7 +272,7 @@ public class CredentialsProvider: GetCredentials {
                                 endpoint: String,
                                 proxyOptions: HttpProxyOptions? = nil,
                                 shutdownCallback: ShutdownCallback? = nil,
-                                allocator: Allocator = defaultAllocator) throws -> CredentialsProvider {
+                                allocator: Allocator = defaultAllocator) throws -> AwsCredentialsProvider {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
 
         var x509Options = aws_credentials_provider_x509_options()
@@ -274,7 +297,7 @@ public class CredentialsProvider: GetCredentials {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-        return CredentialsProvider(credentialsProvider: provider, allocator: allocator)
+        return AwsCredentialsProvider(credentialsProvider: provider, allocator: allocator)
     }
 
     /// Creates a provider that sources credentials from STS using AssumeRoleWithWebIdentity
@@ -306,7 +329,7 @@ public class CredentialsProvider: GetCredentials {
     public static func makeSTSWebIdentity(bootstrap: ClientBootstrap,
                                           tlsContext: TlsContext,
                                           shutdownCallback: ShutdownCallback? = nil,
-                                          allocator: Allocator = defaultAllocator) throws -> CredentialsProvider {
+                                          allocator: Allocator = defaultAllocator) throws -> AwsCredentialsProvider {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         var stsOptions = aws_credentials_provider_sts_web_identity_options()
         stsOptions.bootstrap = bootstrap.rawValue
@@ -318,7 +341,7 @@ public class CredentialsProvider: GetCredentials {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-        return CredentialsProvider(credentialsProvider: provider, allocator: allocator)
+        return AwsCredentialsProvider(credentialsProvider: provider, allocator: allocator)
     }
 
     /// Creates a provider that assumes an IAM role via. STS AssumeRole() API. This provider will fetch new credentials
@@ -336,12 +359,12 @@ public class CredentialsProvider: GetCredentials {
     /// - Throws: CommonRuntimeError.crtError
     public static func makeSTS(bootstrap: ClientBootstrap,
                                tlsContext: TlsContext,
-                               credentialsProvider: CredentialsProvider,
+                               credentialsProvider: AwsCredentialsProvider,
                                roleArn: String,
                                sessionName: String,
                                duration: TimeInterval,
                                shutdownCallback: ShutdownCallback? = nil,
-                               allocator: Allocator = defaultAllocator) throws -> CredentialsProvider {
+                               allocator: Allocator = defaultAllocator) throws -> AwsCredentialsProvider {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         var stsOptions = aws_credentials_provider_sts_options()
         stsOptions.tls_ctx = tlsContext.rawValue
@@ -359,7 +382,7 @@ public class CredentialsProvider: GetCredentials {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-        return CredentialsProvider(credentialsProvider: provider, allocator: allocator)
+        return AwsCredentialsProvider(credentialsProvider: provider, allocator: allocator)
     }
 
     /// Credential Provider that sources credentials from ECS container metadata
@@ -390,7 +413,7 @@ public class CredentialsProvider: GetCredentials {
                                pathAndQuery: String,
                                host: String,
                                shutdownCallback: ShutdownCallback? = nil,
-                               allocator: Allocator = defaultAllocator) throws -> CredentialsProvider {
+                               allocator: Allocator = defaultAllocator) throws -> AwsCredentialsProvider {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         var ecsOptions = aws_credentials_provider_ecs_options()
         ecsOptions.tls_ctx = tlsContext?.rawValue
@@ -409,20 +432,7 @@ public class CredentialsProvider: GetCredentials {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-        return CredentialsProvider(credentialsProvider: provider, allocator: allocator)
-    }
-
-    typealias CredentialsContinuation = CheckedContinuation<CRTCredentials, Error>
-
-    /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
-    /// the callback passed in.
-    ///
-    /// - Returns: `Result<CRTCredentials, CRTError>`
-    /// - Throws: CommonRuntimeError.crtError
-    public func getCredentials() async throws -> CRTCredentials {
-        return try await withCheckedThrowingContinuation { (continuation: CredentialsContinuation) in
-            GetCredentialsCore.getRetainedCredentials(credentialProvider: self, continuation: continuation)
-        }
+        return AwsCredentialsProvider(credentialsProvider: provider, allocator: allocator)
     }
 
     deinit {
@@ -430,12 +440,28 @@ public class CredentialsProvider: GetCredentials {
     }
 }
 
+private func onGetCredentials(credentials: OpaquePointer?,
+                              errorCode: Int32,
+                              userData: UnsafeMutableRawPointer!) {
+
+    let credentialsProviderCore = Unmanaged<GetCredentialsCore>.fromOpaque(userData).takeRetainedValue()
+
+    if errorCode != AWS_OP_SUCCESS {
+        credentialsProviderCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        return
+    }
+
+    //Success
+    let crtCredentials = AwsCredentials(rawValue: credentials!)
+    credentialsProviderCore.continuation.resume(returning: crtCredentials)
+}
+
 private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
                                       _ callbackFn: (@convention(c)(OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)!,
                                       _ userData: UnsafeMutableRawPointer!) -> Int32 {
-    let getCredentials = Unmanaged<GetCredentialsContainer>.fromOpaque(delegatePtr)
+    let getCredentials = Unmanaged<CredentialsProviderCore>.fromOpaque(delegatePtr)
                                                            .takeUnretainedValue()
-                                                           .getCredentials
+                                                           .credentialsProvider
     Task {
         do {
             let credentials = try await getCredentials.getCredentials()

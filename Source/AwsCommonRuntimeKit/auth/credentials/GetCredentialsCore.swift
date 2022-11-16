@@ -3,7 +3,7 @@
 
 import AwsCAuth
 
-typealias CredentialsContinuation = CheckedContinuation<CRTCredentials, Error>
+typealias CredentialsContinuation = CheckedContinuation<AwsCredentials, Error>
 
 /// Core classes have manual memory management.
 /// You have to balance the retain & release calls in all cases to avoid leaking memory.
@@ -18,7 +18,7 @@ class GetCredentialsCore {
         return Unmanaged<GetCredentialsCore>.passRetained(self).toOpaque()
     }
 
-    static func getRetainedCredentials(credentialProvider: CredentialsProvider, continuation: CredentialsContinuation) {
+    static func getRetainedCredentials(credentialProvider: AwsCredentialsProvider, continuation: CredentialsContinuation) {
         let core = GetCredentialsCore(continuation: continuation)
         let retainedSelf = core.getRetainedSelf()
         if aws_credentials_provider_get_credentials(credentialProvider.rawValue, onGetCredentials, retainedSelf) != AWS_OP_SUCCESS {
@@ -32,17 +32,7 @@ class GetCredentialsCore {
     }
 }
 
-/// A container class to wrap a protocol so that we use it with Unmanaged
-class GetCredentialsContainer {
-    let getCredentials: GetCredentials
-    init(_ getCredentials: GetCredentials) {
-        self.getCredentials = getCredentials
-    }
 
-    func getUnretainedSelf() -> UnsafeMutableRawPointer {
-        return Unmanaged<GetCredentialsContainer>.passUnretained(self).toOpaque()
-    }
-}
 
 private func onGetCredentials(credentials: OpaquePointer?,
                               errorCode: Int32,
@@ -56,6 +46,6 @@ private func onGetCredentials(credentials: OpaquePointer?,
     }
 
     //Success
-    let crtCredentials = CRTCredentials(rawValue: credentials!)
+    let crtCredentials = AwsCredentials(rawValue: credentials!)
     credentialsProviderCore.continuation.resume(returning: crtCredentials)
 }
