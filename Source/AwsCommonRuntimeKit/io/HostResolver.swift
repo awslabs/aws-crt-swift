@@ -76,7 +76,7 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>?
                             _ hostAddresses: UnsafePointer<aws_array_list>?,
                             _ userData: UnsafeMutableRawPointer!) {
     let hostResolverCore = Unmanaged<ContinuationCore<[HostAddress]>>.fromOpaque(userData).takeRetainedValue()
-    if errorCode != AWS_OP_SUCCESS {
+    guard errorCode == AWS_OP_SUCCESS else {
         hostResolverCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
