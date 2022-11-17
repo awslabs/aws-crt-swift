@@ -7,17 +7,41 @@ import Foundation
 //TODO: rename class to RetryStrategy or CRTRetryStrategy. We have inconsistent CRT/AWS as a prefix of some classes.
 // I am not renaming it for now because it messes up the git change log. Will create a separate PR for just renaming.
 public class CRTAWSRetryStrategy {
-    let allocator: Allocator
     let rawValue: UnsafeMutablePointer<aws_retry_strategy>
 
     /// Creates an AWS Retryer implementing the correct retry strategy.
     ///
     /// - Parameters:
-    ///   - crtStandardRetryOptions:  The `CRTStandardRetryOptions` options object.
+    ///   - eventLoopGroup: Event loop group to use for scheduling tasks.
+    ///   - initialBucketCapacity: (Optional) Int = 500
+    ///   - maxRetries: (Optional) Max retries to allow.
+    ///   - backOffScaleFactor: (Optional) Scaling factor to add for the backoff. Default is 25ms and maximum is UInt32.
+    ///   - jitterMode: (Optional) Jitter mode to use, see comments for aws_exponential_backoff_jitter_mode. Default is AWS_EXPONENTIAL_BACKOFF_JITTER_DEFAULT
+    ///   - generateRandom: (Optional) By default this will be set to use aws_device_random. If you want something else, set it here.
+    ///   - allocator: (Optional) allocator to override.
     /// - Returns: `CRTAWSRetryStrategy`
-    public init(crtStandardRetryOptions: CRTStandardRetryOptions, allocator: Allocator = defaultAllocator) throws {
-        self.allocator = allocator
-        guard let rawValue = (crtStandardRetryOptions.withCPointer { retryOptionsPointer in
+    public init(eventLoopGroup: EventLoopGroup,
+                initialBucketCapacity: Int = 500,
+                maxRetries: Int = 10,
+                backOffScaleFactor: TimeInterval = 0.025,
+                jitterMode: CRTExponentialBackoffJitterMode = .default,
+                generateRandom: (@convention(c) () -> UInt64)? = nil,
+                allocator: Allocator = defaultAllocator) throws {
+
+        var exponentialBackoffRetryOptions = aws_exponential_backoff_retry_options()
+        exponentialBackoffRetryOptions.el_group = eventLoopGroup.rawValue
+        exponentialBackoffRetryOptions.max_retries = maxRetries
+        exponentialBackoffRetryOptions.backoff_scale_factor_ms = UInt32(backOffScaleFactor.millisecond)
+        exponentialBackoffRetryOptions.jitter_mode = jitterMode.rawValue
+        if let generateRandom = generateRandom {
+            exponentialBackoffRetryOptions.generate_random = generateRandom
+        }
+
+        var standardRetryOptions = aws_standard_retry_options()
+        standardRetryOptions.initial_bucket_capacity = initialBucketCapacity
+        standardRetryOptions.backoff_retry_options = exponentialBackoffRetryOptions
+
+        guard let rawValue = (withUnsafePointer(to: standardRetryOptions) { retryOptionsPointer in
             return aws_retry_strategy_new_standard(allocator.rawValue, retryOptionsPointer)
         }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
