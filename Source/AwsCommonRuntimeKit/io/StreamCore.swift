@@ -59,6 +59,8 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
         try iStreamable.seek(offset: targetOffset)
         iStreamCore.isEndOfStream = false
         return AWS_OP_SUCCESS
+    } catch CommonRunTimeError.crtError(let crtError) {
+        return aws_raise_error(crtError.code)
     } catch {
         return aws_raise_error(Int32(AWS_IO_STREAM_SEEK_FAILED.rawValue))
     }
@@ -79,6 +81,8 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
         }
 
         return AWS_OP_SUCCESS
+    } catch CommonRunTimeError.crtError(let crtError) {
+        return aws_raise_error(crtError.code)
     } catch {
         return aws_raise_error(Int32(AWS_IO_STREAM_READ_FAILED.rawValue))
     }
@@ -98,7 +102,10 @@ private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
         let length = try inputStream.iStreamable.length()
         result.pointee = Int64(length)
         return AWS_OP_SUCCESS
-    } catch {
+    } catch CommonRunTimeError.crtError(let crtError) {
+        return aws_raise_error(crtError.code)
+    }
+    catch {
         return aws_raise_error(Int32(AWS_IO_STREAM_GET_LENGTH_FAILED.rawValue))
     }
 }

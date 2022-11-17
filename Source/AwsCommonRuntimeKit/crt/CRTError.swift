@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
 
-public struct CRTError: Error {
+public struct CRTError {
 
     public let code: Int32
 
