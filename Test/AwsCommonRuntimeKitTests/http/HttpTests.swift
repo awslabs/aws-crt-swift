@@ -104,7 +104,7 @@ class HttpTests: CrtXCBaseTestCase {
 
         let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
             print("onComplete")
-            XCTAssertEqual(error.code, AWS_OP_SUCCESS)
+            XCTAssertEqual(error, nil)
             XCTAssertEqual(try! stream.statusCode(), 200)
             self.semaphore.signal()
         }

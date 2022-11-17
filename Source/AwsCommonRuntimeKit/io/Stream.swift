@@ -30,7 +30,7 @@ public protocol IStreamable {
 
 public extension IStreamable {
 
-    func seek(offset: UInt64) throws {
+    func seek(offset: UInt64, streamSeekType: StreamSeekType) throws {
         throw CommonRunTimeError.crtError(CRTError(code: Int32(AWS_IO_STREAM_SEEK_UNSUPPORTED.rawValue)))
     }
 
