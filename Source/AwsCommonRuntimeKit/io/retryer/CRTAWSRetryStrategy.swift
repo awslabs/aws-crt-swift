@@ -52,20 +52,18 @@ public class CRTAWSRetryStrategy {
     /// Attempts to acquire a retry token for use with retries. On success, on_acquired will be invoked when a token is
     /// available, or an error will be returned if the timeout expires.
     /// - Parameters:
-    ///   - timeout:  The timeout duration in Seconds.
-    ///   - partitionId: Partition_id identifies operations that should be grouped together.
+    ///   - partitionId: (Optional) Partition_id identifies operations that should be grouped together.
     ///                  This allows for more sophisticated strategies such as AIMD and circuit breaker patterns. Pass NULL to use the global partition.
     /// - Returns: `CRTAWSRetryStrategy`
-    // TODO: Discuss, timeout seems to not do anything
-    public func acquireToken(timeout: TimeInterval = 0, partitionId: String) async throws -> CRTAWSRetryToken {
+    public func acquireToken(partitionId: String?) async throws -> CRTAWSRetryToken {
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<CRTAWSRetryToken, Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
-            if (partitionId.withByteCursorPointer { partitionIdCursorPointer in
+            if (withOptionalByteCursorPointerFromString(partitionId) { partitionIdCursorPointer in
                 aws_retry_strategy_acquire_retry_token(rawValue,
                         partitionIdCursorPointer,
                         onRetryTokenAcquired,
                         continuationCore.passRetained(),
-                        timeout.millisecond)
+                        0)
             }) != AWS_OP_SUCCESS {
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
