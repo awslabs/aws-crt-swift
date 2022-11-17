@@ -10,8 +10,8 @@ public class HostResolver {
     private let allocator: Allocator
 
     public static func makeDefault(eventLoopGroup: EventLoopGroup,
-                                   maxHosts: Int,
-                                   maxTTL: Int,
+                                   maxHosts: Int = 16,
+                                   maxTTL: Int = 30,
                                    allocator: Allocator = defaultAllocator,
                                    shutdownCallback: ShutdownCallback? = nil) throws -> HostResolver {
         try HostResolver(eventLoopGroup: eventLoopGroup, maxHosts: maxHosts, maxTTL: maxTTL, allocator: allocator, shutdownCallback: shutdownCallback)
