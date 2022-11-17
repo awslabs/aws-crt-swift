@@ -14,9 +14,11 @@ public struct HostAddress {
         self.recordType = AddressRecordType(rawValue: hostAddress.record_type)
     }
 
-    public init(host: String,
-                address: String,
-                recordType: AddressRecordType = .typeA) {
+    public init(
+        host: String,
+        address: String,
+        recordType: AddressRecordType = .typeA
+    ) {
         self.host = host
         self.address = address
         self.recordType = recordType
