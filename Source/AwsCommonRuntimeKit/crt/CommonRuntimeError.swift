@@ -13,8 +13,12 @@ public struct CRTError {
     public let message: String
     public let name: String
 
-    public init<T : BinaryInteger>(code: T) {
-        self.code = Int32(code)
+    public init<T: BinaryInteger>(code: T) {
+        if code > INT32_MAX || code < 0 {
+            self.code = AWS_OP_ERR // Error Unknown
+        } else {
+            self.code = Int32(code)
+        }
         self.message = String(cString: aws_error_str(self.code))
         self.name = String(cString: aws_error_name(self.code))
     }
