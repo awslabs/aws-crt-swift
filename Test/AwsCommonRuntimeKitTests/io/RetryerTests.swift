@@ -2,7 +2,6 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import XCTest
 @testable import AwsCommonRuntimeKit
-//TODO: write more tests
 class RetryerTests: CrtXCBaseTestCase {
     let expectation = XCTestExpectation(description: "Credentials callback was called")
     
