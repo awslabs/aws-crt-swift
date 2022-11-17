@@ -71,12 +71,8 @@ extension FileHandle: IStreamable {
             return 0
         }
 
-        guard let baseAddress = buffer.baseAddress else {
-            throw CommonRunTimeError.crtError(CRTError(code: Int32(AWS_IO_STREAM_READ_FAILED.rawValue)))
-        }
-
         if data.count > 0 {
-            data.copyBytes(to: baseAddress, count: data.count)
+            data.copyBytes(to: buffer, count: data.count)
         }
         return data.count
     }
