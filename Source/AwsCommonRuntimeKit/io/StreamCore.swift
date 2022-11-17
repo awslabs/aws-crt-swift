@@ -45,11 +45,9 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
         try iStreamable.seek(offset: offset, streamSeekType: streamSeekType)
         iStreamCore.isEndOfStream = false
         return AWS_OP_SUCCESS
-    }
-    catch CommonRunTimeError.crtError(let crtError) {
+    } catch CommonRunTimeError.crtError(let crtError) {
         return aws_raise_error(crtError.code)
-    }
-    catch {
+    } catch {
         return aws_raise_error(Int32(AWS_IO_STREAM_SEEK_FAILED.rawValue))
     }
 }
