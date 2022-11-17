@@ -67,14 +67,14 @@ extension FileHandle: IStreamable {
 
     public func seek(offset: Int64, streamSeekType: StreamSeekType) throws {
         let targetOffset: UInt64
-        let length = try self.length()
         switch streamSeekType {
         case .begin:
-            if offset < 0 || offset > length {
+            if offset < 0 {
                 throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
             }
             targetOffset = UInt64(offset)
         case .end:
+            let length = try self.length()
             if offset > 0 || abs(offset) > length {
                 throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
             }

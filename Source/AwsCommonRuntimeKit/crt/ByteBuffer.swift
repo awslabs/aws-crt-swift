@@ -280,21 +280,18 @@ extension ByteBuffer: IStreamable {
     }
 
     public func seek(offset: Int64, streamSeekType: StreamSeekType) throws {
-        let targetOffset: Int
-        switch streamSeekType {
-        case .begin:
-            if offset < 0 || offset > array.count {
-                throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
-            }
-            targetOffset = Int(offset)
-        case .end:
-            if offset > 0 || abs(offset) > array.count {
-                throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
-            }
-            targetOffset = array.count - Int(abs(offset))
+        if abs(offset) > array.count
+                   || (offset < 0 && streamSeekType == .begin)
+                   || (offset > 0 && streamSeekType == .end) {
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
         }
 
-        currentIndex = targetOffset
+        switch streamSeekType {
+        case .begin:
+            currentIndex = Int(offset)
+        case .end:
+            currentIndex = array.count + Int(offset)
+        }
     }
 
     public func read(buffer: UnsafeMutableBufferPointer<UInt8>) -> Int? {
