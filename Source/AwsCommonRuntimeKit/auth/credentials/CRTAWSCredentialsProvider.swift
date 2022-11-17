@@ -12,9 +12,9 @@ public protocol CredentialsProvider: AnyObject {
 
 /// A container class to wrap a protocol so that we use it with Unmanaged
 class DelegateCredentialsProviderCore {
-    let delegateCredentialsProvider: CredentialsProvider
+    let delegate: CredentialsProvider
     init(_ credentialsProvider: CredentialsProvider) {
-        self.delegateCredentialsProvider = credentialsProvider
+        self.delegate = credentialsProvider
     }
 
     func passRetained() -> UnsafeMutableRawPointer {
@@ -467,12 +467,12 @@ private func onGetCredentials(credentials: OpaquePointer?,
 private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
                                       _ callbackFn: (@convention(c)(OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)!,
                                       _ userData: UnsafeMutableRawPointer!) -> Int32 {
-    let credentialsProvider = Unmanaged<DelegateCredentialsProviderCore>.fromOpaque(delegatePtr)
-                                                                .takeUnretainedValue()
-                                                                .delegateCredentialsProvider
+    let delegate = Unmanaged<DelegateCredentialsProviderCore>.fromOpaque(delegatePtr)
+                                                             .takeUnretainedValue()
+                                                             .delegate
     Task {
         do {
-            let credentials = try await credentialsProvider.getCredentials()
+            let credentials = try await delegate.getCredentials()
             callbackFn(credentials.rawValue, AWS_OP_SUCCESS, userData)
         } catch CommonRunTimeError.crtError(let crtError) {
             callbackFn(nil, crtError.code, userData)
