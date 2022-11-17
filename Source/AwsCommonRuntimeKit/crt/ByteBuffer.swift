@@ -71,8 +71,8 @@ public class ByteBuffer: Codable {
         return self
     }
 
-    public func put(_ value: ByteBuffer, offset: UInt = 0, maxBytes: UInt? = nil) throws {
-        var end: UInt = try UInt(value.length())
+    public func put(_ value: ByteBuffer, offset: UInt = 0, maxBytes: UInt? = nil) {
+        var end: UInt = UInt(value.length())
         if let maxBytes = maxBytes {
              end = maxBytes
         }
@@ -275,7 +275,7 @@ public class ByteBuffer: Codable {
 
 extension ByteBuffer: IStreamable {
 
-    public func length() throws -> UInt64 {
+    public func length() -> UInt64 {
         return UInt64(array.count)
     }
 
