@@ -12,9 +12,9 @@ public protocol CredentialsProvider: AnyObject {
 
 /// A container class to wrap a protocol so that we use it with Unmanaged
 class DelegateCredentialsProviderCore {
-    let delegate: CredentialsProvider
+    let delegateCredentialProvider: CredentialsProvider
     init(_ credentialsProvider: CredentialsProvider) {
-        self.delegate = credentialsProvider
+        self.delegateCredentialProvider = credentialsProvider
     }
 
     func passRetained() -> UnsafeMutableRawPointer {
@@ -469,7 +469,7 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
                                       _ userData: UnsafeMutableRawPointer!) -> Int32 {
     let delegate = Unmanaged<DelegateCredentialsProviderCore>.fromOpaque(delegatePtr)
                                                              .takeUnretainedValue()
-                                                             .delegate
+                                                             .delegateCredentialProvider
     Task {
         do {
             let credentials = try await delegate.getCredentials()

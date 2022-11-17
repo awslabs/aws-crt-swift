@@ -173,7 +173,6 @@ func withOptionalByteCursorPointerFromString<Result>(
     return body(nil)
 }
 
-
 func withByteCursorFromStrings<Result>(
         _ arg1: String?, _ body: (aws_byte_cursor) -> Result
 ) -> Result {
