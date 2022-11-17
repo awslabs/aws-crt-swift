@@ -75,7 +75,7 @@ public class AwsCredentialsProvider: CredentialsProvider {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         return AwsCredentialsProvider(credentialsProvider: provider,
-                                   allocator: allocator)
+                                      allocator: allocator)
     }
 
     /// Creates a credentials provider containing a fixed set of credentials.
@@ -477,7 +477,7 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
         } catch CommonRunTimeError.crtError(let crtError) {
             callbackFn(nil, crtError.code, userData)
         } catch {
-           // callbackFn(nil, Int32(AWS_AUTH_CREDENTIALS_PROVIDER_DELEGATE_FAILURE.rawValue), userData)
+            callbackFn(nil, Int32(AWS_AUTH_CREDENTIALS_PROVIDER_DELEGATE_FAILURE.rawValue), userData)
         }
     }
 
