@@ -15,7 +15,7 @@ public struct CRTError: Equatable {
 
     public init<T: BinaryInteger>(code: T) {
         if code > INT32_MAX || code <= 0 {
-            self.code = AWS_OP_ERR // Error Unknown
+            self.code = Int32(AWS_ERROR_UNKNOWN.rawValue)
         } else {
             self.code = Int32(code)
         }
