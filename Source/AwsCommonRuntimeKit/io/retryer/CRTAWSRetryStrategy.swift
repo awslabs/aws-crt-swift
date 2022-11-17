@@ -16,7 +16,7 @@ public class CRTAWSRetryStrategy {
     ///   - initialBucketCapacity: (Optional) Int = 500
     ///   - maxRetries: (Optional) Max retries to allow.
     ///   - backOffScaleFactor: (Optional) Scaling factor to add for the backoff. Default is 25ms and maximum is UInt32.
-    ///   - jitterMode: (Optional) Jitter mode to use, see comments for aws_exponential_backoff_jitter_mode. Default is AWS_EXPONENTIAL_BACKOFF_JITTER_DEFAULT
+    ///   - jitterMode: (Optional) Jitter mode to use, see comments for aws_exponential_backoff_jitter_mode.
     ///   - generateRandom: (Optional) By default this will be set to use aws_device_random. If you want something else, set it here.
     ///   - allocator: (Optional) allocator to override.
     /// - Returns: `CRTAWSRetryStrategy`
@@ -31,7 +31,7 @@ public class CRTAWSRetryStrategy {
         var exponentialBackoffRetryOptions = aws_exponential_backoff_retry_options()
         exponentialBackoffRetryOptions.el_group = eventLoopGroup.rawValue
         exponentialBackoffRetryOptions.max_retries = maxRetries
-        exponentialBackoffRetryOptions.backoff_scale_factor_ms = UInt32(backOffScaleFactor.millisecond)
+        exponentialBackoffRetryOptions.backoff_scale_factor_ms = backOffScaleFactor.millisecond > UINT32_MAX ? 25 : UInt32(backOffScaleFactor.millisecond)
         exponentialBackoffRetryOptions.jitter_mode = jitterMode.rawValue
         if let generateRandom = generateRandom {
             exponentialBackoffRetryOptions.generate_random = generateRandom
