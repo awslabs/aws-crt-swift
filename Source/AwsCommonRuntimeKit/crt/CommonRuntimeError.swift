@@ -14,7 +14,7 @@ public struct CRTError {
     public let name: String
 
     public init<T: BinaryInteger>(code: T) {
-        if code > INT32_MAX || code < 0 {
+        if code > INT32_MAX || code <= 0 {
             self.code = AWS_OP_ERR // Error Unknown
         } else {
             self.code = Int32(code)
