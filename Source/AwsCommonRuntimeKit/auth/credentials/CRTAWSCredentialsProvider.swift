@@ -470,8 +470,6 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
         do {
             let credentials = try await credentialsProvider.getCredentials()
             callbackFn(credentials.rawValue, AWS_OP_SUCCESS, userData)
-        } catch let crtError as CRTError {
-            callbackFn(nil, crtError.code, userData)
         } catch CommonRunTimeError.crtError(let crtError) {
             callbackFn(nil, crtError.code, userData)
         } catch {

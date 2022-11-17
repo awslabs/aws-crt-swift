@@ -42,23 +42,11 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     let iStreamable = iStreamCore.iStreamable
     do {
         let streamSeekType = StreamSeekType(rawValue: seekBasis.rawValue)!
-        let targetOffset: UInt64
-        switch streamSeekType {
-        case .begin:
-            if offset < 0 {
-                return aws_raise_error(Int32(AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
-            }
-            targetOffset = UInt64(offset)
-        case .end:
-            let length = try iStreamable.length()
-            if offset > 0 {
-                return aws_raise_error(Int32(AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
-            }
-            targetOffset = length - UInt64(abs(offset))
-        }
-        try iStreamable.seek(offset: targetOffset)
+        try iStreamable.seek(offset: offset, streamSeekType: streamSeekType)
         iStreamCore.isEndOfStream = false
         return AWS_OP_SUCCESS
+    } catch CommonRunTimeError.crtError(let crtError) {
+        return aws_raise_error(crtError.code)
     } catch {
         return aws_raise_error(Int32(AWS_IO_STREAM_SEEK_FAILED.rawValue))
     }
@@ -70,13 +58,16 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     let iStreamable = iStreamCore.iStreamable
     do {
         let bufferPointer = UnsafeMutableBufferPointer.init(start: buffer.pointee.buffer, count: buffer.pointee.capacity)
-        let length = try iStreamable.read(buffer: bufferPointer)
-        buffer.pointee.len = length
-        if length == 0 {
+        let bytesRead = try iStreamable.read(buffer: bufferPointer)
+        if let bytesRead = bytesRead {
+            buffer.pointee.len = bytesRead
+        } else {
             iStreamCore.isEndOfStream = true
         }
 
         return AWS_OP_SUCCESS
+    } catch CommonRunTimeError.crtError(let crtError) {
+        return aws_raise_error(crtError.code)
     } catch {
         return aws_raise_error(Int32(AWS_IO_STREAM_READ_FAILED.rawValue))
     }
@@ -96,6 +87,8 @@ private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
         let length = try inputStream.iStreamable.length()
         result.pointee = Int64(length)
         return AWS_OP_SUCCESS
+    } catch CommonRunTimeError.crtError(let crtError) {
+        return aws_raise_error(crtError.code)
     } catch {
         return aws_raise_error(Int32(AWS_IO_STREAM_GET_LENGTH_FAILED.rawValue))
     }

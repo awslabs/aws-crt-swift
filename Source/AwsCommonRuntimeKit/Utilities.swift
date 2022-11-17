@@ -151,8 +151,7 @@ extension UnsafePointer: PointerConformance {}
 extension UnsafeRawPointer: PointerConformance {}
 
 func withOptionalCString<Result>(
-        to arg1: String?, _ body: (UnsafePointer<Int8>?) -> Result
-) -> Result {
+        to arg1: String?, _ body: (UnsafePointer<Int8>?) -> Result) -> Result {
     if let arg1 = arg1 {
         return arg1.withCString { cString in
             return body(cString)
@@ -160,6 +159,20 @@ func withOptionalCString<Result>(
     }
     return body(nil)
 }
+
+func withOptionalByteCursorPointerFromString<Result>(
+        _ arg1: String?, _ body: (UnsafePointer<aws_byte_cursor>?) -> Result
+) -> Result {
+    if let arg1 = arg1 {
+        return arg1.withCString { arg1C in
+            return withUnsafePointer(to: aws_byte_cursor_from_c_str(arg1C)) { byteCursorPointer in
+                return body(byteCursorPointer)
+            }
+        }
+    }
+    return body(nil)
+}
+
 
 func withByteCursorFromStrings<Result>(
         _ arg1: String?, _ body: (aws_byte_cursor) -> Result

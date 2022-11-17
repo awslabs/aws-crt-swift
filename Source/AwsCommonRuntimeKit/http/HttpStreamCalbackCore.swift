@@ -102,7 +102,8 @@ private func onComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
     let httpStreamCbData = Unmanaged<HttpStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
     let stream = httpStreamCbData.stream!
     let onStreamCompleteFn = httpStreamCbData.requestOptions.onStreamComplete
-    onStreamCompleteFn(stream, CRTError(code: errorCode))
+    let crtError = errorCode == AWS_OP_SUCCESS ? nil : CRTError(code: errorCode)
+    onStreamCompleteFn(stream, crtError)
     httpStreamCbData.stream = nil
 }
 

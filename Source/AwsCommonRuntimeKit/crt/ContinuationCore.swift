@@ -11,7 +11,7 @@ class ContinuationCore<T> {
     }
 
     func passRetained() -> UnsafeMutableRawPointer {
-        return Unmanaged<ContinuationCore>.passRetained(self).toOpaque()
+        return Unmanaged.passRetained(self).toOpaque()
     }
 
     func release() {

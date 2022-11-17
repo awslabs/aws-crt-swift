@@ -37,20 +37,20 @@ class StreamTests: CrtXCBaseTestCase {
     XCTAssertEqual(String(bytes: buffer, encoding: .utf8), "0987654321")
 
     length = try iStreamCore.iStreamable.read(buffer: buffer)
-    XCTAssertEqual(length, 0)
+    XCTAssertEqual(length, nil)
 
 
-    try iStreamCore.iStreamable.seek(offset: 0)
+    try iStreamCore.iStreamable.seek(offset: 0, streamSeekType: StreamSeekType.begin)
     length = try iStreamCore.iStreamable.read(buffer: buffer)
     XCTAssertEqual(length, capacity)
     XCTAssertEqual(String(bytes: buffer, encoding: .utf8), "1234567890")
 
-    try iStreamCore.iStreamable.seek(offset: 10)
+    try iStreamCore.iStreamable.seek(offset: 10, streamSeekType: StreamSeekType.begin)
     length = try iStreamCore.iStreamable.read(buffer: buffer)
     XCTAssertEqual(length, capacity)
     XCTAssertEqual(String(bytes: buffer, encoding: .utf8), "0987654321")
 
     length = try iStreamCore.iStreamable.read(buffer: buffer)
-    XCTAssertEqual(length, 0)
+    XCTAssertEqual(length, nil)
   }
 }

@@ -71,8 +71,8 @@ public class ByteBuffer: Codable {
         return self
     }
 
-    public func put(_ value: ByteBuffer, offset: UInt = 0, maxBytes: UInt? = nil) throws {
-        var end: UInt = try UInt(value.length())
+    public func put(_ value: ByteBuffer, offset: UInt = 0, maxBytes: UInt? = nil) {
+        var end: UInt = UInt(value.length())
         if let maxBytes = maxBytes {
              end = maxBytes
         }
@@ -275,22 +275,34 @@ public class ByteBuffer: Codable {
 
 extension ByteBuffer: IStreamable {
 
-    public func length() throws -> UInt64 {
+    public func length() -> UInt64 {
         return UInt64(array.count)
     }
 
-    public func seek(offset: UInt64) throws {
-        currentIndex = Int(offset)
+    public func seek(offset: Int64, streamSeekType: StreamSeekType) throws {
+        if abs(offset) > array.count
+                   || (offset < 0 && streamSeekType == .begin)
+                   || (offset > 0 && streamSeekType == .end) {
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
+        }
+
+        switch streamSeekType {
+        case .begin:
+            currentIndex = Int(offset)
+        case .end:
+            currentIndex = array.count + Int(offset)
+        }
     }
 
-    public func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int {
+    public func read(buffer: UnsafeMutableBufferPointer<UInt8>) -> Int? {
         let endIndex = self.currentIndex + min(array.count - self.currentIndex, buffer.count)
+        if self.currentIndex == endIndex {
+            return nil
+        }
 
         let dataArray = array[self.currentIndex..<endIndex]
-        if dataArray.count > 0 {
-            dataArray.copyBytes(to: buffer, count: dataArray.count)
-            self.currentIndex = endIndex
-        }
+        dataArray.copyBytes(to: buffer, count: dataArray.count)
+        self.currentIndex = endIndex
         return dataArray.count
     }
 }
