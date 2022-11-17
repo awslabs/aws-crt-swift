@@ -48,7 +48,7 @@ extension String {
 
 extension TimeInterval {
     var millisecond: UInt64 {
-        UInt64(self*1000)
+        self >= 0 ? UInt64(self*1000) : 0
     }
 }
 

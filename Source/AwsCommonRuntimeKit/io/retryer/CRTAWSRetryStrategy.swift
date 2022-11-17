@@ -2,6 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCIo
+import Foundation
 
 //TODO: rename class to RetryStrategy or CRTRetryStrategy. We have inconsistent CRT/AWS as a prefix of some classes.
 // I am not renaming it for now because it messes up the git change log. Will create a separate PR for just renaming.
@@ -24,7 +25,15 @@ public class CRTAWSRetryStrategy {
         self.rawValue = rawValue
     }
 
-    public func acquireToken(timeout: UInt64 = 0, partitionId: String) async throws -> CRTAWSRetryToken {
+    /// Attempts to acquire a retry token for use with retries. On success, on_acquired will be invoked when a token is
+    /// available, or an error will be returned if the timeout expires.
+    /// - Parameters:
+    ///   - timeout:  The timeout duration in Seconds.
+    ///   - partitionId: Partition_id identifies operations that should be grouped together.
+    ///                  This allows for more sophisticated strategies such as AIMD and circuit breaker patterns. Pass NULL to use the global partition.
+    /// - Returns: `CRTAWSRetryStrategy`
+    // TODO: Discuss, timeout seems to not do anything
+    public func acquireToken(timeout: TimeInterval = 0, partitionId: String) async throws -> CRTAWSRetryToken {
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<CRTAWSRetryToken, Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
             if (partitionId.withByteCursorPointer { partitionIdCursorPointer in
@@ -32,7 +41,7 @@ public class CRTAWSRetryStrategy {
                         partitionIdCursorPointer,
                         onRetryTokenAcquired,
                         continuationCore.passRetained(),
-                        timeout)
+                        timeout.millisecond)
             }) != AWS_OP_SUCCESS {
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
