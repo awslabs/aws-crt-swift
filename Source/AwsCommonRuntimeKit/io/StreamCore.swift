@@ -42,21 +42,7 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     let iStreamable = iStreamCore.iStreamable
     do {
         let streamSeekType = StreamSeekType(rawValue: seekBasis.rawValue)!
-        let targetOffset: UInt64
-        switch streamSeekType {
-        case .begin:
-            if offset < 0 {
-                return aws_raise_error(Int32(AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
-            }
-            targetOffset = UInt64(offset)
-        case .end:
-            let length = try iStreamable.length()
-            if offset > 0 {
-                return aws_raise_error(Int32(AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
-            }
-            targetOffset = length - UInt64(abs(offset))
-        }
-        try iStreamable.seek(offset: targetOffset)
+        try iStreamable.seek(offset: offset, streamSeekType: streamSeekType)
         iStreamCore.isEndOfStream = false
         return AWS_OP_SUCCESS
     } catch CommonRunTimeError.crtError(let crtError) {
@@ -77,7 +63,6 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
             buffer.pointee.len = length
         } else {
             iStreamCore.isEndOfStream = true
-            buffer.pointee.len = 0
         }
 
         return AWS_OP_SUCCESS

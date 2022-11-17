@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0.
 
 import AwsCCommon
+import Foundation
 
 public enum CommonRunTimeError: Error {
     case crtError(CRTError)
@@ -15,10 +16,10 @@ public struct CRTError {
 
     public let name: String
 
-    public init(code: Int32) {
-        self.code = code
-        self.message = String(cString: aws_error_str(code))
-        self.name = String(cString: aws_error_name(code))
+    public init<T : BinaryInteger>(code: T) {
+        self.code = Int32(code)
+        self.message = String(cString: aws_error_str(self.code))
+        self.name = String(cString: aws_error_name(self.code))
     }
 
     public static func makeFromLastError() -> CRTError {
