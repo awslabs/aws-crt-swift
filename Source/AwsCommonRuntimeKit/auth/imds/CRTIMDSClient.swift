@@ -271,7 +271,6 @@ public class IMDSClient {
     }
 }
 
-
 private func onGetResource(byteBuf: UnsafePointer<aws_byte_buf>?,
                            errorCode: Int32,
                            userData: UnsafeMutableRawPointer!) {
@@ -298,7 +297,6 @@ private func onGetResourceList(arrayListPointer: UnsafePointer<aws_array_list>?,
     imdsClientCore.continuation.resume(returning: arrayListPointer!.pointee.byteCursorListToStringArray())
 }
 
-
 private func onGetCredentials(credentialsPointer: OpaquePointer?,
                               errorCode: Int32,
                               userData: UnsafeMutableRawPointer!) {
@@ -311,7 +309,6 @@ private func onGetCredentials(credentialsPointer: OpaquePointer?,
     // Success
     imdsClientCore.continuation.resume(returning: AwsCredentials(rawValue: credentialsPointer!))
 }
-
 
 private func onGetIAMProfile(profilePointer: UnsafePointer<aws_imds_iam_profile>?,
                              errorCode: Int32,
