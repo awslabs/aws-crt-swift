@@ -31,7 +31,9 @@ public class CRTAWSRetryStrategy {
         var exponentialBackoffRetryOptions = aws_exponential_backoff_retry_options()
         exponentialBackoffRetryOptions.el_group = eventLoopGroup.rawValue
         exponentialBackoffRetryOptions.max_retries = maxRetries
-        exponentialBackoffRetryOptions.backoff_scale_factor_ms = backOffScaleFactor.millisecond > UINT32_MAX ? 25 : UInt32(backOffScaleFactor.millisecond)
+        exponentialBackoffRetryOptions.backoff_scale_factor_ms = backOffScaleFactor.millisecond > UINT32_MAX
+                                                                 ? 25
+                                                                 : UInt32(backOffScaleFactor.millisecond)
         exponentialBackoffRetryOptions.jitter_mode = jitterMode.rawValue
         if let generateRandom = generateRandom {
             exponentialBackoffRetryOptions.generate_random = generateRandom
@@ -53,12 +55,13 @@ public class CRTAWSRetryStrategy {
     /// available, or an error will be returned if the timeout expires.
     /// - Parameters:
     ///   - partitionId: (Optional) Partition_id identifies operations that should be grouped together.
-    ///                  This allows for more sophisticated strategies such as AIMD and circuit breaker patterns. Pass NULL to use the global partition.
+    ///                  This allows for more sophisticated strategies such as AIMD and circuit breaker patterns.
+    ///                  Pass NULL to use the global partition.
     /// - Returns: `CRTAWSRetryStrategy`
     public func acquireToken(partitionId: String?) async throws -> CRTAWSRetryToken {
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<CRTAWSRetryToken, Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
-            if (withOptionalByteCursorPointerFromString(partitionId) { partitionIdCursorPointer in
+            if withOptionalByteCursorPointerFromString(partitionId, { partitionIdCursorPointer in
                 aws_retry_strategy_acquire_retry_token(rawValue,
                         partitionIdCursorPointer,
                         onRetryTokenAcquired,
