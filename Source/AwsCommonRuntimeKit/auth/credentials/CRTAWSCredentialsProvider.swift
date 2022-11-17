@@ -55,9 +55,16 @@ public class AwsCredentialsProvider: CredentialsProvider {
         }
     }
 
+    /// Create a credentials provider depends on provided Credential Provider to fetch the credentials.
+    /// - Parameters:
+    ///   - credentialsProvider: The credential provider to use to fetch the credential provider
+    ///   - shutdownCallback:  (Optional) shutdown callback
+    ///   - allocator: (Optional) allocator to override
+    /// - Returns: `CredentialsProvider`
+    /// - Throws: CommonRuntimeError.crtError
     public static func makeDelegate(credentialsProvider: CredentialsProvider,
-                                    allocator: Allocator = defaultAllocator,
-                                    shutdownCallback: ShutdownCallback? = nil) throws -> AwsCredentialsProvider {
+                                    shutdownCallback: ShutdownCallback? = nil,
+                                    allocator: Allocator = defaultAllocator) throws -> AwsCredentialsProvider {
 
         let delegateCore = DelegateCredentialsProviderCore(credentialsProvider)
         let shutdownCallbackCore = ShutdownCallbackCore({

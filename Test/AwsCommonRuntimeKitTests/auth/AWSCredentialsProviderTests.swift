@@ -59,8 +59,8 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
                                                                        allocator: allocator)
 
             let delegateProvider = try AwsCredentialsProvider.makeDelegate(credentialsProvider: staticProvider,
-                                                                           allocator: allocator,
-                                                                           shutdownCallback: getShutdownCallback())
+                                                                           shutdownCallback: getShutdownCallback(),
+                                                                           allocator: allocator)
             let credentials = try await delegateProvider.getCredentials()
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
