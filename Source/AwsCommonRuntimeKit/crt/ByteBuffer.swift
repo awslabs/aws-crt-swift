@@ -296,7 +296,7 @@ extension ByteBuffer: IStreamable {
 
     public func read(buffer: UnsafeMutableBufferPointer<UInt8>) -> Int? {
         let endIndex = self.currentIndex + min(array.count - self.currentIndex, buffer.count)
-        if self.currentIndex == endIndex {
+        guard self.currentIndex != endIndex else {
             return nil
         }
 
