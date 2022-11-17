@@ -11,14 +11,18 @@ public protocol CredentialsProvider: AnyObject {
 }
 
 /// A container class to wrap a protocol so that we use it with Unmanaged
-class CredentialsProviderCore {
-    let credentialsProvider: CredentialsProvider
+class DelegateCredentialsProviderCore {
+    let delegateCredentialsProvider: CredentialsProvider
     init(_ credentialsProvider: CredentialsProvider) {
-        self.credentialsProvider = credentialsProvider
+        self.delegateCredentialsProvider = credentialsProvider
     }
 
-    func passUnretained() -> UnsafeMutableRawPointer {
-        return Unmanaged<CredentialsProviderCore>.passUnretained(self).toOpaque()
+    func passRetained() -> UnsafeMutableRawPointer {
+        return Unmanaged<DelegateCredentialsProviderCore>.passRetained(self).toOpaque()
+    }
+
+    func release() {
+        Unmanaged.passUnretained(self).release()
     }
 }
 
@@ -28,14 +32,10 @@ public class AwsCredentialsProvider: CredentialsProvider {
     let allocator: Allocator
     let rawValue: UnsafeMutablePointer<aws_credentials_provider>
 
-    // Optional reference to delegate Get Credentials to keep it alive
-    let delegateGetCredentials: CredentialsProviderCore?
     init(credentialsProvider: UnsafeMutablePointer<aws_credentials_provider>,
-         allocator: Allocator,
-         delegateGetCredentials: CredentialsProviderCore? = nil) {
+         allocator: Allocator) {
         self.rawValue = credentialsProvider
         self.allocator = allocator
-        self.delegateGetCredentials = delegateGetCredentials
     }
 
     /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
@@ -58,20 +58,24 @@ public class AwsCredentialsProvider: CredentialsProvider {
     public static func makeDelegate(credentialsProvider: CredentialsProvider,
                                     allocator: Allocator = defaultAllocator,
                                     shutdownCallback: ShutdownCallback? = nil) throws -> AwsCredentialsProvider {
-        let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
-        let credentialsProviderCore = CredentialsProviderCore(credentialsProvider)
+
+        let credentialsProviderCore = DelegateCredentialsProviderCore(credentialsProvider)
+        let shutdownCallbackCore = ShutdownCallbackCore({
+            credentialsProviderCore.release()
+            shutdownCallback?()
+        })
         let shutdownOptions =  shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         var options = aws_credentials_provider_delegate_options(shutdown_options: shutdownOptions,
                                                                 get_credentials: getCredentialsDelegateFn,
-                                                                delegate_user_data: credentialsProviderCore.passUnretained())
+                                                                delegate_user_data: credentialsProviderCore.passRetained())
 
         guard let provider = aws_credentials_provider_new_delegate(allocator.rawValue, &options) else {
             shutdownCallbackCore.release()
+            credentialsProviderCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         return AwsCredentialsProvider(credentialsProvider: provider,
-                                   allocator: allocator,
-                                   delegateGetCredentials: credentialsProviderCore)
+                                   allocator: allocator)
     }
 
     /// Creates a credentials provider containing a fixed set of credentials.
@@ -463,9 +467,9 @@ private func onGetCredentials(credentials: OpaquePointer?,
 private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
                                       _ callbackFn: (@convention(c)(OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)!,
                                       _ userData: UnsafeMutableRawPointer!) -> Int32 {
-    let credentialsProvider = Unmanaged<CredentialsProviderCore>.fromOpaque(delegatePtr)
+    let credentialsProvider = Unmanaged<DelegateCredentialsProviderCore>.fromOpaque(delegatePtr)
                                                                 .takeUnretainedValue()
-                                                                .credentialsProvider
+                                                                .delegateCredentialsProvider
     Task {
         do {
             let credentials = try await credentialsProvider.getCredentials()
@@ -473,7 +477,7 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
         } catch CommonRunTimeError.crtError(let crtError) {
             callbackFn(nil, crtError.code, userData)
         } catch {
-            callbackFn(nil, Int32(AWS_AUTH_CREDENTIALS_PROVIDER_DELEGATE_FAILURE.rawValue), userData)
+           // callbackFn(nil, Int32(AWS_AUTH_CREDENTIALS_PROVIDER_DELEGATE_FAILURE.rawValue), userData)
         }
     }
 
