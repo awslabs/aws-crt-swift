@@ -9,11 +9,8 @@ public enum CommonRunTimeError: Error {
 }
 
 public struct CRTError {
-
     public let code: Int32
-
     public let message: String
-
     public let name: String
 
     public init<T : BinaryInteger>(code: T) {
