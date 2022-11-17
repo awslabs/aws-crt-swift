@@ -59,19 +59,19 @@ public class AwsCredentialsProvider: CredentialsProvider {
                                     allocator: Allocator = defaultAllocator,
                                     shutdownCallback: ShutdownCallback? = nil) throws -> AwsCredentialsProvider {
 
-        let credentialsProviderCore = DelegateCredentialsProviderCore(credentialsProvider)
+        let delegateCore = DelegateCredentialsProviderCore(credentialsProvider)
         let shutdownCallbackCore = ShutdownCallbackCore({
-            credentialsProviderCore.release()
+            delegateCore.release()
             shutdownCallback?()
         })
         let shutdownOptions =  shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         var options = aws_credentials_provider_delegate_options(shutdown_options: shutdownOptions,
                                                                 get_credentials: getCredentialsDelegateFn,
-                                                                delegate_user_data: credentialsProviderCore.passRetained())
+                                                                delegate_user_data: delegateCore.passRetained())
 
         guard let provider = aws_credentials_provider_new_delegate(allocator.rawValue, &options) else {
             shutdownCallbackCore.release()
-            credentialsProviderCore.release()
+            delegateCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         return AwsCredentialsProvider(credentialsProvider: provider,
