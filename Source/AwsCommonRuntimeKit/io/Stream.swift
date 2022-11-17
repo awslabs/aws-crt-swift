@@ -12,8 +12,12 @@ public protocol IStreamable {
     /// (Optional) throws Seek not supported error by default.
     func seek(offset: UInt64) throws
 
-    /// buffer count should not be modified.
-    func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int
+    /// Read up to buffer.count bytes into the buffer.
+    /// buffer.count must not be modified.
+    /// Return the number of bytes copied.
+    /// Return nil if the end of file has been reached.
+    /// Return 0 if data is not yet available.
+    func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int?
 }
 
 public extension IStreamable {
@@ -60,7 +64,7 @@ extension FileHandle: IStreamable {
     }
 
     @inlinable
-    public func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int {
+    public func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int? {
         let data: Data?
         if #available(macOS 11, tvOS 13.4, iOS 13.4, watchOS 6.2, *) {
             data = try self.read(upToCount: buffer.count)
@@ -68,7 +72,7 @@ extension FileHandle: IStreamable {
             data = self.readData(ofLength: buffer.count)
         }
         guard let data = data else {
-            return 0
+            return nil
         }
 
         if data.count > 0 {

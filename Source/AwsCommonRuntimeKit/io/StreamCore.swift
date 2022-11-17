@@ -71,9 +71,11 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     do {
         let bufferPointer = UnsafeMutableBufferPointer.init(start: buffer.pointee.buffer, count: buffer.pointee.capacity)
         let length = try iStreamable.read(buffer: bufferPointer)
-        buffer.pointee.len = length
-        if length == 0 {
+        if let length = length {
+            buffer.pointee.len = length
+        } else {
             iStreamCore.isEndOfStream = true
+            buffer.pointee.len = 0
         }
 
         return AWS_OP_SUCCESS

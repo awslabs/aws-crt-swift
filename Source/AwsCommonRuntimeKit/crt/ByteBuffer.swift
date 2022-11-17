@@ -279,18 +279,19 @@ extension ByteBuffer: IStreamable {
         return UInt64(array.count)
     }
 
-    public func seek(offset: UInt64) throws {
+    public func seek(offset: UInt64) {
         currentIndex = Int(offset)
     }
 
-    public func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int {
+    public func read(buffer: UnsafeMutableBufferPointer<UInt8>) -> Int? {
         let endIndex = self.currentIndex + min(array.count - self.currentIndex, buffer.count)
+        if self.currentIndex == endIndex {
+            return nil
+        }
 
         let dataArray = array[self.currentIndex..<endIndex]
-        if dataArray.count > 0 {
-            dataArray.copyBytes(to: buffer, count: dataArray.count)
-            self.currentIndex = endIndex
-        }
+        dataArray.copyBytes(to: buffer, count: dataArray.count)
+        self.currentIndex = endIndex
         return dataArray.count
     }
 }
