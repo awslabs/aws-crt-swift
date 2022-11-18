@@ -20,11 +20,14 @@ public protocol IStreamable {
     /// - Throws: Throws Seek not supported error by default.
     func seek(offset: Int64, streamSeekType: StreamSeekType) throws
 
-    /// Read up to buffer.count bytes into the buffer.
+    /// Write data up to `buffer.count` and returns the number of bytes written.
     /// buffer.count must not be modified.
-    /// Return the number of bytes copied.
-    /// Return nil if the end of file has been reached.
-    /// Return 0 if data is not yet available.
+    ///
+    /// - Parameters:
+    ///     - buffer: The buffer to write data to.
+    /// - Returns: `nil` if the end of the file has been reached.
+    ///   Returns `0` if the data is not yet available.
+    ///   Otherwise returns the number of bytes read.
     func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int?
 }
 
@@ -53,13 +56,16 @@ extension FileHandle: IStreamable {
         let length: UInt64
         let savedPos: UInt64
         if #available(macOS 11, tvOS 13.4, iOS 13.4, watchOS 6.2, *) {
-            savedPos = try self.offset()
-            try self.seekToEnd()
-            length = try self.offset()
+            savedPos = try offset()
+            try seekToEnd()
+            length = try offset()
         } else {
-            savedPos = self.offsetInFile
-            self.seekToEndOfFile()
-            length = self.offsetInFile
+            savedPos = offsetInFile
+            seekToEndOfFile()
+            length = offsetInFile
+        }
+        guard length != savedPos else {
+            return length
         }
         try self.seek(toOffset: savedPos)
         return length
@@ -69,13 +75,21 @@ extension FileHandle: IStreamable {
         let targetOffset: UInt64
         switch streamSeekType {
         case .begin:
-            if offset < 0 {
+            guard offset >= 0 else {
                 throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
             }
             targetOffset = UInt64(offset)
         case .end:
-            let length = try self.length()
-            if offset > 0 || abs(offset) > length {
+            guard offset != 0 else {
+                if #available(macOS 11, tvOS 13.4, iOS 13.4, watchOS 6.2, *) {
+                    try seekToEnd()
+                } else {
+                    seekToEndOfFile()
+                }
+                return
+            }
+            let length = try length()
+            guard offset <= 0, abs(offset) <= length else {
                 throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
             }
             targetOffset = length - UInt64(abs(offset))
@@ -95,7 +109,7 @@ extension FileHandle: IStreamable {
         }
 
         if data.count > 0 {
-            data.copyBytes(to: buffer, count: data.count)
+            data.copyBytes(to: buffer, from: 0..<data.count)
         }
         return data.count
     }

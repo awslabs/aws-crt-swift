@@ -10,12 +10,14 @@ class IStreamCore {
     let iStreamable: IStreamable
     var isEndOfStream: Bool = false
     private let allocator: Allocator
-    private var vtable = aws_input_stream_vtable(seek: doSeek,
-            read: doRead,
-            get_status: doGetStatus,
-            get_length: doGetLength,
-            acquire: { _ = Unmanaged<IStreamCore>.fromOpaque($0!.pointee.impl).retain() },
-            release: { Unmanaged<IStreamCore>.fromOpaque($0!.pointee.impl).release() })
+    private var vtable = aws_input_stream_vtable(
+        seek: doSeek,
+        read: doRead,
+        get_status: doGetStatus,
+        get_length: doGetLength,
+        acquire: { _ = Unmanaged<IStreamCore>.fromOpaque($0!.pointee.impl).retain() },
+        release: { Unmanaged<IStreamCore>.fromOpaque($0!.pointee.impl).release() }
+    )
     private let vtablePointer: UnsafeMutablePointer<aws_input_stream_vtable>
 
     init(iStreamable: IStreamable, allocator: Allocator) {

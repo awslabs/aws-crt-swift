@@ -6,7 +6,7 @@ import AwsCIo
 public class TlsContext {
     var rawValue: UnsafeMutablePointer<aws_tls_ctx>
 
-    public init(options: TlsContextOptions, mode: TlsMode, allocator: Allocator = defaultAllocator) throws {
+    public init(options: TlsContextOptions, mode: TLSMode, allocator: Allocator = defaultAllocator) throws {
         guard let rawValue = (options.withCPointer { optionsPointer in
             switch mode {
             case .client:
@@ -25,7 +25,7 @@ public class TlsContext {
     }
 }
 
-public enum TlsMode {
+public enum TLSMode {
     case client
     case server
 }

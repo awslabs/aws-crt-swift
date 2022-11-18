@@ -10,8 +10,8 @@ public class HostResolver {
     private let allocator: Allocator
 
     public static func makeDefault(eventLoopGroup: EventLoopGroup,
-                                   maxHosts: Int,
-                                   maxTTL: Int,
+                                   maxHosts: Int = 16,
+                                   maxTTL: Int = 30,
                                    allocator: Allocator = defaultAllocator,
                                    shutdownCallback: ShutdownCallback? = nil) throws -> HostResolver {
         try HostResolver(eventLoopGroup: eventLoopGroup, maxHosts: maxHosts, maxTTL: maxTTL, allocator: allocator, shutdownCallback: shutdownCallback)
@@ -24,14 +24,17 @@ public class HostResolver {
          shutdownCallback: ShutdownCallback? = nil) throws {
         self.allocator = allocator
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
-        guard let rawValue: UnsafeMutablePointer<aws_host_resolver> = withUnsafePointer(
-                to: shutdownCallbackCore.getRetainedShutdownOptions(), { shutdownCallbackCorePointer in
-            var options = aws_host_resolver_default_options()
-            options.max_entries = maxHosts
-            options.el_group = eventLoopGroup.rawValue
-            options.shutdown_options = shutdownCallbackCorePointer
-            return aws_host_resolver_new_default(allocator.rawValue, &options)
-        }) else {
+        let getRawValue: () -> UnsafeMutablePointer<aws_host_resolver>? = {
+            withUnsafePointer(to: shutdownCallbackCore.getRetainedShutdownOptions()) { shutdownCallbackCorePointer in
+                var options = aws_host_resolver_default_options()
+                options.max_entries = maxHosts
+                options.el_group = eventLoopGroup.rawValue
+                options.shutdown_options = shutdownCallbackCorePointer
+                return aws_host_resolver_new_default(allocator.rawValue, &options)
+            }
+        }
+
+        guard let rawValue = getRawValue() else {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
@@ -76,20 +79,18 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>?
                             _ hostAddresses: UnsafePointer<aws_array_list>?,
                             _ userData: UnsafeMutableRawPointer!) {
     let hostResolverCore = Unmanaged<ContinuationCore<[HostAddress]>>.fromOpaque(userData).takeRetainedValue()
-    if errorCode != AWS_OP_SUCCESS {
+    guard errorCode == AWS_OP_SUCCESS else {
         hostResolverCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
     // Success
     let length = aws_array_list_length(hostAddresses!)
-    var addresses = [HostAddress]()
-
-    for index in 0..<length {
+    let addresses = (0..<length).map { index in
         var address: UnsafeMutableRawPointer! = nil
         aws_array_list_get_at_ptr(hostAddresses!, &address, index)
         let hostAddressCType = address.bindMemory(to: aws_host_address.self, capacity: 1).pointee
-        addresses.append(HostAddress(hostAddress: hostAddressCType))
+        return HostAddress(hostAddress: hostAddressCType)
     }
 
     hostResolverCore.continuation.resume(returning: addresses)

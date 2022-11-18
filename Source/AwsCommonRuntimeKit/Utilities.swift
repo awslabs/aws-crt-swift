@@ -163,14 +163,14 @@ func withOptionalCString<Result>(
 func withOptionalByteCursorPointerFromString<Result>(
         _ arg1: String?, _ body: (UnsafePointer<aws_byte_cursor>?) -> Result
 ) -> Result {
-    if let arg1 = arg1 {
-        return arg1.withCString { arg1C in
-            return withUnsafePointer(to: aws_byte_cursor_from_c_str(arg1C)) { byteCursorPointer in
-                return body(byteCursorPointer)
-            }
+    guard let arg1 = arg1 else {
+        return body(nil)
+    }
+    return arg1.withCString { arg1C in
+        withUnsafePointer(to: aws_byte_cursor_from_c_str(arg1C)) { byteCursorPointer in
+            body(byteCursorPointer)
         }
     }
-    return body(nil)
 }
 
 func withByteCursorFromStrings<Result>(
