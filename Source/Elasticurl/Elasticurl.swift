@@ -41,7 +41,6 @@ struct Elasticurl {
     static func parseArguments() {
 
         let optionString = "a:b:c:e:f:H:d:g:j:l:m:M:GPHiko:t:v:VwWh"
-
         let options = [ElasticurlOptions.caCert.rawValue,
                        ElasticurlOptions.caPath.rawValue,
                        ElasticurlOptions.cert.rawValue,
@@ -251,7 +250,7 @@ struct Elasticurl {
 
             let port = UInt16(443)
 
-            let tlsContextOptions = TlsContextOptions(allocator: allocator)
+            let tlsContextOptions = TlsContextOptions.makeDefault(allocator: allocator)
             tlsContextOptions.setAlpnList(context.alpnList)
             let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
 
@@ -260,7 +259,7 @@ struct Elasticurl {
             tlsConnectionOptions.serverName = host
 
             let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-            let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
+            let hostResolver = try HostResolver.makeDefault(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30)
 
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                                 hostResolver: hostResolver,
@@ -290,8 +289,7 @@ struct Elasticurl {
 
             if let data = context.data {
                 let byteBuffer = ByteBuffer(data: data)
-                let awsStream = AwsInputStream(byteBuffer)
-                httpRequest.body = awsStream
+                httpRequest.body = byteBuffer
                 if headers.add(name: "Content-length", value: "\(data.count)") {
                     httpRequest.addHeaders(headers: headers)
                 }
@@ -315,7 +313,7 @@ struct Elasticurl {
             }
 
             let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
-                print(error.message)
+                print(error?.message ?? "Success")
 
                 semaphore.signal()
             }

@@ -5,47 +5,39 @@ import AwsCIo
 public class TlsContextOptions: CStruct {
     private let allocator: Allocator
     private var rawValue: UnsafeMutablePointer<aws_tls_ctx_options>
-    public static func isAlpnSupported() -> Bool {
-        return aws_tls_is_alpn_available()
+
+    public static func makeDefault(allocator: Allocator = defaultAllocator) -> TlsContextOptions {
+        TlsContextOptions(allocator: allocator)
     }
 
-    public init(allocator: Allocator = defaultAllocator) {
+    public static func makeMtlsPkcs12FromPath(path: String, password: String, allocator: Allocator = defaultAllocator) throws -> TlsContextOptions {
+        try TlsContextOptions(mtlsPkcs12FromPath: path, password: password, allocator: allocator)
+    }
+
+    init(allocator: Allocator) {
         self.allocator = allocator
         self.rawValue = allocator.allocate(capacity: 1)
         aws_tls_ctx_options_init_default_client(rawValue, allocator.rawValue)
     }
 
-    #if os(macOS)
-    public init(clientWithMtlsCertificatePath certPath: String,
-                keyPath: String,
-                allocator: Allocator = defaultAllocator) throws {
-        self.allocator = allocator
-        self.rawValue = allocator.allocate(capacity: 1)
-        if (keyPath.withByteCursorPointer { keyPathPointer in
-            aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,
-                    allocator.rawValue,
-                    certPath, keyPathPointer)
-        })  != AWS_OP_SUCCESS {
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
-        }
-    }
-    #endif
-
-    #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
-    public init(clientWithMtlsPkcs12Path path: String,
-                password: String,
-                allocator: Allocator = defaultAllocator) throws {
+    init(mtlsPkcs12FromPath path: String,
+         password: String,
+         allocator: Allocator) throws {
         self.allocator = allocator
         self.rawValue = allocator.allocate(capacity: 1)
         if (password.withByteCursorPointer { passwordCursorPointer in
             aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,
-                    allocator.rawValue,
-                    path, passwordCursorPointer)
+                                                                  allocator.rawValue,
+                                                                  path,
+                                                                  passwordCursorPointer)
         }) != AWS_OP_SUCCESS {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
-    #endif
+
+    public static func isAlpnSupported() -> Bool {
+        return aws_tls_is_alpn_available()
+    }
 
     public func overrideDefaultTrustStore(caPath: String, caFile: String) throws {
         if aws_tls_ctx_options_override_default_trust_store_from_path(rawValue,
