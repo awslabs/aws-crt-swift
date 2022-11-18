@@ -14,7 +14,7 @@ class ProxyEnvSettingsTests: CrtXCBaseTestCase {
     func testCreateProxyEnvSettingsNonDefault() throws {
         let connectionType = HttpProxyConnectionType.tunnel;
         let envVarType = HttpProxyEnvType.enable
-        let context = try TlsContext(options: TlsContextOptions(allocator: allocator), mode: TlsMode.client)
+        let context = try TlsContext(options: TlsContextOptions(allocator: allocator), mode: TLSMode.client)
         let tlsOptions = TlsConnectionOptions(context: context, allocator: allocator)
 
         let proxyEnvSetting = ProxyEnvSettings(envVarType: envVarType, proxyConnectionType: connectionType, tlsOptions: tlsOptions)

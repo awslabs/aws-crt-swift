@@ -11,7 +11,7 @@ class HttpTests: CrtXCBaseTestCase {
     func testGetHttpRequest() async throws {
         try await sendGetHttpRequest()
     }
-
+    
     func sendGetHttpRequest() async throws {
         let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
         guard let host = url.host else {
@@ -56,7 +56,7 @@ class HttpTests: CrtXCBaseTestCase {
         tlsConnectionOptions.serverName = host
 
         let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-        let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
+        let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                 hostResolver: hostResolver,
                 allocator: allocator)
@@ -104,7 +104,7 @@ class HttpTests: CrtXCBaseTestCase {
 
         let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
             print("onComplete")
-            XCTAssertEqual(error.code, AWS_OP_SUCCESS)
+            XCTAssertEqual(error, nil)
             XCTAssertEqual(try! stream.statusCode(), 200)
             self.semaphore.signal()
         }

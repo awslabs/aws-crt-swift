@@ -4,66 +4,69 @@
 import AwsCCommon
 import AwsCIo
 
-public typealias HostResolvedContinuation = CheckedContinuation<[HostAddress], Error>
-
-public protocol HostResolver: AnyObject {
-    var rawValue: UnsafeMutablePointer<aws_host_resolver> { get set }
-    var config: UnsafeMutablePointer<aws_host_resolution_config> { get }
-    func resolve(host: String) async throws -> [HostAddress]
-}
-
-public final class DefaultHostResolver: HostResolver {
-    public var rawValue: UnsafeMutablePointer<aws_host_resolver>
-    public var config: UnsafeMutablePointer<aws_host_resolution_config>
+public class HostResolver {
+    let rawValue: UnsafeMutablePointer<aws_host_resolver>
+    let maxTTL: Int
     private let allocator: Allocator
 
-    public init(eventLoopGroup elg: EventLoopGroup,
-                maxHosts: Int,
-                maxTTL: Int,
-                allocator: Allocator = defaultAllocator,
-                shutdownCallback: ShutdownCallback? = nil) throws {
-        let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
+    public static func makeDefault(eventLoopGroup: EventLoopGroup,
+                                   maxHosts: Int = 16,
+                                   maxTTL: Int = 30,
+                                   allocator: Allocator = defaultAllocator,
+                                   shutdownCallback: ShutdownCallback? = nil) throws -> HostResolver {
+        try HostResolver(eventLoopGroup: eventLoopGroup, maxHosts: maxHosts, maxTTL: maxTTL, allocator: allocator, shutdownCallback: shutdownCallback)
+    }
+
+    init(eventLoopGroup: EventLoopGroup,
+         maxHosts: Int,
+         maxTTL: Int,
+         allocator: Allocator = defaultAllocator,
+         shutdownCallback: ShutdownCallback? = nil) throws {
         self.allocator = allocator
-        guard let rawValue: UnsafeMutablePointer<aws_host_resolver> = withUnsafePointer(
-                to: shutdownCallbackCore.getRetainedShutdownOptions(), { shutdownCallbackCorePointer in
-            var options = aws_host_resolver_default_options(max_entries: maxHosts,
-                    el_group: elg.rawValue,
-                    shutdown_options: shutdownCallbackCorePointer,
-                    system_clock_override_fn: nil)
-            //TODO: use const in C-IO to avoid mutable pointer here
-            return withUnsafeMutablePointer(to: &options) { aws_host_resolver_new_default(allocator.rawValue, $0) }
-        }) else {
+        let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
+        let getRawValue: () -> UnsafeMutablePointer<aws_host_resolver>? = {
+            withUnsafePointer(to: shutdownCallbackCore.getRetainedShutdownOptions()) { shutdownCallbackCorePointer in
+                var options = aws_host_resolver_default_options()
+                options.max_entries = maxHosts
+                options.el_group = eventLoopGroup.rawValue
+                options.shutdown_options = shutdownCallbackCorePointer
+                return aws_host_resolver_new_default(allocator.rawValue, &options)
+            }
+        }
+
+        guard let rawValue = getRawValue() else {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-
         self.rawValue = rawValue
-        let config = aws_host_resolution_config(
-            impl: aws_default_dns_resolve,
-            max_ttl: maxTTL,
-            impl_data: nil
-        )
-
-        self.config = fromPointer(ptr: config)
-
-    }
-
-    deinit {
-        config.deinitializeAndDeallocate()
-        aws_host_resolver_release(rawValue)
+        self.maxTTL = maxTTL
     }
 
     public func resolve(host: String) async throws -> [HostAddress] {
-         return try await withCheckedThrowingContinuation({ (continuation: HostResolvedContinuation) in
-             resolve(host: host, continuation: continuation)
+        return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<[HostAddress], Error>) in
+            let continuationCore = ContinuationCore(continuation: continuation)
+            let hostStr = AWSString(host, allocator: allocator)
+            withUnsafePointer(to: getHostResolutionConfig()) { hostResolutionConfigPointer in
+                if aws_host_resolver_resolve_host(rawValue,
+                        hostStr.rawValue,
+                        onHostResolved,
+                        hostResolutionConfigPointer,
+                        continuationCore.passRetained()) != AWS_OP_SUCCESS {
+                    // TODO: this is wrong. Sometimes it triggers the error callback and sometimes it doesn't.
+                    // I have a fix in progress in aws-c-io
+                    continuationCore.release()
+                    continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                }
+            }
         })
     }
 
-    private func resolve(host: String, continuation: HostResolvedContinuation) {
-        let options = ResolverOptions(resolver: self,
-                                      host: AWSString(host, allocator: allocator),
-                                      continuation: continuation)
-        let pointer: UnsafeMutableRawPointer = fromPointer(ptr: options)
+    func getHostResolutionConfig() -> aws_host_resolution_config {
+        var cHostResolutionConfig = aws_host_resolution_config()
+        cHostResolutionConfig.max_ttl = maxTTL
+        cHostResolutionConfig.impl = aws_default_dns_resolve
+        return cHostResolutionConfig
+    }
 
         if (aws_host_resolver_resolve_host(rawValue,
                                        options.host.rawValue,
@@ -73,29 +76,25 @@ public final class DefaultHostResolver: HostResolver {
     }
 }
 
-private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>!,
-                            _ hostName: UnsafePointer<aws_string>!,
+private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>?,
+                            _ hostName: UnsafePointer<aws_string>?,
                             _ errorCode: Int32,
-                            _ hostAddresses: UnsafePointer<aws_array_list>!,
+                            _ hostAddresses: UnsafePointer<aws_array_list>?,
                             _ userData: UnsafeMutableRawPointer!) {
-    let options = userData.assumingMemoryBound(to: ResolverOptions.self)
+    let hostResolverCore = Unmanaged<ContinuationCore<[HostAddress]>>.fromOpaque(userData).takeRetainedValue()
+    guard errorCode == AWS_OP_SUCCESS else {
+        hostResolverCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        return
+    }
 
-    let length = aws_array_list_length(hostAddresses)
-    var addresses: [HostAddress] = Array(repeating: HostAddress(), count: length)
-
-    for index in 0..<length {
+    // Success
+    let length = aws_array_list_length(hostAddresses!)
+    let addresses = (0..<length).map { index in
         var address: UnsafeMutableRawPointer! = nil
-        aws_array_list_get_at_ptr(hostAddresses, &address, index)
+        aws_array_list_get_at_ptr(hostAddresses!, &address, index)
         let hostAddressCType = address.bindMemory(to: aws_host_address.self, capacity: 1).pointee
-        let hostAddress = HostAddress(hostAddress: hostAddressCType)
-        addresses[index] = hostAddress
+        return HostAddress(hostAddress: hostAddressCType)
     }
 
-    if errorCode == 0 {
-        options.pointee.continuation.resume(returning: addresses)
-    } else {
-        options.pointee.continuation.resume(throwing: CommonRunTimeError
-                .crtError(CRTError(code: errorCode)))
-    }
-    options.deinitializeAndDeallocate()
+    hostResolverCore.continuation.resume(returning: addresses)
 }

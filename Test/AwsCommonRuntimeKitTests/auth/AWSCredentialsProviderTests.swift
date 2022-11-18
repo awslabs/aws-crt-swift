@@ -67,7 +67,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     func testCreateAWSCredentialsProviderChain() async throws {
         try skipIfLinux()
         let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
-        let hostResolver = try DefaultHostResolver(eventLoopGroup: elg,
+        let hostResolver = try HostResolver(eventLoopGroup: elg,
                                                maxHosts: 8,
                                                maxTTL: 30,
                                                allocator: allocator)
@@ -86,7 +86,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 
     func testCreateDestroyStsWebIdentityInvalidEnv() async throws {
         let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
-        let hostResolver = try DefaultHostResolver(eventLoopGroup: elg,
+        let hostResolver = try HostResolver(eventLoopGroup: elg,
                                                maxHosts: 8,
                                                maxTTL: 30,
                                                allocator: allocator)
@@ -101,7 +101,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 
     func testCreateDestroyStsInvalidRole() async throws {
         let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
-        let hostResolver = try DefaultHostResolver(eventLoopGroup: elg,
+        let hostResolver = try HostResolver(eventLoopGroup: elg,
                                                maxHosts: 8,
                                                maxTTL: 30,
                                                allocator: allocator)
@@ -125,7 +125,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
 
     func testCreateDestroyEcsMissingCreds() async throws {
         let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
-        let hostResolver = try DefaultHostResolver(eventLoopGroup: elg,
+        let hostResolver = try HostResolver(eventLoopGroup: elg,
                                                maxHosts: 8,
                                                maxTTL: 30,
                                                allocator: allocator)
