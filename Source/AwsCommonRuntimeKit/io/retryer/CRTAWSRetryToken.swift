@@ -3,11 +3,11 @@
 
 import AwsCIo
 
-public final class CRTAWSRetryToken {
-    var rawValue: UnsafeMutablePointer<aws_retry_token>
+/// This is just a wrapper for aws_retry_token which user can not create themself but pass around once acquired.
+public class CRTAWSRetryToken {
+    let rawValue: UnsafeMutablePointer<aws_retry_token>
 
-    public init(rawValue: UnsafeMutablePointer<aws_retry_token>,
-                allocator: Allocator = defaultAllocator) {
+    init(rawValue: UnsafeMutablePointer<aws_retry_token>) {
         self.rawValue = rawValue
     }
 
