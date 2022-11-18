@@ -24,14 +24,17 @@ public class HostResolver {
          shutdownCallback: ShutdownCallback? = nil) throws {
         self.allocator = allocator
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
-        guard let rawValue: UnsafeMutablePointer<aws_host_resolver> = withUnsafePointer(
-                to: shutdownCallbackCore.getRetainedShutdownOptions(), { shutdownCallbackCorePointer in
-            var options = aws_host_resolver_default_options()
-            options.max_entries = maxHosts
-            options.el_group = eventLoopGroup.rawValue
-            options.shutdown_options = shutdownCallbackCorePointer
-            return aws_host_resolver_new_default(allocator.rawValue, &options)
-        }) else {
+        let getRawValue: () -> UnsafeMutablePointer<aws_host_resolver>? = {
+            withUnsafePointer(to: shutdownCallbackCore.getRetainedShutdownOptions()) { shutdownCallbackCorePointer in
+                var options = aws_host_resolver_default_options()
+                options.max_entries = maxHosts
+                options.el_group = eventLoopGroup.rawValue
+                options.shutdown_options = shutdownCallbackCorePointer
+                return aws_host_resolver_new_default(allocator.rawValue, &options)
+            }
+        }
+
+        guard let rawValue = getRawValue() else {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
