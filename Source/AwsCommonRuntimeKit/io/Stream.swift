@@ -75,7 +75,7 @@ extension FileHandle: IStreamable {
         let targetOffset: UInt64
         switch streamSeekType {
         case .begin:
-            if offset < 0 {
+            guard offset >= 0 else {
                 throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
             }
             targetOffset = UInt64(offset)
