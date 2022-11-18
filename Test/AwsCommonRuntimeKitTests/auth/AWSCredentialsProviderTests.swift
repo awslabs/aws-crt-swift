@@ -88,7 +88,7 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
             let provider = try AwsCredentialsProvider.makeEnvironment()
             _ = try await provider.getCredentials()
         } catch {
-           exceptionWasThrown.fulfill()
+            exceptionWasThrown.fulfill()
         }
         wait(for: [exceptionWasThrown], timeout: 15)
     }
