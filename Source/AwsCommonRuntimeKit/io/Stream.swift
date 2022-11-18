@@ -88,7 +88,7 @@ extension FileHandle: IStreamable {
                 }
                 return
             }
-            let length = try self.length()
+            let length = try length()
             guard offset <= 0, abs(offset) <= length else {
                 throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
             }
