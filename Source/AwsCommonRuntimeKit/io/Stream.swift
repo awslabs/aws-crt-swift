@@ -109,7 +109,7 @@ extension FileHandle: IStreamable {
         }
 
         if data.count > 0 {
-            data.copyBytes(to: buffer, count: data.count)
+            data.copyBytes(to: buffer, from: 0..<data.count)
         }
         return data.count
     }
