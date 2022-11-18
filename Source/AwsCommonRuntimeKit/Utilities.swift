@@ -145,6 +145,19 @@ extension UnsafePointer: PointerConformance {}
 
 extension UnsafeRawPointer: PointerConformance {}
 
+func withOptionalByteCursorPointerFromString<Result>(
+        _ arg1: String?, _ body: (UnsafePointer<aws_byte_cursor>?) -> Result
+) -> Result {
+    guard let arg1 = arg1 else {
+        return body(nil)
+    }
+    return arg1.withCString { arg1C in
+        withUnsafePointer(to: aws_byte_cursor_from_c_str(arg1C)) { byteCursorPointer in
+            body(byteCursorPointer)
+        }
+    }
+}
+
 func withByteCursorFromStrings<Result>(
         _ arg1: String, _ arg2: String, _ body: (aws_byte_cursor, aws_byte_cursor) -> Result
 ) -> Result {
