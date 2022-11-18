@@ -7,7 +7,7 @@ class HostResolverTests: CrtXCBaseTestCase {
     
     func testCanResolveHosts() async throws {
         let elg = try EventLoopGroup(allocator: allocator)
-        let resolver = try DefaultHostResolver(eventLoopGroup: elg,
+        let resolver = try HostResolver(eventLoopGroup: elg,
                                            maxHosts: 8,
                                            maxTTL: 5,
                                            allocator: allocator)
@@ -26,7 +26,7 @@ class HostResolverTests: CrtXCBaseTestCase {
         }
         do {
             let elg = try EventLoopGroup(allocator: self.allocator, shutdownCallback: shutdownCallback)
-            _ = try DefaultHostResolver(eventLoopGroup: elg,
+            _ = try HostResolver(eventLoopGroup: elg,
                     maxHosts: 8,
                     maxTTL: 5,
                     allocator: self.allocator,
