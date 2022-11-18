@@ -95,18 +95,14 @@ public class IMDSClient {
     /// Gets the ami launch index of the ec2 instance from the instance metadata document
     public func getAmiLaunchIndex() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self,
-                                                       continuation: continuation,
-                                                       functionPointer: aws_imds_client_get_ami_launch_index)
+            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_ami_launch_index)
         })
     }
 
     /// Gets the ami manifest path of the ec2 instance from the instance metadata document
     public func getAmiManifestPath() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self,
-                                                       continuation: continuation,
-                                                       functionPointer: aws_imds_client_get_ami_manifest_path)
+            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_ami_manifest_path)
         })
     }
 
