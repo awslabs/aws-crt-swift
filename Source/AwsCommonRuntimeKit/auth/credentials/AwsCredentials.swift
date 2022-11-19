@@ -33,7 +33,7 @@ public final class AwsCredentials {
         if let expiration = expiration {
             expirationTimeout = UInt64(expiration.timeIntervalSince1970)
         } else {
-            expirationTimeout = UINT64_MAX
+            expirationTimeout = UInt64.max
         }
 
         guard let rawValue = (withByteCursorFromStrings(
