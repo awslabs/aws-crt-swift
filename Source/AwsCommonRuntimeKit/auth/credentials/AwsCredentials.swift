@@ -2,29 +2,45 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCAuth
+import Foundation
 
-public final class CRTCredentials {
+public final class AwsCredentials {
 
     let rawValue: OpaquePointer
 
-    public init?(rawValue: OpaquePointer?) {
-        guard let rawValue = rawValue else {
-            return nil
-        }
+    init(rawValue: OpaquePointer) {
         self.rawValue = rawValue
         aws_credentials_acquire(rawValue)
     }
 
+    /// Creates a new set of aws credentials
+    ///
+    /// - Parameters:
+    ///   - accessKey: value for the aws access key id field
+    ///   - secret: value for the secret access key field
+    ///   - sessionToken: (Optional) security token associated with the credentials
+    ///   - expiration: (Optional) Point in time after which credentials will no longer be valid.
+    ///                 For credentials that do not expire, use nil. Timezone is always UTC.
+    ///   - allocator: (Optional) allocator to override.
+    /// - Throws: CommonRuntimeError.crtError
     public init(accessKey: String,
                 secret: String,
-                sessionToken: String?,
-                expirationTimeout: UInt64,
+                sessionToken: String? = nil,
+                expiration: Date? = nil,
                 allocator: Allocator = defaultAllocator) throws {
+
+        let expirationTimeout: UInt64
+        if let expiration = expiration {
+            expirationTimeout = UInt64(expiration.timeIntervalSince1970)
+        } else {
+            expirationTimeout = UINT64_MAX
+        }
+
         guard let rawValue = (withByteCursorFromStrings(
                 accessKey,
                 secret,
-                sessionToken ?? "") { accessKeyCursor, secretCursor, sessionTokenCursor in
-            aws_credentials_new(allocator.rawValue,
+                sessionToken) { accessKeyCursor, secretCursor, sessionTokenCursor in
+            return aws_credentials_new(allocator.rawValue,
                     accessKeyCursor,
                     secretCursor,
                     sessionTokenCursor, expirationTimeout)
@@ -61,8 +77,8 @@ public final class CRTCredentials {
     /// Gets the expiration timeout in seconds from the `aws_credentials` instance
     ///
     /// - Returns:`UInt64`: The timeout in seconds of when the credentials expire
-    public func getExpirationTimeout() -> UInt64 {
-        return aws_credentials_get_expiration_timepoint_seconds(rawValue)
+    public func getExpiration() -> Date {
+        return Date(timeIntervalSince1970: TimeInterval(aws_credentials_get_expiration_timepoint_seconds(rawValue)))
     }
 
     deinit {
