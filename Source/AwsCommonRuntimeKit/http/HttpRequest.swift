@@ -41,8 +41,8 @@ public class HttpRequest: HttpMessage {
             return result.toString()
         }
         set(value) {
-            if ((value ?? "").withByteCursor { valueCursor in
-                aws_http_message_set_request_path(self.rawValue, valueCursor)
+            if withByteCursorFromStrings(value, { valueCursor in
+                return aws_http_message_set_request_path(self.rawValue, valueCursor)
             }) != AWS_OP_SUCCESS {
                 self.path = nil
             }
