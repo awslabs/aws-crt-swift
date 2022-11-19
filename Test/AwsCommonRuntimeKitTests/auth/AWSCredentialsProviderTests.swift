@@ -1,7 +1,10 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+
 import XCTest
 @testable import AwsCommonRuntimeKit
+
+//TODO: rename file
 
 class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     let accessKey = "AccessKey"
@@ -19,64 +22,139 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     }
 
     func getShutdownCallback() -> ShutdownCallback {
-        return  {
+        return {
             self.shutdownWasCalled.fulfill()
         }
     }
 
-    func testCreateAWSCredentialsProviderStatic() async throws {
+    func assertCredentials(credentials: AwsCredentials) {
+        XCTAssertEqual(accessKey, credentials.getAccessKey())
+        XCTAssertEqual(secret, credentials.getSecret())
+        XCTAssertEqual(sessionToken, credentials.getSessionToken())
+    }
+
+    func getClientBootstrap() throws -> ClientBootstrap {
+        let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
+        let hostResolver = try HostResolver(eventLoopGroup: elg,
+                maxHosts: 8,
+                maxTTL: 30,
+                allocator: allocator)
+        let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
+                hostResolver: hostResolver,
+                allocator: allocator)
+        return bootstrap
+    }
+
+    func getTlsContext() throws -> TlsContext {
+        let options = TlsContextOptions(allocator: allocator)
+        let context = try TlsContext(options: options, mode: .client, allocator: allocator)
+        return context
+    }
+
+    func testDelegateCredentialsProvider() async throws {
+        shutdownWasCalled.expectedFulfillmentCount = 2
         do {
-            let config = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
+            let staticProvider = try AwsCredentialsProvider(source: .static(accessKey: accessKey,
                     secret: secret,
                     sessionToken: sessionToken,
-                    shutdownCallback: getShutdownCallback())
-            let provider = try CRTAWSCredentialsProvider(fromStatic: config, allocator: allocator)
-            let credentials = try await provider.getCredentials()
+                    shutdownCallback: getShutdownCallback()),
+                    allocator: allocator)
+            let delegateProvider = try AwsCredentialsProvider(provider: staticProvider,
+                    shutdownCallback: getShutdownCallback(),
+                    allocator: allocator)
+            let credentials = try await delegateProvider.getCredentials()
             XCTAssertNotNil(credentials)
+            assertCredentials(credentials: credentials)
         }
         wait(for: [shutdownWasCalled], timeout: 15)
     }
 
-    func testCreateAWSCredentialsProviderEnv() async {
+    func testCreateCredentialsProviderStatic() async throws {
         do {
-            let provider = try CRTAWSCredentialsProvider(fromEnv: getShutdownCallback(), allocator: allocator)
+            let provider = try AwsCredentialsProvider(source: .static(accessKey: accessKey,
+                    secret: secret,
+                    sessionToken: sessionToken,
+                    shutdownCallback: getShutdownCallback()),
+                    allocator: allocator)
+            let credentials = try await provider.getCredentials()
+            XCTAssertNotNil(credentials)
+            assertCredentials(credentials: credentials)
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
+    }
+
+    func testCredentialsProviderEnvThrow() async {
+        let exceptionWasThrown = XCTestExpectation(description: "Exception was thrown because of missing credentials in environment")
+        do {
+            let provider = try AwsCredentialsProvider(source: .environment())
             _ = try await provider.getCredentials()
+        } catch {
+            exceptionWasThrown.fulfill()
+        }
+        wait(for: [exceptionWasThrown], timeout: 15)
+    }
 
-        } catch let err {
-            let crtError = err as? CommonRunTimeError
-            XCTAssertNotNil(crtError)
+    func testCreateCredentialsProviderEnv() async throws {
+        setenv("AWS_ACCESS_KEY_ID", accessKey, 1)
+        setenv("AWS_SECRET_ACCESS_KEY", secret, 1)
+        setenv("AWS_SESSION_TOKEN", sessionToken, 1)
+        defer {
+            unsetenv("AWS_ACCESS_KEY_ID")
+            unsetenv("AWS_SECRET_ACCESS_KEY")
+            unsetenv("AWS_SESSION_TOKEN")
+        }
+        let provider = try AwsCredentialsProvider(source: .environment())
+        let credentials = try await provider.getCredentials()
+        assertCredentials(credentials: credentials)
+
+    }
+
+    func testCreateCredentialsProviderProfile() async throws {
+        do {
+
+            let provider = try AwsCredentialsProvider(source: .profile(configFileNameOverride: Bundle.module.path(forResource: "example_config", ofType: "txt")!,
+                    credentialsFileNameOverride: Bundle.module.path(forResource: "example_profile", ofType: "txt")!,
+                    shutdownCallback: getShutdownCallback()),
+                    allocator: allocator)
+            let credentials = try await provider.getCredentials()
+            XCTAssertNotNil(credentials)
+            XCTAssertEqual("default_access_key_id", credentials.getAccessKey())
+            XCTAssertEqual("default_secret_access_key", credentials.getSecret())
         }
         wait(for: [shutdownWasCalled], timeout: 15)
     }
 
-    func testCreateAWSCredentialsProviderProfile() async throws {
-        //skip this test if it is running on macosx or on iOS
-        try skipIfiOS()
-        try skipifmacOS()
-        try skipIfLinux()
-        //uses default paths to credentials and config
+    func testCreateCredentialsProviderImds() async throws {
         do {
-            let config = MockCredentialsProviderProfileOptions(shutdownCallback: getShutdownCallback())
-            let provider = try CRTAWSCredentialsProvider(fromProfile: config, allocator: allocator)
-            let credentials = try await provider.getCredentials()
+            _ = try AwsCredentialsProvider(source: .imds(bootstrap: getClientBootstrap(),
+                    shutdownCallback: getShutdownCallback()),
+                    allocator: allocator)
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
+    }
+
+    func testCreateCredentialsProviderCache() async throws {
+        do {
+            let staticProvider = try AwsCredentialsProvider(source: .static(accessKey: accessKey,
+                    secret: secret,
+                    sessionToken: sessionToken),
+                    allocator: allocator)
+            let cacheProvider = try AwsCredentialsProvider(source: .cached(source: staticProvider,
+                    shutdownCallback: getShutdownCallback()),
+                    allocator: allocator)
+            let credentials = try await cacheProvider.getCredentials()
             XCTAssertNotNil(credentials)
+            assertCredentials(credentials: credentials)
         }
         wait(for: [shutdownWasCalled], timeout: 15)
     }
 
     func testCreateAWSCredentialsProviderChain() async throws {
         try skipIfLinux()
-        let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
-        let hostResolver = try DefaultHostResolver(eventLoopGroup: elg,
-                                               maxHosts: 8,
-                                               maxTTL: 30,
-                                               allocator: allocator)
-        let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                                            hostResolver: hostResolver,
-                                            allocator: allocator)
         do {
-            let config = MockCredentialsProviderChainDefaultConfig(bootstrap: bootstrap, shutdownCallback: getShutdownCallback())
-            let provider = try CRTAWSCredentialsProvider(fromChainDefault: config)
+            let provider = try AwsCredentialsProvider(source: .defaultChain(bootstrap: getClientBootstrap(),
+                    shutdownCallback: getShutdownCallback()),
+                    allocator: allocator)
 
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
@@ -85,176 +163,39 @@ class AWSCredentialsProviderTests: CrtXCBaseTestCase {
     }
 
     func testCreateDestroyStsWebIdentityInvalidEnv() async throws {
-        let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
-        let hostResolver = try DefaultHostResolver(eventLoopGroup: elg,
-                                               maxHosts: 8,
-                                               maxTTL: 30,
-                                               allocator: allocator)
-        let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                                            hostResolver: hostResolver,
-                                            allocator: allocator)
-        let options = TlsContextOptions(defaultClientWithAllocator: allocator)
-        let context = try TlsContext(options: options, mode: .client, allocator: allocator)
-        let config = MockCredentialsProviderWebIdentityConfig(bootstrap: bootstrap, tlsContext: context)
-        XCTAssertThrowsError(try CRTAWSCredentialsProvider(fromWebIdentity: config))
+        XCTAssertThrowsError(try AwsCredentialsProvider(source: .stsWebIdentity(bootstrap: getClientBootstrap(),
+                tlsContext: getTlsContext()),
+                allocator: allocator))
     }
 
     func testCreateDestroyStsInvalidRole() async throws {
-        let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
-        let hostResolver = try DefaultHostResolver(eventLoopGroup: elg,
-                                               maxHosts: 8,
-                                               maxTTL: 30,
-                                               allocator: allocator)
-        let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                                            hostResolver: hostResolver,
-                                            allocator: allocator)
-        let options = TlsContextOptions(defaultClientWithAllocator: allocator)
-        let context = try TlsContext(options: options, mode: .client, allocator: allocator)
-        let staticConfig = MockCredentialsProviderStaticConfigOptions(accessKey: accessKey,
-                                                                      secret: secret,
-                                                                      sessionToken: sessionToken)
-        let provider = try CRTAWSCredentialsProvider(fromStatic: staticConfig, allocator: allocator)
-        let config = MockCredentialsProviderSTSConfig(bootstrap: bootstrap,
-                                                      tlsContext: context,
-                                                      credentialsProvider: provider,
-                                                      roleArn: "invalid-role-arn",
-                                                      sessionName: "test-session",
-                                                      durationSeconds: 10)
-        XCTAssertThrowsError(try CRTAWSCredentialsProvider(fromSTS: config))
+        let provider = try AwsCredentialsProvider(source: .static(accessKey: accessKey,
+                secret: secret,
+                sessionToken: sessionToken))
+        XCTAssertThrowsError(try AwsCredentialsProvider(source: .sts(bootstrap: getClientBootstrap(),
+                tlsContext: getTlsContext(),
+                credentialsProvider: provider,
+                roleArn: "invalid-role-arn",
+                sessionName: "test-session",
+                duration: 10,
+                shutdownCallback: getShutdownCallback()),
+                allocator: allocator))
     }
 
     func testCreateDestroyEcsMissingCreds() async throws {
-        let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
-        let hostResolver = try DefaultHostResolver(eventLoopGroup: elg,
-                                               maxHosts: 8,
-                                               maxTTL: 30,
-                                               allocator: allocator)
+        let exceptionWasThrown = XCTestExpectation(description: "Exception was thrown")
         do {
-            let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                                                hostResolver: hostResolver,
-                                                allocator: allocator)
-                let options = TlsContextOptions(defaultClientWithAllocator: allocator)
-            let context = try TlsContext(options: options, mode: .client, allocator: allocator)
-            let config = MockCredentialsProviderContainerConfig(bootstrap: bootstrap,
-                                                                tlsContext: context,
-                                                                shutdownCallback: getShutdownCallback())
-            let provider = try CRTAWSCredentialsProvider(fromContainer: config)
-            let credentials = try await provider.getCredentials()
-            XCTAssertNotNil(credentials)
-        } catch let err {
-            XCTAssertNotNil(err)
+            let provider = try AwsCredentialsProvider(source: .ecs(bootstrap: getClientBootstrap(),
+                    tlsContext: getTlsContext(),
+                    authToken: "",
+                    pathAndQuery: "",
+                    host: "",
+                    shutdownCallback: getShutdownCallback()),
+                    allocator: allocator)
+            _ = try await provider.getCredentials()
+        } catch {
+            exceptionWasThrown.fulfill()
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
-    }
-}
-
-struct MockCredentialsProviderProfileOptions: CRTCredentialsProviderProfileOptions {
-    var shutdownCallback: ShutdownCallback?
-
-    var configFileNameOverride: String?
-
-    var profileFileNameOverride: String?
-
-    var credentialsFileNameOverride: String?
-
-    init(configFileNameOverride: String? = nil,
-         profileFileNameOverride: String? = nil,
-         credentialsFileNameOverride: String? = nil,
-         shutdownCallback: ShutdownCallback? = nil) {
-        self.configFileNameOverride = configFileNameOverride
-        self.profileFileNameOverride = profileFileNameOverride
-        self.credentialsFileNameOverride = credentialsFileNameOverride
-        self.shutdownCallback = shutdownCallback
-    }
-}
-
-struct MockCredentialsProviderStaticConfigOptions: CRTCredentialsProviderStaticConfigOptions {
-    public var accessKey: String
-    public var secret: String
-    public var sessionToken: String?
-    public var shutdownCallback: ShutdownCallback?
-
-    public init(accessKey: String,
-                secret: String,
-                sessionToken: String? = nil,
-                shutdownCallback: ShutdownCallback? = nil) {
-        self.accessKey = accessKey
-        self.secret = secret
-        self.sessionToken = sessionToken
-        self.shutdownCallback = shutdownCallback
-    }
-}
-
-public struct MockCredentialsProviderChainDefaultConfig: CRTCredentialsProviderChainDefaultConfig {
-    public var shutdownCallback: ShutdownCallback?
-    public var bootstrap: ClientBootstrap
-
-    public init(bootstrap: ClientBootstrap,
-                shutdownCallback: ShutdownCallback? = nil) {
-        self.bootstrap = bootstrap
-        self.shutdownCallback = shutdownCallback
-    }
-}
-
-struct MockCredentialsProviderWebIdentityConfig: CRTCredentialsProviderWebIdentityConfig {
-    var shutdownCallback: ShutdownCallback?
-    var bootstrap: ClientBootstrap
-    var tlsContext: TlsContext
-
-    init(bootstrap: ClientBootstrap,
-         tlsContext: TlsContext,
-         shutdownCallback: ShutdownCallback? = nil) {
-        self.bootstrap = bootstrap
-        self.tlsContext = tlsContext
-        self.shutdownCallback = shutdownCallback
-    }
-}
-
-struct MockCredentialsProviderSTSConfig: CRTCredentialsProviderSTSConfig {
-    var shutdownCallback: ShutdownCallback?
-    var bootstrap: ClientBootstrap
-    var tlsContext: TlsContext
-    var credentialsProvider: CRTAWSCredentialsProvider
-    var roleArn: String
-    var sessionName: String
-    var durationSeconds: TimeInterval
-
-    init(bootstrap: ClientBootstrap,
-         tlsContext: TlsContext,
-         credentialsProvider: CRTAWSCredentialsProvider,
-         roleArn: String,
-         sessionName: String,
-         durationSeconds: TimeInterval,
-         shutdownCallback: ShutdownCallback? = nil) {
-        self.bootstrap = bootstrap
-        self.tlsContext = tlsContext
-        self.credentialsProvider = credentialsProvider
-        self.roleArn = roleArn
-        self.sessionName = sessionName
-        self.durationSeconds = durationSeconds
-        self.shutdownCallback = shutdownCallback
-    }
-}
-
-struct MockCredentialsProviderContainerConfig: CRTCredentialsProviderContainerConfig {
-    var shutdownCallback: ShutdownCallback?
-    var bootstrap: ClientBootstrap
-    var tlsContext: TlsContext
-    var authToken: String?
-    var pathAndQuery: String?
-    var host: String?
-
-    init(bootstrap: ClientBootstrap,
-         tlsContext: TlsContext,
-         authToken: String? = nil,
-         pathAndQuery: String? = nil,
-         host: String? = nil,
-         shutdownCallback: ShutdownCallback? = nil) {
-        self.bootstrap = bootstrap
-        self.tlsContext = tlsContext
-        self.authToken = authToken
-        self.pathAndQuery = pathAndQuery
-        self.host = host
-        self.shutdownCallback = shutdownCallback
+        wait(for: [exceptionWasThrown], timeout: 15)
     }
 }

@@ -7,25 +7,26 @@ import XCTest
 class ProxyEnvSettingsTests: CrtXCBaseTestCase {
 
     func testCreateProxyEnvSettings() throws {
-        let proxyEnvSetting = ProxyEnvSettings(allocator: allocator)
+        let proxyEnvSetting = ProxyEnvSettings()
         XCTAssertNotNil(proxyEnvSetting)
     }
 
     func testCreateProxyEnvSettingsNonDefault() throws {
         let connectionType = HttpProxyConnectionType.tunnel;
         let envVarType = HttpProxyEnvType.enable
-        let context = try TlsContext(options: TlsContextOptions(defaultClientWithAllocator: allocator), mode: TlsMode.client)
-        let tlsOptions = TlsConnectionOptions(context, allocator: allocator)
+        let context = try TlsContext(options: TlsContextOptions(allocator: allocator), mode: TLSMode.client)
+        let tlsOptions = TlsConnectionOptions(context: context, allocator: allocator)
 
-        let proxyEnvSetting = ProxyEnvSettings(envVarType: envVarType, proxyConnectionType: connectionType, tlsOptions: tlsOptions, allocator: allocator)
+        let proxyEnvSetting = ProxyEnvSettings(envVarType: envVarType, proxyConnectionType: connectionType, tlsOptions: tlsOptions)
         XCTAssertNotNil(proxyEnvSetting)
-
         XCTAssertEqual(proxyEnvSetting.proxyConnectionType, connectionType)
         XCTAssertEqual(proxyEnvSetting.envVarType, envVarType)
         XCTAssertNotNil(proxyEnvSetting.tlsOptions)
 
-        XCTAssertEqual(proxyEnvSetting.rawValue.pointee.connection_type, connectionType.rawValue)
-        XCTAssertEqual(proxyEnvSetting.rawValue.pointee.env_var_type, envVarType.rawValue)
-        XCTAssertNotNil(proxyEnvSetting.rawValue.pointee.tls_options)
+        proxyEnvSetting.withCStruct{ cProxyEnvSetting in
+            XCTAssertEqual(cProxyEnvSetting.connection_type, connectionType.rawValue)
+            XCTAssertEqual(cProxyEnvSetting.env_var_type, envVarType.rawValue)
+            XCTAssertNotNil(cProxyEnvSetting.tls_options)
+        }
     }
 }

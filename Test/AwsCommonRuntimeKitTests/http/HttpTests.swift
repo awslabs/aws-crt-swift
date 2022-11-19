@@ -9,8 +9,26 @@ class HttpTests: CrtXCBaseTestCase {
     let semaphore = DispatchSemaphore(value: 0)
 
     func testGetHttpRequest() async throws {
-        let result = await sendGetHttpRequest()
-        XCTAssertEqual(result, AWS_OP_SUCCESS)
+        try await sendGetHttpRequest()
+    }
+    
+    func sendGetHttpRequest() async throws {
+        let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
+        guard let host = url.host else {
+            print("no proper host was parsed from the url. quitting.")
+            exit(EXIT_FAILURE)
+        }
+
+        let httpRequestOptions = try getHttpRequestOptions(method: "GET", path: url.path, host: host)
+
+        let connectionManager = try await getHttpConnectionManager(host: host, ssh: true)
+        let connection = try await connectionManager.acquireConnection()
+
+        let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+        try stream.activate()
+        semaphore.wait()
+        let status_code = try stream.statusCode()
+        XCTAssertEqual(status_code, 200)
     }
 
     func testHttpStreamIsReleasedIfNotActivated() async throws {
@@ -22,22 +40,23 @@ class HttpTests: CrtXCBaseTestCase {
             }
 
             let httpRequestOptions = try getHttpRequestOptions(method: "GET", path: url.path, host: host)
-            let connection = try await getHttpConnection(host: host, ssh: true)
-            let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+            let connectionManager = try await getHttpConnectionManager(host: host, ssh: true)
+            let connection = try await connectionManager.acquireConnection()
+            _ = try connection.makeRequest(requestOptions: httpRequestOptions)
         } catch let err {
             print(err)
         }
     }
 
-    func getHttpConnection(host: String, ssh: Bool) async throws -> HttpClientConnection {
-        let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
-        try tlsContextOptions.setAlpnList("h2;http/1.1")
+    func getHttpConnectionManager(host: String, ssh: Bool) async throws -> HttpClientConnectionManager {
+        let tlsContextOptions = TlsContextOptions(allocator: allocator)
+        tlsContextOptions.setAlpnList(["h2","http/1.1"])
         let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
-        let tlsConnectionOptions = tlsContext.newConnectionOptions()
-        try tlsConnectionOptions.setServerName(host)
+        var tlsConnectionOptions = TlsConnectionOptions(context: tlsContext, allocator: allocator)
+        tlsConnectionOptions.serverName = host
 
         let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-        let hostResolver = try DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
+        let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                 hostResolver: hostResolver,
                 allocator: allocator)
@@ -52,8 +71,7 @@ class HttpTests: CrtXCBaseTestCase {
                 socketOptions: socketOptions,
                 tlsOptions: tlsConnectionOptions,
                 monitoringOptions: nil)
-        let connectionManager = try HttpClientConnectionManager(options: httpClientOptions)
-        return try await connectionManager.acquireConnection()
+        return try HttpClientConnectionManager(options: httpClientOptions)
     }
 
     func getHeaders(host: String) throws -> HttpHeaders {
@@ -86,7 +104,7 @@ class HttpTests: CrtXCBaseTestCase {
 
         let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
             print("onComplete")
-            XCTAssertEqual(error.code, AWS_OP_SUCCESS)
+            XCTAssertEqual(error, nil)
             XCTAssertEqual(try! stream.statusCode(), 200)
             self.semaphore.signal()
         }
@@ -97,29 +115,5 @@ class HttpTests: CrtXCBaseTestCase {
                 onIncomingBody: onBody,
                 onStreamComplete: onComplete)
         return requestOptions
-    }
-
-    func sendGetHttpRequest() async -> Int32 {
-        do {
-            let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
-            guard let host = url.host else {
-                print("no proper host was parsed from the url. quitting.")
-                exit(EXIT_FAILURE)
-            }
-
-            let httpRequestOptions = try getHttpRequestOptions(method: "GET", path: url.path, host: host)
-
-            let connection = try await getHttpConnection(host: host, ssh: true)
-
-            let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
-            try await stream.activate()
-            semaphore.wait()
-            let status_code = try stream.statusCode()
-            XCTAssertEqual(status_code, 200)
-            return AWS_OP_SUCCESS
-        } catch let err {
-            print(err)
-            return AWS_OP_ERR
-        }
     }
 }

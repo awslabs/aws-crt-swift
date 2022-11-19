@@ -9,19 +9,19 @@ public struct HttpRequestOptions {
     public typealias OnIncomingHeadersBlockDone = (_ stream: HttpStream,
                                                    _ headerBlock: HttpHeaderBlock) -> Void
     public typealias OnIncomingBody = (_ stream: HttpStream, _ bodyChunk: Data) -> Void
-    public typealias OnStreamComplete = (_ stream: HttpStream, _ error: CRTError) -> Void
+    public typealias OnStreamComplete = (_ stream: HttpStream, _ error: CRTError?) -> Void
 
     let request: HttpRequest
     public let onIncomingHeaders: OnIncomingHeaders
     public let onIncomingHeadersBlockDone: OnIncomingHeadersBlockDone
-    public let onIncomingBody: OnIncomingBody?
-    public let onStreamComplete: OnStreamComplete?
+    public let onIncomingBody: OnIncomingBody
+    public let onStreamComplete: OnStreamComplete
 
     public init(request: HttpRequest,
                 onIncomingHeaders: @escaping OnIncomingHeaders,
                 onIncomingHeadersBlockDone: @escaping OnIncomingHeadersBlockDone,
-                onIncomingBody: OnIncomingBody? = nil,
-                onStreamComplete: OnStreamComplete? = nil) {
+                onIncomingBody: @escaping OnIncomingBody,
+                onStreamComplete: @escaping OnStreamComplete) {
         self.request = request
         self.onIncomingHeaders = onIncomingHeaders
         self.onIncomingHeadersBlockDone = onIncomingHeadersBlockDone

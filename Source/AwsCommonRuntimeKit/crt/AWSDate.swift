@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
 
-// Todo: handle errors and fix allocations
+// Todo: handle errors and fix allocations, and make this internal
 public class AWSDate: Comparable {
     let rawValue: UnsafeMutablePointer<aws_date_time>
 
@@ -51,6 +51,7 @@ public class AWSDate: Comparable {
         self.rawValue = allocatePointer()
         aws_date_time_init_epoch_millis(rawValue, epochMs)
     }
+
     // Todo: this is being used
     public init(epochS: Double) {
         self.rawValue = allocatePointer()

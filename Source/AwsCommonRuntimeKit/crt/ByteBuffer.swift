@@ -30,6 +30,7 @@ public class ByteBuffer: Codable {
         self.capacity = bytes.count
     }
 
+    //Todo: do not expose pointer
     public init(ptr: UnsafeMutablePointer<UInt8>, len: Int, capacity: Int) {
         let buffer = UnsafeBufferPointer(start: ptr, count: len)
         self.array = Array(buffer)
@@ -71,7 +72,7 @@ public class ByteBuffer: Codable {
     }
 
     public func put(_ value: ByteBuffer, offset: UInt = 0, maxBytes: UInt? = nil) {
-        var end: UInt = UInt(value.length)
+        var end: UInt = UInt(value.length())
         if let maxBytes = maxBytes {
              end = maxBytes
         }
@@ -272,40 +273,37 @@ public class ByteBuffer: Codable {
     }
 }
 
-extension ByteBuffer: AwsStream {
-    public var status: aws_stream_status {
-        return aws_stream_status(is_end_of_stream: self.currentIndex == array.count, is_valid: true)
+extension ByteBuffer: IStreamable {
+
+    public func length() -> UInt64 {
+        return UInt64(array.count)
     }
 
-    public var length: UInt {
-        return UInt(array.count)
-    }
-
-    public func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool {
-        let targetOffset: Int64
-        if basis.rawValue == AWS_SSB_BEGIN.rawValue {
-            targetOffset = offset
-
-        } else {
-            targetOffset = Int64(length) - offset
+    public func seek(offset: Int64, streamSeekType: StreamSeekType) throws {
+        if abs(offset) > array.count
+                   || (offset < 0 && streamSeekType == .begin)
+                   || (offset > 0 && streamSeekType == .end) {
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
         }
-        currentIndex = Int(targetOffset)
-        return true
+
+        switch streamSeekType {
+        case .begin:
+            currentIndex = Int(offset)
+        case .end:
+            currentIndex = array.count + Int(offset)
+        }
     }
 
-    public func read(buffer: inout aws_byte_buf) -> Bool {
-        let bufferCapacity = buffer.capacity - buffer.len
-        let arrayEnd = (bufferCapacity + self.currentIndex) < array.count ? bufferCapacity + self.currentIndex : array.count
-        let dataArray = array[self.currentIndex..<(arrayEnd)]
-        if dataArray.count > 0 {
-            let result = buffer.buffer.advanced(by: buffer.len)
-            let resultBufferPointer = UnsafeMutableBufferPointer.init(start: result, count: dataArray.count)
-            dataArray.copyBytes(to: resultBufferPointer)
-            self.currentIndex = arrayEnd
-            buffer.len += dataArray.count
-            return true
+    public func read(buffer: UnsafeMutableBufferPointer<UInt8>) -> Int? {
+        let endIndex = currentIndex + min(array.count - currentIndex, buffer.count)
+        guard currentIndex != endIndex else {
+            return nil
         }
-        return !self.status.is_end_of_stream
+
+        let dataArray = array[currentIndex..<endIndex]
+        dataArray.copyBytes(to: buffer, count: dataArray.count)
+        currentIndex = endIndex
+        return dataArray.count
     }
 }
 

@@ -3,7 +3,8 @@
 import AwsCHttp
 import AwsCIo
 import AwsCCommon
-public final class HttpRequest: HttpMessage {
+// TODO: HttpRequest & HttpMessage relationship
+public class HttpRequest: HttpMessage {
 
     public override init(allocator: Allocator = defaultAllocator) throws {
         try super.init(allocator: allocator)
@@ -40,8 +41,8 @@ public final class HttpRequest: HttpMessage {
             return result.toString()
         }
         set(value) {
-            if ((value ?? "").withByteCursor { valueCursor in
-                aws_http_message_set_request_path(self.rawValue, valueCursor)
+            if withByteCursorFromStrings(value, { valueCursor in
+                return aws_http_message_set_request_path(self.rawValue, valueCursor)
             }) != AWS_OP_SUCCESS {
                 self.path = nil
             }

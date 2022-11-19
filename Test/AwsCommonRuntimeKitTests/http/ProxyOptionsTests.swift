@@ -8,52 +8,61 @@ import AwsCCommon
 class ProxyOptionsTests: CrtXCBaseTestCase {
 
     func testCreateProxyOptions() throws {
-        let proxyOptions = HttpProxyOptions(hostName: "test", port: 80)
-        XCTAssertNotNil(proxyOptions)
-
-        XCTAssertEqual(proxyOptions.hostName, "test")
-        XCTAssertEqual(proxyOptions.port, 80)
-        let authType = HttpProxyAuthenticationType.basic
-
-        proxyOptions.authType = authType
-        XCTAssertEqual(proxyOptions.authType, authType)
-        XCTAssertEqual(proxyOptions.rawValue.pointee.auth_type, authType.rawValue)
-
+        var proxyOptions = HttpProxyOptions(hostName: "test", port: 80)
         let username = "testName"
         proxyOptions.basicAuthUsername = username
-        XCTAssertEqual(proxyOptions.basicAuthUsername, username)
-        username.withByteCursorPointer { usernameCursorPointer in
-            XCTAssertTrue(aws_byte_cursor_eq(&proxyOptions.rawValue.pointee.auth_username, usernameCursorPointer))
-        }
-
         let password = "password"
         proxyOptions.basicAuthPassword = password
+        let authType = HttpProxyAuthenticationType.basic
+        proxyOptions.authType = authType
+
+        XCTAssertNotNil(proxyOptions)
+        XCTAssertEqual(proxyOptions.hostName, "test")
+        XCTAssertEqual(proxyOptions.port, 80)
+        XCTAssertEqual(proxyOptions.authType, authType)
+        XCTAssertEqual(proxyOptions.basicAuthUsername, username)
         XCTAssertEqual(proxyOptions.basicAuthPassword, password)
-        password.withByteCursorPointer { passwordCursorPointer in
-            XCTAssertTrue(aws_byte_cursor_eq(&proxyOptions.rawValue.pointee.auth_password, passwordCursorPointer))
+
+        proxyOptions.withCPointer { proxyOptionsPointer in
+            XCTAssertNotNil(proxyOptionsPointer)
+            XCTAssertEqual(proxyOptionsPointer.pointee.auth_type, authType.rawValue)
+            username.withByteCursorPointer { usernameCursorPointer in
+                var cUserName = proxyOptionsPointer.pointee.auth_username
+                XCTAssertTrue(aws_byte_cursor_eq(&cUserName, usernameCursorPointer))
+            }
+            password.withByteCursorPointer { passwordCursorPointer in
+                var cPassword = proxyOptionsPointer.pointee.auth_password
+                XCTAssertTrue(aws_byte_cursor_eq(&cPassword, passwordCursorPointer))
+            }
         }
     }
 
     func testProxyOptionsStringOutOfScope() {
-        let proxyOptions = HttpProxyOptions(hostName: "test", port: 80)
-        XCTAssertNotNil(proxyOptions)
-
+        var proxyOptions = HttpProxyOptions(hostName: "test", port: 80)
         do {
             let newHost = "newHost";
             proxyOptions.hostName = newHost;
         }
+        XCTAssertNotNil(proxyOptions)
         XCTAssertEqual(proxyOptions.hostName, "newHost")
-        "newHost".withByteCursorPointer { passwordCursorPointer in
-            XCTAssertTrue(aws_byte_cursor_eq(&proxyOptions.rawValue.pointee.host, passwordCursorPointer))
+        proxyOptions.withCPointer { proxyOptionsPointer in
+            XCTAssertNotNil(proxyOptionsPointer)
+            "newHost".withByteCursorPointer { hostCursorPointer in
+                var cHost = proxyOptionsPointer.pointee.host
+                XCTAssertTrue(aws_byte_cursor_eq(&cHost, hostCursorPointer))
+            }
         }
     }
 
     func testProxyOptionsWithTls() throws {
-        let proxyOptions = HttpProxyOptions(hostName: "test", port: 80)
+        var proxyOptions = HttpProxyOptions(hostName: "test", port: 80)
+        let context = try TlsContext(options: TlsContextOptions(allocator: allocator), mode: TLSMode.client)
+        proxyOptions.tlsOptions = TlsConnectionOptions(context: context, allocator: allocator)
         XCTAssertNotNil(proxyOptions)
-        let context = try TlsContext(options: TlsContextOptions(defaultClientWithAllocator: allocator), mode: TlsMode.client)
-        proxyOptions.tlsOptions = TlsConnectionOptions(context, allocator: allocator)
         XCTAssertNotNil(proxyOptions.tlsOptions)
-        XCTAssertNotNil(proxyOptions.rawValue.pointee.tls_options)
+        proxyOptions.withCPointer { proxyOptionsPointer in
+            XCTAssertNotNil(proxyOptionsPointer)
+            XCTAssertNotNil(proxyOptionsPointer.pointee.tls_options)
+        }
     }
 }

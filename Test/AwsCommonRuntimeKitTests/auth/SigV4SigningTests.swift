@@ -13,10 +13,10 @@ class SigV4SigningTests: CrtXCBaseTestCase {
     func testSimpleSigningWithCredentialsProvider() async throws {
         let signer = SigV4HttpRequestSigner(allocator: allocator)
         let request = try makeMockRequest()
-        let staticConfig = MockCredentialsProviderStaticConfigOptions(accessKey: "access",
-                                                                      secret: "key",
-                                                                      sessionToken: "token")
-        let provider = try CRTAWSCredentialsProvider(fromStatic: staticConfig, allocator: allocator)
+        let provider = try AwsCredentialsProvider(source: .static(accessKey: "access",
+                secret: "key",
+                sessionToken: "token"),
+                allocator: allocator)
         let shouldSignHeader: SigningConfig.ShouldSignHeader = { header in
             return true
         }
@@ -25,7 +25,8 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                                    date: awsDate,
                                    service: "service",
                                    region: "us-east-1",
-                                   shouldSignHeader: shouldSignHeader)
+                                   shouldSignHeader: shouldSignHeader,
+                                   allocator: allocator)
 
         let signedRequest = try await signer.signRequest(request: request, config: config)
 
@@ -48,7 +49,8 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                                    service: "service",
                                    region: "us-east-1",
                                    signedBodyValue: .empty,
-                                   shouldSignHeader: shouldSignHeader)
+                                   shouldSignHeader: shouldSignHeader,
+                                   allocator: allocator)
 
         let signedRequest = try await signer.signRequest(request: request, config: config)
 
@@ -71,7 +73,8 @@ class SigV4SigningTests: CrtXCBaseTestCase {
                                    service: "service",
                                    region: "us-east-1",
                                    signedBodyValue: .empty,
-                                   shouldSignHeader: shouldSignHeader)
+                                   shouldSignHeader: shouldSignHeader,
+                                   allocator: allocator)
         let signedRequest = try await signer.signRequest(request: request, config: config)
 
         XCTAssertNotNil(signedRequest)
@@ -100,7 +103,7 @@ class SigV4SigningTests: CrtXCBaseTestCase {
         request.method = "GET"
         request.path = "/"
         let byteBuffer = ByteBuffer(data: "{}".data(using: .utf8)!)
-        request.body = AwsInputStream(byteBuffer)
+        request.body = byteBuffer
 
         let headers = try HttpHeaders()
         let headerAdded = headers.add(name: "Host", value: "example.amazonaws.com")
@@ -111,11 +114,10 @@ class SigV4SigningTests: CrtXCBaseTestCase {
         return request
     }
 
-    func makeMockCredentials() throws -> CRTCredentials {
-        let credentials = try CRTCredentials(accessKey: "access",
+    func makeMockCredentials() throws -> AwsCredentials {
+        let credentials = try AwsCredentials(accessKey: "access",
                                       secret: "secret",
                                       sessionToken: "token",
-                                      expirationTimeout: UInt64.max,
                                       allocator: allocator)
         return credentials
     }

@@ -33,12 +33,10 @@ public class SigV4HttpRequestSigner {
     /// - `Returns`: Returns a signed http request `HttpRequest`
     public func signRequest(request: HttpRequest, config: SigningConfig) async throws -> HttpRequest {
         typealias SignedContinuation = CheckedContinuation<HttpRequest, Error>
-        if config.configType != .aws {
-            throw CRTError(errorCode: aws_last_error())
-        }
 
-        if config.rawValue.credentials_provider == nil && config.rawValue.credentials == nil {
-            throw CRTError(errorCode: aws_last_error())
+        //TODO: Fix. This is weird. We should not throw make from last error here.
+        if config.configType != .aws || (config.credentialsProvider == nil && config.credentials == nil) {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
         }
 
         return try await withCheckedThrowingContinuation { (continuation: SignedContinuation) in
@@ -53,51 +51,38 @@ public class SigV4HttpRequestSigner {
                                                request: request,
                                                signable: signable,
                                                continuation: continuation)
+        //TODO: fix callback
+        config.withCPointer { configPointer in
+            configPointer.withMemoryRebound(to: aws_signing_config_base.self, capacity: 1) { configBasePointer in
+                let callbackPointer: UnsafeMutablePointer<SigningCallbackData> = fromPointer(ptr: callbackData)
+                aws_sign_request_aws(allocator.rawValue,
+                        signable,
+                        configBasePointer, { (signingResult, errorCode, userData) -> Void in
 
-        let configPointer: UnsafeMutablePointer<aws_signing_config_aws> = fromPointer(ptr: config.rawValue)
-        let base = configPointer.withMemoryRebound(to: aws_signing_config_base.self,
-                                                   capacity: 1) { (configPointer)
-            -> UnsafeMutablePointer<aws_signing_config_base> in
-            return configPointer
-        }
-        let configPtr = UnsafePointer(base)
+                    let callback = userData!.assumingMemoryBound(to: SigningCallbackData.self)
+                    defer {
+                        aws_signable_destroy(callback.pointee.signable)
+                        callback.deinitializeAndDeallocate()
+                    }
+                    let continuation =  callback.pointee.continuation
+                    if errorCode != AWS_OP_SUCCESS {
+                        continuation.resume(throwing: CommonRunTimeError
+                                .crtError(CRTError(code: errorCode)))
+                        return
+                    }
 
-        let callbackPointer: UnsafeMutablePointer<SigningCallbackData> = fromPointer(ptr: callbackData)
-
-        defer {
-            base.deinitializeAndDeallocate()
-        }
-
-        aws_sign_request_aws(allocator.rawValue,
-                             signable,
-                             configPtr, { (signingResult, errorCode, userData) -> Void in
-            guard let userData = userData else {
-                return
-            }
-            let callback = userData.assumingMemoryBound(to: SigningCallbackData.self)
-            defer {
-                aws_signable_destroy(callback.pointee.signable)
-                callback.deinitializeAndDeallocate()
-            }
-
-            if let continuation = callback.pointee.continuation {
-                if errorCode == 0,
-                   let signingResult = signingResult {
-
+                    //Success
                     let signedRequest = aws_apply_signing_result_to_http_request(callback.pointee.request.rawValue,
                                                                                  callback.pointee.allocator.rawValue,
-                                                                                 signingResult)
-                    if signedRequest == 0 {
+                                                                                 signingResult!)
+                    if signedRequest == AWS_OP_SUCCESS {
                         continuation.resume(returning: callback.pointee.request)
                     } else {
-                        continuation.resume(throwing: CRTError(errorCode: signedRequest))
+                        continuation.resume(throwing: CommonRunTimeError
+                                .crtError(CRTError(code: signedRequest)))
                     }
-                } else {
-                    continuation.resume(throwing: CRTError(errorCode: errorCode))
-                }
+                }, callbackPointer)
             }
-
-        }, callbackPointer)
-
+        }
     }
 }

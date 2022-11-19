@@ -2,29 +2,26 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCAuth
-// TODO: verify callback logic, fix pointers, and maybe error handling
-public struct SigningConfig {
-    public typealias ShouldSignHeader = (String) -> Bool
-    public let rawValue: aws_signing_config_aws
-    public let credentials: CRTCredentials?
-    public let credentialsProvider: CRTAWSCredentialsProvider?
-    public let expiration: Int64
-    public let signedBodyHeader: SignedBodyHeaderType
-    public let signedBodyValue: SignedBodyValue
-    let signedBodyValueCursor: AWSStringByteCursor
-    public let flags: Flags
-    public let shouldSignHeader: ShouldSignHeader?
-    public let date: AWSDate
-    let _service: AWSStringByteCursor
-    let _region: AWSStringByteCursor
-    public let service: String
-    public let region: String
-    public let signatureType: SignatureType
-    public let signingAlgorithm: SigningAlgorithmType
-    public let configType: SigningConfigType
 
-    public init(credentials: CRTCredentials? = nil,
-                credentialsProvider: CRTAWSCredentialsProvider? = nil,
+// TODO: verify callback logic, fix pointers, and maybe error handling
+public struct SigningConfig: CStruct {
+    public typealias ShouldSignHeader = (String) -> Bool
+    public var credentials: AwsCredentials?
+    public var credentialsProvider: AwsCredentialsProvider?
+    public var expiration: Int64
+    public var signedBodyHeader: SignedBodyHeaderType
+    public var signedBodyValue: SignedBodyValue
+    public var flags: Flags
+    public var shouldSignHeader: ShouldSignHeader?
+    public var date: AWSDate
+    public var service: String
+    public var region: String
+    public var signatureType: SignatureType
+    public var signingAlgorithm: SigningAlgorithmType
+    public var configType: SigningConfigType
+
+    public init(credentials: AwsCredentials? = nil,
+                credentialsProvider: AwsCredentialsProvider? = nil,
                 date: AWSDate,
                 service: String,
                 region: String,
@@ -35,13 +32,13 @@ public struct SigningConfig {
                 shouldSignHeader: ShouldSignHeader? = nil,
                 signatureType: SignatureType = .requestHeaders,
                 signingAlgorithm: SigningAlgorithmType = .signingV4,
-                configType: SigningConfigType = .aws) {
+                configType: SigningConfigType = .aws,
+                allocator: Allocator = defaultAllocator) {
+
         self.credentials = credentials
         self.credentialsProvider = credentialsProvider
         self.expiration = expiration
         self.date = date
-        self._service = AWSStringByteCursor(service)
-        self._region = AWSStringByteCursor(region)
         self.service = service
         self.region = region
         self.signedBodyHeader = signedBodyHeader
@@ -51,34 +48,45 @@ public struct SigningConfig {
         self.signatureType = signatureType
         self.signingAlgorithm = signingAlgorithm
         self.configType = configType
-        self.signedBodyValueCursor = AWSStringByteCursor(signedBodyValue.rawValue)
-        self.rawValue = aws_signing_config_aws(config_type: configType.rawValue,
-                                               algorithm: signingAlgorithm.rawValue,
-                                               signature_type: signatureType.rawValue,
-                                               region: self._region.byteCursor,
-                                               service: self._service.byteCursor,
-                                               date: date.rawValue.pointee,
-                                               should_sign_header: { (name, userData) -> Bool in
-                                                guard let userData = userData,
-                                                      let name = name?.pointee.toString() else {
-                                                    return true
-                                                }
+    }
 
-                                                let callback = userData.assumingMemoryBound(to: ShouldSignHeader?.self)
+    typealias RawType = aws_signing_config_aws
+    func withCStruct<Result>(_ body: (aws_signing_config_aws) -> Result) -> Result {
+        var cSigningConfig = aws_signing_config_aws()
+        cSigningConfig.config_type = configType.rawValue
+        cSigningConfig.algorithm = signingAlgorithm.rawValue
+        cSigningConfig.signature_type = signatureType.rawValue
 
-                                                if let callbackFn = callback.pointee {
-                                                    return callbackFn(name)
-                                                } else {
-                                                    return true
-                                                }
-                                               },
-                                               should_sign_header_ud: fromOptionalPointer(ptr: shouldSignHeader),
-                                               flags: flags.rawValue,
-                                               signed_body_value: signedBodyValueCursor.byteCursor,
-                                               signed_body_header: signedBodyHeader.rawValue,
-                                               credentials: credentials?.rawValue,
-                                               credentials_provider: credentialsProvider?.rawValue,
-                                               expiration_in_seconds: UInt64(expiration))
+        cSigningConfig.date = date.rawValue.pointee
+        //TODO: fix callback
+        cSigningConfig.should_sign_header = { (name, userData) -> Bool in
+            guard let name = name?.pointee.toString()
+            else {
+                return true
+            }
+            let callback = userData!.assumingMemoryBound(to: ShouldSignHeader?.self)
+            if let callbackFn = callback.pointee {
+                return callbackFn(name)
+            } else {
+                return true
+            }
+        }
+        cSigningConfig.should_sign_header_ud = fromOptionalPointer(ptr: shouldSignHeader)
+        cSigningConfig.flags = flags.rawValue
+        cSigningConfig.signed_body_header = signedBodyHeader.rawValue
+        cSigningConfig.credentials = credentials?.rawValue
+        cSigningConfig.credentials_provider = credentialsProvider?.rawValue
+        cSigningConfig.expiration_in_seconds = UInt64(expiration)
+        return withByteCursorFromStrings(region,
+                                         service,
+                                         signedBodyValue.rawValue) { regionCursor,
+                                                                     serviceCursor,
+                                                                     signedBodyValueCursor in
+            cSigningConfig.region = regionCursor
+            cSigningConfig.service = serviceCursor
+            cSigningConfig.signed_body_value = signedBodyValueCursor
+            return body(cSigningConfig)
+        }
     }
 }
 
