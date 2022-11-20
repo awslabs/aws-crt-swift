@@ -2,121 +2,102 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCAuth
+import Foundation
 
-// TODO: verify callback logic, fix pointers, and maybe error handling
-public struct SigningConfig: CStruct {
-    public typealias ShouldSignHeader = (String) -> Bool
-    public var credentials: CRTCredentials?
-    public var credentialsProvider: CRTAWSCredentialsProvider?
-    public var expiration: Int64
-    public var signedBodyHeader: SignedBodyHeaderType
-    public var signedBodyValue: SignedBodyValue
-    public var flags: Flags
-    public var shouldSignHeader: ShouldSignHeader?
-    public var date: AWSDate
-    public var service: String
-    public var region: String
-    public var signatureType: SignatureType
-    public var signingAlgorithm: SigningAlgorithmType
-    public var configType: SigningConfigType
+public enum SignatureType {
+    /**
+     A signature for a full http request should be computed, with header updates applied to the signing result.
+     */
+    case requestHeaders
 
-    public init(credentials: CRTCredentials? = nil,
-                credentialsProvider: CRTAWSCredentialsProvider? = nil,
-                date: AWSDate,
-                service: String,
-                region: String,
-                expiration: Int64 = 0,
-                signedBodyHeader: SignedBodyHeaderType = .none,
-                signedBodyValue: SignedBodyValue = SignedBodyValue.empty,
-                flags: Flags = Flags(),
-                shouldSignHeader: ShouldSignHeader? = nil,
-                signatureType: SignatureType = .requestHeaders,
-                signingAlgorithm: SigningAlgorithmType = .signingV4,
-                configType: SigningConfigType = .aws,
-                allocator: Allocator = defaultAllocator) {
+    /**
+     A signature for a full http request should be computed, with query param updates applied to the signing result.
+     */
+    case requestQueryParams
 
-        self.credentials = credentials
-        self.credentialsProvider = credentialsProvider
-        self.expiration = expiration
-        self.date = date
-        self.service = service
-        self.region = region
-        self.signedBodyHeader = signedBodyHeader
-        self.signedBodyValue = signedBodyValue
-        self.flags = flags
-        self.shouldSignHeader = shouldSignHeader
-        self.signatureType = signatureType
-        self.signingAlgorithm = signingAlgorithm
-        self.configType = configType
+    /**
+     Compute a signature for a payload chunk.  The signable's input stream should be the chunk data and the
+     signable should contain the most recent signature value (either the original http request or the most recent
+     chunk) in the "previous-signature" property.
+     */
+    case requestChunk
+
+    /**
+     Compute a signature for an event stream event.  The signable's input stream should be the event payload, the
+     signable should contain the most recent signature value (either the original http request or the most recent
+     event) in the "previous-signature" property as well as any event headers that should be signed with the
+     exception of ":date"
+
+     This option is not yet supported.
+     */
+    case requestEvent
+}
+
+
+public enum SignedBodyHeaderType {
+
+    /// Do not add a header
+    case none
+
+    /// Add the "x-amz-content-sha256" header with the canonical request's body value
+    case contentSha256
+}
+
+public enum SignedBodyValue: String {
+    /// if string is empty  a public value  will be calculated from the payload during signing
+    case empty = ""
+    case emptySha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    /// Use this in the case of needing to not use the payload for signing
+    case unsignedPayload = "UNSIGNED-PAYLOAD"
+    case streamingSha256Payload = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD"
+    case streamingSha256Events = "STREAMING-AWS4-HMAC-SHA256-EVENTS"
+}
+
+public enum SigningAlgorithmType {
+    case signingV4
+    case signingV4Asymmetric
+}
+
+extension SignatureType: RawRepresentable, CaseIterable {
+
+    public init(rawValue: aws_signature_type) {
+        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        self = value ?? .requestHeaders
     }
 
-    typealias RawType = aws_signing_config_aws
-    func withCStruct<Result>(_ body: (aws_signing_config_aws) -> Result) -> Result {
-        var cSigningConfig = aws_signing_config_aws()
-        cSigningConfig.config_type = configType.rawValue
-        cSigningConfig.algorithm = signingAlgorithm.rawValue
-        cSigningConfig.signature_type = signatureType.rawValue
-
-        cSigningConfig.date = date.rawValue.pointee
-        //TODO: fix callback
-        cSigningConfig.should_sign_header = { (name, userData) -> Bool in
-            guard let name = name?.pointee.toString()
-            else {
-                return true
-            }
-            let callback = userData!.assumingMemoryBound(to: ShouldSignHeader?.self)
-            if let callbackFn = callback.pointee {
-                return callbackFn(name)
-            } else {
-                return true
-            }
-        }
-        cSigningConfig.should_sign_header_ud = fromOptionalPointer(ptr: shouldSignHeader)
-        cSigningConfig.flags = flags.rawValue
-        cSigningConfig.signed_body_header = signedBodyHeader.rawValue
-        cSigningConfig.credentials = credentials?.rawValue
-        cSigningConfig.credentials_provider = credentialsProvider?.rawValue
-        cSigningConfig.expiration_in_seconds = UInt64(expiration)
-        return withByteCursorFromStrings(region,
-                                         service,
-                                         signedBodyValue.rawValue) { regionCursor,
-                                                                     serviceCursor,
-                                                                     signedBodyValueCursor in
-            cSigningConfig.region = regionCursor
-            cSigningConfig.service = serviceCursor
-            cSigningConfig.signed_body_value = signedBodyValueCursor
-            return body(cSigningConfig)
+    public var rawValue: aws_signature_type {
+        switch self {
+        case .requestHeaders: return AWS_ST_HTTP_REQUEST_HEADERS
+        case .requestQueryParams: return AWS_ST_HTTP_REQUEST_QUERY_PARAMS
+        case .requestChunk: return AWS_ST_HTTP_REQUEST_CHUNK
+        case .requestEvent: return AWS_ST_HTTP_REQUEST_EVENT
         }
     }
 }
 
-extension SigningConfig {
-    public struct Flags {
-         let rawValue: aws_signing_config_aws.__Unnamed_struct_flags
-
-         /// We assume the uri will be encoded once in preparation for transmission.  Certain services
-         /// do not decode before checking signature, requiring us to actually double-encode the uri in the canonical
-         /// request in order to pass a signature check.
-         let useDoubleURIEncode: Bool
-
-         /// Controls whether or not the uri paths should be normalized when building the canonical request
-         let shouldNormalizeURIPath: Bool
-
-         /// Should the "X-Amz-Security-Token" query param be omitted?
-         /// Normally, this parameter is added during signing if the credentials have a session token.
-         /// The only known case where this should be true is when signing a websocket handshake to IoT Core.
-         let omitSessionToken: Bool
-
-        public init(useDoubleURIEncode: Bool = true,
-                    shouldNormalizeURIPath: Bool = true,
-                    omitSessionToken: Bool = false) {
-            self.useDoubleURIEncode = useDoubleURIEncode
-            self.shouldNormalizeURIPath = shouldNormalizeURIPath
-            self.omitSessionToken = omitSessionToken
-            self.rawValue = aws_signing_config_aws.__Unnamed_struct_flags(use_double_uri_encode:
-                useDoubleURIEncode.uintValue, should_normalize_uri_path:
-                shouldNormalizeURIPath.uintValue, omit_session_token:
-                omitSessionToken.uintValue)
+extension SignedBodyHeaderType: RawRepresentable, CaseIterable {
+    public init(rawValue: aws_signed_body_header_type) {
+        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        self = value ?? .none
+    }
+    public var rawValue: aws_signed_body_header_type {
+        switch self {
+        case .none: return AWS_SBHT_NONE
+        case .contentSha256: return AWS_SBHT_X_AMZ_CONTENT_SHA256
         }
-     }
+    }
+}
+
+extension SigningAlgorithmType: RawRepresentable, CaseIterable {
+
+    public init(rawValue: aws_signing_algorithm) {
+        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
+        self = value ?? .signingV4
+    }
+    public var rawValue: aws_signing_algorithm {
+        switch self {
+        case .signingV4: return AWS_SIGNING_ALGORITHM_V4
+        case .signingV4Asymmetric: return AWS_SIGNING_ALGORITHM_V4_ASYMMETRIC
+        }
+    }
 }
