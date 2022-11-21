@@ -9,35 +9,35 @@ class AWSCredentialsTests: CrtXCBaseTestCase {
         let accessKey = "AccessKey"
         let secret = "Secret"
         let sessionToken = "Token"
-        let expirationTimeout: UInt64 = 100
+        let expiration = Date(timeIntervalSinceNow: 10)
 
-        let credentials = try CRTCredentials(accessKey: accessKey, secret: secret, sessionToken: sessionToken, expirationTimeout: expirationTimeout)
+        let credentials = try AwsCredentials(accessKey: accessKey, secret: secret, sessionToken: sessionToken, expiration: expiration)
 
         XCTAssertEqual(accessKey, credentials.getAccessKey())
         XCTAssertEqual(secret, credentials.getSecret())
         XCTAssertEqual(sessionToken, credentials.getSessionToken())
-        XCTAssertEqual(expirationTimeout, credentials.getExpirationTimeout())
+        XCTAssertEqual(UInt64(expiration.timeIntervalSince1970), UInt64(credentials.getExpiration().timeIntervalSince1970))
     }
 
     func testCreateAWSCredentialsWithoutSessionToken() async throws {
         let accessKey = "AccessKey"
         let secret = "Secret"
-        let expirationTimeout: UInt64 = 100
+        let expiration = Date(timeIntervalSinceNow: 10)
 
-        let credentials = try CRTCredentials(accessKey: accessKey, secret: secret, sessionToken: nil, expirationTimeout: expirationTimeout)
+        let credentials = try AwsCredentials(accessKey: accessKey, secret: secret, sessionToken: nil, expiration: expiration)
 
         XCTAssertEqual(accessKey, credentials.getAccessKey())
         XCTAssertEqual(secret, credentials.getSecret())
         XCTAssertEqual(credentials.getSessionToken(), nil)
-        XCTAssertEqual(expirationTimeout, credentials.getExpirationTimeout())
+        XCTAssertEqual(UInt64(expiration.timeIntervalSince1970), UInt64(credentials.getExpiration().timeIntervalSince1970))
 
     }
 
     func testCreateAWSCredentialsWithoutAccessKeyThrows() async {
         let accessKey = ""
         let secret = "Secret"
-        let expirationTimeout: UInt64 = 100
+        let expirationTimeout = Date(timeIntervalSinceNow: 10)
 
-        XCTAssertThrowsError(try CRTCredentials(accessKey: accessKey, secret: secret, sessionToken: nil, expirationTimeout: expirationTimeout))
+        XCTAssertThrowsError(try AwsCredentials(accessKey: accessKey, secret: secret, sessionToken: nil, expiration: expirationTimeout))
     }
 }
