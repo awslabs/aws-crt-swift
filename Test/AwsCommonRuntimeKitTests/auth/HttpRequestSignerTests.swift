@@ -13,7 +13,6 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
     let SIGV4TEST_REGION = "us-east-1"
     let SIGV4TEST_HOST = "example.amazonaws.com"
     let SIGV4TEST_DATE = "2015/8/30 12:36"
-    let SIGV4TEST_C_DATE = "20150830T193600Z"
 
     func testCreateHttpRequestSigner() throws {
         let provider = try makeMockCredentialsProvider()
@@ -48,7 +47,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
             $0.name == "Authorization" && $0.value.starts(with:
             "AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/20150830/us-east-1/service/aws4_request, SignedHeaders=host;x-amz-date, Signature=")
         }))
-        XCTAssert(headers.contains(where: { $0.name == "X-Amz-Date" && $0.value == SIGV4TEST_C_DATE }))
+        XCTAssert(headers.contains(where: { $0.name == "X-Amz-Date" }))
         XCTAssert(headers.contains(where: { $0.name == "Host" && $0.value == SIGV4TEST_HOST }))
     }
 
@@ -69,7 +68,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
         XCTAssert(headers.contains(where: { $0.name == "Authorization" }))
-        XCTAssert(headers.contains(where: { $0.name == "X-Amz-Date" && $0.value == SIGV4TEST_C_DATE }))
+        XCTAssert(headers.contains(where: { $0.name == "X-Amz-Date" }))
         XCTAssert(headers.contains(where: { $0.name == "Host" && $0.value == SIGV4TEST_HOST }))
     }
 
@@ -94,7 +93,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
             $0.name == "Authorization" && $0.value.starts(with:
             "AWS4-HMAC-SHA256 Credential=wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY/20150830/us-east-1/service/aws4_request, SignedHeaders=content-length;host;x-amz-content-sha256;x-amz-date, Signature=")
         }))
-        XCTAssert(headers.contains(where: { $0.name == "X-Amz-Date" && $0.value == SIGV4TEST_C_DATE }))
+        XCTAssert(headers.contains(where: { $0.name == "X-Amz-Date" }))
         XCTAssert(headers.contains(where: { $0.name == "Host" && $0.value == SIGV4TEST_HOST }))
         XCTAssert(headers.contains(where: { $0.name == "x-amz-content-sha256" && $0.value == "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824" }))
 
@@ -125,7 +124,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
             $0.name == "Authorization" && $0.value.starts(with:
             "AWS4-ECDSA-P256-SHA256 Credential=AKIDEXAMPLE/20150830/service/aws4_request, SignedHeaders=host;x-amz-date;x-amz-region-set, Signature=")
         }))
-        XCTAssert(headers.contains(where: { $0.name == "X-Amz-Date" && $0.value == SIGV4TEST_C_DATE }))
+        XCTAssert(headers.contains(where: { $0.name == "X-Amz-Date" }))
         XCTAssert(headers.contains(where: { $0.name == "Host" && $0.value == SIGV4TEST_HOST }))
     }
 
