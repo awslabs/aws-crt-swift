@@ -6,10 +6,11 @@ import AwsCSdkUtils
 public struct CRTAWSProfile {
     let rawValue: OpaquePointer
 
-    public init(rawValue: OpaquePointer) {
+    init(rawValue: OpaquePointer) {
         self.rawValue = rawValue
     }
 
+    /// Returns a reference to the name of the provided profile
     public var name: String? {
         guard let string = aws_profile_get_name(rawValue) else {
             return nil
@@ -17,6 +18,7 @@ public struct CRTAWSProfile {
         return String(awsString: string)
     }
 
+    /// Retrieves a reference to a property with the specified name, if it exists, from a profile
     public func getProperty(name: String, allocator: Allocator = defaultAllocator) -> CRTAWSProfileProperty? {
         let nameAwsString = AWSString(name, allocator: allocator)
         guard let propPointer = aws_profile_get_property(rawValue, nameAwsString.rawValue) else {
@@ -25,7 +27,8 @@ public struct CRTAWSProfile {
         return CRTAWSProfileProperty(rawValue: propPointer)
     }
 
+    /// Returns how many properties a profile holds
     public var propertyCount: Int {
-       return aws_profile_get_property_count(rawValue)
+       aws_profile_get_property_count(rawValue)
     }
 }
