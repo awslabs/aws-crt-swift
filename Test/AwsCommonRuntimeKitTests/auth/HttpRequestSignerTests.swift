@@ -14,32 +14,21 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
     let SIGV4TEST_HOST = "example.amazonaws.com"
     let SIGV4TEST_DATE = "2015/8/30 12:36"
 
-    func testCreateHttpRequestSigner() throws {
-        let provider = try makeMockCredentialsProvider()
-        _ = HttpRequestSigner(
-                algorithm: SigningAlgorithmType.signingV4,
-                signatureType: SignatureType.requestHeaders,
-                service: SIGV4TEST_SERVICE,
-                region: SIGV4TEST_REGION,
-                credentialsProvider: provider,
-                allocator: allocator)
-    }
-
-
     func testSigningSigv4Headers() async throws {
         let request = try makeMockRequest()
         let provider = try makeMockCredentialsProvider()
 
-        let signer = HttpRequestSigner(
+        let config = SigningConfig(
                 algorithm: SigningAlgorithmType.signingV4,
                 signatureType: SignatureType.requestHeaders,
                 service: SIGV4TEST_SERVICE,
                 region: SIGV4TEST_REGION,
                 date: getDate(),
-                credentialsProvider: provider,
-                allocator: allocator)
+                credentialsProvider: provider)
 
-        let signedRequest = try await signer.signRequest(request: request)
+        let signedRequest = try await HttpRequestSigner.signRequest(request: request,
+                                                                    config: config,
+                                                                    allocator: allocator)
 
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
@@ -54,16 +43,17 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
     func testSigningSigv4HeadersWithCredentials() async throws {
         let request = try makeMockRequest()
         let credentials = try makeMockCredentials()
-        let signer = HttpRequestSigner(
+        let config = SigningConfig(
                 algorithm: SigningAlgorithmType.signingV4,
                 signatureType: SignatureType.requestHeaders,
                 service: SIGV4TEST_SERVICE,
                 region: SIGV4TEST_REGION,
                 date: getDate(),
-                credentials: credentials,
-                allocator: allocator)
+                credentials: credentials)
 
-        let signedRequest = try await signer.signRequest(request: request)
+        let signedRequest = try await HttpRequestSigner.signRequest(request: request, 
+                                                                    config: config, 
+                                                                    allocator: allocator)
 
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
@@ -75,17 +65,18 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
     func testSigningSigv4Body() async throws {
         let request = try makeMockRequestWithBody()
         let credentials = try makeMockCredentials()
-        let signer = HttpRequestSigner(
+        let config = SigningConfig(
                 algorithm: SigningAlgorithmType.signingV4,
                 signatureType: SignatureType.requestHeaders,
                 service: SIGV4TEST_SERVICE,
                 region: SIGV4TEST_REGION,
                 date: getDate(),
                 credentials: credentials,
-                signedBodyHeader: .contentSha256,
-                allocator: allocator)
+                signedBodyHeader: .contentSha256)
 
-        let signedRequest = try await signer.signRequest(request: request)
+        let signedRequest = try await HttpRequestSigner.signRequest(request: request, 
+                                                                    config: config, 
+                                                                    allocator: allocator)
 
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
@@ -106,17 +97,18 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
         let shouldSignHeader: (String) -> Bool = { header in
             return true
         }
-        let signer = HttpRequestSigner(
+        let config = SigningConfig(
                 algorithm: .signingV4Asymmetric,
                 signatureType: SignatureType.requestHeaders,
                 service: SIGV4TEST_SERVICE,
                 region: SIGV4TEST_REGION,
                 date: getDate(),
                 credentialsProvider: provider,
-                shouldSignHeader: shouldSignHeader,
-                allocator: allocator)
+                shouldSignHeader: shouldSignHeader)
 
-        let signedRequest = try await signer.signRequest(request: request)
+        let signedRequest = try await HttpRequestSigner.signRequest(request: request, 
+                                                                    config: config, 
+                                                                    allocator: allocator)
 
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
@@ -131,14 +123,15 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
     func testSigningWithCredentialsAndBodyInRequest() async throws {
         let request = try makeMockRequestWithBody()
         let credentials = try makeMockCredentials()
-        let signer = HttpRequestSigner(
+        let config = SigningConfig(
                 algorithm: SigningAlgorithmType.signingV4,
                 signatureType: SignatureType.requestHeaders,
                 service: SIGV4TEST_HOST,
                 region: SIGV4TEST_REGION,
-                credentials: credentials,
-                allocator: allocator)
-        let signedRequest = try await signer.signRequest(request: request)
+                credentials: credentials)
+        let signedRequest = try await HttpRequestSigner.signRequest(request: request, 
+                                                                    config: config, 
+                                                                    allocator: allocator)
 
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()

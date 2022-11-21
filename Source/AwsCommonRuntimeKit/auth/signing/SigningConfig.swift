@@ -4,6 +4,98 @@
 import AwsCAuth
 import Foundation
 
+public struct SigningConfig {
+
+    /// What signing algorithm to use.
+    public var algorithm: SigningAlgorithmType
+
+    /// What sort of signature should be computed?
+    public var signatureType: SignatureType
+
+    /// name of service to sign a request for
+    public var service: String
+
+    /// Region-related configuration
+    ///   (1) If Sigv4, the region to sign against
+    ///   (2) If Sigv4a, the value of the X-amzn-region-set header (added in signing)
+    public var region: String
+
+    /// Raw date to use during the signing process.
+    public var date: Date
+
+    /// AWS Credentials to sign with. If Sigv4a is the algorithm and the credentials supplied are not ecc-based,
+    /// a temporary ecc-based credentials object will be built and used instead.
+    /// Overrides the credentialsProvider setting if non-null.
+    public var credentials: AwsCredentials?
+
+    /// AWS credentials provider to fetch credentials from.  If the signing algorithm is asymmetric sigv4, then the
+    /// ecc-based credentials will be derived from the fetched credentials.
+    public var credentialsProvider: AwsCredentialsProvider?
+
+    /// If non-zero and the signing transform is query param, then signing will add X-Amz-Expires to the query
+    /// string, equal to the value specified here. If this value is zero or if header signing is being used then
+    /// this parameter has no effect.
+    public var expiration: TimeInterval?
+
+    /// Controls what body "hash" header, if any, should be added to the canonical request and the signed request:
+    ///   none - no header should be added
+    ///   contentSha256 - the body "hash" should be added in the X-Amz-Content-Sha256 header
+    public var signedBodyHeader: SignedBodyHeaderType
+
+    /// Optional string to use as the canonical request's body value.
+    /// If string is empty, a value will be calculated from the payload during signing.
+    /// Typically, this is the SHA-256 of the (request/chunk/event) payload, written as lowercase hex.
+    /// If this has been precalculated, it can be set here. Special values used by certain services can also be set
+    public var signedBodyValue: SignedBodyValue
+
+    ///  Optional function to control which headers are a part of the canonical request.
+    public var shouldSignHeader: ((String) -> Bool)?
+
+    /// We assume the uri will be encoded once in preparation for transmission. Certain services
+    /// do not decode before checking signature, requiring us to actually double-encode the uri in the canonical
+    /// request in order to pass a signature check.
+    public var useDoubleURIEncode: Bool
+
+    /// Controls whether or not the uri paths should be normalized when building the canonical request
+    public var shouldNormalizeURIPath: Bool
+
+    /// Should the "X-Amz-Security-Token" query param be omitted?
+    /// Normally, this parameter is added during signing if the credentials have a session token.
+    /// The only known case where this should be true is when signing a websocket handshake to IoT Core.
+    public var omitSessionToken: Bool
+
+    public init(algorithm: SigningAlgorithmType,
+                signatureType: SignatureType,
+                service: String,
+                region: String,
+                date: Date = Date(),
+                credentials: AwsCredentials? = nil,
+                credentialsProvider: AwsCredentialsProvider? = nil,
+                expiration: TimeInterval? = nil,
+                signedBodyHeader: SignedBodyHeaderType = .none,
+                signedBodyValue: SignedBodyValue = SignedBodyValue.empty,
+                shouldSignHeader: ((String) -> Bool)? = nil,
+                useDoubleURIEncode: Bool = true,
+                shouldNormalizeURIPath: Bool = true,
+                omitSessionToken: Bool = false) {
+
+        self.algorithm = algorithm
+        self.signatureType = signatureType
+        self.service = service
+        self.region = region
+        self.date = date
+        self.credentials = credentials
+        self.credentialsProvider = credentialsProvider
+        self.expiration = expiration
+        self.signedBodyHeader = signedBodyHeader
+        self.signedBodyValue = signedBodyValue
+        self.shouldSignHeader = shouldSignHeader
+        self.useDoubleURIEncode = useDoubleURIEncode
+        self.shouldNormalizeURIPath = shouldNormalizeURIPath
+        self.omitSessionToken = omitSessionToken
+    }
+}
+
 public enum SignatureType {
     /**
      A signature for a full http request should be computed, with header updates applied to the signing result.
