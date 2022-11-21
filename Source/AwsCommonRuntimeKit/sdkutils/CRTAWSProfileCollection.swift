@@ -48,12 +48,11 @@ public class CRTAWSProfileCollection {
     /// Create a new profile collection by merging a config-file-based profile
     /// collection and a credentials-file-based profile collection
     public init?(configProfileCollection: CRTAWSProfileCollection,
-                credentialProfileCollection: CRTAWSProfileCollection,
-                source: CRTAWSProfileSourceType,
-                allocator: Allocator = defaultAllocator) {
+                 credentialProfileCollection: CRTAWSProfileCollection,
+                 allocator: Allocator = defaultAllocator) {
         guard let rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
-                                                              configProfileCollection.rawValue,
-                                                              credentialProfileCollection.rawValue) else {
+                                                                   configProfileCollection.rawValue,
+                                                                   credentialProfileCollection.rawValue) else {
             return nil
         }
         self.rawValue = rawValue
@@ -68,6 +67,7 @@ public class CRTAWSProfileCollection {
         }
         return CRTAWSProfile(rawValue: profilePointer)
     }
+
 
     /// Returns how many profiles a collection holds
     public var profileCount: Int {
