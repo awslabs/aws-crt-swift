@@ -219,9 +219,7 @@ private func onShouldSignHeader(nameCursor: UnsafePointer<aws_byte_cursor>!,
 private func onSigningComplete(signingResult: UnsafeMutablePointer<aws_signing_result>?,
                                errorCode: Int32,
                                userData: UnsafeMutableRawPointer!) {
-
     let signRequestCore = Unmanaged<SignRequestCore>.fromOpaque(userData).takeRetainedValue()
-
     if errorCode != AWS_OP_SUCCESS {
         signRequestCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
