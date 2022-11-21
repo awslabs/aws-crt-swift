@@ -22,8 +22,8 @@ public struct HttpProxyOptions: CStruct {
         cProxyOptions.port = port
         cProxyOptions.auth_type = authType.rawValue
 
-        return withByteCursorFromStrings(basicAuthUsername ?? "",
-                                         basicAuthPassword ?? "",
+        return withByteCursorFromStrings(basicAuthUsername,
+                                         basicAuthPassword,
                                          hostName) {
             userNamePointer, passwordPointer, hostPointer in
             cProxyOptions.host = hostPointer
