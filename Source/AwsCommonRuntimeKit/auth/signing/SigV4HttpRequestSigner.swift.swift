@@ -4,6 +4,7 @@
 import AwsCAuth
 import Foundation
 
+//TODO: update file name
 public class HttpRequestSigner {
 
     /// What signing algorithm to use.
