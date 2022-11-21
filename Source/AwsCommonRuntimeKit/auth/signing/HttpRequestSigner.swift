@@ -32,7 +32,6 @@ public class HttpRequestSigner {
     /// ecc-based credentials will be derived from the fetched credentials.
     public var credentialsProvider: AwsCredentialsProvider?
 
-
     /// If non-zero and the signing transform is query param, then signing will add X-Amz-Expires to the query
     /// string, equal to the value specified here. If this value is zero or if header signing is being used then
     /// this parameter has no effect.
@@ -51,7 +50,6 @@ public class HttpRequestSigner {
 
     ///  Optional function to control which headers are a part of the canonical request.
     public var shouldSignHeader: ((String) -> Bool)?
-
 
     /// We assume the uri will be encoded once in preparation for transmission. Certain services
     /// do not decode before checking signature, requiring us to actually double-encode the uri in the canonical
@@ -211,7 +209,7 @@ class SignRequestCore {
 }
 
 private func onShouldSignHeader(nameCursor: UnsafePointer<aws_byte_cursor>!,
-                              userData: UnsafeMutableRawPointer!) -> Bool {
+                                userData: UnsafeMutableRawPointer!) -> Bool {
     let signRequestCore = Unmanaged<SignRequestCore>.fromOpaque(userData).takeUnretainedValue()
     let name = nameCursor.pointee.toString()!
     return signRequestCore.shouldSignHeader!(name)

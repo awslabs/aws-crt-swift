@@ -33,7 +33,6 @@ public enum SignatureType {
     case requestEvent
 }
 
-
 public enum SignedBodyHeaderType {
 
     /// Do not add a header
