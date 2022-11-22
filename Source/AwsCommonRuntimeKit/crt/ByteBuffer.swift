@@ -321,9 +321,8 @@ extension ByteBuffer {
         defer {
             stream.close()
         }
-
         let bufferSize = 1024
-        let buffer: UnsafeMutablePointer<UInt8> = allocatePointer(bufferSize)
+        let buffer: UnsafeMutablePointer<UInt8> =  UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
         defer {
             buffer.deallocate()
         }
