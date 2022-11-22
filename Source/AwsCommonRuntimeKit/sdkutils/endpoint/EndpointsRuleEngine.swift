@@ -47,16 +47,13 @@ public class CRTAWSEndpointsRuleEngine {
     /// - Parameter context: The request context to use for endpoint resolution
     /// - Returns: The resolved endpoint
     public func resolve(context: CRTAWSEndpointsRequestContext) throws -> CRTAWSEndpointResolvedEndpoint? {
-        var resolvedEndpoint: OpaquePointer? = nil
+        var resolvedEndpoint: OpaquePointer! = nil
         guard aws_endpoints_rule_engine_resolve(rawValue, context.rawValue, &resolvedEndpoint)
                 == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
 
-        guard let rawResolvedEndpoint = resolvedEndpoint else {
-            return nil
-        }
-        return CRTAWSEndpointResolvedEndpoint(rawValue: rawResolvedEndpoint)
+        return CRTAWSEndpointResolvedEndpoint(rawValue: resolvedEndpoint)
     }
 
     deinit {
