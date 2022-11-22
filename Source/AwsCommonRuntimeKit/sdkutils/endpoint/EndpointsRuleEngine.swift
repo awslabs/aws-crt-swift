@@ -41,23 +41,19 @@ public class CRTAWSEndpointsRuleEngine {
         }
         self.allocator = allocator
         self.rawValue = try getRawValue()
-
     }
 
     /// Resolve an endpoint from the rule engine using the provided request context
     /// - Parameter context: The request context to use for endpoint resolution
     /// - Returns: The resolved endpoint
     public func resolve(context: CRTAWSEndpointsRequestContext) throws -> CRTAWSEndpointResolvedEndpoint? {
-        let resolvedEndpoint: UnsafeMutablePointer<OpaquePointer?> = allocator.allocate(capacity: 1)
-        defer {
-            allocator.release(resolvedEndpoint)
-        }
-        guard aws_endpoints_rule_engine_resolve(rawValue, context.rawValue, resolvedEndpoint)
+        var resolvedEndpoint: OpaquePointer? = nil
+        guard aws_endpoints_rule_engine_resolve(rawValue, context.rawValue, &resolvedEndpoint)
                 == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
 
-        guard let rawResolvedEndpoint = resolvedEndpoint.pointee else {
+        guard let rawResolvedEndpoint = resolvedEndpoint else {
             return nil
         }
         return CRTAWSEndpointResolvedEndpoint(rawValue: rawResolvedEndpoint)

@@ -97,16 +97,16 @@ extension Dictionary where Key == String, Value == EndpointProperty {
 }
 
 /// Coding keys for `EndpointProperty`
-internal struct EndpointPropertyCodingKeys: CodingKey {
+struct EndpointPropertyCodingKeys: CodingKey {
     var stringValue: String
 
-    init?(stringValue: String) {
+    init(stringValue: String) {
         self.stringValue = stringValue
     }
 
     var intValue: Int?
 
-    init?(intValue: Int) {
+    init(intValue: Int) {
         self.init(stringValue: "\(intValue)")
         self.intValue = intValue
     }
