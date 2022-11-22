@@ -61,7 +61,7 @@ extension CLIHasArg: RawRepresentable, CaseIterable {
     }
 }
 
-public class AWSCLIOption {
+class AWSCLIOption {
     let rawValue: aws_cli_option
     let name: UnsafeMutablePointer<CChar>
     init(name: String, hasArg: CLIHasArg, flag: UnsafeMutablePointer<Int32>? = nil, val: String) {
