@@ -4,8 +4,8 @@
 import Foundation
 import AwsCCommon
 // swiftlint:disable trailing_whitespace
-// Todo: remove/refactor
-public struct CommandLineParser {
+
+struct CommandLineParser {
     /// A function to parse command line arguments
     /// - Parameters:
     ///   - argc: The number of arguments
@@ -41,7 +41,7 @@ public struct CommandLineParser {
     }
 }
 
-public enum CLIHasArg {
+enum CLIHasArg {
     case none
     case required
     case optional
@@ -62,10 +62,9 @@ extension CLIHasArg: RawRepresentable, CaseIterable {
 }
 
 public class AWSCLIOption {
-    public let rawValue: aws_cli_option
+    let rawValue: aws_cli_option
     let name: UnsafeMutablePointer<CChar>
-    public init(name: String, hasArg: CLIHasArg, flag: UnsafeMutablePointer<Int32>? = nil, val: String) {
-        // TODO: refactor the use of !
+    init(name: String, hasArg: CLIHasArg, flag: UnsafeMutablePointer<Int32>? = nil, val: String) {
         self.name = strdup(name)!
         self.rawValue = aws_cli_option(name: self.name, has_arg: hasArg.rawValue, flag: flag, val: Int32(bitPattern: UnicodeScalar(val)?.value ?? 0))
     }
