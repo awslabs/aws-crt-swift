@@ -53,34 +53,22 @@ public class HttpRequestSigner {
         defer {
             aws_signable_destroy(signable)
         }
-        var cConfig = getCSigningConfig(config: config)
 
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<HttpRequest, Error>) in
-            withByteCursorFromStrings(config.region,
-                    config.service,
-                    config.signedBodyValue.rawValue) { regionCursor,
-                                                serviceCursor,
-                                                signedBodyValueCursor in
-                cConfig.region = regionCursor
-                cConfig.service = serviceCursor
-                cConfig.signed_body_value = signedBodyValueCursor
-                let signRequestCore = SignRequestCore(request: request,
-                        continuation: continuation,
-                        shouldSignHeader: config.shouldSignHeader,
-                        allocator: allocator)
-
-                if config.shouldSignHeader != nil {
-                    cConfig.should_sign_header_ud = signRequestCore.passUnretained()
-                    cConfig.should_sign_header = onShouldSignHeader
-                }
-
-                withUnsafePointer(to: cConfig) { configPointer in
-                    configPointer.withMemoryRebound(to: aws_signing_config_base.self, capacity: 1) { configBasePointer in
-                        if aws_sign_request_aws(allocator.rawValue, signable, configBasePointer, onSigningComplete, signRequestCore.passRetained())
-                                   != AWS_OP_SUCCESS {
-                            signRequestCore.release()
-                            continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
-                        }
+            let signRequestCore = SignRequestCore(request: request,
+                    continuation: continuation,
+                    shouldSignHeader: config.shouldSignHeader,
+                    allocator: allocator)
+            var shouldSignHeaderUserData: UnsafeMutableRawPointer? = nil
+            if config.shouldSignHeader != nil {
+                shouldSignHeaderUserData = signRequestCore.passUnretained()
+            }
+            config.withCPointer(userData: shouldSignHeaderUserData) { configPointer in
+                configPointer.withMemoryRebound(to: aws_signing_config_base.self, capacity: 1) { configBasePointer in
+                    if aws_sign_request_aws(allocator.rawValue, signable, configBasePointer, onSigningComplete, signRequestCore.passRetained())
+                               != AWS_OP_SUCCESS {
+                        signRequestCore.release()
+                        continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
                     }
                 }
             }
@@ -114,13 +102,6 @@ class SignRequestCore {
     func release() {
         Unmanaged.passUnretained(self).release()
     }
-}
-
-private func onShouldSignHeader(nameCursor: UnsafePointer<aws_byte_cursor>!,
-                                userData: UnsafeMutableRawPointer!) -> Bool {
-    let signRequestCore = Unmanaged<SignRequestCore>.fromOpaque(userData).takeUnretainedValue()
-    let name = nameCursor.pointee.toString()!
-    return signRequestCore.shouldSignHeader!(name)
 }
 
 private func onSigningComplete(signingResult: UnsafeMutablePointer<aws_signing_result>?,

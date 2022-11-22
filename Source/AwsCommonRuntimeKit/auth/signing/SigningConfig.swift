@@ -4,7 +4,7 @@
 import AwsCAuth
 import Foundation
 
-public struct SigningConfig {
+public struct SigningConfig: CStructWithUserData {
 
     /// What signing algorithm to use.
     public var algorithm: SigningAlgorithmType
@@ -94,6 +94,46 @@ public struct SigningConfig {
         self.shouldNormalizeURIPath = shouldNormalizeURIPath
         self.omitSessionToken = omitSessionToken
     }
+
+    typealias RawType = aws_signing_config_aws
+    func withCStruct<Result>(userData: UnsafeMutableRawPointer?, _ body: (aws_signing_config_aws) -> Result) -> Result {
+        var cConfig = aws_signing_config_aws()
+        cConfig.algorithm = algorithm.rawValue
+        cConfig.signature_type = signatureType.rawValue
+        cConfig.date = date.toAWSDate()
+        cConfig.credentials = credentials?.rawValue
+        cConfig.credentials_provider = credentialsProvider?.rawValue
+        cConfig.expiration_in_seconds = UInt64(expiration ?? 0)
+        cConfig.signed_body_header = signedBodyHeader.rawValue
+
+        cConfig.flags = aws_signing_config_aws.__Unnamed_struct_flags()
+        cConfig.flags.use_double_uri_encode = useDoubleURIEncode.uintValue
+        cConfig.flags.should_normalize_uri_path = shouldNormalizeURIPath.uintValue
+        cConfig.flags.omit_session_token = omitSessionToken.uintValue
+        cConfig.config_type = AWS_SIGNING_CONFIG_AWS
+
+        if let userData = userData {
+            cConfig.should_sign_header = onShouldSignHeader
+            cConfig.should_sign_header_ud = userData
+        }
+        return withByteCursorFromStrings(region,
+                service,
+                signedBodyValue.rawValue) { regionCursor,
+                                            serviceCursor,
+                                            signedBodyValueCursor in
+            cConfig.region = regionCursor
+            cConfig.service = serviceCursor
+            cConfig.signed_body_value = signedBodyValueCursor
+            return body(cConfig)
+        }
+    }
+}
+
+private func onShouldSignHeader(nameCursor: UnsafePointer<aws_byte_cursor>!,
+                                userData: UnsafeMutableRawPointer!) -> Bool {
+    let signRequestCore = Unmanaged<SignRequestCore>.fromOpaque(userData).takeUnretainedValue()
+    let name = nameCursor.pointee.toString()!
+    return signRequestCore.shouldSignHeader!(name)
 }
 
 public enum SignatureType {
