@@ -68,7 +68,6 @@ public class CRTAWSProfileCollection {
         return CRTAWSProfile(rawValue: profilePointer)
     }
 
-
     /// Returns how many profiles a collection holds
     public var profileCount: Int {
         return aws_profile_collection_get_profile_count(rawValue)
