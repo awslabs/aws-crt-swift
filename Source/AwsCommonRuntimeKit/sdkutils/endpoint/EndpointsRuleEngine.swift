@@ -52,7 +52,6 @@ public class CRTAWSEndpointsRuleEngine {
                 == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-
         return CRTAWSEndpointResolvedEndpoint(rawValue: resolvedEndpoint)
     }
 
