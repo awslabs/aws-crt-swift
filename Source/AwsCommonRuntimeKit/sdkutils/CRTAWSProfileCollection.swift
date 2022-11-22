@@ -32,16 +32,15 @@ public class CRTAWSProfileCollection {
          allocator: Allocator = defaultAllocator) {
         var byteArray = buffer.toByteArray()
         let byteCount = byteArray.count
-        let byteBuf = byteArray.withUnsafeMutableBufferPointer { pointer -> aws_byte_buf in
+        var byteBuf = byteArray.withUnsafeMutableBufferPointer { pointer -> aws_byte_buf in
             let byteBuf = aws_byte_buf(len: byteCount,
                                        buffer: pointer.baseAddress,
                                        capacity: byteCount,
                                        allocator: allocator.rawValue)
             return byteBuf
         }
-        let pointer: UnsafePointer<aws_byte_buf> = fromPointer(ptr: byteBuf)
         self.rawValue = aws_profile_collection_new_from_buffer(allocator.rawValue,
-                                                               pointer,
+                                                               &byteBuf,
                                                                source.rawValue)
 
     }
