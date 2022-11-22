@@ -24,22 +24,22 @@ public class CRTAWSEndpointResolvedEndpoint {
     /// Get the URL of the resolved endpoint
     /// - Returns: The URL of the resolved endpoint
     public func getURL() throws -> String? {
-        var urlOut = aws_byte_cursor()
-        guard aws_endpoints_resolved_endpoint_get_url(rawValue, &urlOut) == AWS_OP_SUCCESS else {
+        var url = aws_byte_cursor()
+        guard aws_endpoints_resolved_endpoint_get_url(rawValue, &url) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-        return urlOut.toString()
+        return url.toString()
     }
 
     /// Get the properties of the resolved endpoint
     /// - Returns: The properties of the resolved endpoint
     public func getProperties() throws -> [String: AnyHashable]? {
-        var propsOut = aws_byte_cursor()
-        guard aws_endpoints_resolved_endpoint_get_properties(rawValue, &propsOut) == AWS_OP_SUCCESS else {
+        var properties = aws_byte_cursor()
+        guard aws_endpoints_resolved_endpoint_get_properties(rawValue, &properties) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
 
-        guard let data = propsOut.toString()?.data(using: .utf8) else {
+        guard let data = properties.toString()?.data(using: .utf8) else {
             return nil
         }
         return try JSONDecoder().decode([String: EndpointProperty].self, from: data).toStringHashableDictionary()
@@ -48,11 +48,11 @@ public class CRTAWSEndpointResolvedEndpoint {
     /// Get the error of the resolved endpoint
     /// - Parameter allocator: The allocator to use for the error
     public func getError() throws -> String? {
-        var errorOut = aws_byte_cursor()
-        guard aws_endpoints_resolved_endpoint_get_error(rawValue, &errorOut) == AWS_OP_SUCCESS else {
+        var error = aws_byte_cursor()
+        guard aws_endpoints_resolved_endpoint_get_error(rawValue, &error) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-        return errorOut.toString()
+        return error.toString()
     }
 
     /// Get headers of the resolved endpoint
@@ -65,12 +65,11 @@ public class CRTAWSEndpointResolvedEndpoint {
         }
 
         var headers: [String: [String]] = [:]
-        var iter = aws_hash_iter_begin(cHeaders)
 
+        var iter = aws_hash_iter_begin(cHeaders)
         while !aws_hash_iter_done(&iter) {
             // Get the key
             let keyPtr = iter.element.key.bindMemory(to: aws_string.self, capacity: 1)
-            //TODO: should we crash if we can not parse the string or throw error?
             let key = String(awsString: keyPtr)!
 
             // Get the value

@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 /// Struct that represents endpoint property which can be a boolean, string or array of endpoint properties
-internal enum EndpointProperty {
+enum EndpointProperty {
     case bool(Bool)
     case string(String)
     indirect case array([EndpointProperty])
