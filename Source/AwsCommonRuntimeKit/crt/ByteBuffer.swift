@@ -10,15 +10,19 @@ import struct Foundation.URL
 import AwsCIo
 import AwsCCommon
 import AwsCCal
-#if os(Linux)
-     import Glibc
- #else
-     import Darwin
- #endif
-
 // swiftlint:disable identifier_name superfluous_disable_command
 // Todo: this is being used. Refactor
 public class ByteBuffer: Codable {
+
+    private var array = [UInt8]()
+    private var currentIndex: Int = 0
+    var capacity: Int = 0
+
+    private var currentEndianness: Endianness = .big
+    private var hostEndianness: Endianness {
+        let number: UInt32 = 0x12345678
+        return number == number.bigEndian ? .big : .little
+    }
 
     public init(size: Int) {
         array.reserveCapacity(size)
@@ -30,13 +34,13 @@ public class ByteBuffer: Codable {
         self.capacity = bytes.count
     }
 
-    //Todo: do not expose pointer
     public init(ptr: UnsafeMutablePointer<UInt8>, len: Int, capacity: Int) {
         let buffer = UnsafeBufferPointer(start: ptr, count: len)
         self.array = Array(buffer)
         self.capacity = capacity
     }
 
+    //TODO: bug, why not reset capacity?
     public func allocate(_ size: Int) {
         array = [UInt8]()
         array.reserveCapacity(size)
@@ -227,16 +231,6 @@ public class ByteBuffer: Codable {
         return value.withUnsafeBytes {
             $0.load(fromByteOffset: 0, as: T.self)
         }
-    }
-
-    private var array = [UInt8]()
-    private var currentIndex: Int = 0
-    var capacity: Int = 0
-
-    private var currentEndianness: Endianness = .big
-    private var hostEndianness: Endianness {
-        let number: UInt32 = 0x12345678
-        return number == number.bigEndian ? .big : .little
     }
 
     public func encode(to encoder: Encoder) throws {
