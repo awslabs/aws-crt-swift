@@ -3,6 +3,7 @@
 
 import AwsCSdkUtils
 
+//TODO: rename
 public class CRTAWSProfileCollection {
     var rawValue: OpaquePointer
 
