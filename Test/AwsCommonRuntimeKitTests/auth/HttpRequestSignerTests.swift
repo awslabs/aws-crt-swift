@@ -26,12 +26,12 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
                 date: getDate(),
                 credentialsProvider: provider)
 
-        let signedRequest = try await HttpRequestSigner.signRequest(request: request,
-                                                                    config: config,
-                                                                    allocator: allocator)
+        try await HttpRequestSigner.signRequest(request: request,
+                config: config,
+                allocator: allocator)
 
-        XCTAssertNotNil(signedRequest)
-        let headers = signedRequest.getHeaders()
+        XCTAssertNotNil(request)
+        let headers = request.getHeaders()
         XCTAssert(headers.contains(where: {
             $0.name == "Authorization" && $0.value.starts(with:
             "AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/20150830/us-east-1/service/aws4_request, SignedHeaders=host;x-amz-date, Signature=")
@@ -51,12 +51,12 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
                 date: getDate(),
                 credentials: credentials)
 
-        let signedRequest = try await HttpRequestSigner.signRequest(request: request, 
-                                                                    config: config, 
-                                                                    allocator: allocator)
+        try await HttpRequestSigner.signRequest(request: request,
+                config: config,
+                allocator: allocator)
 
-        XCTAssertNotNil(signedRequest)
-        let headers = signedRequest.getHeaders()
+        XCTAssertNotNil(request)
+        let headers = request.getHeaders()
         XCTAssert(headers.contains(where: { $0.name == "Authorization" }))
         XCTAssert(headers.contains(where: { $0.name == "X-Amz-Date" }))
         XCTAssert(headers.contains(where: { $0.name == "Host" && $0.value == SIGV4TEST_HOST }))
@@ -74,12 +74,12 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
                 credentials: credentials,
                 signedBodyHeader: .contentSha256)
 
-        let signedRequest = try await HttpRequestSigner.signRequest(request: request, 
-                                                                    config: config, 
-                                                                    allocator: allocator)
+        try await HttpRequestSigner.signRequest(request: request,
+                config: config,
+                allocator: allocator)
 
-        XCTAssertNotNil(signedRequest)
-        let headers = signedRequest.getHeaders()
+        XCTAssertNotNil(request)
+        let headers = request.getHeaders()
         XCTAssert(headers.contains(where: {
             $0.name == "Authorization" && $0.value.starts(with:
             "AWS4-HMAC-SHA256 Credential=wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY/20150830/us-east-1/service/aws4_request, SignedHeaders=content-length;host;x-amz-content-sha256;x-amz-date, Signature=")
@@ -106,12 +106,12 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
                 credentialsProvider: provider,
                 shouldSignHeader: shouldSignHeader)
 
-        let signedRequest = try await HttpRequestSigner.signRequest(request: request, 
-                                                                    config: config, 
-                                                                    allocator: allocator)
+        try await HttpRequestSigner.signRequest(request: request,
+                config: config,
+                allocator: allocator)
 
-        XCTAssertNotNil(signedRequest)
-        let headers = signedRequest.getHeaders()
+        XCTAssertNotNil(request)
+        let headers = request.getHeaders()
         XCTAssert(headers.contains(where: {
             $0.name == "Authorization" && $0.value.starts(with:
             "AWS4-ECDSA-P256-SHA256 Credential=AKIDEXAMPLE/20150830/service/aws4_request, SignedHeaders=host;x-amz-date;x-amz-region-set, Signature=")
@@ -129,12 +129,12 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
                 service: SIGV4TEST_HOST,
                 region: SIGV4TEST_REGION,
                 credentials: credentials)
-        let signedRequest = try await HttpRequestSigner.signRequest(request: request, 
-                                                                    config: config, 
-                                                                    allocator: allocator)
+        try await HttpRequestSigner.signRequest(request: request,
+                config: config,
+                allocator: allocator)
 
-        XCTAssertNotNil(signedRequest)
-        let headers = signedRequest.getHeaders()
+        XCTAssertNotNil(request)
+        let headers = request.getHeaders()
         XCTAssert(headers.contains(where: { $0.name == "Authorization" }))
     }
 
