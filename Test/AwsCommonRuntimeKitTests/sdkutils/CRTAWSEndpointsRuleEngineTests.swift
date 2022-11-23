@@ -1,5 +1,5 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+////  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+////  SPDX-License-Identifier: Apache-2.0.
 
 import XCTest
 import Foundation
@@ -110,7 +110,7 @@ class CRTAWSEndpointsRuleEngineTests: CrtXCBaseTestCase {
       ]
     }
     """#
-    
+
     let ruleSet = #"""
         {
           "version": "1.0",
@@ -191,18 +191,19 @@ class CRTAWSEndpointsRuleEngineTests: CrtXCBaseTestCase {
           ]
         }
         """#
-    
+
     func testResolve() throws {
-        let engine = try CRTAWSEndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
+        let engine = try EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
         let context = try CRTAWSEndpointsRequestContext(allocator: allocator)
         try context.add(name: "Region", value: "us-west-2")
-        let endpoint = try engine.resolve(context: context)
-        let url = try endpoint?.getURL()
-        XCTAssertNotNil(url)
-        XCTAssertEqual("https://example.us-west-2.amazonaws.com", url!)
-
-        let props = try endpoint?.getProperties()
-        XCTAssertNotNil(props)
+        let resolved = try engine.resolve(context: context)
+        guard case ResolvedEndpoint.endpoint(url: let url,
+                              headers: let headers,
+                              properties: let properties) = resolved else {
+            XCTFail("Endpoint resolved to an error")
+            return
+        }
+        XCTAssertEqual("https://example.us-west-2.amazonaws.com", url)
         let expectedProps = [
             "authSchemes": [
                 [
@@ -212,10 +213,7 @@ class CRTAWSEndpointsRuleEngineTests: CrtXCBaseTestCase {
                 ]
             ]
         ]
-        XCTAssertEqual(expectedProps, props)
-        
-        let headers = try endpoint?.getHeaders()
-        XCTAssertNotNil(headers)
+        XCTAssertEqual(expectedProps, properties)
         let expectedHeaders = [
             "x-amz-region": [
                 "us-west-2"
@@ -227,25 +225,25 @@ class CRTAWSEndpointsRuleEngineTests: CrtXCBaseTestCase {
         ]
         XCTAssertEqual(expectedHeaders, headers)
     }
-    
+
     func testRuleSetParsingPerformance() {
         measure {
-            _ = try! CRTAWSEndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
+            _ = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
         }
     }
-    
+
     func testRuleSetEvaluationPerformance() {
-        let engine = try! CRTAWSEndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
+        let engine = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
         let context = try! CRTAWSEndpointsRequestContext(allocator: allocator)
         try! context.add(name: "Region", value: "us-west-2")
         measure {
             let _ = try! engine.resolve(context: context)
         }
     }
-    
+
     func testResolvePerformance() {
         measure {
-            let engine = try! CRTAWSEndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
+            let engine = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
             let context = try! CRTAWSEndpointsRequestContext(allocator: allocator)
             try! context.add(name: "Region", value: "us-west-2")
             let _ = try! engine.resolve(context: context)

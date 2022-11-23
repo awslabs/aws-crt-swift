@@ -27,7 +27,7 @@ public class CRTAWSProfileCollection {
     }
 
     /// Create a new profile collection by parsing text in a buffer. Primarily for testing.
-    init(fromBuffer buffer: ByteBuffer,
+    init?(fromBuffer buffer: ByteBuffer,
          source: CRTAWSProfileSourceType,
          allocator: Allocator = defaultAllocator) {
         var byteArray = buffer.toByteArray()
@@ -39,10 +39,13 @@ public class CRTAWSProfileCollection {
                                        allocator: allocator.rawValue)
             return byteBuf
         }
-        self.rawValue = aws_profile_collection_new_from_buffer(allocator.rawValue,
+        guard let rawValue = aws_profile_collection_new_from_buffer(allocator.rawValue,
                                                                &byteBuf,
-                                                               source.rawValue)
+                                                               source.rawValue) else {
+            return nil
+        }
 
+        self.rawValue = rawValue
     }
 
     /// Create a new profile collection by merging a config-file-based profile

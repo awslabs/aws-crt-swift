@@ -11,11 +11,9 @@ public struct CRTAWSProfileProperty {
     }
 
     /// Returns the property's string value
-    public var value: String? {
-        guard let awsString = aws_profile_property_get_value(rawValue) else {
-            return nil
-        }
-        return String(awsString: awsString)
+    public var value: String {
+        let awsString = aws_profile_property_get_value(rawValue)!
+        return String(awsString: awsString)!
     }
 
     /// Returns the value of a sub property with the given name, if it exists, in the property
