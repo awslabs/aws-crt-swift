@@ -28,8 +28,8 @@ public class CRTAWSProfileCollection {
 
     /// Create a new profile collection by parsing text in a buffer. Primarily for testing.
     init?(fromBuffer buffer: ByteBuffer,
-         source: CRTAWSProfileSourceType,
-         allocator: Allocator = defaultAllocator) {
+          source: CRTAWSProfileSourceType,
+          allocator: Allocator = defaultAllocator) {
         var byteArray = buffer.toByteArray()
         let byteCount = byteArray.count
         var byteBuf = byteArray.withUnsafeMutableBufferPointer { pointer -> aws_byte_buf in

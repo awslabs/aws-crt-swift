@@ -107,7 +107,6 @@ public class EndpointsRuleEngine {
         return headers
     }
 
-
     /// Get the properties of the resolved endpoint
     /// - Returns: The properties of the resolved endpoint
     func getProperties(rawValue: OpaquePointer) throws -> [String: AnyHashable] {
@@ -135,7 +134,6 @@ public class EndpointsRuleEngine {
         }
         return error.toString()!
     }
-
 
     deinit {
         aws_endpoints_rule_engine_release(rawValue)
