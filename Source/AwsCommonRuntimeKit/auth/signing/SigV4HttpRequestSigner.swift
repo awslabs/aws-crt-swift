@@ -8,6 +8,8 @@ import Foundation
 public class Signer {
 
     /// Signs an HttpRequest that was passed in via the appropriate algorithm.
+    /// This function returns a reference to the same request object that was passed in.
+    /// So request in parameter will also be signed when the signing completes.
     /// Do not add the following headers to requests before signing:
     ///   - x-amz-content-sha256,
     ///   - X-Amz-Date,
