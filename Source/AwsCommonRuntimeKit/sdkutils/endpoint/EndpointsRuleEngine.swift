@@ -83,7 +83,6 @@ public class EndpointsRuleEngine {
 
     /// Get headers of the resolved endpoint
     /// - Returns: The headers of the resolved endpoint
-    /// TODO: refactor
     public func getHeaders(rawValue: OpaquePointer) throws -> [String: [String]] {
         var cHeaders: UnsafePointer<aws_hash_table>! = nil
         guard aws_endpoints_resolved_endpoint_get_headers(rawValue, &cHeaders) == AWS_OP_SUCCESS else {
