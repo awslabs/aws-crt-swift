@@ -8,9 +8,9 @@ public class CRTAWSProfileCollection {
     var rawValue: OpaquePointer
 
     /// Create a new profile collection by parsing a file with the specified path
-    public init?(fromFile path: String,
+    public init(fromFile path: String,
                  source: CRTAWSProfileSourceType,
-                 allocator: Allocator = defaultAllocator) {
+                 allocator: Allocator = defaultAllocator) throws {
         var finalizedPath = path
         if path.hasPrefix("~"),
            let homeDirectory = aws_get_home_directory(allocator.rawValue),
@@ -21,15 +21,15 @@ public class CRTAWSProfileCollection {
         guard let profilePointer = aws_profile_collection_new_from_file(allocator.rawValue,
                                                                         awsString.rawValue,
                                                                         source.rawValue) else {
-            return nil
+            throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = profilePointer
     }
 
     /// Create a new profile collection by parsing text in a buffer. Primarily for testing.
-    init?(fromBuffer buffer: ByteBuffer,
+    init(fromBuffer buffer: ByteBuffer,
           source: CRTAWSProfileSourceType,
-          allocator: Allocator = defaultAllocator) {
+          allocator: Allocator = defaultAllocator) throws {
         var byteArray = buffer.toByteArray()
         let byteCount = byteArray.count
         var byteBuf = byteArray.withUnsafeMutableBufferPointer { pointer -> aws_byte_buf in
@@ -42,7 +42,7 @@ public class CRTAWSProfileCollection {
         guard let rawValue = aws_profile_collection_new_from_buffer(allocator.rawValue,
                                                                &byteBuf,
                                                                source.rawValue) else {
-            return nil
+            throw CommonRunTimeError.crtError(.makeFromLastError())
         }
 
         self.rawValue = rawValue
@@ -50,13 +50,13 @@ public class CRTAWSProfileCollection {
 
     /// Create a new profile collection by merging a config-file-based profile
     /// collection and a credentials-file-based profile collection
-    public init?(configProfileCollection: CRTAWSProfileCollection,
+    public init(configProfileCollection: CRTAWSProfileCollection,
                  credentialProfileCollection: CRTAWSProfileCollection,
-                 allocator: Allocator = defaultAllocator) {
+                 allocator: Allocator = defaultAllocator) throws {
         guard let rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
                                                                    configProfileCollection.rawValue,
                                                                    credentialProfileCollection.rawValue) else {
-            return nil
+            throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue
     }
