@@ -204,7 +204,7 @@ class CRTAWSEndpointsRuleEngineTests: CrtXCBaseTestCase {
             return
         }
         XCTAssertEqual("https://example.us-west-2.amazonaws.com", url)
-        let expectedProps = [
+        let expectedProperties = [
             "authSchemes": [
                 [
                     "name": "sigv4",
@@ -213,7 +213,7 @@ class CRTAWSEndpointsRuleEngineTests: CrtXCBaseTestCase {
                 ]
             ]
         ]
-        XCTAssertEqual(expectedProps, properties)
+        XCTAssertEqual(expectedProperties, properties)
         let expectedHeaders = [
             "x-amz-region": [
                 "us-west-2"
