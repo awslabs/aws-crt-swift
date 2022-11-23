@@ -8,7 +8,6 @@ import Foundation
 public class EndpointsRuleEngine {
 
     let rawValue: OpaquePointer
-    let allocator: Allocator
 
     /// Initialize a new rule engine
     /// - Parameters:
@@ -41,7 +40,6 @@ public class EndpointsRuleEngine {
             return rawValue
         }
 
-        self.allocator = allocator
         self.rawValue = try getRawValue()
     }
 
@@ -66,7 +64,7 @@ public class EndpointsRuleEngine {
                     headers: try getHeaders(rawValue: resolvedEndpoint),
                     properties: try getProperties(rawValue: resolvedEndpoint))
         } else {
-            return ResolvedEndpoint.error(message: try getError(rawValue: resolvedEndpoint))
+            return ResolvedEndpoint.error(message: try getErrorMessage(rawValue: resolvedEndpoint))
         }
 
     }
@@ -125,8 +123,8 @@ public class EndpointsRuleEngine {
     }
 
     /// Get the error of the resolved endpoint
-    /// - Parameter allocator: The allocator to use for the error
-    func getError(rawValue: OpaquePointer) throws -> String {
+    /// - Returns: The error message of the resolved endpoint
+    func getErrorMessage(rawValue: OpaquePointer) throws -> String {
         var error = aws_byte_cursor()
         guard aws_endpoints_resolved_endpoint_get_error(rawValue, &error) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
