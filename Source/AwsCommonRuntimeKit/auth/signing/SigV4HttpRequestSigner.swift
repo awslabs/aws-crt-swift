@@ -5,7 +5,7 @@ import AwsCAuth
 import Foundation
 
 //TODO: update file name
-public class AWSSigner {
+public class Signer {
 
     /// Signs an HttpRequest that was passed in via the appropriate algorithm.
     /// Do not add the following headers to requests before signing:
@@ -28,7 +28,7 @@ public class AWSSigner {
     ///    - `config`: The `SigningConfig` to use when signing.
     /// - `Throws`: An error of type `AwsCommonRuntimeError` which will pull last error found in the CRT
     /// - `Returns`: Returns a signed http request `HttpRequest`
-    public static func signRequest(request: HttpRequest, config: AWSSigningConfig, allocator: Allocator = defaultAllocator) async throws {
+    public static func signRequest(request: HttpRequest, config: SigningConfig, allocator: Allocator = defaultAllocator) async throws {
 
         guard let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue) else {
             fatalError("Unable to create a new singable http request")
