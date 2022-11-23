@@ -4,7 +4,7 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-class HttpRequestSignerTests: CrtXCBaseTestCase {
+class SignerTests: CrtXCBaseTestCase {
 
     let SIGV4TEST_ACCESS_KEY_ID = "AKIDEXAMPLE"
     let SIGV4TEST_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY"
@@ -26,7 +26,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
                 date: getDate(),
                 credentialsProvider: provider)
 
-        let signedRequest = try await HttpRequestSigner.signRequest(request: request,
+        let signedRequest = try await Signer.signRequest(request: request,
                                                                     config: config,
                                                                     allocator: allocator)
 
@@ -51,7 +51,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
                 date: getDate(),
                 credentials: credentials)
 
-        let signedRequest = try await HttpRequestSigner.signRequest(request: request, 
+        let signedRequest = try await Signer.signRequest(request: request, 
                                                                     config: config, 
                                                                     allocator: allocator)
 
@@ -74,7 +74,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
                 credentials: credentials,
                 signedBodyHeader: .contentSha256)
 
-        let signedRequest = try await HttpRequestSigner.signRequest(request: request, 
+        let signedRequest = try await Signer.signRequest(request: request, 
                                                                     config: config, 
                                                                     allocator: allocator)
 
@@ -106,7 +106,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
                 credentialsProvider: provider,
                 shouldSignHeader: shouldSignHeader)
 
-        let signedRequest = try await HttpRequestSigner.signRequest(request: request, 
+        let signedRequest = try await Signer.signRequest(request: request, 
                                                                     config: config, 
                                                                     allocator: allocator)
 
@@ -129,7 +129,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
                 service: SIGV4TEST_HOST,
                 region: SIGV4TEST_REGION,
                 credentials: credentials)
-        let signedRequest = try await HttpRequestSigner.signRequest(request: request, 
+        let signedRequest = try await Signer.signRequest(request: request, 
                                                                     config: config, 
                                                                     allocator: allocator)
 

@@ -32,7 +32,9 @@ public class Signer {
     /// - `Returns`: Returns a signed http request `HttpRequest`
     public static func signRequest(request: HttpRequest, config: SigningConfig, allocator: Allocator = defaultAllocator) async throws -> HttpRequest {
 
-        let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
+        guard let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue) else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
         defer {
             aws_signable_destroy(signable)
         }
