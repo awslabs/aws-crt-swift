@@ -78,6 +78,10 @@ public class EndpointsRuleEngine {
         guard aws_endpoints_resolved_endpoint_get_url(rawValue, &url) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
+        guard url.len > 0 else {
+            fatalError("Url length can not be zero")
+        }
+
         return url.toString()!
     }
 
