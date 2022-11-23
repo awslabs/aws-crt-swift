@@ -18,7 +18,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
         let request = try makeMockRequest()
         let provider = try makeMockCredentialsProvider()
 
-        let config = SigningConfig(
+        let config = AWSSigningConfig(
                 algorithm: SigningAlgorithmType.signingV4,
                 signatureType: SignatureType.requestHeaders,
                 service: SIGV4TEST_SERVICE,
@@ -26,7 +26,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
                 date: getDate(),
                 credentialsProvider: provider)
 
-        try await HttpRequestSigner.signRequest(request: request,
+        try await AWSSigner.signRequest(request: request,
                 config: config,
                 allocator: allocator)
 
@@ -43,7 +43,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
     func testSigningSigv4HeadersWithCredentials() async throws {
         let request = try makeMockRequest()
         let credentials = try makeMockCredentials()
-        let config = SigningConfig(
+        let config = AWSSigningConfig(
                 algorithm: SigningAlgorithmType.signingV4,
                 signatureType: SignatureType.requestHeaders,
                 service: SIGV4TEST_SERVICE,
@@ -51,7 +51,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
                 date: getDate(),
                 credentials: credentials)
 
-        try await HttpRequestSigner.signRequest(request: request,
+        try await AWSSigner.signRequest(request: request,
                 config: config,
                 allocator: allocator)
 
@@ -65,7 +65,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
     func testSigningSigv4Body() async throws {
         let request = try makeMockRequestWithBody()
         let credentials = try makeMockCredentials()
-        let config = SigningConfig(
+        let config = AWSSigningConfig(
                 algorithm: SigningAlgorithmType.signingV4,
                 signatureType: SignatureType.requestHeaders,
                 service: SIGV4TEST_SERVICE,
@@ -74,7 +74,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
                 credentials: credentials,
                 signedBodyHeader: .contentSha256)
 
-        try await HttpRequestSigner.signRequest(request: request,
+        try await AWSSigner.signRequest(request: request,
                 config: config,
                 allocator: allocator)
 
@@ -97,7 +97,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
         let shouldSignHeader: (String) -> Bool = { header in
             return true
         }
-        let config = SigningConfig(
+        let config = AWSSigningConfig(
                 algorithm: .signingV4Asymmetric,
                 signatureType: SignatureType.requestHeaders,
                 service: SIGV4TEST_SERVICE,
@@ -106,7 +106,7 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
                 credentialsProvider: provider,
                 shouldSignHeader: shouldSignHeader)
 
-        try await HttpRequestSigner.signRequest(request: request,
+        try await AWSSigner.signRequest(request: request,
                 config: config,
                 allocator: allocator)
 
@@ -123,13 +123,13 @@ class HttpRequestSignerTests: CrtXCBaseTestCase {
     func testSigningWithCredentialsAndBodyInRequest() async throws {
         let request = try makeMockRequestWithBody()
         let credentials = try makeMockCredentials()
-        let config = SigningConfig(
+        let config = AWSSigningConfig(
                 algorithm: SigningAlgorithmType.signingV4,
                 signatureType: SignatureType.requestHeaders,
                 service: SIGV4TEST_HOST,
                 region: SIGV4TEST_REGION,
                 credentials: credentials)
-        try await HttpRequestSigner.signRequest(request: request,
+        try await AWSSigner.signRequest(request: request,
                 config: config,
                 allocator: allocator)
 

@@ -4,7 +4,7 @@
 import AwsCAuth
 import Foundation
 
-public struct SigningConfig: CStructWithUserData {
+public struct AWSSigningConfig: CStructWithUserData {
 
     /// What signing algorithm to use.
     public var algorithm: SigningAlgorithmType

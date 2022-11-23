@@ -5,28 +5,9 @@ import AwsCAuth
 import Foundation
 
 //TODO: update file name
-public class HttpRequestSigner {
+public class AWSSigner {
 
-    static func getCSigningConfig(config: SigningConfig) -> aws_signing_config_aws {
-        var cConfig = aws_signing_config_aws()
-        cConfig.algorithm = config.algorithm.rawValue
-        cConfig.signature_type = config.signatureType.rawValue
-        cConfig.date = config.date.toAWSDate()
-        cConfig.credentials = config.credentials?.rawValue
-        cConfig.credentials_provider = config.credentialsProvider?.rawValue
-        cConfig.expiration_in_seconds = UInt64(config.expiration ?? 0)
-        cConfig.signed_body_header = config.signedBodyHeader.rawValue
-
-        cConfig.flags = aws_signing_config_aws.__Unnamed_struct_flags()
-        cConfig.flags.use_double_uri_encode = config.useDoubleURIEncode.uintValue
-        cConfig.flags.should_normalize_uri_path = config.shouldNormalizeURIPath.uintValue
-        cConfig.flags.omit_session_token = config.omitSessionToken.uintValue
-        cConfig.config_type = AWS_SIGNING_CONFIG_AWS
-
-        return cConfig
-    }
-
-    /// Signs an HttpRequest via the SigV4 algorithm.
+    /// Signs an HttpRequest that was passed in via the appropriate algorithm.
     /// Do not add the following headers to requests before signing:
     ///   - x-amz-content-sha256,
     ///   - X-Amz-Date,
@@ -47,7 +28,7 @@ public class HttpRequestSigner {
     ///    - `config`: The `SigningConfig` to use when signing.
     /// - `Throws`: An error of type `AwsCommonRuntimeError` which will pull last error found in the CRT
     /// - `Returns`: Returns a signed http request `HttpRequest`
-    public static func signRequest(request: HttpRequest, config: SigningConfig, allocator: Allocator = defaultAllocator) async throws {
+    public static func signRequest(request: HttpRequest, config: AWSSigningConfig, allocator: Allocator = defaultAllocator) async throws {
 
         guard let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue) else {
             fatalError("Unable to create a new singable http request")
