@@ -5,7 +5,7 @@ import XCTest
 import Foundation
 @testable import AwsCommonRuntimeKit
 
-class CRTAWSEndpointsRuleEngineTests: CrtXCBaseTestCase {
+class EndpointsRuleEngineTests: CrtXCBaseTestCase {
 
     let partitions = #"""
     {
@@ -192,6 +192,28 @@ class CRTAWSEndpointsRuleEngineTests: CrtXCBaseTestCase {
         }
         """#
 
+    let errorRuleSet = #"""
+      {
+        "version": "1.0",
+        "serviceId": "example",
+        "parameters": {
+          "Region": {
+            "type": "string",
+            "builtIn": "AWS::Region",
+            "documentation": "The region to dispatch the request to"
+          }
+        },
+        "rules": [
+          {
+              "type": "error",
+              "documentation": "invalid region value",
+              "conditions": [],
+              "error": "unable to determine endpoint for region"
+          }
+        ]
+      }
+      """#
+
     func testResolve() throws {
         let engine = try EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
         let context = try CRTAWSEndpointsRequestContext(allocator: allocator)
@@ -224,6 +246,17 @@ class CRTAWSEndpointsRuleEngineTests: CrtXCBaseTestCase {
             ]
         ]
         XCTAssertEqual(expectedHeaders, headers)
+    }
+
+    func testResolveError() throws {
+        let engine = try EndpointsRuleEngine(partitions: partitions, ruleSet: errorRuleSet, allocator: allocator)
+        let context = try CRTAWSEndpointsRequestContext(allocator: allocator)
+        let resolved = try engine.resolve(context: context)
+        guard case ResolvedEndpoint.error(message: let error) = resolved else {
+            XCTFail("Endpoint resolved to an endpoint")
+            return
+        }
+        XCTAssertEqual(error, "unable to determine endpoint for region")
     }
 
     func testRuleSetParsingPerformance() {
