@@ -28,16 +28,14 @@ public class Signer {
     ///    - `config`: The `SigningConfig` to use when signing.
     /// - `Throws`: An error of type `AwsCommonRuntimeError` which will pull last error found in the CRT
     /// - `Returns`: Returns a signed http request `HttpRequest`
-    public static func signRequest(request: HttpRequest, config: SigningConfig, allocator: Allocator = defaultAllocator) async throws {
+    public static func signRequest(request: HttpRequest, config: SigningConfig, allocator: Allocator = defaultAllocator) async throws -> HttpRequest {
 
-        guard let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue) else {
-            fatalError("Unable to create a new singable http request")
-        }
+        let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
         defer {
             aws_signable_destroy(signable)
         }
 
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(), Error>) in
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<HttpRequest, Error>) in
             let signRequestCore = SignRequestCore(request: request,
                     continuation: continuation,
                     shouldSignHeader: config.shouldSignHeader,
@@ -62,10 +60,10 @@ public class Signer {
 class SignRequestCore {
     let allocator: Allocator
     let request: HttpRequest
-    var continuation: CheckedContinuation<(), Error>
+    var continuation: CheckedContinuation<HttpRequest, Error>
     let shouldSignHeader: ((String) -> Bool)?
     init(request: HttpRequest,
-         continuation: CheckedContinuation<(), Error>,
+         continuation: CheckedContinuation<HttpRequest, Error>,
          shouldSignHeader: ((String) -> Bool)? = nil,
          allocator: Allocator) {
         self.allocator = allocator
@@ -101,7 +99,7 @@ private func onSigningComplete(signingResult: UnsafeMutablePointer<aws_signing_r
             signRequestCore.allocator.rawValue,
             signingResult!)
     if signedRequest == AWS_OP_SUCCESS {
-        signRequestCore.continuation.resume()
+        signRequestCore.continuation.resume(returning: signRequestCore.request)
     } else {
         signRequestCore.continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
     }
