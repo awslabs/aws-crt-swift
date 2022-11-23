@@ -11,11 +11,8 @@ public struct CRTAWSProfile {
     }
 
     /// Returns a reference to the name of the provided profile
-    public var name: String? {
-        guard let string = aws_profile_get_name(rawValue) else {
-            return nil
-        }
-        return String(awsString: string)
+    public var name: String {
+        String(awsString:  aws_profile_get_name(rawValue))!
     }
 
     /// Retrieves a reference to a property with the specified name, if it exists, from a profile
