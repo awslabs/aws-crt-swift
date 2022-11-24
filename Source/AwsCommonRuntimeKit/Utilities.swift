@@ -53,6 +53,14 @@ extension aws_date_time {
     }
 }
 
+extension Date {
+    func toAWSDate() -> aws_date_time {
+        var date = aws_date_time()
+        aws_date_time_init_epoch_secs(&date, self.timeIntervalSince1970)
+        return date
+    }
+}
+
 extension TimeInterval {
     var millisecond: UInt64 {
         UInt64(self*1000)

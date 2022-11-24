@@ -35,6 +35,23 @@ extension CStructWithShutdownOptions {
     }
 }
 
+protocol CStructWithUserData: CStruct {
+    func withCStruct<Result>(userData: UnsafeMutableRawPointer?, _ body: (RawType) -> Result) -> Result
+}
+
+extension CStructWithUserData {
+
+    func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
+        withCStruct(userData: nil, body)
+    }
+
+    func withCPointer<Result>(userData: UnsafeMutableRawPointer?, _ body: (UnsafePointer<RawType>) -> Result) -> Result {
+        return withCStruct(userData: userData) { cStruct in
+            return withUnsafePointer(to: cStruct) { body($0) }
+        }
+    }
+}
+
 func withOptionalCStructPointer<T, Result>(
         to arg1: (any CStruct)?, _ body: (UnsafePointer<T>?) -> Result
 ) -> Result {
