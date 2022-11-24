@@ -2,15 +2,14 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCAuth
+import Foundation
 
-public class SigV4HttpRequestSigner {
-    public var allocator: Allocator
+//TODO: update file name
+public class Signer {
 
-    public init(allocator: Allocator = defaultAllocator) {
-        self.allocator = allocator
-    }
-
-    /// Signs an HttpRequest via the SigV4 algorithm.
+    /// Signs an HttpRequest that was passed in via the appropriate algorithm.
+    /// This function returns a reference to the same request object that was passed in.
+    /// So request in parameter will also be signed when the signing completes.
     /// Do not add the following headers to requests before signing:
     ///   - x-amz-content-sha256,
     ///   - X-Amz-Date,
@@ -31,58 +30,81 @@ public class SigV4HttpRequestSigner {
     ///    - `config`: The `SigningConfig` to use when signing.
     /// - `Throws`: An error of type `AwsCommonRuntimeError` which will pull last error found in the CRT
     /// - `Returns`: Returns a signed http request `HttpRequest`
-    public func signRequest(request: HttpRequest, config: SigningConfig) async throws -> HttpRequest {
-        typealias SignedContinuation = CheckedContinuation<HttpRequest, Error>
+    public static func signRequest(request: HttpRequest, config: SigningConfig, allocator: Allocator = defaultAllocator) async throws -> HttpRequest {
 
-        //TODO: Fix. This is weird. We should not throw make from last error here.
-        if config.configType != .aws || (config.credentialsProvider == nil && config.credentials == nil) {
+        guard let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-
-        return try await withCheckedThrowingContinuation { (continuation: SignedContinuation) in
-            signRequestToCRT(request: request, config: config, continuation: continuation)
+        defer {
+            aws_signable_destroy(signable)
         }
-    }
 
-    private func signRequestToCRT(request: HttpRequest, config: SigningConfig, continuation: SignedContinuation) {
-        let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue)
-
-        let callbackData = SigningCallbackData(allocator: allocator.rawValue,
-                                               request: request,
-                                               signable: signable,
-                                               continuation: continuation)
-        //TODO: fix callback
-        config.withCPointer { configPointer in
-            configPointer.withMemoryRebound(to: aws_signing_config_base.self, capacity: 1) { configBasePointer in
-                let callbackPointer: UnsafeMutablePointer<SigningCallbackData> = fromPointer(ptr: callbackData)
-                aws_sign_request_aws(allocator.rawValue,
-                        signable,
-                        configBasePointer, { (signingResult, errorCode, userData) -> Void in
-
-                    let callback = userData!.assumingMemoryBound(to: SigningCallbackData.self)
-                    defer {
-                        aws_signable_destroy(callback.pointee.signable)
-                        callback.deinitializeAndDeallocate()
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<HttpRequest, Error>) in
+            let signRequestCore = SignRequestCore(request: request,
+                    continuation: continuation,
+                    shouldSignHeader: config.shouldSignHeader,
+                    allocator: allocator)
+            var shouldSignHeaderUserData: UnsafeMutableRawPointer? = nil
+            if config.shouldSignHeader != nil {
+                shouldSignHeaderUserData = signRequestCore.passUnretained()
+            }
+            config.withCPointer(userData: shouldSignHeaderUserData) { configPointer in
+                configPointer.withMemoryRebound(to: aws_signing_config_base.self, capacity: 1) { configBasePointer in
+                    if aws_sign_request_aws(allocator.rawValue, signable, configBasePointer, onSigningComplete, signRequestCore.passRetained())
+                               != AWS_OP_SUCCESS {
+                        signRequestCore.release()
+                        continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
                     }
-                    let continuation =  callback.pointee.continuation
-                    if errorCode != AWS_OP_SUCCESS {
-                        continuation.resume(throwing: CommonRunTimeError
-                                .crtError(CRTError(code: errorCode)))
-                        return
-                    }
-
-                    //Success
-                    let signedRequest = aws_apply_signing_result_to_http_request(callback.pointee.request.rawValue,
-                                                                                 callback.pointee.allocator.rawValue,
-                                                                                 signingResult!)
-                    if signedRequest == AWS_OP_SUCCESS {
-                        continuation.resume(returning: callback.pointee.request)
-                    } else {
-                        continuation.resume(throwing: CommonRunTimeError
-                                .crtError(CRTError(code: signedRequest)))
-                    }
-                }, callbackPointer)
+                }
             }
         }
+    }
+}
+
+class SignRequestCore {
+    let allocator: Allocator
+    let request: HttpRequest
+    var continuation: CheckedContinuation<HttpRequest, Error>
+    let shouldSignHeader: ((String) -> Bool)?
+    init(request: HttpRequest,
+         continuation: CheckedContinuation<HttpRequest, Error>,
+         shouldSignHeader: ((String) -> Bool)? = nil,
+         allocator: Allocator) {
+        self.allocator = allocator
+        self.request = request
+        self.continuation = continuation
+        self.shouldSignHeader = shouldSignHeader
+    }
+
+    func passRetained() -> UnsafeMutableRawPointer {
+        return Unmanaged.passRetained(self).toOpaque()
+    }
+
+    func passUnretained() -> UnsafeMutableRawPointer {
+        return Unmanaged.passUnretained(self).toOpaque()
+    }
+
+    func release() {
+        Unmanaged.passUnretained(self).release()
+    }
+}
+
+private func onSigningComplete(signingResult: UnsafeMutablePointer<aws_signing_result>?,
+                               errorCode: Int32,
+                               userData: UnsafeMutableRawPointer!) {
+    let signRequestCore = Unmanaged<SignRequestCore>.fromOpaque(userData).takeRetainedValue()
+    if errorCode != AWS_OP_SUCCESS {
+        signRequestCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        return
+    }
+
+    //Success
+    let signedRequest = aws_apply_signing_result_to_http_request(signRequestCore.request.rawValue,
+            signRequestCore.allocator.rawValue,
+            signingResult!)
+    if signedRequest == AWS_OP_SUCCESS {
+        signRequestCore.continuation.resume(returning: signRequestCore.request)
+    } else {
+        signRequestCore.continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
     }
 }
