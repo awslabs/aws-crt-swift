@@ -13,7 +13,6 @@ public class CRTAWSEndpointsRequestContext {
         guard let rawValue = aws_endpoints_request_context_new(allocator.rawValue) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-
         self.rawValue = rawValue
     }
 
@@ -34,7 +33,6 @@ public class CRTAWSEndpointsRequestContext {
         }) != AWS_OP_SUCCESS {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-
     }
 
     /// Add a bool endpoint parameter to the request context
@@ -51,7 +49,6 @@ public class CRTAWSEndpointsRequestContext {
         }) != AWS_OP_SUCCESS {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-
     }
 
     deinit {

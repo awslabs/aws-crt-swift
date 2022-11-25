@@ -3,19 +3,20 @@
 
 import AwsCSdkUtils
 
-public struct CRTAWSProfileProperty {
+public class CRTAWSProfileProperty {
     let rawValue: OpaquePointer
+    // Keep a reference of collection to keep it alive
+    let collection: CRTAWSProfileCollection
 
-    init(rawValue: OpaquePointer) {
+    init(rawValue: OpaquePointer, collection: CRTAWSProfileCollection) {
         self.rawValue = rawValue
+        self.collection = collection
     }
 
     /// Returns the property's string value
-    public var value: String? {
-        guard let awsString = aws_profile_property_get_value(rawValue) else {
-            return nil
-        }
-        return String(awsString: awsString)
+    public var value: String {
+        let awsString = aws_profile_property_get_value(rawValue)!
+        return String(awsString: awsString)!
     }
 
     /// Returns the value of a sub property with the given name, if it exists, in the property
