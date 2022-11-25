@@ -26,13 +26,12 @@ struct CommandLineParser {
             if opt == -1 || opt == 0 {
                 break
             }
-            
-            if let char = opt.toString() {
+            if let char = UnicodeScalar(Int(opt)) {
                 if aws_cli_optarg != nil {
-                    argumentsDict[char] = String(cString: aws_cli_optarg)
+                    argumentsDict[String(char)] = String(cString: aws_cli_optarg)
                 } else {
                     // if argument doesnt have a value just mark it as present in the dictionary
-                    argumentsDict[char] = true
+                    argumentsDict[String(char)] = true
                 }
             }
         }

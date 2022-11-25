@@ -101,7 +101,7 @@ public extension ByteBuffer {
             let result: ByteBuffer = bytes.withUnsafeMutableBufferPointer { pointer in
                 var buffer = aws_byte_buf_from_empty_array(pointer.baseAddress, length)
                 aws_sha256_compute(allocator.rawValue, &byteCursor, &buffer, truncate)
-                return buffer.toByteBuffer()
+                return ByteBuffer(bufferPointer: buffer.buffer, length: buffer.len, capacity: buffer.capacity)
             }
             return result
         }

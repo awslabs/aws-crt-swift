@@ -1,17 +1,9 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
-import AwsCIo
 import struct Foundation.Date
 import struct Foundation.Data
-import class Foundation.FileHandle
 import struct Foundation.TimeInterval
-import AwsCCommon
 import AwsCCal
-
-@inlinable
-func zeroStruct<T>(_ ptr: UnsafeMutablePointer<T>) {
-    memset(ptr, 0x00, MemoryLayout<T>.size)
-}
 
 extension String {
 
@@ -67,13 +59,6 @@ extension TimeInterval {
     }
 }
 
-//Todo: refactor
-extension aws_byte_buf {
-    func toByteBuffer() -> ByteBuffer {
-        return ByteBuffer(bufferPointer: self.buffer, length: self.len, capacity: self.capacity)
-    }
-}
-
 extension aws_byte_cursor {
     func toString() -> String? {
         if self.len == 0 { return nil }
@@ -107,17 +92,6 @@ extension aws_array_list {
                 result.append(String(awsString: strPtr)!)
         }
         return result
-    }
-}
-
-//Todo: refactor
-public extension Int32 {
-    func toString() -> String? {
-        // Convert UnicodeScalar to a String.
-        if let unicodeScalar = UnicodeScalar(Int(self)) {
-            return String(unicodeScalar)
-        }
-        return nil
     }
 }
 
