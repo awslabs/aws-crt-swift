@@ -2,13 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import struct Foundation.Data
-import class Foundation.InputStream
-import class Foundation.FileManager
-import class Foundation.FileHandle
-import class Foundation.OutputStream
-import struct Foundation.URL
 import AwsCIo
-import AwsCCommon
 import AwsCCal
 
 public class ByteBuffer: Codable {
@@ -40,7 +34,7 @@ public class ByteBuffer: Codable {
         data.append(value)
     }
 
-    public func put(_ value: [UInt8])  {
+    public func put(_ value: [UInt8]) {
         data.append(contentsOf: value)
     }
 
