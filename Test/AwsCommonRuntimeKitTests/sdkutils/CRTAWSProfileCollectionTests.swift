@@ -56,4 +56,23 @@ class CRTAWSProfileCollectionTests: CrtXCBaseTestCase {
         let secretAccessKey = crtUserProfile.getProperty(name: "aws_secret_access_key")!
         XCTAssertEqual("example_secret_access_key", secretAccessKey.value)
     }
+
+    func testCollectionOutOfScope() throws {
+        var profile: CRTAWSProfile! = nil
+        var crtUserProfile: CRTAWSProfile! = nil
+        do{
+            let profileCollection = try CRTAWSProfileCollection(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .credentials, allocator: allocator)
+            profile = profileCollection.getProfile(name: "default", allocator: allocator)!
+            crtUserProfile = profileCollection.getProfile(name: "crt_user", allocator: allocator)!
+        }
+        let property = profile.getProperty(name: "aws_access_key_id", allocator: allocator)!
+        XCTAssertEqual("default_access_key_id", property.value)
+
+        let s3Properties = profile.getProperty(name: "s3")!
+        let subPropertyValue = s3Properties.getSubProperty(name: "max_concurrent_requests")!
+        XCTAssertEqual("20", subPropertyValue)
+
+        let secretAccessKey = crtUserProfile.getProperty(name: "aws_secret_access_key")!
+        XCTAssertEqual("example_secret_access_key", secretAccessKey.value)
+    }
 }

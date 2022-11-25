@@ -3,11 +3,14 @@
 
 import AwsCSdkUtils
 
-public struct CRTAWSProfileProperty {
+public class CRTAWSProfileProperty {
     let rawValue: OpaquePointer
+    // Keep a reference of collection to keep it alive
+    let collection: CRTAWSProfileCollection
 
-    init(rawValue: OpaquePointer) {
+    init(rawValue: OpaquePointer, collection: CRTAWSProfileCollection) {
         self.rawValue = rawValue
+        self.collection = collection
     }
 
     /// Returns the property's string value

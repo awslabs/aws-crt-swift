@@ -31,15 +31,9 @@ public class CRTAWSProfileCollection {
     init(fromBuffer buffer: ByteBuffer,
          source: CRTAWSProfileSourceType,
          allocator: Allocator = defaultAllocator) throws {
-        var byteArray = buffer.toByteArray()
+        let byteArray = buffer.toByteArray()
         let byteCount = byteArray.count
-        var byteBuf = byteArray.withUnsafeMutableBufferPointer { pointer -> aws_byte_buf in
-            let byteBuf = aws_byte_buf(len: byteCount,
-                    buffer: pointer.baseAddress,
-                    capacity: byteCount,
-                    allocator: allocator.rawValue)
-            return byteBuf
-        }
+        var byteBuf = byteArray.withUnsafeBufferPointer { aws_byte_buf_from_array($0.baseAddress, byteCount) }
         guard let rawValue = aws_profile_collection_new_from_buffer(allocator.rawValue,
                 &byteBuf,
                 source.rawValue)
@@ -72,7 +66,7 @@ public class CRTAWSProfileCollection {
         else {
             return nil
         }
-        return CRTAWSProfile(rawValue: profilePointer)
+        return CRTAWSProfile(rawValue: profilePointer, collection: self)
     }
 
     /// Returns how many profiles a collection holds

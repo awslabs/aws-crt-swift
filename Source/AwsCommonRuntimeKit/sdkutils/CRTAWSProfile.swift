@@ -3,11 +3,14 @@
 
 import AwsCSdkUtils
 
-public struct CRTAWSProfile {
+public class CRTAWSProfile {
     let rawValue: OpaquePointer
+    // Keep a reference of collection to keep it alive
+    let collection: CRTAWSProfileCollection
 
-    init(rawValue: OpaquePointer) {
+    init(rawValue: OpaquePointer, collection: CRTAWSProfileCollection) {
         self.rawValue = rawValue
+        self.collection = collection
     }
 
     /// Returns a reference to the name of the provided profile
@@ -21,7 +24,7 @@ public struct CRTAWSProfile {
         guard let propPointer = aws_profile_get_property(rawValue, nameAwsString.rawValue) else {
             return nil
         }
-        return CRTAWSProfileProperty(rawValue: propPointer)
+        return CRTAWSProfileProperty(rawValue: propPointer, collection: collection)
     }
 
     /// Returns how many properties a profile holds
