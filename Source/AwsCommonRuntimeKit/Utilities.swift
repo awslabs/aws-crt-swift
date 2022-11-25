@@ -70,7 +70,7 @@ extension TimeInterval {
 //Todo: refactor
 extension aws_byte_buf {
     func toByteBuffer() -> ByteBuffer {
-        return ByteBuffer(ptr: self.buffer, len: self.len, capacity: self.capacity)
+        return ByteBuffer(bufferPointer: self.buffer, length: self.len, capacity: self.capacity)
     }
 }
 
