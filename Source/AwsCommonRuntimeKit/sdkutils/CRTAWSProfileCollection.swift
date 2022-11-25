@@ -31,13 +31,15 @@ public class CRTAWSProfileCollection {
     init(fromBuffer buffer: ByteBuffer,
          source: CRTAWSProfileSourceType,
          allocator: Allocator = defaultAllocator) throws {
-        let byteArray = buffer.toByteArray()
-        let byteCount = byteArray.count
-        var byteBuf = byteArray.withUnsafeBufferPointer { aws_byte_buf_from_array($0.baseAddress, byteCount) }
-        guard let rawValue = aws_profile_collection_new_from_buffer(allocator.rawValue,
-                &byteBuf,
-                source.rawValue)
-        else {
+        let data = buffer.getData()
+        let byteCount = data.count
+        guard let rawValue  = (data.withUnsafeBytes { rawBufferPointer in
+            var byteBuf = aws_byte_buf_from_array(rawBufferPointer.baseAddress, byteCount)
+            return aws_profile_collection_new_from_buffer(allocator.rawValue,
+                    &byteBuf,
+                    source.rawValue)
+
+        }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
 
