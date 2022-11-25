@@ -5,7 +5,7 @@ import struct Foundation.Data
 import AwsCIo
 import AwsCCal
 
-public class ByteBuffer: Codable {
+public class ByteBuffer {
 
     private var data: Data
     private var currentIndex: Data.Index
@@ -88,36 +88,5 @@ extension ByteBuffer: IStreamable {
         dataArray.copyBytes(to: buffer, count: dataArray.count)
         currentIndex = endIndex
         return dataArray.count
-    }
-}
-
-public extension ByteBuffer {
-    // Used to calculate sha256
-    func sha256(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> ByteBuffer {
-        data.withUnsafeBytes { bufferPointer in
-            var byteCursor = aws_byte_cursor_from_array(bufferPointer.baseAddress, self.data.count)
-            let length = Int(AWS_SHA256_LEN)
-            var bytes = [UInt8](repeating: 0, count: length)
-            let result: ByteBuffer = bytes.withUnsafeMutableBufferPointer { pointer in
-                var buffer = aws_byte_buf_from_empty_array(pointer.baseAddress, length)
-                aws_sha256_compute(allocator.rawValue, &byteCursor, &buffer, truncate)
-                return ByteBuffer(bufferPointer: buffer.buffer, length: buffer.len, capacity: buffer.capacity)
-            }
-            return result
-        }
-    }
-
-    func base64EncodedSha256(allocator: Allocator = defaultAllocator, truncate: Int = 0) -> String {
-        return sha256(allocator: allocator, truncate: truncate).getData().base64EncodedString()
-    }
-
-    //used, ByteBuffer(data: data).sha256().encodeToHexString()
-    func encodeToHexString() -> String {
-        var hexString = ""
-        for byte in data {
-            hexString += String(format: "%02x", UInt8(byte))
-        }
-
-        return hexString
     }
 }

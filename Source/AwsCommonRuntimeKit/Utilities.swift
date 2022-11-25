@@ -38,6 +38,21 @@ extension String {
     }
 }
 
+extension Data {
+    func sha256(truncate: Int = 0, allocator: Allocator = defaultAllocator) -> Data {
+        self.withUnsafeBytes { bufferPointer in
+            var byteCursor = aws_byte_cursor_from_array(bufferPointer.baseAddress, count)
+            let bufferSize = Int(AWS_SHA256_LEN)
+            var bufferData = Data(count: bufferSize)
+            bufferData.withUnsafeMutableBytes { bufferDataPointer in
+                var buffer = aws_byte_buf_from_empty_array(bufferDataPointer.baseAddress, bufferSize)
+                aws_sha256_compute(allocator.rawValue, &byteCursor, &buffer, truncate)
+            }
+            return bufferData
+        }
+    }
+}
+
 extension aws_date_time {
     func toDate() -> Date {
         let timeInterval = withUnsafePointer(to: self, aws_date_time_as_epoch_secs)
