@@ -29,7 +29,6 @@ class SignerTests: CrtXCBaseTestCase {
         let signedRequest = try await Signer.signRequest(request: request,
                                                                     config: config,
                                                                     allocator: allocator)
-
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
         XCTAssert(headers.contains(where: {
@@ -54,7 +53,6 @@ class SignerTests: CrtXCBaseTestCase {
         let signedRequest = try await Signer.signRequest(request: request, 
                                                                     config: config, 
                                                                     allocator: allocator)
-
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
         XCTAssert(headers.contains(where: { $0.name == "Authorization" }))
@@ -132,7 +130,6 @@ class SignerTests: CrtXCBaseTestCase {
         let signedRequest = try await Signer.signRequest(request: request, 
                                                                     config: config, 
                                                                     allocator: allocator)
-
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
         XCTAssert(headers.contains(where: { $0.name == "Authorization" }))
