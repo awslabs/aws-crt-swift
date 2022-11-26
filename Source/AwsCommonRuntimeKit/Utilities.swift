@@ -87,6 +87,19 @@ extension aws_array_list {
         }
         return result
     }
+
+    func awsStringListToStringArray() -> [String] {
+        var arrayList = self
+        var result = [String]()
+
+        for index in 0..<self.length {
+                var valPtr: UnsafeMutableRawPointer! = nil
+                aws_array_list_get_at(&arrayList, &valPtr, index)
+                let strPtr = valPtr.bindMemory(to: aws_string.self, capacity: 1)
+                result.append(String(awsString: strPtr)!)
+        }
+        return result
+    }
 }
 
 //Todo: refactor
