@@ -7,7 +7,7 @@ import AwsCCal
 
 public final class ByteBuffer: Decodable {
 
-    private var data: Data
+    private let data: Data
     private var currentIndex: Data.Index
 
     public init(size: Int) {
@@ -33,18 +33,6 @@ public final class ByteBuffer: Decodable {
     public init(from decoder: Decoder) throws {
         data = try Data(from: decoder)
         currentIndex = data.startIndex
-    }
-
-    public func put(_ value: UInt8) {
-        data.append(value)
-    }
-
-    public func put(_ value: [UInt8]) {
-        data.append(contentsOf: value)
-    }
-
-    public func put(_ value: Data) {
-        data.append(value)
     }
 
     public func getData() -> Data {

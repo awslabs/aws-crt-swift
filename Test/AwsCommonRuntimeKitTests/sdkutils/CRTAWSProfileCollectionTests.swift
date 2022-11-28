@@ -8,8 +8,7 @@ import Foundation
 class CRTAWSProfileCollectionTests: CrtXCBaseTestCase {
     func testGetPropertyFromBufferConfig() throws {
         let fakeConfig = "[default]\r\nregion=us-west-2".data(using: .utf8)!
-        let buffer = ByteBuffer(data: fakeConfig)
-        let profileCollection = try CRTAWSProfileCollection(fromBuffer: buffer, source: .config, allocator: allocator)
+        let profileCollection = try CRTAWSProfileCollection(fromData: fakeConfig, source: .config, allocator: allocator)
         let profile = profileCollection.getProfile(name: "default", allocator: allocator)
         let property = profile?.getProperty(name: "region", allocator: allocator)
         XCTAssertEqual("us-west-2", property?.value)
@@ -17,8 +16,7 @@ class CRTAWSProfileCollectionTests: CrtXCBaseTestCase {
 
     func testGetPropertyFromBufferCreds() throws {
         let fakeCreds = "[default]\r\naws_access_key_id=AccessKey\r\naws_secret_access_key=Sekrit".data(using: .utf8)!
-        let buffer = ByteBuffer(data: fakeCreds)
-        let profileCollection = try CRTAWSProfileCollection(fromBuffer: buffer, source: .credentials, allocator: allocator)
+        let profileCollection = try CRTAWSProfileCollection(fromData: fakeCreds, source: .credentials, allocator: allocator)
         let profile = profileCollection.getProfile(name: "default", allocator: allocator)!
         let property = profile.getProperty(name: "aws_access_key_id", allocator: allocator)!
         XCTAssertEqual("AccessKey", property.value)
@@ -26,12 +24,10 @@ class CRTAWSProfileCollectionTests: CrtXCBaseTestCase {
 
     func testGetProfileCollectionFromMerge() throws {
         let fakeConfig = "[default]\r\nregion=us-west-2".data(using: .utf8)!
-        let configBuffer = ByteBuffer(data: fakeConfig)
-        let profileCollectionConfig = try CRTAWSProfileCollection(fromBuffer: configBuffer, source: .config)
+        let profileCollectionConfig = try CRTAWSProfileCollection(fromData: fakeConfig, source: .config)
 
         let fakeCreds = "[default]\r\naws_access_key_id=AccessKey\r\naws_secret_access_key=Sekrit".data(using: .utf8)!
-        let credBuffer = ByteBuffer(data: fakeCreds)
-        let profileCollectionCreds = try CRTAWSProfileCollection(fromBuffer: credBuffer, source: .credentials, allocator: allocator)
+        let profileCollectionCreds = try CRTAWSProfileCollection(fromData: fakeCreds, source: .credentials, allocator: allocator)
 
         let mergedCollection = try CRTAWSProfileCollection(configProfileCollection: profileCollectionConfig, credentialProfileCollection: profileCollectionCreds)
         let profile = mergedCollection.getProfile(name: "default", allocator: allocator)!

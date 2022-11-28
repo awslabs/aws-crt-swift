@@ -11,7 +11,7 @@ public struct CRTIAMProfile {
 
     init(profile: aws_imds_iam_profile) {
         self.lastUpdated = profile.last_updated.toDate()
-        self.profileArn = profile.instance_profile_arn.toString()
-        self.profileId = profile.instance_profile_id.toString()
+        self.profileArn = profile.instance_profile_arn.toOptionalString()
+        self.profileId = profile.instance_profile_id.toOptionalString()
     }
 }

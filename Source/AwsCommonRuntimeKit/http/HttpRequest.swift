@@ -20,7 +20,7 @@ public class HttpRequest: HttpMessage {
             if aws_http_message_get_request_method(self.rawValue, &result) != AWS_OP_SUCCESS {
                 return nil
             }
-            return result.toString()
+            return result.toOptionalString()
         }
         set(value) {
             guard let value = value else { return }
@@ -38,7 +38,7 @@ public class HttpRequest: HttpMessage {
             if aws_http_message_get_request_path(self.rawValue, &result) != AWS_OP_SUCCESS {
                 return nil
             }
-            return result.toString()
+            return result.toOptionalString()
         }
         set(value) {
             if withByteCursorFromStrings(value, { valueCursor in

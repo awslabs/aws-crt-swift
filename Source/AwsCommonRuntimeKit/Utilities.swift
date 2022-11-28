@@ -75,10 +75,15 @@ extension TimeInterval {
 }
 
 extension aws_byte_cursor {
-    func toString() -> String? {
+    func toString() -> String {
+        let data = Data(bytesNoCopy: self.ptr, count: self.len, deallocator: .none)
+        return String(data: data, encoding: .utf8)!
+    }
+
+    func toOptionalString() -> String? {
         if self.len == 0 { return nil }
         let data = Data(bytesNoCopy: self.ptr, count: self.len, deallocator: .none)
-        return String(data: data, encoding: .utf8)
+        return String(data: data, encoding: .utf8)!
     }
 }
 
@@ -91,7 +96,7 @@ extension aws_array_list {
             var val: UnsafeMutableRawPointer!
             aws_array_list_get_at_ptr(&arrayList, &val, index)
             let byteCursor = val.bindMemory(to: aws_byte_cursor.self, capacity: 1).pointee
-            result.append(byteCursor.toString()!)
+            result.append(byteCursor.toString())
         }
         return result
     }
