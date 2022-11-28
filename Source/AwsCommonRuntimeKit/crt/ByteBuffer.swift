@@ -45,6 +45,15 @@ public class ByteBuffer {
     public func getData() -> Data {
         return data
     }
+
+    public func put(buffer: ByteBuffer, offset: UInt = 0, maxBytes: UInt? = nil) {
+        guard offset < buffer.data.count else {
+            return
+        }
+        let endIndex = offset + min(UInt(data.count) - offset, maxBytes ?? 0)
+        data.append(contentsOf: buffer.data.subdata(in: Int(offset)..<Int(endIndex)))
+    }
+
 }
 
 extension ByteBuffer: IStreamable {
