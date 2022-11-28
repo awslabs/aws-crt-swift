@@ -89,3 +89,9 @@ extension ByteBuffer: IStreamable {
         return subData.count
     }
 }
+
+extension ByteBuffer {
+    func encodeToHexString() -> String {
+        data.map { String(format: "%02x", $0) }.joined()
+    }
+}
