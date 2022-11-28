@@ -41,11 +41,6 @@ extension String {
 extension Data {
 
     /// Computes the sha256 hash over data.
-    /// Use this if you don't need to stream the data you're hashing and you can load
-    /// the entire input to hash into memory. If you specify truncate_to to something
-    /// other than 0, the output will be truncated to that number of bytes. For
-    /// example, if you want a SHA256 digest as the first 16 bytes, set truncate_to
-    /// to 16. If you want the full digest size, just set this to 0.
     func sha256(truncate: Int = 0, allocator: Allocator = defaultAllocator) throws -> Data {
         try self.withUnsafeBytes { bufferPointer in
             var byteCursor = aws_byte_cursor_from_array(bufferPointer.baseAddress, count)
