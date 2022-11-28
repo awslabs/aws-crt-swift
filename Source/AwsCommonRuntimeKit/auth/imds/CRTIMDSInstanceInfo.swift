@@ -5,35 +5,35 @@ import AwsCAuth
 import Foundation
 
 public struct CRTIMDSInstanceInfo {
-    public var marketPlaceProductCodes: [String]
-    public var availabilityZone: String?
-    public var privateIp: String?
-    public var version: String?
-    public var instanceId: String?
-    public var billingProducts: [String]
-    public var instanceType: String?
-    public var accountId: String?
-    public var imageId: String?
-    public var pendingTime: Date
-    public var architecture: String?
-    public var kernelId: String?
-    public var ramDiskId: String?
-    public var region: String?
+    public let marketPlaceProductCodes: [String]
+    public let availabilityZone: String
+    public let privateIp: String
+    public let version: String
+    public let instanceId: String
+    public let billingProducts: [String]
+    public let instanceType: String
+    public let accountId: String
+    public let imageId: String
+    public let pendingTime: Date
+    public let architecture: String
+    public let kernelId: String
+    public let ramDiskId: String
+    public let region: String
 
     init(instanceInfo: aws_imds_instance_info) {
         self.marketPlaceProductCodes = instanceInfo.marketplace_product_codes.byteCursorListToStringArray()
-        self.availabilityZone = instanceInfo.availability_zone.toOptionalString()
-        self.privateIp = instanceInfo.private_ip.toOptionalString()
-        self.version = instanceInfo.version.toOptionalString()
-        self.instanceId = instanceInfo.instance_id.toOptionalString()
+        self.availabilityZone = instanceInfo.availability_zone.toString()
+        self.privateIp = instanceInfo.private_ip.toString()
+        self.version = instanceInfo.version.toString()
+        self.instanceId = instanceInfo.instance_id.toString()
         self.billingProducts = instanceInfo.billing_products.byteCursorListToStringArray()
-        self.instanceType = instanceInfo.instance_type.toOptionalString()
-        self.accountId = instanceInfo.account_id.toOptionalString()
-        self.imageId = instanceInfo.image_id.toOptionalString()
+        self.instanceType = instanceInfo.instance_type.toString()
+        self.accountId = instanceInfo.account_id.toString()
+        self.imageId = instanceInfo.image_id.toString()
         self.pendingTime = instanceInfo.pending_time.toDate()
-        self.architecture = instanceInfo.architecture.toOptionalString()
-        self.kernelId = instanceInfo.kernel_id.toOptionalString()
-        self.ramDiskId = instanceInfo.ramdisk_id.toOptionalString()
-        self.region = instanceInfo.region.toOptionalString()
+        self.architecture = instanceInfo.architecture.toString()
+        self.kernelId = instanceInfo.kernel_id.toString()
+        self.ramDiskId = instanceInfo.ramdisk_id.toString()
+        self.region = instanceInfo.region.toString()
     }
 }
