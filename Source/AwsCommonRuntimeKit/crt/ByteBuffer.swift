@@ -74,9 +74,9 @@ extension ByteBuffer: IStreamable {
             return nil
         }
 
-        let dataArray = data[currentIndex..<endIndex]
-        dataArray.copyBytes(to: buffer, count: dataArray.count)
+        let subData = data.subdata(in: currentIndex..<endIndex)
+        subData.copyBytes(to: buffer, count: subData.count)
         currentIndex = endIndex
-        return dataArray.count
+        return subData.count
     }
 }
