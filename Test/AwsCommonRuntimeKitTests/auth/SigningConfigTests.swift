@@ -5,9 +5,9 @@ import XCTest
 import AwsCCommon
 @testable import AwsCommonRuntimeKit
 
-class AWSSigningConfigTests: CrtXCBaseTestCase {
+class SigningConfigTests: CrtXCBaseTestCase {
 
-    func testSigningConfig() async throws {
+    func testSigningConfigWithNonDefaultValues() async throws {
         let signingConfig = SigningConfig(algorithm: SigningAlgorithmType.signingV4Asymmetric,
                 signatureType: SignatureType.requestChunk,
                 service: "testService",
