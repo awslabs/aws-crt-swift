@@ -17,14 +17,17 @@ class SignerTests: CrtXCBaseTestCase {
     func testSigningSigv4Headers() async throws {
         let request = try makeMockRequest()
         let provider = try makeMockCredentialsProvider()
-
+        let shouldSignHeader: (String) -> Bool = { name in
+            return !name.starts(with: "doNotSign")
+        }
         let config = SigningConfig(
                 algorithm: SigningAlgorithmType.signingV4,
                 signatureType: SignatureType.requestHeaders,
                 service: SIGV4TEST_SERVICE,
                 region: SIGV4TEST_REGION,
                 date: getDate(),
-                credentialsProvider: provider)
+                credentialsProvider: provider,
+        shouldSignHeader: shouldSignHeader)
 
         let signedRequest = try await Signer.signRequest(request: request,
                                                                     config: config,
@@ -32,8 +35,9 @@ class SignerTests: CrtXCBaseTestCase {
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
         XCTAssert(headers.contains(where: {
-            $0.name == "Authorization" && $0.value.starts(with:
-            "AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/20150830/us-east-1/service/aws4_request, SignedHeaders=host;x-amz-date, Signature=")
+            $0.name == "Authorization"
+            && $0.value.starts(with: "AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/20150830/us-east-1/service/aws4_request, SignedHeaders=host;x-amz-date, Signature=")
+            && !$0.value.contains("doNotSign")
         }))
         XCTAssert(headers.contains(where: { $0.name == "X-Amz-Date" }))
         XCTAssert(headers.contains(where: { $0.name == "Host" && $0.value == SIGV4TEST_HOST }))
@@ -142,6 +146,7 @@ class SignerTests: CrtXCBaseTestCase {
 
         let headers = try HttpHeaders()
         XCTAssertTrue(headers.add(name: "Host", value: SIGV4TEST_HOST))
+        XCTAssertTrue(headers.add(name: "doNotSign", value: "test-header"))
         request.addHeaders(headers: headers)
 
         return request
