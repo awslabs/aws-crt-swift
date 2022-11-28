@@ -5,7 +5,9 @@ import struct Foundation.Data
 import AwsCIo
 import AwsCCal
 
-public final class ByteBuffer: Decodable {
+/// ByteBuffer represents a Data object with a current index
+/// which conforms to IStreamable protocol.
+public final class ByteBuffer {
 
     private let data: Data
     private var currentIndex: Data.Index
@@ -27,11 +29,6 @@ public final class ByteBuffer: Decodable {
 
     public init(bufferPointer: UnsafeMutablePointer<UInt8>, length: Int, capacity: Int) {
         self.data = Data(bytes: bufferPointer, count: capacity)
-        currentIndex = data.startIndex
-    }
-
-    public init(from decoder: Decoder) throws {
-        data = try Data(from: decoder)
         currentIndex = data.startIndex
     }
 

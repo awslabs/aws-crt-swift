@@ -22,13 +22,13 @@ class UtilityTests: CrtXCBaseTestCase {
 
     func testSha256() throws {
         let hello = "Hello".data(using: .utf8)!
-        let sha256 = hello.sha256().base64EncodedString()
+        let sha256 = try! hello.sha256().base64EncodedString()
         XCTAssertEqual(sha256, "GF+NsyJx/iX1Yab8k4suJkMG7DBO2lGAB9F2SCY4GWk=")
     }
 
     func testSha256EmptyString() throws {
         let empty = "".data(using: .utf8)!
-        let sha256 = empty.sha256().base64EncodedString()
+        let sha256 = try! empty.sha256().base64EncodedString()
         XCTAssertEqual(sha256, "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=")
     }
 
@@ -36,7 +36,7 @@ class UtilityTests: CrtXCBaseTestCase {
         var sha256Data: Data! = nil
         do {
             let payload = "{\"foo\":\"base64 encoded sha256 checksum\"}".data(using: .utf8)!
-            sha256Data = payload.sha256()
+            sha256Data = try! payload.sha256()
         }
         XCTAssertEqual(sha256Data.base64EncodedString(), "lBSnDP4sj/yN8eIVOJlv+vC56hw+7JtN0132GiMQXRg=")
     }
