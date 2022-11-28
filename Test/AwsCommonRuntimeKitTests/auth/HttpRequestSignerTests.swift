@@ -15,7 +15,7 @@ class SignerTests: CrtXCBaseTestCase {
     let SIGV4TEST_DATE = "2015/8/30 12:36"
 
     func testSigningSigv4Headers() async throws {
-        let request = try makeMockRequest()
+        let request = try makeMockRequestWithDoNotSignHeader()
         let provider = try makeMockCredentialsProvider()
         let shouldSignHeader: (String) -> Bool = { name in
             return !name.starts(with: "doNotSign")
@@ -37,7 +37,6 @@ class SignerTests: CrtXCBaseTestCase {
         XCTAssert(headers.contains(where: {
             $0.name == "Authorization"
             && $0.value.starts(with: "AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/20150830/us-east-1/service/aws4_request, SignedHeaders=host;x-amz-date, Signature=")
-            && !$0.value.contains("doNotSign")
         }))
         XCTAssert(headers.contains(where: { $0.name == "X-Amz-Date" }))
         XCTAssert(headers.contains(where: { $0.name == "Host" && $0.value == SIGV4TEST_HOST }))
@@ -140,6 +139,19 @@ class SignerTests: CrtXCBaseTestCase {
     }
 
     func makeMockRequest() throws -> HttpRequest {
+        let request = try HttpRequest()
+        request.method = "GET"
+        request.path = "/"
+
+        let headers = try HttpHeaders()
+        XCTAssertTrue(headers.add(name: "Host", value: SIGV4TEST_HOST))
+        request.addHeaders(headers: headers)
+
+        return request
+    }
+
+
+    func makeMockRequestWithDoNotSignHeader() throws -> HttpRequest {
         let request = try HttpRequest()
         request.method = "GET"
         request.path = "/"
