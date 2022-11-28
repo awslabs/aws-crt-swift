@@ -38,15 +38,6 @@ public class ByteBuffer {
         data.append(contentsOf: value)
     }
 
-    public func put(buffer: ByteBuffer, offset: UInt = 0, maxBytes: UInt? = nil) {
-        //TODO: verify if maxBytes > buffer size
-        var end: UInt = UInt(buffer.data.count)
-        if let maxBytes = maxBytes {
-            end = maxBytes
-        }
-        data.append(contentsOf: buffer.data.subdata(in: Int(offset)..<Int(end)))
-    }
-
     public func put(_ value: Data) {
         data.append(value)
     }
@@ -54,7 +45,6 @@ public class ByteBuffer {
     public func getData() -> Data {
         return data
     }
-
 }
 
 extension ByteBuffer: IStreamable {
