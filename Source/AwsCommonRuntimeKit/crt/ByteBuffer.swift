@@ -5,7 +5,7 @@ import struct Foundation.Data
 import AwsCIo
 import AwsCCal
 
-public class ByteBuffer {
+public final class ByteBuffer: Decodable {
 
     private var data: Data
     private var currentIndex: Data.Index
@@ -30,6 +30,11 @@ public class ByteBuffer {
         currentIndex = data.startIndex
     }
 
+    public init(from decoder: Decoder) throws {
+        data = try Data(from: decoder)
+        currentIndex = data.startIndex
+    }
+
     public func put(_ value: UInt8) {
         data.append(value)
     }
@@ -45,15 +50,6 @@ public class ByteBuffer {
     public func getData() -> Data {
         return data
     }
-
-    public func put(buffer: ByteBuffer, offset: UInt = 0, maxBytes: UInt? = nil) {
-        guard offset < buffer.data.count else {
-            return
-        }
-        let endIndex = offset + min(UInt(data.count) - offset, maxBytes ?? 0)
-        data.append(contentsOf: buffer.data.subdata(in: Int(offset)..<Int(endIndex)))
-    }
-
 }
 
 extension ByteBuffer: IStreamable {
@@ -68,25 +64,26 @@ extension ByteBuffer: IStreamable {
                    || (offset > 0 && streamSeekType == .end) {
             throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
         }
-
+        let index: Int
         switch streamSeekType {
         case .begin:
-            currentIndex = Int(offset)
+            index = Int(offset)
         case .end:
-            currentIndex = data.count + Int(offset)
+            index = data.count + Int(offset)
         }
+        currentIndex = data.index(data.startIndex, offsetBy: index)
     }
 
     public func read(buffer: UnsafeMutableBufferPointer<UInt8>) -> Int? {
-        let endIndex = currentIndex + min(data.count - currentIndex, buffer.count)
-        guard currentIndex != endIndex else {
+        var endIndex = currentIndex
+        _ = data.formIndex(&endIndex, offsetBy: buffer.count, limitedBy: data.endIndex)
+        let dataSlice = data[currentIndex..<endIndex]
+        guard dataSlice.count > 0 else {
             return nil
         }
-
-        let subData = data.subdata(in: currentIndex..<endIndex)
-        subData.copyBytes(to: buffer, count: subData.count)
+        dataSlice.copyBytes(to: buffer, from: currentIndex..<endIndex)
         currentIndex = endIndex
-        return subData.count
+        return dataSlice.count
     }
 }
 
