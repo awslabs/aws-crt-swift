@@ -55,7 +55,7 @@ public final class AwsCredentials {
     /// - Returns:`String?`: The AWS Access Key Id or nil
     public func getAccessKey() -> String? {
         let accessKey = aws_credentials_get_access_key_id(rawValue)
-        return accessKey.toString()
+        return accessKey.toOptionalString()
     }
 
     /// Gets the secret from the `aws_credentials` instance
@@ -63,7 +63,7 @@ public final class AwsCredentials {
     /// - Returns:`String?`: The AWS Secret or nil
     public func getSecret() -> String? {
         let secret = aws_credentials_get_secret_access_key(rawValue)
-        return secret.toString()
+        return secret.toOptionalString()
     }
 
     /// Gets the session token from the `aws_credentials` instance
@@ -71,7 +71,7 @@ public final class AwsCredentials {
     /// - Returns:`String?`: The AWS Session token or nil
     public func getSessionToken() -> String? {
         let token = aws_credentials_get_session_token(rawValue)
-        return token.toString()
+        return token.toOptionalString()
     }
 
     /// Gets the expiration timeout in seconds from the `aws_credentials` instance

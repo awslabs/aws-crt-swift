@@ -39,14 +39,18 @@ extension String {
 }
 
 extension Data {
-    func sha256(truncate: Int = 0, allocator: Allocator = defaultAllocator) -> Data {
-        self.withUnsafeBytes { bufferPointer in
+
+    /// Computes the sha256 hash over data.
+    func sha256(truncate: Int = 0, allocator: Allocator = defaultAllocator) throws -> Data {
+        try self.withUnsafeBytes { bufferPointer in
             var byteCursor = aws_byte_cursor_from_array(bufferPointer.baseAddress, count)
             let bufferSize = Int(AWS_SHA256_LEN)
             var bufferData = Data(count: bufferSize)
-            bufferData.withUnsafeMutableBytes { bufferDataPointer in
+            try bufferData.withUnsafeMutableBytes { bufferDataPointer in
                 var buffer = aws_byte_buf_from_empty_array(bufferDataPointer.baseAddress, bufferSize)
-                aws_sha256_compute(allocator.rawValue, &byteCursor, &buffer, truncate)
+                guard aws_sha256_compute(allocator.rawValue, &byteCursor, &buffer, truncate) == AWS_OP_SUCCESS else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
             }
             return bufferData
         }
@@ -75,10 +79,15 @@ extension TimeInterval {
 }
 
 extension aws_byte_cursor {
-    func toString() -> String? {
+    func toString() -> String {
+        let data = Data(bytesNoCopy: self.ptr, count: self.len, deallocator: .none)
+        return String(data: data, encoding: .utf8)!
+    }
+
+    func toOptionalString() -> String? {
         if self.len == 0 { return nil }
         let data = Data(bytesNoCopy: self.ptr, count: self.len, deallocator: .none)
-        return String(data: data, encoding: .utf8)
+        return String(data: data, encoding: .utf8)!
     }
 }
 
@@ -91,7 +100,7 @@ extension aws_array_list {
             var val: UnsafeMutableRawPointer!
             aws_array_list_get_at_ptr(&arrayList, &val, index)
             let byteCursor = val.bindMemory(to: aws_byte_cursor.self, capacity: 1).pointee
-            result.append(byteCursor.toString()!)
+            result.append(byteCursor.toString())
         }
         return result
     }

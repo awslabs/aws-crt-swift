@@ -96,11 +96,7 @@ class HttpTests: CrtXCBaseTestCase {
                                path: String,
                                body: String = "",
                                expectedStatusCode: Int = 200) throws -> HttpRequestOptions {
-
-        let httpRequest: HttpRequest = try HttpRequest(allocator: allocator)
-        httpRequest.method = method
-        httpRequest.path = path == "" ? "/" : path
-        httpRequest.body = ByteBuffer(data: body.data(using: .utf8)!)
+        let httpRequest: HttpRequest = try HttpRequest(method: method, path: path, body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
 
         let headers = try HttpHeaders(allocator: allocator)
         XCTAssertTrue(headers.add(name: "Host", value: endpoint))

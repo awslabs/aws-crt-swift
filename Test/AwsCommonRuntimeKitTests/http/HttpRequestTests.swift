@@ -7,16 +7,15 @@ import AwsCCommon
 class HttpRequestTests: CrtXCBaseTestCase {
 
     func testCreateHttpRequest() throws {
-        let httpRequest = try HttpRequest(allocator: allocator)
-        XCTAssertNotNil(httpRequest.rawValue)
-        XCTAssertNil(httpRequest.method)
-        XCTAssertNil(httpRequest.path)
+        let httpRequest = try HttpRequest(method: "PUT", path: "testPath", allocator: allocator)
+        XCTAssertEqual(try httpRequest.getMethod(), "PUT")
+        XCTAssertEqual(try httpRequest.getPath(), "testPath")
 
-        httpRequest.method = "Get"
-        httpRequest.path = "test"
+        try httpRequest.setMethod(method: "DELETE")
+        try httpRequest.setPath(path: "updatedPath")
 
-        XCTAssertNotNil(httpRequest.method)
-        XCTAssertNotNil(httpRequest.path)
+        XCTAssertEqual(try httpRequest.getMethod(), "DELETE")
+        XCTAssertEqual(try httpRequest.getPath(), "updatedPath")
     }
 
 

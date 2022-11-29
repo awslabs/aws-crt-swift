@@ -5,9 +5,10 @@ import struct Foundation.Data
 import AwsCIo
 import AwsCCal
 
-public class ByteBuffer {
+/// ByteBuffer represents a Data object with a current index and conforms to IStreamable protocol.
+public final class ByteBuffer {
 
-    private var data: Data
+    private let data: Data
     private var currentIndex: Data.Index
 
     public init(size: Int) {
@@ -30,31 +31,9 @@ public class ByteBuffer {
         currentIndex = data.startIndex
     }
 
-    public func put(_ value: UInt8) {
-        data.append(value)
-    }
-
-    public func put(_ value: [UInt8]) {
-        data.append(contentsOf: value)
-    }
-
-    public func put(buffer: ByteBuffer, offset: UInt = 0, maxBytes: UInt? = nil) {
-        //TODO: verify if maxBytes > buffer size
-        var end: UInt = UInt(buffer.data.count)
-        if let maxBytes = maxBytes {
-            end = maxBytes
-        }
-        data.append(contentsOf: buffer.data.subdata(in: Int(offset)..<Int(end)))
-    }
-
-    public func put(_ value: Data) {
-        data.append(value)
-    }
-
     public func getData() -> Data {
         return data
     }
-
 }
 
 extension ByteBuffer: IStreamable {
@@ -69,24 +48,31 @@ extension ByteBuffer: IStreamable {
                    || (offset > 0 && streamSeekType == .end) {
             throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
         }
-
+        let index: Int
         switch streamSeekType {
         case .begin:
-            currentIndex = Int(offset)
+            index = Int(offset)
         case .end:
-            currentIndex = data.count + Int(offset)
+            index = data.count + Int(offset)
         }
+        currentIndex = data.index(data.startIndex, offsetBy: index)
     }
 
     public func read(buffer: UnsafeMutableBufferPointer<UInt8>) -> Int? {
-        let endIndex = currentIndex + min(data.count - currentIndex, buffer.count)
-        guard currentIndex != endIndex else {
+        var endIndex = currentIndex
+        _ = data.formIndex(&endIndex, offsetBy: buffer.count, limitedBy: data.endIndex)
+        let dataSlice = data[currentIndex..<endIndex]
+        guard dataSlice.count > 0 else {
             return nil
         }
-
-        let dataArray = data[currentIndex..<endIndex]
-        dataArray.copyBytes(to: buffer, count: dataArray.count)
+        dataSlice.copyBytes(to: buffer, from: currentIndex..<endIndex)
         currentIndex = endIndex
-        return dataArray.count
+        return dataSlice.count
+    }
+}
+
+extension ByteBuffer {
+    func encodeToHexString() -> String {
+        data.map { String(format: "%02x", $0) }.joined()
     }
 }
