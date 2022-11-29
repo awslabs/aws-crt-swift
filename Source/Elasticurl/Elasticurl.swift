@@ -270,13 +270,8 @@ struct Elasticurl {
             let semaphore = DispatchSemaphore(value: 0)
 
             var stream: HttpStream?
-
-            let httpRequest: HttpRequest = try HttpRequest(allocator: allocator)
-            httpRequest.method = context.verb
             let path = context.url.path == "" ? "/" : context.url.path
-
-            httpRequest.path = path
-
+            let httpRequest: HttpRequest = try HttpRequest(method: context.verb, path: path, allocator: allocator)
             let headers = try HttpHeaders(allocator: allocator)
             if headers.add(name: "Host", value: host),
                headers.add(name: "User-Agent", value: "Elasticurl"),
