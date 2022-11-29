@@ -4,6 +4,7 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 import AwsCCommon
+import AwsCHttp
 
 class HttpTests: CrtXCBaseTestCase {
     let semaphore = DispatchSemaphore(value: 0)
@@ -92,6 +93,33 @@ class HttpTests: CrtXCBaseTestCase {
         semaphore.wait()
     }
 
+    func testConnectionCloseThrow() async throws {
+        let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
+        guard let host = url.host else {
+            print("no proper host was parsed from the url. quitting.")
+            exit(EXIT_FAILURE)
+        }
+        let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
+        let connection = try await connectionManager.acquireConnection()
+        connection.close()
+        let httpRequestOptions = try getHttpRequestOptions(method: "GET", endpoint: host, path: url.path)
+        XCTAssertThrowsError( _ = try connection.makeRequest(requestOptions: httpRequestOptions))
+    }
+
+    func testConnectionCloseActivateThrow() async throws {
+        let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
+        guard let host = url.host else {
+            print("no proper host was parsed from the url. quitting.")
+            exit(EXIT_FAILURE)
+        }
+        let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
+        let connection = try await connectionManager.acquireConnection()
+        let httpRequestOptions = try getHttpRequestOptions(method: "GET", endpoint: host, path: url.path)
+        let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+        connection.close()
+        XCTAssertThrowsError(try stream.activate())
+    }
+
     func sendHttpRequest(method: String,
                          endpoint: String,
                          path: String,
@@ -103,12 +131,13 @@ class HttpTests: CrtXCBaseTestCase {
 
         let connectionManager = try await getHttpConnectionManager(endpoint: endpoint, ssh: ssh, port: port)
         let connection = try await connectionManager.acquireConnection()
-
+        XCTAssertTrue(connection.isOpen)
         let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
         try stream.activate()
         semaphore.wait()
         let status_code = try stream.statusCode()
         XCTAssertEqual(status_code, expectedStatus)
+        XCTAssertTrue(connection.isOpen)
     }
 
     func getHttpConnectionManager(endpoint: String, ssh: Bool, port: Int) async throws -> HttpClientConnectionManager {
