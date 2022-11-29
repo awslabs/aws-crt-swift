@@ -17,8 +17,7 @@ class HttpRequestTests: CrtXCBaseTestCase {
         XCTAssertEqual(try httpRequest.getMethod(), "DELETE")
         XCTAssertEqual(try httpRequest.getPath(), "updatedPath")
     }
-
-
+    
     func testCreateHttpRequestWithHeaders() throws {
         let httpHeaders = try HttpHeaders(allocator: allocator)
         XCTAssertTrue(httpHeaders.add(name: "Test", value: "Value"))

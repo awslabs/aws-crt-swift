@@ -17,13 +17,80 @@ class HttpTests: CrtXCBaseTestCase {
         try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/get")
         try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/delete", expectedStatus: 405)
         try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/get", ssh: false, port: 80)
-
     }
 
     func testPutHttpRequest() async throws {
         try await sendHttpRequest(method: "PUT", endpoint: "httpbin.org", path: "/anything", requestBody: TEST_DOC_LINE)
     }
 
+    func testHttpStreamIsReleasedIfNotActivated() async throws {
+        do {
+            let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
+            guard let host = url.host else {
+                print("no proper host was parsed from the url. quitting.")
+                exit(EXIT_FAILURE)
+            }
+
+            let httpRequestOptions = try getHttpRequestOptions(method: "GET", endpoint: host, path: url.path)
+            let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
+            let connection = try await connectionManager.acquireConnection()
+            _ = try connection.makeRequest(requestOptions: httpRequestOptions)
+        } catch let err {
+            print(err)
+        }
+    }
+
+    func testStreamLivesUntilComplete() async throws {
+        do {
+            let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
+            guard let host = url.host else {
+                print("no proper host was parsed from the url. quitting.")
+                exit(EXIT_FAILURE)
+            }
+            let httpRequestOptions = try getHttpRequestOptions(method: "GET", endpoint: host, path: url.path)
+            let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
+            let connection = try await connectionManager.acquireConnection()
+            let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+            try stream.activate()
+        }
+        semaphore.wait()
+    }
+
+    func testManagerLivesUntilComplete() async throws {
+        let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
+        guard let host = url.host else {
+            print("no proper host was parsed from the url. quitting.")
+            exit(EXIT_FAILURE)
+        }
+
+        var connection: HttpClientConnection! = nil
+        do {
+            let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
+            connection = try await connectionManager.acquireConnection()
+        }
+        let httpRequestOptions = try getHttpRequestOptions(method: "GET", endpoint: host, path: url.path)
+        let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+        try stream.activate()
+        semaphore.wait()
+    }
+
+    func testConnectionLivesUntilComplete() async throws {
+        let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
+        guard let host = url.host else {
+            print("no proper host was parsed from the url. quitting.")
+            exit(EXIT_FAILURE)
+        }
+
+        var stream: HttpStream! = nil
+        do {
+            let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
+            let connection = try await connectionManager.acquireConnection()
+            let httpRequestOptions = try getHttpRequestOptions(method: "GET", endpoint: host, path: url.path)
+            stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+        }
+        try stream.activate()
+        semaphore.wait()
+    }
 
     func sendHttpRequest(method: String,
                          endpoint: String,
@@ -42,23 +109,6 @@ class HttpTests: CrtXCBaseTestCase {
         semaphore.wait()
         let status_code = try stream.statusCode()
         XCTAssertEqual(status_code, expectedStatus)
-    }
-
-    func testHttpStreamIsReleasedIfNotActivated() async throws {
-        do {
-            let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
-            guard let host = url.host else {
-                print("no proper host was parsed from the url. quitting.")
-                exit(EXIT_FAILURE)
-            }
-
-            let httpRequestOptions = try getHttpRequestOptions(method: "GET", endpoint: host, path: url.path)
-            let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
-            let connection = try await connectionManager.acquireConnection()
-            _ = try connection.makeRequest(requestOptions: httpRequestOptions)
-        } catch let err {
-            print(err)
-        }
     }
 
     func getHttpConnectionManager(endpoint: String, ssh: Bool, port: Int) async throws -> HttpClientConnectionManager {
@@ -126,7 +176,6 @@ class HttpTests: CrtXCBaseTestCase {
         let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
             print("onComplete")
             XCTAssertNil(error)
-            XCTAssertEqual(error, nil)
             XCTAssertEqual(try! stream.statusCode(), expectedStatusCode)
             self.semaphore.signal()
         }
