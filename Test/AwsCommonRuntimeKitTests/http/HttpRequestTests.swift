@@ -8,14 +8,26 @@ class HttpRequestTests: CrtXCBaseTestCase {
 
     func testCreateHttpRequest() throws {
         let httpRequest = try HttpRequest(method: "PUT", path: "testPath", allocator: allocator)
-        XCTAssertEqual(try httpRequest.getMethod(), "PUT")
-        XCTAssertEqual(try httpRequest.getPath(), "testPath")
+        XCTAssertEqual(httpRequest.method, "PUT")
+        XCTAssertEqual(httpRequest.path, "testPath")
 
-        try httpRequest.setMethod(method: "DELETE")
-        try httpRequest.setPath(path: "updatedPath")
+        httpRequest.method = "DELETE"
+        httpRequest.path = "updatedPath"
 
-        XCTAssertEqual(try httpRequest.getMethod(), "DELETE")
-        XCTAssertEqual(try httpRequest.getPath(), "updatedPath")
+        XCTAssertEqual(httpRequest.method, "DELETE")
+        XCTAssertEqual(httpRequest.path, "updatedPath")
+    }
+
+    func testEmptyMethodAndPath() throws {
+        let httpRequest = try HttpRequest(method: "", path: "path", allocator: allocator)
+        XCTAssertEqual(httpRequest.method, "")
+        XCTAssertEqual(httpRequest.path, "path")
+
+        httpRequest.method = "DELETE"
+        httpRequest.path = ""
+
+        XCTAssertEqual(httpRequest.method, "DELETE")
+        XCTAssertEqual(httpRequest.path, "")
     }
 
 
