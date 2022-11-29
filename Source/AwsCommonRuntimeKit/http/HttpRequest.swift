@@ -68,6 +68,4 @@ public class HttpRequest: HttpMessage {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
     }
-
-
 }
