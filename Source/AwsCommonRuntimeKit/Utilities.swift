@@ -80,6 +80,10 @@ extension TimeInterval {
 
 extension aws_byte_cursor {
     func toString() -> String {
+        if self.len == 0 {
+            return ""
+        }
+
         let data = Data(bytesNoCopy: self.ptr, count: self.len, deallocator: .none)
         return String(data: data, encoding: .utf8)!
     }

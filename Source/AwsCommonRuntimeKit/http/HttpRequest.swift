@@ -6,6 +6,40 @@ import AwsCCommon
 
 public class HttpRequest: HttpMessage {
 
+    public var method: String {
+        get {
+            var method = aws_byte_cursor()
+            _ = aws_http_message_get_request_method(rawValue, &method)
+            return method.toString()
+        }
+        set {
+            newValue.withByteCursor { valueCursor in
+                _ = aws_http_message_set_request_method(self.rawValue, valueCursor)
+            }
+        }
+    }
+
+    public var path: String {
+        get {
+            var path = aws_byte_cursor()
+            _ = aws_http_message_get_request_path(rawValue, &path)
+            return path.toString()
+        }
+        set {
+            newValue.withByteCursor { valueCursor in
+                _ = aws_http_message_set_request_path(self.rawValue, valueCursor)
+            }
+        }
+    }
+
+    /// Creates an http request which can be passed to a connection.
+    /// - Parameters:
+    ///   - method: Http method to use. Must be a valid http method and not empty.
+    ///   - path: Path of Http Request. Should not be empty.
+    ///   - headers: (Optional) headers to send
+    ///   - body: (Optional) body stream to send as part of request
+    ///   - allocator: (Optional) allocator to override
+    /// - Throws: CommonRuntimeError
     public init(method: String = "GET",
                 path: String = "/",
                 headers: HttpHeaders? = nil,
@@ -17,55 +51,12 @@ public class HttpRequest: HttpMessage {
             try super.init(allocator: allocator)
         }
 
-        guard (method.withByteCursor { methodCursor in
-             aws_http_message_set_request_method(self.rawValue, methodCursor)
-        }) == AWS_OP_SUCCESS else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
-
-        guard (path.withByteCursor { pathCursor in
-             aws_http_message_set_request_path(self.rawValue, pathCursor)
-        }) == AWS_OP_SUCCESS else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
+        self.method = method
+        self.path = path
 
         if let body = body {
             let iStreamCore = IStreamCore(iStreamable: body, allocator: allocator)
             aws_http_message_set_body_stream(self.rawValue, &iStreamCore.rawValue)
-        }
-    }
-
-    public func getMethod() throws -> String {
-        var method = aws_byte_cursor()
-        guard aws_http_message_get_request_method(rawValue, &method) == AWS_OP_SUCCESS else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
-
-        return method.toString()
-    }
-
-    public func setMethod(method: String) throws {
-        guard (method.withByteCursor { methodCursor in
-            aws_http_message_set_request_method(self.rawValue, methodCursor)
-        }) == AWS_OP_SUCCESS else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
-    }
-
-    public func getPath() throws -> String {
-        var path = aws_byte_cursor()
-        guard aws_http_message_get_request_path(rawValue, &path) == AWS_OP_SUCCESS else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
-
-        return path.toString()
-    }
-
-    public func setPath(path: String) throws {
-        guard (path.withByteCursor { pathCursor in
-            aws_http_message_set_request_path(self.rawValue, pathCursor)
-        }) == AWS_OP_SUCCESS else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
         }
     }
 }
