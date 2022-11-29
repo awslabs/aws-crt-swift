@@ -54,8 +54,7 @@ private func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
     for cHeader in UnsafeBufferPointer(start: headerArray, count: headersCount) {
         let name = cHeader.name.toString()
         let value = cHeader.value.toString()
-        let swiftHeader = HttpHeader(name: name, value: value)
-        headers.append(swiftHeader)
+        headers.append(HttpHeader(name: name, value: value))
     }
 
     guard let headersStruct = try? HttpHeaders(fromArray: headers) else {
