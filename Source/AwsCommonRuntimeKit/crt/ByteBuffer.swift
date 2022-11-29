@@ -5,8 +5,7 @@ import struct Foundation.Data
 import AwsCIo
 import AwsCCal
 
-/// ByteBuffer represents a Data object with a current index
-/// which conforms to IStreamable protocol.
+/// ByteBuffer represents a Data object with a current index and conforms to IStreamable protocol.
 public final class ByteBuffer {
 
     private let data: Data
