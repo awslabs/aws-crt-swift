@@ -42,7 +42,6 @@ class HttpStreamCallbackCore {
     }
 }
 
-// TODO: Maybe update to fire three headers callback (informational, main, and trailing) only once
 private func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
                                headerBlock: aws_http_header_block,
                                headerArray: UnsafePointer<aws_http_header>?,
