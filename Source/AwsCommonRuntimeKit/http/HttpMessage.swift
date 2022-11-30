@@ -20,7 +20,6 @@ public class HttpMessage {
     }
 
     // internal initializer. Consumers will initialize HttpRequest subclass and
-
     // not interact with this class directly.
     init(allocator: Allocator = defaultAllocator) throws {
         self.allocator = allocator
