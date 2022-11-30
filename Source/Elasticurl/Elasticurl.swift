@@ -4,13 +4,7 @@
 import AwsCommonRuntimeKit
 import Foundation
 import _Concurrency
-#if os(Linux)
-import Glibc
-#else
-import Darwin
-#endif
-// TODO: refactor
-// swiftlint:disable cyclomatic_complexity type_body_length
+
 struct Context {
     // args
     public var logLevel: LogLevel = .trace
