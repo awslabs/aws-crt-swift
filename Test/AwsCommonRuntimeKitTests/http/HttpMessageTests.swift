@@ -5,7 +5,7 @@ import XCTest
 
 class HttpMessageTests: CrtXCBaseTestCase {
 
-    func testAddHttpHeaders() throws {
+    func testAddHeaders() throws {
         let httpMessage = try HttpMessage(allocator: allocator)
         try httpMessage.addHeaders(headers: [
             HttpHeader(name: "header1", value: "value1"),
@@ -23,7 +23,7 @@ class HttpMessageTests: CrtXCBaseTestCase {
         XCTAssertTrue(headers.elementsEqual(requestHeaders, by: { $0.name == $1.name && $0.value == $1.value}))
     }
 
-    func testGetHttpHeader() throws {
+    func testGetHeader() throws {
         let headers = [
             HttpHeader(name: "header1", value: "value1"),
             HttpHeader(name: "header2", value: "value2")]
@@ -39,7 +39,7 @@ class HttpMessageTests: CrtXCBaseTestCase {
         XCTAssertEqual(header2.value, "value2")
     }
 
-    func testRemoveHttpHeaders() throws {
+    func testRemoveHeader() throws {
         let headers = [
             HttpHeader(name: "header1", value: "value1"),
             HttpHeader(name: "header2", value: "value2")]

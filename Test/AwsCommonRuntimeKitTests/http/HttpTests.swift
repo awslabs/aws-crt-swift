@@ -131,6 +131,8 @@ class HttpTests: CrtXCBaseTestCase {
         let httpRequestOptions = try getHttpRequestOptions(method: "GET", endpoint: host, path: url.path)
         let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
         connection.close()
+        connection.close()
+        connection.close()
         XCTAssertThrowsError(try stream.activate())
     }
 
