@@ -62,7 +62,7 @@ extension ByteBuffer: IStreamable {
         var endIndex = currentIndex
         _ = data.formIndex(&endIndex, offsetBy: buffer.count, limitedBy: data.endIndex)
         let dataSlice = data[currentIndex..<endIndex]
-        guard dataSlice.count > 0 else {
+        guard !dataSlice.isEmpty else {
             return nil
         }
         dataSlice.copyBytes(to: buffer, from: currentIndex..<endIndex)
