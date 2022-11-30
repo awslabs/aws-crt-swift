@@ -30,11 +30,11 @@ class HttpMessageTests: CrtXCBaseTestCase {
         let httpMessage = try HttpMessage(allocator: allocator)
         try httpMessage.addHeaders(headers: headers)
 
-        let header = httpMessage.getHeader(atIndex: 0)
+        let header = httpMessage.getHeader(at: 0)
         XCTAssertEqual(header.name, "header1")
         XCTAssertEqual(header.value, "value1")
 
-        let header2 = httpMessage.getHeader(atIndex: 1)
+        let header2 = httpMessage.getHeader(at: 1)
         XCTAssertEqual(header2.name, "header2")
         XCTAssertEqual(header2.value, "value2")
     }
@@ -47,12 +47,11 @@ class HttpMessageTests: CrtXCBaseTestCase {
         try httpMessage.addHeaders(headers: headers)
         XCTAssertEqual(httpMessage.headerCount, 2)
         try httpMessage.addHeader(header: HttpHeader(name: "HeaderToRemove", value: "xyz"))
-        try httpMessage.removeHeader(atIndex: 2)
+        httpMessage.removeHeader(at: 2)
         let allHeaders = httpMessage.getHeaders()
 
         XCTAssertFalse(allHeaders.contains { (header) -> Bool in
             header.name == "HeaderToRemove"
         })
     }
-
 }

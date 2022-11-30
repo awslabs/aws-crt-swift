@@ -1,5 +1,6 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+
 import AwsCHttp
 import AwsCIo
 
@@ -19,6 +20,7 @@ public class HttpMessage {
     }
 
     // internal initializer. Consumers will initialize HttpRequest subclass and
+
     // not interact with this class directly.
     init(allocator: Allocator = defaultAllocator) throws {
         self.allocator = allocator
@@ -42,24 +44,27 @@ public extension HttpMessage {
     func addHeader(header: HttpHeader) throws {
         guard (header.withCStruct { cHeader in
             aws_http_message_add_header(self.rawValue, cHeader)
-        }) == AWS_OP_SUCCESS else {
+        }) == AWS_OP_SUCCESS
+        else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
     }
 
     func addHeaders(headers: [HttpHeader]) throws {
-        try headers.forEach { try addHeader(header: $0) }
+        try headers.forEach {
+            try addHeader(header: $0)
+        }
     }
 
     /// Get header at index. Index must be valid.
-    func removeHeader(atIndex index: Int) {
+    func removeHeader(at index: Int) {
         guard aws_http_message_erase_header(rawValue, index) == AWS_OP_SUCCESS else {
             fatalError("Index out of range")
         }
     }
 
     /// Get header at index. Index must be valid.
-    func getHeader(atIndex index: Int) -> HttpHeader {
+    func getHeader(at index: Int) -> HttpHeader {
         var header = aws_http_header()
         guard aws_http_message_get_header(self.rawValue, &header, index) == AWS_OP_SUCCESS else {
             fatalError("Index out of range")
@@ -70,7 +75,7 @@ public extension HttpMessage {
     func getHeaders() -> [HttpHeader] {
         var headers = [HttpHeader]()
         var header = aws_http_header()
-        for index in 0 ..< headerCount {
+        for index in 0..<headerCount {
             if aws_http_message_get_header(rawValue, &header, index) == AWS_OP_SUCCESS {
                 headers.append(HttpHeader(rawValue: header))
             } else {
