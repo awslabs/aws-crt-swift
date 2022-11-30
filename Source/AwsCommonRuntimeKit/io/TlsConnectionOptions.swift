@@ -9,7 +9,11 @@ public struct TlsConnectionOptions: CStruct {
     public var alpnList: [String]?
     public var serverName: String?
 
-    public init(context: TlsContext, alpnList: [String]? = nil, serverName: String? = nil, allocator: Allocator = defaultAllocator) {
+    public init(
+        context: TlsContext,
+        alpnList: [String]? = nil,
+        serverName: String? = nil,
+        allocator: Allocator = defaultAllocator) {
         self.allocator = allocator
         self.context = context
         self.alpnList = alpnList
@@ -30,10 +34,16 @@ public struct TlsConnectionOptions: CStruct {
             tlsConnectionsOptionsPointer.pointee.timeout_ms = 3_000
             #endif
             if let alpnList = alpnList {
-                _ = aws_tls_connection_options_set_alpn_list(tlsConnectionsOptionsPointer, self.allocator.rawValue, alpnList.joined(separator: ";"))
+                _ = aws_tls_connection_options_set_alpn_list(
+                    tlsConnectionsOptionsPointer,
+                    self.allocator.rawValue,
+                    alpnList.joined(separator: ";"))
             }
             _ = serverName?.withByteCursorPointer { serverNameCursorPointer in
-                aws_tls_connection_options_set_server_name(tlsConnectionsOptionsPointer, allocator.rawValue, serverNameCursorPointer)
+                aws_tls_connection_options_set_server_name(
+                    tlsConnectionsOptionsPointer,
+                    allocator.rawValue,
+                    serverNameCursorPointer)
             }
             return body(tlsConnectionsOptionsPointer.pointee)
         }

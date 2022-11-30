@@ -10,7 +10,10 @@ public class TlsContextOptions: CStruct {
         TlsContextOptions(allocator: allocator)
     }
 
-    public static func makeMtlsPkcs12FromPath(path: String, password: String, allocator: Allocator = defaultAllocator) throws -> TlsContextOptions {
+    public static func makeMtlsPkcs12FromPath(
+        path: String,
+        password: String,
+        allocator: Allocator = defaultAllocator) throws -> TlsContextOptions {
         try TlsContextOptions(mtlsPkcs12FromPath: path, password: password, allocator: allocator)
     }
 

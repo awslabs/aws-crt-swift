@@ -57,8 +57,7 @@ public class CRTAWSRetryStrategy {
     ///                  Pass NULL to use the global partition.
     /// - Returns: `CRTAWSRetryStrategy`
     public func acquireToken(partitionId: String?) async throws -> CRTAWSRetryToken {
-        return try await withCheckedThrowingContinuation {
-            (continuation: CheckedContinuation<CRTAWSRetryToken, Error>) in
+        return try await withCheckedThrowingContinuation { continuation in
 
             let continuationCore = ContinuationCore(continuation: continuation)
             if withOptionalByteCursorPointerFromString(partitionId, { partitionIdCursorPointer in
