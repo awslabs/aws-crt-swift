@@ -30,13 +30,9 @@ class HttpMessageTests: CrtXCBaseTestCase {
         let httpMessage = try HttpMessage(allocator: allocator)
         httpMessage.addHeaders(headers: headers)
 
-        let header = httpMessage.getHeader(at: 0)
-        XCTAssertEqual(header.name, "header1")
-        XCTAssertEqual(header.value, "value1")
-
-        let header2 = httpMessage.getHeader(at: 1)
-        XCTAssertEqual(header2.name, "header2")
-        XCTAssertEqual(header2.value, "value2")
+        XCTAssertEqual(httpMessage.getHeaderValue(name: "header1"), "value1")
+        XCTAssertEqual(httpMessage.getHeaderValue(name: "header2"), "value2")
+        XCTAssertNil(httpMessage.getHeaderValue(name: "invalidHeaderName"))
     }
 
     func testRemoveHeader() throws {
@@ -47,12 +43,10 @@ class HttpMessageTests: CrtXCBaseTestCase {
         httpMessage.addHeaders(headers: headers)
         XCTAssertEqual(httpMessage.headerCount, 2)
         httpMessage.addHeader(header: HttpHeader(name: "HeaderToRemove", value: "xyz"))
-        httpMessage.removeHeader(at: 2)
+        httpMessage.removeHeader(name: "HeaderToRemove")
+        httpMessage.removeHeader(name: "Doesn't Exit")
         let allHeaders = httpMessage.getHeaders()
-
-        XCTAssertFalse(allHeaders.contains { (header) -> Bool in
-            header.name == "HeaderToRemove"
-        })
+        XCTAssertTrue(headers.elementsEqual(allHeaders, by: { $0.name == $1.name && $0.value == $1.value}))
     }
 
     func testAddEmptyHeader() throws {
@@ -65,4 +59,33 @@ class HttpMessageTests: CrtXCBaseTestCase {
         httpMessage.addHeader(header: HttpHeader(name: "", value: "xyz"))
         XCTAssertEqual(httpMessage.headerCount, 2)
     }
+
+    func testClearHeaders() throws {
+        let headers = [
+            HttpHeader(name: "header1", value: "value1"),
+            HttpHeader(name: "header2", value: "value2")]
+        let httpMessage = try HttpMessage(allocator: allocator)
+        httpMessage.addHeaders(headers: headers)
+        XCTAssertEqual(httpMessage.headerCount, 2)
+        httpMessage.clearHeaders()
+        XCTAssertEqual(httpMessage.headerCount, 0)
+        XCTAssertTrue(httpMessage.getHeaders().isEmpty)
+    }
+
+    func testSetHeader() throws {
+        let headers = [
+            HttpHeader(name: "header1", value: "value1"),
+            HttpHeader(name: "header2", value: "value2")]
+        let httpMessage = try HttpMessage(allocator: allocator)
+        httpMessage.addHeaders(headers: headers)
+        XCTAssertEqual(httpMessage.headerCount, 2)
+
+        httpMessage.setHeader(name: "header1", value: "newValue")
+        XCTAssertEqual(httpMessage.getHeaderValue(name: "header1"), "newValue")
+        httpMessage.setHeader(name: "header3", value: "value3")
+        httpMessage.setHeader(name: "", value: "value4")
+        XCTAssertEqual(httpMessage.headerCount, 3)
+        XCTAssertEqual(httpMessage.getHeaderValue(name: "header3"), "value3")
+    }
+
 }

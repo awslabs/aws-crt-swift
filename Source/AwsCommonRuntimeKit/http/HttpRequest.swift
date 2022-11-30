@@ -54,6 +54,6 @@ public class HttpRequest: HttpMessage {
             let iStreamCore = IStreamCore(iStreamable: body, allocator: allocator)
             aws_http_message_set_body_stream(self.rawValue, &iStreamCore.rawValue)
         }
-        try addHeaders(headers: headers)
+        addHeaders(headers: headers)
     }
 }

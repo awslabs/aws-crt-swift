@@ -63,20 +63,42 @@ public extension HttpMessage {
         headers.forEach { addHeader(header: $0) }
     }
 
-    /// Remove header at index. Index must be valid.
-    func removeHeader(at index: Int) {
-        guard aws_http_message_erase_header(rawValue, index) == AWS_OP_SUCCESS else {
-            fatalError("Index out of range")
+    /// Remove all headers with this name
+    func removeHeader(name: String) {
+        let headers = aws_http_message_get_headers(rawValue)
+        _ = name.withByteCursor { nameCursor in
+            aws_http_headers_erase(headers, nameCursor)
         }
     }
 
-    /// Get header at index. Index must be valid.
-    func getHeader(at index: Int) -> HttpHeader {
-        var header = aws_http_header()
-        guard aws_http_message_get_header(self.rawValue, &header, index) == AWS_OP_SUCCESS else {
-            fatalError("Index out of range")
+    /// Set a header value.
+    /// The header is added if necessary and any existing values for this name are removed.
+    /// Does nothing if the name is empty.
+    func setHeader(name: String, value: String) {
+        if name.isEmpty {
+            return
         }
-        return HttpHeader(rawValue: header)
+
+        let headers = aws_http_message_get_headers(rawValue)
+        _ = withByteCursorFromStrings(name, value) { nameCursor, valueCursor in
+            aws_http_headers_set(headers, nameCursor, valueCursor)
+        }
+    }
+
+    /// Get the first value for this name, ignoring any additional values.
+    /// Returns nil if no value exits
+    /// - Parameter name: The name of header to fetch
+    /// - Returns: Returns value of header
+    func getHeaderValue(name: String) -> String? {
+        let headers = aws_http_message_get_headers(rawValue)
+        var value = aws_byte_cursor()
+
+        guard (name.withByteCursor { nameCursor in
+            aws_http_headers_get(headers, nameCursor, &value)
+        }) == AWS_OP_SUCCESS else {
+                return nil
+        }
+        return value.toString()
     }
 
     func getHeaders() -> [HttpHeader] {
@@ -90,5 +112,10 @@ public extension HttpMessage {
             }
         }
         return headers
+    }
+
+    /// Removes all headers
+    func clearHeaders() {
+        aws_http_headers_clear(aws_http_message_get_headers(rawValue))
     }
 }
