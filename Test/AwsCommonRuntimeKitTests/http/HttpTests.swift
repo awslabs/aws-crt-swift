@@ -190,15 +190,11 @@ class HttpTests: CrtXCBaseTestCase {
                                body: String = "",
                                expectedStatusCode: Int = 200) throws -> HttpRequestOptions {
         let httpRequest: HttpRequest = try HttpRequest(method: method, path: path, body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
-
-        let headers = try HttpHeaders(allocator: allocator)
-        XCTAssertTrue(headers.add(name: "Host", value: endpoint))
-        XCTAssertTrue(headers.add(name: "Content-Length", value: String(body.count)))
-        httpRequest.addHeaders(headers: headers)
+        try httpRequest.addHeader(header: HttpHeader(name: "Host", value: endpoint))
+        try httpRequest.addHeader(header: HttpHeader(name: "Content-Length", value: String(body.count)))
 
         let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
-            let allHeaders = headers.getAll()
-            for header in allHeaders {
+            for header in headers {
                 print(header.name + " : " + header.value)
             }
         }

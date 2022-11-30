@@ -42,14 +42,10 @@ public class HttpRequest: HttpMessage {
     /// - Throws: CommonRuntimeError
     public init(method: String = "GET",
                 path: String = "/",
-                headers: HttpHeaders? = nil,
+                headers: [HttpHeader] = [HttpHeader](),
                 body: IStreamable? = nil,
                 allocator: Allocator = defaultAllocator) throws {
-        if let headers = headers {
-            try super.init(headers: headers, allocator: allocator)
-        } else {
-            try super.init(allocator: allocator)
-        }
+        try super.init(allocator: allocator)
 
         self.method = method
         self.path = path
@@ -58,5 +54,6 @@ public class HttpRequest: HttpMessage {
             let iStreamCore = IStreamCore(iStreamable: body, allocator: allocator)
             aws_http_message_set_body_stream(self.rawValue, &iStreamCore.rawValue)
         }
+        try addHeaders(headers: headers)
     }
 }

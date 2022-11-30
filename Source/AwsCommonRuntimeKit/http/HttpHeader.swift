@@ -3,7 +3,7 @@
 
 import AwsCHttp
 
-public class HttpHeader {
+public class HttpHeader: CStruct {
     public let name: String
     public let value: String
     public let compression: HttpHeaderCompression
@@ -20,5 +20,16 @@ public class HttpHeader {
         self.name = rawValue.name.toString()
         self.value = rawValue.value.toString()
         self.compression = HttpHeaderCompression(rawValue: rawValue.compression)
+    }
+
+    typealias RawType = aws_http_header
+    func withCStruct<Result>(_ body: (aws_http_header) -> Result) -> Result {
+        var cHeader = aws_http_header()
+        cHeader.compression = compression.rawValue
+        return withByteCursorFromStrings(name, value) { nameCursor, valueCursor in
+            cHeader.name = nameCursor
+            cHeader.value = valueCursor
+            return body(cHeader)
+        }
     }
 }

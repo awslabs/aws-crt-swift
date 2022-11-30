@@ -5,70 +5,54 @@ import XCTest
 
 class HttpMessageTests: CrtXCBaseTestCase {
 
-    var httpMessage: HttpMessage?
-
-    override func setUp() {
-        super.setUp()
-        httpMessage = try? HttpMessage(allocator: allocator)
-        let httpHeaders = try? HttpHeaders(allocator: allocator)
-        let headerAdded = httpHeaders?.add(name: "Test", value: "Value")
-        XCTAssertTrue(headerAdded!)
-        httpMessage?.addHeaders(headers: httpHeaders!)
-    }
-
-    override func tearDown() {
-        httpMessage = nil
-    }
-
-    func testCreateHttpMessage() throws {
-        _ = try HttpMessage(allocator: allocator)
-    }
-
     func testAddHttpHeaders() throws {
-        let httpHeaders = try HttpHeaders(allocator: allocator)
-        let headerAdded = httpHeaders.add(name: "Test2", value: "Value2")
-        XCTAssertTrue(headerAdded)
-        httpMessage?.addHeaders(headers: httpHeaders)
-        XCTAssertEqual(httpMessage?.headerCount, 2)
+        let httpMessage = try HttpMessage(allocator: allocator)
+        try httpMessage.addHeaders(headers: [
+            HttpHeader(name: "header1", value: "value1"),
+            HttpHeader(name: "header2", value: "value2")])
+        XCTAssertEqual(httpMessage.headerCount, 2)
     }
 
-    func testGetAllHttpHeaders() throws {
-        var allHeaders = httpMessage?.getHeaders()
-        XCTAssertEqual(allHeaders!.count, 1)
-
-        let httpHeaders = try HttpHeaders(allocator: allocator)
-        let headerAdded = httpHeaders.add(name: "Test2", value: "Value2")
-        XCTAssertTrue(headerAdded)
-        httpMessage?.addHeaders(headers: httpHeaders)
-
-        allHeaders = httpMessage?.getHeaders()
-        XCTAssertEqual(allHeaders!.count, 2)
+    func testGetHeaders() throws {
+        let headers = [
+            HttpHeader(name: "header1", value: "value1"),
+            HttpHeader(name: "header2", value: "value2")]
+        let httpMessage = try HttpMessage(allocator: allocator)
+        try httpMessage.addHeaders(headers: headers)
+        let requestHeaders = httpMessage.getHeaders()
+        XCTAssertTrue(headers.elementsEqual(requestHeaders, by: { $0.name == $1.name && $0.value == $1.value}))
     }
 
-    func testGetHttpHeaders() {
-        let getHeader = httpMessage?.getHeader(atIndex: 0)
-        XCTAssertNotNil(getHeader)
-        XCTAssertEqual(getHeader?.value, "Value")
+    func testGetHttpHeader() throws {
+        let headers = [
+            HttpHeader(name: "header1", value: "value1"),
+            HttpHeader(name: "header2", value: "value2")]
+        let httpMessage = try HttpMessage(allocator: allocator)
+        try httpMessage.addHeaders(headers: headers)
 
-        let nilHeader = httpMessage?.getHeader(atIndex: 1)
-        XCTAssertNil(nilHeader)
+        let header = httpMessage.getHeader(atIndex: 0)
+        XCTAssertEqual(header.name, "header1")
+        XCTAssertEqual(header.value, "value1")
+
+        let header2 = httpMessage.getHeader(atIndex: 1)
+        XCTAssertEqual(header2.name, "header2")
+        XCTAssertEqual(header2.value, "value2")
     }
 
-    func testRemoveHttpHeaders() {
-        let httpHeaders = try? HttpHeaders(allocator: allocator)
-        let headerAdded = httpHeaders?.add(name: "HeaderToRemove", value: "LoseMe")
-        XCTAssertTrue(headerAdded!)
-        httpMessage?.addHeaders(headers: httpHeaders!)
-        XCTAssertEqual(httpMessage?.headerCount, 2)
+    func testRemoveHttpHeaders() throws {
+        let headers = [
+            HttpHeader(name: "header1", value: "value1"),
+            HttpHeader(name: "header2", value: "value2")]
+        let httpMessage = try HttpMessage(allocator: allocator)
+        try httpMessage.addHeaders(headers: headers)
+        XCTAssertEqual(httpMessage.headerCount, 2)
+        try httpMessage.addHeader(header: HttpHeader(name: "HeaderToRemove", value: "xyz"))
+        try httpMessage.removeHeader(atIndex: 2)
+        let allHeaders = httpMessage.getHeaders()
 
-        let headerRemoved = httpMessage?.removeHeader(atIndex: 1)
-        XCTAssertTrue(headerRemoved!)
-        let allHeaders = httpMessage?.getHeaders()
-
-        let nopeNotHere = allHeaders!.contains { (header) -> Bool in
+        XCTAssertFalse(allHeaders.contains { (header) -> Bool in
             header.name == "HeaderToRemove"
-        }
-        XCTAssertFalse(nopeNotHere)
+        })
     }
 
 }

@@ -272,30 +272,23 @@ struct Elasticurl {
             var stream: HttpStream?
             let path = context.url.path == "" ? "/" : context.url.path
             let httpRequest: HttpRequest = try HttpRequest(method: context.verb, path: path, allocator: allocator)
-            let headers = try HttpHeaders(allocator: allocator)
-            if headers.add(name: "Host", value: host),
-               headers.add(name: "User-Agent", value: "Elasticurl"),
-               headers.add(name: "Accept", value: "*/*"),
-               headers.add(name: "Swift", value: "Version 5.4") {
-                for header in context.headers {
-                    _ = headers.add(name: header.key, value: header.value)
-                }
-            }
+            var headers = [HttpHeader]()
+            headers.append(HttpHeader(name: "Host", value: host))
+            headers.append(HttpHeader(name: "User-Agent", value: "Elasticurl"))
+            headers.append(HttpHeader(name: "Accept", value: "*/*"))
+            headers.append(HttpHeader(name: "Swift", value: "Version 5.4"))
 
             if let data = context.data {
                 let byteBuffer = ByteBuffer(data: data)
                 httpRequest.body = byteBuffer
-                if headers.add(name: "Content-length", value: "\(data.count)") {
-                    httpRequest.addHeaders(headers: headers)
-                }
+                headers.append(HttpHeader(name: "Content-length", value: "\(data.count)"))
             }
-            httpRequest.addHeaders(headers: headers)
+
+            try httpRequest.addHeaders(headers: headers)
 
             let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
-                let allHeaders = headers.getAll()
-                for header in allHeaders {
+                for header in headers {
                     print(header.name + " : " + header.value)
-
                 }
             }
 

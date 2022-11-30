@@ -57,14 +57,10 @@ private func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
         headers.append(HttpHeader(name: name, value: value))
     }
 
-    guard let headersStruct = try? HttpHeaders(fromArray: headers) else {
-        return AWS_OP_ERR
-    }
-
     let stream = httpStreamCbData.stream!
     httpStreamCbData.requestOptions.onIncomingHeaders(stream,
             HttpHeaderBlock(rawValue: headerBlock),
-            headersStruct )
+            headers)
     return AWS_OP_SUCCESS
 }
 

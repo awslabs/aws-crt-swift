@@ -140,9 +140,7 @@ class SignerTests: CrtXCBaseTestCase {
 
     func makeMockRequest() throws -> HttpRequest {
         let request = try HttpRequest(allocator: allocator)
-        let headers = try HttpHeaders(allocator: allocator)
-        XCTAssertTrue(headers.add(name: "Host", value: SIGV4TEST_HOST))
-        request.addHeaders(headers: headers)
+        try request.addHeader(header: HttpHeader(name: "Host", value: SIGV4TEST_HOST))
 
         return request
     }
@@ -150,11 +148,8 @@ class SignerTests: CrtXCBaseTestCase {
 
     func makeMockRequestWithDoNotSignHeader() throws -> HttpRequest {
         let request = try HttpRequest()
-        let headers = try HttpHeaders()
-        XCTAssertTrue(headers.add(name: "Host", value: SIGV4TEST_HOST))
-        XCTAssertTrue(headers.add(name: "doNotSign", value: "test-header"))
-        request.addHeaders(headers: headers)
-
+        try request.addHeader(header: HttpHeader(name: "Host", value: SIGV4TEST_HOST))
+        try request.addHeader(header: HttpHeader(name: "doNotSign", value: "test-header"))
         return request
     }
 
@@ -163,11 +158,8 @@ class SignerTests: CrtXCBaseTestCase {
         let byteBuffer = ByteBuffer(data: "hello".data(using: .utf8)!)
         request.body = byteBuffer
 
-        let headers = try HttpHeaders(allocator: allocator)
-        XCTAssertTrue(headers.add(name: "Host", value: SIGV4TEST_HOST))
-        XCTAssertTrue(headers.add(name: "Content-Length", value: "5"))
-        request.addHeaders(headers: headers)
-
+        try request.addHeader(header: HttpHeader(name: "Host", value: SIGV4TEST_HOST))
+        try request.addHeader(header: HttpHeader(name: "Content-Length", value: "5"))
         return request
     }
 
