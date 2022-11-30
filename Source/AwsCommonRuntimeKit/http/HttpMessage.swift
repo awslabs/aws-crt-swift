@@ -55,7 +55,7 @@ public extension HttpMessage {
         }
     }
 
-    /// Get header at index. Index must be valid.
+    /// Remove header at index. Index must be valid.
     func removeHeader(at index: Int) {
         guard aws_http_message_erase_header(rawValue, index) == AWS_OP_SUCCESS else {
             fatalError("Index out of range")
