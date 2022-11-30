@@ -13,5 +13,4 @@ class HttpMonitoringTests: CrtXCBaseTestCase {
             XCTAssertEqual(cMonitoringOptions.allowable_throughput_failure_interval_seconds, 100)
         }
     }
-
 }

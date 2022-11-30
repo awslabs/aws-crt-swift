@@ -21,7 +21,8 @@ class HttpClientConnectionOptionsTests: CrtXCBaseTestCase {
                 hostResolver: resolver,
                 allocator: allocator)
 
-        let shutdownCallback = {}
+        let shutdownCallback = {
+        }
 
         let httpClientOptions = HttpClientConnectionOptions(clientBootstrap: clientBootstrap,
                 hostName: "test",
@@ -62,9 +63,6 @@ class HttpClientConnectionOptionsTests: CrtXCBaseTestCase {
             XCTAssertNotNil(clientOptions.shutdown_complete_callback)
             XCTAssertNotNil(clientOptions.shutdown_complete_user_data)
         }
-
         shutdownCallbackCore.release()
     }
-
-
 }

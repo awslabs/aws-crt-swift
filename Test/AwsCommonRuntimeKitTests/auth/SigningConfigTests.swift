@@ -32,5 +32,4 @@ class SigningConfigTests: CrtXCBaseTestCase {
             XCTAssertEqual(signingConfig.signedBodyValue.rawValue, cSigningConfig.signed_body_value.toString())
         }
     }
-
 }
