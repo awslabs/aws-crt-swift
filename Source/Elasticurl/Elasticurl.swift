@@ -284,7 +284,7 @@ struct Elasticurl {
                 headers.append(HttpHeader(name: "Content-length", value: "\(data.count)"))
             }
 
-            try httpRequest.addHeaders(headers: headers)
+            httpRequest.addHeaders(headers: headers)
 
             let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
                 for header in headers {

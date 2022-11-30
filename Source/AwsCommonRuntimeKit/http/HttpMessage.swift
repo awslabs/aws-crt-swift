@@ -39,19 +39,28 @@ public extension HttpMessage {
         return aws_http_message_get_header_count(rawValue)
     }
 
-    func addHeader(header: HttpHeader) throws {
+    /// Adds a header to the request.
+    /// Does nothing if the header name is empty.
+    /// - Parameter header: HttpHeader to add
+    func addHeader(header: HttpHeader) {
+        if header.name.isEmpty {
+            return
+        }
+
         guard (header.withCStruct { cHeader in
             aws_http_message_add_header(self.rawValue, cHeader)
         }) == AWS_OP_SUCCESS
         else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
+            let error = CRTError.makeFromLastError()
+            fatalError("Unable to add header due to error code: \(error.code) message:\(error.message)")
         }
     }
 
-    func addHeaders(headers: [HttpHeader]) throws {
-        try headers.forEach {
-            try addHeader(header: $0)
-        }
+    /// Adds the header array to the request.
+    /// Skips element which have empty names.
+    /// - Parameter headers: The list of headers to add
+    func addHeaders(headers: [HttpHeader]) {
+        headers.forEach { addHeader(header: $0) }
     }
 
     /// Remove header at index. Index must be valid.
