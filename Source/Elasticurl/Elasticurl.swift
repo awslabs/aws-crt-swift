@@ -5,6 +5,7 @@ import AwsCommonRuntimeKit
 import Foundation
 import _Concurrency
 
+// swiftlint:disable cyclomatic_complexity type_body_length
 struct Context {
     // args
     public var logLevel: LogLevel = .trace
