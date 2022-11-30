@@ -190,11 +190,10 @@ extension AwsCredentialsProvider.Source {
             guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                     configFileNameOverride,
                     credentialsFileNameOverride,
-                    profileFileNameOverride, {
-                        configFileNameOverrideCursor, credentialsFileNameOverrideCursor, profileFileNameOverrideCursor in
-                        profileOptionsC.config_file_name_override = configFileNameOverrideCursor
-                        profileOptionsC.credentials_file_name_override = credentialsFileNameOverrideCursor
-                        profileOptionsC.profile_name_override = profileFileNameOverrideCursor
+                    profileFileNameOverride, { configCursor, credentialsCursor, profileCursor in
+                        profileOptionsC.config_file_name_override = configCursor
+                        profileOptionsC.credentials_file_name_override = credentialsCursor
+                        profileOptionsC.profile_name_override = profileCursor
                         return aws_credentials_provider_new_profile(allocator.rawValue, &profileOptionsC)
                     })
             else {
@@ -339,9 +338,9 @@ extension AwsCredentialsProvider.Source {
                 x509Options.thing_name = thingNameCursor
                 x509Options.role_alias = roleAliasCursor
                 x509Options.endpoint = endPointCursor
-                return withOptionalCStructPointer(proxyOptions,
-                                                  tlsConnectionOptions) { proxyOptionsPointer,
-                                                                          tlsConnectionOptionsPointer in
+                return withOptionalCStructPointer(
+                    proxyOptions,
+                    tlsConnectionOptions) { proxyOptionsPointer, tlsConnectionOptionsPointer in
                     x509Options.proxy_options = proxyOptionsPointer
                     x509Options.tls_connection_options = tlsConnectionOptionsPointer
                     return aws_credentials_provider_new_x509(allocator.rawValue, &x509Options)
@@ -516,7 +515,10 @@ private func onGetCredentials(credentials: OpaquePointer?,
 }
 
 private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
-                                      _ callbackFn: (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)!,
+                                      _ callbackFn: (@convention(c) (
+                                                        OpaquePointer?,
+                                                        Int32,
+                                                        UnsafeMutableRawPointer?) -> Void)!,
                                       _ userData: UnsafeMutableRawPointer!) -> Int32 {
     let delegate = Unmanaged<AWSCredentialsProvidingCore>.fromOpaque(delegatePtr)
         .takeUnretainedValue()

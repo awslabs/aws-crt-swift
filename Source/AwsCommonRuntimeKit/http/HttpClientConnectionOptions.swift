@@ -77,22 +77,19 @@ public struct HttpClientConnectionOptions: CStructWithShutdownOptions {
         _ body: (aws_http_connection_manager_options) -> Result
     ) -> Result {
         return hostName.withByteCursor { hostNameCursor in
-            return withOptionalCStructPointer(proxyOptions,
-                                              proxyEnvSettings,
-                                              socketOptions,
-                                              monitoringOptions,
-                                              tlsOptions) { proxyOptionsPointer,
-                                                            proxyEnvSettingsPointer,
-                                                            socketOptionsPointer,
-                                                            monitoringOptionsPointer,
-                                                            tlsOptionsPointer in
+            return withOptionalCStructPointer(
+                proxyOptions,
+                proxyEnvSettings,
+                socketOptions,
+                monitoringOptions,
+                tlsOptions) { proxyOptionsPointer, proxyEnvSettingsPointer, socketOptionsPointer, monitoringPointer, tlsPointer in
 
                 var cManagerOptions = aws_http_connection_manager_options()
                 cManagerOptions.bootstrap = clientBootstrap.rawValue
                 cManagerOptions.initial_window_size = initialWindowSize
                 cManagerOptions.socket_options = socketOptionsPointer
-                cManagerOptions.tls_connection_options = tlsOptionsPointer
-                cManagerOptions.monitoring_options = monitoringOptionsPointer
+                cManagerOptions.tls_connection_options = tlsPointer
+                cManagerOptions.monitoring_options = monitoringPointer
                 cManagerOptions.host = hostNameCursor
                 cManagerOptions.port = port
                 cManagerOptions.proxy_options = proxyOptionsPointer
