@@ -38,8 +38,8 @@ public class HttpClientConnection {
         let httpStreamCallbackCore = HttpStreamCallbackCore(requestOptions: requestOptions)
         do {
             return try HttpStream(httpConnection: self,
-                    options: httpStreamCallbackCore.getRetainedHttpMakeRequestOptions(),
-                    callbackData: httpStreamCallbackCore)
+                                  options: httpStreamCallbackCore.getRetainedHttpMakeRequestOptions(),
+                                  callbackData: httpStreamCallbackCore)
         } catch {
             httpStreamCallbackCore.release()
             throw error
@@ -47,6 +47,6 @@ public class HttpClientConnection {
     }
 
     deinit {
-      try! manager.releaseConnection(connection: self)
+        try! manager.releaseConnection(connection: self)
     }
 }

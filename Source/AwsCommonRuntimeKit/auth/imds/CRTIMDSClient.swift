@@ -41,9 +41,9 @@ public class IMDSClient {
         let continuationCore = ContinuationCore(continuation: continuation)
         resourcePath.withByteCursor { resourcePathCursor in
             if(aws_imds_client_get_resource_async(client.rawValue,
-                    resourcePathCursor,
-                    onGetResource,
-                    continuationCore.passRetained())) != AWS_OP_SUCCESS {
+                                                  resourcePathCursor,
+                                                  onGetResource,
+                                                  continuationCore.passRetained())) != AWS_OP_SUCCESS {
 
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
@@ -68,8 +68,8 @@ public class IMDSClient {
                           functionPointer: CGetIMDSResourceListFunctionPointer) {
         let continuationCore = ContinuationCore(continuation: continuation)
         if(functionPointer(client.rawValue,
-                onGetResourceList,
-                continuationCore.passRetained())) != AWS_OP_SUCCESS {
+                           onGetResourceList,
+                           continuationCore.passRetained())) != AWS_OP_SUCCESS {
             continuationCore.release()
             continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
         }
@@ -227,9 +227,9 @@ public class IMDSClient {
             iamRoleName.withByteCursor { iamRoleNameCursor in
                 let continuationCore = ContinuationCore(continuation: continuation)
                 if(aws_imds_client_get_credentials(rawValue,
-                        iamRoleNameCursor,
-                        onGetCredentials,
-                        continuationCore.passRetained())) != AWS_OP_SUCCESS {
+                                                   iamRoleNameCursor,
+                                                   onGetCredentials,
+                                                   continuationCore.passRetained())) != AWS_OP_SUCCESS {
                     continuationCore.release()
                     continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
                 }

@@ -60,9 +60,9 @@ public class EndpointsRuleEngine {
 
         if type == AWS_ENDPOINTS_RESOLVED_ENDPOINT {
             return ResolvedEndpoint.endpoint(
-                    url: try getURL(rawValue: resolvedEndpoint),
-                    headers: try getHeaders(rawValue: resolvedEndpoint),
-                    properties: try getProperties(rawValue: resolvedEndpoint))
+                url: try getURL(rawValue: resolvedEndpoint),
+                headers: try getHeaders(rawValue: resolvedEndpoint),
+                properties: try getProperties(rawValue: resolvedEndpoint))
         } else {
             return ResolvedEndpoint.error(message: try getErrorMessage(rawValue: resolvedEndpoint))
         }

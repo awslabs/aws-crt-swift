@@ -35,7 +35,7 @@ struct CommandLineParser {
                 }
             }
         }
-        
+
         return argumentsDict
     }
 }

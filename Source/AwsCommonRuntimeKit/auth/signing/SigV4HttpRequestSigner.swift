@@ -4,7 +4,7 @@
 import AwsCAuth
 import Foundation
 
-//TODO: update file name
+// TODO: update file name
 public class Signer {
 
     /// Signs an HttpRequest that was passed in via the appropriate algorithm.
@@ -41,17 +41,17 @@ public class Signer {
 
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<HttpRequest, Error>) in
             let signRequestCore = SignRequestCore(request: request,
-                    continuation: continuation,
-                    shouldSignHeader: config.shouldSignHeader,
-                    allocator: allocator)
-            var shouldSignHeaderUserData: UnsafeMutableRawPointer? = nil
+                                                  continuation: continuation,
+                                                  shouldSignHeader: config.shouldSignHeader,
+                                                  allocator: allocator)
+            var shouldSignHeaderUserData: UnsafeMutableRawPointer?
             if config.shouldSignHeader != nil {
                 shouldSignHeaderUserData = signRequestCore.passUnretained()
             }
             config.withCPointer(userData: shouldSignHeaderUserData) { configPointer in
                 configPointer.withMemoryRebound(to: aws_signing_config_base.self, capacity: 1) { configBasePointer in
                     if aws_sign_request_aws(allocator.rawValue, signable, configBasePointer, onSigningComplete, signRequestCore.passRetained())
-                               != AWS_OP_SUCCESS {
+                        != AWS_OP_SUCCESS {
                         signRequestCore.release()
                         continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
                     }
@@ -98,10 +98,10 @@ private func onSigningComplete(signingResult: UnsafeMutablePointer<aws_signing_r
         return
     }
 
-    //Success
+    // Success
     let signedRequest = aws_apply_signing_result_to_http_request(signRequestCore.request.rawValue,
-            signRequestCore.allocator.rawValue,
-            signingResult!)
+                                                                 signRequestCore.allocator.rawValue,
+                                                                 signingResult!)
     if signedRequest == AWS_OP_SUCCESS {
         signRequestCore.continuation.resume(returning: signRequestCore.request)
     } else {

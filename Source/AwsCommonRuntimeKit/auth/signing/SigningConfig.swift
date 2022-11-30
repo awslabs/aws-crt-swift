@@ -117,10 +117,10 @@ public struct SigningConfig: CStructWithUserData {
             cConfig.should_sign_header_ud = userData
         }
         return withByteCursorFromStrings(region,
-                service,
-                signedBodyValue.rawValue) { regionCursor,
-                                            serviceCursor,
-                                            signedBodyValueCursor in
+                                         service,
+                                         signedBodyValue.rawValue) { regionCursor,
+                                                                     serviceCursor,
+                                                                     signedBodyValueCursor in
             cConfig.region = regionCursor
             cConfig.service = serviceCursor
             cConfig.signed_body_value = signedBodyValueCursor

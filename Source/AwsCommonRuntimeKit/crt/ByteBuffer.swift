@@ -44,8 +44,8 @@ extension ByteBuffer: IStreamable {
 
     public func seek(offset: Int64, streamSeekType: StreamSeekType) throws {
         if abs(offset) > data.count
-                   || (offset < 0 && streamSeekType == .begin)
-                   || (offset > 0 && streamSeekType == .end) {
+            || (offset < 0 && streamSeekType == .begin)
+            || (offset > 0 && streamSeekType == .end) {
             throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
         }
         let index: Int

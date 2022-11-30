@@ -53,7 +53,7 @@ extension CStructWithUserData {
 }
 
 func withOptionalCStructPointer<T, Result>(
-        to arg1: (any CStruct)?, _ body: (UnsafePointer<T>?) -> Result
+    to arg1: (any CStruct)?, _ body: (UnsafePointer<T>?) -> Result
 ) -> Result {
     if let arg1 = arg1 {
         return arg1.withCStruct { cStruct in
@@ -68,10 +68,10 @@ func withOptionalCStructPointer<T, Result>(
 func withOptionalCStructPointer<Arg1Type,
                                 Arg2Type,
                                 Result>(
-        _ arg1: (any CStruct)?,
-        _ arg2: (any CStruct)?,
-        _ body: (UnsafePointer<Arg1Type>?,
-                 UnsafePointer<Arg2Type>?) -> Result
+    _ arg1: (any CStruct)?,
+    _ arg2: (any CStruct)?,
+    _ body: (UnsafePointer<Arg1Type>?,
+             UnsafePointer<Arg2Type>?) -> Result
 ) -> Result {
     return withOptionalCStructPointer(to: arg1) { arg1Pointer in
         return withOptionalCStructPointer(to: arg2) { arg2Pointer in
@@ -86,16 +86,16 @@ func withOptionalCStructPointer<Arg1Type,
                                 Arg4Type,
                                 Arg5Type,
                                 Result>(
-        _ arg1: (any CStruct)?,
-        _ arg2: (any CStruct)?,
-        _ arg3: (any CStruct)?,
-        _ arg4: (any CStruct)?,
-        _ arg5: (any CStruct)?,
-        _ body: (UnsafePointer<Arg1Type>?,
-                 UnsafePointer<Arg2Type>?,
-                 UnsafePointer<Arg3Type>?,
-                 UnsafePointer<Arg4Type>?,
-                 UnsafePointer<Arg5Type>?) -> Result
+    _ arg1: (any CStruct)?,
+    _ arg2: (any CStruct)?,
+    _ arg3: (any CStruct)?,
+    _ arg4: (any CStruct)?,
+    _ arg5: (any CStruct)?,
+    _ body: (UnsafePointer<Arg1Type>?,
+             UnsafePointer<Arg2Type>?,
+             UnsafePointer<Arg3Type>?,
+             UnsafePointer<Arg4Type>?,
+             UnsafePointer<Arg5Type>?) -> Result
 ) -> Result {
     return withOptionalCStructPointer(arg1, arg2) { arg1Pointer, arg2Pointer in
         return withOptionalCStructPointer(arg3, arg4) { arg3Pointer, arg4Pointer in

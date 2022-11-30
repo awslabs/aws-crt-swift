@@ -58,8 +58,8 @@ private func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
 
     let stream = httpStreamCbData.stream!
     httpStreamCbData.requestOptions.onIncomingHeaders(stream,
-            HttpHeaderBlock(rawValue: headerBlock),
-            headers)
+                                                      HttpHeaderBlock(rawValue: headerBlock),
+                                                      headers)
     return AWS_OP_SUCCESS
 }
 
