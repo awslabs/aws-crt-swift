@@ -120,7 +120,7 @@ class HttpTests: CrtXCBaseTestCase {
         XCTAssertThrowsError(try stream.activate())
     }
 
-    func testConnectionIsIdempotent() async throws {
+    func testConnectionCloseIsIdempotent() async throws {
         let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
         guard let host = url.host else {
             print("no proper host was parsed from the url. quitting.")
