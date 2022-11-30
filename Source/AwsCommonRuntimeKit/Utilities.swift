@@ -140,7 +140,8 @@ func withOptionalCString<Result>(
 }
 
 func withOptionalByteCursorPointerFromString<Result>(
-    _ arg1: String?, _ body: (UnsafePointer<aws_byte_cursor>?) -> Result
+    _ arg1: String?,
+    _ body: (UnsafePointer<aws_byte_cursor>?) -> Result
 ) -> Result {
     guard let arg1 = arg1 else {
         return body(nil)
@@ -153,7 +154,8 @@ func withOptionalByteCursorPointerFromString<Result>(
 }
 
 func withByteCursorFromStrings<Result>(
-    _ arg1: String?, _ body: (aws_byte_cursor) -> Result
+    _ arg1: String?,
+    _ body: (aws_byte_cursor) -> Result
 ) -> Result {
     return withOptionalCString(to: arg1) { arg1C in
         return body(aws_byte_cursor_from_c_str(arg1C))
@@ -161,7 +163,9 @@ func withByteCursorFromStrings<Result>(
 }
 
 func withByteCursorFromStrings<Result>(
-    _ arg1: String?, _ arg2: String?, _ body: (aws_byte_cursor, aws_byte_cursor) -> Result
+    _ arg1: String?,
+    _ arg2: String?,
+    _ body: (aws_byte_cursor, aws_byte_cursor) -> Result
 ) -> Result {
     return withOptionalCString(to: arg1) { arg1C in
         return withOptionalCString(to: arg2) { arg2C in
@@ -171,7 +175,10 @@ func withByteCursorFromStrings<Result>(
 }
 
 func withByteCursorFromStrings<Result>(
-    _ arg1: String?, _ arg2: String?, _ arg3: String?, _ body: (aws_byte_cursor, aws_byte_cursor, aws_byte_cursor) -> Result
+    _ arg1: String?,
+    _ arg2: String?,
+    _ arg3: String?,
+    _ body: (aws_byte_cursor, aws_byte_cursor, aws_byte_cursor) -> Result
 ) -> Result {
     return withOptionalCString(to: arg1) { arg1C in
         return withOptionalCString(to: arg2) { arg2C in

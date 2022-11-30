@@ -14,7 +14,12 @@ public class HostResolver {
                                    maxTTL: Int = 30,
                                    allocator: Allocator = defaultAllocator,
                                    shutdownCallback: ShutdownCallback? = nil) throws -> HostResolver {
-        try HostResolver(eventLoopGroup: eventLoopGroup, maxHosts: maxHosts, maxTTL: maxTTL, allocator: allocator, shutdownCallback: shutdownCallback)
+        try HostResolver(
+                eventLoopGroup: eventLoopGroup,
+                maxHosts: maxHosts,
+                maxTTL: maxTTL,
+                allocator: allocator,
+                shutdownCallback: shutdownCallback)
     }
 
     init(eventLoopGroup: EventLoopGroup,
