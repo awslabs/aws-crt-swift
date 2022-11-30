@@ -72,7 +72,9 @@ public struct HttpClientConnectionOptions: CStructWithShutdownOptions {
     }
 
     typealias RawType = aws_http_connection_manager_options
-    func withCStruct<Result>(shutdownOptions: aws_shutdown_callback_options, _ body: (aws_http_connection_manager_options) -> Result
+    func withCStruct<Result>(
+        shutdownOptions: aws_shutdown_callback_options,
+        _ body: (aws_http_connection_manager_options) -> Result
     ) -> Result {
         return hostName.withByteCursor { hostNameCursor in
             return withOptionalCStructPointer(proxyOptions,

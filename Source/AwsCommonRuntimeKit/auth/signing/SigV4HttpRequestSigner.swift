@@ -30,7 +30,10 @@ public class Signer {
     ///    - `config`: The `SigningConfig` to use when signing.
     /// - `Throws`: An error of type `AwsCommonRuntimeError` which will pull last error found in the CRT
     /// - `Returns`: Returns a signed http request `HttpRequest`
-    public static func signRequest(request: HttpRequest, config: SigningConfig, allocator: Allocator = defaultAllocator) async throws -> HttpRequest {
+    public static func signRequest(
+        request: HttpRequest,
+        config: SigningConfig,
+        allocator: Allocator = defaultAllocator) async throws -> HttpRequest {
 
         guard let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
