@@ -29,8 +29,8 @@ extension CStructWithShutdownOptions {
     }
 
     func withCPointer<Result>(
-            shutdownOptions: aws_shutdown_callback_options,
-            _ body: (UnsafePointer<RawType>) -> Result) -> Result {
+        shutdownOptions: aws_shutdown_callback_options,
+        _ body: (UnsafePointer<RawType>) -> Result) -> Result {
         return withCStruct(shutdownOptions: shutdownOptions) { cStruct in
             return withUnsafePointer(to: cStruct) { body($0) }
         }
@@ -39,8 +39,8 @@ extension CStructWithShutdownOptions {
 
 protocol CStructWithUserData: CStruct {
     func withCStruct<Result>(
-            userData: UnsafeMutableRawPointer?,
-            _ body: (RawType) -> Result) -> Result
+        userData: UnsafeMutableRawPointer?,
+        _ body: (RawType) -> Result) -> Result
 }
 
 extension CStructWithUserData {
@@ -50,8 +50,8 @@ extension CStructWithUserData {
     }
 
     func withCPointer<Result>(
-            userData: UnsafeMutableRawPointer?,
-            _ body: (UnsafePointer<RawType>) -> Result) -> Result {
+        userData: UnsafeMutableRawPointer?,
+        _ body: (UnsafePointer<RawType>) -> Result) -> Result {
         return withCStruct(userData: userData) { cStruct in
             return withUnsafePointer(to: cStruct) { body($0) }
         }

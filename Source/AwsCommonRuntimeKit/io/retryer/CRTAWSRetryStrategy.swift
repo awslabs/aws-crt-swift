@@ -59,7 +59,7 @@ public class CRTAWSRetryStrategy {
     public func acquireToken(partitionId: String?) async throws -> CRTAWSRetryToken {
         return try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<CRTAWSRetryToken, Error>) in
-            
+
             let continuationCore = ContinuationCore(continuation: continuation)
             if withOptionalByteCursorPointerFromString(partitionId, { partitionIdCursorPointer in
                 aws_retry_strategy_acquire_retry_token(rawValue,
