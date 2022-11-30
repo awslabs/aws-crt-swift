@@ -283,7 +283,6 @@ struct Elasticurl {
                 httpRequest.body = byteBuffer
                 headers.append(HttpHeader(name: "Content-length", value: "\(data.count)"))
             }
-
             httpRequest.addHeaders(headers: headers)
 
             let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
