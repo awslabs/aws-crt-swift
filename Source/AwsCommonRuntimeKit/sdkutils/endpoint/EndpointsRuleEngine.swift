@@ -80,7 +80,7 @@ public class EndpointsRuleEngine {
             fatalError("Url length can not be zero")
         }
 
-        return url.toString()!
+        return url.toString()
     }
 
     /// Get headers of the resolved endpoint
@@ -129,11 +129,7 @@ public class EndpointsRuleEngine {
         guard aws_endpoints_resolved_endpoint_get_error(rawValue, &error) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-
-        guard error.len > 0 else {
-            return ""
-        }
-        return error.toString()!
+        return error.toString()
     }
 
     deinit {

@@ -17,8 +17,8 @@ public class HttpHeader {
     }
 
     init(rawValue: aws_http_header) {
-        self.name = rawValue.name.toString() ?? ""
-        self.value = rawValue.value.toString() ?? ""
+        self.name = rawValue.name.toString()
+        self.value = rawValue.value.toString()
         self.compression = HttpHeaderCompression(rawValue: rawValue.compression)
     }
 }

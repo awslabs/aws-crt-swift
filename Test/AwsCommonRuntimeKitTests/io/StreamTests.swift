@@ -46,11 +46,21 @@ class StreamTests: CrtXCBaseTestCase {
     XCTAssertEqual(String(bytes: buffer, encoding: .utf8), "1234567890")
 
     try iStreamCore.iStreamable.seek(offset: 10, streamSeekType: StreamSeekType.begin)
-    length = try iStreamCore.iStreamable.read(buffer: buffer)
-    XCTAssertEqual(length, capacity)
-    XCTAssertEqual(String(bytes: buffer, encoding: .utf8), "0987654321")
 
-    length = try iStreamCore.iStreamable.read(buffer: buffer)
+    let largeBuffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: 100)
+    defer {
+      largeBuffer.deallocate()
+    }
+
+    length = try iStreamCore.iStreamable.read(buffer: largeBuffer)
+    XCTAssertEqual(length, capacity)
+    XCTAssertEqual(String(bytes: largeBuffer[..<length!], encoding: .utf8), "0987654321")
+
+    length = try iStreamCore.iStreamable.read(buffer: largeBuffer)
+    XCTAssertEqual(length, nil)
+
+    length = try iStreamCore.iStreamable.read(buffer: largeBuffer)
     XCTAssertEqual(length, nil)
   }
+
 }

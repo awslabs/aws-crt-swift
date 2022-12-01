@@ -2,6 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCSdkUtils
+import struct Foundation.Data
 
 //TODO: rename
 public class CRTAWSProfileCollection {
@@ -28,16 +29,17 @@ public class CRTAWSProfileCollection {
     }
 
     /// Create a new profile collection by parsing text in a buffer. Primarily for testing.
-    init(fromBuffer buffer: ByteBuffer,
+    init(fromData data: Data,
          source: CRTAWSProfileSourceType,
          allocator: Allocator = defaultAllocator) throws {
-        let byteArray = buffer.toByteArray()
-        let byteCount = byteArray.count
-        var byteBuf = byteArray.withUnsafeBufferPointer { aws_byte_buf_from_array($0.baseAddress, byteCount) }
-        guard let rawValue = aws_profile_collection_new_from_buffer(allocator.rawValue,
-                &byteBuf,
-                source.rawValue)
-        else {
+        let byteCount = data.count
+        guard let rawValue  = (data.withUnsafeBytes { rawBufferPointer in
+            var byteBuf = aws_byte_buf_from_array(rawBufferPointer.baseAddress, byteCount)
+            return aws_profile_collection_new_from_buffer(allocator.rawValue,
+                    &byteBuf,
+                    source.rawValue)
+
+        }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
 
