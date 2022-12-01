@@ -230,35 +230,50 @@ public class IMDSClient {
     /// Gets the user data of the ec2 instance from the instance metadata document
     public func getUserData() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_user_data)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_user_data)
         })
     }
 
     /// Gets the signature of the ec2 instance from the instance metadata document
     public func getInstanceSignature() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_instance_signature)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_instance_signature)
         })
     }
 
     /// Gets the list of ancestor ami ids of the ec2 instance from the instance metadata document
     public func getAncestorAmiIDs() async throws -> [String]? {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceListContinuation) in
-            getResourcesList(client: self, continuation: continuation, functionPointer: aws_imds_client_get_ancestor_ami_ids)
+            getResourcesList(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_ancestor_ami_ids)
         })
     }
 
     /// Gets the list of the security groups of the ec2 instance from the instance metadata document
     public func getSecurityGroups() async throws -> [String]? {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceListContinuation) in
-            getResourcesList(client: self, continuation: continuation, functionPointer: aws_imds_client_get_security_groups)
+            getResourcesList(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_security_groups)
         })
     }
 
     /// Gets the list of block device mappings of the ec2 instance from the instance metadata document
     public func getBlockDeviceMapping() async throws -> [String]? {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceListContinuation) in
-            getResourcesList(client: self, continuation: continuation, functionPointer: aws_imds_client_get_block_device_mapping)
+            getResourcesList(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_block_device_mapping)
         })
     }
 
@@ -267,13 +282,15 @@ public class IMDSClient {
     /// - Parameters:
     ///    - iamRoleName: iam role name to get temporary credentials through
     public func getCredentials(iamRoleName: String) async throws -> AwsCredentials {
-        return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<AwsCredentials, Error>) in
+        return try await withCheckedThrowingContinuation({ continuation in
             iamRoleName.withByteCursor { iamRoleNameCursor in
                 let continuationCore = ContinuationCore(continuation: continuation)
-                if(aws_imds_client_get_credentials(rawValue,
-                                                   iamRoleNameCursor,
-                                                   onGetCredentials,
-                                                   continuationCore.passRetained())) != AWS_OP_SUCCESS {
+                if(aws_imds_client_get_credentials(
+                    rawValue,
+                    iamRoleNameCursor,
+                    onGetCredentials,
+                    continuationCore.passRetained())) != AWS_OP_SUCCESS {
+
                     continuationCore.release()
                     continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
                 }
@@ -283,9 +300,13 @@ public class IMDSClient {
 
     /// Gets the iam profile information of the ec2 instance from the instance metadata document
     public func getIAMProfile() async throws -> CRTIAMProfile {
-        return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<CRTIAMProfile, Error>) in
+        return try await withCheckedThrowingContinuation({ continuation in
             let continuationCore = ContinuationCore(continuation: continuation)
-            if(aws_imds_client_get_iam_profile(rawValue, onGetIAMProfile, continuationCore.passRetained())) != AWS_OP_SUCCESS {
+            if(aws_imds_client_get_iam_profile(
+                rawValue,
+                onGetIAMProfile,
+                continuationCore.passRetained())) != AWS_OP_SUCCESS {
+
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
             }
@@ -297,9 +318,13 @@ public class IMDSClient {
     /// - Parameters:
     ///    - callbackData: The `CRTIMDSClientInstanceCallbackData` object with an async callback
     public func getInstanceInfo() async throws -> CRTIMDSInstanceInfo {
-        return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<CRTIMDSInstanceInfo, Error>) in
+        return try await withCheckedThrowingContinuation({ continuation in
             let continuationCore = ContinuationCore(continuation: continuation)
-            if(aws_imds_client_get_instance_info(rawValue, onGetInstanceInfo, continuationCore.passRetained())) != AWS_OP_SUCCESS {
+            if(aws_imds_client_get_instance_info(
+                rawValue,
+                onGetInstanceInfo,
+                continuationCore.passRetained())) != AWS_OP_SUCCESS {
+
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
             }
