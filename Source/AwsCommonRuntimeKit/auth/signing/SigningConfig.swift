@@ -132,7 +132,7 @@ public struct SigningConfig: CStructWithUserData {
 private func onShouldSignHeader(nameCursor: UnsafePointer<aws_byte_cursor>!,
                                 userData: UnsafeMutableRawPointer!) -> Bool {
     let signRequestCore = Unmanaged<SignRequestCore>.fromOpaque(userData).takeUnretainedValue()
-    let name = nameCursor.pointee.toString()!
+    let name = nameCursor.pointee.toString()
     return signRequestCore.shouldSignHeader!(name)
 }
 
