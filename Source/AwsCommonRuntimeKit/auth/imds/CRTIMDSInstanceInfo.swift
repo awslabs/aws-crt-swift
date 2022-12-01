@@ -5,20 +5,20 @@ import AwsCAuth
 import Foundation
 
 public struct CRTIMDSInstanceInfo {
-    public var marketPlaceProductCodes: [String]
-    public var availabilityZone: String?
-    public var privateIp: String?
-    public var version: String?
-    public var instanceId: String?
-    public var billingProducts: [String]
-    public var instanceType: String?
-    public var accountId: String?
-    public var imageId: String?
-    public var pendingTime: Date
-    public var architecture: String?
-    public var kernelId: String?
-    public var ramDiskId: String?
-    public var region: String?
+    public let marketPlaceProductCodes: [String]
+    public let availabilityZone: String
+    public let privateIp: String
+    public let version: String
+    public let instanceId: String
+    public let billingProducts: [String]
+    public let instanceType: String
+    public let accountId: String
+    public let imageId: String
+    public let pendingTime: Date
+    public let architecture: String
+    public let kernelId: String
+    public let ramDiskId: String
+    public let region: String
 
     init(instanceInfo: aws_imds_instance_info) {
         self.marketPlaceProductCodes = instanceInfo.marketplace_product_codes.byteCursorListToStringArray()

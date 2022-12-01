@@ -5,9 +5,9 @@ import AwsCAuth
 import Foundation
 
 public struct CRTIAMProfile {
-    public var lastUpdated: Date
-    public var profileArn: String?
-    public var profileId: String?
+    public let lastUpdated: Date
+    public let profileArn: String
+    public let profileId: String
 
     init(profile: aws_imds_iam_profile) {
         self.lastUpdated = profile.last_updated.toDate()

@@ -82,10 +82,7 @@ class HttpTests: CrtXCBaseTestCase {
 
     func getHttpRequestOptions(method: String, path: String, host: String) throws -> HttpRequestOptions {
 
-        let httpRequest: HttpRequest = try HttpRequest(allocator: allocator)
-        httpRequest.method = method
-        httpRequest.path = path == "" ? "/" : path
-
+        let httpRequest: HttpRequest = try HttpRequest(method: method, path: path == "" ? "/" : path, allocator: allocator)
         httpRequest.addHeaders(headers: try getHeaders(host: host))
         let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
             let allHeaders = headers.getAll()

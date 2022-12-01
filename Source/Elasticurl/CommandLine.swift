@@ -4,8 +4,8 @@
 import Foundation
 import AwsCCommon
 // swiftlint:disable trailing_whitespace
-// Todo: remove/refactor
-public struct CommandLineParser {
+
+struct CommandLineParser {
     /// A function to parse command line arguments
     /// - Parameters:
     ///   - argc: The number of arguments
@@ -26,13 +26,12 @@ public struct CommandLineParser {
             if opt == -1 || opt == 0 {
                 break
             }
-            
-            if let char = opt.toString() {
+            if let char = UnicodeScalar(Int(opt)) {
                 if aws_cli_optarg != nil {
-                    argumentsDict[char] = String(cString: aws_cli_optarg)
+                    argumentsDict[String(char)] = String(cString: aws_cli_optarg)
                 } else {
                     // if argument doesnt have a value just mark it as present in the dictionary
-                    argumentsDict[char] = true
+                    argumentsDict[String(char)] = true
                 }
             }
         }
@@ -41,7 +40,7 @@ public struct CommandLineParser {
     }
 }
 
-public enum CLIHasArg {
+enum CLIHasArg {
     case none
     case required
     case optional
@@ -61,11 +60,10 @@ extension CLIHasArg: RawRepresentable, CaseIterable {
     }
 }
 
-public class AWSCLIOption {
-    public let rawValue: aws_cli_option
+class AWSCLIOption {
+    let rawValue: aws_cli_option
     let name: UnsafeMutablePointer<CChar>
-    public init(name: String, hasArg: CLIHasArg, flag: UnsafeMutablePointer<Int32>? = nil, val: String) {
-        // TODO: refactor the use of !
+    init(name: String, hasArg: CLIHasArg, flag: UnsafeMutablePointer<Int32>? = nil, val: String) {
         self.name = strdup(name)!
         self.rawValue = aws_cli_option(name: self.name, has_arg: hasArg.rawValue, flag: flag, val: Int32(bitPattern: UnicodeScalar(val)?.value ?? 0))
     }

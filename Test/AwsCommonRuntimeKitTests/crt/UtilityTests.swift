@@ -5,40 +5,43 @@ import AwsCCommon
 @testable import AwsCommonRuntimeKit
 
 class UtilityTests: CrtXCBaseTestCase {
+
     func testMd5() throws {
         let hello = "Hello"
         let md5 = try hello.base64EncodedMD5(allocator: allocator)
         XCTAssertEqual(md5, "ixqZU8RhEpaoJ6v4xHgE1w==")
     }
-    
-    func testMd5_payload() throws {
+
+    func testMd5Payload() throws {
         let payload = "{\"foo\":\"base64 encoded md5 checksum\"}"
 
         let md5 = try payload.base64EncodedMD5(allocator: allocator)
-        
+
         XCTAssertEqual(md5, "iB0/3YSo7maijL0IGOgA9g==")
     }
-    
+
     func testSha256() throws {
         let hello = "Hello".data(using: .utf8)!
-        let sha256 = ByteBuffer(data: hello).base64EncodedSha256()
+        let sha256 = try! hello.sha256().base64EncodedString()
         XCTAssertEqual(sha256, "GF+NsyJx/iX1Yab8k4suJkMG7DBO2lGAB9F2SCY4GWk=")
     }
-    
-    func testSha256_EmptyString() throws {
+
+    func testSha256EmptyString() throws {
         let empty = "".data(using: .utf8)!
-        let sha256 = ByteBuffer(data: empty).base64EncodedSha256()
+        let sha256 = try! empty.sha256().base64EncodedString()
         XCTAssertEqual(sha256, "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=")
     }
-    
-    func testSha256_payload() throws {
-        let payload = "{\"foo\":\"base64 encoded sha256 checksum\"}".data(using: .utf8)!
-        let sha256 = ByteBuffer(data: payload).base64EncodedSha256()
-        
-        XCTAssertEqual(sha256, "lBSnDP4sj/yN8eIVOJlv+vC56hw+7JtN0132GiMQXRg=")
+
+    func testSha256PayloadOutOfScope() throws {
+        var sha256Data: Data! = nil
+        do {
+            let payload = "{\"foo\":\"base64 encoded sha256 checksum\"}".data(using: .utf8)!
+            sha256Data = try! payload.sha256()
+        }
+        XCTAssertEqual(sha256Data.base64EncodedString(), "lBSnDP4sj/yN8eIVOJlv+vC56hw+7JtN0132GiMQXRg=")
     }
 
-    func testbyteCursorListToStringArray() throws {
+    func testByteCursorListToStringArray() throws {
         let list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
         defer {
             aws_array_list_clean_up(list)
