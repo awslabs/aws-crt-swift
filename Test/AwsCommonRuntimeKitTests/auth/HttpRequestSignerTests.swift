@@ -141,10 +141,8 @@ class SignerTests: CrtXCBaseTestCase {
     func makeMockRequest() throws -> HttpRequest {
         let request = try HttpRequest(allocator: allocator)
         request.addHeader(header: HttpHeader(name: "Host", value: SIGV4TEST_HOST))
-
         return request
     }
-
 
     func makeMockRequestWithDoNotSignHeader() throws -> HttpRequest {
         let request = try HttpRequest()
@@ -157,7 +155,6 @@ class SignerTests: CrtXCBaseTestCase {
         let request = try HttpRequest(allocator: allocator)
         let byteBuffer = ByteBuffer(data: "hello".data(using: .utf8)!)
         request.body = byteBuffer
-
         request.addHeader(header: HttpHeader(name: "Host", value: SIGV4TEST_HOST))
         request.addHeader(header: HttpHeader(name: "Content-Length", value: "5"))
         return request
