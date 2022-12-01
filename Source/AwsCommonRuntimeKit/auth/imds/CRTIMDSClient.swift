@@ -3,6 +3,7 @@
 
 import AwsCAuth
 // TODO: rename file name
+// swiftlint:disable type_body_length
 public class IMDSClient {
     let rawValue: OpaquePointer
     let allocator: Allocator

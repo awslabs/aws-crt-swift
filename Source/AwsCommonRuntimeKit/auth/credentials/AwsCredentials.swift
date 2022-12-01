@@ -40,10 +40,12 @@ public final class AwsCredentials {
             accessKey,
             secret,
             sessionToken) { accessKeyCursor, secretCursor, sessionTokenCursor in
-            return aws_credentials_new(allocator.rawValue,
-                                       accessKeyCursor,
-                                       secretCursor,
-                                       sessionTokenCursor, expirationTimeout)
+            return aws_credentials_new(
+                allocator.rawValue,
+                accessKeyCursor,
+                secretCursor,
+                sessionTokenCursor,
+                expirationTimeout)
         }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
