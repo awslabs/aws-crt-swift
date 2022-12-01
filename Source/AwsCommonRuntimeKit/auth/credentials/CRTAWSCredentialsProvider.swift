@@ -485,6 +485,7 @@ extension AwsCredentialsProvider.Source {
                 host,
                 authToken,
                 pathAndQuery) { hostCursor, authTokenCursor, pathAndQueryCursor in
+
                 ecsOptions.host = hostCursor
                 ecsOptions.auth_token = authTokenCursor
                 ecsOptions.path_and_query = pathAndQueryCursor
@@ -504,7 +505,6 @@ private func onGetCredentials(credentials: OpaquePointer?,
                               userData: UnsafeMutableRawPointer!) {
 
     let continuationCore = Unmanaged<ContinuationCore<AwsCredentials>>.fromOpaque(userData).takeRetainedValue()
-
     if errorCode != AWS_OP_SUCCESS {
         continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
@@ -520,7 +520,8 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
                                                         Int32,
                                                         UnsafeMutableRawPointer?) -> Void)!,
                                       _ userData: UnsafeMutableRawPointer!) -> Int32 {
-    let delegate = Unmanaged<AWSCredentialsProvidingCore>.fromOpaque(delegatePtr)
+    let delegate = Unmanaged<AWSCredentialsProvidingCore>
+        .fromOpaque(delegatePtr)
         .takeUnretainedValue()
         .awsCredentialsProviding
     Task {
@@ -533,6 +534,5 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
             callbackFn(nil, Int32(AWS_AUTH_CREDENTIALS_PROVIDER_DELEGATE_FAILURE.rawValue), userData)
         }
     }
-
     return AWS_OP_SUCCESS
 }
