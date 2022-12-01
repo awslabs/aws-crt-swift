@@ -48,13 +48,9 @@ private func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
                                headersCount: Int,
                                userData: UnsafeMutableRawPointer!) -> Int32 {
     let httpStreamCbData: HttpStreamCallbackCore = Unmanaged<HttpStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
-    var headers = [HttpHeader]()
-
-    for cHeader in UnsafeBufferPointer(start: headerArray, count: headersCount) {
-        let name = cHeader.name.toString()
-        let value = cHeader.value.toString()
-        headers.append(HttpHeader(name: name, value: value))
-    }
+    let headers = UnsafeBufferPointer(
+            start: headerArray,
+            count: headersCount).map { HttpHeader(rawValue: $0) }
 
     let stream = httpStreamCbData.stream!
     httpStreamCbData.requestOptions.onIncomingHeaders(stream,
