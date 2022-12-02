@@ -56,6 +56,15 @@ public extension HttpMessage {
         }
     }
 
+    /// Adds a header to the request.
+    /// Does nothing if the header name is empty.
+    /// - Parameters:
+    ///   - name:  Name of the header. Should not be empty
+    ///   - value: Value of the header
+    func addHeader(name: String, value: String) {
+        addHeader(header: HttpHeader(name: name, value: value))
+    }
+
     /// Adds the header array to the request.
     /// Skips element which have empty names.
     /// - Parameter headers: The list of headers to add
