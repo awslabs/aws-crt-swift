@@ -42,29 +42,20 @@ class HttpStreamCallbackCore {
     }
 }
 
-// TODO: Maybe update to fire three headers callback (informational, main, and trailing) only once
 private func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
                                headerBlock: aws_http_header_block,
                                headerArray: UnsafePointer<aws_http_header>?,
                                headersCount: Int,
                                userData: UnsafeMutableRawPointer!) -> Int32 {
     let httpStreamCbData: HttpStreamCallbackCore = Unmanaged<HttpStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
-    var headers = [HttpHeader]()
-
-    for cHeader in UnsafeBufferPointer(start: headerArray, count: headersCount) {
-        let name = cHeader.name.toString()
-        let value = cHeader.value.toString()
-        headers.append(HttpHeader(name: name, value: value))
-    }
-
-    guard let headersStruct = try? HttpHeaders(fromArray: headers) else {
-        return AWS_OP_ERR
-    }
+    let headers = UnsafeBufferPointer(
+            start: headerArray,
+            count: headersCount).map { HttpHeader(rawValue: $0) }
 
     let stream = httpStreamCbData.stream!
     httpStreamCbData.requestOptions.onIncomingHeaders(stream,
             HttpHeaderBlock(rawValue: headerBlock),
-            headersStruct )
+            headers)
     return AWS_OP_SUCCESS
 }
 
