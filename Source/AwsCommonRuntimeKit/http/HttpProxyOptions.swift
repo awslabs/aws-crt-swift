@@ -4,16 +4,25 @@ import AwsCHttp
 import AwsCCommon
 
 public struct HttpProxyOptions: CStruct {
-    public var authType: HttpProxyAuthenticationType = .none
+    public var authType: HttpProxyAuthenticationType
     public var basicAuthUsername: String?
     public var basicAuthPassword: String?
     public var hostName: String
     public var port: UInt16
     public var tlsOptions: TlsConnectionOptions?
 
-    public init(hostName: String, port: UInt16) {
+    public init(hostName: String,
+                port: UInt16,
+                authType: HttpProxyAuthenticationType = .none,
+                basicAuthUsername: String? = nil,
+                basicAuthPassword: String? = nil,
+                tlsOptions: TlsConnectionOptions? = nil) {
         self.hostName = hostName
         self.port = port
+        self.authType = authType
+        self.basicAuthUsername = basicAuthUsername
+        self.basicAuthPassword = basicAuthPassword
+        self.tlsOptions = tlsOptions
     }
 
     typealias RawType = aws_http_proxy_options
