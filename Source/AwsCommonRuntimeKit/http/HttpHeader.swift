@@ -3,22 +3,28 @@
 
 import AwsCHttp
 
-public class HttpHeader {
+public class HttpHeader: CStruct {
     public let name: String
     public let value: String
-    public let compression: HttpHeaderCompression
 
     public init(name: String,
-                value: String,
-                compression: HttpHeaderCompression = .useCache) {
+                value: String) {
         self.name = name
         self.value = value
-        self.compression = compression
     }
 
     init(rawValue: aws_http_header) {
         self.name = rawValue.name.toString()
         self.value = rawValue.value.toString()
-        self.compression = HttpHeaderCompression(rawValue: rawValue.compression)
+    }
+
+    typealias RawType = aws_http_header
+    func withCStruct<Result>(_ body: (aws_http_header) -> Result) -> Result {
+        var cHeader = aws_http_header()
+        return withByteCursorFromStrings(name, value) { nameCursor, valueCursor in
+            cHeader.name = nameCursor
+            cHeader.value = valueCursor
+            return body(cHeader)
+        }
     }
 }

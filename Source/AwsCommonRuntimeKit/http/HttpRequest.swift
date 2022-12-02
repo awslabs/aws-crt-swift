@@ -35,21 +35,17 @@ public class HttpRequest: HttpMessage {
     /// Creates an http request which can be passed to a connection.
     /// - Parameters:
     ///   - method: Http method to use. Must be a valid http method and not empty.
-    ///   - path: Path of Http Request. Should not be empty.
+    ///   - path: Path and query string for Http Request. Must not be empty.
     ///   - headers: (Optional) headers to send
     ///   - body: (Optional) body stream to send as part of request
     ///   - allocator: (Optional) allocator to override
     /// - Throws: CommonRuntimeError
     public init(method: String = "GET",
                 path: String = "/",
-                headers: HttpHeaders? = nil,
+                headers: [HttpHeader] = [HttpHeader](),
                 body: IStreamable? = nil,
                 allocator: Allocator = defaultAllocator) throws {
-        if let headers = headers {
-            try super.init(headers: headers, allocator: allocator)
-        } else {
-            try super.init(allocator: allocator)
-        }
+        try super.init(allocator: allocator)
 
         self.method = method
         self.path = path
@@ -58,5 +54,6 @@ public class HttpRequest: HttpMessage {
             let iStreamCore = IStreamCore(iStreamable: body, allocator: allocator)
             aws_http_message_set_body_stream(self.rawValue, &iStreamCore.rawValue)
         }
+        addHeaders(headers: headers)
     }
 }

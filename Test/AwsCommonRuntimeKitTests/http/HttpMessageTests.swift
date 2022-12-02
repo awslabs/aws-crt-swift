@@ -5,70 +5,87 @@ import XCTest
 
 class HttpMessageTests: CrtXCBaseTestCase {
 
-    var httpMessage: HttpMessage?
-
-    override func setUp() {
-        super.setUp()
-        httpMessage = try? HttpMessage(allocator: allocator)
-        let httpHeaders = try? HttpHeaders(allocator: allocator)
-        let headerAdded = httpHeaders?.add(name: "Test", value: "Value")
-        XCTAssertTrue(headerAdded!)
-        httpMessage?.addHeaders(headers: httpHeaders!)
+    func testAddHeaders() throws {
+        let httpMessage = try HttpMessage(allocator: allocator)
+        httpMessage.addHeaders(headers: [
+            HttpHeader(name: "header1", value: "value1"),
+            HttpHeader(name: "header2", value: "value2")])
+        XCTAssertEqual(httpMessage.headerCount, 2)
     }
 
-    override func tearDown() {
-        httpMessage = nil
+    func testGetHeaders() throws {
+        let headers = [
+            HttpHeader(name: "header1", value: "value1"),
+            HttpHeader(name: "header2", value: "value2")]
+        let httpMessage = try HttpMessage(allocator: allocator)
+        httpMessage.addHeaders(headers: headers)
+        let requestHeaders = httpMessage.getHeaders()
+        XCTAssertTrue(headers.elementsEqual(requestHeaders, by: { $0.name == $1.name && $0.value == $1.value}))
     }
 
-    func testCreateHttpMessage() throws {
-        _ = try HttpMessage(allocator: allocator)
+    func testGetHeader() throws {
+        let headers = [
+            HttpHeader(name: "header1", value: "value1"),
+            HttpHeader(name: "header2", value: "value2")]
+        let httpMessage = try HttpMessage(allocator: allocator)
+        httpMessage.addHeaders(headers: headers)
+
+        XCTAssertEqual(httpMessage.getHeaderValue(name: "header1"), "value1")
+        XCTAssertEqual(httpMessage.getHeaderValue(name: "header2"), "value2")
+        XCTAssertNil(httpMessage.getHeaderValue(name: "invalidHeaderName"))
     }
 
-    func testAddHttpHeaders() throws {
-        let httpHeaders = try HttpHeaders(allocator: allocator)
-        let headerAdded = httpHeaders.add(name: "Test2", value: "Value2")
-        XCTAssertTrue(headerAdded)
-        httpMessage?.addHeaders(headers: httpHeaders)
-        XCTAssertEqual(httpMessage?.headerCount, 2)
+    func testRemoveHeader() throws {
+        let headers = [
+            HttpHeader(name: "header1", value: "value1"),
+            HttpHeader(name: "header2", value: "value2")]
+        let httpMessage = try HttpMessage(allocator: allocator)
+        httpMessage.addHeaders(headers: headers)
+        XCTAssertEqual(httpMessage.headerCount, 2)
+        httpMessage.addHeader(header: HttpHeader(name: "HeaderToRemove", value: "xyz"))
+        httpMessage.removeHeader(name: "HeaderToRemove")
+        httpMessage.removeHeader(name: "Doesn't Exit")
+        let allHeaders = httpMessage.getHeaders()
+        XCTAssertTrue(headers.elementsEqual(allHeaders, by: { $0.name == $1.name && $0.value == $1.value}))
     }
 
-    func testGetAllHttpHeaders() throws {
-        var allHeaders = httpMessage?.getHeaders()
-        XCTAssertEqual(allHeaders!.count, 1)
-
-        let httpHeaders = try HttpHeaders(allocator: allocator)
-        let headerAdded = httpHeaders.add(name: "Test2", value: "Value2")
-        XCTAssertTrue(headerAdded)
-        httpMessage?.addHeaders(headers: httpHeaders)
-
-        allHeaders = httpMessage?.getHeaders()
-        XCTAssertEqual(allHeaders!.count, 2)
+    func testAddEmptyHeader() throws {
+        let headers = [
+            HttpHeader(name: "header1", value: "value1"),
+            HttpHeader(name: "header2", value: "value2")]
+        let httpMessage = try HttpMessage(allocator: allocator)
+        httpMessage.addHeaders(headers: headers)
+        XCTAssertEqual(httpMessage.headerCount, 2)
+        httpMessage.addHeader(header: HttpHeader(name: "", value: "xyz"))
+        XCTAssertEqual(httpMessage.headerCount, 2)
     }
 
-    func testGetHttpHeaders() {
-        let getHeader = httpMessage?.getHeader(atIndex: 0)
-        XCTAssertNotNil(getHeader)
-        XCTAssertEqual(getHeader?.value, "Value")
-
-        let nilHeader = httpMessage?.getHeader(atIndex: 1)
-        XCTAssertNil(nilHeader)
+    func testClearHeaders() throws {
+        let headers = [
+            HttpHeader(name: "header1", value: "value1"),
+            HttpHeader(name: "header2", value: "value2")]
+        let httpMessage = try HttpMessage(allocator: allocator)
+        httpMessage.addHeaders(headers: headers)
+        XCTAssertEqual(httpMessage.headerCount, 2)
+        httpMessage.clearHeaders()
+        XCTAssertEqual(httpMessage.headerCount, 0)
+        XCTAssertTrue(httpMessage.getHeaders().isEmpty)
     }
 
-    func testRemoveHttpHeaders() {
-        let httpHeaders = try? HttpHeaders(allocator: allocator)
-        let headerAdded = httpHeaders?.add(name: "HeaderToRemove", value: "LoseMe")
-        XCTAssertTrue(headerAdded!)
-        httpMessage?.addHeaders(headers: httpHeaders!)
-        XCTAssertEqual(httpMessage?.headerCount, 2)
+    func testSetHeader() throws {
+        let headers = [
+            HttpHeader(name: "header1", value: "value1"),
+            HttpHeader(name: "header2", value: "value2")]
+        let httpMessage = try HttpMessage(allocator: allocator)
+        httpMessage.addHeaders(headers: headers)
+        XCTAssertEqual(httpMessage.headerCount, 2)
 
-        let headerRemoved = httpMessage?.removeHeader(atIndex: 1)
-        XCTAssertTrue(headerRemoved!)
-        let allHeaders = httpMessage?.getHeaders()
-
-        let nopeNotHere = allHeaders!.contains { (header) -> Bool in
-            header.name == "HeaderToRemove"
-        }
-        XCTAssertFalse(nopeNotHere)
+        httpMessage.setHeader(name: "header1", value: "newValue")
+        XCTAssertEqual(httpMessage.getHeaderValue(name: "header1"), "newValue")
+        httpMessage.setHeader(name: "header3", value: "value3")
+        httpMessage.setHeader(name: "", value: "value4")
+        XCTAssertEqual(httpMessage.headerCount, 3)
+        XCTAssertEqual(httpMessage.getHeaderValue(name: "header3"), "value3")
     }
 
 }

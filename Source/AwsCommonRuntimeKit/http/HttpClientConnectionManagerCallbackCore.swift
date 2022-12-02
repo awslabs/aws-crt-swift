@@ -32,12 +32,9 @@ private func onConnectionSetup(connection: UnsafeMutablePointer<aws_http_connect
         callbackDataCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
-    //TODO: Is this possible? If not, use !
-    guard let connection = connection else {
-        callbackDataCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
-        return
-    }
+
+    // Success
     let httpConnection = HttpClientConnection(manager: callbackDataCore.connectionManager,
-            connection: connection)
+            connection: connection!)
     callbackDataCore.continuation.resume(returning: httpConnection)
 }
