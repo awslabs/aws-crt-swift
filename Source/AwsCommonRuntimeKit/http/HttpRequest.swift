@@ -35,7 +35,7 @@ public class HttpRequest: HttpMessage {
     /// Creates an http request which can be passed to a connection.
     /// - Parameters:
     ///   - method: Http method to use. Must be a valid http method and not empty.
-    ///   - path: Path of Http Request. Must not be empty.
+    ///   - path: Path and query string for Http Request. Must not be empty.
     ///   - headers: (Optional) headers to send
     ///   - body: (Optional) body stream to send as part of request
     ///   - allocator: (Optional) allocator to override

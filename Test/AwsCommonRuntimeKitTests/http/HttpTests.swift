@@ -194,7 +194,6 @@ class HttpTests: CrtXCBaseTestCase {
         let httpRequest: HttpRequest = try HttpRequest(method: method, path: path, body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
         httpRequest.addHeader(header: HttpHeader(name: "Host", value: endpoint))
         httpRequest.addHeader(header: HttpHeader(name: "Content-Length", value: String(body.count)))
-
         let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
             for header in headers {
                 print(header.name + " : " + header.value)
