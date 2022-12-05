@@ -27,9 +27,9 @@ public class CRTAWSEndpointsRequestContext {
         }
         if withByteCursorFromStrings(name, value, { nameCursor, valueCursor in
             aws_endpoints_request_context_add_string(allocator.rawValue,
-                    rawValue,
-                    nameCursor,
-                    valueCursor)
+                                                     rawValue,
+                                                     nameCursor,
+                                                     valueCursor)
         }) != AWS_OP_SUCCESS {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }

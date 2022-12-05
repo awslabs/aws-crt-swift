@@ -105,7 +105,7 @@ public extension HttpMessage {
         guard (name.withByteCursor { nameCursor in
             aws_http_headers_get(headers, nameCursor, &value)
         }) == AWS_OP_SUCCESS else {
-                return nil
+            return nil
         }
         return value.toString()
     }

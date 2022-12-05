@@ -29,6 +29,6 @@ public class CRTAWSProfile {
 
     /// Returns how many properties a profile holds
     public var propertyCount: Int {
-       aws_profile_get_property_count(rawValue)
+        aws_profile_get_property_count(rawValue)
     }
 }

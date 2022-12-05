@@ -72,28 +72,27 @@ public struct HttpClientConnectionOptions: CStructWithShutdownOptions {
     }
 
     typealias RawType = aws_http_connection_manager_options
-    func withCStruct<Result>(shutdownOptions: aws_shutdown_callback_options, _ body: (aws_http_connection_manager_options) -> Result
+    func withCStruct<Result>(
+        shutdownOptions: aws_shutdown_callback_options,
+        _ body: (aws_http_connection_manager_options) -> Result
     ) -> Result {
         return hostName.withByteCursor { hostNameCursor in
-            return withOptionalCStructPointer(proxyOptions,
-                                              proxyEnvSettings,
-                                              socketOptions,
-                                              monitoringOptions,
-                                              tlsOptions) { proxyOptionsPointer,
-                                                            proxyEnvSettingsPointer,
-                                                            socketOptionsPointer,
-                                                            monitoringOptionsPointer,
-                                                            tlsOptionsPointer in
+            return withOptionalCStructPointer(
+                proxyOptions,
+                proxyEnvSettings,
+                socketOptions,
+                monitoringOptions,
+                tlsOptions) { proxyPointer, proxyEnvSettingsPointer, socketPointer, monitoringPointer, tlsPointer in
 
                 var cManagerOptions = aws_http_connection_manager_options()
                 cManagerOptions.bootstrap = clientBootstrap.rawValue
                 cManagerOptions.initial_window_size = initialWindowSize
-                cManagerOptions.socket_options = socketOptionsPointer
-                cManagerOptions.tls_connection_options = tlsOptionsPointer
-                cManagerOptions.monitoring_options = monitoringOptionsPointer
+                cManagerOptions.socket_options = socketPointer
+                cManagerOptions.tls_connection_options = tlsPointer
+                cManagerOptions.monitoring_options = monitoringPointer
                 cManagerOptions.host = hostNameCursor
                 cManagerOptions.port = port
-                cManagerOptions.proxy_options = proxyOptionsPointer
+                cManagerOptions.proxy_options = proxyPointer
                 cManagerOptions.shutdown_complete_user_data = shutdownOptions.shutdown_callback_user_data
                 cManagerOptions.shutdown_complete_callback = shutdownOptions.shutdown_callback_fn
                 cManagerOptions.proxy_ev_settings = proxyEnvSettingsPointer

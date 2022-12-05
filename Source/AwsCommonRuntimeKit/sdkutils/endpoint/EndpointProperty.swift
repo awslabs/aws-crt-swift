@@ -22,7 +22,7 @@ enum EndpointProperty {
     }
 }
 
-/// Decodable conformance 
+/// Decodable conformance
 extension EndpointProperty: Decodable {
     init(from decoder: Decoder) throws {
         if let container = try? decoder.container(keyedBy: EndpointPropertyCodingKeys.self) {

@@ -3,6 +3,7 @@
 
 import AwsCAuth
 // TODO: rename file name
+// swiftlint:disable type_body_length
 public class IMDSClient {
     let rawValue: OpaquePointer
     let allocator: Allocator
@@ -28,12 +29,14 @@ public class IMDSClient {
 
     typealias ResourceContinuation = CheckedContinuation<String, Error>
     typealias ResourceListContinuation = CheckedContinuation<[String], Error>
-    typealias CGetIMDSResourceFunctionPointer = (OpaquePointer?,
-                                                 (@convention(c) (UnsafePointer<aws_byte_buf>?, Int32, UnsafeMutableRawPointer?) -> Void)?,
-                                                 UnsafeMutableRawPointer?) -> Int32
-    typealias CGetIMDSResourceListFunctionPointer = (OpaquePointer?,
-                                                     (@convention(c) (UnsafePointer<aws_array_list>?, Int32, UnsafeMutableRawPointer?) -> Void)?,
-                                                     UnsafeMutableRawPointer?) -> Int32
+    typealias CGetIMDSResourceFunctionPointer = (
+        OpaquePointer?,
+        (@convention(c) (UnsafePointer<aws_byte_buf>?, Int32, UnsafeMutableRawPointer?) -> Void)?,
+        UnsafeMutableRawPointer?) -> Int32
+    typealias CGetIMDSResourceListFunctionPointer = (
+        OpaquePointer?,
+        (@convention(c) (UnsafePointer<aws_array_list>?, Int32, UnsafeMutableRawPointer?) -> Void)?,
+        UnsafeMutableRawPointer?) -> Int32
 
     func getResourceWithPath(resourcePath: String,
                              client: IMDSClient,
@@ -41,9 +44,9 @@ public class IMDSClient {
         let continuationCore = ContinuationCore(continuation: continuation)
         resourcePath.withByteCursor { resourcePathCursor in
             if(aws_imds_client_get_resource_async(client.rawValue,
-                    resourcePathCursor,
-                    onGetResource,
-                    continuationCore.passRetained())) != AWS_OP_SUCCESS {
+                                                  resourcePathCursor,
+                                                  onGetResource,
+                                                  continuationCore.passRetained())) != AWS_OP_SUCCESS {
 
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
@@ -68,8 +71,8 @@ public class IMDSClient {
                           functionPointer: CGetIMDSResourceListFunctionPointer) {
         let continuationCore = ContinuationCore(continuation: continuation)
         if(functionPointer(client.rawValue,
-                onGetResourceList,
-                continuationCore.passRetained())) != AWS_OP_SUCCESS {
+                           onGetResourceList,
+                           continuationCore.passRetained())) != AWS_OP_SUCCESS {
             continuationCore.release()
             continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
         }
@@ -88,133 +91,190 @@ public class IMDSClient {
     /// Gets the ami id of the ec2 instance from the instance metadata document
     public func getAmiId() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_ami_id)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_ami_id)
         })
     }
 
     /// Gets the ami launch index of the ec2 instance from the instance metadata document
     public func getAmiLaunchIndex() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_ami_launch_index)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_ami_launch_index)
         })
     }
 
     /// Gets the ami manifest path of the ec2 instance from the instance metadata document
     public func getAmiManifestPath() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_ami_manifest_path)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_ami_manifest_path)
         })
     }
 
     /// Gets the instance-action of the ec2 instance from the instance metadata document
     public func getInstanceAction() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_instance_action)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_instance_action)
         })
     }
 
     /// Gets the instance id of the ec2 instance from the instance metadata document
     public func getInstanceId() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_instance_id)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_instance_id)
         })
     }
 
     /// Gets the instance type of the ec2 instance from the instance metadata document
     public func getInstanceType() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_instance_type)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_instance_type)
         })
     }
 
     /// Gets the mac address of the ec2 instance from the instance metadata document
     public func getMacAddress() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_mac_address)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_mac_address)
         })
     }
 
     /// Gets the private ip address of the ec2 instance from the instance metadata document
     public func getPrivateIpAddress() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_private_ip_address)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_private_ip_address)
         })
     }
 
     /// Gets the availability zone of the ec2 instance from the instance metadata document
     public func getAvailabilityZone() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_availability_zone)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_availability_zone)
         })
     }
 
     /// Gets the product codes of the ec2 instance from the instance metadata document
     public func getProductCodes() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_product_codes)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_product_codes)
         })
     }
 
     /// Gets the public key of the ec2 instance from the instance metadata document
     public func getPublicKey() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_public_key)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_public_key)
         })
     }
 
     /// Gets the ramdisk id of the ec2 instance from the instance metadata document
     public func getRamDiskId() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_ramdisk_id)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_ramdisk_id)
         })
     }
 
     /// Gets the reservation id of the ec2 instance from the instance metadata document
     public func getReservationId() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_reservation_id)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_reservation_id)
         })
     }
 
     /// Gets the attached iam role of the ec2 instance from the instance metadata document
     public func getAttachedIAMRole() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_attached_iam_role)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_attached_iam_role)
         })
     }
 
     /// Gets the user data of the ec2 instance from the instance metadata document
     public func getUserData() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_user_data)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_user_data)
         })
     }
 
     /// Gets the signature of the ec2 instance from the instance metadata document
     public func getInstanceSignature() async throws -> String {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceContinuation) in
-            getResource(client: self, continuation: continuation, functionPointer: aws_imds_client_get_instance_signature)
+            getResource(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_instance_signature)
         })
     }
 
     /// Gets the list of ancestor ami ids of the ec2 instance from the instance metadata document
     public func getAncestorAmiIDs() async throws -> [String]? {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceListContinuation) in
-            getResourcesList(client: self, continuation: continuation, functionPointer: aws_imds_client_get_ancestor_ami_ids)
+            getResourcesList(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_ancestor_ami_ids)
         })
     }
 
     /// Gets the list of the security groups of the ec2 instance from the instance metadata document
     public func getSecurityGroups() async throws -> [String]? {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceListContinuation) in
-            getResourcesList(client: self, continuation: continuation, functionPointer: aws_imds_client_get_security_groups)
+            getResourcesList(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_security_groups)
         })
     }
 
     /// Gets the list of block device mappings of the ec2 instance from the instance metadata document
     public func getBlockDeviceMapping() async throws -> [String]? {
         return try await withCheckedThrowingContinuation({ (continuation: ResourceListContinuation) in
-            getResourcesList(client: self, continuation: continuation, functionPointer: aws_imds_client_get_block_device_mapping)
+            getResourcesList(
+                client: self,
+                continuation: continuation,
+                functionPointer: aws_imds_client_get_block_device_mapping)
         })
     }
 
@@ -223,13 +283,15 @@ public class IMDSClient {
     /// - Parameters:
     ///    - iamRoleName: iam role name to get temporary credentials through
     public func getCredentials(iamRoleName: String) async throws -> AwsCredentials {
-        return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<AwsCredentials, Error>) in
+        return try await withCheckedThrowingContinuation({ continuation in
             iamRoleName.withByteCursor { iamRoleNameCursor in
                 let continuationCore = ContinuationCore(continuation: continuation)
-                if(aws_imds_client_get_credentials(rawValue,
-                        iamRoleNameCursor,
-                        onGetCredentials,
-                        continuationCore.passRetained())) != AWS_OP_SUCCESS {
+                if(aws_imds_client_get_credentials(
+                    rawValue,
+                    iamRoleNameCursor,
+                    onGetCredentials,
+                    continuationCore.passRetained())) != AWS_OP_SUCCESS {
+
                     continuationCore.release()
                     continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
                 }
@@ -239,9 +301,13 @@ public class IMDSClient {
 
     /// Gets the iam profile information of the ec2 instance from the instance metadata document
     public func getIAMProfile() async throws -> CRTIAMProfile {
-        return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<CRTIAMProfile, Error>) in
+        return try await withCheckedThrowingContinuation({ continuation in
             let continuationCore = ContinuationCore(continuation: continuation)
-            if(aws_imds_client_get_iam_profile(rawValue, onGetIAMProfile, continuationCore.passRetained())) != AWS_OP_SUCCESS {
+            if(aws_imds_client_get_iam_profile(
+                rawValue,
+                onGetIAMProfile,
+                continuationCore.passRetained())) != AWS_OP_SUCCESS {
+
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
             }
@@ -253,9 +319,13 @@ public class IMDSClient {
     /// - Parameters:
     ///    - callbackData: The `CRTIMDSClientInstanceCallbackData` object with an async callback
     public func getInstanceInfo() async throws -> CRTIMDSInstanceInfo {
-        return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<CRTIMDSInstanceInfo, Error>) in
+        return try await withCheckedThrowingContinuation({ continuation in
             let continuationCore = ContinuationCore(continuation: continuation)
-            if(aws_imds_client_get_instance_info(rawValue, onGetInstanceInfo, continuationCore.passRetained())) != AWS_OP_SUCCESS {
+            if(aws_imds_client_get_instance_info(
+                rawValue,
+                onGetInstanceInfo,
+                continuationCore.passRetained())) != AWS_OP_SUCCESS {
+
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
             }
