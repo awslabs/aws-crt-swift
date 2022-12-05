@@ -15,12 +15,13 @@ class HttpClientConnectionManagerCallbackCore {
         self.connectionManager = connectionManager
     }
 
-    private func getRetainedSelf() -> UnsafeMutableRawPointer {
+    private func passRetained() -> UnsafeMutableRawPointer {
         return Unmanaged.passRetained(self).toOpaque()
     }
 
-    func retainedAcquireConnection() {
-        aws_http_connection_manager_acquire_connection(connectionManager.rawValue, onConnectionSetup, getRetainedSelf())
+    static func acquireConnection(continuation: ConnectionContinuation, connectionManager: HttpClientConnectionManager) {
+        let callbackCore = HttpClientConnectionManagerCallbackCore(continuation: continuation, connectionManager: connectionManager)
+        aws_http_connection_manager_acquire_connection(connectionManager.rawValue, onConnectionSetup, callbackCore.passRetained())
     }
 }
 

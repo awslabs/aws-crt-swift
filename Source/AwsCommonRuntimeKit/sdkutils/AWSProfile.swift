@@ -3,12 +3,12 @@
 
 import AwsCSdkUtils
 
-public class CRTAWSProfile {
+public class AWSProfile {
     let rawValue: OpaquePointer
     // Keep a reference of collection to keep it alive
-    let collection: CRTAWSProfileCollection
+    let collection: AWSProfileCollection
 
-    init(rawValue: OpaquePointer, collection: CRTAWSProfileCollection) {
+    init(rawValue: OpaquePointer, collection: AWSProfileCollection) {
         self.rawValue = rawValue
         self.collection = collection
     }
@@ -19,12 +19,12 @@ public class CRTAWSProfile {
     }
 
     /// Retrieves a reference to a property with the specified name, if it exists, from a profile
-    public func getProperty(name: String, allocator: Allocator = defaultAllocator) -> CRTAWSProfileProperty? {
+    public func getProperty(name: String, allocator: Allocator = defaultAllocator) -> AWSProfileProperty? {
         let nameAwsString = AWSString(name, allocator: allocator)
         guard let propPointer = aws_profile_get_property(rawValue, nameAwsString.rawValue) else {
             return nil
         }
-        return CRTAWSProfileProperty(rawValue: propPointer, collection: collection)
+        return AWSProfileProperty(rawValue: propPointer, collection: collection)
     }
 
     /// Returns how many properties a profile holds

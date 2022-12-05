@@ -4,7 +4,7 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-class ProxyEnvSettingsTests: CrtXCBaseTestCase {
+class HttpProxyEnvSettingsTests: XCBaseTestCase {
 
     func testCreateProxyEnvSettings() throws {
         let proxyEnvSetting = ProxyEnvSettings()
@@ -14,8 +14,8 @@ class ProxyEnvSettingsTests: CrtXCBaseTestCase {
     func testCreateProxyEnvSettingsNonDefault() throws {
         let connectionType = HttpProxyConnectionType.tunnel;
         let envVarType = HttpProxyEnvType.enable
-        let context = try TlsContext(options: TlsContextOptions(allocator: allocator), mode: TLSMode.client)
-        let tlsOptions = TlsConnectionOptions(context: context, allocator: allocator)
+        let context = try TLSContext(options: TLSContextOptions(allocator: allocator), mode: TLSMode.client)
+        let tlsOptions = TLSConnectionOptions(context: context, allocator: allocator)
 
         let proxyEnvSetting = ProxyEnvSettings(envVarType: envVarType, proxyConnectionType: connectionType, tlsOptions: tlsOptions)
         XCTAssertNotNil(proxyEnvSetting)

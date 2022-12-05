@@ -4,7 +4,7 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-class SignerTests: CrtXCBaseTestCase {
+class AWSSignerTests: XCBaseTestCase {
 
     let SIGV4TEST_ACCESS_KEY_ID = "AKIDEXAMPLE"
     let SIGV4TEST_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY"
@@ -20,16 +20,16 @@ class SignerTests: CrtXCBaseTestCase {
         let shouldSignHeader: (String) -> Bool = { name in
             return !name.starts(with: "doNotSign")
         }
-        let config = SigningConfig(
-                algorithm: SigningAlgorithmType.signingV4,
-                signatureType: SignatureType.requestHeaders,
+        let config = AWSSigningConfig(
+                algorithm: AWSSigningAlgorithmType.signingV4,
+                signatureType: AWSSignatureType.requestHeaders,
                 service: SIGV4TEST_SERVICE,
                 region: SIGV4TEST_REGION,
                 date: getDate(),
                 credentialsProvider: provider,
         shouldSignHeader: shouldSignHeader)
 
-        let signedRequest = try await Signer.signRequest(request: request,
+        let signedRequest = try await AWSSigner.signRequest(request: request,
                                                                     config: config,
                                                                     allocator: allocator)
         XCTAssertNotNil(signedRequest)
@@ -45,15 +45,15 @@ class SignerTests: CrtXCBaseTestCase {
     func testSigningSigv4HeadersWithCredentials() async throws {
         let request = try makeMockRequest()
         let credentials = try makeMockCredentials()
-        let config = SigningConfig(
-                algorithm: SigningAlgorithmType.signingV4,
-                signatureType: SignatureType.requestHeaders,
+        let config = AWSSigningConfig(
+                algorithm: AWSSigningAlgorithmType.signingV4,
+                signatureType: AWSSignatureType.requestHeaders,
                 service: SIGV4TEST_SERVICE,
                 region: SIGV4TEST_REGION,
                 date: getDate(),
                 credentials: credentials)
 
-        let signedRequest = try await Signer.signRequest(request: request, 
+        let signedRequest = try await AWSSigner.signRequest(request: request,
                                                                     config: config, 
                                                                     allocator: allocator)
         XCTAssertNotNil(signedRequest)
@@ -66,16 +66,16 @@ class SignerTests: CrtXCBaseTestCase {
     func testSigningSigv4Body() async throws {
         let request = try makeMockRequestWithBody()
         let credentials = try makeMockCredentials()
-        let config = SigningConfig(
-                algorithm: SigningAlgorithmType.signingV4,
-                signatureType: SignatureType.requestHeaders,
+        let config = AWSSigningConfig(
+                algorithm: AWSSigningAlgorithmType.signingV4,
+                signatureType: AWSSignatureType.requestHeaders,
                 service: SIGV4TEST_SERVICE,
                 region: SIGV4TEST_REGION,
                 date: getDate(),
                 credentials: credentials,
                 signedBodyHeader: .contentSha256)
 
-        let signedRequest = try await Signer.signRequest(request: request, 
+        let signedRequest = try await AWSSigner.signRequest(request: request,
                                                                     config: config, 
                                                                     allocator: allocator)
 
@@ -98,16 +98,16 @@ class SignerTests: CrtXCBaseTestCase {
         let shouldSignHeader: (String) -> Bool = { header in
             return true
         }
-        let config = SigningConfig(
+        let config = AWSSigningConfig(
                 algorithm: .signingV4Asymmetric,
-                signatureType: SignatureType.requestHeaders,
+                signatureType: AWSSignatureType.requestHeaders,
                 service: SIGV4TEST_SERVICE,
                 region: SIGV4TEST_REGION,
                 date: getDate(),
                 credentialsProvider: provider,
                 shouldSignHeader: shouldSignHeader)
 
-        let signedRequest = try await Signer.signRequest(request: request, 
+        let signedRequest = try await AWSSigner.signRequest(request: request,
                                                                     config: config, 
                                                                     allocator: allocator)
 
@@ -124,13 +124,13 @@ class SignerTests: CrtXCBaseTestCase {
     func testSigningWithCredentialsAndBodyInRequest() async throws {
         let request = try makeMockRequestWithBody()
         let credentials = try makeMockCredentials()
-        let config = SigningConfig(
-                algorithm: SigningAlgorithmType.signingV4,
-                signatureType: SignatureType.requestHeaders,
+        let config = AWSSigningConfig(
+                algorithm: AWSSigningAlgorithmType.signingV4,
+                signatureType: AWSSignatureType.requestHeaders,
                 service: SIGV4TEST_HOST,
                 region: SIGV4TEST_REGION,
                 credentials: credentials)
-        let signedRequest = try await Signer.signRequest(request: request, 
+        let signedRequest = try await AWSSigner.signRequest(request: request,
                                                                     config: config, 
                                                                     allocator: allocator)
         XCTAssertNotNil(signedRequest)
@@ -160,15 +160,15 @@ class SignerTests: CrtXCBaseTestCase {
         return request
     }
 
-    func makeMockCredentials() throws -> AwsCredentials {
-        try AwsCredentials(accessKey: SIGV4TEST_SECRET_ACCESS_KEY,
+    func makeMockCredentials() throws -> AWSCredentials {
+        try AWSCredentials(accessKey: SIGV4TEST_SECRET_ACCESS_KEY,
                 secret: SIGV4TEST_SECRET_ACCESS_KEY,
                 sessionToken: SIGV4TEST_SESSION_TOKEN,
                 allocator: allocator)
     }
 
-    func makeMockCredentialsProvider() throws -> AwsCredentialsProvider {
-        try AwsCredentialsProvider(source: .static(accessKey: SIGV4TEST_ACCESS_KEY_ID,
+    func makeMockCredentialsProvider() throws -> AWSCredentialsProvider {
+        try AWSCredentialsProvider(source: .static(accessKey: SIGV4TEST_ACCESS_KEY_ID,
                 secret: SIGV4TEST_SECRET_ACCESS_KEY,
                 sessionToken: SIGV4TEST_SESSION_TOKEN),
                 allocator: allocator)

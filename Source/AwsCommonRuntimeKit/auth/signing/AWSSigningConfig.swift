@@ -4,13 +4,13 @@
 import AwsCAuth
 import Foundation
 
-public struct SigningConfig: CStructWithUserData {
+public struct AWSSigningConfig: CStructWithUserData {
 
     /// What signing algorithm to use.
-    public var algorithm: SigningAlgorithmType
+    public var algorithm: AWSSigningAlgorithmType
 
     /// What sort of signature should be computed?
-    public var signatureType: SignatureType
+    public var signatureType: AWSSignatureType
 
     /// name of service to sign a request for
     public var service: String
@@ -26,11 +26,11 @@ public struct SigningConfig: CStructWithUserData {
     /// AWS Credentials to sign with. If Sigv4a is the algorithm and the credentials supplied are not ecc-based,
     /// a temporary ecc-based credentials object will be built and used instead.
     /// Overrides the credentialsProvider setting if non-null.
-    public var credentials: AwsCredentials?
+    public var credentials: AWSCredentials?
 
     /// AWS credentials provider to fetch credentials from.  If the signing algorithm is asymmetric sigv4, then the
     /// ecc-based credentials will be derived from the fetched credentials.
-    public var credentialsProvider: AwsCredentialsProvider?
+    public var credentialsProvider: AWSCredentialsProvider?
 
     /// If non-zero and the signing transform is query param, then signing will add X-Amz-Expires to the query
     /// string, equal to the value specified here. If this value is zero or if header signing is being used then
@@ -40,13 +40,13 @@ public struct SigningConfig: CStructWithUserData {
     /// Controls what body "hash" header, if any, should be added to the canonical request and the signed request:
     ///   none - no header should be added
     ///   contentSha256 - the body "hash" should be added in the X-Amz-Content-Sha256 header
-    public var signedBodyHeader: SignedBodyHeaderType
+    public var signedBodyHeader: AWSSignedBodyHeaderType
 
     /// Optional string to use as the canonical request's body value.
     /// If string is empty, a value will be calculated from the payload during signing.
     /// Typically, this is the SHA-256 of the (request/chunk/event) payload, written as lowercase hex.
     /// If this has been precalculated, it can be set here. Special values used by certain services can also be set
-    public var signedBodyValue: SignedBodyValue
+    public var signedBodyValue: AWSSignedBodyValue
 
     ///  Optional function to control which headers are a part of the canonical request.
     public var shouldSignHeader: ((String) -> Bool)?
@@ -64,16 +64,16 @@ public struct SigningConfig: CStructWithUserData {
     /// The only known case where this should be true is when signing a websocket handshake to IoT Core.
     public var omitSessionToken: Bool
 
-    public init(algorithm: SigningAlgorithmType,
-                signatureType: SignatureType,
+    public init(algorithm: AWSSigningAlgorithmType,
+                signatureType: AWSSignatureType,
                 service: String,
                 region: String,
                 date: Date = Date(),
-                credentials: AwsCredentials? = nil,
-                credentialsProvider: AwsCredentialsProvider? = nil,
+                credentials: AWSCredentials? = nil,
+                credentialsProvider: AWSCredentialsProvider? = nil,
                 expiration: TimeInterval? = nil,
-                signedBodyHeader: SignedBodyHeaderType = .none,
-                signedBodyValue: SignedBodyValue = SignedBodyValue.empty,
+                signedBodyHeader: AWSSignedBodyHeaderType = .none,
+                signedBodyValue: AWSSignedBodyValue = AWSSignedBodyValue.empty,
                 shouldSignHeader: ((String) -> Bool)? = nil,
                 useDoubleURIEncode: Bool = true,
                 shouldNormalizeURIPath: Bool = true,
@@ -136,7 +136,7 @@ private func onShouldSignHeader(nameCursor: UnsafePointer<aws_byte_cursor>!,
     return signRequestCore.shouldSignHeader!(name)
 }
 
-public enum SignatureType {
+public enum AWSSignatureType {
     /**
      A signature for a full http request should be computed, with header updates applied to the signing result.
      */
@@ -165,7 +165,7 @@ public enum SignatureType {
     case requestEvent
 }
 
-public enum SignedBodyHeaderType {
+public enum AWSSignedBodyHeaderType {
 
     /// Do not add a header
     case none
@@ -174,7 +174,7 @@ public enum SignedBodyHeaderType {
     case contentSha256
 }
 
-public enum SignedBodyValue: String {
+public enum AWSSignedBodyValue: String {
     /// if string is empty  a public value  will be calculated from the payload during signing
     case empty = ""
     case emptySha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
@@ -184,12 +184,12 @@ public enum SignedBodyValue: String {
     case streamingSha256Events = "STREAMING-AWS4-HMAC-SHA256-EVENTS"
 }
 
-public enum SigningAlgorithmType {
+public enum AWSSigningAlgorithmType {
     case signingV4
     case signingV4Asymmetric
 }
 
-extension SignatureType: RawRepresentable, CaseIterable {
+extension AWSSignatureType: RawRepresentable, CaseIterable {
 
     public init(rawValue: aws_signature_type) {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})
@@ -206,7 +206,7 @@ extension SignatureType: RawRepresentable, CaseIterable {
     }
 }
 
-extension SignedBodyHeaderType: RawRepresentable, CaseIterable {
+extension AWSSignedBodyHeaderType: RawRepresentable, CaseIterable {
     public init(rawValue: aws_signed_body_header_type) {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})
         self = value ?? .none
@@ -219,7 +219,7 @@ extension SignedBodyHeaderType: RawRepresentable, CaseIterable {
     }
 }
 
-extension SigningAlgorithmType: RawRepresentable, CaseIterable {
+extension AWSSigningAlgorithmType: RawRepresentable, CaseIterable {
 
     public init(rawValue: aws_signing_algorithm) {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})

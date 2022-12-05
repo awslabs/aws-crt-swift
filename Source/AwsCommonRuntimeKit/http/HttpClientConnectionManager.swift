@@ -24,8 +24,9 @@ public class HttpClientConnectionManager {
     /// Acquires an `HttpClientConnection` asynchronously.
     public func acquireConnection() async throws -> HttpClientConnection {
         return try await withCheckedThrowingContinuation({ (continuation: ConnectionContinuation) in
-            HttpClientConnectionManagerCallbackCore(continuation: continuation,
-                                                    connectionManager: self).retainedAcquireConnection()
+            HttpClientConnectionManagerCallbackCore.acquireConnection(
+                    continuation: continuation,
+                    connectionManager: self)
         })
     }
 

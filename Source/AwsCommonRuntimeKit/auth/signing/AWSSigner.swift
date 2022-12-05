@@ -4,8 +4,7 @@
 import AwsCAuth
 import Foundation
 
-// TODO: update file name
-public class Signer {
+public class AWSSigner {
 
     /// Signs an HttpRequest that was passed in via the appropriate algorithm.
     /// This function returns a reference to the same request object that was passed in.
@@ -32,7 +31,7 @@ public class Signer {
     /// - `Returns`: Returns a signed http request `HttpRequest`
     public static func signRequest(
         request: HttpRequest,
-        config: SigningConfig,
+        config: AWSSigningConfig,
         allocator: Allocator = defaultAllocator) async throws -> HttpRequest {
 
         guard let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue) else {

@@ -241,15 +241,15 @@ struct Elasticurl {
 
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
 
-            AwsCommonRuntimeKit.initialize(allocator: allocator)
+            CommonRuntimeKit.initialize(allocator: allocator)
 
             let port = UInt16(443)
 
-            let tlsContextOptions = TlsContextOptions.makeDefault(allocator: allocator)
+            let tlsContextOptions = TLSContextOptions.makeDefault(allocator: allocator)
             tlsContextOptions.setAlpnList(context.alpnList)
-            let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
+            let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)
 
-            var tlsConnectionOptions = TlsConnectionOptions(context: tlsContext, allocator: allocator)
+            var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext, allocator: allocator)
 
             tlsConnectionOptions.serverName = host
 

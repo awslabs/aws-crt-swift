@@ -1,8 +1,7 @@
 import AwsCHttp
 import AwsCAuth
 
-public struct AwsCommonRuntimeKit {
-    public static let version = "@AWS_CRT_SWIFT_VERSION@"
+public struct CommonRuntimeKit {
 
     public static func initialize(allocator: Allocator = defaultAllocator) {
         aws_auth_library_init(allocator.rawValue)

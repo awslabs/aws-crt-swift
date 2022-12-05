@@ -3,14 +3,14 @@
 
 import AwsCIo
 
-public struct TlsConnectionOptions: CStruct {
+public struct TLSConnectionOptions: CStruct {
     private let allocator: Allocator
-    public var context: TlsContext
+    public var context: TLSContext
     public var alpnList: [String]?
     public var serverName: String?
 
     public init(
-        context: TlsContext,
+        context: TLSContext,
         alpnList: [String]? = nil,
         serverName: String? = nil,
         allocator: Allocator = defaultAllocator) {

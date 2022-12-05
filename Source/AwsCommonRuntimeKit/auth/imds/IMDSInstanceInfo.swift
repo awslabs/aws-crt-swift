@@ -4,7 +4,7 @@
 import AwsCAuth
 import Foundation
 
-public struct CRTIMDSInstanceInfo {
+public struct IMDSInstanceInfo {
     public let marketPlaceProductCodes: [String]
     public let availabilityZone: String
     public let privateIp: String

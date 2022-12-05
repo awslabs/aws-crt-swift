@@ -4,7 +4,7 @@ import XCTest
 import AwsCCommon
 @testable import AwsCommonRuntimeKit
 
-class HttpRequestTests: CrtXCBaseTestCase {
+class HttpRequestTests: XCBaseTestCase {
 
     func testCreateHttpRequest() throws {
         let httpRequest = try HttpRequest(method: "PUT", path: "testPath", allocator: allocator)

@@ -4,9 +4,7 @@
 import AwsCIo
 import Foundation
 
-// TODO: rename class to RetryStrategy or CRTRetryStrategy. We have inconsistent CRT/AWS as a prefix of some classes.
-// I am not renaming it for now because it messes up the git change log. Will create a separate PR for just renaming.
-public class CRTAWSRetryStrategy {
+public class RetryStrategy {
     let rawValue: UnsafeMutablePointer<aws_retry_strategy>
 
     /// Creates an AWS Retryer implementing the correct retry strategy.
@@ -24,7 +22,7 @@ public class CRTAWSRetryStrategy {
                 initialBucketCapacity: Int = 500,
                 maxRetries: Int = 10,
                 backOffScaleFactor: TimeInterval = 0.025,
-                jitterMode: CRTExponentialBackoffJitterMode = .default,
+                jitterMode: ExponentialBackoffJitterMode = .default,
                 generateRandom: (@convention(c) () -> UInt64)? = nil,
                 allocator: Allocator = defaultAllocator) throws {
 
@@ -56,7 +54,7 @@ public class CRTAWSRetryStrategy {
     ///                  This allows for more sophisticated strategies such as AIMD and circuit breaker patterns.
     ///                  Pass NULL to use the global partition.
     /// - Returns: `CRTAWSRetryStrategy`
-    public func acquireToken(partitionId: String?) async throws -> CRTAWSRetryToken {
+    public func acquireToken(partitionId: String?) async throws -> RetryToken {
         return try await withCheckedThrowingContinuation { continuation in
 
             let continuationCore = ContinuationCore(continuation: continuation)
@@ -73,7 +71,7 @@ public class CRTAWSRetryStrategy {
         }
     }
 
-    public func scheduleRetry(token: CRTAWSRetryToken, errorType: CRTRetryError) async throws {
+    public func scheduleRetry(token: RetryToken, errorType: RetryError) async throws {
         try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
             if aws_retry_strategy_schedule_retry(token.rawValue,
@@ -88,7 +86,7 @@ public class CRTAWSRetryStrategy {
 
     /// Records a successful retry.You should always call it after a successful operation
     /// or your system will never recover during an outage.
-    public func recordSuccess(token: CRTAWSRetryToken) {
+    public func recordSuccess(token: RetryToken) {
         aws_retry_token_record_success(token.rawValue)
     }
 
@@ -114,12 +112,12 @@ private func onRetryTokenAcquired(retry_strategy: UnsafeMutablePointer<aws_retry
                                   errorCode: Int32,
                                   token: UnsafeMutablePointer<aws_retry_token>?,
                                   userData: UnsafeMutableRawPointer!) {
-    let crtRetryStrategyCore = Unmanaged<ContinuationCore<CRTAWSRetryToken>>.fromOpaque(userData).takeRetainedValue()
+    let crtRetryStrategyCore = Unmanaged<ContinuationCore<RetryToken>>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         crtRetryStrategyCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
     // Success
-    crtRetryStrategyCore.continuation.resume(returning: CRTAWSRetryToken(rawValue: token!))
+    crtRetryStrategyCore.continuation.resume(returning: RetryToken(rawValue: token!))
 }

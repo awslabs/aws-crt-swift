@@ -3,10 +3,10 @@
 
 import AwsCIo
 
-public class TlsContext {
+public class TLSContext {
     var rawValue: UnsafeMutablePointer<aws_tls_ctx>
 
-    public init(options: TlsContextOptions, mode: TLSMode, allocator: Allocator = defaultAllocator) throws {
+    public init(options: TLSContextOptions, mode: TLSMode, allocator: Allocator = defaultAllocator) throws {
         guard let rawValue = (options.withCPointer { optionsPointer in
             switch mode {
             case .client:

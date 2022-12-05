@@ -4,13 +4,12 @@
 import AwsCSdkUtils
 import struct Foundation.Data
 
-// TODO: rename
-public class CRTAWSProfileCollection {
+public class AWSProfileCollection {
     var rawValue: OpaquePointer
 
     /// Create a new profile collection by parsing a file with the specified path
     public init(fromFile path: String,
-                source: CRTAWSProfileSourceType,
+                source: AWSProfileSourceType,
                 allocator: Allocator = defaultAllocator) throws {
         var finalizedPath = path
         if path.hasPrefix("~"),
@@ -30,7 +29,7 @@ public class CRTAWSProfileCollection {
 
     /// Create a new profile collection by parsing text in a buffer. Primarily for testing.
     init(fromData data: Data,
-         source: CRTAWSProfileSourceType,
+         source: AWSProfileSourceType,
          allocator: Allocator = defaultAllocator) throws {
         let byteCount = data.count
         guard let rawValue  = (data.withUnsafeBytes { rawBufferPointer in
@@ -48,8 +47,8 @@ public class CRTAWSProfileCollection {
 
     /// Create a new profile collection by merging a config-file-based profile
     /// collection and a credentials-file-based profile collection
-    public init(configProfileCollection: CRTAWSProfileCollection,
-                credentialProfileCollection: CRTAWSProfileCollection,
+    public init(configProfileCollection: AWSProfileCollection,
+                credentialProfileCollection: AWSProfileCollection,
                 allocator: Allocator = defaultAllocator) throws {
         guard let rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
                                                                    configProfileCollection.rawValue,
@@ -61,14 +60,14 @@ public class CRTAWSProfileCollection {
     }
 
     /// Retrieves a reference to a profile with the specified name, if it exists, from the profile collection
-    public func getProfile(name: String, allocator: Allocator = defaultAllocator) -> CRTAWSProfile? {
+    public func getProfile(name: String, allocator: Allocator = defaultAllocator) -> AWSProfile? {
         let awsString = AWSString(name, allocator: allocator)
         guard let profilePointer = aws_profile_collection_get_profile(self.rawValue,
                                                                       awsString.rawValue)
         else {
             return nil
         }
-        return CRTAWSProfile(rawValue: profilePointer, collection: self)
+        return AWSProfile(rawValue: profilePointer, collection: self)
     }
 
     /// Returns how many profiles a collection holds

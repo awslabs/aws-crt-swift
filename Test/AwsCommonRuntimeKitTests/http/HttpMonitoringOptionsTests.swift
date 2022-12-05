@@ -4,7 +4,7 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-class HttpMonitoringTests: CrtXCBaseTestCase {
+class HttpMonitoringTests: XCBaseTestCase {
 
     func testCreateHttpMonitoringOptions() throws {
         let monitoringOptions = HttpMonitoringOptions(minThroughputBytesPerSecond: 10, allowableThroughputFailureInterval: 100)

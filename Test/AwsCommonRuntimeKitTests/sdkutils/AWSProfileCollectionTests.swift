@@ -5,10 +5,10 @@ import XCTest
 import Foundation
 @testable import AwsCommonRuntimeKit
 
-class CRTAWSProfileCollectionTests: CrtXCBaseTestCase {
+class AWSProfileCollectionTests: XCBaseTestCase {
     func testGetPropertyFromBufferConfig() throws {
         let fakeConfig = "[default]\r\nregion=us-west-2".data(using: .utf8)!
-        let profileCollection = try CRTAWSProfileCollection(fromData: fakeConfig, source: .config, allocator: allocator)
+        let profileCollection = try AWSProfileCollection(fromData: fakeConfig, source: .config, allocator: allocator)
         let profile = profileCollection.getProfile(name: "default", allocator: allocator)
         let property = profile?.getProperty(name: "region", allocator: allocator)
         XCTAssertEqual("us-west-2", property?.value)
@@ -16,7 +16,7 @@ class CRTAWSProfileCollectionTests: CrtXCBaseTestCase {
 
     func testGetPropertyFromBufferCreds() throws {
         let fakeCreds = "[default]\r\naws_access_key_id=AccessKey\r\naws_secret_access_key=Sekrit".data(using: .utf8)!
-        let profileCollection = try CRTAWSProfileCollection(fromData: fakeCreds, source: .credentials, allocator: allocator)
+        let profileCollection = try AWSProfileCollection(fromData: fakeCreds, source: .credentials, allocator: allocator)
         let profile = profileCollection.getProfile(name: "default", allocator: allocator)!
         let property = profile.getProperty(name: "aws_access_key_id", allocator: allocator)!
         XCTAssertEqual("AccessKey", property.value)
@@ -24,12 +24,12 @@ class CRTAWSProfileCollectionTests: CrtXCBaseTestCase {
 
     func testGetProfileCollectionFromMerge() throws {
         let fakeConfig = "[default]\r\nregion=us-west-2".data(using: .utf8)!
-        let profileCollectionConfig = try CRTAWSProfileCollection(fromData: fakeConfig, source: .config)
+        let profileCollectionConfig = try AWSProfileCollection(fromData: fakeConfig, source: .config)
 
         let fakeCreds = "[default]\r\naws_access_key_id=AccessKey\r\naws_secret_access_key=Sekrit".data(using: .utf8)!
-        let profileCollectionCreds = try CRTAWSProfileCollection(fromData: fakeCreds, source: .credentials, allocator: allocator)
+        let profileCollectionCreds = try AWSProfileCollection(fromData: fakeCreds, source: .credentials, allocator: allocator)
 
-        let mergedCollection = try CRTAWSProfileCollection(configProfileCollection: profileCollectionConfig, credentialProfileCollection: profileCollectionCreds)
+        let mergedCollection = try AWSProfileCollection(configProfileCollection: profileCollectionConfig, credentialProfileCollection: profileCollectionCreds)
         let profile = mergedCollection.getProfile(name: "default", allocator: allocator)!
 
         let accessKey = profile.getProperty(name: "aws_access_key_id")!
@@ -39,7 +39,7 @@ class CRTAWSProfileCollectionTests: CrtXCBaseTestCase {
     }
 
     func testGetPropertyFromConfigFile() throws {
-        let profileCollection = try CRTAWSProfileCollection(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .credentials, allocator: allocator)
+        let profileCollection = try AWSProfileCollection(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .credentials, allocator: allocator)
         let profile = profileCollection.getProfile(name: "default", allocator: allocator)!
         let property = profile.getProperty(name: "aws_access_key_id", allocator: allocator)!
         XCTAssertEqual("default_access_key_id", property.value)
@@ -54,10 +54,10 @@ class CRTAWSProfileCollectionTests: CrtXCBaseTestCase {
     }
 
     func testCollectionOutOfScope() throws {
-        var profile: CRTAWSProfile! = nil
-        var crtUserProfile: CRTAWSProfile! = nil
+        var profile: AWSProfile! = nil
+        var crtUserProfile: AWSProfile! = nil
         do{
-            let profileCollection = try CRTAWSProfileCollection(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .credentials, allocator: allocator)
+            let profileCollection = try AWSProfileCollection(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .credentials, allocator: allocator)
             profile = profileCollection.getProfile(name: "default", allocator: allocator)!
             crtUserProfile = profileCollection.getProfile(name: "crt_user", allocator: allocator)!
         }

@@ -3,12 +3,12 @@
 
 import AwsCAuth
 
-public enum CRTIMDSProtocolVersion {
+public enum IMDSProtocolVersion {
     case version2
     case version1
 }
 
-extension CRTIMDSProtocolVersion: RawRepresentable, CaseIterable {
+extension IMDSProtocolVersion: RawRepresentable, CaseIterable {
 
     public init(rawValue: aws_imds_protocol_version) {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})

@@ -7,7 +7,7 @@ import AwsCHttp
 import Foundation
 
 public protocol AWSCredentialsProviding: AnyObject {
-    func getCredentials() async throws -> AwsCredentials
+    func getCredentials() async throws -> AWSCredentials
 }
 
 /// A container class to wrap AWSCredentialsProviding for aws_credentials_provider_delegate
@@ -28,8 +28,7 @@ class AWSCredentialsProvidingCore {
     }
 }
 
-// TODO: Rename file name
-public class AwsCredentialsProvider: AWSCredentialsProviding {
+public class AWSCredentialsProvider: AWSCredentialsProviding {
 
     let allocator: Allocator
     let rawValue: UnsafeMutablePointer<aws_credentials_provider>
@@ -45,8 +44,8 @@ public class AwsCredentialsProvider: AWSCredentialsProviding {
     ///
     /// - Returns: `Result<CRTCredentials, CRTError>`
     /// - Throws: CommonRuntimeError.crtError
-    public func getCredentials() async throws -> AwsCredentials {
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AwsCredentials, Error>) in
+    public func getCredentials() async throws -> AWSCredentials {
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AWSCredentials, Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
             if aws_credentials_provider_get_credentials(rawValue,
                                                         onGetCredentials,
@@ -62,7 +61,7 @@ public class AwsCredentialsProvider: AWSCredentialsProviding {
     }
 }
 
-extension AwsCredentialsProvider {
+extension AWSCredentialsProvider {
     /// A credential source
     public struct Source {
         let makeProvider: (Allocator) throws -> UnsafeMutablePointer<aws_credentials_provider>
@@ -103,7 +102,7 @@ extension AwsCredentialsProvider {
     }
 }
 
-extension AwsCredentialsProvider.Source {
+extension AWSCredentialsProvider.Source {
 
     /// Creates a credentials provider containing a fixed set of credentials.
     ///
@@ -214,7 +213,7 @@ extension AwsCredentialsProvider.Source {
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `imds`(bootstrap: ClientBootstrap,
-                              imdsVersion: CRTIMDSProtocolVersion = CRTIMDSProtocolVersion.version2,
+                              imdsVersion: IMDSProtocolVersion = IMDSProtocolVersion.version2,
                               shutdownCallback: ShutdownCallback? = nil,
                               allocator: Allocator = defaultAllocator) -> Self {
         Self { allocator in
@@ -245,7 +244,7 @@ extension AwsCredentialsProvider.Source {
     ///   - allocator: (Optional) allocator to override.
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
-    public static func `cached`(source: AwsCredentialsProvider,
+    public static func `cached`(source: AWSCredentialsProvider,
                                 refreshTime: TimeInterval = 0,
                                 shutdownCallback: ShutdownCallback? = nil,
                                 allocator: Allocator = defaultAllocator) -> Self {
@@ -317,7 +316,7 @@ extension AwsCredentialsProvider.Source {
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `x509`(bootstrap: ClientBootstrap,
-                              tlsConnectionOptions: TlsConnectionOptions,
+                              tlsConnectionOptions: TLSConnectionOptions,
                               thingName: String,
                               roleAlias: String,
                               endpoint: String,
@@ -382,7 +381,7 @@ extension AwsCredentialsProvider.Source {
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `stsWebIdentity`(bootstrap: ClientBootstrap,
-                                        tlsContext: TlsContext,
+                                        tlsContext: TLSContext,
                                         shutdownCallback: ShutdownCallback? = nil,
                                         allocator: Allocator = defaultAllocator) -> Self {
         Self { allocator in
@@ -416,8 +415,8 @@ extension AwsCredentialsProvider.Source {
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `sts`(bootstrap: ClientBootstrap,
-                             tlsContext: TlsContext,
-                             credentialsProvider: AwsCredentialsProvider,
+                             tlsContext: TLSContext,
+                             credentialsProvider: AWSCredentialsProvider,
                              roleArn: String,
                              sessionName: String,
                              duration: TimeInterval,
@@ -469,7 +468,7 @@ extension AwsCredentialsProvider.Source {
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `ecs`(bootstrap: ClientBootstrap,
-                             tlsContext: TlsContext? = nil,
+                             tlsContext: TLSContext? = nil,
                              authToken: String,
                              pathAndQuery: String,
                              host: String,
@@ -505,14 +504,14 @@ private func onGetCredentials(credentials: OpaquePointer?,
                               errorCode: Int32,
                               userData: UnsafeMutableRawPointer!) {
 
-    let continuationCore = Unmanaged<ContinuationCore<AwsCredentials>>.fromOpaque(userData).takeRetainedValue()
+    let continuationCore = Unmanaged<ContinuationCore<AWSCredentials>>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
     // Success
-    continuationCore.continuation.resume(returning: AwsCredentials(rawValue: credentials!))
+    continuationCore.continuation.resume(returning: AWSCredentials(rawValue: credentials!))
 }
 
 private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,

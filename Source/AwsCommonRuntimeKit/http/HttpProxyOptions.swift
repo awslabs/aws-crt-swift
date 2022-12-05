@@ -9,14 +9,14 @@ public struct HttpProxyOptions: CStruct {
     public var basicAuthPassword: String?
     public var hostName: String
     public var port: UInt16
-    public var tlsOptions: TlsConnectionOptions?
+    public var tlsOptions: TLSConnectionOptions?
 
     public init(hostName: String,
                 port: UInt16,
                 authType: HttpProxyAuthenticationType = .none,
                 basicAuthUsername: String? = nil,
                 basicAuthPassword: String? = nil,
-                tlsOptions: TlsConnectionOptions? = nil) {
+                tlsOptions: TLSConnectionOptions? = nil) {
         self.hostName = hostName
         self.port = port
         self.authType = authType

@@ -5,11 +5,11 @@ import AwsCHttp
 public struct ProxyEnvSettings: CStruct {
     public var envVarType: HttpProxyEnvType
     public var proxyConnectionType: HttpProxyConnectionType
-    public var tlsOptions: TlsConnectionOptions?
+    public var tlsOptions: TLSConnectionOptions?
 
     public init(envVarType: HttpProxyEnvType = .disable,
                 proxyConnectionType: HttpProxyConnectionType = .forward,
-                tlsOptions: TlsConnectionOptions? = nil) {
+                tlsOptions: TLSConnectionOptions? = nil) {
         self.envVarType = envVarType
         self.proxyConnectionType = proxyConnectionType
         self.tlsOptions = tlsOptions

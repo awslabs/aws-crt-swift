@@ -4,7 +4,7 @@
 import AwsCIo
 
 /// This is just a wrapper for aws_retry_token which user can not create themself but pass around once acquired.
-public class CRTAWSRetryToken {
+public class RetryToken {
     let rawValue: UnsafeMutablePointer<aws_retry_token>
 
     init(rawValue: UnsafeMutablePointer<aws_retry_token>) {

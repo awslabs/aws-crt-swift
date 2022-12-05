@@ -6,7 +6,7 @@ import XCTest
 import AwsCCommon
 import AwsCHttp
 
-class HttpTests: CrtXCBaseTestCase {
+class HttpTests: XCBaseTestCase {
     let semaphore = DispatchSemaphore(value: 0)
     let TEST_DOC_LINE: String = """
                                 This is a sample to prove that http downloads and uploads work. 
@@ -157,10 +157,10 @@ class HttpTests: CrtXCBaseTestCase {
     }
 
     func getHttpConnectionManager(endpoint: String, ssh: Bool, port: Int) async throws -> HttpClientConnectionManager {
-        let tlsContextOptions = TlsContextOptions(allocator: allocator)
+        let tlsContextOptions = TLSContextOptions(allocator: allocator)
         tlsContextOptions.setAlpnList(["http/1.1"])
-        let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
-        var tlsConnectionOptions = TlsConnectionOptions(context: tlsContext, allocator: allocator)
+        let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)
+        var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext, allocator: allocator)
         tlsConnectionOptions.serverName = endpoint
 
         let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)

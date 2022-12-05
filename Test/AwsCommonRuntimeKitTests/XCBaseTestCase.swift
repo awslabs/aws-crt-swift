@@ -5,18 +5,18 @@ import XCTest
 import AwsCommonRuntimeKit
 import AwsCCommon
 
-class CrtXCBaseTestCase: XCTestCase {
+class XCBaseTestCase: XCTestCase {
     internal let allocator = TracingAllocator(tracingStacksOf: defaultAllocator)
     let logging = Logger(pipe: stdout, level: .trace, allocator: defaultAllocator)
 
     override func setUp() {
         super.setUp()
 
-        AwsCommonRuntimeKit.initialize(allocator: self.allocator)
+        CommonRuntimeKit.initialize(allocator: self.allocator)
     }
 
     override func tearDown() {
-        AwsCommonRuntimeKit.cleanUp()
+        CommonRuntimeKit.cleanUp()
 
         allocator.dump()
         XCTAssertEqual(allocator.count, 0,

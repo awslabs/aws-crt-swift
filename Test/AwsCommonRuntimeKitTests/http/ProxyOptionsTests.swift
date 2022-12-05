@@ -4,11 +4,11 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-class ProxyOptionsTests: CrtXCBaseTestCase {
+class ProxyOptionsTests: XCBaseTestCase {
 
     func testCreateProxyOptions() throws {
-        let context = try TlsContext(options: TlsContextOptions(allocator: allocator), mode: TLSMode.client)
-        let tlsOptions = TlsConnectionOptions(context: context, allocator: allocator)
+        let context = try TLSContext(options: TLSContextOptions(allocator: allocator), mode: TLSMode.client)
+        let tlsOptions = TLSConnectionOptions(context: context, allocator: allocator)
         let proxyOptions = HttpProxyOptions(
                 hostName: "test",
                 port: 80,

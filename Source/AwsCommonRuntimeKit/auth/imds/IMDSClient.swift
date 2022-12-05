@@ -2,14 +2,14 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCAuth
-// TODO: rename file name
+
 // swiftlint:disable type_body_length
 public class IMDSClient {
     let rawValue: OpaquePointer
     let allocator: Allocator
     public init(bootstrap: ClientBootstrap,
-                retryStrategy: CRTAWSRetryStrategy,
-                protocolVersion: CRTIMDSProtocolVersion = CRTIMDSProtocolVersion.version2,
+                retryStrategy: RetryStrategy,
+                protocolVersion: IMDSProtocolVersion = IMDSProtocolVersion.version2,
                 shutdownCallback: ShutdownCallback? = nil,
                 allocator: Allocator = defaultAllocator) throws {
         self.allocator = allocator
@@ -282,7 +282,7 @@ public class IMDSClient {
     ///
     /// - Parameters:
     ///    - iamRoleName: iam role name to get temporary credentials through
-    public func getCredentials(iamRoleName: String) async throws -> AwsCredentials {
+    public func getCredentials(iamRoleName: String) async throws -> AWSCredentials {
         return try await withCheckedThrowingContinuation({ continuation in
             iamRoleName.withByteCursor { iamRoleNameCursor in
                 let continuationCore = ContinuationCore(continuation: continuation)
@@ -300,7 +300,7 @@ public class IMDSClient {
     }
 
     /// Gets the iam profile information of the ec2 instance from the instance metadata document
-    public func getIAMProfile() async throws -> CRTIAMProfile {
+    public func getIAMProfile() async throws -> IAMProfile {
         return try await withCheckedThrowingContinuation({ continuation in
             let continuationCore = ContinuationCore(continuation: continuation)
             if(aws_imds_client_get_iam_profile(
@@ -318,7 +318,7 @@ public class IMDSClient {
     ///
     /// - Parameters:
     ///    - callbackData: The `CRTIMDSClientInstanceCallbackData` object with an async callback
-    public func getInstanceInfo() async throws -> CRTIMDSInstanceInfo {
+    public func getInstanceInfo() async throws -> IMDSInstanceInfo {
         return try await withCheckedThrowingContinuation({ continuation in
             let continuationCore = ContinuationCore(continuation: continuation)
             if(aws_imds_client_get_instance_info(
@@ -366,38 +366,38 @@ private func onGetResourceList(arrayListPointer: UnsafePointer<aws_array_list>?,
 private func onGetCredentials(credentialsPointer: OpaquePointer?,
                               errorCode: Int32,
                               userData: UnsafeMutableRawPointer!) {
-    let imdsClientCore = Unmanaged<ContinuationCore<AwsCredentials>>.fromOpaque(userData).takeRetainedValue()
+    let imdsClientCore = Unmanaged<ContinuationCore<AWSCredentials>>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         imdsClientCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
     // Success
-    imdsClientCore.continuation.resume(returning: AwsCredentials(rawValue: credentialsPointer!))
+    imdsClientCore.continuation.resume(returning: AWSCredentials(rawValue: credentialsPointer!))
 }
 
 private func onGetIAMProfile(profilePointer: UnsafePointer<aws_imds_iam_profile>?,
                              errorCode: Int32,
                              userData: UnsafeMutableRawPointer!) {
-    let imdsClientCore = Unmanaged<ContinuationCore<CRTIAMProfile>>.fromOpaque(userData).takeRetainedValue()
+    let imdsClientCore = Unmanaged<ContinuationCore<IAMProfile>>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         imdsClientCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
     // Success
-    imdsClientCore.continuation.resume(returning: CRTIAMProfile(profile: profilePointer!.pointee))
+    imdsClientCore.continuation.resume(returning: IAMProfile(profile: profilePointer!.pointee))
 }
 
 private func onGetInstanceInfo(infoPointer: UnsafePointer<aws_imds_instance_info>?,
                                errorCode: Int32,
                                userData: UnsafeMutableRawPointer!) {
-    let imdsClientCore = Unmanaged<ContinuationCore<CRTIMDSInstanceInfo>>.fromOpaque(userData).takeRetainedValue()
+    let imdsClientCore = Unmanaged<ContinuationCore<IMDSInstanceInfo>>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         imdsClientCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
     // Success
-    imdsClientCore.continuation.resume(returning: CRTIMDSInstanceInfo(instanceInfo: infoPointer!.pointee))
+    imdsClientCore.continuation.resume(returning: IMDSInstanceInfo(instanceInfo: infoPointer!.pointee))
 }

@@ -2,19 +2,19 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCIo
-public class TlsContextOptions: CStruct {
+public class TLSContextOptions: CStruct {
     private let allocator: Allocator
     private var rawValue: UnsafeMutablePointer<aws_tls_ctx_options>
 
-    public static func makeDefault(allocator: Allocator = defaultAllocator) -> TlsContextOptions {
-        TlsContextOptions(allocator: allocator)
+    public static func makeDefault(allocator: Allocator = defaultAllocator) -> TLSContextOptions {
+        TLSContextOptions(allocator: allocator)
     }
 
     public static func makeMtlsPkcs12FromPath(
         path: String,
         password: String,
-        allocator: Allocator = defaultAllocator) throws -> TlsContextOptions {
-        try TlsContextOptions(mtlsPkcs12FromPath: path, password: password, allocator: allocator)
+        allocator: Allocator = defaultAllocator) throws -> TLSContextOptions {
+        try TLSContextOptions(mtlsPkcs12FromPath: path, password: password, allocator: allocator)
     }
 
     init(allocator: Allocator) {

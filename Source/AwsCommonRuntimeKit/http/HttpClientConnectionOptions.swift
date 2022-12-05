@@ -19,7 +19,7 @@ public struct HttpClientConnectionOptions: CStructWithShutdownOptions {
     /// The socket options to use for connections in the connection pool
     public var socketOptions: SocketOptions
     /// The tls options to use for connections in the connection pool
-    public var tlsOptions: TlsConnectionOptions?
+    public var tlsOptions: TLSConnectionOptions?
 
     /// If set to true, then the TCP read back pressure mechanism will be enabled. You should
     /// only use this if you're allowing http response body data to escape the callbacks. E.g. you're
@@ -49,7 +49,7 @@ public struct HttpClientConnectionOptions: CStructWithShutdownOptions {
                 proxyOptions: HttpProxyOptions? = nil,
                 proxyEnvSettings: ProxyEnvSettings? = nil,
                 socketOptions: SocketOptions = SocketOptions(),
-                tlsOptions: TlsConnectionOptions? = nil,
+                tlsOptions: TLSConnectionOptions? = nil,
                 monitoringOptions: HttpMonitoringOptions? = nil,
                 maxConnections: Int = 2,
                 enableManualWindowManagement: Bool = false,

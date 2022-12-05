@@ -4,7 +4,7 @@
 import AwsCAuth
 import Foundation
 
-public struct CRTIAMProfile {
+public struct IAMProfile {
     public let lastUpdated: Date
     public let profileArn: String
     public let profileId: String

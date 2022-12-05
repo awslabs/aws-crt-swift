@@ -5,11 +5,11 @@ import XCTest
 import AwsCHttp
 @testable import AwsCommonRuntimeKit
 
-class HttpClientConnectionOptionsTests: CrtXCBaseTestCase {
+class HttpClientConnectionOptionsTests: XCBaseTestCase {
 
     func testCreateHttpClientOptions() throws {
-        let context = try TlsContext(options: TlsContextOptions(allocator: allocator), mode: TLSMode.client)
-        let tlsOptions = TlsConnectionOptions(context: context, allocator: allocator)
+        let context = try TLSContext(options: TLSContextOptions(allocator: allocator), mode: TLSMode.client)
+        let tlsOptions = TLSConnectionOptions(context: context, allocator: allocator)
 
         let elg = try EventLoopGroup(allocator: allocator)
         let resolver = try HostResolver(eventLoopGroup: elg,

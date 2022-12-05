@@ -3,7 +3,7 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-class HttpMessageTests: CrtXCBaseTestCase {
+class HttpMessageTests: XCBaseTestCase {
 
     func testAddHeaders() throws {
         let httpMessage = try HttpMessage(allocator: allocator)
