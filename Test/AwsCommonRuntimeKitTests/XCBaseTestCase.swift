@@ -12,11 +12,11 @@ class XCBaseTestCase: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        CommonRuntimeKit.initialize(allocator: self.allocator)
+        AWSCommonRuntimeKit.initialize(allocator: self.allocator)
     }
 
     override func tearDown() {
-        CommonRuntimeKit.cleanUp()
+        AWSCommonRuntimeKit.cleanUp()
 
         allocator.dump()
         XCTAssertEqual(allocator.count, 0,
