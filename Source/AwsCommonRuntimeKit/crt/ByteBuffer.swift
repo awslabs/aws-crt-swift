@@ -39,7 +39,7 @@ public final class ByteBuffer {
 extension ByteBuffer: IStreamable {
 
     public func length() -> UInt64 {
-        return UInt64(data.count)
+        return UInt64(data.count);
     }
 
     public func seek(offset: Int64, streamSeekType: StreamSeekType) throws {
