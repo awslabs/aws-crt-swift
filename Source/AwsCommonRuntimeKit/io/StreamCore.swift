@@ -59,7 +59,9 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     let iStreamCore = Unmanaged<IStreamCore>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
     let iStreamable = iStreamCore.iStreamable
     do {
-        let bufferPointer = UnsafeMutableBufferPointer.init(start: buffer.pointee.buffer, count: buffer.pointee.capacity)
+        let bufferPointer = UnsafeMutableBufferPointer.init(
+            start: buffer.pointee.buffer,
+            count: buffer.pointee.capacity)
         let bytesRead = try iStreamable.read(buffer: bufferPointer)
         if let bytesRead = bytesRead {
             buffer.pointee.len = bytesRead

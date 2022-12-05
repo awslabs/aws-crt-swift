@@ -3,8 +3,8 @@
 import AwsCCommon
 
 /**
-  The default allocator.
-  You are probably looking to use `allocator` instead.
+ The default allocator.
+ You are probably looking to use `allocator` instead.
  */
 public let defaultAllocator = aws_default_allocator()!
 
@@ -94,9 +94,9 @@ public final class TracingAllocator: Allocator {
     }
 
     /**
-      If there are outstanding allocations, dumps them to log, along with any
-      information gathered based on the trace level set when this instance was
-      created.
+     If there are outstanding allocations, dumps them to log, along with any
+     information gathered based on the trace level set when this instance was
+     created.
      */
     public func dump() {
         aws_mem_tracer_dump(self.rawValue)

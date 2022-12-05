@@ -5,7 +5,7 @@ import AwsCommonRuntimeKit
 import Foundation
 import _Concurrency
 
-// swiftlint:disable cyclomatic_complexity type_body_length
+// swiftlint:disable cyclomatic_complexity function_body_length
 struct Context {
     // args
     public var logLevel: LogLevel = .trace
@@ -172,12 +172,12 @@ struct Elasticurl {
             exit(0)
         }
 
-        //make sure a url was given before we do anything else
+        // make sure a url was given before we do anything else
         guard let urlString = CommandLine.arguments.last,
               let url = URL(string: urlString) else {
-                  print("Invalid URL: \(CommandLine.arguments.last!)")
-                  exit(-1)
-              }
+            print("Invalid URL: \(CommandLine.arguments.last!)")
+            exit(-1)
+        }
         context.url = url
     }
 
@@ -280,21 +280,21 @@ struct Elasticurl {
             }
             httpRequest.addHeaders(headers: headers)
 
-            let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
+            let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { _, _, headers in
                 for header in headers {
                     print(header.name + " : " + header.value)
                 }
             }
 
-            let onBody: HttpRequestOptions.OnIncomingBody = { stream, bodyChunk in
+            let onBody: HttpRequestOptions.OnIncomingBody = { _, bodyChunk in
                 writeData(data: bodyChunk)
             }
 
-            let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone = { stream, block in
+            let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone = { _, _ in
 
             }
 
-            let onComplete: HttpRequestOptions.OnStreamComplete = { stream, error in
+            let onComplete: HttpRequestOptions.OnStreamComplete = { _, error in
                 print(error?.message ?? "Success")
 
                 semaphore.signal()
