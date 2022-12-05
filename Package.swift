@@ -3,7 +3,7 @@ import PackageDescription
 
 let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
                        "LICENSE", "format-check.sh", "NOTICE", "builder.json",
-                        "CMakeLists.txt", "README.md"]
+                       "CMakeLists.txt", "README.md"]
 var packageTargets: [Target] = []
 
 var package = Package(name: "aws-crt-swift",
@@ -20,14 +20,14 @@ var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
 
 #if os(Linux)
 packageTargets.append( .systemLibrary(
-            name: "LibCrypto",
-            pkgConfig: "libcrypto",
-            providers: [
-                .apt(["openssl libssl-dev"]),
-                .yum(["openssl openssl-devel"])
-            ]
-        ))
- // add pq-crypto back after adding in platform and chipset detection
+    name: "LibCrypto",
+    pkgConfig: "libcrypto",
+    providers: [
+        .apt(["openssl libssl-dev"]),
+        .yum(["openssl openssl-devel"])
+    ]
+))
+// add pq-crypto back after adding in platform and chipset detection
 let s2nExcludes = ["bin", "codebuild", "coverage", "docker-images",
                    "docs", "lib", "pq-crypto/kyber_r3",
                    "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
@@ -37,17 +37,17 @@ let s2nExcludes = ["bin", "codebuild", "coverage", "docker-images",
                    "scripts/", "codebuild", "bindings/rust", "VERSIONING.rst", "tests",
                    "cmake/s2n-config.cmake", "CMakeLists.txt", "README.md", "cmake", "NOTICE", "LICENSE"]
 packageTargets.append(.target(
-            name: "S2N",
-            dependencies: ["LibCrypto"],
-            path: "aws-common-runtime/s2n",
-            exclude: s2nExcludes,
-            publicHeadersPath: "api",
-            cSettings: [
-                .headerSearchPath("./"),
-                .define("POSIX_C_SOURCE=200809L"),
-                .define("S2N_NO_PQ")
-            ]
-        ))
+    name: "S2N",
+    dependencies: ["LibCrypto"],
+    path: "aws-common-runtime/s2n",
+    exclude: s2nExcludes,
+    publicHeadersPath: "api",
+    cSettings: [
+        .headerSearchPath("./"),
+        .define("POSIX_C_SOURCE=200809L"),
+        .define("S2N_NO_PQ")
+    ]
+))
 ioDependencies.append("S2N")
 calDependencies.append("LibCrypto")
 #endif
@@ -95,7 +95,11 @@ awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
 #endif
 
-var awsCCalPlatformExcludes = ["bin", "include/aws/cal/private", "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"] + excludesFromAll
+var awsCCalPlatformExcludes = [
+    "bin",
+    "include/aws/cal/private",
+    "CODE_OF_CONDUCT.md",
+    "sanitizer-blacklist.txt"] + excludesFromAll
 
 #if os(macOS)
 awsCCalPlatformExcludes.append("source/windows")
@@ -113,13 +117,19 @@ let awsCSdkUtilsPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 var awsCCompressionPlatformExcludes = ["source/huffman_generator/", "CODE_OF_CONDUCT.md",
                                        "codebuild"] + excludesFromAll
 
-var awsCHttpPlatformExcludes = ["bin", "integration-testing", "include/aws/http/private",
-                                "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt", "codebuild/linux-integration-tests.yml"] + excludesFromAll
+var awsCHttpPlatformExcludes = [
+    "bin",
+    "integration-testing",
+    "include/aws/http/private",
+    "CODE_OF_CONDUCT.md",
+    "sanitizer-blacklist.txt",
+    "codebuild/linux-integration-tests.yml"] + excludesFromAll
+
 let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
 let cSettings: [CSetting] = [
-//    .unsafeFlags(cFlags),
+    //    .unsafeFlags(cFlags),
     .define("DEBUG_BUILD", .when(configuration: .debug))
 ]
 
@@ -195,8 +205,8 @@ packageTargets.append(contentsOf: [
                         .product(name: "Collections", package: "swift-collections")],
         path: "Source/AwsCommonRuntimeKit",
         swiftSettings: [
-//            .unsafeFlags(["-g"]),
-//            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+            //            .unsafeFlags(["-g"]),
+            //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     ),
     .testTarget(
@@ -207,8 +217,8 @@ packageTargets.append(contentsOf: [
             .copy("Resources")
         ],
         swiftSettings: [
-//            .unsafeFlags(["-g"]),
-//            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+            //            .unsafeFlags(["-g"]),
+            //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     ),
     .executableTarget(
@@ -216,8 +226,8 @@ packageTargets.append(contentsOf: [
         dependencies: ["AwsCommonRuntimeKit"],
         path: "Source/Elasticurl",
         swiftSettings: [
-//            .unsafeFlags(["-g"]),
-//            .unsafeFlags(["-Onone"], .when(configuration: .debug))
+            //            .unsafeFlags(["-g"]),
+            //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     )
 ] )

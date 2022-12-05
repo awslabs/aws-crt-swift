@@ -4,7 +4,7 @@
 import AwsCSdkUtils
 import struct Foundation.Data
 
-//TODO: rename
+// TODO: rename
 public class CRTAWSProfileCollection {
     var rawValue: OpaquePointer
 
@@ -20,8 +20,8 @@ public class CRTAWSProfileCollection {
         }
         let awsString = AWSString(finalizedPath, allocator: allocator)
         guard let profilePointer = aws_profile_collection_new_from_file(allocator.rawValue,
-                awsString.rawValue,
-                source.rawValue)
+                                                                        awsString.rawValue,
+                                                                        source.rawValue)
         else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
@@ -36,8 +36,8 @@ public class CRTAWSProfileCollection {
         guard let rawValue  = (data.withUnsafeBytes { rawBufferPointer in
             var byteBuf = aws_byte_buf_from_array(rawBufferPointer.baseAddress, byteCount)
             return aws_profile_collection_new_from_buffer(allocator.rawValue,
-                    &byteBuf,
-                    source.rawValue)
+                                                          &byteBuf,
+                                                          source.rawValue)
 
         }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -52,8 +52,8 @@ public class CRTAWSProfileCollection {
                 credentialProfileCollection: CRTAWSProfileCollection,
                 allocator: Allocator = defaultAllocator) throws {
         guard let rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
-                configProfileCollection.rawValue,
-                credentialProfileCollection.rawValue)
+                                                                   configProfileCollection.rawValue,
+                                                                   credentialProfileCollection.rawValue)
         else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
@@ -64,7 +64,7 @@ public class CRTAWSProfileCollection {
     public func getProfile(name: String, allocator: Allocator = defaultAllocator) -> CRTAWSProfile? {
         let awsString = AWSString(name, allocator: allocator)
         guard let profilePointer = aws_profile_collection_get_profile(self.rawValue,
-                awsString.rawValue)
+                                                                      awsString.rawValue)
         else {
             return nil
         }

@@ -14,7 +14,12 @@ public class HostResolver {
                                    maxTTL: Int = 30,
                                    allocator: Allocator = defaultAllocator,
                                    shutdownCallback: ShutdownCallback? = nil) throws -> HostResolver {
-        try HostResolver(eventLoopGroup: eventLoopGroup, maxHosts: maxHosts, maxTTL: maxTTL, allocator: allocator, shutdownCallback: shutdownCallback)
+        try HostResolver(
+            eventLoopGroup: eventLoopGroup,
+            maxHosts: maxHosts,
+            maxTTL: maxTTL,
+            allocator: allocator,
+            shutdownCallback: shutdownCallback)
     }
 
     init(eventLoopGroup: EventLoopGroup,
@@ -48,10 +53,10 @@ public class HostResolver {
             let hostStr = AWSString(host, allocator: allocator)
             withUnsafePointer(to: getHostResolutionConfig()) { hostResolutionConfigPointer in
                 if aws_host_resolver_resolve_host(rawValue,
-                        hostStr.rawValue,
-                        onHostResolved,
-                        hostResolutionConfigPointer,
-                        continuationCore.passRetained()) != AWS_OP_SUCCESS {
+                                                  hostStr.rawValue,
+                                                  onHostResolved,
+                                                  hostResolutionConfigPointer,
+                                                  continuationCore.passRetained()) != AWS_OP_SUCCESS {
                     // TODO: this is wrong. Sometimes it triggers the error callback and sometimes it doesn't.
                     // I have a fix in progress in aws-c-io
                     continuationCore.release()

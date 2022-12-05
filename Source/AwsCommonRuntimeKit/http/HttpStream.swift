@@ -10,9 +10,13 @@ public class HttpStream {
     private let httpConnection: HttpClientConnection
 
     // Called by HttpClientConnection
-    init(httpConnection: HttpClientConnection, options: aws_http_make_request_options, callbackData: HttpStreamCallbackCore) throws {
+    init(
+        httpConnection: HttpClientConnection,
+        options: aws_http_make_request_options,
+        callbackData: HttpStreamCallbackCore) throws {
         self.callbackData = callbackData
-        guard let rawValue = withUnsafePointer(to: options, { aws_http_connection_make_request(httpConnection.rawValue, $0) }) else {
+        guard let rawValue = withUnsafePointer(
+                to: options, { aws_http_connection_make_request(httpConnection.rawValue, $0) }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue
@@ -39,8 +43,8 @@ public class HttpStream {
         return Int(status)
     }
 
-    /// Activates the client stream.
     // TODO: make it thread safe
+    /// Activates the client stream.
     public func activate() throws {
         callbackData.stream = self
         if aws_http_stream_activate(rawValue) != AWS_OP_SUCCESS {
