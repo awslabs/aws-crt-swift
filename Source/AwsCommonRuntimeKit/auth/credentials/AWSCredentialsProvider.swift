@@ -7,7 +7,7 @@ import AwsCHttp
 import Foundation
 
 public protocol AWSCredentialsProviding: AnyObject {
-    func getCredentials() async throws -> AWSCredentials
+    func getAWSCredentials() async throws -> AWSCredentials
 }
 
 /// A container class to wrap AWSCredentialsProviding for aws_credentials_provider_delegate
@@ -44,7 +44,7 @@ public class AWSCredentialsProvider: AWSCredentialsProviding {
     ///
     /// - Returns: `Result<CRTCredentials, CRTError>`
     /// - Throws: CommonRuntimeError.crtError
-    public func getCredentials() async throws -> AWSCredentials {
+    public func getAWSCredentials() async throws -> AWSCredentials {
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AWSCredentials, Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
             if aws_credentials_provider_get_credentials(rawValue,
@@ -526,7 +526,7 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
         .awsCredentialsProviding
     Task {
         do {
-            let credentials = try await delegate.getCredentials()
+            let credentials = try await delegate.getAWSCredentials()
             callbackFn(credentials.rawValue, AWS_OP_SUCCESS, userData)
         } catch CommonRunTimeError.crtError(let crtError) {
             callbackFn(nil, crtError.code, userData)

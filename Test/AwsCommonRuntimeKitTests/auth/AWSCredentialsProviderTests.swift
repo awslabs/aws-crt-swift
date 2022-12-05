@@ -62,7 +62,7 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
             let delegateProvider = try AWSCredentialsProvider(provider: staticProvider,
                     shutdownCallback: getShutdownCallback(),
                     allocator: allocator)
-            let credentials = try await delegateProvider.getCredentials()
+            let credentials = try await delegateProvider.getAWSCredentials()
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
         }
@@ -76,7 +76,7 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
                     sessionToken: sessionToken,
                     shutdownCallback: getShutdownCallback()),
                     allocator: allocator)
-            let credentials = try await provider.getCredentials()
+            let credentials = try await provider.getAWSCredentials()
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
         }
@@ -87,7 +87,7 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
         let exceptionWasThrown = XCTestExpectation(description: "Exception was thrown because of missing credentials in environment")
         do {
             let provider = try AWSCredentialsProvider(source: .environment())
-            _ = try await provider.getCredentials()
+            _ = try await provider.getAWSCredentials()
         } catch {
             exceptionWasThrown.fulfill()
         }
@@ -104,7 +104,7 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
             unsetenv("AWS_SESSION_TOKEN")
         }
         let provider = try AWSCredentialsProvider(source: .environment())
-        let credentials = try await provider.getCredentials()
+        let credentials = try await provider.getAWSCredentials()
         assertCredentials(credentials: credentials)
 
     }
@@ -116,7 +116,7 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
                     credentialsFileNameOverride: Bundle.module.path(forResource: "example_profile", ofType: "txt")!,
                     shutdownCallback: getShutdownCallback()),
                     allocator: allocator)
-            let credentials = try await provider.getCredentials()
+            let credentials = try await provider.getAWSCredentials()
             XCTAssertNotNil(credentials)
             XCTAssertEqual("default_access_key_id", credentials.getAccessKey())
             XCTAssertEqual("default_secret_access_key", credentials.getSecret())
@@ -142,7 +142,7 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
             let cacheProvider = try AWSCredentialsProvider(source: .cached(source: staticProvider,
                     shutdownCallback: getShutdownCallback()),
                     allocator: allocator)
-            let credentials = try await cacheProvider.getCredentials()
+            let credentials = try await cacheProvider.getAWSCredentials()
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
         }
@@ -156,7 +156,7 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
                     shutdownCallback: getShutdownCallback()),
                     allocator: allocator)
 
-            let credentials = try await provider.getCredentials()
+            let credentials = try await provider.getAWSCredentials()
             XCTAssertNotNil(credentials)
         }
         wait(for: [shutdownWasCalled], timeout: 15)
@@ -192,7 +192,7 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
                     host: "",
                     shutdownCallback: getShutdownCallback()),
                     allocator: allocator)
-            _ = try await provider.getCredentials()
+            _ = try await provider.getAWSCredentials()
         } catch {
             exceptionWasThrown.fulfill()
         }
