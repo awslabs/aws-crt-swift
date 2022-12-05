@@ -17,18 +17,12 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - name: GitHub Action for SwiftLint
-        uses: norio-nomura/action-swiftlint@3.1.0
-      - name: GitHub Action for SwiftLint with --strict
-        uses: norio-nomura/action-swiftlint@3.1.0
-        with:
-          args: --strict
-      - name: GitHub Action for SwiftLint (Only files changed in the PR)
-        uses: norio-nomura/action-swiftlint@3.1.0
-        env:
-          DIFF_BASE: ${{ github.base_ref }}
+        uses: norio-nomura/action-swiftlint@3.2.1
+
   linux:
+
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -36,8 +30,8 @@ jobs:
         image:
           - ubuntu-x64
           - al2-x64
-         # issue to fix centos opened against apple here: https://github.com/apple/swift-docker/issues/258
-         # - centos-x64
+          # issue to fix centos opened against apple here: https://github.com/apple/swift-docker/issues/258
+          # - centos-x64
     steps:
       - name: Build ${{ env.PACKAGE_NAME }}
         run: |

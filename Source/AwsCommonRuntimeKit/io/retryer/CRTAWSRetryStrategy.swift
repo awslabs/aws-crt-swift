@@ -4,7 +4,7 @@
 import AwsCIo
 import Foundation
 
-//TODO: rename class to RetryStrategy or CRTRetryStrategy. We have inconsistent CRT/AWS as a prefix of some classes.
+// TODO: rename class to RetryStrategy or CRTRetryStrategy. We have inconsistent CRT/AWS as a prefix of some classes.
 // I am not renaming it for now because it messes up the git change log. Will create a separate PR for just renaming.
 public class CRTAWSRetryStrategy {
     let rawValue: UnsafeMutablePointer<aws_retry_strategy>
@@ -57,14 +57,15 @@ public class CRTAWSRetryStrategy {
     ///                  Pass NULL to use the global partition.
     /// - Returns: `CRTAWSRetryStrategy`
     public func acquireToken(partitionId: String?) async throws -> CRTAWSRetryToken {
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<CRTAWSRetryToken, Error>) in
+        return try await withCheckedThrowingContinuation { continuation in
+
             let continuationCore = ContinuationCore(continuation: continuation)
             if withOptionalByteCursorPointerFromString(partitionId, { partitionIdCursorPointer in
                 aws_retry_strategy_acquire_retry_token(rawValue,
-                        partitionIdCursorPointer,
-                        onRetryTokenAcquired,
-                        continuationCore.passRetained(),
-                        0)
+                                                       partitionIdCursorPointer,
+                                                       onRetryTokenAcquired,
+                                                       continuationCore.passRetained(),
+                                                       0)
             }) != AWS_OP_SUCCESS {
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
@@ -76,9 +77,9 @@ public class CRTAWSRetryStrategy {
         try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
             if aws_retry_strategy_schedule_retry(token.rawValue,
-                    errorType.rawValue,
-                    onRetryReady,
-                    continuationCore.passRetained()) != AWS_OP_SUCCESS {
+                                                 errorType.rawValue,
+                                                 onRetryReady,
+                                                 continuationCore.passRetained()) != AWS_OP_SUCCESS {
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
             }

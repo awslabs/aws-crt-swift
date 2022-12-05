@@ -28,7 +28,7 @@ class AWSCredentialsProvidingCore {
     }
 }
 
-//TODO: Rename file name
+// TODO: Rename file name
 public class AwsCredentialsProvider: AWSCredentialsProviding {
 
     let allocator: Allocator
@@ -49,8 +49,8 @@ public class AwsCredentialsProvider: AWSCredentialsProviding {
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AwsCredentials, Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
             if aws_credentials_provider_get_credentials(rawValue,
-                    onGetCredentials,
-                    continuationCore.passRetained()) != AWS_OP_SUCCESS {
+                                                        onGetCredentials,
+                                                        continuationCore.passRetained()) != AWS_OP_SUCCESS {
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
             }
@@ -91,8 +91,8 @@ extension AwsCredentialsProvider {
         })
         let shutdownOptions = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
         var options = aws_credentials_provider_delegate_options(shutdown_options: shutdownOptions,
-                get_credentials: getCredentialsDelegateFn,
-                delegate_user_data: providerCore.passRetained())
+                                                                get_credentials: getCredentialsDelegateFn,
+                                                                delegate_user_data: providerCore.passRetained())
 
         guard let provider = aws_credentials_provider_new_delegate(allocator.rawValue, &options) else {
             shutdownCallbackCore.release()
@@ -127,11 +127,11 @@ extension AwsCredentialsProvider.Source {
                     accessKey,
                     secret,
                     sessionToken, { accessKeyCursor, secretCursor, sessionTokenCursor in
-                staticOptions.access_key_id = accessKeyCursor
-                staticOptions.secret_access_key = secretCursor
-                staticOptions.session_token = sessionTokenCursor
-                return aws_credentials_provider_new_static(allocator.rawValue, &staticOptions)
-            })
+                        staticOptions.access_key_id = accessKeyCursor
+                        staticOptions.secret_access_key = secretCursor
+                        staticOptions.session_token = sessionTokenCursor
+                        return aws_credentials_provider_new_static(allocator.rawValue, &staticOptions)
+                    })
             else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
@@ -158,7 +158,7 @@ extension AwsCredentialsProvider.Source {
             var envOptions = aws_credentials_provider_environment_options()
             envOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
             guard let provider = aws_credentials_provider_new_environment(allocator.rawValue,
-                    &envOptions)
+                                                                          &envOptions)
             else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
@@ -190,13 +190,12 @@ extension AwsCredentialsProvider.Source {
             guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                     configFileNameOverride,
                     credentialsFileNameOverride,
-                    profileFileNameOverride, {
-                configFileNameOverrideCursor, credentialsFileNameOverrideCursor, profileFileNameOverrideCursor in
-                profileOptionsC.config_file_name_override = configFileNameOverrideCursor
-                profileOptionsC.credentials_file_name_override = credentialsFileNameOverrideCursor
-                profileOptionsC.profile_name_override = profileFileNameOverrideCursor
-                return aws_credentials_provider_new_profile(allocator.rawValue, &profileOptionsC)
-            })
+                    profileFileNameOverride, { configCursor, credentialsCursor, profileCursor in
+                        profileOptionsC.config_file_name_override = configCursor
+                        profileOptionsC.credentials_file_name_override = credentialsCursor
+                        profileOptionsC.profile_name_override = profileCursor
+                        return aws_credentials_provider_new_profile(allocator.rawValue, &profileOptionsC)
+                    })
             else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
@@ -225,7 +224,7 @@ extension AwsCredentialsProvider.Source {
             imdsOptions.imds_version = imdsVersion.rawValue
             imdsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
             guard let provider = aws_credentials_provider_new_imds(allocator.rawValue,
-                    &imdsOptions)
+                                                                   &imdsOptions)
             else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
@@ -291,7 +290,7 @@ extension AwsCredentialsProvider.Source {
             chainDefaultOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
             guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue,
-                    &chainDefaultOptions)
+                                                                            &chainDefaultOptions)
             else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
@@ -333,20 +332,21 @@ extension AwsCredentialsProvider.Source {
             x509Options.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
             guard let provider: UnsafeMutablePointer<aws_credentials_provider> = (withByteCursorFromStrings(
-                    thingName,
-                    roleAlias,
-                    endpoint) { thingNameCursor, roleAliasCursor, endPointCursor in
+                thingName,
+                roleAlias,
+                endpoint) { thingNameCursor, roleAliasCursor, endPointCursor in
+
                 x509Options.thing_name = thingNameCursor
                 x509Options.role_alias = roleAliasCursor
                 x509Options.endpoint = endPointCursor
-                return withOptionalCStructPointer(proxyOptions,
-                        tlsConnectionOptions) { proxyOptionsPointer,
-                                                tlsConnectionOptionsPointer in
+                return withOptionalCStructPointer(
+                    proxyOptions,
+                    tlsConnectionOptions) { proxyOptionsPointer, tlsConnectionOptionsPointer in
+
                     x509Options.proxy_options = proxyOptionsPointer
                     x509Options.tls_connection_options = tlsConnectionOptionsPointer
                     return aws_credentials_provider_new_x509(allocator.rawValue, &x509Options)
-                }
-            })
+                }})
             else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
@@ -393,7 +393,7 @@ extension AwsCredentialsProvider.Source {
             stsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
             guard let provider = aws_credentials_provider_new_sts_web_identity(allocator.rawValue,
-                    &stsOptions)
+                                                                               &stsOptions)
             else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
@@ -434,10 +434,10 @@ extension AwsCredentialsProvider.Source {
             guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                     roleArn,
                     sessionName, { roleArnCursor, sessionNameCursor in
-                stsOptions.role_arn = roleArnCursor
-                stsOptions.session_name = sessionNameCursor
-                return aws_credentials_provider_new_sts(allocator.rawValue, &stsOptions)
-            })
+                        stsOptions.role_arn = roleArnCursor
+                        stsOptions.session_name = sessionNameCursor
+                        return aws_credentials_provider_new_sts(allocator.rawValue, &stsOptions)
+                    })
             else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
@@ -483,9 +483,10 @@ extension AwsCredentialsProvider.Source {
             ecsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
             guard let provider: UnsafeMutablePointer<aws_credentials_provider> = (withByteCursorFromStrings(
-                    host,
-                    authToken,
-                    pathAndQuery) { hostCursor, authTokenCursor, pathAndQueryCursor in
+                host,
+                authToken,
+                pathAndQuery) { hostCursor, authTokenCursor, pathAndQueryCursor in
+
                 ecsOptions.host = hostCursor
                 ecsOptions.auth_token = authTokenCursor
                 ecsOptions.path_and_query = pathAndQueryCursor
@@ -505,22 +506,25 @@ private func onGetCredentials(credentials: OpaquePointer?,
                               userData: UnsafeMutableRawPointer!) {
 
     let continuationCore = Unmanaged<ContinuationCore<AwsCredentials>>.fromOpaque(userData).takeRetainedValue()
-
     if errorCode != AWS_OP_SUCCESS {
         continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
-    //Success
+    // Success
     continuationCore.continuation.resume(returning: AwsCredentials(rawValue: credentials!))
 }
 
 private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
-                                      _ callbackFn: (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)!,
+                                      _ callbackFn: (@convention(c) (
+                                                        OpaquePointer?,
+                                                        Int32,
+                                                        UnsafeMutableRawPointer?) -> Void)!,
                                       _ userData: UnsafeMutableRawPointer!) -> Int32 {
-    let delegate = Unmanaged<AWSCredentialsProvidingCore>.fromOpaque(delegatePtr)
-            .takeUnretainedValue()
-            .awsCredentialsProviding
+    let delegate = Unmanaged<AWSCredentialsProvidingCore>
+        .fromOpaque(delegatePtr)
+        .takeUnretainedValue()
+        .awsCredentialsProviding
     Task {
         do {
             let credentials = try await delegate.getCredentials()
@@ -531,6 +535,5 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
             callbackFn(nil, Int32(AWS_AUTH_CREDENTIALS_PROVIDER_DELEGATE_FAILURE.rawValue), userData)
         }
     }
-
     return AWS_OP_SUCCESS
 }
