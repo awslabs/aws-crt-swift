@@ -108,7 +108,7 @@ extension FileHandle: IStreamable {
             return nil
         }
 
-        if data.count > 0 {
+        if !data.isEmpty {
             data.copyBytes(to: buffer, from: 0..<data.count)
         }
         return data.count

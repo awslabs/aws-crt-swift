@@ -33,8 +33,7 @@ public struct HttpProxyOptions: CStruct {
 
         return withByteCursorFromStrings(basicAuthUsername,
                                          basicAuthPassword,
-                                         hostName) {
-            userNamePointer, passwordPointer, hostPointer in
+                                         hostName) { userNamePointer, passwordPointer, hostPointer in
             cProxyOptions.host = hostPointer
             cProxyOptions.auth_username = userNamePointer
             cProxyOptions.auth_password = passwordPointer
