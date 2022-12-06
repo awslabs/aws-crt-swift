@@ -2,11 +2,11 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 /// Struct that represents endpoint property which can be a boolean, string or array of endpoint properties
-enum AWSEndpointProperty {
+enum EndpointProperty {
     case bool(Bool)
     case string(String)
-    indirect case array([AWSEndpointProperty])
-    indirect case dictionary([String: AWSEndpointProperty])
+    indirect case array([EndpointProperty])
+    indirect case dictionary([String: EndpointProperty])
 
     func toAnyHashable() -> AnyHashable {
         switch self {
@@ -23,33 +23,33 @@ enum AWSEndpointProperty {
 }
 
 /// Decodable conformance
-extension AWSEndpointProperty: Decodable {
+extension EndpointProperty: Decodable {
     init(from decoder: Decoder) throws {
-        if let container = try? decoder.container(keyedBy: AWSEndpointPropertyCodingKeys.self) {
-            self = AWSEndpointProperty(from: container)
+        if let container = try? decoder.container(keyedBy: EndpointPropertyCodingKeys.self) {
+            self = EndpointProperty(from: container)
         } else if let container = try? decoder.unkeyedContainer() {
-            self = AWSEndpointProperty(from: container)
+            self = EndpointProperty(from: container)
         } else if let container = try? decoder.singleValueContainer() {
-            self = AWSEndpointProperty(from: container)
+            self = EndpointProperty(from: container)
         } else {
             throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: [], debugDescription: ""))
         }
     }
 
-    init(from container: KeyedDecodingContainer<AWSEndpointPropertyCodingKeys>) {
-        var dict: [String: AWSEndpointProperty] = [:]
+    init(from container: KeyedDecodingContainer<EndpointPropertyCodingKeys>) {
+        var dict: [String: EndpointProperty] = [:]
         for key in container.allKeys {
             if let value = try? container.decode(Bool.self, forKey: key) {
                 dict[key.stringValue] = .bool(value)
             } else if let value = try? container.decode(String.self, forKey: key) {
                 dict[key.stringValue] = .string(value)
             } else if let value = try? container.nestedContainer(
-                keyedBy: AWSEndpointPropertyCodingKeys.self,
+                keyedBy: EndpointPropertyCodingKeys.self,
                 forKey: key
             ) {
-                dict[key.stringValue] = AWSEndpointProperty(from: value)
+                dict[key.stringValue] = EndpointProperty(from: value)
             } else if let value = try? container.nestedUnkeyedContainer(forKey: key) {
-                dict[key.stringValue] = AWSEndpointProperty(from: value)
+                dict[key.stringValue] = EndpointProperty(from: value)
             }
         }
         self = .dictionary(dict)
@@ -57,16 +57,16 @@ extension AWSEndpointProperty: Decodable {
 
     init(from container: UnkeyedDecodingContainer) {
         var container = container
-        var arr: [AWSEndpointProperty] = []
+        var arr: [EndpointProperty] = []
         while !container.isAtEnd {
             if let value = try? container.decode(Bool.self) {
                 arr.append(.bool(value))
             } else if let value = try? container.decode(String.self) {
                 arr.append(.string(value))
-            } else if let value = try? container.nestedContainer(keyedBy: AWSEndpointPropertyCodingKeys.self) {
-                arr.append(AWSEndpointProperty(from: value))
+            } else if let value = try? container.nestedContainer(keyedBy: EndpointPropertyCodingKeys.self) {
+                arr.append(EndpointProperty(from: value))
             } else if let value = try? container.nestedUnkeyedContainer() {
-                arr.append(AWSEndpointProperty(from: value))
+                arr.append(EndpointProperty(from: value))
             }
         }
         self = .array(arr)
@@ -84,7 +84,7 @@ extension AWSEndpointProperty: Decodable {
     }
 }
 
-extension Dictionary where Key == String, Value == AWSEndpointProperty {
+extension Dictionary where Key == String, Value == EndpointProperty {
     /// Converts EndpointProperty to a dictionary of `String`: `AnyHashable`
     /// - Returns: Dictionary of `String`: `AnyHashable`
     func toStringHashableDictionary() -> [String: AnyHashable] {
@@ -97,7 +97,7 @@ extension Dictionary where Key == String, Value == AWSEndpointProperty {
 }
 
 /// Coding keys for `EndpointProperty`
-struct AWSEndpointPropertyCodingKeys: CodingKey {
+struct EndpointPropertyCodingKeys: CodingKey {
     var stringValue: String
 
     init(stringValue: String) {

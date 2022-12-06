@@ -6,21 +6,21 @@ import AwsCIo
 import AwsCHttp
 import Foundation
 
-public protocol AWSCredentialsProviding: AnyObject {
-    func getAWSCredentials() async throws -> AWSCredentials
+public protocol CredentialsProviding: AnyObject {
+    func getCredentials() async throws -> Credentials
 }
 
 /// A container class to wrap AWSCredentialsProviding for aws_credentials_provider_delegate
 /// so that we use it with Unmanaged
-class AWSCredentialsProvidingCore {
-    let awsCredentialsProviding: AWSCredentialsProviding
+class CredentialsProvidingCore {
+    let awsCredentialsProviding: CredentialsProviding
 
-    init(_ credentialsProvider: AWSCredentialsProviding) {
+    init(_ credentialsProvider: CredentialsProviding) {
         self.awsCredentialsProviding = credentialsProvider
     }
 
     func passRetained() -> UnsafeMutableRawPointer {
-        return Unmanaged<AWSCredentialsProvidingCore>.passRetained(self).toOpaque()
+        return Unmanaged<CredentialsProvidingCore>.passRetained(self).toOpaque()
     }
 
     func release() {
@@ -28,7 +28,7 @@ class AWSCredentialsProvidingCore {
     }
 }
 
-public class AWSCredentialsProvider: AWSCredentialsProviding {
+public class CredentialsProvider: CredentialsProviding {
 
     let allocator: Allocator
     let rawValue: UnsafeMutablePointer<aws_credentials_provider>
@@ -44,8 +44,8 @@ public class AWSCredentialsProvider: AWSCredentialsProviding {
     ///
     /// - Returns: `Result<CRTCredentials, CRTError>`
     /// - Throws: CommonRuntimeError.crtError
-    public func getAWSCredentials() async throws -> AWSCredentials {
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<AWSCredentials, Error>) in
+    public func getCredentials() async throws -> Credentials {
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Credentials, Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
             if aws_credentials_provider_get_credentials(rawValue,
                                                         onGetCredentials,
@@ -61,7 +61,7 @@ public class AWSCredentialsProvider: AWSCredentialsProviding {
     }
 }
 
-extension AWSCredentialsProvider {
+extension CredentialsProvider {
     /// A credential source
     public struct Source {
         let makeProvider: (Allocator) throws -> UnsafeMutablePointer<aws_credentials_provider>
@@ -80,10 +80,10 @@ extension AWSCredentialsProvider {
     ///   - shutdownCallback:  (Optional) shutdown callback
     ///   - allocator: (Optional) allocator to override.
     /// - Throws: CommonRuntimeError.crtError
-    public convenience init(provider: AWSCredentialsProviding,
+    public convenience init(provider: CredentialsProviding,
                             shutdownCallback: ShutdownCallback? = nil,
                             allocator: Allocator = defaultAllocator) throws {
-        let providerCore = AWSCredentialsProvidingCore(provider)
+        let providerCore = CredentialsProvidingCore(provider)
         let shutdownCallbackCore = ShutdownCallbackCore({
             providerCore.release()
             shutdownCallback?()
@@ -102,7 +102,7 @@ extension AWSCredentialsProvider {
     }
 }
 
-extension AWSCredentialsProvider.Source {
+extension CredentialsProvider.Source {
 
     /// Creates a credentials provider containing a fixed set of credentials.
     ///
@@ -244,7 +244,7 @@ extension AWSCredentialsProvider.Source {
     ///   - allocator: (Optional) allocator to override.
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
-    public static func `cached`(source: AWSCredentialsProvider,
+    public static func `cached`(source: CredentialsProvider,
                                 refreshTime: TimeInterval = 0,
                                 shutdownCallback: ShutdownCallback? = nil,
                                 allocator: Allocator = defaultAllocator) -> Self {
@@ -417,7 +417,7 @@ extension AWSCredentialsProvider.Source {
     /// - Throws: CommonRuntimeError.crtError
     public static func `sts`(bootstrap: ClientBootstrap,
                              tlsContext: TLSContext,
-                             credentialsProvider: AWSCredentialsProvider,
+                             credentialsProvider: CredentialsProvider,
                              roleArn: String,
                              sessionName: String,
                              duration: TimeInterval,
@@ -505,14 +505,14 @@ private func onGetCredentials(credentials: OpaquePointer?,
                               errorCode: Int32,
                               userData: UnsafeMutableRawPointer!) {
 
-    let continuationCore = Unmanaged<ContinuationCore<AWSCredentials>>.fromOpaque(userData).takeRetainedValue()
+    let continuationCore = Unmanaged<ContinuationCore<Credentials>>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
     // Success
-    continuationCore.continuation.resume(returning: AWSCredentials(rawValue: credentials!))
+    continuationCore.continuation.resume(returning: Credentials(rawValue: credentials!))
 }
 
 private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
@@ -521,13 +521,13 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
                                                         Int32,
                                                         UnsafeMutableRawPointer?) -> Void)!,
                                       _ userData: UnsafeMutableRawPointer!) -> Int32 {
-    let delegate = Unmanaged<AWSCredentialsProvidingCore>
+    let delegate = Unmanaged<CredentialsProvidingCore>
         .fromOpaque(delegatePtr)
         .takeUnretainedValue()
         .awsCredentialsProviding
     Task {
         do {
-            let credentials = try await delegate.getAWSCredentials()
+            let credentials = try await delegate.getCredentials()
             callbackFn(credentials.rawValue, AWS_OP_SUCCESS, userData)
         } catch CommonRunTimeError.crtError(let crtError) {
             callbackFn(nil, crtError.code, userData)

@@ -5,10 +5,10 @@ import XCTest
 import Foundation
 @testable import AwsCommonRuntimeKit
 
-class AWSProfileCollectionTests: XCBaseTestCase {
+class ProfileCollectionTests: XCBaseTestCase {
     func testGetPropertyFromBufferConfig() throws {
         let fakeConfig = "[default]\r\nregion=us-west-2".data(using: .utf8)!
-        let profileCollection = try AWSProfileCollection(fromData: fakeConfig, source: .config, allocator: allocator)
+        let profileCollection = try ProfileCollection(fromData: fakeConfig, source: .config, allocator: allocator)
         let profile = profileCollection.getProfile(name: "default", allocator: allocator)
         let property = profile?.getProperty(name: "region", allocator: allocator)
         XCTAssertEqual("us-west-2", property?.value)
@@ -16,7 +16,7 @@ class AWSProfileCollectionTests: XCBaseTestCase {
 
     func testGetPropertyFromBufferCreds() throws {
         let fakeCreds = "[default]\r\naws_access_key_id=AccessKey\r\naws_secret_access_key=Sekrit".data(using: .utf8)!
-        let profileCollection = try AWSProfileCollection(fromData: fakeCreds, source: .credentials, allocator: allocator)
+        let profileCollection = try ProfileCollection(fromData: fakeCreds, source: .credentials, allocator: allocator)
         let profile = profileCollection.getProfile(name: "default", allocator: allocator)!
         let property = profile.getProperty(name: "aws_access_key_id", allocator: allocator)!
         XCTAssertEqual("AccessKey", property.value)
@@ -24,12 +24,12 @@ class AWSProfileCollectionTests: XCBaseTestCase {
 
     func testGetProfileCollectionFromMerge() throws {
         let fakeConfig = "[default]\r\nregion=us-west-2".data(using: .utf8)!
-        let profileCollectionConfig = try AWSProfileCollection(fromData: fakeConfig, source: .config)
+        let profileCollectionConfig = try ProfileCollection(fromData: fakeConfig, source: .config)
 
         let fakeCreds = "[default]\r\naws_access_key_id=AccessKey\r\naws_secret_access_key=Sekrit".data(using: .utf8)!
-        let profileCollectionCreds = try AWSProfileCollection(fromData: fakeCreds, source: .credentials, allocator: allocator)
+        let profileCollectionCreds = try ProfileCollection(fromData: fakeCreds, source: .credentials, allocator: allocator)
 
-        let mergedCollection = try AWSProfileCollection(configProfileCollection: profileCollectionConfig, credentialProfileCollection: profileCollectionCreds)
+        let mergedCollection = try ProfileCollection(configProfileCollection: profileCollectionConfig, credentialProfileCollection: profileCollectionCreds)
         let profile = mergedCollection.getProfile(name: "default", allocator: allocator)!
 
         let accessKey = profile.getProperty(name: "aws_access_key_id")!
@@ -39,7 +39,7 @@ class AWSProfileCollectionTests: XCBaseTestCase {
     }
 
     func testGetPropertyFromConfigFile() throws {
-        let profileCollection = try AWSProfileCollection(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .credentials, allocator: allocator)
+        let profileCollection = try ProfileCollection(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .credentials, allocator: allocator)
         let profile = profileCollection.getProfile(name: "default", allocator: allocator)!
         let property = profile.getProperty(name: "aws_access_key_id", allocator: allocator)!
         XCTAssertEqual("default_access_key_id", property.value)
@@ -54,10 +54,10 @@ class AWSProfileCollectionTests: XCBaseTestCase {
     }
 
     func testCollectionOutOfScope() throws {
-        var profile: AWSProfile! = nil
-        var crtUserProfile: AWSProfile! = nil
+        var profile: Profile! = nil
+        var crtUserProfile: Profile! = nil
         do{
-            let profileCollection = try AWSProfileCollection(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .credentials, allocator: allocator)
+            let profileCollection = try ProfileCollection(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .credentials, allocator: allocator)
             profile = profileCollection.getProfile(name: "default", allocator: allocator)!
             crtUserProfile = profileCollection.getProfile(name: "crt_user", allocator: allocator)!
         }

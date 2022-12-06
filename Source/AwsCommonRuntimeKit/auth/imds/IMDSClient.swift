@@ -8,7 +8,7 @@ public class IMDSClient {
     let rawValue: OpaquePointer
     let allocator: Allocator
     public init(bootstrap: ClientBootstrap,
-                retryStrategy: AWSRetryStrategy,
+                retryStrategy: RetryStrategy,
                 protocolVersion: IMDSProtocolVersion = IMDSProtocolVersion.version2,
                 shutdownCallback: ShutdownCallback? = nil,
                 allocator: Allocator = defaultAllocator) throws {
@@ -282,7 +282,7 @@ public class IMDSClient {
     ///
     /// - Parameters:
     ///    - iamRoleName: iam role name to get temporary credentials through
-    public func getCredentials(iamRoleName: String) async throws -> AWSCredentials {
+    public func getCredentials(iamRoleName: String) async throws -> Credentials {
         return try await withCheckedThrowingContinuation({ continuation in
             iamRoleName.withByteCursor { iamRoleNameCursor in
                 let continuationCore = ContinuationCore(continuation: continuation)
@@ -366,14 +366,14 @@ private func onGetResourceList(arrayListPointer: UnsafePointer<aws_array_list>?,
 private func onGetCredentials(credentialsPointer: OpaquePointer?,
                               errorCode: Int32,
                               userData: UnsafeMutableRawPointer!) {
-    let imdsClientCore = Unmanaged<ContinuationCore<AWSCredentials>>.fromOpaque(userData).takeRetainedValue()
+    let imdsClientCore = Unmanaged<ContinuationCore<Credentials>>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         imdsClientCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
     // Success
-    imdsClientCore.continuation.resume(returning: AWSCredentials(rawValue: credentialsPointer!))
+    imdsClientCore.continuation.resume(returning: Credentials(rawValue: credentialsPointer!))
 }
 
 private func onGetIAMProfile(profilePointer: UnsafePointer<aws_imds_iam_profile>?,

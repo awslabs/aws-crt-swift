@@ -4,9 +4,7 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-//TODO: rename file
-
-class AWSCredentialsProviderTests: XCBaseTestCase {
+class CredentialsProviderTests: XCBaseTestCase {
     let accessKey = "AccessKey"
     let secret = "Sekrit"
     let sessionToken = "Token"
@@ -27,7 +25,7 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
         }
     }
 
-    func assertCredentials(credentials: AWSCredentials) {
+    func assertCredentials(credentials: Credentials) {
         XCTAssertEqual(accessKey, credentials.getAccessKey())
         XCTAssertEqual(secret, credentials.getSecret())
         XCTAssertEqual(sessionToken, credentials.getSessionToken())
@@ -54,15 +52,15 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
     func testDelegateCredentialsProvider() async throws {
         shutdownWasCalled.expectedFulfillmentCount = 2
         do {
-            let staticProvider = try AWSCredentialsProvider(source: .static(accessKey: accessKey,
+            let staticProvider = try CredentialsProvider(source: .static(accessKey: accessKey,
                     secret: secret,
                     sessionToken: sessionToken,
                     shutdownCallback: getShutdownCallback()),
                     allocator: allocator)
-            let delegateProvider = try AWSCredentialsProvider(provider: staticProvider,
+            let delegateProvider = try CredentialsProvider(provider: staticProvider,
                     shutdownCallback: getShutdownCallback(),
                     allocator: allocator)
-            let credentials = try await delegateProvider.getAWSCredentials()
+            let credentials = try await delegateProvider.getCredentials()
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
         }
@@ -71,12 +69,12 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
 
     func testCreateCredentialsProviderStatic() async throws {
         do {
-            let provider = try AWSCredentialsProvider(source: .static(accessKey: accessKey,
+            let provider = try CredentialsProvider(source: .static(accessKey: accessKey,
                     secret: secret,
                     sessionToken: sessionToken,
                     shutdownCallback: getShutdownCallback()),
                     allocator: allocator)
-            let credentials = try await provider.getAWSCredentials()
+            let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
         }
@@ -86,8 +84,8 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
     func testCredentialsProviderEnvThrow() async {
         let exceptionWasThrown = XCTestExpectation(description: "Exception was thrown because of missing credentials in environment")
         do {
-            let provider = try AWSCredentialsProvider(source: .environment())
-            _ = try await provider.getAWSCredentials()
+            let provider = try CredentialsProvider(source: .environment())
+            _ = try await provider.getCredentials()
         } catch {
             exceptionWasThrown.fulfill()
         }
@@ -103,8 +101,8 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
             unsetenv("AWS_SECRET_ACCESS_KEY")
             unsetenv("AWS_SESSION_TOKEN")
         }
-        let provider = try AWSCredentialsProvider(source: .environment())
-        let credentials = try await provider.getAWSCredentials()
+        let provider = try CredentialsProvider(source: .environment())
+        let credentials = try await provider.getCredentials()
         assertCredentials(credentials: credentials)
 
     }
@@ -112,11 +110,11 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
     func testCreateCredentialsProviderProfile() async throws {
         do {
 
-            let provider = try AWSCredentialsProvider(source: .profile(configFileNameOverride: Bundle.module.path(forResource: "example_config", ofType: "txt")!,
+            let provider = try CredentialsProvider(source: .profile(configFileNameOverride: Bundle.module.path(forResource: "example_config", ofType: "txt")!,
                     credentialsFileNameOverride: Bundle.module.path(forResource: "example_profile", ofType: "txt")!,
                     shutdownCallback: getShutdownCallback()),
                     allocator: allocator)
-            let credentials = try await provider.getAWSCredentials()
+            let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
             XCTAssertEqual("default_access_key_id", credentials.getAccessKey())
             XCTAssertEqual("default_secret_access_key", credentials.getSecret())
@@ -126,7 +124,7 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
 
     func testCreateCredentialsProviderImds() async throws {
         do {
-            _ = try AWSCredentialsProvider(source: .imds(bootstrap: getClientBootstrap(),
+            _ = try CredentialsProvider(source: .imds(bootstrap: getClientBootstrap(),
                     shutdownCallback: getShutdownCallback()),
                     allocator: allocator)
         }
@@ -135,14 +133,14 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
 
     func testCreateCredentialsProviderCache() async throws {
         do {
-            let staticProvider = try AWSCredentialsProvider(source: .static(accessKey: accessKey,
+            let staticProvider = try CredentialsProvider(source: .static(accessKey: accessKey,
                     secret: secret,
                     sessionToken: sessionToken),
                     allocator: allocator)
-            let cacheProvider = try AWSCredentialsProvider(source: .cached(source: staticProvider,
+            let cacheProvider = try CredentialsProvider(source: .cached(source: staticProvider,
                     shutdownCallback: getShutdownCallback()),
                     allocator: allocator)
-            let credentials = try await cacheProvider.getAWSCredentials()
+            let credentials = try await cacheProvider.getCredentials()
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
         }
@@ -152,27 +150,27 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
     func testCreateAWSCredentialsProviderChain() async throws {
         try skipIfLinux()
         do {
-            let provider = try AWSCredentialsProvider(source: .defaultChain(bootstrap: getClientBootstrap(),
+            let provider = try CredentialsProvider(source: .defaultChain(bootstrap: getClientBootstrap(),
                     shutdownCallback: getShutdownCallback()),
                     allocator: allocator)
 
-            let credentials = try await provider.getAWSCredentials()
+            let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
         }
         wait(for: [shutdownWasCalled], timeout: 15)
     }
 
     func testCreateDestroyStsWebIdentityInvalidEnv() async throws {
-        XCTAssertThrowsError(try AWSCredentialsProvider(source: .stsWebIdentity(bootstrap: getClientBootstrap(),
+        XCTAssertThrowsError(try CredentialsProvider(source: .stsWebIdentity(bootstrap: getClientBootstrap(),
                 tlsContext: getTlsContext()),
                 allocator: allocator))
     }
 
     func testCreateDestroyStsInvalidRole() async throws {
-        let provider = try AWSCredentialsProvider(source: .static(accessKey: accessKey,
+        let provider = try CredentialsProvider(source: .static(accessKey: accessKey,
                 secret: secret,
                 sessionToken: sessionToken))
-        XCTAssertThrowsError(try AWSCredentialsProvider(source: .sts(bootstrap: getClientBootstrap(),
+        XCTAssertThrowsError(try CredentialsProvider(source: .sts(bootstrap: getClientBootstrap(),
                 tlsContext: getTlsContext(),
                 credentialsProvider: provider,
                 roleArn: "invalid-role-arn",
@@ -185,14 +183,14 @@ class AWSCredentialsProviderTests: XCBaseTestCase {
     func testCreateDestroyEcsMissingCreds() async throws {
         let exceptionWasThrown = XCTestExpectation(description: "Exception was thrown")
         do {
-            let provider = try AWSCredentialsProvider(source: .ecs(bootstrap: getClientBootstrap(),
+            let provider = try CredentialsProvider(source: .ecs(bootstrap: getClientBootstrap(),
                     tlsContext: getTlsContext(),
                     authToken: "",
                     pathAndQuery: "",
                     host: "",
                     shutdownCallback: getShutdownCallback()),
                     allocator: allocator)
-            _ = try await provider.getAWSCredentials()
+            _ = try await provider.getCredentials()
         } catch {
             exceptionWasThrown.fulfill()
         }

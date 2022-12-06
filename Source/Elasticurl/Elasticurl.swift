@@ -241,7 +241,7 @@ struct Elasticurl {
 
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
 
-            AWSCommonRuntimeKit.initialize(allocator: allocator)
+            CommonRuntimeKit.initialize(allocator: allocator)
 
             let port = UInt16(443)
 

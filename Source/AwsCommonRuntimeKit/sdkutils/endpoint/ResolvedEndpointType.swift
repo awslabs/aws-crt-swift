@@ -4,7 +4,7 @@
 import AwsCSdkUtils
 
 /// Resolved endpoint type
-public enum AWSResolvedEndpoint {
+public enum ResolvedEndpoint {
     /// Used for endpoints that are resolved successfully
     case endpoint(url: String, headers: [String: [String]], properties: [String: AnyHashable])
 

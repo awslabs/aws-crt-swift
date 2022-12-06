@@ -5,7 +5,7 @@ import XCTest
 import Foundation
 @testable import AwsCommonRuntimeKit
 
-class AWSEndpointsRuleEngineTests: XCBaseTestCase {
+class EndpointsRuleEngineTests: XCBaseTestCase {
 
     let partitions = #"""
     {
@@ -215,11 +215,11 @@ class AWSEndpointsRuleEngineTests: XCBaseTestCase {
       """#
 
     func testResolve() throws {
-        let engine = try AWSEndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
-        let context = try AWSEndpointsRequestContext(allocator: allocator)
+        let engine = try EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
+        let context = try EndpointsRequestContext(allocator: allocator)
         try context.add(name: "Region", value: "us-west-2")
         let resolved = try engine.resolve(context: context)
-        guard case AWSResolvedEndpoint.endpoint(url: let url,
+        guard case ResolvedEndpoint.endpoint(url: let url,
                               headers: let headers,
                               properties: let properties) = resolved else {
             XCTFail("Endpoint resolved to an error")
@@ -249,10 +249,10 @@ class AWSEndpointsRuleEngineTests: XCBaseTestCase {
     }
 
     func testResolveError() throws {
-        let engine = try AWSEndpointsRuleEngine(partitions: partitions, ruleSet: errorRuleSet, allocator: allocator)
-        let context = try AWSEndpointsRequestContext(allocator: allocator)
+        let engine = try EndpointsRuleEngine(partitions: partitions, ruleSet: errorRuleSet, allocator: allocator)
+        let context = try EndpointsRequestContext(allocator: allocator)
         let resolved = try engine.resolve(context: context)
-        guard case AWSResolvedEndpoint.error(message: let error) = resolved else {
+        guard case ResolvedEndpoint.error(message: let error) = resolved else {
             XCTFail("Endpoint resolved to an endpoint")
             return
         }
@@ -261,13 +261,13 @@ class AWSEndpointsRuleEngineTests: XCBaseTestCase {
 
     func testRuleSetParsingPerformance() {
         measure {
-            _ = try! AWSEndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
+            _ = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
         }
     }
 
     func testRuleSetEvaluationPerformance() {
-        let engine = try! AWSEndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
-        let context = try! AWSEndpointsRequestContext(allocator: allocator)
+        let engine = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
+        let context = try! EndpointsRequestContext(allocator: allocator)
         try! context.add(name: "Region", value: "us-west-2")
         measure {
             let _ = try! engine.resolve(context: context)
@@ -276,8 +276,8 @@ class AWSEndpointsRuleEngineTests: XCBaseTestCase {
 
     func testResolvePerformance() {
         measure {
-            let engine = try! AWSEndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
-            let context = try! AWSEndpointsRequestContext(allocator: allocator)
+            let engine = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
+            let context = try! EndpointsRequestContext(allocator: allocator)
             try! context.add(name: "Region", value: "us-west-2")
             let _ = try! engine.resolve(context: context)
         }

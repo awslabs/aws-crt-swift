@@ -5,18 +5,18 @@ import XCTest
 import AwsCCommon
 @testable import AwsCommonRuntimeKit
 
-class AWSSigningConfigTests: XCBaseTestCase {
+class SigningConfigTests: XCBaseTestCase {
 
     func testSigningConfigWithNonDefaultValues() async throws {
-        let signingConfig = AWSSigningConfig(algorithm: AWSSigningAlgorithmType.signingV4Asymmetric,
-                signatureType: AWSSignatureType.requestChunk,
+        let signingConfig = SigningConfig(algorithm: SigningAlgorithmType.signingV4Asymmetric,
+                signatureType: SignatureType.requestChunk,
                 service: "testService",
                 region: "testRegion",
                 date: Date(timeIntervalSinceNow: 100),
-                credentials: try AWSCredentials(accessKey: "access", secret: "secret", allocator: allocator),
+                credentials: try Credentials(accessKey: "access", secret: "secret", allocator: allocator),
                 expiration: TimeInterval(1000),
-                signedBodyHeader: AWSSignedBodyHeaderType.contentSha256,
-                signedBodyValue: AWSSignedBodyValue.streamingSha256Payload)
+                signedBodyHeader: SignedBodyHeaderType.contentSha256,
+                signedBodyValue: SignedBodyValue.streamingSha256Payload)
 
         signingConfig.withCStruct { cSigningConfig in
             XCTAssertEqual(signingConfig.algorithm.rawValue, cSigningConfig.algorithm)

@@ -4,7 +4,7 @@
 import AwsCAuth
 import Foundation
 
-public final class AWSCredentials {
+public final class Credentials {
 
     let rawValue: OpaquePointer
 

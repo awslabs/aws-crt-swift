@@ -2,12 +2,12 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCSdkUtils
 
-public enum AWSProfileSourceType {
+public enum ProfileSourceType {
     case config
     case credentials
 }
 
-extension AWSProfileSourceType {
+extension ProfileSourceType {
     var rawValue: aws_profile_source_type {
         switch self {
         case .config: return AWS_PST_CONFIG

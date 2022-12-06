@@ -5,7 +5,7 @@ import AwsCSdkUtils
 import Foundation
 
 /// Rule engine for matching endpoint rules
-public class AWSEndpointsRuleEngine {
+public class EndpointsRuleEngine {
 
     let rawValue: OpaquePointer
 
@@ -46,7 +46,7 @@ public class AWSEndpointsRuleEngine {
     /// Resolve an endpoint from the rule engine using the provided request context
     /// - Parameter context: The request context to use for endpoint resolution
     /// - Returns: The resolved endpoint
-    public func resolve(context: AWSEndpointsRequestContext) throws -> AWSResolvedEndpoint {
+    public func resolve(context: EndpointsRequestContext) throws -> ResolvedEndpoint {
         var resolvedEndpoint: OpaquePointer! = nil
         guard aws_endpoints_rule_engine_resolve(rawValue, context.rawValue, &resolvedEndpoint)
                 == AWS_OP_SUCCESS else {
@@ -59,12 +59,12 @@ public class AWSEndpointsRuleEngine {
         let type = aws_endpoints_resolved_endpoint_get_type(resolvedEndpoint)
 
         if type == AWS_ENDPOINTS_RESOLVED_ENDPOINT {
-            return AWSResolvedEndpoint.endpoint(
+            return ResolvedEndpoint.endpoint(
                 url: try getURL(rawValue: resolvedEndpoint),
                 headers: try getHeaders(rawValue: resolvedEndpoint),
                 properties: try getProperties(rawValue: resolvedEndpoint))
         } else {
-            return AWSResolvedEndpoint.error(message: try getErrorMessage(rawValue: resolvedEndpoint))
+            return ResolvedEndpoint.error(message: try getErrorMessage(rawValue: resolvedEndpoint))
         }
 
     }
@@ -119,7 +119,7 @@ public class AWSEndpointsRuleEngine {
             return [String: AnyHashable]()
         }
         let data = Data(bytes: properties.ptr, count: properties.len)
-        return try JSONDecoder().decode([String: AWSEndpointProperty].self, from: data).toStringHashableDictionary()
+        return try JSONDecoder().decode([String: EndpointProperty].self, from: data).toStringHashableDictionary()
     }
 
     /// Get the error of the resolved endpoint

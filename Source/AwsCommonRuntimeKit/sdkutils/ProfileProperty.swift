@@ -3,12 +3,12 @@
 
 import AwsCSdkUtils
 
-public class AWSProfileProperty {
+public class ProfileProperty {
     let rawValue: OpaquePointer
     // Keep a reference of collection to keep it alive
-    let collection: AWSProfileCollection
+    let collection: ProfileCollection
 
-    init(rawValue: OpaquePointer, collection: AWSProfileCollection) {
+    init(rawValue: OpaquePointer, collection: ProfileCollection) {
         self.rawValue = rawValue
         self.collection = collection
     }

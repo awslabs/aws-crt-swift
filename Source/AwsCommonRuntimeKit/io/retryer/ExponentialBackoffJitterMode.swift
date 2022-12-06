@@ -3,7 +3,7 @@
 
 import AwsCIo
 
-public enum AWSExponentialBackoffJitterMode {
+public enum ExponentialBackoffJitterMode {
     /// Uses AWS_EXPONENTIAL_BACKOFF_JITTER_FULL
     /// Link to documentation: https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/
     case `default`
@@ -12,7 +12,7 @@ public enum AWSExponentialBackoffJitterMode {
     case decorrelated
 }
 
-extension AWSExponentialBackoffJitterMode: RawRepresentable, CaseIterable {
+extension ExponentialBackoffJitterMode: RawRepresentable, CaseIterable {
 
     public init(rawValue: aws_exponential_backoff_jitter_mode) {
         let value = Self.allCases.first { $0.rawValue == rawValue }

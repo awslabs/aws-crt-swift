@@ -7,21 +7,21 @@ class RetryerTests: XCBaseTestCase {
     
     func testCreateAWSRetryer() throws {
         let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-        _ = try AWSRetryStrategy(eventLoopGroup: elg, allocator: allocator)
+        _ = try RetryStrategy(eventLoopGroup: elg, allocator: allocator)
     }
     
     func testAcquireToken() async throws {
         let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-        let retryer = try AWSRetryStrategy(eventLoopGroup: elg, allocator: allocator)
+        let retryer = try RetryStrategy(eventLoopGroup: elg, allocator: allocator)
         let result = try await retryer.acquireToken(partitionId: "partition1")
         XCTAssertNotNil(result)
     }
 
     func testSechudleRetry() async throws {
         let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-        let retryer = try AWSRetryStrategy(eventLoopGroup: elg, allocator: allocator)
+        let retryer = try RetryStrategy(eventLoopGroup: elg, allocator: allocator)
         let token = try await retryer.acquireToken(partitionId: "partition1")
         XCTAssertNotNil(token)
-        try await retryer.scheduleRetry(token: token, errorType: AWSRetryError.serverError)
+        try await retryer.scheduleRetry(token: token, errorType: RetryError.serverError)
     }
 }
