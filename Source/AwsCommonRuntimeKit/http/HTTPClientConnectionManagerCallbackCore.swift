@@ -2,15 +2,15 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
 
-typealias ConnectionContinuation = CheckedContinuation<HttpClientConnection, Error>
+typealias ConnectionContinuation = CheckedContinuation<HTTPClientConnection, Error>
 /// Core classes have manual memory management.
 /// You have to balance the retain & release calls in all cases to avoid leaking memory.
 class HTTPClientConnectionManagerCallbackCore {
-    let connectionManager: HttpClientConnectionManager
+    let connectionManager: HTTPClientConnectionManager
     let continuation: ConnectionContinuation
 
     init(continuation: ConnectionContinuation,
-         connectionManager: HttpClientConnectionManager) {
+         connectionManager: HTTPClientConnectionManager) {
         self.continuation = continuation
         self.connectionManager = connectionManager
     }
@@ -21,7 +21,7 @@ class HTTPClientConnectionManagerCallbackCore {
 
     static func acquireConnection(
         continuation: ConnectionContinuation,
-        connectionManager: HttpClientConnectionManager
+        connectionManager: HTTPClientConnectionManager
     ) {
         let callbackCore = HTTPClientConnectionManagerCallbackCore(
             continuation: continuation,
@@ -45,7 +45,7 @@ private func onConnectionSetup(connection: UnsafeMutablePointer<aws_http_connect
     }
 
     // Success
-    let httpConnection = HttpClientConnection(manager: callbackDataCore.connectionManager,
+    let httpConnection = HTTPClientConnection(manager: callbackDataCore.connectionManager,
                                               connection: connection!)
     callbackDataCore.continuation.resume(returning: httpConnection)
 }

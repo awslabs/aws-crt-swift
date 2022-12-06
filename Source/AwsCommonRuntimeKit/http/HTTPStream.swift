@@ -9,7 +9,7 @@ public class HTTPStream {
     /// Stream keeps a reference to HttpConnection to keep it alive
     private let httpConnection: HTTPClientConnection
 
-    // Called by HttpClientConnection
+    // Called by HTTPClientConnection
     init(
         httpConnection: HTTPClientConnection,
         options: aws_http_make_request_options,
@@ -23,9 +23,9 @@ public class HTTPStream {
         self.httpConnection = httpConnection
     }
 
-    /// Opens the Sliding Read/Write Window by the number of bytes passed as an argument for this HttpStream.
+    /// Opens the Sliding Read/Write Window by the number of bytes passed as an argument for this HTTPStream.
     /// This function should only be called if the user application previously returned less than the length of the
-    /// input ByteBuffer from a onIncomingBody() call in a HttpRequestOptions, and should be &lt;= to the total
+    /// input ByteBuffer from a onIncomingBody() call in a HTTPRequestOptions, and should be &lt;= to the total
     /// number of un-acked bytes.
     /// - Parameters:
     ///   - incrementBy:  How many bytes to increment the sliding window by.

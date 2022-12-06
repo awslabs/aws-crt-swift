@@ -24,7 +24,7 @@ class HTTPTests: XCBaseTestCase {
         try await sendHttpRequest(method: "PUT", endpoint: "httpbin.org", path: "/anything", requestBody: TEST_DOC_LINE)
     }
 
-    func testHttpStreamIsReleasedIfNotActivated() async throws {
+    func testHTTPStreamIsReleasedIfNotActivated() async throws {
         do {
             let url = URL(string: "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt")!
             guard let host = url.host else {
@@ -32,7 +32,7 @@ class HTTPTests: XCBaseTestCase {
                 exit(EXIT_FAILURE)
             }
 
-            let httpRequestOptions = try getHttpRequestOptions(method: "GET", endpoint: host, path: url.path)
+            let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: url.path)
             let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
             let connection = try await connectionManager.acquireConnection()
             _ = try connection.makeRequest(requestOptions: httpRequestOptions)
@@ -48,7 +48,7 @@ class HTTPTests: XCBaseTestCase {
                 print("no proper host was parsed from the url. quitting.")
                 exit(EXIT_FAILURE)
             }
-            let httpRequestOptions = try getHttpRequestOptions(method: "GET", endpoint: host, path: url.path)
+            let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: url.path)
             let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
             let connection = try await connectionManager.acquireConnection()
             let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
@@ -69,7 +69,7 @@ class HTTPTests: XCBaseTestCase {
             let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
             connection = try await connectionManager.acquireConnection()
         }
-        let httpRequestOptions = try getHttpRequestOptions(method: "GET", endpoint: host, path: url.path)
+        let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: url.path)
         let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
         try stream.activate()
         semaphore.wait()
@@ -86,7 +86,7 @@ class HTTPTests: XCBaseTestCase {
         do {
             let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
             let connection = try await connectionManager.acquireConnection()
-            let httpRequestOptions = try getHttpRequestOptions(method: "GET", endpoint: host, path: url.path)
+            let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: url.path)
             stream = try connection.makeRequest(requestOptions: httpRequestOptions)
         }
         try stream.activate()
@@ -102,7 +102,7 @@ class HTTPTests: XCBaseTestCase {
         let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
         let connection = try await connectionManager.acquireConnection()
         connection.close()
-        let httpRequestOptions = try getHttpRequestOptions(method: "GET", endpoint: host, path: url.path)
+        let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: url.path)
         XCTAssertThrowsError( _ = try connection.makeRequest(requestOptions: httpRequestOptions))
     }
 
@@ -114,7 +114,7 @@ class HTTPTests: XCBaseTestCase {
         }
         let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
         let connection = try await connectionManager.acquireConnection()
-        let httpRequestOptions = try getHttpRequestOptions(method: "GET", endpoint: host, path: url.path)
+        let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: url.path)
         let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
         connection.close()
         XCTAssertThrowsError(try stream.activate())
@@ -128,7 +128,7 @@ class HTTPTests: XCBaseTestCase {
         }
         let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
         let connection = try await connectionManager.acquireConnection()
-        let httpRequestOptions = try getHttpRequestOptions(method: "GET", endpoint: host, path: url.path)
+        let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: url.path)
         let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
         connection.close()
         connection.close()
@@ -143,7 +143,7 @@ class HTTPTests: XCBaseTestCase {
                          expectedStatus: Int = 200,
                          ssh: Bool = true,
                          port: Int = 443) async throws {
-        let httpRequestOptions = try getHttpRequestOptions(method: method, endpoint: endpoint, path: path, body: requestBody, expectedStatusCode: expectedStatus)
+        let httpRequestOptions = try getHTTPRequestOptions(method: method, endpoint: endpoint, path: path, body: requestBody, expectedStatusCode: expectedStatus)
 
         let connectionManager = try await getHttpConnectionManager(endpoint: endpoint, ssh: ssh, port: port)
         let connection = try await connectionManager.acquireConnection()
@@ -186,7 +186,7 @@ class HTTPTests: XCBaseTestCase {
         let data: String
     }
 
-    func getHttpRequestOptions(method: String,
+    func getHTTPRequestOptions(method: String,
                                endpoint: String,
                                path: String,
                                body: String = "",

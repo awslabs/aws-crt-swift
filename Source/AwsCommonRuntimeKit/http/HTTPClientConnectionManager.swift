@@ -21,7 +21,7 @@ public class HTTPClientConnectionManager {
         self.rawValue = rawValue
     }
 
-    /// Acquires an `HttpClientConnection` asynchronously.
+    /// Acquires an `HTTPClientConnection` asynchronously.
     public func acquireConnection() async throws -> HTTPClientConnection {
         return try await withCheckedThrowingContinuation({ (continuation: ConnectionContinuation) in
             HTTPClientConnectionManagerCallbackCore.acquireConnection(
@@ -30,10 +30,10 @@ public class HTTPClientConnectionManager {
         })
     }
 
-    /// Releases this HttpClientConnection back into the Connection Pool, and allows another Request to acquire
+    /// Releases this HTTPClientConnection back into the Connection Pool, and allows another Request to acquire
     /// this connection.
     /// - Parameters:
-    ///     - connection:  `HttpClientConnection` to release
+    ///     - connection:  `HTTPClientConnection` to release
     func releaseConnection(connection: HTTPClientConnection) throws {
         if aws_http_connection_manager_release_connection(rawValue, connection.rawValue) != AWS_OP_SUCCESS {
             throw CommonRunTimeError.crtError(.makeFromLastError())

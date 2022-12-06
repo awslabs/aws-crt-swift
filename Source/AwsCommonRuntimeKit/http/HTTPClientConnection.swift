@@ -12,7 +12,7 @@ public class HTTPClientConnection {
     /// This will keep the connection manager alive until connection is alive
     let manager: HTTPClientConnectionManager
 
-    /// Called by HttpClientConnectionManager
+    /// Called by HTTPClientConnectionManager
     init(manager: HTTPClientConnectionManager,
          connection: UnsafeMutablePointer<aws_http_connection>,
          allocator: Allocator = defaultAllocator) {
@@ -30,10 +30,10 @@ public class HTTPClientConnection {
         aws_http_connection_close(rawValue)
     }
 
-    /// Creates a new http stream from the `HttpRequestOptions` given.
-    /// - Parameter requestOptions: An `HttpRequestOptions` struct containing callbacks on
+    /// Creates a new http stream from the `HTTPRequestOptions` given.
+    /// - Parameter requestOptions: An `HTTPRequestOptions` struct containing callbacks on
     /// the different events from the stream
-    /// - Returns: An `HttpStream` containing the `HttpClientConnection`
+    /// - Returns: An `HTTPStream` containing the `HTTPClientConnection`
     public func makeRequest(requestOptions: HTTPRequestOptions) throws -> HTTPStream {
         let httpStreamCallbackCore = HTTPStreamCallbackCore(requestOptions: requestOptions)
         do {

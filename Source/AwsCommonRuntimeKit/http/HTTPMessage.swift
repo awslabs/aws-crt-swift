@@ -41,7 +41,7 @@ public extension HTTPMessage {
 
     /// Adds a header to the request.
     /// Does nothing if the header name is empty.
-    /// - Parameter header: HttpHeader to add
+    /// - Parameter header: HTTPHeader to add
     func addHeader(header: HTTPHeader) {
         if header.name.isEmpty {
             return

@@ -8,10 +8,10 @@ import Foundation
 /// Core classes have manual memory management.
 /// You have to balance the retain & release calls in all cases to avoid leaking memory.
 class HTTPStreamCallbackCore {
-    let requestOptions: HttpRequestOptions
-    var stream: HttpStream?
+    let requestOptions: HTTPRequestOptions
+    var stream: HTTPStream?
 
-    init(requestOptions: HttpRequestOptions) {
+    init(requestOptions: HTTPRequestOptions) {
         self.requestOptions = requestOptions
     }
 
@@ -19,7 +19,7 @@ class HTTPStreamCallbackCore {
         return Unmanaged.passRetained(self).toOpaque()
     }
 
-    /// This function does a manual retain on HttpStreamCallbackDataCore
+    /// This function does a manual retain on HTTPStreamCallbackDataCore
     /// to keep it until until on_destroy callback has fired which will do the release.
     /// If you fail to create something that uses the aws_http_make_request_options,
     /// you must call release() to avoid leaking memory.
@@ -36,7 +36,7 @@ class HTTPStreamCallbackCore {
         return options
     }
 
-    /// Manually release the reference If you fail to create something that uses the HttpStreamCallbackDataCore
+    /// Manually release the reference If you fail to create something that uses the HTTPStreamCallbackDataCore
     func release() {
         Unmanaged.passUnretained(self).release()
     }
@@ -52,11 +52,11 @@ private func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
         .takeUnretainedValue()
     let headers = UnsafeBufferPointer(
         start: headerArray,
-        count: headersCount).map { HttpHeader(rawValue: $0) }
+        count: headersCount).map { HTTPHeader(rawValue: $0) }
 
     let stream = httpStreamCbData.stream!
     httpStreamCbData.requestOptions.onIncomingHeaders(stream,
-                                                      HttpHeaderBlock(rawValue: headerBlock),
+                                                      HTTPHeaderBlock(rawValue: headerBlock),
                                                       headers)
     return AWS_OP_SUCCESS
 }
@@ -67,7 +67,7 @@ private func onResponseHeaderBlockDone(stream: UnsafeMutablePointer<aws_http_str
     let httpStreamCbData = Unmanaged<HTTPStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
     let stream = httpStreamCbData.stream!
 
-    httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(stream, HttpHeaderBlock(rawValue: headerBlock))
+    httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(stream, HTTPHeaderBlock(rawValue: headerBlock))
     return AWS_OP_SUCCESS
 }
 
