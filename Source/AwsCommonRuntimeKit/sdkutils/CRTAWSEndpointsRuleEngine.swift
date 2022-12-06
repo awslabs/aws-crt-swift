@@ -15,14 +15,11 @@ public class CRTAWSEndpointsRuleEngine {
     ///   - ruleSet: The rule set string to use for the rule engine
     ///   - allocator: The allocator to use for creating rule engine
     public init(partitions: String, ruleSet: String, allocator: Allocator = defaultAllocator) throws {
-        guard
-            let partitions = aws_partitions_config_new_from_string(
-                allocator.rawValue,
-                partitions.newByteCursor().rawValue
-            ),
-            let ruleSet = aws_endpoints_ruleset_new_from_string(allocator.rawValue, ruleSet.newByteCursor().rawValue),
-            let rawValue = aws_endpoints_rule_engine_new(allocator.rawValue, ruleSet, partitions)
-        else { throw CRTError.crtError(AWSError.makeFromLastError()) }
+        guard let partitions = aws_partitions_config_new_from_string(allocator.rawValue, partitions.newByteCursor().rawValue),
+              let ruleSet = aws_endpoints_ruleset_new_from_string(allocator.rawValue, ruleSet.newByteCursor().rawValue),
+              let rawValue = aws_endpoints_rule_engine_new(allocator.rawValue, ruleSet, partitions) else {
+            throw CRTError.crtError(AWSError.makeFromLastError())
+        }
 
         self.partitions = partitions
         self.ruleSet = ruleSet

@@ -95,9 +95,7 @@ public final class CRTAWSCredentialsProvider {
         if let profileName = profileOptions.profileFileNameOverride {
             profileOptionsC.profile_name_override = profileName.awsByteCursor
         }
-        profileOptionsC.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(
-            shutDownOptions: profileOptions.shutdownOptions
-        )
+        profileOptionsC.shutdown_options = CRTAWSCredentialsProvider.setUpShutDownOptions(shutDownOptions: profileOptions.shutdownOptions)
 
         guard let provider = aws_credentials_provider_new_profile(allocator.rawValue,
                                                                   &profileOptionsC) else {
@@ -313,9 +311,7 @@ public final class CRTAWSCredentialsProvider {
     static func setUpShutDownOptions(shutDownOptions: CRTCredentialsProviderShutdownOptions?)
     -> aws_credentials_provider_shutdown_options {
 
-        let pointer: UnsafeMutablePointer<CRTCredentialsProviderShutdownOptions>? = fromOptionalPointer(
-            ptr: shutDownOptions
-        )
+        let pointer: UnsafeMutablePointer<CRTCredentialsProviderShutdownOptions>? = fromOptionalPointer(ptr: shutDownOptions)
         let shutDownOptionsC = aws_credentials_provider_shutdown_options(shutdown_callback: { userData in
             guard let userData = userData else {
                 return
@@ -333,11 +329,9 @@ public final class CRTAWSCredentialsProvider {
     }
 }
 
-private func getCredentialsDelegateFn(
-    _ delegatePtr: UnsafeMutableRawPointer?,
-    _ callbackFn: (@convention(c)(OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
-    _ userData: UnsafeMutableRawPointer?
-) -> Int32 {
+private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer?,
+                                      _ callbackFn: (@convention(c)(OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
+                                      _ userData: UnsafeMutableRawPointer?) -> Int32 {
     guard let credentialsProvider = delegatePtr?.assumingMemoryBound(to: CRTCredentialsProvider.self) else {
         return 1
     }

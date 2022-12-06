@@ -18,12 +18,12 @@ public typealias OnWebSocketHandshakeIntercept = (HttpRequest,
                                                   OnWebSocketHandshakeInterceptComplete?) -> Void
 public typealias OnWebSocketHandshakeInterceptComplete = (HttpRequest, CRTError) -> Void
 
-// swiftlint:disable type_body_length opening_brace
+//swiftlint:disable cyclomatic_complexity file_length type_body_length opening_brace
 public class MqttConnection {
-    public var onConnectionInterrupted: OnConnectionInterrupted = { (_, _) in }
-    public var onConnectionResumed: OnConnectionResumed = { (_, _, _) in }
-    public var onDisconnect: OnDisconnect = { _ in }
-    public var onConnectionComplete: OnConnectionComplete = { (_, _, _, _) in }
+    public var onConnectionInterrupted: OnConnectionInterrupted = {(connectionPtr, errorCode) in }
+    public var onConnectionResumed: OnConnectionResumed = {(connectionPtr, returnCode, retain) in }
+    public var onDisconnect: OnDisconnect = {(connectionPtr) in }
+    public var onConnectionComplete: OnConnectionComplete = {(connectionPtr, errorCode, returnCode, retain) in}
     public var onWebSocketHandshakeIntercept: OnWebSocketHandshakeIntercept?
     public var onWebSocketHandshakeInterceptComplete: OnWebSocketHandshakeInterceptComplete?
 
@@ -151,7 +151,11 @@ public class MqttConnection {
         mqttOptions.clean_session = cleanSession
         mqttOptions.user_data = nativePointer
 
-        mqttOptions.on_connection_complete = { ( _, errorCode, returnCode, sessionPresent, userData) in
+        mqttOptions.on_connection_complete = { (connectionPtr,
+                                                errorCode,
+                                                returnCode,
+                                                sessionPresent,
+                                                userData) in
             guard let userData = userData else {
                 return
             }
@@ -171,31 +175,24 @@ public class MqttConnection {
         if useWebSockets {
             if onWebSocketHandshakeIntercept != nil {
 
-                aws_mqtt_client_connection_use_websockets(
-                    rawValue,
-                    { (httpRequest, userData, completeFn, completeUserData) in
-                        guard let userData = userData,
-                              let httpRequest = httpRequest else {
-                            return
+                aws_mqtt_client_connection_use_websockets(rawValue,
+                                                             { (httpRequest, userData, completeFn, completeUserData) in
+                    guard let userData = userData,
+                          let httpRequest = httpRequest else {
+                              return
+                          }
+                    let ptr = userData.assumingMemoryBound(to: MqttConnection.self)
+
+                    let onInterceptComplete: OnWebSocketHandshakeInterceptComplete = {request, crtError in
+                        if case let CRTError.crtError(error) = crtError {
+                            completeFn!(httpRequest, error.errorCode, completeUserData)
                         }
-                        let ptr = userData.assumingMemoryBound(to: MqttConnection.self)
-                        
-                        let onInterceptComplete: OnWebSocketHandshakeInterceptComplete = { _, crtError in
-                            if case let CRTError.crtError(error) = crtError {
-                                completeFn!(httpRequest, error.errorCode, completeUserData)
-                            }
-                        }
-                        defer { ptr.deinitializeAndDeallocate()}
-                        // can unwrap here with ! because we know its not nil at this point
-                        ptr.pointee.onWebSocketHandshakeIntercept!(
-                            HttpRequest(message: httpRequest),
-                            onInterceptComplete
-                        )
-                    },
-                    rawValue,
-                    nil,
-                    nil
-                )
+                    }
+                    defer { ptr.deinitializeAndDeallocate()}
+                    //can unwrap here with ! because we know its not nil at this point
+                    ptr.pointee.onWebSocketHandshakeIntercept!(HttpRequest(message: httpRequest),
+                                                               onInterceptComplete)
+                }, rawValue, nil, nil)
             } else {
                 aws_mqtt_client_connection_use_websockets(rawValue, nil, nil, nil, nil)
             }

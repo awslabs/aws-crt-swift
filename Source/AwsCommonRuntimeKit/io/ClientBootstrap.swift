@@ -14,9 +14,7 @@ public final class ClientBootstrap {
                 allocator: Allocator = defaultAllocator) throws {
 
         self.callbackData = callbackData
-        let callbackDataPointer: UnsafeMutablePointer<ClientBootstrapCallbackData>? = fromOptionalPointer(
-            ptr: callbackData
-        )
+        let callbackDataPointer: UnsafeMutablePointer<ClientBootstrapCallbackData>? = fromOptionalPointer(ptr: callbackData)
 
         var options = aws_client_bootstrap_options(
             event_loop_group: elg.rawValue,

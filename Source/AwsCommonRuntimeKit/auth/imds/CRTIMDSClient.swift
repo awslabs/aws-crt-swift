@@ -3,7 +3,6 @@
 
 import AwsCAuth
 
-// swiftlint:disable opening_brace
 public class CRTIMDSClient {
     let rawValue: OpaquePointer
 
@@ -194,27 +193,22 @@ public class CRTIMDSClient {
     public func getCredentialsFromCRT(iamRoleName: String, continuation: CredentialsContinuation) {
         let callbackData = CRTCredentialsProviderCallbackData(continuation: continuation)
         let pointer: UnsafeMutableRawPointer = fromPointer(ptr: callbackData)
-        aws_imds_client_get_credentials(
-            rawValue,
-            iamRoleName.awsByteCursor,
-            { credentialsPointer, errorCode, userData in
-                guard let userData = userData else {
-                    return
-                }
-                let pointer = userData.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
-                
-                let error = AWSError(errorCode: errorCode)
-                if errorCode == 0,
-                   let credentialsPointer = credentialsPointer,
-                   let crtCredentials = CRTCredentials(rawValue: credentialsPointer) {
-                    pointer.pointee.continuation?.resume(returning: crtCredentials)
-                } else {
-                    pointer.pointee.continuation?.resume(throwing: CRTError.crtError(error))
-                }
-                pointer.deinitializeAndDeallocate()
-            },
-            pointer
-        )
+        aws_imds_client_get_credentials(rawValue, iamRoleName.awsByteCursor, { credentialsPointer, errorCode, userData in
+            guard let userData = userData else {
+                return
+            }
+            let pointer = userData.assumingMemoryBound(to: CRTCredentialsProviderCallbackData.self)
+
+            let error = AWSError(errorCode: errorCode)
+            if errorCode == 0,
+               let credentialsPointer = credentialsPointer,
+               let crtCredentials = CRTCredentials(rawValue: credentialsPointer) {
+                pointer.pointee.continuation?.resume(returning: crtCredentials)
+            } else {
+                pointer.pointee.continuation?.resume(throwing: CRTError.crtError(error))
+            }
+            pointer.deinitializeAndDeallocate()
+        }, pointer)
     }
 
     /// Gets the iam profile information of the ec2 instance from the instance metadata document

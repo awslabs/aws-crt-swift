@@ -54,7 +54,7 @@ public final class HttpHeaders {
     /// - Parameter header: The `HttpHeader` to update or append.
     /// - Returns: `Bool`: True on success
     public func update(_ header: HttpHeader) -> Bool {
-        // this function in c will update the header if it exists or create a new one if it's new.
+        //this function in c will update the header if it exists or create a new one if it's new.
         let name = header.name.awsByteCursor
         let value = header.value.awsByteCursor
         return aws_http_headers_set(self.rawValue,

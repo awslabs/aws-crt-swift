@@ -95,9 +95,7 @@ awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
 #endif
 
-var awsCCalPlatformExcludes = [
-    "bin", "include/aws/cal/private", "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"
-] + excludesFromAll
+var awsCCalPlatformExcludes = ["bin", "include/aws/cal/private", "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt"] + excludesFromAll
 
 #if os(macOS)
 awsCCalPlatformExcludes.append("source/windows")
@@ -115,10 +113,8 @@ let awsCSdkUtilsPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 var awsCCompressionPlatformExcludes = ["source/huffman_generator/", "CODE_OF_CONDUCT.md",
                                        "codebuild"] + excludesFromAll
 
-var awsCHttpPlatformExcludes = [
-    "bin", "integration-testing", "include/aws/http/private",
-    "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt", "codebuild/linux-integration-tests.yml"
-] + excludesFromAll
+var awsCHttpPlatformExcludes = ["bin", "integration-testing", "include/aws/http/private",
+                                "CODE_OF_CONDUCT.md", "sanitizer-blacklist.txt", "codebuild/linux-integration-tests.yml"] + excludesFromAll
 let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 let awsCMqttPlatformExcludes = ["bin", "CODE_OF_CONDUCT.md"] + excludesFromAll
 
