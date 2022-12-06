@@ -3,7 +3,7 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-class AWSCredentialsTests: CrtXCBaseTestCase {
+class CredentialsTests: XCBaseTestCase {
 
     func testCreateAWSCredentials() async throws {
         let accessKey = "AccessKey"
@@ -11,7 +11,7 @@ class AWSCredentialsTests: CrtXCBaseTestCase {
         let sessionToken = "Token"
         let expiration = Date(timeIntervalSinceNow: 10)
 
-        let credentials = try AwsCredentials(accessKey: accessKey, secret: secret, sessionToken: sessionToken, expiration: expiration)
+        let credentials = try Credentials(accessKey: accessKey, secret: secret, sessionToken: sessionToken, expiration: expiration)
 
         XCTAssertEqual(accessKey, credentials.getAccessKey())
         XCTAssertEqual(secret, credentials.getSecret())
@@ -24,7 +24,7 @@ class AWSCredentialsTests: CrtXCBaseTestCase {
         let secret = "Secret"
         let expiration = Date(timeIntervalSinceNow: 10)
 
-        let credentials = try AwsCredentials(accessKey: accessKey, secret: secret, sessionToken: nil, expiration: expiration)
+        let credentials = try Credentials(accessKey: accessKey, secret: secret, sessionToken: nil, expiration: expiration)
 
         XCTAssertEqual(accessKey, credentials.getAccessKey())
         XCTAssertEqual(secret, credentials.getSecret())
@@ -38,6 +38,6 @@ class AWSCredentialsTests: CrtXCBaseTestCase {
         let secret = "Secret"
         let expirationTimeout = Date(timeIntervalSinceNow: 10)
 
-        XCTAssertThrowsError(try AwsCredentials(accessKey: accessKey, secret: secret, sessionToken: nil, expiration: expirationTimeout))
+        XCTAssertThrowsError(try Credentials(accessKey: accessKey, secret: secret, sessionToken: nil, expiration: expirationTimeout))
     }
 }

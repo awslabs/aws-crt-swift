@@ -3,7 +3,7 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-class BootstrapTests: CrtXCBaseTestCase {
+class BootstrapTests: XCBaseTestCase {
 
   func testCanCreateBootstrap() throws {
     let elg = try EventLoopGroup(allocator: allocator)
