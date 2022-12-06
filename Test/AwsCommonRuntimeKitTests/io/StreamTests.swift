@@ -4,7 +4,7 @@ import XCTest
 import Foundation
 @testable import AwsCommonRuntimeKit
 
-class StreamTests: CrtXCBaseTestCase {
+class StreamTests: XCBaseTestCase {
 
   func testFileStream() throws {
     let fileHandle = FileHandle(forReadingAtPath: Bundle.module.path(forResource: "stream-test", ofType: "txt")!)!
