@@ -3,7 +3,7 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-class HostResolverTests: CrtXCBaseTestCase {
+class HostResolverTests: XCBaseTestCase {
     
     func testCanResolveHosts() async throws {
         let elg = try EventLoopGroup(allocator: allocator)

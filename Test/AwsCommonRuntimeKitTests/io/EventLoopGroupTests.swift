@@ -4,7 +4,7 @@ import XCTest
 import Foundation
 @testable import AwsCommonRuntimeKit
 
-class EventLoopGroupTests: CrtXCBaseTestCase {
+class EventLoopGroupTests: XCBaseTestCase {
 
     func testCanCreateGroup() async throws {
         let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")

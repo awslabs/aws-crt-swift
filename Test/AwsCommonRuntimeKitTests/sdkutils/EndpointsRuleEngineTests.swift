@@ -5,7 +5,7 @@ import XCTest
 import Foundation
 @testable import AwsCommonRuntimeKit
 
-class EndpointsRuleEngineTests: CrtXCBaseTestCase {
+class EndpointsRuleEngineTests: XCBaseTestCase {
 
     let partitions = #"""
     {
@@ -216,7 +216,7 @@ class EndpointsRuleEngineTests: CrtXCBaseTestCase {
 
     func testResolve() throws {
         let engine = try EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
-        let context = try CRTAWSEndpointsRequestContext(allocator: allocator)
+        let context = try EndpointsRequestContext(allocator: allocator)
         try context.add(name: "Region", value: "us-west-2")
         let resolved = try engine.resolve(context: context)
         guard case ResolvedEndpoint.endpoint(url: let url,
@@ -250,7 +250,7 @@ class EndpointsRuleEngineTests: CrtXCBaseTestCase {
 
     func testResolveError() throws {
         let engine = try EndpointsRuleEngine(partitions: partitions, ruleSet: errorRuleSet, allocator: allocator)
-        let context = try CRTAWSEndpointsRequestContext(allocator: allocator)
+        let context = try EndpointsRequestContext(allocator: allocator)
         let resolved = try engine.resolve(context: context)
         guard case ResolvedEndpoint.error(message: let error) = resolved else {
             XCTFail("Endpoint resolved to an endpoint")
@@ -267,7 +267,7 @@ class EndpointsRuleEngineTests: CrtXCBaseTestCase {
 
     func testRuleSetEvaluationPerformance() {
         let engine = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
-        let context = try! CRTAWSEndpointsRequestContext(allocator: allocator)
+        let context = try! EndpointsRequestContext(allocator: allocator)
         try! context.add(name: "Region", value: "us-west-2")
         measure {
             let _ = try! engine.resolve(context: context)
@@ -277,7 +277,7 @@ class EndpointsRuleEngineTests: CrtXCBaseTestCase {
     func testResolvePerformance() {
         measure {
             let engine = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
-            let context = try! CRTAWSEndpointsRequestContext(allocator: allocator)
+            let context = try! EndpointsRequestContext(allocator: allocator)
             try! context.add(name: "Region", value: "us-west-2")
             let _ = try! engine.resolve(context: context)
         }
