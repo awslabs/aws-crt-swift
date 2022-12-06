@@ -335,7 +335,6 @@ extension CredentialsProvider.Source {
                         thingName,
                         roleAlias,
                         endpoint, { thingNameCursor, roleAliasCursor, endPointCursor in
-
                             x509Options.thing_name = thingNameCursor
                             x509Options.role_alias = roleAliasCursor
                             x509Options.endpoint = endPointCursor
