@@ -21,13 +21,17 @@ class HttpClientConnectionManagerCallbackCore {
 
     static func acquireConnection(
         continuation: ConnectionContinuation,
-        connectionManager: HttpClientConnectionManager) {
-
-        let callbackCore = HttpClientConnectionManagerCallbackCore(continuation: continuation,
-                                                                   connectionManager: connectionManager)
-        aws_http_connection_manager_acquire_connection(connectionManager.rawValue,
-                                                       onConnectionSetup,
-                                                       callbackCore.passRetained())
+        connectionManager: HttpClientConnectionManager
+    ) {
+        let callbackCore = HttpClientConnectionManagerCallbackCore(
+            continuation: continuation,
+            connectionManager: connectionManager
+        )
+        aws_http_connection_manager_acquire_connection(
+            connectionManager.rawValue,
+            onConnectionSetup,
+            callbackCore.passRetained()
+        )
     }
 }
 
