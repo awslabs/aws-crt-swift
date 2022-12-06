@@ -138,25 +138,25 @@ class AWSSignerTests: XCBaseTestCase {
         XCTAssert(headers.contains(where: { $0.name == "Authorization" }))
     }
 
-    func makeMockRequest() throws -> HttpRequest {
-        let request = try HttpRequest(allocator: allocator)
-        request.addHeader(header: HttpHeader(name: "Host", value: SIGV4TEST_HOST))
+    func makeMockRequest() throws -> HTTPRequest {
+        let request = try HTTPRequest(allocator: allocator)
+        request.addHeader(header: HTTPHeader(name: "Host", value: SIGV4TEST_HOST))
         return request
     }
 
-    func makeMockRequestWithDoNotSignHeader() throws -> HttpRequest {
-        let request = try HttpRequest()
-        request.addHeader(header: HttpHeader(name: "Host", value: SIGV4TEST_HOST))
-        request.addHeader(header: HttpHeader(name: "doNotSign", value: "test-header"))
+    func makeMockRequestWithDoNotSignHeader() throws -> HTTPRequest {
+        let request = try HTTPRequest()
+        request.addHeader(header: HTTPHeader(name: "Host", value: SIGV4TEST_HOST))
+        request.addHeader(header: HTTPHeader(name: "doNotSign", value: "test-header"))
         return request
     }
 
-    func makeMockRequestWithBody() throws -> HttpRequest {
-        let request = try HttpRequest(allocator: allocator)
+    func makeMockRequestWithBody() throws -> HTTPRequest {
+        let request = try HTTPRequest(allocator: allocator)
         let byteBuffer = ByteBuffer(data: "hello".data(using: .utf8)!)
         request.body = byteBuffer
-        request.addHeader(header: HttpHeader(name: "Host", value: SIGV4TEST_HOST))
-        request.addHeader(header: HttpHeader(name: "Content-Length", value: "5"))
+        request.addHeader(header: HTTPHeader(name: "Host", value: SIGV4TEST_HOST))
+        request.addHeader(header: HTTPHeader(name: "Content-Length", value: "5"))
         return request
     }
 

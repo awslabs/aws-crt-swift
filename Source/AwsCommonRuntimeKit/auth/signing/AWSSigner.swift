@@ -30,9 +30,9 @@ public class AWSSigner {
     /// - `Throws`: An error of type `AwsCommonRuntimeError` which will pull last error found in the CRT
     /// - `Returns`: Returns a signed http request `HttpRequest`
     public static func signRequest(
-        request: HttpRequest,
+        request: HTTPRequest,
         config: AWSSigningConfig,
-        allocator: Allocator = defaultAllocator) async throws -> HttpRequest {
+        allocator: Allocator = defaultAllocator) async throws -> HTTPRequest {
 
         guard let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -41,7 +41,7 @@ public class AWSSigner {
             aws_signable_destroy(signable)
         }
 
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<HttpRequest, Error>) in
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<HTTPRequest, Error>) in
             let signRequestCore = SignRequestCore(request: request,
                                                   continuation: continuation,
                                                   shouldSignHeader: config.shouldSignHeader,
@@ -74,11 +74,11 @@ public class AWSSigner {
 
 class SignRequestCore {
     let allocator: Allocator
-    let request: HttpRequest
-    var continuation: CheckedContinuation<HttpRequest, Error>
+    let request: HTTPRequest
+    var continuation: CheckedContinuation<HTTPRequest, Error>
     let shouldSignHeader: ((String) -> Bool)?
-    init(request: HttpRequest,
-         continuation: CheckedContinuation<HttpRequest, Error>,
+    init(request: HTTPRequest,
+         continuation: CheckedContinuation<HTTPRequest, Error>,
          shouldSignHeader: ((String) -> Bool)? = nil,
          allocator: Allocator) {
         self.allocator = allocator

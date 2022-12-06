@@ -320,7 +320,7 @@ extension AWSCredentialsProvider.Source {
                               thingName: String,
                               roleAlias: String,
                               endpoint: String,
-                              proxyOptions: HttpProxyOptions? = nil,
+                              proxyOptions: HTTPProxyOptions? = nil,
                               shutdownCallback: ShutdownCallback? = nil,
                               allocator: Allocator = defaultAllocator) -> Self {
         Self { allocator in

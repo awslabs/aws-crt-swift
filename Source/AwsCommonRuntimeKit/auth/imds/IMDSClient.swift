@@ -8,7 +8,7 @@ public class IMDSClient {
     let rawValue: OpaquePointer
     let allocator: Allocator
     public init(bootstrap: ClientBootstrap,
-                retryStrategy: RetryStrategy,
+                retryStrategy: AWSRetryStrategy,
                 protocolVersion: IMDSProtocolVersion = IMDSProtocolVersion.version2,
                 shutdownCallback: ShutdownCallback? = nil,
                 allocator: Allocator = defaultAllocator) throws {

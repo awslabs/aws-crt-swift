@@ -264,43 +264,43 @@ struct Elasticurl {
 
             let semaphore = DispatchSemaphore(value: 0)
 
-            var stream: HttpStream?
+            var stream: HTTPStream?
             let path = context.url.path == "" ? "/" : context.url.path
-            let httpRequest: HttpRequest = try HttpRequest(method: context.verb, path: path, allocator: allocator)
-            var headers = [HttpHeader]()
-            headers.append(HttpHeader(name: "Host", value: host))
-            headers.append(HttpHeader(name: "User-Agent", value: "Elasticurl"))
-            headers.append(HttpHeader(name: "Accept", value: "*/*"))
-            headers.append(HttpHeader(name: "Swift", value: "Version 5.4"))
+            let httpRequest: HTTPRequest = try HTTPRequest(method: context.verb, path: path, allocator: allocator)
+            var headers = [HTTPHeader]()
+            headers.append(HTTPHeader(name: "Host", value: host))
+            headers.append(HTTPHeader(name: "User-Agent", value: "Elasticurl"))
+            headers.append(HTTPHeader(name: "Accept", value: "*/*"))
+            headers.append(HTTPHeader(name: "Swift", value: "Version 5.4"))
 
             if let data = context.data {
                 let byteBuffer = ByteBuffer(data: data)
                 httpRequest.body = byteBuffer
-                headers.append(HttpHeader(name: "Content-length", value: "\(data.count)"))
+                headers.append(HTTPHeader(name: "Content-length", value: "\(data.count)"))
             }
             httpRequest.addHeaders(headers: headers)
 
-            let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { _, _, headers in
+            let onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders = { _, _, headers in
                 for header in headers {
                     print(header.name + " : " + header.value)
                 }
             }
 
-            let onBody: HttpRequestOptions.OnIncomingBody = { _, bodyChunk in
+            let onBody: HTTPRequestOptions.OnIncomingBody = { _, bodyChunk in
                 writeData(data: bodyChunk)
             }
 
-            let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone = { _, _ in
+            let onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone = { _, _ in
 
             }
 
-            let onComplete: HttpRequestOptions.OnStreamComplete = { _, error in
+            let onComplete: HTTPRequestOptions.OnStreamComplete = { _, error in
                 print(error?.message ?? "Success")
 
                 semaphore.signal()
             }
 
-            let httpClientOptions = HttpClientConnectionOptions(clientBootstrap: bootstrap,
+            let httpClientOptions = HTTPClientConnectionOptions(clientBootstrap: bootstrap,
                                                                 hostName: context.url.host!,
                                                                 initialWindowSize: Int.max,
                                                                 port: port,
@@ -309,10 +309,10 @@ struct Elasticurl {
                                                                 tlsOptions: tlsConnectionOptions,
                                                                 monitoringOptions: nil)
 
-            let connectionManager = try HttpClientConnectionManager(options: httpClientOptions)
+            let connectionManager = try HTTPClientConnectionManager(options: httpClientOptions)
             do {
                 let connection = try await connectionManager.acquireConnection()
-                let requestOptions = HttpRequestOptions(request: httpRequest,
+                let requestOptions = HTTPRequestOptions(request: httpRequest,
                                                         onIncomingHeaders: onIncomingHeaders,
                                                         onIncomingHeadersBlockDone: onBlockDone,
                                                         onIncomingBody: onBody,
