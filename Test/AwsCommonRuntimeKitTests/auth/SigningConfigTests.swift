@@ -5,7 +5,7 @@ import XCTest
 import AwsCCommon
 @testable import AwsCommonRuntimeKit
 
-class SigningConfigTests: CrtXCBaseTestCase {
+class SigningConfigTests: XCBaseTestCase {
 
     func testSigningConfigWithNonDefaultValues() async throws {
         let signingConfig = SigningConfig(algorithm: SigningAlgorithmType.signingV4Asymmetric,
@@ -13,7 +13,7 @@ class SigningConfigTests: CrtXCBaseTestCase {
                 service: "testService",
                 region: "testRegion",
                 date: Date(timeIntervalSinceNow: 100),
-                credentials: try AwsCredentials(accessKey: "access", secret: "secret", allocator: allocator),
+                credentials: try Credentials(accessKey: "access", secret: "secret", allocator: allocator),
                 expiration: TimeInterval(1000),
                 signedBodyHeader: SignedBodyHeaderType.contentSha256,
                 signedBodyValue: SignedBodyValue.streamingSha256Payload)

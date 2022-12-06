@@ -4,7 +4,7 @@
 import AwsCSdkUtils
 
 /// Request context used for resolving endpoint
-public class CRTAWSEndpointsRequestContext {
+public class EndpointsRequestContext {
     let rawValue: UnsafeMutablePointer<aws_endpoints_request_context>
 
     /// Initialize a new request context
