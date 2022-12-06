@@ -5,7 +5,7 @@ import XCTest
 import AwsCCommon
 @testable import AwsCommonRuntimeKit
 
-class SocketOptionsTests: CrtXCBaseTestCase {
+class SocketOptionsTests: XCBaseTestCase {
 
     func testCreateSocketOptions() throws {
         let socketOptions = SocketOptions(socketType: SocketType.datagram)

@@ -4,7 +4,7 @@ import XCTest
 import AwsCCommon
 @testable import AwsCommonRuntimeKit
 
-class UtilityTests: CrtXCBaseTestCase {
+class UtilityTests: XCBaseTestCase {
 
     func testMd5() throws {
         let hello = "Hello"

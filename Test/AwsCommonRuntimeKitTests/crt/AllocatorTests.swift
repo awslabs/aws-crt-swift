@@ -3,7 +3,7 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-class TracingAllocatorTests: CrtXCBaseTestCase {
+class TracingAllocatorTests: XCBaseTestCase {
 
   func testTracingAllocatorCorrectlyTracesAllocations() throws {
     let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)

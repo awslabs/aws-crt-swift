@@ -4,7 +4,7 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-class ShutdownCallbackOptionsTests: CrtXCBaseTestCase {
+class ShutdownCallbackOptionsTests: XCBaseTestCase {
 
     func testShutdownCallback() async throws {
         let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
