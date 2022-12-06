@@ -330,23 +330,23 @@ extension AWSCredentialsProvider.Source {
             x509Options.bootstrap = bootstrap.rawValue
             x509Options.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
-            guard let provider: UnsafeMutablePointer<aws_credentials_provider> = (
+            guard let provider: UnsafeMutablePointer<aws_credentials_provider> =
                     withByteCursorFromStrings(
                         thingName,
                         roleAlias,
-                        endpoint) { thingNameCursor, roleAliasCursor, endPointCursor in
+                        endpoint, { thingNameCursor, roleAliasCursor, endPointCursor in
 
-                        x509Options.thing_name = thingNameCursor
-                        x509Options.role_alias = roleAliasCursor
-                        x509Options.endpoint = endPointCursor
-                        return withOptionalCStructPointer(
-                            proxyOptions,
-                            tlsConnectionOptions) { proxyOptionsPointer, tlsConnectionOptionsPointer in
+                            x509Options.thing_name = thingNameCursor
+                            x509Options.role_alias = roleAliasCursor
+                            x509Options.endpoint = endPointCursor
+                            return withOptionalCStructPointer(
+                                proxyOptions,
+                                tlsConnectionOptions) { proxyOptionsPointer, tlsConnectionOptionsPointer in
 
-                            x509Options.proxy_options = proxyOptionsPointer
-                            x509Options.tls_connection_options = tlsConnectionOptionsPointer
-                            return aws_credentials_provider_new_x509(allocator.rawValue, &x509Options)
-                        }})
+                                x509Options.proxy_options = proxyOptionsPointer
+                                x509Options.tls_connection_options = tlsConnectionOptionsPointer
+                                return aws_credentials_provider_new_x509(allocator.rawValue, &x509Options)
+                            }})
             else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
