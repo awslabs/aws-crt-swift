@@ -16,8 +16,4 @@ public struct AWSError {
             self.errorMessage = nil
         }
     }
-
-    public static func makeFromLastError() -> AWSError {
-        return AWSError(errorCode: aws_last_error())
-    }
 }
