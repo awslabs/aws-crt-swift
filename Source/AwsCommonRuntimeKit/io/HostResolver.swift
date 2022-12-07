@@ -91,7 +91,7 @@ private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>?
 
     // Success
     let length = aws_array_list_length(hostAddresses!)
-    let addresses = (0..<length).map { index in
+    let addresses = (0..<length).map { index -> HostAddress in
         var address: UnsafeMutableRawPointer! = nil
         aws_array_list_get_at_ptr(hostAddresses!, &address, index)
         let hostAddressCType = address.bindMemory(to: aws_host_address.self, capacity: 1).pointee

@@ -7,7 +7,7 @@ public class TLSContext {
     var rawValue: UnsafeMutablePointer<aws_tls_ctx>
 
     public init(options: TLSContextOptions, mode: TLSMode, allocator: Allocator = defaultAllocator) throws {
-        guard let rawValue = (options.withCPointer { optionsPointer in
+        guard let rawValue = (options.withCPointer { optionsPointer -> UnsafeMutablePointer<aws_tls_ctx>? in
             switch mode {
             case .client:
                 return aws_tls_client_ctx_new(allocator.rawValue, optionsPointer)

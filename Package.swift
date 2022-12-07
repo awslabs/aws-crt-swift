@@ -54,7 +54,9 @@ calDependencies.append("LibCrypto")
 // aws-c-common config
 var awsCCommonPlatformExcludes = ["source/windows", "source/android",
                                   "AWSCRTAndroidTestRunner", "docker-images", "verification",
-                                  "include/aws/common/", "sanitizer-blacklist.txt"] + excludesFromAll
+                                  "include/aws/common/", "sanitizer-blacklist.txt",
+                                  "scripts/appverifier_ctest.py",
+                                  "scripts/appverifier_xml.py"] + excludesFromAll
 
 #if arch(i386) || arch(x86_64)
 awsCCommonPlatformExcludes.append("source/arch/arm")
@@ -99,7 +101,9 @@ var awsCCalPlatformExcludes = [
     "bin",
     "include/aws/cal/private",
     "CODE_OF_CONDUCT.md",
-    "sanitizer-blacklist.txt"] + excludesFromAll
+    "sanitizer-blacklist.txt",
+    "ecdsa-fuzz-corpus/windows/p256_sig_corpus.txt",
+    "ecdsa-fuzz-corpus/darwin/p256_sig_corpus.txt"] + excludesFromAll
 
 #if os(macOS)
 awsCCalPlatformExcludes.append("source/windows")
