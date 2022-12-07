@@ -4,13 +4,8 @@
 import AwsCommonRuntimeKit
 import Foundation
 import _Concurrency
-#if os(Linux)
-import Glibc
-#else
-import Darwin
-#endif
 
-// swiftlint:disable type_body_length
+// swiftlint:disable cyclomatic_complexity function_body_length
 struct Context {
     // args
     public var logLevel: LogLevel = .trace
@@ -41,7 +36,6 @@ struct Elasticurl {
     static func parseArguments() {
 
         let optionString = "a:b:c:e:f:H:d:g:j:l:m:M:GPHiko:t:v:VwWh"
-
         let options = [ElasticurlOptions.caCert.rawValue,
                        ElasticurlOptions.caPath.rawValue,
                        ElasticurlOptions.cert.rawValue,
@@ -181,9 +175,9 @@ struct Elasticurl {
         // make sure a url was given before we do anything else
         guard let urlString = CommandLine.arguments.last,
               let url = URL(string: urlString) else {
-                  print("Invalid URL: \(CommandLine.arguments.last!)")
-                  exit(-1)
-              }
+            print("Invalid URL: \(CommandLine.arguments.last!)")
+            exit(-1)
+        }
         context.url = url
     }
 
@@ -251,24 +245,19 @@ struct Elasticurl {
 
             let port = UInt16(443)
 
-            let tlsContextOptions = TlsContextOptions(defaultClientWithAllocator: allocator)
-            try tlsContextOptions.setAlpnList(context.alpnList.joined(separator: ";"))
+            let tlsContextOptions = TlsContextOptions.makeDefault(allocator: allocator)
+            tlsContextOptions.setAlpnList(context.alpnList)
             let tlsContext = try TlsContext(options: tlsContextOptions, mode: .client, allocator: allocator)
 
-            let tlsConnectionOptions = tlsContext.newConnectionOptions()
+            var tlsConnectionOptions = TlsConnectionOptions(context: tlsContext, allocator: allocator)
 
-            try tlsConnectionOptions.setServerName(host)
+            tlsConnectionOptions.serverName = host
 
-            let elg = EventLoopGroup(threadCount: 1, allocator: allocator)
-            let hostResolver = DefaultHostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
-
-            let clientBootstrapCallbackData = ClientBootstrapCallbackData { sempahore in
-                sempahore.signal()
-            }
+            let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
+            let hostResolver = try HostResolver.makeDefault(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30)
 
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                                                 hostResolver: hostResolver,
-                                                callbackData: clientBootstrapCallbackData,
                                                 allocator: allocator)
 
             let socketOptions = SocketOptions(socketType: .stream)
@@ -276,36 +265,23 @@ struct Elasticurl {
             let semaphore = DispatchSemaphore(value: 0)
 
             var stream: HttpStream?
-
-            let httpRequest: HttpRequest = HttpRequest(allocator: allocator)
-            httpRequest.method = context.verb
             let path = context.url.path == "" ? "/" : context.url.path
-
-            httpRequest.path = path
-
-            let headers = HttpHeaders(allocator: allocator)
-            if headers.add(name: "Host", value: host),
-               headers.add(name: "User-Agent", value: "Elasticurl"),
-               headers.add(name: "Accept", value: "*/*"),
-               headers.add(name: "Swift", value: "Version 5.4") {
-                for header in context.headers {
-                    _ = headers.add(name: header.key, value: header.value)
-                }
-            }
+            let httpRequest: HttpRequest = try HttpRequest(method: context.verb, path: path, allocator: allocator)
+            var headers = [HttpHeader]()
+            headers.append(HttpHeader(name: "Host", value: host))
+            headers.append(HttpHeader(name: "User-Agent", value: "Elasticurl"))
+            headers.append(HttpHeader(name: "Accept", value: "*/*"))
+            headers.append(HttpHeader(name: "Swift", value: "Version 5.4"))
 
             if let data = context.data {
                 let byteBuffer = ByteBuffer(data: data)
-                let awsStream = AwsInputStream(byteBuffer)
-                httpRequest.body = awsStream
-                if headers.add(name: "Content-length", value: "\(data.count)") {
-                    httpRequest.addHeaders(headers: headers)
-                }
+                httpRequest.body = byteBuffer
+                headers.append(HttpHeader(name: "Content-length", value: "\(data.count)"))
             }
             httpRequest.addHeaders(headers: headers)
 
             let onIncomingHeaders: HttpRequestOptions.OnIncomingHeaders = { _, _, headers in
-                let allHeaders = headers.getAll()
-                for header in allHeaders {
+                for header in headers {
                     print(header.name + " : " + header.value)
                 }
             }
@@ -314,12 +290,12 @@ struct Elasticurl {
                 writeData(data: bodyChunk)
             }
 
-            let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone = { _, _ in }
+            let onBlockDone: HttpRequestOptions.OnIncomingHeadersBlockDone = { _, _ in
+
+            }
 
             let onComplete: HttpRequestOptions.OnStreamComplete = { _, error in
-                if case let CRTError.crtError(unwrappedError) = error {
-                    print(unwrappedError.errorMessage ?? "no error message")
-                }
+                print(error?.message ?? "Success")
 
                 semaphore.signal()
             }
@@ -333,7 +309,7 @@ struct Elasticurl {
                                                                 tlsOptions: tlsConnectionOptions,
                                                                 monitoringOptions: nil)
 
-            let connectionManager = HttpClientConnectionManager(options: httpClientOptions)
+            let connectionManager = try HttpClientConnectionManager(options: httpClientOptions)
             do {
                 let connection = try await connectionManager.acquireConnection()
                 let requestOptions = HttpRequestOptions(request: httpRequest,
@@ -341,8 +317,8 @@ struct Elasticurl {
                                                         onIncomingHeadersBlockDone: onBlockDone,
                                                         onIncomingBody: onBody,
                                                         onStreamComplete: onComplete)
-                stream = connection.makeRequest(requestOptions: requestOptions)
-                stream!.activate()
+                stream = try connection.makeRequest(requestOptions: requestOptions)
+                try stream!.activate()
 
             } catch {
                 print("connection has shut down with error: \(error.localizedDescription)" )

@@ -2,49 +2,58 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
 import AwsCIo
+import AwsCCommon
 
-public final class HttpRequest: HttpMessage {
-    init(message: OpaquePointer) {
-        super.init(borrowingMessage: message)
-    }
+public class HttpRequest: HttpMessage {
 
-    public init(allocator: Allocator = defaultAllocator) {
-        super.init(owningMessage: aws_http_message_new_request(allocator.rawValue))
-    }
-
-    public init(allocator: Allocator = defaultAllocator, headers: HttpHeaders) {
-        super.init(owningMessage: aws_http_message_new_request_with_headers(allocator.rawValue, headers.rawValue))
-    }
-
-    public var method: String? {
+    public var method: String {
         get {
-            var result = aws_byte_cursor()
-            if aws_http_message_get_request_method(self.rawValue, &result) != AWS_OP_SUCCESS {
-                return nil
-            }
-            return result.toString()
+            var method = aws_byte_cursor()
+            _ = aws_http_message_get_request_method(rawValue, &method)
+            return method.toString()
         }
-        set(value) {
-            guard let value = value else { return }
-            if aws_http_message_set_request_method(self.rawValue, value.awsByteCursor) != AWS_OP_SUCCESS {
-                self.method = nil
+        set {
+            newValue.withByteCursor { valueCursor in
+                _ = aws_http_message_set_request_method(self.rawValue, valueCursor)
             }
         }
     }
 
-    public var path: String? {
+    public var path: String {
         get {
-            var result = aws_byte_cursor()
-            if aws_http_message_get_request_path(self.rawValue, &result) != AWS_OP_SUCCESS {
-                return nil
-            }
-            return result.toString()
+            var path = aws_byte_cursor()
+            _ = aws_http_message_get_request_path(rawValue, &path)
+            return path.toString()
         }
-        set(value) {
-            if aws_http_message_set_request_path(self.rawValue,
-                                                 value?.awsByteCursor ?? "".awsByteCursor) != AWS_OP_SUCCESS {
-                self.path = nil
+        set {
+            newValue.withByteCursor { valueCursor in
+                _ = aws_http_message_set_request_path(self.rawValue, valueCursor)
             }
         }
+    }
+
+    /// Creates an http request which can be passed to a connection.
+    /// - Parameters:
+    ///   - method: Http method to use. Must be a valid http method and not empty.
+    ///   - path: Path and query string for Http Request. Must not be empty.
+    ///   - headers: (Optional) headers to send
+    ///   - body: (Optional) body stream to send as part of request
+    ///   - allocator: (Optional) allocator to override
+    /// - Throws: CommonRuntimeError
+    public init(method: String = "GET",
+                path: String = "/",
+                headers: [HttpHeader] = [HttpHeader](),
+                body: IStreamable? = nil,
+                allocator: Allocator = defaultAllocator) throws {
+        try super.init(allocator: allocator)
+
+        self.method = method
+        self.path = path
+
+        if let body = body {
+            let iStreamCore = IStreamCore(iStreamable: body, allocator: allocator)
+            aws_http_message_set_body_stream(self.rawValue, &iStreamCore.rawValue)
+        }
+        addHeaders(headers: headers)
     }
 }

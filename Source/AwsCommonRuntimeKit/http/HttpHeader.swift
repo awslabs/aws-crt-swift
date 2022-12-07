@@ -3,25 +3,28 @@
 
 import AwsCHttp
 
-public struct HttpHeader {
-    public var rawValue: aws_http_header
-    public var name: String {
-        return rawValue.name.toString() ?? ""
+public class HttpHeader: CStruct {
+    public let name: String
+    public let value: String
 
-    }
-    public var value: String {
-            return rawValue.value.toString() ?? ""
-
-    }
-    public var compression: HttpHeaderCompression {
-        return HttpHeaderCompression(rawValue: rawValue.compression)
+    public init(name: String,
+                value: String) {
+        self.name = name
+        self.value = value
     }
 
-    init(name: String,
-         value: String,
-         compression: HttpHeaderCompression = .useCache) {
-        self.rawValue = aws_http_header(name: name.awsByteCursor,
-                                        value: value.awsByteCursor,
-                                        compression: compression.rawValue)
+    init(rawValue: aws_http_header) {
+        self.name = rawValue.name.toString()
+        self.value = rawValue.value.toString()
+    }
+
+    typealias RawType = aws_http_header
+    func withCStruct<Result>(_ body: (aws_http_header) -> Result) -> Result {
+        var cHeader = aws_http_header()
+        return withByteCursorFromStrings(name, value) { nameCursor, valueCursor in
+            cHeader.name = nameCursor
+            cHeader.value = valueCursor
+            return body(cHeader)
+        }
     }
 }

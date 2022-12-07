@@ -2,22 +2,27 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
 
-public class ProxyEnvSettings {
-    let rawValue: UnsafeMutablePointer<proxy_env_var_settings>
-    public var envVarType: HttpProxyEnvType = .disable
-    public var proxyConnectionType: HttpProxyConnectionType = .forward
+public struct ProxyEnvSettings: CStruct {
+    public var envVarType: HttpProxyEnvType
+    public var proxyConnectionType: HttpProxyConnectionType
     public var tlsOptions: TlsConnectionOptions?
 
     public init(envVarType: HttpProxyEnvType = .disable,
                 proxyConnectionType: HttpProxyConnectionType = .forward,
                 tlsOptions: TlsConnectionOptions? = nil) {
-        self.rawValue = allocatePointer()
         self.envVarType = envVarType
         self.proxyConnectionType = proxyConnectionType
         self.tlsOptions = tlsOptions
     }
 
-    deinit {
-        rawValue.deinitializeAndDeallocate()
+    typealias RawType = proxy_env_var_settings
+    func withCStruct<Result>(_ body: (proxy_env_var_settings) -> Result) -> Result {
+        var cProxyEnvSettings = proxy_env_var_settings()
+        cProxyEnvSettings.env_var_type = envVarType.rawValue
+        cProxyEnvSettings.connection_type = proxyConnectionType.rawValue
+        return withOptionalCStructPointer(to: tlsOptions) { tlsOptionsPointer in
+            cProxyEnvSettings.tls_options = tlsOptionsPointer
+            return body(cProxyEnvSettings)
+        }
     }
 }
