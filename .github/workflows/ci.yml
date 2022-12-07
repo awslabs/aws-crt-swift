@@ -4,7 +4,7 @@ on:
   pull_request:
 
 env:
-  BUILDER_VERSION: v0.9.7
+  BUILDER_VERSION: v0.9.23
   BUILDER_SOURCE: releases
   BUILDER_HOST: https://d19elf31gohf1l.cloudfront.net
   PACKAGE_NAME: aws-crt-swift
@@ -17,18 +17,12 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - name: GitHub Action for SwiftLint
-        uses: norio-nomura/action-swiftlint@3.1.0
-      - name: GitHub Action for SwiftLint with --strict
-        uses: norio-nomura/action-swiftlint@3.1.0
-        with:
-          args: --strict
-      - name: GitHub Action for SwiftLint (Only files changed in the PR)
-        uses: norio-nomura/action-swiftlint@3.1.0
-        env:
-          DIFF_BASE: ${{ github.base_ref }}
+        uses: norio-nomura/action-swiftlint@3.2.1
+
   linux:
+
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -36,17 +30,17 @@ jobs:
         image:
           - ubuntu-x64
           - al2-x64
-         # issue to fix centos opened against apple here: https://github.com/apple/swift-docker/issues/258
-         # - centos-x64
+          # issue to fix centos opened against apple here: https://github.com/apple/swift-docker/issues/258
+          # - centos-x64
     steps:
       - name: Build ${{ env.PACKAGE_NAME }}
         run: |
           aws s3 cp --debug s3://aws-crt-test-stuff/ci/${{ env.BUILDER_VERSION }}/linux-container-ci.sh ./linux-container-ci.sh && chmod a+x ./linux-container-ci.sh
           ./linux-container-ci.sh ${{ env.BUILDER_VERSION }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
   osx:
-    runs-on: macos-11
+    runs-on: macos-12
     env:
-      DEVELOPER_DIR: /Applications/Xcode_13.2.1.app
+      DEVELOPER_DIR: /Applications/Xcode.app
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
@@ -54,9 +48,9 @@ jobs:
           chmod a+x builder
           ./builder build -p ${{ env.PACKAGE_NAME }}
   devices:
-    runs-on: macos-11
+    runs-on: macos-12
     env:
-      DEVELOPER_DIR: /Applications/Xcode_13.2.1.app
+      DEVELOPER_DIR: /Applications/Xcode.app
     strategy:
       fail-fast: false
       matrix:

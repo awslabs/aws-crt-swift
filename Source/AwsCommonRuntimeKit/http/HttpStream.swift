@@ -3,19 +3,23 @@
 import AwsCHttp
 
 public class HttpStream {
-    var httpStream: UnsafeMutablePointer<aws_http_stream>?
+    let rawValue: UnsafeMutablePointer<aws_http_stream>
+    var callbackData: HttpStreamCallbackCore
 
-    public let httpConnection: HttpClientConnection
+    /// Stream keeps a reference to HttpConnection to keep it alive
+    private let httpConnection: HttpClientConnection
 
-    /// Retrieves the Http Response Status Code
-    /// - Returns: The status code as `Int32`
-    public var statusCode: Int32 {
-        var status: Int32 = 0
-        aws_http_stream_get_incoming_response_status(httpStream, &status)
-        return status
-    }
-
-    init(httpConnection: HttpClientConnection) {
+    // Called by HttpClientConnection
+    init(
+        httpConnection: HttpClientConnection,
+        options: aws_http_make_request_options,
+        callbackData: HttpStreamCallbackCore) throws {
+        self.callbackData = callbackData
+        guard let rawValue = withUnsafePointer(
+                to: options, { aws_http_connection_make_request(httpConnection.rawValue, $0) }) else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+        self.rawValue = rawValue
         self.httpConnection = httpConnection
     }
 
@@ -26,15 +30,30 @@ public class HttpStream {
     /// - Parameters:
     ///   - incrementBy:  How many bytes to increment the sliding window by.
     public func updateWindow(incrementBy: Int) {
-        aws_http_stream_update_window(httpStream, incrementBy)
+        aws_http_stream_update_window(rawValue, incrementBy)
     }
 
-    ///Activates the client stream.
-    public func activate() {
-        aws_http_stream_activate(httpStream)
+    /// Retrieves the Http Response Status Code
+    /// - Returns: The status code as `Int32`
+    public func statusCode() throws -> Int {
+        var status: Int32 = 0
+        if aws_http_stream_get_incoming_response_status(rawValue, &status) != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+        return Int(status)
+    }
+
+    // TODO: make it thread safe
+    /// Activates the client stream.
+    public func activate() throws {
+        callbackData.stream = self
+        if aws_http_stream_activate(rawValue) != AWS_OP_SUCCESS {
+            callbackData.stream = nil
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
     }
 
     deinit {
-        aws_http_stream_release(httpStream)
+        aws_http_stream_release(rawValue)
     }
 }

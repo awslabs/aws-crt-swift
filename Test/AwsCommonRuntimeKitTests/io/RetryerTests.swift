@@ -2,40 +2,26 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import XCTest
 @testable import AwsCommonRuntimeKit
-
 class RetryerTests: CrtXCBaseTestCase {
     let expectation = XCTestExpectation(description: "Credentials callback was called")
     
     func testCreateAWSRetryer() throws {
-        let shutDownOptions = ShutDownCallbackOptions { semaphore in
-            semaphore.signal()
-        }
-        let elg = EventLoopGroup(threadCount: 1, allocator: allocator, shutDownOptions: shutDownOptions )
-        let backOffRetryOptions = CRTExponentialBackoffRetryOptions(eventLoopGroup: elg)
-        let config = MockRetryOptions(backOffRetryOptions: backOffRetryOptions)
-        _ = try CRTAWSRetryStrategy(options: config, allocator: allocator)
+        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
+        _ = try CRTAWSRetryStrategy(eventLoopGroup: elg, allocator: allocator)
     }
     
     func testAcquireToken() async throws {
-        let shutDownOptions = ShutDownCallbackOptions { semaphore in
-            semaphore.signal()
-        }
-        let elg = EventLoopGroup(threadCount: 1, allocator: allocator, shutDownOptions: shutDownOptions )
-        let backOffRetryOptions = CRTExponentialBackoffRetryOptions(eventLoopGroup: elg)
-        let config = MockRetryOptions(backOffRetryOptions: backOffRetryOptions)
-        let retryer = try CRTAWSRetryStrategy(options: config, allocator: allocator)
-        let result = try await retryer.acquireToken(timeout: 0, partitionId: "partition1")
+        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
+        let retryer = try CRTAWSRetryStrategy(eventLoopGroup: elg, allocator: allocator)
+        let result = try await retryer.acquireToken(partitionId: "partition1")
         XCTAssertNotNil(result)
     }
-}
 
-struct MockRetryOptions: CRTRetryOptions {
-    var initialBucketCapacity: Int
-    var backOffRetryOptions: CRTExponentialBackoffRetryOptions
-    
-    public init(initialBucketCapacity: Int = 500,
-                backOffRetryOptions: CRTExponentialBackoffRetryOptions) {
-        self.initialBucketCapacity = initialBucketCapacity
-        self.backOffRetryOptions = backOffRetryOptions
+    func testSechudleRetry() async throws {
+        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
+        let retryer = try CRTAWSRetryStrategy(eventLoopGroup: elg, allocator: allocator)
+        let token = try await retryer.acquireToken(partitionId: "partition1")
+        XCTAssertNotNil(token)
+        try await retryer.scheduleRetry(token: token, errorType: CRTRetryError.serverError)
     }
 }

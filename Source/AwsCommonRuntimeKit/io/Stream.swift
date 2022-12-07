@@ -4,106 +4,113 @@
 import AwsCIo
 import Foundation
 
-//swiftlint:disable trailing_whitespace
+/// This is for streaming input.
+public protocol IStreamable {
 
-private var vtable = aws_input_stream_vtable(seek: doSeek,
-        read: doRead,
-        get_status: doGetStatus,
-        get_length: doGetLength,
-        acquire: { _ = Unmanaged<AwsInputStream>.fromOpaque($0!.pointee.impl).retain() },
-        release: { Unmanaged<AwsInputStream>.fromOpaque($0!.pointee.impl).release() })
+    /// Optional, throws length not supported error by default
+    func length() throws -> UInt64
 
-public class AwsInputStream {
-    var rawValue: aws_input_stream
-    let awsStream: AwsStream
-    public var length: Int64
-    public init(_ impl: AwsStream, allocator: Allocator = defaultAllocator) {
-        length = Int64(impl.length)
-        awsStream = impl
-        rawValue = aws_input_stream()
-        rawValue.vtable = UnsafePointer<aws_input_stream_vtable>(&vtable)
-        rawValue.impl = Unmanaged<AwsInputStream>.passUnretained(self).toOpaque()
+    /// (Optional) Provides an implementation to seek the stream to a particular offset.
+    ///
+    /// - Parameters:
+    ///   - offset: The value to set the seek position.
+    ///             If the streamSeekType is .begin, offset value would be positive.
+    ///             If the streamSeekType is .end, offset value would be negative.
+    ///   - streamSeekType: The direction to seek the stream from
+    /// - Throws: Throws Seek not supported error by default.
+    func seek(offset: Int64, streamSeekType: StreamSeekType) throws
+
+    /// Write data up to `buffer.count` and returns the number of bytes written.
+    /// buffer.count must not be modified.
+    ///
+    /// - Parameters:
+    ///     - buffer: The buffer to write data to.
+    /// - Returns: `nil` if the end of the file has been reached.
+    ///   Returns `0` if the data is not yet available.
+    ///   Otherwise returns the number of bytes read.
+    func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int?
+}
+
+public extension IStreamable {
+
+    func seek(offset: UInt64, streamSeekType: StreamSeekType) throws {
+        throw CommonRunTimeError.crtError(CRTError(code: Int32(AWS_IO_STREAM_SEEK_UNSUPPORTED.rawValue)))
+    }
+
+    func length() throws -> UInt64 {
+        throw CommonRunTimeError.crtError(CRTError(code: Int32(AWS_IO_STREAM_GET_LENGTH_UNSUPPORTED.rawValue)))
     }
 }
 
-public protocol AwsStream {
-    var status: aws_stream_status { get }
-    var length: UInt { get }
-
-    func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool
-    func read(buffer: inout aws_byte_buf) -> Bool
+/// Direction to seek the stream.
+public enum StreamSeekType: UInt32 {
+    /// Seek the stream starting from beginning
+    case begin = 0
+    /// Seek the stream from End.
+    case end = 2
 }
 
-extension FileHandle: AwsStream {
-    @inlinable
-    public var status: aws_stream_status {
-        return aws_stream_status(is_end_of_stream: self.length == self.offsetInFile, is_valid: true)
-    }
+extension FileHandle: IStreamable {
 
-    @inlinable
-    public var length: UInt {
-        let savedPos = self.offsetInFile
-        defer { self.seek(toFileOffset: savedPos ) }
-        self.seekToEndOfFile()
-        return UInt(self.offsetInFile)
-    }
-
-    @inlinable
-    public func seek(offset: Int64, basis: aws_stream_seek_basis) -> Bool {
-        let targetOffset: UInt64
-        if basis.rawValue == AWS_SSB_BEGIN.rawValue {
-            targetOffset = self.offsetInFile + UInt64(offset)
+    public func length() throws -> UInt64 {
+        let length: UInt64
+        let savedPos: UInt64
+        if #available(macOS 11, tvOS 13.4, iOS 13.4, watchOS 6.2, *) {
+            savedPos = try offset()
+            try seekToEnd()
+            length = try offset()
         } else {
-            targetOffset = self.offsetInFile - UInt64(offset)
+            savedPos = offsetInFile
+            seekToEndOfFile()
+            length = offsetInFile
         }
-        self.seek(toFileOffset: targetOffset)
-        return true
-    }
-
-    @inlinable
-    public func read(buffer: inout aws_byte_buf) -> Bool {
-        let data = self.readData(ofLength: buffer.capacity - buffer.len)
-        if data.count > 0 {
-            let result = buffer.buffer.advanced(by: buffer.len)
-            data.copyBytes(to: result, count: data.count)
-            buffer.len += data.count
-            return true
+        guard length != savedPos else {
+            return length
         }
-        return !self.status.is_end_of_stream
+        try self.seek(toOffset: savedPos)
+        return length
     }
-}
 
-private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
-                    _ offset: Int64,
-                    _ seekBasis: aws_stream_seek_basis) -> Int32 {
-    let inputStream = Unmanaged<AwsInputStream>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
-    if inputStream.awsStream.seek(offset: offset, basis: seekBasis) {
-        return AWS_OP_SUCCESS
+    public func seek(offset: Int64, streamSeekType: StreamSeekType) throws {
+        let targetOffset: UInt64
+        switch streamSeekType {
+        case .begin:
+            guard offset >= 0 else {
+                throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
+            }
+            targetOffset = UInt64(offset)
+        case .end:
+            guard offset != 0 else {
+                if #available(macOS 11, tvOS 13.4, iOS 13.4, watchOS 6.2, *) {
+                    try seekToEnd()
+                } else {
+                    seekToEndOfFile()
+                }
+                return
+            }
+            let length = try length()
+            guard offset <= 0, abs(offset) <= length else {
+                throw CommonRunTimeError.crtError(CRTError(code: AWS_IO_STREAM_INVALID_SEEK_POSITION.rawValue))
+            }
+            targetOffset = length - UInt64(abs(offset))
+        }
+        try self.seek(toOffset: targetOffset)
     }
-    return AWS_OP_ERR
-}
 
-private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
-                    _ buffer: UnsafeMutablePointer<aws_byte_buf>!) -> Int32 {
-    let inputStream = Unmanaged<AwsInputStream>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
-    if inputStream.awsStream.read(buffer: &buffer.pointee) {
-        return AWS_OP_SUCCESS
+    public func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int? {
+        let data: Data?
+        if #available(macOS 11, tvOS 13.4, iOS 13.4, watchOS 6.2, *) {
+            data = try self.read(upToCount: buffer.count)
+        } else {
+            data = self.readData(ofLength: buffer.count)
+        }
+        guard let data = data else {
+            return nil
+        }
+
+        if !data.isEmpty {
+            data.copyBytes(to: buffer, from: 0..<data.count)
+        }
+        return data.count
     }
-    return AWS_OP_ERR
-}
-
-private func doGetStatus(_ stream: UnsafeMutablePointer<aws_input_stream>!,
-                         _ result: UnsafeMutablePointer<aws_stream_status>!) -> Int32 {
-    let inputStream = Unmanaged<AwsInputStream>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
-    result.pointee = inputStream.awsStream.status
-    return AWS_OP_SUCCESS
-}
-
-private func doGetLength(_ stream: UnsafeMutablePointer<aws_input_stream>!,
-                         _ result: UnsafeMutablePointer<Int64>!) -> Int32 {
-    let inputStream = Unmanaged<AwsInputStream>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
-    let length = inputStream.awsStream.length
-
-    result.pointee = Int64(length)
-    return AWS_OP_SUCCESS
 }

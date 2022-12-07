@@ -3,40 +3,49 @@
 
 import AwsCIo
 
-public final class TlsConnectionOptions {
-	private let allocator: Allocator
-    var rawValue: UnsafeMutablePointer<aws_tls_connection_options>
+public struct TlsConnectionOptions: CStruct {
+    private let allocator: Allocator
+    public var context: TlsContext
+    public var alpnList: [String]?
+    public var serverName: String?
 
-	init(_ context: TlsContext, allocator: Allocator) {
-		self.allocator = allocator
+    public init(
+        context: TlsContext,
+        alpnList: [String]? = nil,
+        serverName: String? = nil,
+        allocator: Allocator = defaultAllocator) {
+        self.allocator = allocator
+        self.context = context
+        self.alpnList = alpnList
+        self.serverName = serverName
+    }
 
-        var connectionsPointer: UnsafeMutablePointer<aws_tls_connection_options> = allocatePointer()
-		aws_tls_connection_options_init_from_ctx(connectionsPointer, context.rawValue)
-        #if os(iOS) || os(watchOS)
-        connectionsPointer.pointee.timeout_ms = 30_000
-        #else
-        connectionsPointer.pointee.timeout_ms = 3_000
-        #endif
-        self.rawValue = connectionsPointer
-	}
-
-	public func setAlpnList(_ alpnList: String) throws {
-		if aws_tls_connection_options_set_alpn_list(rawValue, self.allocator.rawValue, alpnList) != AWS_OP_SUCCESS {
-			throw AWSCommonRuntimeError()
-		}
-	}
-
-	public func setServerName(_ serverName: String) throws {
-		var byteCur = serverName.newByteCursor()
-		if aws_tls_connection_options_set_server_name(rawValue,
-                                                      self.allocator.rawValue,
-                                                      &byteCur.rawValue) != AWS_OP_SUCCESS {
-			throw AWSCommonRuntimeError()
-		}
-	}
-
-    deinit {
-        aws_tls_connection_options_clean_up(rawValue)
-        rawValue.deallocate()
+    typealias RawType = aws_tls_connection_options
+    func withCStruct<Result>(_ body: (aws_tls_connection_options) -> Result) -> Result {
+        var rawValue = aws_tls_connection_options()
+        return withUnsafeMutablePointer(to: &rawValue) { tlsConnectionsOptionsPointer in
+            aws_tls_connection_options_init_from_ctx(tlsConnectionsOptionsPointer, context.rawValue)
+            defer {
+                aws_tls_connection_options_clean_up(tlsConnectionsOptionsPointer)
+            }
+            #if os(iOS) || os(watchOS)
+            tlsConnectionsOptionsPointer.pointee.timeout_ms = 30_000
+            #else
+            tlsConnectionsOptionsPointer.pointee.timeout_ms = 3_000
+            #endif
+            if let alpnList = alpnList {
+                _ = aws_tls_connection_options_set_alpn_list(
+                    tlsConnectionsOptionsPointer,
+                    self.allocator.rawValue,
+                    alpnList.joined(separator: ";"))
+            }
+            _ = serverName?.withByteCursorPointer { serverNameCursorPointer in
+                aws_tls_connection_options_set_server_name(
+                    tlsConnectionsOptionsPointer,
+                    allocator.rawValue,
+                    serverNameCursorPointer)
+            }
+            return body(tlsConnectionsOptionsPointer.pointee)
+        }
     }
 }
