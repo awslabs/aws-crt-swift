@@ -7,11 +7,14 @@ class HostResolverTests: CrtXCBaseTestCase {
     
     func testCanResolveHosts() async throws {
         let elg = EventLoopGroup(allocator: self.allocator)
+        let resolverShutDownOptions = ShutDownCallbackOptions { semaphore in
+            semaphore.signal()
+        }
         let resolver = DefaultHostResolver(eventLoopGroup: elg,
                                            maxHosts: 8,
                                            maxTTL: 5,
                                            allocator: self.allocator,
-                                           shutDownOptions: nil)
+                                           shutDownOptions: resolverShutDownOptions)
         
         let addresses = try await resolver.resolve(host: "localhost")
         XCTAssertNoThrow(addresses)
