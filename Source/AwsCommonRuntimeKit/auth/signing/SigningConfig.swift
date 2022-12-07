@@ -26,11 +26,11 @@ public struct SigningConfig: CStructWithUserData {
     /// AWS Credentials to sign with. If Sigv4a is the algorithm and the credentials supplied are not ecc-based,
     /// a temporary ecc-based credentials object will be built and used instead.
     /// Overrides the credentialsProvider setting if non-null.
-    public var credentials: AwsCredentials?
+    public var credentials: Credentials?
 
     /// AWS credentials provider to fetch credentials from.  If the signing algorithm is asymmetric sigv4, then the
     /// ecc-based credentials will be derived from the fetched credentials.
-    public var credentialsProvider: AwsCredentialsProvider?
+    public var credentialsProvider: CredentialsProvider?
 
     /// If non-zero and the signing transform is query param, then signing will add X-Amz-Expires to the query
     /// string, equal to the value specified here. If this value is zero or if header signing is being used then
@@ -69,8 +69,8 @@ public struct SigningConfig: CStructWithUserData {
                 service: String,
                 region: String,
                 date: Date = Date(),
-                credentials: AwsCredentials? = nil,
-                credentialsProvider: AwsCredentialsProvider? = nil,
+                credentials: Credentials? = nil,
+                credentialsProvider: CredentialsProvider? = nil,
                 expiration: TimeInterval? = nil,
                 signedBodyHeader: SignedBodyHeaderType = .none,
                 signedBodyValue: SignedBodyValue = SignedBodyValue.empty,

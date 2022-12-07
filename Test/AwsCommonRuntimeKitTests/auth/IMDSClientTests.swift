@@ -4,6 +4,6 @@ import XCTest
 @testable import AwsCommonRuntimeKit
 
 //TODO: write some tests
-class IMDSClientTest: CrtXCBaseTestCase {
+class IMDSClientTest: XCBaseTestCase {
 
 }
