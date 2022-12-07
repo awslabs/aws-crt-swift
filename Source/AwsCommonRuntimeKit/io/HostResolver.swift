@@ -73,11 +73,8 @@ public class HostResolver {
         return cHostResolutionConfig
     }
 
-        if (aws_host_resolver_resolve_host(rawValue,
-                                       options.host.rawValue,
-                                       onHostResolved, config, pointer)) != AWS_OP_SUCCESS {
-            continuation.resume(throwing: CRTError.crtError(AWSError(errorCode: aws_last_error())))
-        }
+    deinit {
+        aws_host_resolver_release(rawValue)
     }
 }
 
