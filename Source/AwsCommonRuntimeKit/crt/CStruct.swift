@@ -58,7 +58,6 @@ extension CStructWithUserData {
     }
 }
 
-
 // swiftlint:disable force_cast
 func withOptionalCStructPointer<T: CStruct, Result>(
     to arg1: T?, _ body: (UnsafePointer<T.RawType>?) -> Result
