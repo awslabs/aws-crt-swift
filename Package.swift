@@ -150,10 +150,10 @@ var awsCHttpPlatformExcludes = [
     "codebuild/linux-integration-tests.yml"] + excludesFromAll
 
 let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
-let awsCEventStreamExcludes = [
-    "bin",
-    "CODE_OF_CONDUCT.md",
-    "clang-tidy/run-clang-tidy.sh"] + excludesFromAll
+//let awsCEventStreamExcludes = [
+//    "bin",
+//    "CODE_OF_CONDUCT.md",
+//    "clang-tidy/run-clang-tidy.sh"] + excludesFromAll
 
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
 let cSettings: [CSetting] = [
@@ -229,13 +229,13 @@ packageTargets.append(contentsOf: [
             exclude: awsCChecksumsExcludes,
             cSettings: cSettings
     ),
-    .target(
-            name: "AwsCEventStreams",
-            dependencies: ["AwsChecksums", "AwsCCommon", "AwsCIo", "AwsCCal"],
-            path: "aws-common-runtime/aws-c-event-stream",
-            exclude: awsCEventStreamExcludes,
-            cSettings: cSettings
-    ),
+//    .target(
+//            name: "AwsCEventStreams",
+//            dependencies: ["AwsChecksums", "AwsCCommon", "AwsCIo", "AwsCCal"],
+//            path: "aws-common-runtime/aws-c-event-stream",
+//            exclude: awsCEventStreamExcludes,
+//            cSettings: cSettings
+//    ),
     .target(
         name: "AwsCommonRuntimeKit",
         dependencies: [ "AwsCAuth",
@@ -245,7 +245,7 @@ packageTargets.append(contentsOf: [
                         "AwsCIo",
                         "AwsCCommon",
                         "AwsChecksums",
-                        "AwsCEventStreams",
+//                        "AwsCEventStreams",
                         .product(name: "Collections", package: "swift-collections")],
         path: "Source/AwsCommonRuntimeKit",
         swiftSettings: [
