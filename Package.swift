@@ -105,15 +105,28 @@ var awsCCalPlatformExcludes = [
     "ecdsa-fuzz-corpus/windows/p256_sig_corpus.txt",
     "ecdsa-fuzz-corpus/darwin/p256_sig_corpus.txt"] + excludesFromAll
 
+var awsCChecksumsExcludes = [
+    "CMakeLists.txt",
+    "LICENSE",
+    "builder.json",
+    "README.md",
+    "format-check.sh",
+    "cmake",
+    "tests"]
+
 #if os(macOS)
 awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/unix")
+awsCChecksumsExcludes.append("source/intel")
+awsCChecksumsExcludes.append("source/generic")
 #elseif(Windows)
 awsCCalPlatformExcludes.append("source/darwin")
 awsCCalPlatformExcludes.append("source/unix")
+awsCChecksumsExcludes.append("source/intel/asm")
 #else
 awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
+awsCChecksumsExcludes.append("source/intel/visualc")
 #endif
 
 let awsCSdkUtilsPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
@@ -130,6 +143,10 @@ var awsCHttpPlatformExcludes = [
     "codebuild/linux-integration-tests.yml"] + excludesFromAll
 
 let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
+let awsCEventStreamExcludes = [
+    "bin",
+    "CODE_OF_CONDUCT.md",
+    "clang-tidy/run-clang-tidy.sh"] + excludesFromAll
 
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
 let cSettings: [CSetting] = [
@@ -199,6 +216,20 @@ packageTargets.append(contentsOf: [
         cSettings: cSettings
     ),
     .target(
+            name: "AwsChecksums",
+            dependencies: ["AwsCCommon"],
+            path: "aws-common-runtime/aws-checksums",
+            exclude: awsCChecksumsExcludes,
+            cSettings: cSettings
+    ),
+    .target(
+            name: "AwsCEventStreams",
+            dependencies: ["AwsChecksums", "AwsCCommon", "AwsCIo", "AwsCCal"],
+            path: "aws-common-runtime/aws-c-event-stream",
+            exclude: awsCEventStreamExcludes,
+            cSettings: cSettings
+    ),
+    .target(
         name: "AwsCommonRuntimeKit",
         dependencies: [ "AwsCAuth",
                         "AwsCHttp",
@@ -206,6 +237,8 @@ packageTargets.append(contentsOf: [
                         "AwsCCompression",
                         "AwsCIo",
                         "AwsCCommon",
+                        "AwsChecksums",
+                        "AwsCEventStreams",
                         .product(name: "Collections", package: "swift-collections")],
         path: "Source/AwsCommonRuntimeKit",
         swiftSettings: [
