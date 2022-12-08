@@ -125,16 +125,45 @@ awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
 #endif
 
+let cSettings: [CSetting] = [
+    //    .unsafeFlags(cFlags),
+    .define("DEBUG_BUILD", .when(configuration: .debug))
+]
+
+let cSettingChecksum = cSettings
+// || defined(_M_X64) || defined(_M_IX86))
 #if arch(arm64)
 awsCChecksumsExcludes.append("source/intel")
 awsCChecksumsExcludes.append("source/generic")
-#elseif os(Windows)
-awsCChecksumsExcludes.append("source/intel/asm")
-awsCChecksumsExcludes.append("source/arm")
+// !(defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)) arch is intel
+//#elseif arch(x86_64) || arch(i386)
+//    #if (Windows)
+//        awsCChecksumsExcludes.append("source/arm")
+//        awsCChecksumsExcludes.append("source/intel/asm")
+//        awsCChecksumsExcludes.append("source/generic")
+//    #else
+//        awsCChecksumsExcludes.append("source/arm")
+//        awsCChecksumsExcludes.append("source/intel/visualc")
+//        awsCChecksumsExcludes.append("source/generic")
+//    #endif
 #else
-awsCChecksumsExcludes.append("source/intel/visualc")
 awsCChecksumsExcludes.append("source/arm")
+awsCChecksumsExcludes.append("source/intel")
+cSettingChecksum.append(.define("USE_CPU_EXTENSIONS", to: "OFF"))
 #endif
+
+
+//
+//#if arch(arm64)
+//awsCChecksumsExcludes.append("source/intel")
+//awsCChecksumsExcludes.append("source/generic")
+//#elseif os(Windows)
+//awsCChecksumsExcludes.append("source/intel/asm")
+//awsCChecksumsExcludes.append("source/arm")
+//#else
+//awsCChecksumsExcludes.append("source/intel/visualc")
+//awsCChecksumsExcludes.append("source/arm")
+//#endif
 
 let awsCSdkUtilsPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 
@@ -156,10 +185,6 @@ let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 //    "clang-tidy/run-clang-tidy.sh"] + excludesFromAll
 
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
-let cSettings: [CSetting] = [
-    //    .unsafeFlags(cFlags),
-    .define("DEBUG_BUILD", .when(configuration: .debug))
-]
 
 var cSettingsIO = cSettings
 #if os(Linux)
@@ -227,7 +252,7 @@ packageTargets.append(contentsOf: [
             dependencies: ["AwsCCommon"],
             path: "aws-common-runtime/aws-checksums",
             exclude: awsCChecksumsExcludes,
-            cSettings: cSettings
+            cSettings: cSettingChecksum
     ),
 //    .target(
 //            name: "AwsCEventStreams",
