@@ -130,8 +130,10 @@ awsCChecksumsExcludes.append("source/intel")
 awsCChecksumsExcludes.append("source/generic")
 #elseif os(Windows)
 awsCChecksumsExcludes.append("source/intel/asm")
+awsCChecksumsExcludes.append("source/arm")
 #else
 awsCChecksumsExcludes.append("source/intel/visualc")
+awsCChecksumsExcludes.append("source/arm")
 #endif
 
 let awsCSdkUtilsPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
