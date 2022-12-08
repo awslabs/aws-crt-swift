@@ -5,7 +5,7 @@ import AwsCCommon
 
 // This file defines the protocols & helper functions for C Structs.
 // Instances implementing this protocol should define RawType as their C Struct.
-protocol CStruct<RawType> {
+protocol CStruct {
     associatedtype RawType
     func withCStruct<Result>(_ body: (RawType) -> Result) -> Result
 }
@@ -58,13 +58,12 @@ extension CStructWithUserData {
     }
 }
 
-// swiftlint:disable force_cast
-func withOptionalCStructPointer<T, Result>(
-    to arg1: (any CStruct)?, _ body: (UnsafePointer<T>?) -> Result
+func withOptionalCStructPointer<T: CStruct, Result>(
+    to arg1: T?, _ body: (UnsafePointer<T.RawType>?) -> Result
 ) -> Result {
     if let arg1 = arg1 {
         return arg1.withCStruct { cStruct in
-            return withUnsafePointer(to: cStruct as! T) { structPointer in
+            return withUnsafePointer(to: cStruct) { structPointer in
                 body(structPointer)
             }
         }
@@ -72,13 +71,13 @@ func withOptionalCStructPointer<T, Result>(
     return body(nil)
 }
 
-func withOptionalCStructPointer<Arg1Type,
-                                Arg2Type,
+func withOptionalCStructPointer<Arg1Type: CStruct,
+                                Arg2Type: CStruct,
                                 Result>(
-    _ arg1: (any CStruct)?,
-    _ arg2: (any CStruct)?,
-    _ body: (UnsafePointer<Arg1Type>?,
-             UnsafePointer<Arg2Type>?) -> Result
+    _ arg1: Arg1Type?,
+    _ arg2: Arg2Type?,
+    _ body: (UnsafePointer<Arg1Type.RawType>?,
+             UnsafePointer<Arg2Type.RawType>?) -> Result
 ) -> Result {
     return withOptionalCStructPointer(to: arg1) { arg1Pointer in
         return withOptionalCStructPointer(to: arg2) { arg2Pointer in
@@ -87,22 +86,22 @@ func withOptionalCStructPointer<Arg1Type,
     }
 }
 
-func withOptionalCStructPointer<Arg1Type,
-                                Arg2Type,
-                                Arg3Type,
-                                Arg4Type,
-                                Arg5Type,
+func withOptionalCStructPointer<Arg1Type: CStruct,
+                                Arg2Type: CStruct,
+                                Arg3Type: CStruct,
+                                Arg4Type: CStruct,
+                                Arg5Type: CStruct,
                                 Result>(
-    _ arg1: (any CStruct)?,
-    _ arg2: (any CStruct)?,
-    _ arg3: (any CStruct)?,
-    _ arg4: (any CStruct)?,
-    _ arg5: (any CStruct)?,
-    _ body: (UnsafePointer<Arg1Type>?,
-             UnsafePointer<Arg2Type>?,
-             UnsafePointer<Arg3Type>?,
-             UnsafePointer<Arg4Type>?,
-             UnsafePointer<Arg5Type>?) -> Result
+    _ arg1: Arg1Type?,
+    _ arg2: Arg2Type?,
+    _ arg3: Arg3Type?,
+    _ arg4: Arg4Type?,
+    _ arg5: Arg5Type?,
+    _ body: (UnsafePointer<Arg1Type.RawType>?,
+             UnsafePointer<Arg2Type.RawType>?,
+             UnsafePointer<Arg3Type.RawType>?,
+             UnsafePointer<Arg4Type.RawType>?,
+             UnsafePointer<Arg5Type.RawType>?) -> Result
 ) -> Result {
     return withOptionalCStructPointer(arg1, arg2) { arg1Pointer, arg2Pointer in
         return withOptionalCStructPointer(arg3, arg4) { arg3Pointer, arg4Pointer in

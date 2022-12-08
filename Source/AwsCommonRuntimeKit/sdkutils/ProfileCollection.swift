@@ -32,7 +32,7 @@ public class ProfileCollection {
          source: ProfileSourceType,
          allocator: Allocator = defaultAllocator) throws {
         let byteCount = data.count
-        guard let rawValue  = (data.withUnsafeBytes { rawBufferPointer in
+        guard let rawValue  = (data.withUnsafeBytes { rawBufferPointer -> OpaquePointer? in
             var byteBuf = aws_byte_buf_from_array(rawBufferPointer.baseAddress, byteCount)
             return aws_profile_collection_new_from_buffer(allocator.rawValue,
                                                           &byteBuf,
