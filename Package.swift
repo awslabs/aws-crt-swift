@@ -130,9 +130,9 @@ let cSettings: [CSetting] = [
     .define("DEBUG_BUILD", .when(configuration: .debug))
 ]
 
-let cSettingChecksum = cSettings
+var cSettingChecksum = cSettings
 // || defined(_M_X64) || defined(_M_IX86))
-#if arch(arm64)
+#if arch(arm64) && os(macOS)
 awsCChecksumsExcludes.append("source/intel")
 awsCChecksumsExcludes.append("source/generic")
 // !(defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)) arch is intel
