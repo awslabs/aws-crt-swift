@@ -132,7 +132,7 @@ let cSettings: [CSetting] = [
 
 var cSettingChecksum = cSettings
 // || defined(_M_X64) || defined(_M_IX86))
-#if arch(arm64) && os(macOS)
+#if arch(arm64)
 awsCChecksumsExcludes.append("source/intel")
 awsCChecksumsExcludes.append("source/generic")
 // !(defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)) arch is intel
