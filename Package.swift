@@ -125,30 +125,19 @@ awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
 #endif
 
-let cSettings: [CSetting] = [
-    //    .unsafeFlags(cFlags),
-    .define("DEBUG_BUILD", .when(configuration: .debug))
-]
-
-var cSettingChecksum = cSettings
-
+awsCChecksumsExcludes.append("source/intel/visualc")
 #if arch(arm64)
+//includes source/arm
 awsCChecksumsExcludes.append("source/intel")
 awsCChecksumsExcludes.append("source/generic")
-#elseif (arch(x86_64) || arch(i386)) && !arch(arm)
-    #if (Windows)
-        awsCChecksumsExcludes.append("source/arm")
-        awsCChecksumsExcludes.append("source/intel/asm")
-        awsCChecksumsExcludes.append("source/generic")
-    #else
-        awsCChecksumsExcludes.append("source/arm")
-        awsCChecksumsExcludes.append("source/intel/visualc")
-        awsCChecksumsExcludes.append("source/generic")
-    #endif
+#elseif arch(x86_64) || arch(i386)
+//include src/intel/asm
+    awsCChecksumsExcludes.append("source/arm")
+    awsCChecksumsExcludes.append("source/generic")
 #else
+//includes source/generic
 awsCChecksumsExcludes.append("source/arm")
 awsCChecksumsExcludes.append("source/intel")
-cSettingChecksum.append(.define("USE_CPU_EXTENSIONS", to: "OFF"))
 #endif
 
 let awsCSdkUtilsPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
@@ -172,6 +161,10 @@ let awsCEventStreamExcludes = [
 
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
 
+let cSettings: [CSetting] = [
+    //    .unsafeFlags(cFlags),
+    .define("DEBUG_BUILD", .when(configuration: .debug))
+]
 var cSettingsIO = cSettings
 #if os(Linux)
 cSettingsIO.append(.define("USE_S2N"))
@@ -238,7 +231,7 @@ packageTargets.append(contentsOf: [
             dependencies: ["AwsCCommon"],
             path: "aws-common-runtime/aws-checksums",
             exclude: awsCChecksumsExcludes,
-            cSettings: cSettingChecksum
+            cSettings: cSettings
     ),
     .target(
             name: "AwsCEventStreams",
