@@ -136,16 +136,16 @@ var cSettingChecksum = cSettings
 awsCChecksumsExcludes.append("source/intel")
 awsCChecksumsExcludes.append("source/generic")
 // !(defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)) arch is intel
-//#elseif arch(x86_64) || arch(i386)
-//    #if (Windows)
-//        awsCChecksumsExcludes.append("source/arm")
-//        awsCChecksumsExcludes.append("source/intel/asm")
-//        awsCChecksumsExcludes.append("source/generic")
-//    #else
-//        awsCChecksumsExcludes.append("source/arm")
-//        awsCChecksumsExcludes.append("source/intel/visualc")
-//        awsCChecksumsExcludes.append("source/generic")
-//    #endif
+#elseif (arch(x86_64) || arch(i386)) && !arch(arm)
+    #if (Windows)
+        awsCChecksumsExcludes.append("source/arm")
+        awsCChecksumsExcludes.append("source/intel/asm")
+        awsCChecksumsExcludes.append("source/generic")
+    #else
+        awsCChecksumsExcludes.append("source/arm")
+        awsCChecksumsExcludes.append("source/intel/visualc")
+        awsCChecksumsExcludes.append("source/generic")
+    #endif
 #else
 awsCChecksumsExcludes.append("source/arm")
 awsCChecksumsExcludes.append("source/intel")
