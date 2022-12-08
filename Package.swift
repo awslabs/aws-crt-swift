@@ -127,17 +127,18 @@ awsCCalPlatformExcludes.append("source/darwin")
 
 awsCChecksumsExcludes.append("source/intel/visualc")
 #if arch(arm64)
-//includes source/arm
-awsCChecksumsExcludes.append("source/intel")
-awsCChecksumsExcludes.append("source/generic")
+    //includes source/arm
+    //TODO: look at the compiler flag in C
+    awsCChecksumsExcludes.append("source/intel")
+    awsCChecksumsExcludes.append("source/generic")
 #elseif arch(x86_64) || arch(i386)
-//include src/intel/asm
+    //include src/intel/asm
     awsCChecksumsExcludes.append("source/arm")
     awsCChecksumsExcludes.append("source/generic")
 #else
-//includes source/generic
-awsCChecksumsExcludes.append("source/arm")
-awsCChecksumsExcludes.append("source/intel")
+    //includes source/generic
+    awsCChecksumsExcludes.append("source/arm")
+    awsCChecksumsExcludes.append("source/intel")
 #endif
 
 let awsCSdkUtilsPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
