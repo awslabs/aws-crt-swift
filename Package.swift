@@ -117,19 +117,21 @@ var awsCChecksumsExcludes = [
 #if os(macOS)
 awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/unix")
-awsCChecksumsExcludes.append("source/generic")
 #elseif(Windows)
 awsCCalPlatformExcludes.append("source/darwin")
 awsCCalPlatformExcludes.append("source/unix")
-awsCChecksumsExcludes.append("source/intel/asm")
 #else
 awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
-awsCChecksumsExcludes.append("source/intel/visualc")
 #endif
 
 #if arch(arm64)
 awsCChecksumsExcludes.append("source/intel")
+awsCChecksumsExcludes.append("source/generic")
+#elseif os(Windows)
+awsCChecksumsExcludes.append("source/intel/asm")
+#else
+awsCChecksumsExcludes.append("source/intel/visualc")
 #endif
 
 let awsCSdkUtilsPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
