@@ -1,14 +1,16 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+
 import AwsCEventStreams
 import AwsCIo
+import Foundation
 
 public class EventStreamChannelHandler {
 
     let rawValue: UnsafeMutablePointer<aws_channel_handler>
     let allocator: Allocator
-    let onMessageReceivedCallback: (_ errorCode: Int) -> ()
-    public init(onMessageReceivedCallback: @escaping (_ errorCode: Int) -> (),
+    let onMessageReceivedCallback: (_ errorCode: Int) -> Void
+    public init(onMessageReceivedCallback: @escaping (_ errorCode: Int) -> Void,
                 initialWindowSize: Int? = nil,
                 allocator: Allocator = defaultAllocator) throws {
         self.allocator = allocator
@@ -28,19 +30,19 @@ public class EventStreamChannelHandler {
         self.rawValue = rawValue
     }
 
-    public func sendMessage(data: Data) throws {
+    public func sendMessage(message: EventStreamMessage) throws {
 
     }
 
-    //TODO: what to do in deinit? What if this object goes out of scope and onMessageRecieved ie called?
+    // TODO: what to do in deinit? What if this object goes out of scope and onMessageRecieved ie called?
     deinit {
-       // allocator.release(rawValue)
+        // allocator.release(rawValue)
     }
 }
 
 private func onMessageReceived(
-        message: UnsafeMutablePointer<aws_event_stream_message>?,
-        errorCode: Int32,
-        userData: UnsafeMutableRawPointer!) {
+    message: UnsafeMutablePointer<aws_event_stream_message>?,
+    errorCode: Int32,
+    userData: UnsafeMutableRawPointer!) {
 
 }

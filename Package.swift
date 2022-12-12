@@ -127,18 +127,18 @@ awsCCalPlatformExcludes.append("source/darwin")
 
 awsCChecksumsExcludes.append("source/intel/visualc")
 #if arch(arm64)
-    //includes source/arm
-    //TODO: look at the compiler flag in C
-    awsCChecksumsExcludes.append("source/intel")
-    awsCChecksumsExcludes.append("source/generic")
+// includes source/arm
+// TODO: look at the compiler flag in C
+awsCChecksumsExcludes.append("source/intel")
+awsCChecksumsExcludes.append("source/generic")
 #elseif arch(x86_64) || arch(i386)
-    //include src/intel/asm
-    awsCChecksumsExcludes.append("source/arm")
-    awsCChecksumsExcludes.append("source/generic")
+// include src/intel/asm
+awsCChecksumsExcludes.append("source/arm")
+awsCChecksumsExcludes.append("source/generic")
 #else
-    //includes source/generic
-    awsCChecksumsExcludes.append("source/arm")
-    awsCChecksumsExcludes.append("source/intel")
+// includes source/generic
+awsCChecksumsExcludes.append("source/arm")
+awsCChecksumsExcludes.append("source/intel")
 #endif
 
 let awsCSdkUtilsPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
@@ -228,18 +228,18 @@ packageTargets.append(contentsOf: [
         cSettings: cSettings
     ),
     .target(
-            name: "AwsChecksums",
-            dependencies: ["AwsCCommon"],
-            path: "aws-common-runtime/aws-checksums",
-            exclude: awsCChecksumsExcludes,
-            cSettings: cSettings
+        name: "AwsChecksums",
+        dependencies: ["AwsCCommon"],
+        path: "aws-common-runtime/aws-checksums",
+        exclude: awsCChecksumsExcludes,
+        cSettings: cSettings
     ),
     .target(
-            name: "AwsCEventStreams",
-            dependencies: ["AwsChecksums", "AwsCCommon", "AwsCIo", "AwsCCal"],
-            path: "aws-common-runtime/aws-c-event-stream",
-            exclude: awsCEventStreamExcludes,
-            cSettings: cSettings
+        name: "AwsCEventStreams",
+        dependencies: ["AwsChecksums", "AwsCCommon", "AwsCIo", "AwsCCal"],
+        path: "aws-common-runtime/aws-c-event-stream",
+        exclude: awsCEventStreamExcludes,
+        cSettings: cSettings
     ),
     .target(
         name: "AwsCommonRuntimeKit",
