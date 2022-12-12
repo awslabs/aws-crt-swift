@@ -27,6 +27,11 @@ public class EventStreamMessage {
         }
     }
 
+    init(rawValue: aws_event_stream_message) {
+        self.rawValue = rawValue
+        self.rawHeaders = aws_array_list()
+    }
+
     deinit {
         aws_event_stream_message_clean_up(&rawValue)
     }
