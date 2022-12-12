@@ -79,6 +79,14 @@ extension aws_date_time {
     }
 }
 
+extension aws_byte_buf {
+    func toString() -> String {
+        return String(
+                data: Data(bytes: self.buffer, count: self.len),
+                encoding: .utf8)!
+    }
+}
+
 extension Date {
     func toAWSDate() -> aws_date_time {
         var date = aws_date_time()
