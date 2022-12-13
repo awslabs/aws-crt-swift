@@ -59,8 +59,7 @@ extension Data {
     func withAWSByteBuff<Result>(_ body: (aws_byte_buf) -> Result) -> Result {
         let count = self.count
         return self.withUnsafeBytes { rawBufferPointer -> Result in
-            var byteBuf = aws_byte_buf_from_array(rawBufferPointer.baseAddress, count)
-            return body(byteBuf)
+            return body(aws_byte_buf_from_array(rawBufferPointer.baseAddress, count))
         }
     }
     func withAWSByteBuffPointer<Result>(_ body: (UnsafeMutablePointer<aws_byte_buf>) -> Result) -> Result {
@@ -82,8 +81,13 @@ extension aws_date_time {
 extension aws_byte_buf {
     func toString() -> String {
         return String(
-                data: Data(bytes: self.buffer, count: self.len),
+                data: toData(),
                 encoding: .utf8)!
+    }
+
+    func toData() -> Data {
+        let d = Data(bytes: self.buffer, count: self.len)
+        return d
     }
 }
 
