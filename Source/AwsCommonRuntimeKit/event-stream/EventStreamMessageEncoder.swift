@@ -68,9 +68,9 @@ public class EventStreamMessageEncoder {
         self.rawValue = aws_event_stream_message()
         guard data.withAWSByteBuffPointer({ awsBuffer in
             aws_event_stream_message_from_buffer_copy(
-                    &rawValue,
-                    allocator.rawValue,
-                    awsBuffer)
+                &rawValue,
+                allocator.rawValue,
+                awsBuffer)
         }) == AWS_OP_SUCCESS
         else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -107,8 +107,8 @@ public class EventStreamMessageEncoder {
     ///             This buffer is only valid as long as the message itself is valid.
     public func getEncoded() -> Data {
         Data(
-                bytes: aws_event_stream_message_buffer(&rawValue),
-                count: rawValue.message_buffer.len)
+            bytes: aws_event_stream_message_buffer(&rawValue),
+            count: rawValue.message_buffer.len)
     }
 
     deinit {
@@ -123,71 +123,71 @@ extension EventStreamMessageEncoder {
                 switch header.value {
                 case .bool(let value):
                     return aws_event_stream_add_bool_header(
-                            rawHeaders,
-                            headerName,
-                            UInt8(header.name.count),
-                            Int8(value.uintValue))
+                        rawHeaders,
+                        headerName,
+                        UInt8(header.name.count),
+                        Int8(value.uintValue))
                 case .byte(let value):
                     return aws_event_stream_add_byte_header(
-                            rawHeaders,
-                            headerName,
-                            UInt8(header.name.count),
-                            value)
+                        rawHeaders,
+                        headerName,
+                        UInt8(header.name.count),
+                        value)
                 case .int16(let value):
                     return aws_event_stream_add_int16_header(
-                            rawHeaders,
-                            headerName,
-                            UInt8(header.name.count),
-                            value)
+                        rawHeaders,
+                        headerName,
+                        UInt8(header.name.count),
+                        value)
                 case .int32(let value):
                     return aws_event_stream_add_int32_header(
-                            rawHeaders,
-                            headerName,
-                            UInt8(header.name.count),
-                            value)
+                        rawHeaders,
+                        headerName,
+                        UInt8(header.name.count),
+                        value)
                 case .int64(let value):
                     return aws_event_stream_add_int64_header(
-                            rawHeaders,
-                            headerName,
-                            UInt8(header.name.count),
-                            value)
+                        rawHeaders,
+                        headerName,
+                        UInt8(header.name.count),
+                        value)
                 case .byteBuf(var value):
                     return value.withUnsafeMutableBytes {
                         let bytes = $0.bindMemory(to: UInt8.self).baseAddress!
 
                         return aws_event_stream_add_bytebuf_header(
-                                rawHeaders,
-                                headerName,
-                                UInt8(header.name.count),
-                                bytes,
-                                UInt16($0.count),
-                                1)
+                            rawHeaders,
+                            headerName,
+                            UInt8(header.name.count),
+                            bytes,
+                            UInt16($0.count),
+                            1)
                     }
 
                 case .string(let value):
                     return value.withCString {
                         aws_event_stream_add_string_header(
-                                rawHeaders,
-                                headerName,
-                                UInt8(header.name.count),
-                                $0,
-                                UInt16(value.count),
-                                1)
-                    }
-                case .timestamp(let value):
-                    return aws_event_stream_add_timestamp_header(
                             rawHeaders,
                             headerName,
                             UInt8(header.name.count),
-                            value)
+                            $0,
+                            UInt16(value.count),
+                            1)
+                    }
+                case .timestamp(let value):
+                    return aws_event_stream_add_timestamp_header(
+                        rawHeaders,
+                        headerName,
+                        UInt8(header.name.count),
+                        value)
                 case .uuid(let value):
                     return withUnsafeBytes(of: value) {
                         let address = $0.baseAddress?.assumingMemoryBound(to: UInt8.self)
                         return aws_event_stream_add_uuid_header(
-                                rawHeaders,
-                                headerName,
-                                UInt8(header.name.count),
-                                address)
+                            rawHeaders,
+                            headerName,
+                            UInt8(header.name.count),
+                            address)
                     }
                 }
             }

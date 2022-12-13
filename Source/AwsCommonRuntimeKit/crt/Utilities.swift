@@ -75,8 +75,8 @@ extension aws_date_time {
 extension aws_byte_buf {
     func toString() -> String {
         return String(
-                data: toData(),
-                encoding: .utf8)!
+            data: toData(),
+            encoding: .utf8)!
     }
 
     func toData() -> Data {
@@ -161,7 +161,7 @@ func withOptionalCString<Result>(
 }
 
 func withOptionalAWSByteBuff<Result>(
-        to arg1: Data?, _ body: (UnsafePointer<aws_byte_buf>?) -> Result) -> Result {
+    to arg1: Data?, _ body: (UnsafePointer<aws_byte_buf>?) -> Result) -> Result {
     if let arg1 = arg1 {
         return arg1.withAWSByteBuffPointer { body($0) }
     }

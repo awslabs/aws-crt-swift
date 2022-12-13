@@ -7,9 +7,9 @@ import Foundation
 
 public typealias OnPayloadSegment = (_ payload: Data, _ finalSegment: Bool) -> Void
 public typealias OnPreludeReceived = (
-        _ totalLength: UInt32,
-        _ headersLength: UInt32,
-        _ crc: UInt32) -> Void
+    _ totalLength: UInt32,
+    _ headersLength: UInt32,
+    _ crc: UInt32) -> Void
 public typealias OnHeaderReceived = (EventStreamHeader) -> Void
 public typealias OnError = (_ code: Int32, _ message: String) -> Void
 
@@ -36,20 +36,19 @@ public class EventStreamMessageDecoder {
         self.allocator = allocator
         rawValue = aws_event_stream_streaming_decoder()
         callbackCore = EventStreamMessageDecoderCallbackCore(
-                onPayloadSegment: onPayloadSegment,
-                onPreludeReceived: onPreludeReceived,
-                onHeaderReceived: onHeaderReceived,
-                onError: onError)
-
+            onPayloadSegment: onPayloadSegment,
+            onPreludeReceived: onPreludeReceived,
+            onHeaderReceived: onHeaderReceived,
+            onError: onError)
 
         aws_event_stream_streaming_decoder_init(
-                &rawValue,
-                allocator.rawValue,
-                onPayloadSegmentFn,
-                onPreludeReceivedFn,
-                onHeaderReceivedFn,
-                onErrorFn,
-                callbackCore.passUnretained()
+            &rawValue,
+            allocator.rawValue,
+            onPayloadSegmentFn,
+            onPreludeReceivedFn,
+            onHeaderReceivedFn,
+            onErrorFn,
+            callbackCore.passUnretained()
         )
     }
 
@@ -59,8 +58,8 @@ public class EventStreamMessageDecoder {
     func decode(data: Data) throws {
         guard (data.withAWSByteBuffPointer {
             aws_event_stream_streaming_decoder_pump(
-                    &rawValue,
-                    $0)
+                &rawValue,
+                $0)
         }) == AWS_OP_SUCCESS
         else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -95,13 +94,13 @@ class EventStreamMessageDecoderCallbackCore {
 }
 
 private func onPayloadSegmentFn(
-        decoder: UnsafeMutablePointer<aws_event_stream_streaming_decoder>?,
-        payload: UnsafeMutablePointer<aws_byte_buf>!,
-        finalSegment: Int8,
-        userData: UnsafeMutableRawPointer!) {
+    decoder: UnsafeMutablePointer<aws_event_stream_streaming_decoder>?,
+    payload: UnsafeMutablePointer<aws_byte_buf>!,
+    finalSegment: Int8,
+    userData: UnsafeMutableRawPointer!) {
     let callbackCore = Unmanaged<EventStreamMessageDecoderCallbackCore>
-            .fromOpaque(userData)
-            .takeUnretainedValue()
+        .fromOpaque(userData)
+        .takeUnretainedValue()
 
     let data = Data(bytes: payload.pointee.buffer, count: payload.pointee.len)
     let finalSegment = finalSegment != 0
@@ -109,49 +108,49 @@ private func onPayloadSegmentFn(
 }
 
 private func onPreludeReceivedFn(
-        decoder: UnsafeMutablePointer<aws_event_stream_streaming_decoder>?,
-        prelude: UnsafeMutablePointer<aws_event_stream_message_prelude>!,
-        userData: UnsafeMutableRawPointer!) {
+    decoder: UnsafeMutablePointer<aws_event_stream_streaming_decoder>?,
+    prelude: UnsafeMutablePointer<aws_event_stream_message_prelude>!,
+    userData: UnsafeMutableRawPointer!) {
     let callbackCore = Unmanaged<EventStreamMessageDecoderCallbackCore>
-            .fromOpaque(userData)
-            .takeUnretainedValue()
+        .fromOpaque(userData)
+        .takeUnretainedValue()
 
     callbackCore.onPreludeReceived(
-            prelude.pointee.total_len,
-            prelude.pointee.headers_len,
-            prelude.pointee.prelude_crc)
+        prelude.pointee.total_len,
+        prelude.pointee.headers_len,
+        prelude.pointee.prelude_crc)
 }
 
 private func onHeaderReceivedFn(
-        decoder: UnsafeMutablePointer<aws_event_stream_streaming_decoder>?,
-        prelude: UnsafeMutablePointer<aws_event_stream_message_prelude>?,
-        header: UnsafeMutablePointer<aws_event_stream_header_value_pair>!,
-        userData: UnsafeMutableRawPointer!) {
+    decoder: UnsafeMutablePointer<aws_event_stream_streaming_decoder>?,
+    prelude: UnsafeMutablePointer<aws_event_stream_message_prelude>?,
+    header: UnsafeMutablePointer<aws_event_stream_header_value_pair>!,
+    userData: UnsafeMutableRawPointer!) {
     let callbackCore = Unmanaged<EventStreamMessageDecoderCallbackCore>
-            .fromOpaque(userData)
-            .takeUnretainedValue()
+        .fromOpaque(userData)
+        .takeUnretainedValue()
 
     let name = withUnsafeBytes(
-            of: header.pointee.header_name) { (namePointer) -> String in
+        of: header.pointee.header_name) { (namePointer) -> String in
         let charPtr = namePointer.baseAddress!.assumingMemoryBound(to: CChar.self)
         return String(
-                data: Data(
-                        bytes: charPtr,
-                        count: Int(header.pointee.header_name_len)),
-                encoding: .utf8)!
+            data: Data(
+                bytes: charPtr,
+                count: Int(header.pointee.header_name_len)),
+            encoding: .utf8)!
     }
     let value = EventStreamHeaderType.parseRaw(rawValue: header)
     callbackCore.onHeaderReceived(EventStreamHeader(name: name, value: value))
 }
 
 private func onErrorFn(
-        decoder: UnsafeMutablePointer<aws_event_stream_streaming_decoder>?,
-        prelude: UnsafeMutablePointer<aws_event_stream_message_prelude>?,
-        errorCode: Int32,
-        message: UnsafePointer<CChar>!,
-        userData: UnsafeMutableRawPointer!) {
+    decoder: UnsafeMutablePointer<aws_event_stream_streaming_decoder>?,
+    prelude: UnsafeMutablePointer<aws_event_stream_message_prelude>?,
+    errorCode: Int32,
+    message: UnsafePointer<CChar>!,
+    userData: UnsafeMutableRawPointer!) {
     let callbackCore = Unmanaged<EventStreamMessageDecoderCallbackCore>
-            .fromOpaque(userData)
-            .takeUnretainedValue()
+        .fromOpaque(userData)
+        .takeUnretainedValue()
     callbackCore.onError(errorCode, String(cString: message))
 }
