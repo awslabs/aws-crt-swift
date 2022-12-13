@@ -70,8 +70,7 @@ public struct EventStreamHeader {
 
 extension EventStreamHeader: Equatable {
     public static func == (lhs: EventStreamHeader, rhs: EventStreamHeader) -> Bool {
-        return
-                lhs.name == rhs.name &&
-                lhs.value == rhs.value
+            lhs.name == rhs.name &&
+            lhs.value == rhs.value
     }
 }
