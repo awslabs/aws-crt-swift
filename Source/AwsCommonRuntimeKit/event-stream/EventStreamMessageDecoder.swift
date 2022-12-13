@@ -18,6 +18,16 @@ public class EventStreamMessageDecoder {
     let callbackCore: EventStreamMessageDecoderCallbackCore
     let allocator: Allocator
 
+    /// Initialize a streaming decoder for messages with callbacks for usage
+    /// - Parameters:
+    ///   - onPayloadSegment: Called when payload data has been received.
+    ///                       FinalSegment indicates if the current data is the last payload buffer for that message.
+    ///   - onPreludeReceived: Called when a new message has arrived. The prelude will contain metadata about the message.
+    ///                        At this point no headers or payload have been received
+    ///   - onHeaderReceived: Called when a header is encountered.
+    ///   - onError: Called when an error is encountered.
+    ///              The decoder is not in a good state for usage after this callback.
+    ///   - allocator: (Optional) allocator to override.
     public init(onPayloadSegment: @escaping OnPayloadSegment,
                 onPreludeReceived: @escaping OnPreludeReceived,
                 onHeaderReceived: @escaping OnHeaderReceived,
@@ -43,8 +53,11 @@ public class EventStreamMessageDecoder {
         )
     }
 
-    func pump(buffer: Data) throws {
-        guard (buffer.withAWSByteBuffPointer {
+    /// Pass data to decode. This will trigger the callbacks with the decoded result.
+    /// - Parameter data:  The data to decode
+    /// - Throws: CommonRunTimeError.crtException
+    func decode(data: Data) throws {
+        guard (data.withAWSByteBuffPointer {
             aws_event_stream_streaming_decoder_pump(
                     &rawValue,
                     $0)
@@ -59,6 +72,7 @@ public class EventStreamMessageDecoder {
     }
 }
 
+/// Wrapper for callbacks to use with Unmanaged
 class EventStreamMessageDecoderCallbackCore {
     let onPayloadSegment: OnPayloadSegment
     let onPreludeReceived: OnPreludeReceived

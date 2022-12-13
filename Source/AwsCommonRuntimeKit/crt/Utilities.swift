@@ -56,12 +56,6 @@ extension Data {
         }
     }
 
-    func withAWSByteBuff<Result>(_ body: (aws_byte_buf) -> Result) -> Result {
-        let count = self.count
-        return self.withUnsafeBytes { rawBufferPointer -> Result in
-            return body(aws_byte_buf_from_array(rawBufferPointer.baseAddress, count))
-        }
-    }
     func withAWSByteBuffPointer<Result>(_ body: (UnsafeMutablePointer<aws_byte_buf>) -> Result) -> Result {
         let count = self.count
         return self.withUnsafeBytes { rawBufferPointer -> Result in
@@ -162,6 +156,14 @@ func withOptionalCString<Result>(
         return arg1.withCString { cString in
             return body(cString)
         }
+    }
+    return body(nil)
+}
+
+func withOptionalAWSByteBuff<Result>(
+        to arg1: Data?, _ body: (UnsafePointer<aws_byte_buf>?) -> Result) -> Result {
+    if let arg1 = arg1 {
+        return arg1.withAWSByteBuffPointer { body($0) }
     }
     return body(nil)
 }

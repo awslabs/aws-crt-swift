@@ -7,9 +7,16 @@ import Foundation
 
 public class EventStreamMessageEncoder {
     var rawValue: aws_event_stream_message
-   // var rawHeaders: aws_array_list
 
-    public init(headers: [EventStreamHeader], payload: Data, allocator: Allocator = defaultAllocator) throws {
+    ///  Initializes message with a list of headers, and the payload. CRCs will be computed for you.
+    /// - Parameters:
+    ///   - headers: (Optional) Headers to include.
+    ///   - payload: (Optional) payload of message
+    ///   - allocator: (Optional) allocator to override.
+    /// - Throws: CommonRunTimeError.crtException
+    public init(headers: [EventStreamHeader] = [EventStreamHeader](),
+                payload: Data? = nil,
+                allocator: Allocator = defaultAllocator) throws {
         rawValue = aws_event_stream_message()
         var rawHeaders = aws_array_list()
         defer {
@@ -24,8 +31,8 @@ public class EventStreamMessageEncoder {
             try addHeader(header: $0, rawHeaders: &rawHeaders)
         }
 
-        guard (payload.withAWSByteBuffPointer { byteBuff in
-            return aws_event_stream_message_init(&rawValue, allocator.rawValue, &rawHeaders, nil)
+        guard withOptionalAWSByteBuff(to: payload, { byteBuff in
+            aws_event_stream_message_init(&rawValue, allocator.rawValue, &rawHeaders, byteBuff)
         }) == AWS_OP_SUCCESS
         else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -37,10 +44,10 @@ public class EventStreamMessageEncoder {
     /// - Parameters:
     ///   - buffer: The buffer to initialize the event stream message.
     ///             This should stay valid for the duration of the EventStreamMessage
-    ///   - allocator:
+    ///   - allocator: (Optional) allocator to override.
+    /// - Throws: CommonRunTimeError.crtException
     public init(fromBuffer buffer: UnsafeBufferPointer<UInt8>, allocator: Allocator = defaultAllocator) throws {
         self.rawValue = aws_event_stream_message()
-
         var awsBuffer = aws_byte_buf_from_array(buffer.baseAddress, buffer.count)
         guard aws_event_stream_message_from_buffer(
                 &rawValue,
@@ -51,19 +58,20 @@ public class EventStreamMessageEncoder {
         }
     }
 
-    /// Allocates memory and copies buffer. Otherwise the same as aws_aws_event_stream_message_from_buffer.
+    /// Allocates memory and copies buffer. Otherwise the same as fromBuffer.
     /// This is slower, but possibly safer.
     /// - Parameters:
-    ///   - buffer: The buffer to initialize the event stream message.
-    ///   - allocator:
-    public init(fromBufferSafe buffer: UnsafeBufferPointer<UInt8>, allocator: Allocator = defaultAllocator) throws {
+    ///   - data: The raw data to initialize the event stream message.
+    ///   - allocator: (Optional) allocator to override.
+    /// - Throws: CommonRunTimeError.crtException
+    public init(fromBufferSafe data: Data, allocator: Allocator = defaultAllocator) throws {
         self.rawValue = aws_event_stream_message()
-
-        var awsBuffer = aws_byte_buf_from_array(buffer.baseAddress, buffer.count)
-        guard aws_event_stream_message_from_buffer_copy(
-                &rawValue,
-                allocator.rawValue,
-                &awsBuffer) == AWS_OP_SUCCESS
+        guard data.withAWSByteBuffPointer({ awsBuffer in
+            aws_event_stream_message_from_buffer_copy(
+                    &rawValue,
+                    allocator.rawValue,
+                    awsBuffer)
+        }) == AWS_OP_SUCCESS
         else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }

@@ -22,7 +22,7 @@ class EventStreamTests: XCBaseTestCase {
                 EventStreamHeader(name: "timestamp", value: .timestamp(value: 10)),
                 EventStreamHeader(name: "uuid", value: .uuid(value: UUID(uuidString: "63318232-1C63-4D04-9A0C-6907F347704E")!)),
             ]
-            let message = try EventStreamMessageEncoder(headers: headers, payload: "data".data(using: .utf8)!, allocator: allocator)
+            let message = try EventStreamMessageEncoder(headers: headers, allocator: allocator)
             let encoded = message.getEncoded()
             var receivedHeaders = [EventStreamHeader]()
             let decoder = EventStreamMessageDecoder(
@@ -38,7 +38,7 @@ class EventStreamTests: XCBaseTestCase {
                     onError: { code, message in
                         print("error")
                     })
-            try decoder.pump(buffer: encoded)
+            try decoder.decode(data: encoded)
             XCTAssertTrue(headers.elementsEqual(receivedHeaders))
         } catch let error {
             print(error)
