@@ -6,16 +6,11 @@ import AwsCCommon
 import Foundation
 
 public struct EventStreamHeader {
-    public let name: String
-    public let value: EventStreamHeaderType
-
-    public init(name: String, value: EventStreamHeaderType) {
-        self.name = name
-        self.value = value
-    }
+    public var name: String
+    public var value: EventStreamHeaderValue
 }
 
-public enum EventStreamHeaderType: Equatable {
+public enum EventStreamHeaderValue: Equatable {
     case bool(value: Bool)
     case byte(value: Int8)
     case int16(value: Int16)
@@ -28,9 +23,9 @@ public enum EventStreamHeaderType: Equatable {
     case uuid(value: UUID)
 }
 
-extension EventStreamHeaderType {
-    static func parseRaw(rawValue: UnsafeMutablePointer<aws_event_stream_header_value_pair>) -> EventStreamHeaderType {
-        let value: EventStreamHeaderType
+extension EventStreamHeaderValue {
+    static func parseRaw(rawValue: UnsafeMutablePointer<aws_event_stream_header_value_pair>) -> EventStreamHeaderValue {
+        let value: EventStreamHeaderValue
         switch rawValue.pointee.header_value_type {
         case AWS_EVENT_STREAM_HEADER_BOOL_TRUE:
             value = .bool(
@@ -62,7 +57,7 @@ extension EventStreamHeaderType {
             let uuid = UUID(uuid: rawValue.pointee.header_value.static_val)
             value = .uuid(value: uuid)
         default:
-            fatalError("Unable to convert header")
+            fatalError("Unexpected header value type found.")
         }
         return value
     }

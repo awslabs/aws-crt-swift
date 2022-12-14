@@ -31,8 +31,7 @@ public struct EventStreamMessage {
 
         guard withOptionalAWSByteBufPointer(to: payload, { byteBuff in
             aws_event_stream_message_init(&rawValue, allocator.rawValue, &rawHeaders, byteBuff)
-        }) == AWS_OP_SUCCESS
-        else {
+        }) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
 

@@ -137,7 +137,7 @@ private func onHeaderReceivedFn(
                 count: Int(header.pointee.header_name_len)),
             encoding: .utf8)!
     }
-    let value = EventStreamHeaderType.parseRaw(rawValue: header)
+    let value = EventStreamHeaderValue.parseRaw(rawValue: header)
     callbackCore.onHeaderReceived(EventStreamHeader(name: name, value: value))
 }
 
