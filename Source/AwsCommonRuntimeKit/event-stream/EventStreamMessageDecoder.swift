@@ -39,7 +39,6 @@ public class EventStreamMessageDecoder {
             onPreludeReceived: onPreludeReceived,
             onHeaderReceived: onHeaderReceived,
             onError: onError)
-
         aws_event_stream_streaming_decoder_init(
             &rawValue,
             allocator.rawValue,

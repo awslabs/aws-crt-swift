@@ -5,22 +5,20 @@ import AwsCEventStreams
 import AwsCCommon
 import Foundation
 
-public class EventStreamMessageEncoder {
-    var rawValue: aws_event_stream_message
+public struct EventStreamMessage {
+    var headers: [EventStreamHeader] = [EventStreamHeader]()
+    var payload: Data?
+    var allocator: Allocator = defaultAllocator
 
-    ///  Initializes message with a list of headers, and the payload. CRCs will be computed for you.
-    /// - Parameters:
-    ///   - headers: (Optional) Headers to include.
-    ///   - payload: (Optional) payload of message
-    ///   - allocator: (Optional) allocator to override.
-    /// - Throws: CommonRunTimeError.crtException
-    public init(headers: [EventStreamHeader] = [EventStreamHeader](),
-                payload: Data? = nil,
-                allocator: Allocator = defaultAllocator) throws {
-        rawValue = aws_event_stream_message()
+    /// Get the binary format of this message (i.e. for sending across the wire manually)
+    /// - Returns:  UnsafeBufferPointer<UInt8> wrapping the underlying message data.
+    ///             This buffer is only valid as long as the message itself is valid.
+    public func getEncoded() throws -> Data {
+        var rawValue = aws_event_stream_message()
         var rawHeaders = aws_array_list()
         defer {
             aws_event_stream_headers_list_cleanup(&rawHeaders)
+            aws_event_stream_message_clean_up(&rawValue)
         }
 
         guard aws_event_stream_headers_list_init(&rawHeaders, allocator.rawValue) == AWS_OP_SUCCESS else {
@@ -37,86 +35,14 @@ public class EventStreamMessageEncoder {
         else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-    }
 
-    /// Zero allocation, Zero copy. The message will simply wrap the buffer.
-    /// The message functions are only useful as long as buffer is referencable memory.
-    /// - Parameters:
-    ///   - buffer: The buffer to initialize the event stream message.
-    ///             This should stay valid for the duration of the EventStreamMessage
-    ///   - allocator: (Optional) allocator to override.
-    /// - Throws: CommonRunTimeError.crtException
-    public init(fromBuffer buffer: UnsafeBufferPointer<UInt8>, allocator: Allocator = defaultAllocator) throws {
-        self.rawValue = aws_event_stream_message()
-        var awsBuffer = aws_byte_buf_from_array(buffer.baseAddress, buffer.count)
-        guard aws_event_stream_message_from_buffer(
-                &rawValue,
-                allocator.rawValue,
-                &awsBuffer) == AWS_OP_SUCCESS
-        else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
-    }
-
-    /// Allocates memory and copies buffer. Otherwise the same as fromBuffer.
-    /// This is slower, but possibly safer.
-    /// - Parameters:
-    ///   - data: The raw data to initialize the event stream message.
-    ///   - allocator: (Optional) allocator to override.
-    /// - Throws: CommonRunTimeError.crtException
-    public init(fromBufferSafe data: Data, allocator: Allocator = defaultAllocator) throws {
-        self.rawValue = aws_event_stream_message()
-        guard data.withAWSByteBufPointer({ awsBuffer in
-            aws_event_stream_message_from_buffer_copy(
-                &rawValue,
-                allocator.rawValue,
-                awsBuffer)
-        }) == AWS_OP_SUCCESS
-        else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
-    }
-
-    /// - Returns: The total length of the message (including the length field).
-    public func getTotalLength() -> UInt32 {
-        aws_event_stream_message_total_length(&rawValue)
-    }
-
-    /// - Returns: The length of the headers portion of the message.
-    public func getHeadersLength() -> UInt32 {
-        aws_event_stream_message_headers_len(&rawValue)
-    }
-
-    /// - Returns: The length of the message payload.
-    public func getPayloadLength() -> UInt32 {
-        aws_event_stream_message_payload_len(&rawValue)
-    }
-
-    /// - Returns: The checksum of the entire message (crc32)
-    public func getCRC() -> UInt32 {
-        aws_event_stream_message_message_crc(&rawValue)
-    }
-
-    /// - Returns: The prelude crc (crc32)
-    public func getPreludeCRC() -> UInt32 {
-        aws_event_stream_message_prelude_crc(&rawValue)
-    }
-
-    /// Get the binary format of this message (i.e. for sending across the wire manually)
-    /// - Returns:  UnsafeBufferPointer<UInt8> wrapping the underlying message data.
-    ///             This buffer is only valid as long as the message itself is valid.
-    public func getEncoded() -> Data {
-        Data(
+        return Data(
             bytes: aws_event_stream_message_buffer(&rawValue),
             count: rawValue.message_buffer.len)
     }
-
-    deinit {
-        aws_event_stream_message_clean_up(&rawValue)
-    }
 }
 
-extension EventStreamMessageEncoder {
+extension EventStreamMessage {
     func addHeader(header: EventStreamHeader, rawHeaders: UnsafeMutablePointer<aws_array_list>) throws {
         let addCHeader: () -> Int32 = {
             return header.name.withCString { headerName in
