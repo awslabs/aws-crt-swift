@@ -22,6 +22,6 @@ class RetryerTests: XCBaseTestCase {
         let retryer = try RetryStrategy(eventLoopGroup: elg, allocator: allocator)
         let token = try await retryer.acquireToken(partitionId: "partition1")
         XCTAssertNotNil(token)
-        try await retryer.scheduleRetry(token: token, errorType: RetryError.serverError)
+        _ = try await retryer.scheduleRetry(token: token, errorType: RetryError.serverError)
     }
 }
