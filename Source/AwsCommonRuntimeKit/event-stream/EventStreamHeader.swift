@@ -5,6 +5,16 @@ import AwsCEventStreams
 import AwsCCommon
 import Foundation
 
+public struct EventStreamHeader {
+    public let name: String
+    public let value: EventStreamHeaderType
+
+    public init(name: String, value: EventStreamHeaderType) {
+        self.name = name
+        self.value = value
+    }
+}
+
 public enum EventStreamHeaderType: Equatable {
     case bool(value: Bool)
     case byte(value: Int8)
@@ -55,16 +65,6 @@ extension EventStreamHeaderType {
             fatalError("Unable to convert header")
         }
         return value
-    }
-}
-
-public struct EventStreamHeader {
-    public let name: String
-    public let value: EventStreamHeaderType
-
-    public init(name: String, value: EventStreamHeaderType) {
-        self.name = name
-        self.value = value
     }
 }
 

@@ -166,6 +166,7 @@ let cSettings: [CSetting] = [
     //    .unsafeFlags(cFlags),
     .define("DEBUG_BUILD", .when(configuration: .debug))
 ]
+
 var cSettingsIO = cSettings
 #if os(Linux)
 cSettingsIO.append(.define("USE_S2N"))

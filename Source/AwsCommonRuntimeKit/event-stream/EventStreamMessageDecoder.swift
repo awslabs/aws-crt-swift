@@ -16,14 +16,13 @@ public typealias OnError = (_ code: Int32, _ message: String) -> Void
 public class EventStreamMessageDecoder {
     var rawValue: aws_event_stream_streaming_decoder
     let callbackCore: EventStreamMessageDecoderCallbackCore
-    let allocator: Allocator
 
     /// Initialize a streaming decoder for messages with callbacks for usage
     /// - Parameters:
     ///   - onPayloadSegment: Called when payload data has been received.
     ///                       FinalSegment indicates if the current data is the last payload buffer for that message.
     ///   - onPreludeReceived: Called when a new message has arrived. The prelude will contain metadata about the message.
-    ///                        At this point no headers or payload have been received
+    ///                        At this point no headers or payload have been received.
     ///   - onHeaderReceived: Called when a header is encountered.
     ///   - onError: Called when an error is encountered.
     ///              The decoder is not in a good state for usage after this callback.
@@ -33,7 +32,7 @@ public class EventStreamMessageDecoder {
                 onHeaderReceived: @escaping OnHeaderReceived,
                 onError: @escaping OnError,
                 allocator: Allocator = defaultAllocator) {
-        self.allocator = allocator
+
         rawValue = aws_event_stream_streaming_decoder()
         callbackCore = EventStreamMessageDecoderCallbackCore(
             onPayloadSegment: onPayloadSegment,

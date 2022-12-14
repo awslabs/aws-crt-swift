@@ -80,8 +80,7 @@ extension aws_byte_buf {
     }
 
     func toData() -> Data {
-        let d = Data(bytes: self.buffer, count: self.len)
-        return d
+        return Data(bytes: self.buffer, count: self.len)
     }
 }
 
