@@ -161,7 +161,6 @@ let awsCEventStreamExcludes = [
     "clang-tidy/run-clang-tidy.sh"] + excludesFromAll
 
 let cFlags = ["-g", "-fno-omit-frame-pointer"]
-
 let cSettings: [CSetting] = [
     //    .unsafeFlags(cFlags),
     .define("DEBUG_BUILD", .when(configuration: .debug))

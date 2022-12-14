@@ -31,7 +31,7 @@ public class EventStreamMessageEncoder {
             try addHeader(header: $0, rawHeaders: &rawHeaders)
         }
 
-        guard withOptionalAWSByteBuff(to: payload, { byteBuff in
+        guard withOptionalAWSByteBufPointer(to: payload, { byteBuff in
             aws_event_stream_message_init(&rawValue, allocator.rawValue, &rawHeaders, byteBuff)
         }) == AWS_OP_SUCCESS
         else {
@@ -66,7 +66,7 @@ public class EventStreamMessageEncoder {
     /// - Throws: CommonRunTimeError.crtException
     public init(fromBufferSafe data: Data, allocator: Allocator = defaultAllocator) throws {
         self.rawValue = aws_event_stream_message()
-        guard data.withAWSByteBuffPointer({ awsBuffer in
+        guard data.withAWSByteBufPointer({ awsBuffer in
             aws_event_stream_message_from_buffer_copy(
                 &rawValue,
                 allocator.rawValue,
