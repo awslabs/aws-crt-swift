@@ -72,7 +72,7 @@ public class RetryStrategy {
     }
 
     public func scheduleRetry(token: RetryToken, errorType: RetryError) async throws -> RetryToken {
-        try await withCheckedThrowingContinuation({ continuation in
+        try await withCheckedThrowingContinuation { continuation in
             let continuationCore = ContinuationCore(continuation: continuation)
             if aws_retry_strategy_schedule_retry(token.rawValue,
                                                  errorType.rawValue,
@@ -81,7 +81,7 @@ public class RetryStrategy {
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
             }
-        })
+        }
     }
 
     /// Records a successful retry.You should always call it after a successful operation
