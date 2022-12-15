@@ -253,7 +253,7 @@ extension CredentialsProvider.Source {
 
             var cachedOptions = aws_credentials_provider_cached_options()
             cachedOptions.source = source.rawValue
-            cachedOptions.refresh_time_in_milliseconds = refreshTime.millisecond
+            cachedOptions.refresh_time_in_milliseconds = UInt64(refreshTime.millisecond)
             cachedOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
             guard let provider = aws_credentials_provider_new_cached(allocator.rawValue, &cachedOptions) else {
