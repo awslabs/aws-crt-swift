@@ -17,8 +17,7 @@ public enum EventStreamHeaderValue: Equatable {
     case int64(value: Int64)
     case byteBuf(value: Data)
     case string(value: String)
-    /// Timestamp is in milliseconds
-    case timestamp(value: Int64)
+    case timestamp(millisecondsSince1970: Int64)
     case uuid(value: UUID)
 }
 
@@ -51,7 +50,7 @@ extension EventStreamHeaderValue {
                 value: aws_event_stream_header_value_as_string(rawValue).toString())
         case AWS_EVENT_STREAM_HEADER_TIMESTAMP:
             value = .timestamp(
-                value: aws_event_stream_header_value_as_timestamp(rawValue))
+                millisecondsSince1970: aws_event_stream_header_value_as_timestamp(rawValue))
         case AWS_EVENT_STREAM_HEADER_UUID:
             let uuid = UUID(uuid: rawValue.pointee.header_value.static_val)
             value = .uuid(value: uuid)

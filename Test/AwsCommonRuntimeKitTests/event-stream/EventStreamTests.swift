@@ -18,7 +18,7 @@ class EventStreamTests: XCBaseTestCase {
             EventStreamHeader(name: "host", value: .string(value: "aws-crt-test-stuff.s3.amazonaws.com")),
             EventStreamHeader(name: "host", value: .string(value: "aws-crt-test-stuff.s3.amazonaws.com")),
             EventStreamHeader(name: "bool", value: .bool(value: false)),
-            EventStreamHeader(name: "timestamp", value: .timestamp(value: 10)),
+            EventStreamHeader(name: "timestamp", value: .timestamp(millisecondsSince1970: 10)),
             EventStreamHeader(name: "uuid", value: .uuid(value: UUID(uuidString: "63318232-1C63-4D04-9A0C-6907F347704E")!)),
         ]
         let message = EventStreamMessage(headers: headers, allocator: allocator)

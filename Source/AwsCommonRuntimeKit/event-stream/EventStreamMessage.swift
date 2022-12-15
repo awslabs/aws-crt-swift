@@ -76,7 +76,6 @@ extension EventStreamMessage {
                 case .byteBuf(var value):
                     return value.withUnsafeMutableBytes {
                         let bytes = $0.bindMemory(to: UInt8.self).baseAddress!
-
                         return aws_event_stream_add_bytebuf_header(
                             rawHeaders,
                             headerName,
