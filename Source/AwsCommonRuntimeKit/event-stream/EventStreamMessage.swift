@@ -6,7 +6,7 @@ import Foundation
 
 public struct EventStreamMessage {
     var headers: [EventStreamHeader] = [EventStreamHeader]()
-    var payload: Data?
+    var payload: Data = Data()
     var allocator: Allocator = defaultAllocator
 
     /// Get the binary format of this message (i.e. for sending across the wire manually)
@@ -26,7 +26,7 @@ public struct EventStreamMessage {
             try addHeader(header: $0, rawHeaders: &rawHeaders)
         }
 
-        guard withOptionalAWSByteBufPointer(to: payload, { byteBuff in
+        guard payload.withAWSByteBufPointer({ byteBuff in
             aws_event_stream_message_init(&rawValue, allocator.rawValue, &rawHeaders, byteBuff)
         }) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())

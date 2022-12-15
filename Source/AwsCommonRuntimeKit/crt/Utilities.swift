@@ -159,14 +159,6 @@ func withOptionalCString<Result>(
     return body(nil)
 }
 
-func withOptionalAWSByteBufPointer<Result>(
-    to arg1: Data?, _ body: (UnsafePointer<aws_byte_buf>?) -> Result) -> Result {
-    if let arg1 = arg1 {
-        return arg1.withAWSByteBufPointer { body($0) }
-    }
-    return body(nil)
-}
-
 func withOptionalByteCursorPointerFromString<Result>(
     _ arg1: String?,
     _ body: (UnsafePointer<aws_byte_cursor>?) -> Result

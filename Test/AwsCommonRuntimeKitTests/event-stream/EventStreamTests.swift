@@ -44,7 +44,7 @@ class EventStreamTests: XCBaseTestCase {
     }
 
     func testEncodeDecodePayload() async throws {
-        let payload = "payload".data(using: .utf8)
+        let payload = "payload".data(using: .utf8)!
         let message = EventStreamMessage(payload: payload, allocator: allocator)
         let encoded = try message.getEncoded()
         var decodedPayload = Data()
@@ -71,7 +71,7 @@ class EventStreamTests: XCBaseTestCase {
         let encoded: Data
         do {
             let headers = [EventStreamHeader(name: "int16", value: .int32(value: 16))]
-            let payload = "payload".data(using: .utf8)
+            let payload = "payload".data(using: .utf8)!
             let message = EventStreamMessage(headers: headers, payload: payload, allocator: allocator)
             encoded = try message.getEncoded()
         }
@@ -103,7 +103,7 @@ class EventStreamTests: XCBaseTestCase {
 
     func testDecodeByteByByte() async throws {
         let headers = [EventStreamHeader(name: "int16", value: .int32(value: 16))]
-        let payload = "payload".data(using: .utf8)
+        let payload = "payload".data(using: .utf8)!
         let message = EventStreamMessage(headers: headers, payload: payload, allocator: allocator)
         let encoded = try message.getEncoded()
 
