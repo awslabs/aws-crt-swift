@@ -125,6 +125,7 @@ awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
 #endif
 
+// swift never uses Microsoft Visual C++ compiler
 awsCChecksumsExcludes.append("source/intel/visualc")
 #if arch(arm64)
 // includes source/arm
