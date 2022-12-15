@@ -23,7 +23,6 @@ public struct EventStreamMessage {
         guard aws_event_stream_headers_list_init(&rawHeaders, allocator.rawValue) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-
         try headers.forEach {
             try addHeader(header: $0, rawHeaders: &rawHeaders)
         }
@@ -36,7 +35,7 @@ public struct EventStreamMessage {
 
         return Data(
             bytes: aws_event_stream_message_buffer(&rawValue),
-            count: rawValue.message_buffer.len)
+            count: Int(aws_event_stream_message_total_length(&rawValue)))
     }
 }
 
@@ -87,7 +86,6 @@ extension EventStreamMessage {
                             UInt16($0.count),
                             1)
                     }
-
                 case .string(let value):
                     return value.withCString {
                         aws_event_stream_add_string_header(

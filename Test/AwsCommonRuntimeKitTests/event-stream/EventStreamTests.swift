@@ -67,7 +67,7 @@ class EventStreamTests: XCBaseTestCase {
         XCTAssertEqual(payload, decodedPayload)
     }
 
-    func testEncodeOutOfScore() async throws {
+    func testEncodeOutOfScope() async throws {
         let encoded: Data
         do {
             let headers = [EventStreamHeader(name: "int16", value: .int32(value: 16))]
@@ -128,10 +128,9 @@ class EventStreamTests: XCBaseTestCase {
         for byte in encoded {
             try decoder.decode(data: Data([byte]))
         }
-        XCTAssertEqual("payload".data(using: .utf8), decodedPayload)
 
-        let expectedHeaders = [EventStreamHeader(name: "int16", value: .int32(value: 16))]
-        XCTAssertTrue(expectedHeaders.elementsEqual(decodedHeaders))
+        XCTAssertEqual(payload, decodedPayload)
+        XCTAssertTrue(headers.elementsEqual(decodedHeaders))
     }
 
     func testEmpty() async throws {
