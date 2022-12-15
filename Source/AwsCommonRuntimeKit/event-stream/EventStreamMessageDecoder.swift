@@ -101,8 +101,7 @@ private func onPayloadSegmentFn(
         .takeUnretainedValue()
 
     let data = Data(bytes: payload.pointee.buffer, count: payload.pointee.len)
-    let finalSegment = finalSegment != 0
-    callbackCore.onPayloadSegment(data, finalSegment)
+    callbackCore.onPayloadSegment(data, finalSegment != 0)
 }
 
 private func onPreludeReceivedFn(

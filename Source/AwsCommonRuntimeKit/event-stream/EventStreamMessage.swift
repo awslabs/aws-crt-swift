@@ -11,8 +11,7 @@ public struct EventStreamMessage {
     var allocator: Allocator = defaultAllocator
 
     /// Get the binary format of this message (i.e. for sending across the wire manually)
-    /// - Returns:  UnsafeBufferPointer<UInt8> wrapping the underlying message data.
-    ///             This buffer is only valid as long as the message itself is valid.
+    /// - Returns:  binary Data.
     public func getEncoded() throws -> Data {
         var rawValue = aws_event_stream_message()
         var rawHeaders = aws_array_list()

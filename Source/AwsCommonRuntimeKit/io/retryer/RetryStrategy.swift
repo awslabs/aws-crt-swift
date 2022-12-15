@@ -71,7 +71,6 @@ public class RetryStrategy {
         }
     }
 
-    // TODO: Confirm if this API can return a different token, like mentioned in the Smithy Reference architecture.
     public func scheduleRetry(token: RetryToken, errorType: RetryError) async throws {
         try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
