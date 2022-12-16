@@ -42,8 +42,11 @@ public struct EventStreamMessage {
 
 extension EventStreamMessage {
     func addHeader(header: EventStreamHeader, rawHeaders: UnsafeMutablePointer<aws_array_list>) throws {
-        let addCHeader: () -> Int32 = {
-            return header.name.withCString { headerName in
+        if header.name.count > UInt8.max {
+            throw CommonRunTimeError.crtError(.init(code: AWS_ERROR_OVERFLOW_DETECTED.rawValue))
+        }
+        let addCHeader: () throws -> Int32 = {
+            return try header.name.withCString { headerName in
                 switch header.value {
                 case .bool(let value):
                     return aws_event_stream_add_bool_header(
@@ -76,6 +79,9 @@ extension EventStreamMessage {
                         UInt8(header.name.count),
                         value)
                 case .byteBuf(var value):
+                    if value.count > UInt16.max {
+                        throw CommonRunTimeError.crtError(.init(code: AWS_ERROR_OVERFLOW_DETECTED.rawValue))
+                    }
                     return value.withUnsafeMutableBytes {
                         let bytes = $0.bindMemory(to: UInt8.self).baseAddress!
                         return aws_event_stream_add_bytebuf_header(
@@ -87,6 +93,9 @@ extension EventStreamMessage {
                             1)
                     }
                 case .string(let value):
+                    if value.count > UInt16.max {
+                        throw CommonRunTimeError.crtError(.init(code: AWS_ERROR_OVERFLOW_DETECTED.rawValue))
+                    }
                     return value.withCString {
                         aws_event_stream_add_string_header(
                             rawHeaders,
@@ -115,7 +124,7 @@ extension EventStreamMessage {
             }
         }
 
-        guard addCHeader() == AWS_OP_SUCCESS else {
+        guard try addCHeader() == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
     }
