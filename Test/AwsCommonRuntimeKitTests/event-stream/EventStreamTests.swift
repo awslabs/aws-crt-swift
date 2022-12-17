@@ -8,6 +8,8 @@ class EventStreamTests: XCBaseTestCase {
     let semaphore = DispatchSemaphore(value: 0)
 
     func testEncodeDecodeHeaders() async throws {
+        let onCompleteWasCalled = XCTestExpectation(description: "OnComplete was called")
+
         let headers = [
             EventStreamHeader(name: "bool", value: .bool(value: true)),
             EventStreamHeader(name: "byte", value: .byte(value: 16)),
@@ -28,22 +30,27 @@ class EventStreamTests: XCBaseTestCase {
                 onPayloadSegment: { payload, finalSegment in
                     XCTFail("OnPayload callback is triggered unexpectedly.")
                 },
-                onPreludeReceived: { totalLength, headersLength, crc in
+                onPreludeReceived: { totalLength, headersLength in
                     XCTAssertEqual(totalLength, 210)
                     XCTAssertEqual(headersLength, 194)
-                    XCTAssertEqual(crc, 3816640716)
                 },
                 onHeaderReceived: { header in
                     decodedHeaders.append(header)
+                },
+                onComplete: {
+                    onCompleteWasCalled.fulfill()
                 },
                 onError: { code, message in
                     XCTFail("Error occurred. Code: \(code)\nMessage:\(message)")
                 })
         try decoder.decode(data: encoded)
         XCTAssertTrue(headers.elementsEqual(decodedHeaders))
+        wait(for: [onCompleteWasCalled], timeout: 1)
     }
 
     func testEncodeDecodePayload() async throws {
+        let onCompleteWasCalled = XCTestExpectation(description: "OnComplete was called")
+
         let payload = "payload".data(using: .utf8)!
         let message = EventStreamMessage(payload: payload, allocator: allocator)
         let encoded = try message.getEncoded()
@@ -52,22 +59,26 @@ class EventStreamTests: XCBaseTestCase {
                 onPayloadSegment: { payload, finalSegment in
                     decodedPayload.append(payload)
                 },
-                onPreludeReceived: { totalLength, headersLength, crc in
+                onPreludeReceived: { totalLength, headersLength in
                     XCTAssertEqual(totalLength, 23)
                     XCTAssertEqual(headersLength, 0)
-                    XCTAssertEqual(crc, 3085079803)
                 },
                 onHeaderReceived: { header in
                     XCTFail("OnHeader callback is triggered unexpectedly.")
+                }, onComplete: {
+                    onCompleteWasCalled.fulfill()
                 },
                 onError: { code, message in
                     XCTFail("Error occurred. Code: \(code)\nMessage:\(message)")
                 })
         try decoder.decode(data: encoded)
         XCTAssertEqual(payload, decodedPayload)
+        wait(for: [onCompleteWasCalled], timeout: 1)
     }
 
     func testEncodeOutOfScope() async throws {
+        let onCompleteWasCalled = XCTestExpectation(description: "OnComplete was called")
+
         let encoded: Data
         do {
             let headers = [EventStreamHeader(name: "int16", value: .int32(value: 16))]
@@ -83,13 +94,14 @@ class EventStreamTests: XCBaseTestCase {
                 onPayloadSegment: { payload, finalSegment in
                     decodedPayload.append(payload)
                 },
-                onPreludeReceived: { totalLength, headersLength, crc in
+                onPreludeReceived: { totalLength, headersLength in
                     XCTAssertEqual(totalLength, 34)
                     XCTAssertEqual(headersLength, 11)
-                    XCTAssertEqual(crc, 1240562309)
                 },
                 onHeaderReceived: { header in
                     decodedHeaders.append(header)
+                }, onComplete: {
+                    onCompleteWasCalled.fulfill()
                 },
                 onError: { code, message in
                     XCTFail("Error occurred. Code: \(code)\nMessage:\(message)")
@@ -99,9 +111,12 @@ class EventStreamTests: XCBaseTestCase {
 
         let expectedHeaders = [EventStreamHeader(name: "int16", value: .int32(value: 16))]
         XCTAssertTrue(expectedHeaders.elementsEqual(decodedHeaders))
+        wait(for: [onCompleteWasCalled], timeout: 1)
     }
 
     func testDecodeByteByByte() async throws {
+        let onCompleteWasCalled = XCTestExpectation(description: "OnComplete was called")
+
         let headers = [EventStreamHeader(name: "int16", value: .int32(value: 16))]
         let payload = "payload".data(using: .utf8)!
         let message = EventStreamMessage(headers: headers, payload: payload, allocator: allocator)
@@ -114,13 +129,14 @@ class EventStreamTests: XCBaseTestCase {
                 onPayloadSegment: { payload, finalSegment in
                     decodedPayload.append(payload)
                 },
-                onPreludeReceived: { totalLength, headersLength, crc in
+                onPreludeReceived: { totalLength, headersLength in
                     XCTAssertEqual(totalLength, 34)
                     XCTAssertEqual(headersLength, 11)
-                    XCTAssertEqual(crc, 1240562309)
                 },
                 onHeaderReceived: { header in
                     decodedHeaders.append(header)
+                }, onComplete: {
+                    onCompleteWasCalled.fulfill()
                 },
                 onError: { code, message in
                     XCTFail("Error occurred. Code: \(code)\nMessage:\(message)")
@@ -131,26 +147,31 @@ class EventStreamTests: XCBaseTestCase {
 
         XCTAssertEqual(payload, decodedPayload)
         XCTAssertTrue(headers.elementsEqual(decodedHeaders))
+        wait(for: [onCompleteWasCalled], timeout: 1)
     }
 
     func testEmpty() async throws {
+        let onCompleteWasCalled = XCTestExpectation(description: "OnComplete was called")
+
         let message = EventStreamMessage(allocator: allocator)
         let encoded = try message.getEncoded()
         let decoder = EventStreamMessageDecoder(
                 onPayloadSegment: { payload, finalSegment in
                     XCTFail("OnPayload callback is triggered unexpectedly.")
                 },
-                onPreludeReceived: { totalLength, headersLength, crc in
+                onPreludeReceived: { totalLength, headersLength in
                     XCTAssertEqual(totalLength, 16)
                     XCTAssertEqual(headersLength, 0)
-                    XCTAssertEqual(crc, 96618731)
                 },
                 onHeaderReceived: { header in
                     XCTFail("OnHeader callback is triggered unexpectedly.")
+                }, onComplete: {
+                    onCompleteWasCalled.fulfill()
                 },
                 onError: { code, message in
                     XCTFail("Error occurred. Code: \(code)\nMessage:\(message)")
                 })
         try decoder.decode(data: encoded)
+        onCompleteWasCalled.fulfill()
     }
 }

@@ -6,11 +6,9 @@ import AwsCCommon
 import Foundation
 
 public typealias OnPayloadSegment = (_ payload: Data, _ finalSegment: Bool) -> Void
-public typealias OnPreludeReceived = (
-    _ totalLength: UInt32,
-    _ headersLength: UInt32,
-    _ crc: UInt32) -> Void
+public typealias OnPreludeReceived = (_ totalLength: UInt32, _ headersLength: UInt32) -> Void
 public typealias OnHeaderReceived = (EventStreamHeader) -> Void
+public typealias OnComplete = () -> Void
 public typealias OnError = (_ code: Int32, _ message: String) -> Void
 
 public class EventStreamMessageDecoder {
@@ -24,12 +22,13 @@ public class EventStreamMessageDecoder {
     ///   - onPreludeReceived: Called when a new message has arrived. The prelude will contain metadata about the message.
     ///                        At this point no headers or payload have been received.
     ///   - onHeaderReceived: Called when a header is encountered.
-    ///   - onError: Called when an error is encountered.
-    ///              The decoder is not in a good state for usage after this callback.
+    ///   - onComplete: Called when a message decoding is complete and CRC is verified.
+    ///   - onError: Called when an error is encountered. The decoder is not in a good state for usage after this callback.
     ///   - allocator: (Optional) allocator to override.
     public init(onPayloadSegment: @escaping OnPayloadSegment,
                 onPreludeReceived: @escaping OnPreludeReceived,
                 onHeaderReceived: @escaping OnHeaderReceived,
+                onComplete: @escaping OnComplete,
                 onError: @escaping OnError,
                 allocator: Allocator = defaultAllocator) {
 
@@ -38,16 +37,18 @@ public class EventStreamMessageDecoder {
             onPayloadSegment: onPayloadSegment,
             onPreludeReceived: onPreludeReceived,
             onHeaderReceived: onHeaderReceived,
+            onComplete: onComplete,
             onError: onError)
-        aws_event_stream_streaming_decoder_init(
-            &rawValue,
-            allocator.rawValue,
-            onPayloadSegmentFn,
-            onPreludeReceivedFn,
-            onHeaderReceivedFn,
-            onErrorFn,
-            callbackCore.passUnretained()
-        )
+
+        var decoderOptions = aws_event_stream_streaming_decoder_options()
+        decoderOptions.on_payload_segment = onPayloadSegmentFn
+        decoderOptions.on_prelude = onPreludeReceivedFn
+        decoderOptions.on_header = onHeaderReceivedFn
+        decoderOptions.on_complete = onCompleteFn
+        decoderOptions.on_error = onErrorFn
+        decoderOptions.user_data = callbackCore.passUnretained()
+
+        aws_event_stream_streaming_decoder_init_from_options(&rawValue, allocator.rawValue, &decoderOptions)
     }
 
     /// Pass data to decode. This will trigger the callbacks with the decoded result.
@@ -74,15 +75,18 @@ class EventStreamMessageDecoderCallbackCore {
     let onPayloadSegment: OnPayloadSegment
     let onPreludeReceived: OnPreludeReceived
     let onHeaderReceived: OnHeaderReceived
+    let onComplete: OnComplete
     let onError: OnError
 
     init(onPayloadSegment: @escaping OnPayloadSegment,
          onPreludeReceived: @escaping OnPreludeReceived,
          onHeaderReceived: @escaping OnHeaderReceived,
+         onComplete: @escaping OnComplete,
          onError: @escaping OnError) {
         self.onPayloadSegment = onPayloadSegment
         self.onPreludeReceived = onPreludeReceived
         self.onHeaderReceived = onHeaderReceived
+        self.onComplete = onComplete
         self.onError = onError
     }
 
@@ -114,8 +118,7 @@ private func onPreludeReceivedFn(
 
     callbackCore.onPreludeReceived(
         prelude.pointee.total_len,
-        prelude.pointee.headers_len,
-        prelude.pointee.prelude_crc)
+        prelude.pointee.headers_len)
 }
 
 private func onHeaderReceivedFn(
@@ -138,6 +141,16 @@ private func onHeaderReceivedFn(
     }
     let value = EventStreamHeaderValue.parseRaw(rawValue: header)
     callbackCore.onHeaderReceived(EventStreamHeader(name: name, value: value))
+}
+
+private func onCompleteFn(
+    decoder: UnsafeMutablePointer<aws_event_stream_streaming_decoder>?,
+    messageCrc: UInt32,
+    userData: UnsafeMutableRawPointer!) {
+    let callbackCore = Unmanaged<EventStreamMessageDecoderCallbackCore>
+        .fromOpaque(userData)
+        .takeUnretainedValue()
+    callbackCore.onComplete()
 }
 
 private func onErrorFn(
