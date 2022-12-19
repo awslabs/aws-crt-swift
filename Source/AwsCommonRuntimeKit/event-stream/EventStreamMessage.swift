@@ -110,7 +110,7 @@ extension EventStreamMessage {
                         rawHeaders,
                         headerName,
                         UInt8(header.name.count),
-                        Int64(value.millisecond))
+                        Int64(value.millisecondsSince1970))
                 case .uuid(let value):
                     return withUnsafeBytes(of: value) {
                         let address = $0.baseAddress?.assumingMemoryBound(to: UInt8.self)

@@ -20,9 +20,9 @@ public enum EventStreamHeaderValue: Equatable {
     case byteBuf(value: Data)
     /// String length can not be greater then UInt16.max
     case string(value: String)
-    /// Timestamp is only precise up to milliseconds.
-    /// It will be rounded to three decimal places during encoding.
-    case timestamp(timeIntervalSince1970: TimeInterval)
+    /// Date is only precise up to milliseconds.
+    /// It will lose the sub-millisecond precision during encoding.
+    case timestamp(value: Date)
     case uuid(value: UUID)
 }
 
@@ -54,8 +54,7 @@ extension EventStreamHeaderValue {
             value = .string(
                 value: aws_event_stream_header_value_as_string(rawValue).toString())
         case AWS_EVENT_STREAM_HEADER_TIMESTAMP:
-            value = .timestamp(
-                timeIntervalSince1970: Double(aws_event_stream_header_value_as_timestamp(rawValue)) / 1000.0)
+            value = .timestamp(value: Date(milliseconds: aws_event_stream_header_value_as_timestamp(rawValue)))
         case AWS_EVENT_STREAM_HEADER_UUID:
             let uuid = UUID(uuid: rawValue.pointee.header_value.static_val)
             value = .uuid(value: uuid)
@@ -68,7 +67,11 @@ extension EventStreamHeaderValue {
 
 extension EventStreamHeader: Equatable {
     public static func == (lhs: EventStreamHeader, rhs: EventStreamHeader) -> Bool {
-        lhs.name == rhs.name &&
+        if case let EventStreamHeaderValue.timestamp(value1) = lhs.value,
+        case let EventStreamHeaderValue.timestamp(value2) = rhs.value {
+            return value1.millisecondsSince1970 == value2.millisecondsSince1970
+        }
+        return lhs.name == rhs.name &&
             lhs.value == rhs.value
     }
 }
