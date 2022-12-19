@@ -17,7 +17,7 @@ To run tests:
 swift test
 ```
 
-### Useful Links
+### Developer's Guide
 Required Reading:
 - [Peril of the Ampersand](https://developer.apple.com/forums/thread/674633)
 - [Unmanaged](https://www.mikeash.com/pyblog/friday-qa-2017-08-11-swiftunmanaged.html)
