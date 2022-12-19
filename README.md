@@ -16,3 +16,14 @@ To run tests:
 ```sh
 swift test
 ```
+
+### Useful Links
+Required Reading:
+- [Peril of the Ampersand](https://developer.apple.com/forums/thread/674633)
+- [Unmanaged](https://www.mikeash.com/pyblog/friday-qa-2017-08-11-swiftunmanaged.html)
+
+Useful videos:
+- [Swift and C Interoperability](https://youtu.be/0kim9mxBOA8?t=2412) till 44:30
+- [Safely manage pointers in Swift](https://developer.apple.com/videos/play/wwdc2020/10167/)
+- [Unsafe Swift](https://developer.apple.com/videos/play/wwdc2020/10648)
+- [Safely manage pointers in Swift](https://developer.apple.com/videos/play/wwdc2020/10167)
