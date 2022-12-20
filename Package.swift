@@ -236,7 +236,7 @@ packageTargets.append(contentsOf: [
         cSettings: cSettings
     ),
     .target(
-        name: "AwsCEventStreams",
+        name: "AwsCEventStream",
         dependencies: ["AwsChecksums", "AwsCCommon", "AwsCIo", "AwsCCal"],
         path: "aws-common-runtime/aws-c-event-stream",
         exclude: awsCEventStreamExcludes,
