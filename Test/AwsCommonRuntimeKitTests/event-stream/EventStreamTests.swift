@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import XCTest
-import AwsCEventStreams
+import AwsCEventStream
 @testable import AwsCommonRuntimeKit
 
 class EventStreamTests: XCBaseTestCase {
@@ -173,6 +173,6 @@ class EventStreamTests: XCBaseTestCase {
                     XCTFail("Error occurred. Code: \(code)\nMessage:\(message)")
                 })
         try decoder.decode(data: encoded)
-        onCompleteWasCalled.fulfill()
+        wait(for: [onCompleteWasCalled], timeout: 1)
     }
 }

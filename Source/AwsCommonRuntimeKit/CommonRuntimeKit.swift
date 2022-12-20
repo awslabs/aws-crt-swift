@@ -1,4 +1,4 @@
-import AwsCEventStreams
+import AwsCEventStream
 import AwsCAuth
 
 public struct CommonRuntimeKit {

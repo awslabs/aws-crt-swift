@@ -1,7 +1,7 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-import AwsCEventStreams
+import AwsCEventStream
 import Foundation
 
 public struct EventStreamHeader {
@@ -54,7 +54,9 @@ extension EventStreamHeaderValue {
             value = .string(
                 value: aws_event_stream_header_value_as_string(rawValue).toString())
         case AWS_EVENT_STREAM_HEADER_TIMESTAMP:
-            value = .timestamp(value: Date(milliseconds: aws_event_stream_header_value_as_timestamp(rawValue)))
+            value = .timestamp(
+                    value: Date(
+                            millisecondsSince1970: aws_event_stream_header_value_as_timestamp(rawValue)))
         case AWS_EVENT_STREAM_HEADER_UUID:
             let uuid = UUID(uuid: rawValue.pointee.header_value.static_val)
             value = .uuid(value: uuid)

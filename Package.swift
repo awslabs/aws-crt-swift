@@ -251,7 +251,7 @@ packageTargets.append(contentsOf: [
                         "AwsCIo",
                         "AwsCCommon",
                         "AwsChecksums",
-                        "AwsCEventStreams",
+                        "AwsCEventStream",
                         .product(name: "Collections", package: "swift-collections")],
         path: "Source/AwsCommonRuntimeKit",
         swiftSettings: [

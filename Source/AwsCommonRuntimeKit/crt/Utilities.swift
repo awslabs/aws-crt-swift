@@ -96,7 +96,7 @@ extension Date {
     }
 
     init(millisecondsSince1970: Int64) {
-        self = Date(timeIntervalSince1970: TimeInterval(milliseconds) / 1000)
+        self = Date(timeIntervalSince1970: TimeInterval(millisecondsSince1970) / 1000)
     }
 }
 
