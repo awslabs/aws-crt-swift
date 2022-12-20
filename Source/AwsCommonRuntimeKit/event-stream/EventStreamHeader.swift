@@ -5,7 +5,7 @@ import AwsCEventStreams
 import Foundation
 
 public struct EventStreamHeader {
-    /// Header name length can not be greater than UInt8.max
+    /// Header name length can not be greater than Int8.max
     public var name: String
     public var value: EventStreamHeaderValue
 }
@@ -16,9 +16,9 @@ public enum EventStreamHeaderValue: Equatable {
     case int16(value: Int16)
     case int32(value: Int32)
     case int64(value: Int64)
-    /// Data length can not be greater then UInt16.max
+    /// Data length can not be greater than Int16.max
     case byteBuf(value: Data)
-    /// String length can not be greater then UInt16.max
+    /// String length can not be greater than Int16.max
     case string(value: String)
     /// Date is only precise up to milliseconds.
     /// It will lose the sub-millisecond precision during encoding.
