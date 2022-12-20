@@ -43,7 +43,9 @@ public struct EventStreamMessage {
 extension EventStreamMessage {
     func addHeader(header: EventStreamHeader, rawHeaders: UnsafeMutablePointer<aws_array_list>) throws {
         if header.name.count > Int8.max {
-            throw CommonRunTimeError.crtError(.init(code: AWS_ERROR_EVENT_STREAM_MESSAGE_INVALID_HEADERS_LEN.rawValue))
+            throw CommonRunTimeError.crtError(
+                .init(
+                    code: AWS_ERROR_EVENT_STREAM_MESSAGE_INVALID_HEADERS_LEN.rawValue))
         }
         let addCHeader: () throws -> Int32 = {
             return try header.name.withCString { headerName in
@@ -80,7 +82,9 @@ extension EventStreamMessage {
                         value)
                 case .byteBuf(var value):
                     if value.count > Int16.max {
-                        throw CommonRunTimeError.crtError(.init(code: AWS_ERROR_EVENT_STREAM_MESSAGE_INVALID_HEADERS_LEN.rawValue))
+                        throw CommonRunTimeError.crtError(
+                            .init(
+                                code: AWS_ERROR_EVENT_STREAM_MESSAGE_INVALID_HEADERS_LEN.rawValue))
                     }
                     return value.withUnsafeMutableBytes {
                         let bytes = $0.bindMemory(to: UInt8.self).baseAddress!
@@ -94,7 +98,9 @@ extension EventStreamMessage {
                     }
                 case .string(let value):
                     if value.count > Int16.max {
-                        throw CommonRunTimeError.crtError(.init(code: AWS_ERROR_EVENT_STREAM_MESSAGE_INVALID_HEADERS_LEN.rawValue))
+                        throw CommonRunTimeError.crtError(
+                            .init(
+                                code: AWS_ERROR_EVENT_STREAM_MESSAGE_INVALID_HEADERS_LEN.rawValue))
                     }
                     return value.withCString {
                         aws_event_stream_add_string_header(
