@@ -71,8 +71,8 @@ public class RetryStrategy {
         }
     }
 
-    public func scheduleRetry(token: RetryToken, errorType: RetryError) async throws {
-        try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
+    public func scheduleRetry(token: RetryToken, errorType: RetryError) async throws -> RetryToken {
+        try await withCheckedThrowingContinuation { continuation in
             let continuationCore = ContinuationCore(continuation: continuation)
             if aws_retry_strategy_schedule_retry(token.rawValue,
                                                  errorType.rawValue,
@@ -81,7 +81,7 @@ public class RetryStrategy {
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
             }
-        })
+        }
     }
 
     /// Records a successful retry.You should always call it after a successful operation
@@ -98,14 +98,15 @@ public class RetryStrategy {
 private func onRetryReady(token: UnsafeMutablePointer<aws_retry_token>?,
                           errorCode: Int32,
                           userData: UnsafeMutableRawPointer!) {
-    let crtRetryStrategyCore = Unmanaged<ContinuationCore<()>>.fromOpaque(userData).takeRetainedValue()
+    let crtRetryStrategyCore = Unmanaged<ContinuationCore<RetryToken>>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
         crtRetryStrategyCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
     // Success
-    crtRetryStrategyCore.continuation.resume()
+    aws_retry_token_acquire(token!)
+    crtRetryStrategyCore.continuation.resume(returning: RetryToken(rawValue: token!))
 }
 
 private func onRetryTokenAcquired(retry_strategy: UnsafeMutablePointer<aws_retry_strategy>?,
