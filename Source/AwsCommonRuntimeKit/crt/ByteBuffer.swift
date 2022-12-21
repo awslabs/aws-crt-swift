@@ -70,9 +70,3 @@ extension ByteBuffer: IStreamable {
         return dataSlice.count
     }
 }
-
-extension ByteBuffer {
-    public func encodeToHexString() -> String {
-        data.encodeToHexString()
-    }
-}
