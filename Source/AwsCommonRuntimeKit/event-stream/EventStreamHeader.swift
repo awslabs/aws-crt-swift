@@ -5,8 +5,15 @@ import AwsCEventStream
 import Foundation
 
 public struct EventStreamHeader {
-    /// Header name length can not be greater than Int8.max
+    /// max header name length is 127 bytes (Int8.max)
+    public static let maxNameLength = AWS_EVENT_STREAM_HEADER_NAME_LEN_MAX
+
+    public static let maxValueLength = Int16.max
+
+    /// name.count can not be greater than EventStreamHeader.maxNameLength
     public var name: String
+
+    /// value.count can not be greater than EventStreamHeader.maxValueLength for supported types.
     public var value: EventStreamHeaderValue
 }
 
@@ -16,9 +23,9 @@ public enum EventStreamHeaderValue: Equatable {
     case int16(value: Int16)
     case int32(value: Int32)
     case int64(value: Int64)
-    /// Data length can not be greater than Int16.max
+    /// Data length can not be greater than EventStreamHeader.maxValueLength
     case byteBuf(value: Data)
-    /// String length can not be greater than Int16.max
+    /// String length can not be greater than EventStreamHeader.maxValueLength
     case string(value: String)
     /// Date is only precise up to milliseconds.
     /// It will lose the sub-millisecond precision during encoding.
@@ -71,7 +78,8 @@ extension EventStreamHeader: Equatable {
     public static func == (lhs: EventStreamHeader, rhs: EventStreamHeader) -> Bool {
         if case let EventStreamHeaderValue.timestamp(value1) = lhs.value,
            case let EventStreamHeaderValue.timestamp(value2) = rhs.value {
-            return value1.millisecondsSince1970 == value2.millisecondsSince1970
+            return lhs.name == rhs.name &&
+                    value1.millisecondsSince1970 == value2.millisecondsSince1970
         }
         return lhs.name == rhs.name &&
             lhs.value == rhs.value

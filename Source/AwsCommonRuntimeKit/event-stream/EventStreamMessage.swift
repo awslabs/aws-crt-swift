@@ -42,7 +42,7 @@ public struct EventStreamMessage {
 
 extension EventStreamMessage {
     func addHeader(header: EventStreamHeader, rawHeaders: UnsafeMutablePointer<aws_array_list>) throws {
-        if header.name.count > Int8.max {
+        if header.name.count > EventStreamHeader.maxNameLength {
             throw CommonRunTimeError.crtError(
                 .init(
                     code: AWS_ERROR_EVENT_STREAM_MESSAGE_INVALID_HEADERS_LEN.rawValue))
@@ -81,7 +81,7 @@ extension EventStreamMessage {
                         UInt8(header.name.count),
                         value)
                 case .byteBuf(var value):
-                    if value.count > Int16.max {
+                    if value.count > EventStreamHeader.maxValueLength {
                         throw CommonRunTimeError.crtError(
                             .init(
                                 code: AWS_ERROR_EVENT_STREAM_MESSAGE_INVALID_HEADERS_LEN.rawValue))
@@ -97,7 +97,7 @@ extension EventStreamMessage {
                             1)
                     }
                 case .string(let value):
-                    if value.count > Int16.max {
+                    if value.count > EventStreamHeader.maxValueLength {
                         throw CommonRunTimeError.crtError(
                             .init(
                                 code: AWS_ERROR_EVENT_STREAM_MESSAGE_INVALID_HEADERS_LEN.rawValue))
