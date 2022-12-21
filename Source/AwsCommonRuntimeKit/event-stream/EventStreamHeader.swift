@@ -62,8 +62,8 @@ extension EventStreamHeaderValue {
                 value: aws_event_stream_header_value_as_string(rawValue).toString())
         case AWS_EVENT_STREAM_HEADER_TIMESTAMP:
             value = .timestamp(
-                    value: Date(
-                            millisecondsSince1970: aws_event_stream_header_value_as_timestamp(rawValue)))
+                value: Date(
+                    millisecondsSince1970: aws_event_stream_header_value_as_timestamp(rawValue)))
         case AWS_EVENT_STREAM_HEADER_UUID:
             let uuid = UUID(uuid: rawValue.pointee.header_value.static_val)
             value = .uuid(value: uuid)
@@ -79,7 +79,7 @@ extension EventStreamHeader: Equatable {
         if case let EventStreamHeaderValue.timestamp(value1) = lhs.value,
            case let EventStreamHeaderValue.timestamp(value2) = rhs.value {
             return lhs.name == rhs.name &&
-                    value1.millisecondsSince1970 == value2.millisecondsSince1970
+                value1.millisecondsSince1970 == value2.millisecondsSince1970
         }
         return lhs.name == rhs.name &&
             lhs.value == rhs.value

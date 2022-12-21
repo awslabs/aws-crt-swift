@@ -60,9 +60,12 @@ extension Data {
         let count = self.count
         return self.withUnsafeBytes { rawBufferPointer -> Result in
             var byteBuf = aws_byte_buf_from_array(rawBufferPointer.baseAddress, count)
-            return withUnsafeMutablePointer(to: &byteBuf) { body($0) }
+            return withUnsafeMutablePointer(to: &byteBuf) {
+                body($0)
+            }
+        }
     }
-    
+
     public func encodeToHexString() -> String {
         map { String(format: "%02x", $0) }.joined()
     }
