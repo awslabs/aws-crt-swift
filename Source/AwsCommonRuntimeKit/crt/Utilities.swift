@@ -41,7 +41,7 @@ extension String {
 extension Data {
 
     /// Computes the sha256 hash over data.
-    func sha256(truncate: Int = 0, allocator: Allocator = defaultAllocator) throws -> Data {
+    public func sha256(truncate: Int = 0, allocator: Allocator = defaultAllocator) throws -> Data {
         try self.withUnsafeBytes { bufferPointer in
             var byteCursor = aws_byte_cursor_from_array(bufferPointer.baseAddress, count)
             let bufferSize = Int(AWS_SHA256_LEN)
@@ -54,6 +54,10 @@ extension Data {
             }
             return bufferData
         }
+    }
+    
+    public func encodeToHexString() -> String {
+        map { String(format: "%02x", $0) }.joined()
     }
 }
 

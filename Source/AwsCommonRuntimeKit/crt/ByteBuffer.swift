@@ -72,7 +72,7 @@ extension ByteBuffer: IStreamable {
 }
 
 extension ByteBuffer {
-    func encodeToHexString() -> String {
-        data.map { String(format: "%02x", $0) }.joined()
+    public func encodeToHexString() -> String {
+        data.encodeToHexString()
     }
 }
