@@ -6,7 +6,7 @@ import AwsCIo
 import AwsCHttp
 import Foundation
 
-public protocol CredentialsProviding: AnyObject {
+public protocol CredentialsProviding {
     func getCredentials() async throws -> Credentials
 }
 
