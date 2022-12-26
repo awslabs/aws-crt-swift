@@ -91,22 +91,31 @@ func withOptionalCStructPointer<Arg1Type: CStruct,
                                 Arg3Type: CStruct,
                                 Arg4Type: CStruct,
                                 Arg5Type: CStruct,
+                                Arg6Type: CStruct,
                                 Result>(
     _ arg1: Arg1Type?,
     _ arg2: Arg2Type?,
     _ arg3: Arg3Type?,
     _ arg4: Arg4Type?,
     _ arg5: Arg5Type?,
+    _ arg6: Arg6Type?,
     _ body: (UnsafePointer<Arg1Type.RawType>?,
              UnsafePointer<Arg2Type.RawType>?,
              UnsafePointer<Arg3Type.RawType>?,
              UnsafePointer<Arg4Type.RawType>?,
-             UnsafePointer<Arg5Type.RawType>?) -> Result
+             UnsafePointer<Arg5Type.RawType>?,
+             UnsafePointer<Arg6Type.RawType>?) -> Result
 ) -> Result {
     return withOptionalCStructPointer(arg1, arg2) { arg1Pointer, arg2Pointer in
         return withOptionalCStructPointer(arg3, arg4) { arg3Pointer, arg4Pointer in
-            return withOptionalCStructPointer(to: arg5) { arg5Pointer in
-                return body(arg1Pointer, arg2Pointer, arg3Pointer, arg4Pointer, arg5Pointer)
+            return withOptionalCStructPointer(arg5, arg6) { arg5Pointer, arg6Pointer in
+                return body(
+                    arg1Pointer,
+                    arg2Pointer,
+                    arg3Pointer,
+                    arg4Pointer,
+                    arg5Pointer,
+                    arg6Pointer)
             }
         }
     }

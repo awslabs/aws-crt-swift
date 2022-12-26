@@ -55,7 +55,7 @@ extension Data {
             return bufferData
         }
     }
-    
+
     public func encodeToHexString() -> String {
         map { String(format: "%02x", $0) }.joined()
     }

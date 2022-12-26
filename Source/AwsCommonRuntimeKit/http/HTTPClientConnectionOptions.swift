@@ -1,5 +1,6 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+
 import AwsCHttp
 
 public struct HTTPClientConnectionOptions: CStructWithShutdownOptions {
@@ -42,6 +43,47 @@ public struct HTTPClientConnectionOptions: CStructWithShutdownOptions {
 
     public var monitoringOptions: HTTPMonitoringOptions?
 
+    /// (Optional) HTTP/2 specific configuration
+    /// Specify whether you have prior knowledge that cleartext (HTTP) connections are HTTP/2 (RFC-7540 3.4).
+    /// If false, then cleartext connections are treated as HTTP/1.1.
+    /// It is illegal to set this true when secure connections are being used.
+    /// Note that upgrading from HTTP/1.1 to HTTP/2 is not supported (RFC-7540 3.2).
+    public var http2PriorKnowledge: Bool
+
+    /// (Optional) HTTP/2 specific configuration
+    /// The data of settings to change for initial settings.
+    /// Note: each setting has its boundary.
+    public var http2InitialSettings: HTTP2Settings?
+
+    /// (Optional) HTTP/2 specific configuration
+    /// The max number of recently-closed streams to remember.
+    /// Set it to nil to use the default setting
+    ///
+    /// If the connection receives a frame for a closed stream,
+    /// the frame will be ignored or cause a connection error,
+    /// depending on the frame type and how the stream was closed.
+    /// Remembering more streams reduces the chances that a late frame causes
+    /// a connection error, but costs some memory.
+    public var http2MaxClosedStreams: Int?
+
+    /// (Optional) HTTP/2 specific configuration
+    /// Set to true to manually manage the flow-control window of whole HTTP/2 connection.
+    ///
+    /// If false, the connection will maintain its flow-control windows such that
+    /// no back-pressure is applied and data arrives as fast as possible.
+    ///
+    /// If true, the flow-control window of the whole connection will shrink as body data
+    /// is received (headers, padding, and other metadata do not affect the window) for every streams
+    /// created on this connection.
+    /// The initial connection flow-control window is 65,535.
+    /// Once the connection's flow-control window reaches to 0, all the streams on the connection stop receiving any
+    /// further data.
+    /// The user must call aws_http2_connection_update_window() to increment the connection's // TODO: update
+    /// window and keep data flowing.
+    /// Note: the padding of data frame counts to the flow-control window.
+    /// But, the client will always automatically update the window for padding even for manual window update.
+    public var http2EnableManualWindowManagement: Bool
+
     public init(clientBootstrap: ClientBootstrap,
                 hostName: String,
                 initialWindowSize: Int = Int.max,
@@ -54,7 +96,11 @@ public struct HTTPClientConnectionOptions: CStructWithShutdownOptions {
                 maxConnections: Int = 2,
                 enableManualWindowManagement: Bool = false,
                 maxConnectionIdleMs: UInt64 = 0,
-                shutdownCallback: ShutdownCallback? = nil) {
+                shutdownCallback: ShutdownCallback? = nil,
+                http2PriorKnowledge: Bool = false,
+                http2InitialSettings: HTTP2Settings? = nil,
+                http2MaxClosedStreams: Int? = nil,
+                http2EnableManualWindowManagement: Bool = false) {
 
         self.clientBootstrap = clientBootstrap
         self.hostName = hostName
@@ -69,6 +115,10 @@ public struct HTTPClientConnectionOptions: CStructWithShutdownOptions {
         self.enableManualWindowManagement = enableManualWindowManagement
         self.maxConnectionIdleMs = maxConnectionIdleMs
         self.shutdownCallback = shutdownCallback
+        self.http2PriorKnowledge = http2PriorKnowledge
+        self.http2InitialSettings = http2InitialSettings
+        self.http2MaxClosedStreams = http2MaxClosedStreams
+        self.http2EnableManualWindowManagement = http2EnableManualWindowManagement
     }
 
     typealias RawType = aws_http_connection_manager_options
@@ -82,7 +132,8 @@ public struct HTTPClientConnectionOptions: CStructWithShutdownOptions {
                 proxyEnvSettings,
                 socketOptions,
                 monitoringOptions,
-                tlsOptions) { proxyPointer, proxyEnvSettingsPointer, socketPointer, monitoringPointer, tlsPointer in
+                tlsOptions,
+                http2InitialSettings) { proxyPointer, proxyEnvSettingsPointer, socketPointer, monitoringPointer, tlsPointer, http2SettingPointer in
 
                 var cManagerOptions = aws_http_connection_manager_options()
                 cManagerOptions.bootstrap = clientBootstrap.rawValue
@@ -99,6 +150,18 @@ public struct HTTPClientConnectionOptions: CStructWithShutdownOptions {
                 cManagerOptions.max_connections = maxConnections
                 cManagerOptions.enable_read_back_pressure = enableManualWindowManagement
                 cManagerOptions.max_connection_idle_in_milliseconds = maxConnectionIdleMs
+                cManagerOptions.http2_prior_knowledge = http2PriorKnowledge
+                cManagerOptions.max_closed_streams = http2MaxClosedStreams ?? 0
+                cManagerOptions.http2_conn_manual_window_management = http2EnableManualWindowManagement
+                if let http2SettingPointer = http2SettingPointer {
+                    // TODO: update after adding const in C
+                    var http2_settings: [aws_http2_setting] = http2SettingPointer.pointee
+                    return http2_settings.withUnsafeMutableBufferPointer { pointer in
+                        cManagerOptions.initial_settings_array = pointer.baseAddress!
+                        cManagerOptions.num_initial_settings = http2SettingPointer.pointee.count
+                        return body(cManagerOptions)
+                    }
+                }
                 return body(cManagerOptions)
             }
         }
