@@ -5,6 +5,11 @@ import XCTest
 @testable import AwsCommonRuntimeKit
 import AwsCHttp
 
+struct HTTPResponse {
+    var statusCode: Int = -1
+    var headers: [HTTPHeader] = [HTTPHeader]()
+    var body: String = ""
+}
 
 class HTTPClientTestFixture: XCBaseTestCase {
     let semaphore = DispatchSemaphore(value: 0)
@@ -15,8 +20,14 @@ class HTTPClientTestFixture: XCBaseTestCase {
                          requestBody: String = "",
                          expectedStatus: Int = 200,
                          expectedVersion: HTTPVersion,
-                         connectionManager: HTTPClientConnectionManager) async throws {
-        let httpRequestOptions = try getHTTPRequestOptions(method: method, endpoint: endpoint, path: path, body: requestBody, expectedStatusCode: expectedStatus)
+                         connectionManager: HTTPClientConnectionManager) async throws -> HTTPResponse {
+        var httpResponse = HTTPResponse()
+        let httpRequestOptions = try getHTTPRequestOptions(
+                method: method,
+                endpoint: endpoint,
+                path: path,
+                body: requestBody,
+                response: &httpResponse)
 
         let connection = try await connectionManager.acquireConnection()
         XCTAssertTrue(connection.isOpen)
@@ -26,7 +37,9 @@ class HTTPClientTestFixture: XCBaseTestCase {
         semaphore.wait()
         let status_code = try stream.statusCode()
         XCTAssertEqual(status_code, expectedStatus)
+        XCTAssertEqual(httpResponse.statusCode, expectedStatus)
         XCTAssertTrue(connection.isOpen)
+        return httpResponse
     }
 
     func getHttpConnectionManager(endpoint: String,
@@ -58,31 +71,26 @@ class HTTPClientTestFixture: XCBaseTestCase {
         return try HTTPClientConnectionManager(options: httpClientOptions)
     }
 
-    struct Response: Codable {
-        let data: String
-    }
+
 
     func getHTTPRequestOptions(method: String,
                                endpoint: String,
                                path: String,
                                body: String = "",
-                               expectedStatusCode: Int = 200) throws -> HTTPRequestOptions {
+                               response: UnsafeMutablePointer<HTTPResponse>) throws -> HTTPRequestOptions {
         let httpRequest: HTTPRequest = try HTTPRequest(method: method, path: path, body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
         httpRequest.addHeader(header: HTTPHeader(name: "Host", value: endpoint))
         httpRequest.addHeader(header: HTTPHeader(name: "Content-Length", value: String(body.count)))
         let onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
             for header in headers {
                 print(header.name + " : " + header.value)
+                response.pointee.headers.append(header)
             }
         }
 
         let onBody: HTTPRequestOptions.OnIncomingBody = { stream, bodyChunk in
             print("onBody: \(bodyChunk)")
-
-            if !body.isEmpty {
-                let response: Response = try! JSONDecoder().decode(Response.self, from: bodyChunk)
-                XCTAssertEqual(response.data, body)
-            }
+            response.pointee.body += String(data: bodyChunk, encoding: .utf8)!
         }
 
         let onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone = { stream, block in
@@ -92,7 +100,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
         let onComplete: HTTPRequestOptions.OnStreamComplete = { stream, error in
             print("onComplete")
             XCTAssertNil(error)
-            XCTAssertEqual(try! stream.statusCode(), expectedStatusCode)
+            let statusCode = try! stream.statusCode()
+            response.pointee.statusCode = statusCode
             self.semaphore.signal()
         }
 
