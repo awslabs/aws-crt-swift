@@ -107,8 +107,8 @@ extension Date {
 }
 
 extension TimeInterval {
-    var millisecond: Double {
-        (self*1000).rounded()
+    var millisecond: UInt64 {
+        UInt64((self*1000).rounded())
     }
 }
 
