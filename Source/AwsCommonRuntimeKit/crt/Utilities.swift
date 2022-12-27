@@ -56,6 +56,16 @@ extension Data {
         }
     }
 
+    func withAWSByteBufPointer<Result>(_ body: (UnsafeMutablePointer<aws_byte_buf>) -> Result) -> Result {
+        let count = self.count
+        return self.withUnsafeBytes { rawBufferPointer -> Result in
+            var byteBuf = aws_byte_buf_from_array(rawBufferPointer.baseAddress, count)
+            return withUnsafeMutablePointer(to: &byteBuf) {
+                body($0)
+            }
+        }
+    }
+
     public func encodeToHexString() -> String {
         map { String(format: "%02x", $0) }.joined()
     }
@@ -68,17 +78,37 @@ extension aws_date_time {
     }
 }
 
+extension aws_byte_buf {
+    func toString() -> String {
+        return String(
+            data: toData(),
+            encoding: .utf8)!
+    }
+
+    func toData() -> Data {
+        return Data(bytes: self.buffer, count: self.len)
+    }
+}
+
 extension Date {
     func toAWSDate() -> aws_date_time {
         var date = aws_date_time()
         aws_date_time_init_epoch_secs(&date, self.timeIntervalSince1970)
         return date
     }
+
+    var millisecondsSince1970: Int64 {
+        Int64((self.timeIntervalSince1970 * 1000.0).rounded())
+    }
+
+    init(millisecondsSince1970: Int64) {
+        self = Date(timeIntervalSince1970: TimeInterval(millisecondsSince1970) / 1000)
+    }
 }
 
 extension TimeInterval {
     var millisecond: UInt64 {
-        UInt64(self*1000)
+        UInt64((self*1000).rounded())
     }
 }
 
