@@ -1,0 +1,107 @@
+//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+//  SPDX-License-Identifier: Apache-2.0.
+
+import XCTest
+@testable import AwsCommonRuntimeKit
+import AwsCHttp
+
+
+class HTTPClientTestFixture: XCBaseTestCase {
+    let semaphore = DispatchSemaphore(value: 0)
+
+    func sendHttpRequest(method: String,
+                         endpoint: String,
+                         path: String,
+                         requestBody: String = "",
+                         expectedStatus: Int = 200,
+                         ssh: Bool = true,
+                         port: Int = 443,
+                         expectedVersion: HTTPVersion,
+                         alpnList: [String] = ["h2","http/1.1"]) async throws {
+        let httpRequestOptions = try getHTTPRequestOptions(method: method, endpoint: endpoint, path: path, body: requestBody, expectedStatusCode: expectedStatus)
+
+        let connectionManager = try await getHttpConnectionManager(endpoint: endpoint, ssh: ssh, port: port, alpnList: alpnList)
+        let connection = try await connectionManager.acquireConnection()
+        XCTAssertTrue(connection.isOpen)
+        XCTAssertEqual(expectedVersion, connection.httpVersion)
+        let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+        try stream.activate()
+        semaphore.wait()
+        let status_code = try stream.statusCode()
+        XCTAssertEqual(status_code, expectedStatus)
+        XCTAssertTrue(connection.isOpen)
+    }
+
+    func getHttpConnectionManager(endpoint: String, ssh: Bool, port: Int, alpnList: [String]) async throws -> HTTPClientConnectionManager {
+        let tlsContextOptions = TLSContextOptions(allocator: allocator)
+        tlsContextOptions.setAlpnList(alpnList)
+        let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)
+        var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext, allocator: allocator)
+        tlsConnectionOptions.serverName = endpoint
+
+        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
+        let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
+        let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
+                hostResolver: hostResolver,
+                allocator: allocator)
+
+        let socketOptions = SocketOptions(socketType: .stream)
+
+        let httpClientOptions = HTTPClientConnectionOptions(clientBootstrap: bootstrap,
+                hostName: endpoint,
+                initialWindowSize: Int.max,
+                port: UInt16(port),
+                proxyOptions: nil,
+                socketOptions: socketOptions,
+                tlsOptions: ssh ? tlsConnectionOptions : nil,
+                monitoringOptions: nil)
+        return try HTTPClientConnectionManager(options: httpClientOptions)
+    }
+
+    struct Response: Codable {
+        let data: String
+    }
+
+    func getHTTPRequestOptions(method: String,
+                               endpoint: String,
+                               path: String,
+                               body: String = "",
+                               expectedStatusCode: Int = 200) throws -> HTTPRequestOptions {
+        let httpRequest: HTTPRequest = try HTTPRequest(method: method, path: path, body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
+        httpRequest.addHeader(header: HTTPHeader(name: "Host", value: endpoint))
+        httpRequest.addHeader(header: HTTPHeader(name: "Content-Length", value: String(body.count)))
+        let onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
+            for header in headers {
+                print(header.name + " : " + header.value)
+            }
+        }
+
+        let onBody: HTTPRequestOptions.OnIncomingBody = { stream, bodyChunk in
+            print("onBody: \(bodyChunk)")
+
+            if !body.isEmpty {
+                let response: Response = try! JSONDecoder().decode(Response.self, from: bodyChunk)
+                XCTAssertEqual(response.data, body)
+            }
+        }
+
+        let onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone = { stream, block in
+            print("onBlockDone")
+        }
+
+        let onComplete: HTTPRequestOptions.OnStreamComplete = { stream, error in
+            print("onComplete")
+            XCTAssertNil(error)
+            XCTAssertEqual(try! stream.statusCode(), expectedStatusCode)
+            self.semaphore.signal()
+        }
+
+        let requestOptions = HTTPRequestOptions(request: httpRequest,
+                onIncomingHeaders: onIncomingHeaders,
+                onIncomingHeadersBlockDone: onBlockDone,
+                onIncomingBody: onBody,
+                onStreamComplete: onComplete)
+        return requestOptions
+    }
+
+}

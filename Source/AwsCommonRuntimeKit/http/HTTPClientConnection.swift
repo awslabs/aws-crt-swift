@@ -25,6 +25,10 @@ public class HTTPClientConnection {
         return aws_http_connection_is_open(rawValue)
     }
 
+    public var httpVersion: HTTPVersion {
+        HTTPVersion(rawValue: aws_http_connection_get_version(rawValue))
+    }
+
     /// Close the http connection
     public func close() {
         aws_http_connection_close(rawValue)

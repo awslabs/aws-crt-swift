@@ -7,7 +7,7 @@ public class HTTPStream {
     var callbackData: HTTPStreamCallbackCore
 
     /// Stream keeps a reference to HttpConnection to keep it alive
-    private let httpConnection: HTTPClientConnection
+    private let httpConnection: HTTPClientConnection?
 
     // Called by HTTPClientConnection
     init(
@@ -22,6 +22,15 @@ public class HTTPStream {
         self.rawValue = rawValue
         self.httpConnection = httpConnection
     }
+
+    // Called by Http2Stream
+    init(rawValue: UnsafeMutablePointer<aws_http_stream>,
+        callbackData: HTTPStreamCallbackCore) throws {
+        self.callbackData = callbackData
+        self.rawValue = rawValue
+        self.httpConnection = nil
+    }
+
 
     /// Opens the Sliding Read/Write Window by the number of bytes passed as an argument for this HTTPStream.
     /// This function should only be called if the user application previously returned less than the length of the
