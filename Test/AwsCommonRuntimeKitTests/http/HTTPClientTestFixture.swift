@@ -14,13 +14,10 @@ class HTTPClientTestFixture: XCBaseTestCase {
                          path: String,
                          requestBody: String = "",
                          expectedStatus: Int = 200,
-                         ssh: Bool = true,
-                         port: Int = 443,
                          expectedVersion: HTTPVersion,
-                         alpnList: [String] = ["h2","http/1.1"]) async throws {
+                         connectionManager: HTTPClientConnectionManager) async throws {
         let httpRequestOptions = try getHTTPRequestOptions(method: method, endpoint: endpoint, path: path, body: requestBody, expectedStatusCode: expectedStatus)
 
-        let connectionManager = try await getHttpConnectionManager(endpoint: endpoint, ssh: ssh, port: port, alpnList: alpnList)
         let connection = try await connectionManager.acquireConnection()
         XCTAssertTrue(connection.isOpen)
         XCTAssertEqual(expectedVersion, connection.httpVersion)
@@ -32,7 +29,10 @@ class HTTPClientTestFixture: XCBaseTestCase {
         XCTAssertTrue(connection.isOpen)
     }
 
-    func getHttpConnectionManager(endpoint: String, ssh: Bool, port: Int, alpnList: [String]) async throws -> HTTPClientConnectionManager {
+    func getHttpConnectionManager(endpoint: String,
+                                  ssh: Bool = true,
+                                  port: Int = 443,
+                                  alpnList: [String] = ["h2","http/1.1"]) async throws -> HTTPClientConnectionManager {
         let tlsContextOptions = TLSContextOptions(allocator: allocator)
         tlsContextOptions.setAlpnList(alpnList)
         let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)

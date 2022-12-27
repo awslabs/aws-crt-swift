@@ -8,13 +8,15 @@ import AwsCHttp
 class HTTP2ClientConnectionTests: HTTPClientTestFixture {
 
     let expectedVersion = HTTPVersion.version_2
-    let host = "https://httpbin.org"
+    let host = "httpbin.org"
 
     func testGetHttpRequest() async throws {
+        let connectionManager = try await getHttpConnectionManager(endpoint: host)
         try await sendHttpRequest(
                 method: "GET",
-                endpoint: "httpbin.org",
+                endpoint: host,
                 path: "/get",
-                expectedVersion: expectedVersion)
+                expectedVersion: expectedVersion,
+                connectionManager: connectionManager)
     }
 }
