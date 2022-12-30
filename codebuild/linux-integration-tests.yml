@@ -14,4 +14,3 @@ phases:
     commands:
       - echo Build completed on `date`
 
-#test
