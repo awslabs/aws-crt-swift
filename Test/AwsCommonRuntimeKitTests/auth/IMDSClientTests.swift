@@ -15,7 +15,7 @@ class IMDSClientTest: XCBaseTestCase {
             return
         }
     }
-
+    //test
     func testGetAmiId() async throws {
         try isEnvironmentSetup()
 
