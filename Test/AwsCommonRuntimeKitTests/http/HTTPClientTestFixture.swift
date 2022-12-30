@@ -110,5 +110,4 @@ class HTTPClientTestFixture: XCBaseTestCase {
                 onStreamComplete: onComplete)
         return requestOptions
     }
-
 }
