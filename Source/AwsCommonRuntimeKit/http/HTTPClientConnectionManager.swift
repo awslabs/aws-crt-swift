@@ -23,11 +23,16 @@ public class HTTPClientConnectionManager {
 
     /// Acquires an `HTTPClientConnection` asynchronously.
     public func acquireConnection() async throws -> HTTPClientConnection {
-        return try await withCheckedThrowingContinuation({ (continuation: ConnectionContinuation) in
+        let connection = try await withCheckedThrowingContinuation({ (continuation: ConnectionContinuation) in
             HTTPClientConnectionManagerCallbackCore.acquireConnection(
                 continuation: continuation,
                 connectionManager: self)
         })
+
+        if connection.httpVersion == HTTPVersion.version_2 {
+            return connection as! HTTP2ClientConnection
+        }
+        return connection
     }
 
     /// Releases this HTTPClientConnection back into the Connection Pool, and allows another Request to acquire

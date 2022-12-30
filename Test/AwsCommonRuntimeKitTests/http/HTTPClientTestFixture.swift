@@ -19,7 +19,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                          path: String,
                          requestBody: String = "",
                          expectedStatus: Int = 200,
-                         expectedVersion: HTTPVersion,
+                         expectedVersion: HTTPVersion = HTTPVersion.version_1_1,
                          connectionManager: HTTPClientConnectionManager) async throws -> HTTPResponse {
         var httpResponse = HTTPResponse()
         let httpRequestOptions = try getHTTPRequestOptions(
@@ -45,7 +45,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
     func getHttpConnectionManager(endpoint: String,
                                   ssh: Bool = true,
                                   port: Int = 443,
-                                  alpnList: [String] = ["h2","http/1.1"]) async throws -> HTTPClientConnectionManager {
+                                  alpnList: [String] = ["h2","http/1.1"],
+                                  http2PriorKnowledge: Bool = false) async throws -> HTTPClientConnectionManager {
         let tlsContextOptions = TLSContextOptions(allocator: allocator)
         tlsContextOptions.setAlpnList(alpnList)
         let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)
@@ -67,7 +68,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
                 proxyOptions: nil,
                 socketOptions: socketOptions,
                 tlsOptions: ssh ? tlsConnectionOptions : nil,
-                monitoringOptions: nil)
+                monitoringOptions: nil,
+                http2PriorKnowledge: http2PriorKnowledge)
         return try HTTPClientConnectionManager(options: httpClientOptions)
     }
 

@@ -8,19 +8,54 @@ import AwsCHttp
 class HTTP2ClientConnectionTests: HTTPClientTestFixture {
 
     let expectedVersion = HTTPVersion.version_2
-    let host = "httpbin.org"
-    let sha256 = "C7FDB5314B9742467B16BD5EA2F8012190B5E2C44A005F7984F89AAB58219534"
 
     func testGetHTTP2RequestVersion() async throws {
-        let connectionManager = try await getHttpConnectionManager(endpoint: host)
-        try await sendHttpRequest(
+        let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org")
+        _ = try await sendHttpRequest(
                 method: "GET",
-                endpoint: host,
+                endpoint: "httpbin.org",
                 path: "/get",
                 expectedVersion: expectedVersion,
                 connectionManager: connectionManager)
 
     }
+
+    func testHTTP2UpdateSetting() async throws {
+        let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org")
+        let connection = try await sendHttpRequest(
+                method: "GET",
+                endpoint: "httpbin.org",
+                path: "/get",
+                expectedVersion: expectedVersion,
+                connectionManager: connectionManager)
+        if connection is HTTP2ClientConnection {
+
+        } else {
+            XCTFail("Connection is not HTTP2")
+        }
+    }
+
+    func testGetHttpsRequest() async throws {
+        let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org")
+
+        _ = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/get", expectedVersion: expectedVersion,
+                connectionManager: connectionManager)
+        _ = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/delete", expectedStatus: 405,expectedVersion: expectedVersion,
+                connectionManager: connectionManager)
+    }
+
+    //TODO: fix cleartext http2 request
+//    func testGetHttpRequest() async throws {
+//        do {
+//        let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", ssh: false, port: 80, http2PriorKnowledge: true)
+//        _ = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/get", expectedVersion: expectedVersion,
+//                connectionManager: connectionManager)
+//        } catch CommonRunTimeError.crtError(let error) {
+//            print(error)
+//            XCTFail(error.message)
+//        }
+//    }
+
 
     func testHTTP2Download() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "d1cz66xoahf9cl.cloudfront.net")
@@ -31,8 +66,9 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
                 expectedVersion: expectedVersion,
                 connectionManager: connectionManager)
         let actualSha = try response.body.data(using: .utf8)!.sha256()
-        let base64 = actualSha.base64EncodedString()
-        XCTAssertEqual(String(data: actualSha, encoding: .utf8)!, "C7FDB5314B9742467B16BD5EA2F8012190B5E2C44A005F7984F89AAB58219534")
+        XCTAssertEqual(
+                actualSha.encodeToHexString().uppercased(),
+                "C7FDB5314B9742467B16BD5EA2F8012190B5E2C44A005F7984F89AAB58219534")
 
     }
 
