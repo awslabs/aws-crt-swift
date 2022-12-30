@@ -1,0 +1,15 @@
+version: 0.2
+#additional packages we installed: cmake 3.5, libcrypto 1.1.0j, gcc 4.8.4
+env:
+  shell: bash
+phases:
+  build:
+    commands:
+      - echo Build started on `date`
+      - aws s3 cp s3://aws-crt-test-stuff/setup_proxy_test_env.sh /tmp/setup_proxy_test_env.sh
+      - chmod a+xr /tmp/setup_proxy_test_env.sh
+      - swift build
+      - swift test
+  post_build:
+    commands:
+      - echo Build completed on `date`
