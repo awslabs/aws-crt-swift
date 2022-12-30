@@ -20,9 +20,6 @@
       "enabled": false
     }
   },
-  "env": {
-    "AWS_TEST_IMDS": "Enabled"
-  },
   "targets": {
     "ios": {
       "!build_steps": [

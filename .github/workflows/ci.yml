@@ -31,8 +31,6 @@ jobs:
           - al2-x64
           # issue to fix centos opened against apple here: https://github.com/apple/swift-docker/issues/258
           # - centos-x64
-    env:
-      AWS_TEST_IMDS: Enabled
     steps:
       - name: Build ${{ env.PACKAGE_NAME }}
         run: |
