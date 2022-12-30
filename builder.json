@@ -21,7 +21,7 @@
     }
   },
   "env": {
-    "AWS_TEST_IMDS": 1
+    "AWS_TEST_IMDS": "Enabled"
   },
   "targets": {
     "ios": {
