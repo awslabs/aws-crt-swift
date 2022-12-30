@@ -7,3 +7,7 @@ if test -f "/tmp/setup_proxy_test_env.sh"; then
 fi
 
 env
+
+swift -v
+swift build
+swift test
