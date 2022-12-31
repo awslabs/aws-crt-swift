@@ -7,7 +7,7 @@ import AwsCHttp
 struct HTTPResponse {
     var statusCode: Int = -1
     var headers: [HTTPHeader] = [HTTPHeader]()
-    var body: String = ""
+    var body: Data = Data()
 }
 
 class HTTPClientTestFixture: XCBaseTestCase {
@@ -88,7 +88,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
 
         let onBody: HTTPRequestOptions.OnIncomingBody = { stream, bodyChunk in
             print("onBody: \(bodyChunk)")
-            response.pointee.body += String(data: bodyChunk, encoding: .utf8)!
+            response.pointee.body += bodyChunk
         }
 
         let onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone = { stream, block in
