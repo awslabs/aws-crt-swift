@@ -130,13 +130,19 @@ class HTTPProxyTests: HTTPClientTestFixture {
                 connectionType: getConnectionType(type: type))
     }
 
+    func getSSH(type: ProxyTestType) -> Bool {
+         return !(type == ProxyTestType.forwarding ||
+                   type == ProxyTestType.legacyHTTP ||
+                   type == ProxyTestType.tunnelingHTTP)
+    }
+
     func doProxyTest(type: ProxyTestType, authType: HTTPProxyAuthenticationType) async throws {
         let uri = getURIFromTestType(type: type)
         let port = getPortFromTestType(type: type)
         let proxyOptions = try getProxyOptions(type: type, authType: authType)
         let manager = try await getHttpConnectionManager(
                 endpoint: uri,
-                ssh: port == 443,
+                ssh: getSSH(type: type),
                 port: port,
                 alpnList: ["http/1.1"],
                 proxyOptions: proxyOptions)
