@@ -110,8 +110,10 @@ class HTTPProxyTests: HTTPClientTestFixture {
     func getTLSOptions(type: ProxyTestType) throws -> TLSConnectionOptions? {
         if type == ProxyTestType.tunnelingDoubleTLS {
             let tlsContextOptions = TLSContextOptions(allocator: allocator)
+            tlsContextOptions.setVerifyPeer(false)
             let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)
             var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext, allocator: allocator)
+            tlsConnectionOptions.serverName = "localhost"
             return tlsConnectionOptions
         }
         return nil
