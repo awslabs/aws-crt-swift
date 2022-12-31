@@ -112,7 +112,6 @@ class HTTPProxyTests: HTTPClientTestFixture {
             let tlsContextOptions = TLSContextOptions(allocator: allocator)
             let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)
             var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext, allocator: allocator)
-            tlsConnectionOptions.serverName = "localhost"
             return tlsConnectionOptions
         }
         return nil
