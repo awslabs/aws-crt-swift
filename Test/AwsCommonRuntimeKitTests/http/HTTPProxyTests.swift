@@ -59,8 +59,8 @@ class HTTPProxyTests: HTTPClientTestFixture {
 
     func getURIFromTestType(type: ProxyTestType) -> String {
         switch type {
-        case .forwarding, .legacyHTTP, .tunnelingHTTP:
-            return "www.example.com"
+        case .tunnelingHTTPS, .tunnelingDoubleTLS, .legacyHTTPS:
+            return "s3.amazonaws.com"
         default:
             return "www.amazon.com"
         }
