@@ -11,3 +11,5 @@ env
 swift -v
 swift build
 swift test | tee /tmp/tests.log
+
+#test
