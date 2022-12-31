@@ -20,14 +20,60 @@ class HTTPProxyTests: HTTPClientTestFixture {
     let HTTPProxyTLSKeyPath = ProcessInfo.processInfo.environment["AWS_TEST_TLS_KEY_PATH"]
     let HTTPProxyTLSRootCAPath = ProcessInfo.processInfo.environment["AWS_TEST_TLS_ROOT_CERT_PATH"]
 
-    func testAllProxyTypeAndAuthTypeCombinations() async throws {
+    func testForwardNoAuth() async throws {
         try skipIfEnvironmentNotSetup()
-        for type in ProxyTestType.allCases {
-            for authType in HTTPProxyAuthenticationType.allCases {
-                print("Testing proxy with type:\(type) and authType: \(authType)")
-                try await doProxyTest(type: type, authType: authType)
-            }
-        }
+        try await doProxyTest(type: ProxyTestType.forwarding, authType: .none)
+    }
+
+    func testLegacyHTTPNoAuth() async throws {
+        try skipIfEnvironmentNotSetup()
+        try await doProxyTest(type: ProxyTestType.legacyHTTP, authType: .none)
+    }
+
+    func testLegacyHTTPSNoAuth() async throws {
+        try skipIfEnvironmentNotSetup()
+        try await doProxyTest(type: ProxyTestType.legacyHTTPS, authType: .none)
+    }
+
+    func testTunnellingHTTPNoAuth() async throws {
+        try skipIfEnvironmentNotSetup()
+        try await doProxyTest(type: ProxyTestType.tunnelingHTTP, authType: .none)
+    }
+
+    func testTunnellingHTTPSNoAuth() async throws {
+        try skipIfEnvironmentNotSetup()
+        try await doProxyTest(type: ProxyTestType.tunnelingHTTPS, authType: .none)
+    }
+
+    func testTunnellingDoubleTLSNoAuth() async throws {
+        try skipIfEnvironmentNotSetup()
+        try await doProxyTest(type: ProxyTestType.tunnelingDoubleTLS, authType: .none)
+    }
+
+
+    func testForwardBasicAuth() async throws {
+        try skipIfEnvironmentNotSetup()
+        try await doProxyTest(type: ProxyTestType.forwarding, authType: .basic)
+    }
+
+    func testLegacyHTTPBasicAuth() async throws {
+        try skipIfEnvironmentNotSetup()
+        try await doProxyTest(type: ProxyTestType.legacyHTTP, authType: .basic)
+    }
+
+    func testLegacyHTTPSBasicAuth() async throws {
+        try skipIfEnvironmentNotSetup()
+        try await doProxyTest(type: ProxyTestType.legacyHTTPS, authType: .basic)
+    }
+
+    func testTunnellingHTTPBasicAuth() async throws {
+        try skipIfEnvironmentNotSetup()
+        try await doProxyTest(type: ProxyTestType.tunnelingHTTP, authType: .basic)
+    }
+
+    func testTunnellingHTTPSBasicAuth() async throws {
+        try skipIfEnvironmentNotSetup()
+        try await doProxyTest(type: ProxyTestType.tunnelingHTTPS, authType: .basic)
     }
 
     enum ProxyTestType: CaseIterable {
@@ -112,8 +158,7 @@ class HTTPProxyTests: HTTPClientTestFixture {
             let tlsContextOptions = TLSContextOptions(allocator: allocator)
             tlsContextOptions.setVerifyPeer(false)
             let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)
-            var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext, allocator: allocator)
-            tlsConnectionOptions.serverName = "localhost"
+            let tlsConnectionOptions = TLSConnectionOptions(context: tlsContext, allocator: allocator)
             return tlsConnectionOptions
         }
         return nil
