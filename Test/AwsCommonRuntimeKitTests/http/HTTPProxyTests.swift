@@ -20,9 +20,23 @@ class HTTPProxyTests: HTTPClientTestFixture {
     let HTTPProxyTLSKeyPath = ProcessInfo.processInfo.environment["AWS_TEST_TLS_KEY_PATH"]
     let HTTPProxyTLSRootCAPath = ProcessInfo.processInfo.environment["AWS_TEST_TLS_ROOT_CERT_PATH"]
 
-    func testForwardNoAuth() async throws {
+    func testAllProxyTypeAndAuthTypeCombinations() async throws {
         try skipIfEnvironmentNotSetup()
-        try await doProxyTest(type: .forwarding, authType: .none)
+        for type in ProxyTestType.allCases {
+            for authType in HTTPProxyAuthenticationType.allCases {
+                print("Testing proxy with type:\(type) and authType: \(authType)")
+                try await doProxyTest(type: type, authType: authType)
+            }
+        }
+    }
+
+    enum ProxyTestType: CaseIterable {
+        case forwarding
+        case tunnelingHTTP
+        case tunnelingHTTPS
+        case tunnelingDoubleTLS
+        case legacyHTTP
+        case legacyHTTPS
     }
 
     func skipIfEnvironmentNotSetup() throws {
@@ -41,15 +55,6 @@ class HTTPProxyTests: HTTPClientTestFixture {
             try skipTest(message: "Skipping PROXY tests because environment is not configured properly.")
             return
         }
-    }
-
-    enum ProxyTestType {
-        case forwarding
-        case tunnelingHTTP
-        case tunnelingHTTPS
-        case tunnelingDoubleTLS
-        case legacyHTTP
-        case legacyHTTPS
     }
 
     func getURIFromTestType(type: ProxyTestType) -> String {
