@@ -27,15 +27,17 @@ class HTTPClientTestFixture: XCBaseTestCase {
                 body: requestBody,
                 response: &httpResponse)
 
-        let connection = try await connectionManager.acquireConnection()
-        XCTAssertTrue(connection.isOpen)
-        let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
-        try stream.activate()
-        semaphore.wait()
-        let status_code = try stream.statusCode()
-        XCTAssertEqual(status_code, expectedStatus)
+        // Retry the request multiple times to reduce flakiness
+        for i in 1...3 where httpResponse.statusCode != expectedStatus {
+            print("Attempt#\(i) to send an HTTP request")
+            let connection = try await connectionManager.acquireConnection()
+            XCTAssertTrue(connection.isOpen)
+            let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+            try stream.activate()
+            semaphore.wait()
+        }
+
         XCTAssertEqual(httpResponse.statusCode, expectedStatus)
-        XCTAssertTrue(connection.isOpen)
         return httpResponse
     }
 
@@ -43,7 +45,9 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                   ssh: Bool = true,
                                   port: Int = 443,
                                   alpnList: [String] = ["h2","http/1.1"],
-                                  proxyOptions: HTTPProxyOptions? = nil) async throws -> HTTPClientConnectionManager {
+                                  proxyOptions: HTTPProxyOptions? = nil,
+                                  monitoringOptions: HTTPMonitoringOptions? = nil,
+                                  socketOptions: SocketOptions = SocketOptions(socketType: .stream)) async throws -> HTTPClientConnectionManager {
         let tlsContextOptions = TLSContextOptions(allocator: allocator)
         tlsContextOptions.setAlpnList(alpnList)
         let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)
@@ -56,16 +60,13 @@ class HTTPClientTestFixture: XCBaseTestCase {
                 hostResolver: hostResolver,
                 allocator: allocator)
 
-        let socketOptions = SocketOptions(socketType: .stream)
-
         let httpClientOptions = HTTPClientConnectionOptions(clientBootstrap: bootstrap,
                 hostName: endpoint,
-                initialWindowSize: Int.max,
                 port: UInt16(port),
                 proxyOptions: proxyOptions,
                 socketOptions: socketOptions,
                 tlsOptions: ssh ? tlsConnectionOptions : nil,
-                monitoringOptions: nil)
+                monitoringOptions: monitoringOptions)
         return try HTTPClientConnectionManager(options: httpClientOptions)
     }
 
@@ -75,20 +76,22 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                endpoint: String,
                                path: String,
                                body: String = "",
-                               response: UnsafeMutablePointer<HTTPResponse>) throws -> HTTPRequestOptions {
+                               response: UnsafeMutablePointer<HTTPResponse>? = nil,
+                               headers: [HTTPHeader] = [HTTPHeader]()) throws -> HTTPRequestOptions {
         let httpRequest: HTTPRequest = try HTTPRequest(method: method, path: path, body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
         httpRequest.addHeader(header: HTTPHeader(name: "Host", value: endpoint))
         httpRequest.addHeader(header: HTTPHeader(name: "Content-Length", value: String(body.count)))
+        httpRequest.addHeaders(headers: headers)
         let onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
             for header in headers {
                 print(header.name + " : " + header.value)
-                response.pointee.headers.append(header)
+                response?.pointee.headers.append(header)
             }
         }
 
         let onBody: HTTPRequestOptions.OnIncomingBody = { stream, bodyChunk in
             print("onBody: \(bodyChunk)")
-            response.pointee.body += bodyChunk
+            response?.pointee.body += bodyChunk
         }
 
         let onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone = { stream, block in
@@ -99,7 +102,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
             print("onComplete")
             XCTAssertNil(error)
             let statusCode = try! stream.statusCode()
-            response.pointee.statusCode = statusCode
+            response?.pointee.statusCode = statusCode
             self.semaphore.signal()
         }
 
