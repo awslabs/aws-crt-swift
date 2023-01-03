@@ -38,6 +38,7 @@
     },
     "macos": {
       "!test_steps": [
+        "swift build -c release",
         "./integ_test.sh"
       ]
     }
