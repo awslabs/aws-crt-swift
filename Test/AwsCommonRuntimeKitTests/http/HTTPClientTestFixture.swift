@@ -19,7 +19,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
                          path: String = "/",
                          requestBody: String = "",
                          expectedStatus: Int = 200,
-                         connectionManager: HTTPClientConnectionManager) async throws -> HTTPResponse {
+                         connectionManager: HTTPClientConnectionManager,
+                         expectedVersion: HTTPVersion = HTTPVersion.version_1_1) async throws -> HTTPResponse {
         var httpResponse = HTTPResponse()
         let httpRequestOptions = try getHTTPRequestOptions(
                 method: method,
@@ -33,6 +34,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
             print("Attempt#\(i) to send an HTTP request")
             let connection = try await connectionManager.acquireConnection()
             XCTAssertTrue(connection.isOpen)
+            XCTAssertEqual(connection.httpVersion, expectedVersion)
             let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
             try stream.activate()
             semaphore.wait()

@@ -11,25 +11,15 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
 
     func testGetHTTP2RequestVersion() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org")
-        _ = try await sendHttpRequest(
-                method: "GET",
-                endpoint: "httpbin.org",
-                path: "/get",
-                expectedVersion: expectedVersion,
-                connectionManager: connectionManager)
-
+        let connection = try await connectionManager.acquireConnection()
+        XCTAssertEqual(connection.httpVersion, HTTPVersion.version_2)
     }
 
     func testHTTP2UpdateSetting() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org")
-        let connection = try await sendHttpRequest(
-                method: "GET",
-                endpoint: "httpbin.org",
-                path: "/get",
-                expectedVersion: expectedVersion,
-                connectionManager: connectionManager)
-        if connection is HTTP2ClientConnection {
-
+        let connection = try await connectionManager.acquireConnection()
+        if let connection = connection as? HTTP2ClientConnection {
+            try await connection.updateSetting(setting: HTTP2Settings(enablePush: false))
         } else {
             XCTFail("Connection is not HTTP2")
         }
@@ -37,11 +27,8 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
 
     func testGetHttpsRequest() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org")
-
-        _ = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/get", expectedVersion: expectedVersion,
-                connectionManager: connectionManager)
-        _ = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/delete", expectedStatus: 405,expectedVersion: expectedVersion,
-                connectionManager: connectionManager)
+        _ = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/get", connectionManager: connectionManager, expectedVersion: expectedVersion)
+        _ = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/delete", expectedStatus: 405, connectionManager: connectionManager, expectedVersion: expectedVersion)
     }
 
     //TODO: fix cleartext http2 request
@@ -63,9 +50,9 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
                 method: "GET",
                 endpoint: "d1cz66xoahf9cl.cloudfront.net",
                 path: "/http_test_doc.txt",
-                expectedVersion: expectedVersion,
-                connectionManager: connectionManager)
-        let actualSha = try response.body.data(using: .utf8)!.sha256()
+                connectionManager: connectionManager,
+                expectedVersion: expectedVersion)
+        let actualSha = try response.body.sha256()
         XCTAssertEqual(
                 actualSha.encodeToHexString().uppercased(),
                 "C7FDB5314B9742467B16BD5EA2F8012190B5E2C44A005F7984F89AAB58219534")
