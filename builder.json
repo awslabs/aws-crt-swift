@@ -19,30 +19,5 @@
     "windows": {
       "enabled": false
     }
-  },
-  "targets": {
-    "ios": {
-      "!build_steps": [
-        "xcodebuild -scheme aws-crt-swift-Package -destination 'generic/platform=iOS' -configuration Debug test"
-      ],
-      "!test_steps": [
-        "xcodebuild test -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS' -configuration Debug"
-      ]
-    },
-    "tvos": {
-      "!build_steps": [
-        "xcodebuild test -scheme AwsCommonRuntimeKit -destination 'generic/platform=tvOS' -configuration Debug"
-      ]
-    },
-    "watchos": {
-      "!build_steps": [
-        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=watchOS' -configuration Debug"
-      ]
-    },
-    "macos": {
-      "!test_steps": [
-        "./integ_test.sh"
-      ]
-    }
   }
 }
