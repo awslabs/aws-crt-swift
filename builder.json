@@ -4,7 +4,7 @@
   "needs_compiler": false,
   "build_steps": [
     "swift --version",
-    "swift build"
+    "swift build -c Release"
   ],
   "test_steps": [
     "swift test" 
@@ -38,7 +38,6 @@
     },
     "macos": {
       "!test_steps": [
-        "swift build -c release",
         "./integ_test.sh"
       ]
     }
