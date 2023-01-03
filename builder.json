@@ -19,5 +19,27 @@
     "windows": {
       "enabled": false
     }
+  },
+  "targets": {
+    "ios": {
+      "!build_steps": [
+        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS' -configuration Debug"
+      ]
+    },
+    "tvos": {
+      "!build_steps": [
+        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=tvOS' -configuration Debug"
+      ]
+    },
+    "watchos": {
+      "!build_steps": [
+        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=watchOS' -configuration Debug"
+      ]
+    },
+    "macos": {
+      "!test_steps": [
+        "./integ_test.sh"
+      ]
+    }
   }
 }
