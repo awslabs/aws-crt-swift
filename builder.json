@@ -6,6 +6,9 @@
     "swift --version",
     "swift build -c release"
   ],
+  "test_steps": [
+    "swift test"
+  ],
   "hosts": {
     "al2012": {
       "enabled": false
