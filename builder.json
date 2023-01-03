@@ -4,7 +4,7 @@
   "needs_compiler": false,
   "build_steps": [
     "swift --version",
-    "swift build -c release"
+    "swift build"
   ],
   "test_steps": [
     "swift test" 
