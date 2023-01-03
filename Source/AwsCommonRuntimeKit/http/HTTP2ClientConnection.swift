@@ -28,7 +28,6 @@ public class HTTP2ClientConnection: HTTPClientConnection {
             }
         })
     }
-
 }
 
 private func onChangeSettingsComplete(connection: UnsafeMutablePointer<aws_http_connection>?,
@@ -40,6 +39,8 @@ private func onChangeSettingsComplete(connection: UnsafeMutablePointer<aws_http_
         continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
+
+    // SUCCESS
 
     continuation.resume()
 }

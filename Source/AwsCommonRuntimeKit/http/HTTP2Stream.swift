@@ -12,5 +12,4 @@ public class HTTP2Stream: HTTPStream {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
     }
-
 }

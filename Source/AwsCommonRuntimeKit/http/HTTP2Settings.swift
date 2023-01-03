@@ -6,12 +6,12 @@ import AwsCHttp
 /// Predefined configurable options for HTTP2 (RFC-7540 6.5.2).
 /// Nil means use default values
 public struct HTTP2Settings: CStruct {
-    public var headerTableSize: UInt32? = nil
-    public var enablePush: Bool? = nil
-    public var maxConcurrentStreams: UInt32? = nil
-    public var initialWindowSize: UInt32? = nil
-    public var maxFrameSize: UInt32? = nil
-    public var maxHeaderListSize: UInt32? = nil
+    public var headerTableSize: UInt32?
+    public var enablePush: Bool?
+    public var maxConcurrentStreams: UInt32?
+    public var initialWindowSize: UInt32?
+    public var maxFrameSize: UInt32?
+    public var maxHeaderListSize: UInt32?
 
     typealias RawType = [aws_http2_setting]
     func withCStruct<Result>(_ body: ([aws_http2_setting]) -> Result
@@ -53,8 +53,6 @@ public struct HTTP2Settings: CStruct {
                     id: AWS_HTTP2_SETTINGS_MAX_HEADER_LIST_SIZE,
                     value: value))
         }
-
         return body(http2SettingList)
     }
-
 }

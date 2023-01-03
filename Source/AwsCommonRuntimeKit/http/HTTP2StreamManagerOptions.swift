@@ -151,17 +151,17 @@ public struct HTTP2StreamManagerOptions: CStructWithShutdownOptions {
 
     typealias RawType = aws_http2_stream_manager_options
     func withCStruct<Result>(
-            shutdownOptions: aws_shutdown_callback_options,
-            _ body: (aws_http2_stream_manager_options) -> Result
+        shutdownOptions: aws_shutdown_callback_options,
+        _ body: (aws_http2_stream_manager_options) -> Result
     ) -> Result {
         return hostName.withByteCursor { hostNameCursor in
             return withOptionalCStructPointer(
-                    proxyOptions,
-                    proxyEnvSettings,
-                    socketOptions,
-                    monitoringOptions,
-                    tlsOptions,
-                    http2InitialSettings) { proxyPointer, proxyEnvSettingsPointer, socketPointer, monitoringPointer, tlsPointer, http2SettingPointer in
+                proxyOptions,
+                proxyEnvSettings,
+                socketOptions,
+                monitoringOptions,
+                tlsOptions,
+                http2InitialSettings) { proxyPointer, proxyEnvSettingsPointer, socketPointer, monitoringPointer, tlsPointer, http2SettingPointer in
 
                 var cStreamManagerOptions = aws_http2_stream_manager_options()
                 cStreamManagerOptions.bootstrap = clientBootstrap.rawValue

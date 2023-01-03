@@ -1,8 +1,5 @@
-//
-// Created by Khan, Waqar Ahmed on 12/26/22.
-//
-
-import Foundation
+//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+//  SPDX-License-Identifier: Apache-2.0.
 
 public enum HTTP2Error: UInt32 {
     case PROTOCOL_ERROR = 1

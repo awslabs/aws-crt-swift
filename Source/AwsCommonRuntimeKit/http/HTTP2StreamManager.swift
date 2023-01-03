@@ -11,7 +11,7 @@ public class HTTP2StreamManager {
         let shutdownOptions = shutdownCallbackCore.getRetainedShutdownOptions()
         guard let rawValue: UnsafeMutablePointer<aws_http2_stream_manager> = (
                 options.withCStruct(shutdownOptions: shutdownOptions) { managerOptions in
-                    //TODO: update after adding const in C
+                    // TODO: update after adding const in C
                     var managerOptions = managerOptions
                     return withUnsafeMutablePointer(to: &managerOptions) { aws_http2_stream_manager_new(allocator.rawValue, $0)}
                 }) else {
@@ -52,7 +52,7 @@ class HTTP2StreamManagerCore {
     let continuation: CheckedContinuation<HTTP2Stream, Error>
     let callbackCore: HTTPStreamCallbackCore
 
-    init(continuation:  CheckedContinuation<HTTP2Stream, Error>, callbackCore: HTTPStreamCallbackCore){
+    init(continuation: CheckedContinuation<HTTP2Stream, Error>, callbackCore: HTTPStreamCallbackCore) {
         self.callbackCore = callbackCore
         self.continuation = continuation
     }
@@ -68,7 +68,7 @@ class HTTP2StreamManagerCore {
 
 private func onStreamAcquired(stream: UnsafeMutablePointer<aws_http_stream>?,
                               errorCode: Int32,
-                              userData: UnsafeMutableRawPointer!){
+                              userData: UnsafeMutableRawPointer!) {
     let streamManagerCore = Unmanaged<HTTP2StreamManagerCore>.fromOpaque(userData).takeRetainedValue()
     guard errorCode == AWS_OP_SUCCESS else {
         streamManagerCore.callbackCore.release()
@@ -80,7 +80,7 @@ private func onStreamAcquired(stream: UnsafeMutablePointer<aws_http_stream>?,
     do {
         let http2Stream = try HTTP2Stream(rawValue: stream!, callbackData: streamManagerCore.callbackCore)
         streamManagerCore.continuation.resume(returning: http2Stream)
-    } catch  {
+    } catch {
         streamManagerCore.continuation.resume(throwing: error)
     }
 }

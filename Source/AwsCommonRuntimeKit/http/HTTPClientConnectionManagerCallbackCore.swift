@@ -47,11 +47,12 @@ private func onConnectionSetup(connection: UnsafeMutablePointer<aws_http_connect
     // Success
     let version = HTTPVersion(rawValue: aws_http_connection_get_version(connection))
     if version == HTTPVersion.version_2 {
-        callbackDataCore.continuation.resume(returning: HTTP2ClientConnection(
+        callbackDataCore.continuation.resume(
+            returning: HTTP2ClientConnection(
                 manager: callbackDataCore.connectionManager,
                 connection: connection!))
     } else {
         callbackDataCore.continuation.resume(returning: HTTPClientConnection(manager: callbackDataCore.connectionManager,
-                connection: connection!))
+                                                                             connection: connection!))
     }
 }

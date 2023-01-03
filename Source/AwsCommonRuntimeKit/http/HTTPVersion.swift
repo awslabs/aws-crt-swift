@@ -3,11 +3,11 @@
 import AwsCHttp
 
 public enum HTTPVersion {
-        case unknown // Invalid version
-        case version_1_0
-        case version_1_1
-        case version_2
-};
+    case unknown // Invalid version
+    case version_1_0
+    case version_1_1
+    case version_2
+}
 
 extension HTTPVersion: RawRepresentable, CaseIterable {
 
