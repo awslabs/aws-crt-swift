@@ -28,11 +28,15 @@ class XCBaseTestCase: XCTestCase {
 
 
 extension XCTestCase {
-   func skipIfiOS() throws {
-      if #available(iOS 10, *) {
-         throw XCTSkip("Skipping test on iOS")
-      }
-   }
+    func skipTest(message: String) throws {
+       throw XCTSkip(message)
+    }
+
+    func skipIfiOS() throws {
+        if #available(iOS 10, *) {
+            throw XCTSkip("Skipping test on iOS")
+        }
+    }
 
     func skipifmacOS() throws {
         if #available(macOS 10.14, *) {

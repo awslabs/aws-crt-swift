@@ -7,7 +7,7 @@
     "swift build -c release"
   ],
   "test_steps": [
-    "swift test" 
+    "swift test"
   ],
   "hosts": {
     "al2012": {
@@ -38,6 +38,7 @@
     },
     "macos": {
       "!test_steps": [
+        "swift test",
         "./integ_test.sh"
       ]
     }
