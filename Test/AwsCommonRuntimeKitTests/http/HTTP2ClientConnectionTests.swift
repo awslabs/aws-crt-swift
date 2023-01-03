@@ -10,13 +10,13 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
     let expectedVersion = HTTPVersion.version_2
 
     func testGetHTTP2RequestVersion() async throws {
-        let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org")
+        let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
         let connection = try await connectionManager.acquireConnection()
         XCTAssertEqual(connection.httpVersion, HTTPVersion.version_2)
     }
 
     func testHTTP2UpdateSetting() async throws {
-        let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org")
+        let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
         let connection = try await connectionManager.acquireConnection()
         if let connection = connection as? HTTP2ClientConnection {
             try await connection.updateSetting(setting: HTTP2Settings(enablePush: false))
@@ -26,7 +26,7 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
     }
 
     func testGetHttpsRequest() async throws {
-        let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org")
+        let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
         _ = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/get", connectionManager: connectionManager, expectedVersion: expectedVersion)
         _ = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/delete", expectedStatus: 405, connectionManager: connectionManager, expectedVersion: expectedVersion)
     }
@@ -45,7 +45,7 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
 
 
     func testHTTP2Download() async throws {
-        let connectionManager = try await getHttpConnectionManager(endpoint: "d1cz66xoahf9cl.cloudfront.net")
+        let connectionManager = try await getHttpConnectionManager(endpoint: "d1cz66xoahf9cl.cloudfront.net", alpnList: ["h2","http/1.1"])
         let response = try await sendHttpRequest(
                 method: "GET",
                 endpoint: "d1cz66xoahf9cl.cloudfront.net",

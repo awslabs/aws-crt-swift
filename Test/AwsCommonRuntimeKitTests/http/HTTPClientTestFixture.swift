@@ -47,7 +47,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
     func getHttpConnectionManager(endpoint: String,
                                   ssh: Bool = true,
                                   port: Int = 443,
-                                  alpnList: [String] = ["h2","http/1.1"],
+                                  alpnList: [String] = ["http/1.1"],
                                   proxyOptions: HTTPProxyOptions? = nil,
                                   monitoringOptions: HTTPMonitoringOptions? = nil,
                                   socketOptions: SocketOptions = SocketOptions(socketType: .stream)) async throws -> HTTPClientConnectionManager {
