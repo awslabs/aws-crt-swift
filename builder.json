@@ -26,7 +26,7 @@
         "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS' -configuration Debug"
       ],
       "!test_steps": [
-        "xcodebuild test -scheme AwsCommonRuntimeKitTests -destination 'generic/platform=iOS' -configuration Debug"
+        "xcodebuild test -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS' -configuration Debug"
       ]
     },
     "tvos": {
