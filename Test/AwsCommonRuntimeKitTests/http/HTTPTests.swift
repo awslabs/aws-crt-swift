@@ -40,7 +40,7 @@ class HTTPTests: HTTPClientTestFixture {
             let data: String
         }
         let body: Response = try! JSONDecoder().decode(Response.self, from: response.body)
-        XCTAssertEqual(body.data, TEST_DOC_LINE)
+        XCTAssertEqual(body.data+":asd", TEST_DOC_LINE)
     }
 
     func testHTTPStreamIsReleasedIfNotActivated() async throws {
