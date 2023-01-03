@@ -24,6 +24,9 @@
     "ios": {
       "!build_steps": [
         "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS'"
+      ],
+      "!test_steps": [
+        "swift test"
       ]
     },
     "tvos": {
