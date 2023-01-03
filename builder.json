@@ -23,17 +23,17 @@
   "targets": {
     "ios": {
       "!build_steps": [
-        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS' -configuration Debug"
+        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS' -configuration Debug test"
       ]
     },
     "tvos": {
       "!build_steps": [
-        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=tvOS' -configuration Debug"
+        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=tvOS' -configuration Debug test"
       ]
     },
     "watchos": {
       "!build_steps": [
-        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=watchOS' -configuration Debug"
+        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=watchOS' -configuration Debug test"
       ]
     },
     "macos": {
