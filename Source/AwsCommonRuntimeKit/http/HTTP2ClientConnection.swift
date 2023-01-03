@@ -5,7 +5,6 @@ import AwsCHttp
 import AwsCIo
 import Foundation
 
-// swiftlint:disable force_try
 public class HTTP2ClientConnection: HTTPClientConnection {
 
     /// Send a SETTINGS frame (HTTP/2 only).
