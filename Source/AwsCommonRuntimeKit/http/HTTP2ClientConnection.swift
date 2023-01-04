@@ -41,6 +41,5 @@ private func onChangeSettingsComplete(connection: UnsafeMutablePointer<aws_http_
     }
 
     // SUCCESS
-
     continuation.resume()
 }

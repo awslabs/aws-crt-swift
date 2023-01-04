@@ -31,7 +31,7 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
         _ = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/delete", expectedStatus: 405, connectionManager: connectionManager, expectedVersion: expectedVersion)
     }
 
-    //TODO: fix cleartext http2 request
+    //TODO: discuss. http is not supported for connection manager.
 //    func testGetHttpRequest() async throws {
 //        do {
 //        let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", ssh: false, port: 80, http2PriorKnowledge: true)
