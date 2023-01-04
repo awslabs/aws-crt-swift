@@ -53,14 +53,14 @@ public class HTTP2ClientConnection: HTTPClientConnection {
     }
 
     /// Send a custom GOAWAY frame.
-    ///     
+    ///
     /// Note that the connection automatically attempts to send a GOAWAY during
     /// shutdown (unless a GOAWAY with a valid Last-Stream-ID has already been sent).
-    ///     
+    ///
     /// This call can be used to gracefully warn the peer of an impending shutdown
     /// (error=0, allowMoreStreams=true), or to customize the final GOAWAY
     /// frame that is sent by this connection.
-    ///     
+    ///
     /// The other end may not receive the goaway, if the connection already closed.
     ///
     /// - Parameters:
@@ -72,10 +72,10 @@ public class HTTP2ClientConnection: HTTPClientConnection {
     public func sendGoAway(error: HTTP2Error, allowMoreStreams: Bool, debugData: Data = Data()) {
         debugData.withAWSByteCursorPointer { dataPointer in
             aws_http2_connection_send_goaway(
-                    rawValue,
-                    error.rawValue,
-                    allowMoreStreams,
-                    dataPointer)
+                rawValue,
+                error.rawValue,
+                allowMoreStreams,
+                dataPointer)
         }
     }
 
