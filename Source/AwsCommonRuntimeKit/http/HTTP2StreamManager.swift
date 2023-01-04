@@ -22,12 +22,11 @@ public class HTTP2StreamManager {
     }
 
     /// Acquires an `HTTP2Stream` asynchronously.
-    /// TODO: add http2 request
-    /// - Parameter requestOptions:
-    /// - Returns:
-    /// - Throws:
+    /// - Parameter requestOptions: The Request to make to the Server.
+    /// - Returns: HTTP2Stream when the stream is acquired
+    /// - Throws: CommonRunTimeError.crtError
     public func acquireStream(requestOptions: HTTPRequestOptions) async throws -> HTTP2Stream {
-        return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<HTTP2Stream, Error>) in
+        try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<HTTP2Stream, Error>) in
             let httpStreamCallbackCore = HTTPStreamCallbackCore(requestOptions: requestOptions)
             let streamManagerCore = HTTP2StreamManagerCore(continuation: continuation, callbackCore: httpStreamCallbackCore)
             let requestOptions = httpStreamCallbackCore.getRetainedHttpMakeRequestOptions()
@@ -39,7 +38,6 @@ public class HTTP2StreamManager {
                 options.options = requestOptionsPointer
                 aws_http2_stream_manager_acquire_stream(rawValue, &options)
             })
-
         })
     }
 

@@ -1,6 +1,7 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
+/// Error codes that may be present in HTTP/2 RST_STREAM and GOAWAY frames (RFC-7540 7).
 public enum HTTP2Error: UInt32 {
     case protocolError = 1
     case internalError = 2

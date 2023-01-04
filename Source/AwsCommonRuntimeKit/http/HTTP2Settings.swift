@@ -3,7 +3,7 @@
 
 import AwsCHttp
 
-/// Predefined configurable options for HTTP2 (RFC-7540 6.5.2).
+/// Predefined settings identifiers (RFC-7540 6.5.2)
 /// Nil means use default values
 public struct HTTP2Settings: CStruct {
     public var headerTableSize: UInt32?
