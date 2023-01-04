@@ -105,5 +105,4 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
             }
         }
     }
-
 }

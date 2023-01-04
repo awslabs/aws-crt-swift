@@ -34,7 +34,7 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
             XCTFail("Connection is not HTTP2")
         }
     }
-    
+
     func testHTTP2SendPing() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
         let connection = try await connectionManager.acquireConnection()
@@ -80,7 +80,6 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
         XCTAssertEqual(
                 actualSha.encodeToHexString().uppercased(),
                 "C7FDB5314B9742467B16BD5EA2F8012190B5E2C44A005F7984F89AAB58219534")
-
     }
 
 }
