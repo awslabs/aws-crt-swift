@@ -43,8 +43,8 @@ public class HTTPClientConnection {
         do {
             if httpVersion == HTTPVersion.version_2 {
                 return try HTTP2Stream(httpConnection: self,
-                        options: httpStreamCallbackCore.getRetainedHttpMakeRequestOptions(),
-                        callbackData: httpStreamCallbackCore)
+                                       options: httpStreamCallbackCore.getRetainedHttpMakeRequestOptions(),
+                                       callbackData: httpStreamCallbackCore)
             }
             return try HTTPStream(httpConnection: self,
                                   options: httpStreamCallbackCore.getRetainedHttpMakeRequestOptions(),

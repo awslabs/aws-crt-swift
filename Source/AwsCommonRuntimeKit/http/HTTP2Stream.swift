@@ -5,9 +5,10 @@ import AwsCHttp
 
 public class HTTP2Stream: HTTPStream {
 
-    override init(httpConnection: HTTPClientConnection,
-         options: aws_http_make_request_options,
-         callbackData: HTTPStreamCallbackCore) throws {
+    override init(
+        httpConnection: HTTPClientConnection,
+        options: aws_http_make_request_options,
+        callbackData: HTTPStreamCallbackCore) throws {
         try super.init(httpConnection: httpConnection, options: options, callbackData: callbackData)
     }
 

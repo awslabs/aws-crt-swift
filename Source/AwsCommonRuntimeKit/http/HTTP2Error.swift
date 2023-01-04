@@ -2,17 +2,17 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 public enum HTTP2Error: UInt32 {
-    case PROTOCOL_ERROR = 1
-    case INTERNAL_ERROR = 2
-    case FLOW_CONTROL_ERROR = 3
-    case SETTINGS_TIMEOUT = 4
-    case STREAM_CLOSED = 5
-    case FRAME_SIZE_ERROR = 6
-    case REFUSED_STREAM = 7
-    case CANCEL = 8
-    case COMPRESSION_ERROR = 9
-    case CONNECT_ERROR = 10
-    case ENHANCE_YOUR_CALM = 11
-    case INADEQUATE_SECURITY = 12
-    case HTTP_1_1_REQUIRED = 13
+    case protocolError = 1
+    case internalError = 2
+    case flowControlError = 3
+    case settingsTimeout = 4
+    case streamClosed = 5
+    case frameSizeError = 6
+    case refusedStream = 7
+    case cancel = 8
+    case compressionError = 9
+    case connectError = 10
+    case enhanceYourCalm = 11
+    case inadequateSecurity = 12
+    case HTTP_1_1_Required = 13
 }
