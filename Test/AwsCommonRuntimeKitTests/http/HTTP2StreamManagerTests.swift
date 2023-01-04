@@ -8,6 +8,67 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
     let endpoint = "d1cz66xoahf9cl.cloudfront.net"; // Use cloudfront for HTTP/2
     let path = "/random_32_byte.data";
 
+    func testStreamManagerCreate() throws {
+        let tlsContextOptions = TLSContextOptions(allocator: allocator)
+        let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)
+        let tlsConnectionOptions = TLSConnectionOptions(context: tlsContext, allocator: allocator)
+        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
+        let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
+        let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
+                hostResolver: hostResolver,
+                allocator: allocator)
+        let port = UInt16(443)
+
+        let options = HTTP2StreamManagerOptions(
+                        clientBootstrap: bootstrap,
+                        hostName: endpoint,
+                        port: port,
+                        proxyOptions: HTTPProxyOptions(hostName: "localhost", port: 80),
+                        proxyEnvSettings: HTTPProxyEnvSettings(proxyConnectionType: HTTPProxyConnectionType.forward),
+                        socketOptions: SocketOptions(socketType: .stream),
+                        tlsOptions: tlsConnectionOptions,
+                        monitoringOptions: HTTPMonitoringOptions(minThroughputBytesPerSecond: 10, allowableThroughputFailureInterval: 20),
+                        maxConnections: 30,
+                        enableStreamManualWindowManagement: true,
+                        shutdownCallback: {},
+                        http2PriorKnowledge: true,
+                        http2InitialSettings: HTTP2Settings(enablePush: true),
+                        http2MaxClosedStreams: 40,
+                        enableConnectionManualWindowManagement: true,
+                        closeConnectionOnServerError: true,
+                        connectionPingPeriodMs: 50,
+                        connectionPingTimeoutMs: 60,
+                        idealConcurrentStreamsPerConnection: 70,
+                        maxConcurrentStreamsPerConnection: 80)
+        let shutdownCallbackCore = ShutdownCallbackCore(options.shutdownCallback)
+        let shutdownOptions = shutdownCallbackCore.getRetainedShutdownOptions()
+        options.withCStruct(shutdownOptions: shutdownOptions) {cOptions in
+            XCTAssertNotNil(cOptions.bootstrap)
+            XCTAssertNotNil(cOptions.socket_options)
+            XCTAssertNotNil(cOptions.tls_connection_options)
+            XCTAssertTrue(cOptions.http2_prior_knowledge)
+            XCTAssertEqual(cOptions.host.toString(), endpoint)
+            XCTAssertEqual(cOptions.port, port)
+            XCTAssertNotNil(cOptions.initial_settings_array)
+            XCTAssertEqual(cOptions.num_initial_settings, 1)
+            XCTAssertEqual(cOptions.max_closed_streams, 40)
+            XCTAssertTrue(cOptions.conn_manual_window_management)
+            XCTAssertTrue(cOptions.enable_read_back_pressure)
+            XCTAssertNotNil(cOptions.monitoring_options)
+            XCTAssertNotNil(cOptions.proxy_options)
+            XCTAssertNotNil(cOptions.proxy_ev_settings)
+            XCTAssertNotNil(cOptions.shutdown_complete_user_data)
+            XCTAssertNotNil(cOptions.shutdown_complete_callback)
+            XCTAssertTrue(cOptions.close_connection_on_server_error)
+            XCTAssertEqual(cOptions.connection_ping_period_ms, 50)
+            XCTAssertEqual(cOptions.connection_ping_timeout_ms, 60)
+            XCTAssertEqual(cOptions.ideal_concurrent_streams_per_connection, 70)
+            XCTAssertEqual(cOptions.max_concurrent_streams_per_connection, 80)
+            XCTAssertEqual(cOptions.max_connections, 30)
+        }
+        shutdownCallbackCore.release()
+    }
+
     func makeStreamManger(host: String, port: Int = 443) throws -> HTTP2StreamManager {
         let tlsContextOptions = TLSContextOptions(allocator: allocator)
         tlsContextOptions.setAlpnList(["h2", "http/1.1"])
@@ -31,23 +92,8 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
                         clientBootstrap: bootstrap,
                         hostName: host,
                         port: UInt16(port),
-                        proxyOptions: nil,
-                        proxyEnvSettings: nil,
                         socketOptions: socketOptions,
-                        tlsOptions: tlsConnectionOptions,
-                        monitoringOptions: nil,
-                        maxConnections: 2,
-                        enableStreamManualWindowManagement: false,
-                        shutdownCallback: nil,
-                        http2PriorKnowledge: false,
-                        http2InitialSettings: nil,
-                        http2MaxClosedStreams: nil,
-                        enableConnectionManualWindowManagement: false,
-                        closeConnectionOnServerError: false,
-                        connectionPingPeriodMs: nil,
-                        connectionPingTimeoutMs: nil,
-                        idealConcurrentStreamsPerConnection: nil,
-                        maxConcurrentStreamsPerConnection: nil))
+                        tlsOptions: tlsConnectionOptions))
         return streamManager
     }
 
