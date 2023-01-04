@@ -7,6 +7,7 @@ import XCTest
 class HTT2StreamManagerTests: HTTPClientTestFixture {
     let endpoint = "d1cz66xoahf9cl.cloudfront.net"; // Use cloudfront for HTTP/2
     let path = "/random_32_byte.data";
+
     func makeStreamManger(host: String, port: Int = 443) throws -> HTTP2StreamManager {
         let tlsContextOptions = TLSContextOptions(allocator: allocator)
         tlsContextOptions.setAlpnList(["h2", "http/1.1"])
@@ -63,6 +64,21 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         let stream = try await streamManager.acquireStream(requestOptions: try makeHTTP2Request())
         semaphore.wait()
         XCTAssertEqual(try stream.statusCode(), 200)
+    }
+
+    func testHTTP2ParallelStreams() async throws {
+        try await testHTTP2ParallelStreams(count: 5)
+    }
+
+    func testHTTP2ParallelStreams(count: Int) async throws {
+        let streamManager = try makeStreamManger(host: endpoint)
+        await withTaskGroup(of: Void.self) { taskGroup in
+            for i in 1...count {
+                taskGroup.addTask {
+                    try! await self.testHTTP2Stream()
+                }
+            }
+        }
     }
 
 }
