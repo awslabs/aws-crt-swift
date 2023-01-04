@@ -51,8 +51,11 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
 
     func testGetHttpsRequest() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
-        _ = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/get", connectionManager: connectionManager, expectedVersion: expectedVersion)
-        _ = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/delete", expectedStatus: 405, connectionManager: connectionManager, expectedVersion: expectedVersion)
+        let response = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/get", connectionManager: connectionManager, expectedVersion: expectedVersion)
+        // The first header of response has to be ":status" for HTTP/2 response
+        XCTAssertEqual(response.headers[0].name, ":status")
+        let response2 = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/delete", expectedStatus: 405, connectionManager: connectionManager, expectedVersion: expectedVersion)
+        XCTAssertEqual(response2.headers[0].name, ":status")
     }
 
     func testHTTP2Download() async throws {

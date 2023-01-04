@@ -8,7 +8,8 @@ import Foundation
 public class HTTP2ClientConnection: HTTPClientConnection {
 
     /// Send a SETTINGS frame (HTTP/2 only).
-    /// SETTINGS will be applied locally when SETTINGS ACK is received from peer.
+    /// SETTINGS will be applied locally when settings ACK is received from peer.
+    /// - Parameter setting: The settings to change
     public func updateSetting(setting: HTTP2Settings) async throws {
         try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)

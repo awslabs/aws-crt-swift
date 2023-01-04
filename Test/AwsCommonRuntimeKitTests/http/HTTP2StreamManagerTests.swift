@@ -66,6 +66,23 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         XCTAssertEqual(try stream.statusCode(), 200)
     }
 
+    // Test that the binding works not the actual functionality. C part has tests for functionality
+    func testHTTP2StreamReset() async throws {
+        let streamManager = try makeStreamManger(host: endpoint)
+        let requestOptions = try makeHTTP2Request()
+        let updatedRequestOptions = HTTPRequestOptions(
+                request: requestOptions.request,
+                onIncomingHeaders: { stream, headerBlock, headers in
+                    let stream = stream as! HTTP2Stream
+                    try! stream.resetStream(error: HTTP2Error.internalError)
+                },
+                onIncomingHeadersBlockDone: requestOptions.onIncomingHeadersBlockDone,
+                onIncomingBody: requestOptions.onIncomingBody,
+                onStreamComplete: requestOptions.onStreamComplete)
+        let stream = try await streamManager.acquireStream(requestOptions: updatedRequestOptions)
+        semaphore.wait()
+    }
+
     func testHTTP2ParallelStreams() async throws {
         try await testHTTP2ParallelStreams(count: 5)
     }
