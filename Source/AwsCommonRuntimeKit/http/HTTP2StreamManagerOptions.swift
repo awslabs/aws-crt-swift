@@ -3,7 +3,7 @@
 
 import AwsCHttp
 
-/// Connection manager configuration struct.
+/// Stream manager configuration struct.
 /// Contains all of the configuration needed to create an http connection as well as
 /// the maximum number of connections to ever have in existence.
 public struct HTTP2StreamManagerOptions: CStructWithShutdownOptions {
