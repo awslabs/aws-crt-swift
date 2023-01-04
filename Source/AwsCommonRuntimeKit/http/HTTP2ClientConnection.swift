@@ -69,8 +69,6 @@ public class HTTP2ClientConnection: HTTPClientConnection {
     ///                       be set to a max value. If false, new peer-initiated streams will be ignored and the GOAWAY's
     ///                       Last-Stream-ID will be set to the latest acknowledged stream.
     ///   - debugData: (Optional) debug data to send. Size must not exceed 16KB.
-    /// - Returns:
-    /// - Throws:
     public func sendGoAway(error: HTTP2Error, allowMoreStreams: Bool, debugData: Data = Data()) {
         debugData.withAWSByteCursorPointer { dataPointer in
             aws_http2_connection_send_goaway(
