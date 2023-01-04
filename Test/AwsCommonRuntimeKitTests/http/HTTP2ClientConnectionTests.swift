@@ -25,24 +25,35 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
         }
     }
 
+    func testHTTP2SendPing() async throws {
+        let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
+        let connection = try await connectionManager.acquireConnection()
+        if let connection = connection as? HTTP2ClientConnection {
+            var time = try await connection.sendPing()
+            XCTAssertTrue(time > 0)
+            time = try await connection.sendPing(data: "12345678".data(using: .utf8)!)
+            XCTAssertTrue(time > 0)
+        } else {
+            XCTFail("Connection is not HTTP2")
+        }
+    }
+
+    func testHTTP2SendGoAway() async throws {
+        let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
+        let connection = try await connectionManager.acquireConnection()
+        if let connection = connection as? HTTP2ClientConnection {
+          connection.sendGoAway(error: .internalError, allowMoreStreams: false)
+        } else {
+            XCTFail("Connection is not HTTP2")
+        }
+    }
+
+
     func testGetHttpsRequest() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
         _ = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/get", connectionManager: connectionManager, expectedVersion: expectedVersion)
         _ = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/delete", expectedStatus: 405, connectionManager: connectionManager, expectedVersion: expectedVersion)
     }
-
-    //TODO: discuss. http is not supported for connection manager.
-//    func testGetHttpRequest() async throws {
-//        do {
-//        let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", ssh: false, port: 80, http2PriorKnowledge: true)
-//        _ = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/get", expectedVersion: expectedVersion,
-//                connectionManager: connectionManager)
-//        } catch CommonRunTimeError.crtError(let error) {
-//            print(error)
-//            XCTFail(error.message)
-//        }
-//    }
-
 
     func testHTTP2Download() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "d1cz66xoahf9cl.cloudfront.net", alpnList: ["h2","http/1.1"])
