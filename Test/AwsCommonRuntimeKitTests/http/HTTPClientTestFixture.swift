@@ -73,47 +73,44 @@ class HTTPClientTestFixture: XCBaseTestCase {
         return try HTTPClientConnectionManager(options: httpClientOptions)
     }
 
-
-
+    // nil callbacks means use default
     func getHTTPRequestOptions(method: String,
                                endpoint: String,
                                path: String,
                                body: String = "",
                                response: UnsafeMutablePointer<HTTPResponse>? = nil,
-                               headers: [HTTPHeader] = [HTTPHeader]()) throws -> HTTPRequestOptions {
+                               headers: [HTTPHeader] = [HTTPHeader](),
+                               onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders? = nil,
+                               onBody: HTTPRequestOptions.OnIncomingBody? = nil,
+                               onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone? = nil,
+                               onComplete: HTTPRequestOptions.OnStreamComplete? = nil
+                               ) throws -> HTTPRequestOptions {
         let httpRequest: HTTPRequest = try HTTPRequest(method: method, path: path, body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
         httpRequest.addHeader(header: HTTPHeader(name: "Host", value: endpoint))
         httpRequest.addHeader(header: HTTPHeader(name: "Content-Length", value: String(body.count)))
         httpRequest.addHeaders(headers: headers)
-        let onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders = { stream, headerBlock, headers in
-            for header in headers {
-                print(header.name + " : " + header.value)
-                response?.pointee.headers.append(header)
-            }
-        }
-
-        let onBody: HTTPRequestOptions.OnIncomingBody = { stream, bodyChunk in
-            print("onBody: \(bodyChunk)")
-            response?.pointee.body += bodyChunk
-        }
-
-        let onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone = { stream, block in
-            print("onBlockDone")
-        }
-
-        let onComplete: HTTPRequestOptions.OnStreamComplete = { stream, error in
-            print("onComplete")
-            XCTAssertNil(error)
-            let statusCode = try! stream.statusCode()
-            response?.pointee.statusCode = statusCode
-            self.semaphore.signal()
-        }
 
         let requestOptions = HTTPRequestOptions(request: httpRequest,
-                onIncomingHeaders: onIncomingHeaders,
-                onIncomingHeadersBlockDone: onBlockDone,
-                onIncomingBody: onBody,
-                onStreamComplete: onComplete)
+                onIncomingHeaders: onIncomingHeaders ?? { stream, headerBlock, headers in
+                    for header in headers {
+                        print(header.name + " : " + header.value)
+                        response?.pointee.headers.append(header)
+                    }
+                },
+                onIncomingHeadersBlockDone: onBlockDone ?? { stream, block in
+                    print("onBlockDone")
+                },
+                onIncomingBody: onBody ?? { stream, bodyChunk in
+                    print("onBody: \(bodyChunk)")
+                    response?.pointee.body += bodyChunk
+                },
+                onStreamComplete: onComplete ?? { stream, error in
+                    print("onComplete")
+                    XCTAssertNil(error)
+                    let statusCode = try! stream.statusCode()
+                    response?.pointee.statusCode = statusCode
+                    self.semaphore.signal()
+                })
         return requestOptions
     }
 }

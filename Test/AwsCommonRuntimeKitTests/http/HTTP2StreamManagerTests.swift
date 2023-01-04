@@ -55,13 +55,18 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         _ = try makeStreamManger(host: endpoint)
     }
 
-    func makeHTTP2Request() throws -> HTTPRequestOptions {
-        try getHTTPRequestOptions(method: "GET", endpoint: endpoint, path: path)
-    }
-
     func testHTTP2Stream() async throws {
+        let semaphore = DispatchSemaphore(value: 0)
         let streamManager = try makeStreamManger(host: endpoint)
-        let stream = try await streamManager.acquireStream(requestOptions: try makeHTTP2Request())
+        let stream = try await streamManager.acquireStream(
+                requestOptions: try getHTTPRequestOptions(
+                        method: "GET",
+                        endpoint: endpoint,
+                        path: path, onComplete: { stream, error in
+                    print("onComplete")
+                    XCTAssertNil(error)
+                    semaphore.signal()
+                }))
         semaphore.wait()
         XCTAssertEqual(try stream.statusCode(), 200)
     }
@@ -69,7 +74,11 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
     // Test that the binding works not the actual functionality. C part has tests for functionality
     func testHTTP2StreamReset() async throws {
         let streamManager = try makeStreamManger(host: endpoint)
-        let requestOptions = try makeHTTP2Request()
+        let requestOptions = try getHTTPRequestOptions(
+                method: "GET",
+                endpoint: endpoint,
+                path: path
+        )
         let updatedRequestOptions = HTTPRequestOptions(
                 request: requestOptions.request,
                 onIncomingHeaders: { stream, headerBlock, headers in
@@ -79,7 +88,7 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
                 onIncomingHeadersBlockDone: requestOptions.onIncomingHeadersBlockDone,
                 onIncomingBody: requestOptions.onIncomingBody,
                 onStreamComplete: requestOptions.onStreamComplete)
-        let stream = try await streamManager.acquireStream(requestOptions: updatedRequestOptions)
+        _ = try await streamManager.acquireStream(requestOptions: updatedRequestOptions)
         semaphore.wait()
     }
 
@@ -88,9 +97,8 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
     }
 
     func testHTTP2ParallelStreams(count: Int) async throws {
-        let streamManager = try makeStreamManger(host: endpoint)
         await withTaskGroup(of: Void.self) { taskGroup in
-            for i in 1...count {
+            for _ in 1...count {
                 taskGroup.addTask {
                     try! await self.testHTTP2Stream()
                 }

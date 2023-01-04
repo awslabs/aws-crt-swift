@@ -45,7 +45,6 @@ public class HTTP2ClientConnection: HTTPClientConnection {
                         continuationCore.passRetained()) == AWS_OP_SUCCESS
                 else {
                     continuationCore.release()
-                    let error = CommonRunTimeError.crtError(.makeFromLastError())
                     continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
                     return
                 }
