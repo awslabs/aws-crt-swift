@@ -13,7 +13,8 @@ public class HTTP2StreamManager {
                 options.withCStruct(shutdownOptions: shutdownOptions) { managerOptions in
                     // TODO: update after adding const in C
                     var managerOptions = managerOptions
-                    return withUnsafeMutablePointer(to: &managerOptions) { aws_http2_stream_manager_new(allocator.rawValue, $0)}
+                    return withUnsafeMutablePointer(
+                        to: &managerOptions) { aws_http2_stream_manager_new(allocator.rawValue, $0)}
                 }) else {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -28,7 +29,9 @@ public class HTTP2StreamManager {
     public func acquireStream(requestOptions: HTTPRequestOptions) async throws -> HTTP2Stream {
         try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<HTTP2Stream, Error>) in
             let httpStreamCallbackCore = HTTPStreamCallbackCore(requestOptions: requestOptions)
-            let streamManagerCore = HTTP2StreamManagerCore(continuation: continuation, callbackCore: httpStreamCallbackCore)
+            let streamManagerCore = HTTP2StreamManagerCore(
+                continuation: continuation,
+                callbackCore: httpStreamCallbackCore)
             let requestOptions = httpStreamCallbackCore.getRetainedHttpMakeRequestOptions()
 
             var options = aws_http2_stream_manager_acquire_stream_options()

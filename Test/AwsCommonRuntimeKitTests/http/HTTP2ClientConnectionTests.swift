@@ -25,7 +25,7 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
             XCTFail("Connection is not HTTP2")
         }
     }
-    
+
     // Test that the binding works not the actual functionality. C part has tests for functionality
     func testHTTP2UpdateSettingEmpty() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])

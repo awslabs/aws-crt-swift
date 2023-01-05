@@ -157,7 +157,8 @@ public struct HTTP2StreamManagerOptions: CStructWithShutdownOptions {
                 socketOptions,
                 monitoringOptions,
                 tlsOptions,
-                initialSettings) { proxyPointer, proxyEnvSettingsPointer, socketPointer, monitoringPointer, tlsPointer, http2SettingPointer in
+                initialSettings) { proxyPointer, proxyEnvSettingsPointer, socketPointer,
+                                   monitoringPointer, tlsPointer, http2SettingPointer in
 
                 var cStreamManagerOptions = aws_http2_stream_manager_options()
                 cStreamManagerOptions.bootstrap = clientBootstrap.rawValue

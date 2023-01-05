@@ -133,7 +133,8 @@ public struct HTTPClientConnectionOptions: CStructWithShutdownOptions {
                 socketOptions,
                 monitoringOptions,
                 tlsOptions,
-                http2InitialSettings) { proxyPointer, proxyEnvSettingsPointer, socketPointer, monitoringPointer, tlsPointer, http2SettingPointer in
+                http2InitialSettings) { proxyPointer, proxyEnvSettingsPointer, socketPointer,
+                                        monitoringPointer, tlsPointer, http2SettingPointer in
 
                 var cManagerOptions = aws_http_connection_manager_options()
                 cManagerOptions.bootstrap = clientBootstrap.rawValue

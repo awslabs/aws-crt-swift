@@ -52,7 +52,9 @@ private func onConnectionSetup(connection: UnsafeMutablePointer<aws_http_connect
                 manager: callbackDataCore.connectionManager,
                 connection: connection!))
     } else {
-        callbackDataCore.continuation.resume(returning: HTTPClientConnection(manager: callbackDataCore.connectionManager,
-                                                                             connection: connection!))
+        callbackDataCore.continuation.resume(
+            returning: HTTPClientConnection(
+                manager: callbackDataCore.connectionManager,
+                connection: connection!))
     }
 }
