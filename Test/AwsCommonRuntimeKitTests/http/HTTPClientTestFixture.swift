@@ -20,7 +20,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                          requestBody: String = "",
                          expectedStatus: Int = 200,
                          connectionManager: HTTPClientConnectionManager,
-                         expectedVersion: HTTPVersion = HTTPVersion.version_1_1) async throws -> HTTPResponse {
+                         expectedVersion: HTTPVersion = HTTPVersion.version_1_1,
                          numRetries: UInt = 2) async throws -> HTTPResponse {
         var httpResponse = HTTPResponse()
         let httpRequestOptions = try getHTTPRequestOptions(
