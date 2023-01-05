@@ -13,6 +13,10 @@ public protocol HTTPExchange {
     var isOpen: Bool { get }
     var httpVersion: HTTPVersion { get }
     func close()
+
+    /// Creates a new http stream from the `HTTPRequestOptions` given.
+    /// The stream will send no data until HTTPStream.activate()
+    /// is called. Call activate() when you're ready for callbacks and events to fire.
     func makeRequest(requestOptions: HTTPRequestOptions) throws -> HTTPStream
 }
 
@@ -46,6 +50,8 @@ public class HTTPClientConnection: HTTPExchange {
     }
 
     /// Creates a new http stream from the `HTTPRequestOptions` given.
+    /// The stream will send no data until HTTPStream.activate()
+    /// is called. Call activate() when you're ready for callbacks and events to fire.
     /// - Parameter requestOptions: An `HTTPRequestOptions` struct containing callbacks on
     /// the different events from the stream
     /// - Returns: An `HTTPStream` containing the `HTTPClientConnection`
