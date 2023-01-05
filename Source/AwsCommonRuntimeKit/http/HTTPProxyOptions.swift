@@ -5,6 +5,7 @@ import AwsCCommon
 
 public struct HTTPProxyOptions: CStruct {
     public var authType: HTTPProxyAuthenticationType
+    public var connectionType: HTTPProxyConnectionType
     public var basicAuthUsername: String?
     public var basicAuthPassword: String?
     public var hostName: String
@@ -16,13 +17,15 @@ public struct HTTPProxyOptions: CStruct {
                 authType: HTTPProxyAuthenticationType = .none,
                 basicAuthUsername: String? = nil,
                 basicAuthPassword: String? = nil,
-                tlsOptions: TLSConnectionOptions? = nil) {
+                tlsOptions: TLSConnectionOptions? = nil,
+                connectionType: HTTPProxyConnectionType = .legacy) {
         self.hostName = hostName
         self.port = port
         self.authType = authType
         self.basicAuthUsername = basicAuthUsername
         self.basicAuthPassword = basicAuthPassword
         self.tlsOptions = tlsOptions
+        self.connectionType = connectionType
     }
 
     typealias RawType = aws_http_proxy_options
@@ -37,6 +40,7 @@ public struct HTTPProxyOptions: CStruct {
             cProxyOptions.host = hostPointer
             cProxyOptions.auth_username = userNamePointer
             cProxyOptions.auth_password = passwordPointer
+            cProxyOptions.connection_type = connectionType.rawValue
             return withOptionalCStructPointer(to: tlsOptions) { tlsOptionsPointer in
                 cProxyOptions.tls_options = tlsOptionsPointer
                 return body(cProxyOptions)
