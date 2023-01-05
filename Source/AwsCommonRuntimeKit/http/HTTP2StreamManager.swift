@@ -29,7 +29,7 @@ public class HTTP2StreamManager {
     public func acquireStream(requestOptions: HTTPRequestOptions) async throws -> HTTP2Stream {
         try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<HTTP2Stream, Error>) in
             let httpStreamCallbackCore = HTTPStreamCallbackCore(requestOptions: requestOptions)
-            let streamManagerCore = HTTP2StreamManagerCore(
+            let streamManagerCore = HTTP2AcquireStreamCore(
                 continuation: continuation,
                 callbackCore: httpStreamCallbackCore)
             let requestOptions = httpStreamCallbackCore.getRetainedHttpMakeRequestOptions()
@@ -49,7 +49,7 @@ public class HTTP2StreamManager {
     }
 }
 
-class HTTP2StreamManagerCore {
+class HTTP2AcquireStreamCore {
     let continuation: CheckedContinuation<HTTP2Stream, Error>
     let callbackCore: HTTPStreamCallbackCore
 
@@ -70,7 +70,7 @@ class HTTP2StreamManagerCore {
 private func onStreamAcquired(stream: UnsafeMutablePointer<aws_http_stream>?,
                               errorCode: Int32,
                               userData: UnsafeMutableRawPointer!) {
-    let streamManagerCore = Unmanaged<HTTP2StreamManagerCore>.fromOpaque(userData).takeRetainedValue()
+    let streamManagerCore = Unmanaged<HTTP2AcquireStreamCore>.fromOpaque(userData).takeRetainedValue()
     guard errorCode == AWS_OP_SUCCESS else {
         streamManagerCore.callbackCore.release()
         streamManagerCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
