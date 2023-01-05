@@ -15,6 +15,7 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
         XCTAssertEqual(connection.httpVersion, HTTPVersion.version_2)
     }
 
+    // Test that the binding works not the actual functionality. C part has tests for functionality
     func testHTTP2UpdateSetting() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
         let connection = try await connectionManager.acquireConnection()
@@ -24,7 +25,8 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
             XCTFail("Connection is not HTTP2")
         }
     }
-
+    
+    // Test that the binding works not the actual functionality. C part has tests for functionality
     func testHTTP2UpdateSettingEmpty() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
         let connection = try await connectionManager.acquireConnection()
@@ -35,6 +37,7 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
         }
     }
 
+    // Test that the binding works not the actual functionality. C part has tests for functionality
     func testHTTP2SendPing() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
         let connection = try await connectionManager.acquireConnection()
@@ -48,6 +51,7 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
         }
     }
 
+    // Test that the binding works not the actual functionality. C part has tests for functionality
     func testHTTP2SendGoAway() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
         let connection = try await connectionManager.acquireConnection()
@@ -57,7 +61,6 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
             XCTFail("Connection is not HTTP2")
         }
     }
-
 
     func testGetHttpsRequest() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
@@ -81,5 +84,4 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
                 actualSha.encodeToHexString().uppercased(),
                 "C7FDB5314B9742467B16BD5EA2F8012190B5E2C44A005F7984F89AAB58219534")
     }
-
 }
