@@ -37,19 +37,16 @@ public struct HTTP2StreamManagerOptions: CStructWithShutdownOptions {
 
     public var monitoringOptions: HTTPMonitoringOptions?
 
-    /// (Optional) HTTP/2 specific configuration
     /// Specify whether you have prior knowledge that cleartext (HTTP) connections are HTTP/2 (RFC-7540 3.4).
     /// If false, then cleartext connections are treated as HTTP/1.1.
     /// It is illegal to set this true when secure connections are being used.
     /// Note that upgrading from HTTP/1.1 to HTTP/ 2 is not supported (RFC-7540 3.2).
-    public var http2PriorKnowledge: Bool
+    public var priorKnowledge: Bool
 
-    /// (Optional) HTTP/2 specific configuration
     /// The data of settings to change for initial settings.
     /// Note: each setting has its boundary.
-    public var http2InitialSettings: HTTP2Settings?
+    public var initialSettings: HTTP2Settings?
 
-    /// (Optional) HTTP/2 specific configuration
     /// The max number of recently-closed streams to remember.
     /// Set it to nil to use the default setting
     ///
@@ -58,9 +55,8 @@ public struct HTTP2StreamManagerOptions: CStructWithShutdownOptions {
     /// depending on the frame type and how the stream was closed.
     /// Remembering more streams reduces the chances that a late frame causes
     /// a connection error, but costs some memory.
-    public var http2MaxClosedStreams: Int?
+    public var maxClosedStreams: Int?
 
-    /// (Optional) HTTP/2 specific configuration
     /// Connection level window control
     /// Set to true to manually manage the flow-control window of whole HTTP/2 connection.
     ///
@@ -117,9 +113,9 @@ public struct HTTP2StreamManagerOptions: CStructWithShutdownOptions {
                 maxConnections: Int = 2,
                 enableStreamManualWindowManagement: Bool = false,
                 shutdownCallback: ShutdownCallback? = nil,
-                http2PriorKnowledge: Bool = false,
-                http2InitialSettings: HTTP2Settings? = nil,
-                http2MaxClosedStreams: Int? = nil,
+                priorKnowledge: Bool = false,
+                initialSettings: HTTP2Settings? = nil,
+                maxClosedStreams: Int? = nil,
                 enableConnectionManualWindowManagement: Bool = false,
                 closeConnectionOnServerError: Bool = false,
                 connectionPingPeriodMs: Int? = nil,
@@ -138,9 +134,9 @@ public struct HTTP2StreamManagerOptions: CStructWithShutdownOptions {
         self.maxConnections = maxConnections
         self.enableStreamManualWindowManagement = enableStreamManualWindowManagement
         self.shutdownCallback = shutdownCallback
-        self.http2PriorKnowledge = http2PriorKnowledge
-        self.http2InitialSettings = http2InitialSettings
-        self.http2MaxClosedStreams = http2MaxClosedStreams
+        self.priorKnowledge = priorKnowledge
+        self.initialSettings = initialSettings
+        self.maxClosedStreams = maxClosedStreams
         self.enableConnectionManualWindowManagement = enableConnectionManualWindowManagement
         self.closeConnectionOnServerError = closeConnectionOnServerError
         self.connectionPingPeriodMs = connectionPingPeriodMs
@@ -161,7 +157,7 @@ public struct HTTP2StreamManagerOptions: CStructWithShutdownOptions {
                 socketOptions,
                 monitoringOptions,
                 tlsOptions,
-                http2InitialSettings) { proxyPointer, proxyEnvSettingsPointer, socketPointer, monitoringPointer, tlsPointer, http2SettingPointer in
+                initialSettings) { proxyPointer, proxyEnvSettingsPointer, socketPointer, monitoringPointer, tlsPointer, http2SettingPointer in
 
                 var cStreamManagerOptions = aws_http2_stream_manager_options()
                 cStreamManagerOptions.bootstrap = clientBootstrap.rawValue
@@ -177,8 +173,8 @@ public struct HTTP2StreamManagerOptions: CStructWithShutdownOptions {
                 cStreamManagerOptions.shutdown_complete_user_data = shutdownOptions.shutdown_callback_user_data
                 cStreamManagerOptions.shutdown_complete_callback = shutdownOptions.shutdown_callback_fn
 
-                cStreamManagerOptions.http2_prior_knowledge = http2PriorKnowledge
-                cStreamManagerOptions.max_closed_streams = http2MaxClosedStreams ?? 0
+                cStreamManagerOptions.http2_prior_knowledge = priorKnowledge
+                cStreamManagerOptions.max_closed_streams = maxClosedStreams ?? 0
                 cStreamManagerOptions.conn_manual_window_management = enableConnectionManualWindowManagement
                 cStreamManagerOptions.close_connection_on_server_error = closeConnectionOnServerError
                 cStreamManagerOptions.connection_ping_period_ms = connectionPingPeriodMs ?? 0
