@@ -29,14 +29,14 @@ public class HTTP2StreamManager {
     public func acquireStream(requestOptions: HTTPRequestOptions) async throws -> HTTP2Stream {
         try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<HTTP2Stream, Error>) in
             let httpStreamCallbackCore = HTTPStreamCallbackCore(requestOptions: requestOptions)
-            let streamManagerCore = HTTP2AcquireStreamCore(
+            let acquireStreamCore = HTTP2AcquireStreamCore(
                 continuation: continuation,
                 callbackCore: httpStreamCallbackCore)
             let requestOptions = httpStreamCallbackCore.getRetainedHttpMakeRequestOptions()
 
             var options = aws_http2_stream_manager_acquire_stream_options()
             options.callback = onStreamAcquired
-            options.user_data = streamManagerCore.passRetained()
+            options.user_data = acquireStreamCore.passRetained()
             withUnsafePointer(to: requestOptions, { requestOptionsPointer in
                 options.options = requestOptionsPointer
                 aws_http2_stream_manager_acquire_stream(rawValue, &options)
@@ -70,18 +70,18 @@ private class HTTP2AcquireStreamCore {
 private func onStreamAcquired(stream: UnsafeMutablePointer<aws_http_stream>?,
                               errorCode: Int32,
                               userData: UnsafeMutableRawPointer!) {
-    let streamManagerCore = Unmanaged<HTTP2AcquireStreamCore>.fromOpaque(userData).takeRetainedValue()
+    let acquireStreamCore = Unmanaged<HTTP2AcquireStreamCore>.fromOpaque(userData).takeRetainedValue()
     guard errorCode == AWS_OP_SUCCESS else {
-        streamManagerCore.callbackCore.release()
-        streamManagerCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        acquireStreamCore.callbackCore.release()
+        acquireStreamCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
     // SUCCESS
     do {
-        let http2Stream = try HTTP2Stream(rawValue: stream!, callbackData: streamManagerCore.callbackCore)
-        streamManagerCore.continuation.resume(returning: http2Stream)
+        let http2Stream = try HTTP2Stream(rawValue: stream!, callbackData: acquireStreamCore.callbackCore)
+        acquireStreamCore.continuation.resume(returning: http2Stream)
     } catch {
-        streamManagerCore.continuation.resume(throwing: error)
+        acquireStreamCore.continuation.resume(throwing: error)
     }
 }
