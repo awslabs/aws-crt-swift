@@ -7,6 +7,22 @@ import Foundation
 
 public class HTTP2ClientConnection: HTTPClientConnection {
 
+    /// Creates a new http2 stream from the `HTTPRequestOptions` given.
+    /// - Parameter requestOptions: An `HTTPRequestOptions` struct containing callbacks on
+    /// the different events from the stream
+    /// - Returns: An `HTTP2Stream`
+    override public func makeRequest(requestOptions: HTTPRequestOptions) throws -> HTTPStream {
+        let httpStreamCallbackCore = HTTPStreamCallbackCore(requestOptions: requestOptions)
+        do {
+            return try HTTP2Stream(httpConnection: self,
+                    options: httpStreamCallbackCore.getRetainedHttpMakeRequestOptions(),
+                    callbackData: httpStreamCallbackCore)
+        } catch {
+            httpStreamCallbackCore.release()
+            throw error
+        }
+    }
+
     /// Send a SETTINGS frame (HTTP/2 only).
     /// SETTINGS will be applied locally when settings ACK is received from peer.
     /// - Parameter setting: The settings to change
@@ -78,7 +94,6 @@ public class HTTP2ClientConnection: HTTPClientConnection {
                 dataPointer)
         }
     }
-
 }
 
 private func onChangeSettingsComplete(connection: UnsafeMutablePointer<aws_http_connection>?,
