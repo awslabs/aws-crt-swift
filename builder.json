@@ -37,9 +37,8 @@
       ]
     },
     "macos": {
-      "!test_steps": [
-        "swift test",
-        "./integ_test.sh"
+      "+test_steps": [
+       "./integ_test.sh"
       ]
     }
   }

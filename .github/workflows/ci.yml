@@ -67,10 +67,10 @@ jobs:
           ./builder build -p ${{ env.PACKAGE_NAME }} --target=${{ matrix.target }}-armv8
 
   check-submodules:
-    runs-on: ubuntu-20.04 # latest
+    runs-on: ubuntu-22.04 # latest
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: true
           fetch-depth: 0

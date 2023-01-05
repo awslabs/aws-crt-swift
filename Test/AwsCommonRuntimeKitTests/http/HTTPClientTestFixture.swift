@@ -21,6 +21,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                          expectedStatus: Int = 200,
                          connectionManager: HTTPClientConnectionManager,
                          expectedVersion: HTTPVersion = HTTPVersion.version_1_1) async throws -> HTTPResponse {
+                         numRetries: UInt = 2) async throws -> HTTPResponse {
         var httpResponse = HTTPResponse()
         let httpRequestOptions = try getHTTPRequestOptions(
                 method: method,
@@ -29,8 +30,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                 body: requestBody,
                 response: &httpResponse)
 
-        // Retry the request multiple times to reduce flakiness
-        for i in 1...3 where httpResponse.statusCode != expectedStatus {
+        for i in 1...numRetries+1 where httpResponse.statusCode != expectedStatus {
             print("Attempt#\(i) to send an HTTP request")
             let connection = try await connectionManager.acquireConnection()
             XCTAssertTrue(connection.isOpen)
@@ -89,7 +89,6 @@ class HTTPClientTestFixture: XCBaseTestCase {
         httpRequest.addHeader(header: HTTPHeader(name: "Host", value: endpoint))
         httpRequest.addHeader(header: HTTPHeader(name: "Content-Length", value: String(body.count)))
         httpRequest.addHeaders(headers: headers)
-
         let requestOptions = HTTPRequestOptions(request: httpRequest,
                 onIncomingHeaders: onIncomingHeaders ?? { stream, headerBlock, headers in
                     for header in headers {
