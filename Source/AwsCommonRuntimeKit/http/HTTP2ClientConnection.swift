@@ -11,12 +11,12 @@ public class HTTP2ClientConnection: HTTPClientConnection {
     /// - Parameter requestOptions: An `HTTPRequestOptions` struct containing callbacks on
     /// the different events from the stream
     /// - Returns: An `HTTP2Stream`
-    override public func makeRequest(requestOptions: HTTPRequestOptions) throws -> HTTPStream {
+    override public func makeRequest(requestOptions: HTTPRequestOptions) throws -> HTTP2Stream {
         let httpStreamCallbackCore = HTTPStreamCallbackCore(requestOptions: requestOptions)
         do {
             return try HTTP2Stream(httpConnection: self,
-                    options: httpStreamCallbackCore.getRetainedHttpMakeRequestOptions(),
-                    callbackData: httpStreamCallbackCore)
+                                   options: httpStreamCallbackCore.getRetainedHttpMakeRequestOptions(),
+                                   callbackData: httpStreamCallbackCore)
         } catch {
             httpStreamCallbackCore.release()
             throw error

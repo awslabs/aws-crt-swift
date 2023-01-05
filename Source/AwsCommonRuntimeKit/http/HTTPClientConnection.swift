@@ -53,8 +53,8 @@ public class HTTPClientConnection: HTTPExchange {
         let httpStreamCallbackCore = HTTPStreamCallbackCore(requestOptions: requestOptions)
         do {
             return try HTTPStream(httpConnection: self,
-                    options: httpStreamCallbackCore.getRetainedHttpMakeRequestOptions(),
-                    callbackData: httpStreamCallbackCore)
+                                  options: httpStreamCallbackCore.getRetainedHttpMakeRequestOptions(),
+                                  callbackData: httpStreamCallbackCore)
         } catch {
             httpStreamCallbackCore.release()
             throw error
