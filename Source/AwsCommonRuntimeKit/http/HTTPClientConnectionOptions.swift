@@ -122,6 +122,7 @@ public struct HTTPClientConnectionOptions: CStructWithShutdownOptions {
     }
 
     typealias RawType = aws_http_connection_manager_options
+    // swiftlint:disable closure_parameter_position
     func withCStruct<Result>(
         shutdownOptions: aws_shutdown_callback_options,
         _ body: (aws_http_connection_manager_options) -> Result
