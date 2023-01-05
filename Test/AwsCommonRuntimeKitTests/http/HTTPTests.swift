@@ -66,7 +66,7 @@ class HTTPTests: HTTPClientTestFixture {
     }
 
     func testManagerLivesUntilComplete() async throws {
-        var connection: HTTPClientConnection! = nil
+        var connection: HTTPExchange! = nil
         do {
             let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
             connection = try await connectionManager.acquireConnection()

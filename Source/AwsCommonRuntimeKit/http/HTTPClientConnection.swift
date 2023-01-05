@@ -5,8 +5,19 @@ import AwsCHttp
 import AwsCIo
 import Foundation
 
+/// Represents one HTTP request/response exchange that can be used to
+/// execute requests.
+///
+/// There are two implementations: HTTPClientConnection and HTTP2ClientConnection
+public protocol HTTPExchange {
+    var isOpen: Bool { get }
+    var httpVersion: HTTPVersion { get }
+    func close()
+    func makeRequest(requestOptions: HTTPRequestOptions) throws -> HTTPStream
+}
+
 // swiftlint:disable force_try
-public class HTTPClientConnection {
+public class HTTPClientConnection: HTTPExchange {
     private let allocator: Allocator
     let rawValue: UnsafeMutablePointer<aws_http_connection>
     /// This will keep the connection manager alive until connection is alive

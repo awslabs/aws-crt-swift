@@ -22,7 +22,7 @@ public class HTTPClientConnectionManager {
     }
 
     /// Acquires an `HTTPClientConnection` asynchronously.
-    public func acquireConnection() async throws -> HTTPClientConnection {
+    public func acquireConnection() async throws -> HTTPExchange {
         return try await withCheckedThrowingContinuation({ (continuation: ConnectionContinuation) in
             HTTPClientConnectionManagerCallbackCore.acquireConnection(
                 continuation: continuation,
