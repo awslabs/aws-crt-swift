@@ -49,7 +49,7 @@ public class HTTP2StreamManager {
     }
 }
 
-class HTTP2AcquireStreamCore {
+private class HTTP2AcquireStreamCore {
     let continuation: CheckedContinuation<HTTP2Stream, Error>
     let callbackCore: HTTPStreamCallbackCore
 
