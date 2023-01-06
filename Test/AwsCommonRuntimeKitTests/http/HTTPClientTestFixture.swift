@@ -22,6 +22,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                          expectedStatus: Int = 200,
                          connectionManager: HTTPClientConnectionManager,
                          expectedVersion: HTTPVersion = HTTPVersion.version_1_1,
+                         requestVersion: HTTPVersion = HTTPVersion.version_1_1,
                          numRetries: UInt = 2,
                          onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders? = nil,
                          onBody: HTTPRequestOptions.OnIncomingBody? = nil,
@@ -32,7 +33,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
         let semaphore = DispatchSemaphore(value: 0)
 
         let httpRequestOptions: HTTPRequestOptions
-        if expectedVersion == HTTPVersion.version_2 {
+        if requestVersion == HTTPVersion.version_2 {
             httpRequestOptions = try getHTTP2RequestOptions(
                     method: method,
                     path: path,

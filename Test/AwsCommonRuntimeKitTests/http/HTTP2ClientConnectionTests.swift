@@ -64,10 +64,46 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
 
     func testGetHttpsRequest() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
-        let response = try await sendHTTPRequest(method: "GET", endpoint: "httpbin.org", path: "/get", connectionManager: connectionManager, expectedVersion: expectedVersion)
+        let response = try await sendHTTPRequest(
+                method: "GET",
+                endpoint: "httpbin.org",
+                path: "/get",
+                connectionManager: connectionManager,
+                expectedVersion: expectedVersion,
+                requestVersion: .version_2)
         // The first header of response has to be ":status" for HTTP/2 response
         XCTAssertEqual(response.headers[0].name, ":status")
-        let response2 = try await sendHTTPRequest(method: "GET", endpoint: "httpbin.org", path: "/delete", expectedStatus: 405, connectionManager: connectionManager, expectedVersion: expectedVersion)
+        let response2 = try await sendHTTPRequest(
+                method: "GET",
+                endpoint: "httpbin.org",
+                path: "/delete",
+                expectedStatus: 405,
+                connectionManager: connectionManager,
+                expectedVersion: expectedVersion,
+                requestVersion: .version_2)
+        XCTAssertEqual(response2.headers[0].name, ":status")
+    }
+
+
+    func testGetHttpsRequestWithHTTP1_1Request() async throws {
+        let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
+        let response = try await sendHTTPRequest(
+                method: "GET",
+                endpoint: "httpbin.org",
+                path: "/get",
+                connectionManager: connectionManager,
+                expectedVersion: expectedVersion,
+                requestVersion: .version_1_1)
+        // The first header of response has to be ":status" for HTTP/2 response
+        XCTAssertEqual(response.headers[0].name, ":status")
+        let response2 = try await sendHTTPRequest(
+                method: "GET",
+                endpoint: "httpbin.org",
+                path: "/delete",
+                expectedStatus: 405,
+                connectionManager: connectionManager,
+                expectedVersion: expectedVersion,
+                requestVersion: .version_1_1)
         XCTAssertEqual(response2.headers[0].name, ":status")
     }
 
@@ -78,7 +114,23 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
                 endpoint: "d1cz66xoahf9cl.cloudfront.net",
                 path: "/http_test_doc.txt",
                 connectionManager: connectionManager,
-                expectedVersion: expectedVersion)
+                expectedVersion: expectedVersion,
+                requestVersion: .version_2)
+        let actualSha = try response.body.sha256()
+        XCTAssertEqual(
+                actualSha.encodeToHexString().uppercased(),
+                "C7FDB5314B9742467B16BD5EA2F8012190B5E2C44A005F7984F89AAB58219534")
+    }
+
+    func testHTTP2DownloadWithHTTP1_1Request() async throws {
+        let connectionManager = try await getHttpConnectionManager(endpoint: "d1cz66xoahf9cl.cloudfront.net", alpnList: ["h2","http/1.1"])
+        let response = try await sendHTTPRequest(
+                method: "GET",
+                endpoint: "d1cz66xoahf9cl.cloudfront.net",
+                path: "/http_test_doc.txt",
+                connectionManager: connectionManager,
+                expectedVersion: expectedVersion,
+                requestVersion: .version_1_1)
         let actualSha = try response.body.sha256()
         XCTAssertEqual(
                 actualSha.encodeToHexString().uppercased(),
