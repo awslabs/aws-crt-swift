@@ -10,33 +10,102 @@ struct HTTPResponse {
     var headers: [HTTPHeader] = [HTTPHeader]()
     var body: Data = Data()
     var error: CRTError?
+    var version: HTTPVersion?
 }
 
 class HTTPClientTestFixture: XCBaseTestCase {
-    let semaphore = DispatchSemaphore(value: 0)
 
-    func sendHttpRequest(method: String,
+    func sendHTTPRequest(method: String,
                          endpoint: String,
                          path: String = "/",
-                         requestBody: String = "",
+                         body: String = "",
                          expectedStatus: Int = 200,
                          connectionManager: HTTPClientConnectionManager,
                          expectedVersion: HTTPVersion = HTTPVersion.version_1_1,
-                         numRetries: UInt = 2) async throws -> HTTPResponse {
+                         numRetries: UInt = 2,
+                         onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders? = nil,
+                         onBody: HTTPRequestOptions.OnIncomingBody? = nil,
+                         onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone? = nil,
+                         onComplete: HTTPRequestOptions.OnStreamComplete? = nil) async throws -> HTTPResponse {
+
         var httpResponse = HTTPResponse()
-        let httpRequestOptions = try getHTTPRequestOptions(
-                method: method,
-                endpoint: endpoint,
-                path: path,
-                body: requestBody,
-                response: &httpResponse)
+        let semaphore = DispatchSemaphore(value: 0)
+
+        let httpRequestOptions: HTTPRequestOptions
+        if expectedVersion == HTTPVersion.version_2 {
+            httpRequestOptions = try getHTTP2RequestOptions(
+                    method: method,
+                    path: path,
+                    authority: endpoint,
+                    body: body,
+                    response: &httpResponse,
+                    semaphore: semaphore,
+                    onIncomingHeaders: onIncomingHeaders,
+                    onBody: onBody,
+                    onBlockDone: onBlockDone,
+                    onComplete: onComplete)
+        } else {
+            httpRequestOptions = try getHTTPRequestOptions(
+                    method: method,
+                    endpoint: endpoint,
+                    path: path,
+                    body: body,
+                    response: &httpResponse,
+                    semaphore: semaphore,
+                    onIncomingHeaders: onIncomingHeaders,
+                    onBody: onBody,
+                    onBlockDone: onBlockDone,
+                    onComplete: onComplete)
+        }
 
         for i in 1...numRetries+1 where httpResponse.statusCode != expectedStatus {
             print("Attempt#\(i) to send an HTTP request")
             let connection = try await connectionManager.acquireConnection()
             XCTAssertTrue(connection.isOpen)
+            httpResponse.version = connection.httpVersion
             XCTAssertEqual(connection.httpVersion, expectedVersion)
             let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+            try stream.activate()
+            semaphore.wait()
+        }
+
+        XCTAssertNil(httpResponse.error)
+        XCTAssertEqual(httpResponse.statusCode, expectedStatus)
+        return httpResponse
+    }
+
+    func sendHTTP2Request(method: String,
+                          path: String,
+                          scheme: String = "https",
+                          authority: String,
+                          body: String = "",
+                          expectedStatus: Int = 200,
+                          streamManager: HTTP2StreamManager,
+                          numRetries: UInt = 2,
+                          onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders? = nil,
+                          onBody: HTTPRequestOptions.OnIncomingBody? = nil,
+                          onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone? = nil,
+                          onComplete: HTTPRequestOptions.OnStreamComplete? = nil) async throws -> HTTPResponse {
+
+        var httpResponse = HTTPResponse()
+        let semaphore = DispatchSemaphore(value: 0)
+
+        let httpRequestOptions = try getHTTP2RequestOptions(
+                method: method,
+                path: path,
+                scheme: scheme,
+                authority: authority,
+                body: body,
+                response: &httpResponse,
+                semaphore: semaphore,
+                onIncomingHeaders: onIncomingHeaders,
+                onBody: onBody,
+                onBlockDone: onBlockDone,
+                onComplete: onComplete)
+
+        for i in 1...numRetries+1 where httpResponse.statusCode != expectedStatus {
+            print("Attempt#\(i) to send an HTTP request")
+            let stream = try await streamManager.acquireStream(requestOptions: httpRequestOptions)
             try stream.activate()
             semaphore.wait()
         }
@@ -77,45 +146,47 @@ class HTTPClientTestFixture: XCBaseTestCase {
 
     func getRequestOptions(request: HTTPRequestBase,
                            response: UnsafeMutablePointer<HTTPResponse>? = nil,
+                           semaphore: DispatchSemaphore? = nil,
                            onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders? = nil,
                            onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                            onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone? = nil,
                            onComplete: HTTPRequestOptions.OnStreamComplete? = nil) -> HTTPRequestOptions {
         HTTPRequestOptions(request: request,
-                onIncomingHeaders: onIncomingHeaders ?? { stream, headerBlock, headers in
+                onIncomingHeaders: { stream, headerBlock, headers in
                     for header in headers {
-                        print(header.name + " : " + header.value)
                         response?.pointee.headers.append(header)
                     }
+                    onIncomingHeaders?(stream, headerBlock, headers)
                 },
-                onIncomingHeadersBlockDone: onBlockDone ?? { stream, block in
-                    print("onBlockDone")
+                onIncomingHeadersBlockDone: { stream, block in
+                    onBlockDone?(stream, block)
                 },
-                onIncomingBody: onBody ?? { stream, bodyChunk in
-                    print("onBody: \(bodyChunk)")
+                onIncomingBody: { stream, bodyChunk in
                     response?.pointee.body += bodyChunk
+                    onBody?(stream, bodyChunk)
                 },
-                onStreamComplete: onComplete ?? { stream, error in
-                    print("onComplete")
+                onStreamComplete: { stream, error in
                     response?.pointee.error = error
                     let statusCode = try! stream.statusCode()
                     response?.pointee.statusCode = statusCode
-                    self.semaphore.signal()
+                    semaphore?.signal()
+                    onComplete?(stream, error)
                 })
     }
 
-    // nil callbacks means use default
+
     func getHTTPRequestOptions(method: String,
                                endpoint: String,
                                path: String,
                                body: String = "",
                                response: UnsafeMutablePointer<HTTPResponse>? = nil,
+                               semaphore: DispatchSemaphore? = nil,
                                headers: [HTTPHeader] = [HTTPHeader](),
                                onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders? = nil,
                                onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                                onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone? = nil,
                                onComplete: HTTPRequestOptions.OnStreamComplete? = nil
-                               ) throws -> HTTPRequestOptions {
+    ) throws -> HTTPRequestOptions {
         let httpRequest: HTTPRequest = try HTTPRequest(method: method, path: path, body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
         httpRequest.addHeader(header: HTTPHeader(name: "Host", value: endpoint))
         httpRequest.addHeader(header: HTTPHeader(name: "Content-Length", value: String(body.count)))
@@ -123,6 +194,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
         return getRequestOptions(
                 request: httpRequest,
                 response: response,
+                semaphore: semaphore,
                 onIncomingHeaders: onIncomingHeaders,
                 onBody: onBody,
                 onBlockDone: onBlockDone,
@@ -136,23 +208,24 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                 body: String = "",
                                 manualDataWrites: Bool = false,
                                 response: UnsafeMutablePointer<HTTPResponse>? = nil,
-                                headers: [HTTPHeader] = [HTTPHeader](),
+                                semaphore: DispatchSemaphore? = nil,
                                 onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders? = nil,
                                 onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                                 onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone? = nil,
                                 onComplete: HTTPRequestOptions.OnStreamComplete? = nil) throws -> HTTPRequestOptions {
 
         let http2Request = try HTTP2Request(body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
-        var headers = headers
-        headers.append(HTTPHeader(name: ":method", value: method))
-        headers.append(HTTPHeader(name: ":path", value: path))
-        headers.append(HTTPHeader(name: ":scheme", value: scheme))
-        headers.append(HTTPHeader(name: ":authority", value: authority))
-        headers.append(HTTPHeader(name: "content-length", value: String(body.count)))
-        http2Request.addHeaders(headers: headers)
+        http2Request.addHeaders(headers: [
+            HTTPHeader(name: ":method", value: method),
+            HTTPHeader(name: ":path", value: path),
+            HTTPHeader(name: ":scheme", value: scheme),
+            HTTPHeader(name: ":authority", value: authority),
+            HTTPHeader(name: "content-length", value: String(body.count))
+        ])
         return getRequestOptions(
                 request: http2Request,
                 response: response,
+                semaphore: semaphore,
                 onIncomingHeaders: onIncomingHeaders,
                 onBody: onBody,
                 onBlockDone: onBlockDone,

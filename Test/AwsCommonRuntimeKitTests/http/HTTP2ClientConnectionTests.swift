@@ -1,5 +1,5 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+////  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+////  SPDX-License-Identifier: Apache-2.0.
 
 import XCTest
 @testable import AwsCommonRuntimeKit
@@ -64,16 +64,16 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
 
     func testGetHttpsRequest() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "httpbin.org", alpnList: ["h2","http/1.1"])
-        let response = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/get", connectionManager: connectionManager, expectedVersion: expectedVersion)
+        let response = try await sendHTTPRequest(method: "GET", endpoint: "httpbin.org", path: "/get", connectionManager: connectionManager, expectedVersion: expectedVersion)
         // The first header of response has to be ":status" for HTTP/2 response
         XCTAssertEqual(response.headers[0].name, ":status")
-        let response2 = try await sendHttpRequest(method: "GET", endpoint: "httpbin.org", path: "/delete", expectedStatus: 405, connectionManager: connectionManager, expectedVersion: expectedVersion)
+        let response2 = try await sendHTTPRequest(method: "GET", endpoint: "httpbin.org", path: "/delete", expectedStatus: 405, connectionManager: connectionManager, expectedVersion: expectedVersion)
         XCTAssertEqual(response2.headers[0].name, ":status")
     }
 
     func testHTTP2Download() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: "d1cz66xoahf9cl.cloudfront.net", alpnList: ["h2","http/1.1"])
-        let response = try await sendHttpRequest(
+        let response = try await sendHTTPRequest(
                 method: "GET",
                 endpoint: "d1cz66xoahf9cl.cloudfront.net",
                 path: "/http_test_doc.txt",

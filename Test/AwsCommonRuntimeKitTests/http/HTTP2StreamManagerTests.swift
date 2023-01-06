@@ -1,5 +1,5 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+////  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+////  SPDX-License-Identifier: Apache-2.0.
 
 import XCTest
 @testable import AwsCommonRuntimeKit
@@ -102,36 +102,17 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
     }
 
     func testHTTP2Stream() async throws {
-        let localSemaphore = DispatchSemaphore(value: 0)
         let streamManager = try makeStreamManger(host: endpoint)
-        var errorOccurred: CRTError?
-        let stream = try await streamManager.acquireStream(
-                requestOptions: try getHTTP2RequestOptions(
-                        method: "GET",
-                        path: path,
-                        authority: endpoint, onComplete: { stream, error in
-                    print("onComplete")
-                    errorOccurred = error
-                    localSemaphore.signal()
-                }))
-        localSemaphore.wait()
-        XCTAssertNil(errorOccurred)
-        XCTAssertEqual(try stream.statusCode(), 200)
+        _ = try await sendHTTP2Request(method: "GET", path: path, authority: endpoint, streamManager: streamManager)
     }
 
     // Test that the binding works not the actual functionality. C part has tests for functionality
     func testHTTP2StreamReset() async throws {
         let streamManager = try makeStreamManger(host: endpoint)
-        _ = try await streamManager.acquireStream(
-                requestOptions: try getHTTP2RequestOptions(
-                        method: "GET",
-                        path: path,
-                        authority: endpoint,
-                        onIncomingHeaders: { stream, headerBlock, headers in
-                            let stream = stream as! HTTP2Stream
-                            try! stream.resetStream(error: HTTP2Error.internalError)
-                        }))
-        semaphore.wait()
+        _ = try await sendHTTP2Request(method: "GET", path: path, authority: endpoint, streamManager: streamManager, onIncomingHeaders: { stream, headerBlock, headers in
+            let stream = stream as! HTTP2Stream
+            try! stream.resetStream(error: HTTP2Error.internalError)
+        })
     }
 
     func testHTTP2ParallelStreams() async throws {
@@ -139,12 +120,18 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
     }
 
     func testHTTP2ParallelStreams(count: Int) async throws {
+        let streamManager = try makeStreamManger(host: endpoint)
+        let requestCompleteExpectation = XCTestExpectation(description: "Request was completed successfully")
+        requestCompleteExpectation.expectedFulfillmentCount = count
         await withTaskGroup(of: Void.self) { taskGroup in
             for _ in 1...count {
                 taskGroup.addTask {
-                    try! await self.testHTTP2Stream()
+                    _ = try! await self.sendHTTP2Request(method: "GET", path: self.path, authority: self.endpoint, streamManager: streamManager, onComplete: { stream, error in
+                        requestCompleteExpectation.fulfill()
+                    })
                 }
             }
         }
+        wait(for: [requestCompleteExpectation], timeout: 15)
     }
 }

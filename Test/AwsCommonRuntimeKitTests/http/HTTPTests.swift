@@ -17,22 +17,22 @@ class HTTPTests: HTTPClientTestFixture {
 
     func testGetHTTPSRequest() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
-        _ = try await sendHttpRequest(method: "GET", endpoint: host, path: getPath, connectionManager: connectionManager)
-        _ = try await sendHttpRequest(method: "GET", endpoint: host, path: "/delete", expectedStatus: 405, connectionManager: connectionManager)
+        _ = try await sendHTTPRequest(method: "GET", endpoint: host, path: getPath, connectionManager: connectionManager)
+        _ = try await sendHTTPRequest(method: "GET", endpoint: host, path: "/delete", expectedStatus: 405, connectionManager: connectionManager)
     }
 
     func testGetHTTPRequest() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: false, port: 80)
-        _ = try await sendHttpRequest(method: "GET", endpoint: host, path: getPath, connectionManager: connectionManager)
+        _ = try await sendHTTPRequest(method: "GET", endpoint: host, path: getPath, connectionManager: connectionManager)
     }
 
     func testPutHttpRequest() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
-        let response = try await sendHttpRequest(
+        let response = try await sendHTTPRequest(
                 method: "PUT",
                 endpoint: host,
                 path: "/anything",
-                requestBody: TEST_DOC_LINE,
+                body: TEST_DOC_LINE,
                 connectionManager: connectionManager)
 
         // Parse json body
@@ -55,8 +55,10 @@ class HTTPTests: HTTPClientTestFixture {
     }
 
     func testStreamLivesUntilComplete() async throws {
+        let semaphore = DispatchSemaphore(value: 0)
+
         do {
-            let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: getPath)
+            let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: getPath, semaphore: semaphore)
             let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
             let connection = try await connectionManager.acquireConnection()
             let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
@@ -67,11 +69,13 @@ class HTTPTests: HTTPClientTestFixture {
 
     func testManagerLivesUntilComplete() async throws {
         var connection: HTTPExchange! = nil
+        let semaphore = DispatchSemaphore(value: 0)
+
         do {
             let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
             connection = try await connectionManager.acquireConnection()
         }
-        let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: getPath)
+        let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: getPath, semaphore: semaphore)
         let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
         try stream.activate()
         semaphore.wait()
@@ -79,10 +83,12 @@ class HTTPTests: HTTPClientTestFixture {
 
     func testConnectionLivesUntilComplete() async throws {
         var stream: HTTPStream! = nil
+        let semaphore = DispatchSemaphore(value: 0)
+
         do {
             let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
             let connection = try await connectionManager.acquireConnection()
-            let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: getPath)
+            let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: getPath, semaphore: semaphore)
             stream = try connection.makeRequest(requestOptions: httpRequestOptions)
         }
         try stream.activate()
