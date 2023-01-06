@@ -62,7 +62,6 @@ public class HTTPRequest: HTTPRequestBase {
 }
 
 public class HTTP2Request: HTTPRequestBase {
-    let manualDataWrites: Bool
     /// Creates an http2 request which can be passed to a connection.
     /// - Parameters:
     ///   - headers: (Optional) headers to send
@@ -74,9 +73,7 @@ public class HTTP2Request: HTTPRequestBase {
     /// - Throws: CommonRuntimeError
     public init(headers: [HTTPHeader] = [HTTPHeader](),
                 body: IStreamable? = nil,
-                manualDataWrites: Bool = false,
                 allocator: Allocator = defaultAllocator) throws {
-        self.manualDataWrites = manualDataWrites
 
         guard let rawValue = aws_http2_message_new_request(allocator.rawValue) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())

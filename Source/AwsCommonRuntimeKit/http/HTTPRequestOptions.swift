@@ -17,15 +17,18 @@ public struct HTTPRequestOptions {
     public let onIncomingBody: OnIncomingBody
     public let onStreamComplete: OnStreamComplete
 
+    public var http2ManualDataWrites: Bool = false
     public init(request: HTTPRequestBase,
                 onIncomingHeaders: @escaping OnIncomingHeaders,
                 onIncomingHeadersBlockDone: @escaping OnIncomingHeadersBlockDone,
                 onIncomingBody: @escaping OnIncomingBody,
-                onStreamComplete: @escaping OnStreamComplete) {
+                onStreamComplete: @escaping OnStreamComplete,
+                http2ManualDataWrites: Bool = false) {
         self.request = request
         self.onIncomingHeaders = onIncomingHeaders
         self.onIncomingHeadersBlockDone = onIncomingHeadersBlockDone
         self.onIncomingBody = onIncomingBody
         self.onStreamComplete = onStreamComplete
+        self.http2ManualDataWrites = http2ManualDataWrites
     }
 }
