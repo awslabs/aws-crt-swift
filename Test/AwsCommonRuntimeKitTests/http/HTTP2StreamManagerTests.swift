@@ -71,7 +71,7 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
 
     func makeStreamManger(host: String, port: Int = 443) throws -> HTTP2StreamManager {
         let tlsContextOptions = TLSContextOptions(allocator: allocator)
-        tlsContextOptions.setAlpnList(["h2", "http/1.1"])
+        tlsContextOptions.setAlpnList(["h2"])
         let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)
 
         var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext, allocator: allocator)
@@ -102,39 +102,35 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
     }
 
     func testHTTP2Stream() async throws {
-        let semaphore = DispatchSemaphore(value: 0)
+        let localSemaphore = DispatchSemaphore(value: 0)
         let streamManager = try makeStreamManger(host: endpoint)
+        var errorOccurred: CRTError?
         let stream = try await streamManager.acquireStream(
-                requestOptions: try getHTTPRequestOptions(
+                requestOptions: try getHTTP2RequestOptions(
                         method: "GET",
-                        endpoint: endpoint,
-                        path: path, onComplete: { stream, error in
+                        path: path,
+                        authority: endpoint, onComplete: { stream, error in
                     print("onComplete")
-                    XCTAssertNil(error)
-                    semaphore.signal()
+                    errorOccurred = error
+                    localSemaphore.signal()
                 }))
-        semaphore.wait()
+        localSemaphore.wait()
+        XCTAssertNil(errorOccurred)
         XCTAssertEqual(try stream.statusCode(), 200)
     }
 
     // Test that the binding works not the actual functionality. C part has tests for functionality
     func testHTTP2StreamReset() async throws {
         let streamManager = try makeStreamManger(host: endpoint)
-        let requestOptions = try getHTTPRequestOptions(
-                method: "GET",
-                endpoint: endpoint,
-                path: path
-        )
-        let updatedRequestOptions = HTTPRequestOptions(
-                request: requestOptions.request,
-                onIncomingHeaders: { stream, headerBlock, headers in
-                    let stream = stream as! HTTP2Stream
-                    try! stream.resetStream(error: HTTP2Error.internalError)
-                },
-                onIncomingHeadersBlockDone: requestOptions.onIncomingHeadersBlockDone,
-                onIncomingBody: requestOptions.onIncomingBody,
-                onStreamComplete: requestOptions.onStreamComplete)
-        _ = try await streamManager.acquireStream(requestOptions: updatedRequestOptions)
+        _ = try await streamManager.acquireStream(
+                requestOptions: try getHTTP2RequestOptions(
+                        method: "GET",
+                        path: path,
+                        authority: endpoint,
+                        onIncomingHeaders: { stream, headerBlock, headers in
+                            let stream = stream as! HTTP2Stream
+                            try! stream.resetStream(error: HTTP2Error.internalError)
+                        }))
         semaphore.wait()
     }
 

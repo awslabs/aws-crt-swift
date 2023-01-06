@@ -11,13 +11,13 @@ public struct HTTPRequestOptions {
     public typealias OnIncomingBody = (_ stream: HTTPStream, _ bodyChunk: Data) -> Void
     public typealias OnStreamComplete = (_ stream: HTTPStream, _ error: CRTError?) -> Void
 
-    let request: HTTPRequest
+    let request: HTTPRequestBase
     public let onIncomingHeaders: OnIncomingHeaders
     public let onIncomingHeadersBlockDone: OnIncomingHeadersBlockDone
     public let onIncomingBody: OnIncomingBody
     public let onStreamComplete: OnStreamComplete
 
-    public init(request: HTTPRequest,
+    public init(request: HTTPRequestBase,
                 onIncomingHeaders: @escaping OnIncomingHeaders,
                 onIncomingHeadersBlockDone: @escaping OnIncomingHeadersBlockDone,
                 onIncomingBody: @escaping OnIncomingBody,

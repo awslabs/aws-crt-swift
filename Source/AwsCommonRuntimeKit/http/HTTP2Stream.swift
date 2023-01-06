@@ -2,6 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCHttp
+import Foundation
 
 public class HTTP2Stream: HTTPStream {
 
@@ -26,4 +27,54 @@ public class HTTP2Stream: HTTPStream {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
     }
+
+    /// manualDataWrites must have been enabled during HTTP2Request creation.
+    /// A write with that has end_stream set to be true will end the stream and prevent any further write.
+    ///
+    /// - Parameters:
+    ///   - data: Data to write. It can be empty
+    ///   - endOfStream: Set it true to end the stream and prevent any further write.
+    ///                  The last frame must be send with the value true.
+    ///   - allocator: (Optional) allocator to override
+    /// - Throws:
+    public func writeData(data: Data, endOfStream: Bool) async throws {
+        var options = aws_http2_stream_write_data_options()
+        options.end_stream = endOfStream
+        options.on_complete = onWriteComplete
+        try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<UInt64, Error>) in
+            let continuationCore = ContinuationCore(continuation: continuation)
+            let stream = IStreamCore(
+                    iStreamable: ByteBuffer(data: data),
+                    allocator: callbackData.requestOptions.request.allocator)
+            var rawStream = stream.rawValue
+            withUnsafeMutablePointer(to: &rawStream) { streamPointer in
+                options.data = streamPointer
+            options.user_data = continuationCore.passRetained()
+            guard aws_http2_stream_write_data(
+                    rawValue,
+                    &options) == AWS_OP_SUCCESS else {
+                continuationCore.release()
+                continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
+                return
+            }
+
+            }
+
+        })
+    }
+}
+
+private func onWriteComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
+                             errorCode: Int32,
+                             userData: UnsafeMutableRawPointer!){
+
+    let continuation = Unmanaged<ContinuationCore<()>>.fromOpaque(userData).takeRetainedValue().continuation
+
+    guard errorCode == AWS_OP_SUCCESS else {
+        continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        return
+    }
+
+    // SUCCESS
+    continuation.resume()
 }

@@ -33,6 +33,9 @@ class HTTPStreamCallbackCore {
         options.on_complete = onComplete
         options.on_destroy = onDestroy
         options.user_data = getRetainedSelf()
+        if let http2Request = requestOptions.request as? HTTP2Request {
+            options.http2_use_manual_data_writes = http2Request.manualDataWrites
+        }
         return options
     }
 
