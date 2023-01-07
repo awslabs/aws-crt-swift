@@ -77,11 +77,16 @@ public final class Credentials {
         return token.toOptionalString()
     }
 
-    /// Gets the expiration timeout in seconds from the `aws_credentials` instance
+    /// Gets the expiration timeout from the `aws_credentials` instance
     ///
-    /// - Returns:`UInt64`: The timeout in seconds of when the credentials expire
-    public func getExpiration() -> Date {
-        return Date(timeIntervalSince1970: TimeInterval(aws_credentials_get_expiration_timepoint_seconds(rawValue)))
+    /// - Returns:`Data?`: The timeout in seconds of when the credentials expire.
+    ///                     It will return nil if credentials never expire
+    public func getExpiration() -> Date? {
+        let seconds = aws_credentials_get_expiration_timepoint_seconds(rawValue)
+        if seconds == UInt64.max {
+            return nil
+        }
+        return Date(timeIntervalSince1970: TimeInterval(seconds))
     }
 
     deinit {
