@@ -103,7 +103,51 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
 
     func testHTTP2Stream() async throws {
         let streamManager = try makeStreamManger(host: endpoint)
-        _ = try await sendHTTP2Request(method: "GET", path: path, authority: endpoint, streamManager: streamManager)
+        _ = try await sendHTTP2Request(method: "GET", path: path, authority: endpoint, streamManager: streamManager, http2ManualDataWrites: true)
+    }
+
+    func testHTTP2StreamUpload() async throws {
+        let streamManager = try makeStreamManger(host: "nghttp2.org")
+        let semaphore = DispatchSemaphore(value: 0)
+        var httpResponse = HTTPResponse()
+        var onCompleteCalled = false
+
+        let http2RequestOptions = try getHTTP2RequestOptions(
+                method: "PUT",
+                path: "/httpbin/put",
+                authority: "nghttp2.org",
+                response: &httpResponse,
+                semaphore: semaphore,
+                onComplete: { stream, error in
+                    onCompleteCalled = true
+                },
+                http2ManualDataWrites: true)
+
+        let stream = try await streamManager.acquireStream(requestOptions: http2RequestOptions)
+        XCTAssertFalse(onCompleteCalled)
+        let data = TEST_DOC_LINE.data(using: .utf8)!
+        for chunk in data.chunked(into: 5) {
+            try await stream.writeData(data: chunk, endOfStream: false)
+            XCTAssertFalse(onCompleteCalled)
+        }
+
+        XCTAssertFalse(onCompleteCalled)
+        // Sleep for 5 seconds to make sure onComplete is not triggerred until endOfStream is true
+        try await Task.sleep(nanoseconds: 5_000_000_000)
+        XCTAssertFalse(onCompleteCalled)
+        try await stream.writeData(data: Data(), endOfStream: true)
+        semaphore.wait()
+        XCTAssertTrue(onCompleteCalled)
+        XCTAssertNil(httpResponse.error)
+        XCTAssertEqual(httpResponse.statusCode, 200)
+
+        // Parse json body
+        struct Response: Codable {
+            let data: String
+        }
+
+        let body: Response = try! JSONDecoder().decode(Response.self, from: httpResponse.body)
+        XCTAssertEqual(body.data, TEST_DOC_LINE)
     }
 
     // Test that the binding works not the actual functionality. C part has tests for functionality

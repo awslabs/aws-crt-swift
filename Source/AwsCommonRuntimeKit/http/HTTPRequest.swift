@@ -52,11 +52,7 @@ public class HTTPRequest: HTTPRequestBase {
 
         self.method = method
         self.path = path
-
-        if let body = body {
-            let iStreamCore = IStreamCore(iStreamable: body, allocator: allocator)
-            aws_http_message_set_body_stream(self.rawValue, &iStreamCore.rawValue)
-        }
+        self.body = body
         addHeaders(headers: headers)
     }
 }
@@ -80,10 +76,7 @@ public class HTTP2Request: HTTPRequestBase {
         }
         super.init(rawValue: rawValue, allocator: allocator)
 
-        if let body = body {
-            let iStreamCore = IStreamCore(iStreamable: body, allocator: allocator)
-            aws_http_message_set_body_stream(self.rawValue, &iStreamCore.rawValue)
-        }
+        self.body = body
         addHeaders(headers: headers)
     }
 }

@@ -79,6 +79,12 @@ extension Data {
     public func encodeToHexString() -> String {
         map { String(format: "%02x", $0) }.joined()
     }
+
+    func chunked(into size: Int) -> [Data] {
+        return stride(from: 0, to: count, by: size).map {
+            self[$0 ..< Swift.min($0 + size, count)]
+        }
+    }
 }
 
 extension aws_date_time {

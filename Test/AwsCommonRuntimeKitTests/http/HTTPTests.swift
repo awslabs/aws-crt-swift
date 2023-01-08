@@ -9,11 +9,6 @@ import AwsCHttp
 class HTTPTests: HTTPClientTestFixture {
     let host = "httpbin.org"
     let getPath = "/get"
-    let TEST_DOC_LINE: String = """
-                                This is a sample to prove that http downloads and uploads work. 
-                                It doesn't really matter what's in here, 
-                                we mainly just need to verify the downloads and uploads work.
-                                """
 
     func testGetHTTPSRequest() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)

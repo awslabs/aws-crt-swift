@@ -46,9 +46,7 @@ public class HTTP2Stream: HTTPStream {
             let stream = IStreamCore(
                     iStreamable: ByteBuffer(data: data),
                     allocator: callbackData.requestOptions.request.allocator)
-            var rawStream = stream.rawValue
-            withUnsafeMutablePointer(to: &rawStream) { streamPointer in
-                options.data = streamPointer
+            options.data = stream.rawValue
             options.user_data = continuationCore.passRetained()
             guard aws_http2_stream_write_data(
                     rawValue,
@@ -56,8 +54,6 @@ public class HTTP2Stream: HTTPStream {
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
                 return
-            }
-
             }
 
         })

@@ -14,6 +14,11 @@ struct HTTPResponse {
 }
 
 class HTTPClientTestFixture: XCBaseTestCase {
+    let TEST_DOC_LINE: String = """
+                                This is a sample to prove that http downloads and uploads work. 
+                                It doesn't really matter what's in here, 
+                                we mainly just need to verify the downloads and uploads work.
+                                """
 
     func sendHTTPRequest(method: String,
                          endpoint: String,
@@ -83,6 +88,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                           expectedStatus: Int = 200,
                           streamManager: HTTP2StreamManager,
                           numRetries: UInt = 2,
+                          http2ManualDataWrites: Bool = false,
                           onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders? = nil,
                           onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                           onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone? = nil,
@@ -102,7 +108,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
                 onIncomingHeaders: onIncomingHeaders,
                 onBody: onBody,
                 onBlockDone: onBlockDone,
-                onComplete: onComplete)
+                onComplete: onComplete,
+                http2ManualDataWrites: http2ManualDataWrites)
 
         for i in 1...numRetries+1 where httpResponse.statusCode != expectedStatus {
             print("Attempt#\(i) to send an HTTP request")
@@ -151,7 +158,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
                            onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders? = nil,
                            onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                            onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone? = nil,
-                           onComplete: HTTPRequestOptions.OnStreamComplete? = nil) -> HTTPRequestOptions {
+                           onComplete: HTTPRequestOptions.OnStreamComplete? = nil,
+                           http2ManualDataWrites: Bool = false) -> HTTPRequestOptions {
         HTTPRequestOptions(request: request,
                 onIncomingHeaders: { stream, headerBlock, headers in
                     for header in headers {
@@ -168,11 +176,12 @@ class HTTPClientTestFixture: XCBaseTestCase {
                 },
                 onStreamComplete: { stream, error in
                     response?.pointee.error = error
-                    let statusCode = try! stream.statusCode()
-                    response?.pointee.statusCode = statusCode
-                    semaphore?.signal()
+                    print("waahm7error:\(error)")
+                    response?.pointee.statusCode = (try? stream.statusCode()) ?? -1
                     onComplete?(stream, error)
-                })
+                    semaphore?.signal()
+                },
+                http2ManualDataWrites: http2ManualDataWrites)
     }
 
 
@@ -213,15 +222,15 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                 onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders? = nil,
                                 onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                                 onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone? = nil,
-                                onComplete: HTTPRequestOptions.OnStreamComplete? = nil) throws -> HTTPRequestOptions {
+                                onComplete: HTTPRequestOptions.OnStreamComplete? = nil,
+                                http2ManualDataWrites: Bool = false) throws -> HTTPRequestOptions {
 
         let http2Request = try HTTP2Request(body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
         http2Request.addHeaders(headers: [
             HTTPHeader(name: ":method", value: method),
             HTTPHeader(name: ":path", value: path),
             HTTPHeader(name: ":scheme", value: scheme),
-            HTTPHeader(name: ":authority", value: authority),
-            HTTPHeader(name: "content-length", value: String(body.count))
+            HTTPHeader(name: ":authority", value: authority)
         ])
         return getRequestOptions(
                 request: http2Request,
@@ -230,6 +239,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                 onIncomingHeaders: onIncomingHeaders,
                 onBody: onBody,
                 onBlockDone: onBlockDone,
-                onComplete: onComplete)
+                onComplete: onComplete,
+                http2ManualDataWrites: http2ManualDataWrites)
     }
 }
