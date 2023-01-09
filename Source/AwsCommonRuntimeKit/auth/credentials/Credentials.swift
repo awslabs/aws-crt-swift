@@ -34,7 +34,6 @@ public final class Credentials {
         if let expiration = expiration,
            expiration.timeIntervalSince1970 < Double(UInt64.max) {
             expirationTimeout = UInt64(expiration.timeIntervalSince1970)
-            
         } else {
             expirationTimeout = UInt64.max
         }
