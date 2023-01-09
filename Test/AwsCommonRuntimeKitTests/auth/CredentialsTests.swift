@@ -19,8 +19,7 @@ class CredentialsTests: XCBaseTestCase {
         XCTAssertEqual(UInt64(expiration.timeIntervalSince1970), UInt64(credentials.getExpiration()!.timeIntervalSince1970))
 
     }
-
-
+    
     func testCreateAWSCredentialsInfinity() async throws {
         let accessKey = "AccessKey"
         let secret = "Secret"
