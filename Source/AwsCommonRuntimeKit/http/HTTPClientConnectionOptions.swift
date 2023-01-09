@@ -156,9 +156,7 @@ public struct HTTPClientConnectionOptions: CStructWithShutdownOptions {
                 cManagerOptions.max_closed_streams = http2MaxClosedStreams ?? 0
                 cManagerOptions.http2_conn_manual_window_management = http2EnableManualWindowManagement
                 if let http2SettingPointer = http2SettingPointer {
-                    // TODO: update after adding const in C
-                    var http2_settings: [aws_http2_setting] = http2SettingPointer.pointee
-                    return http2_settings.withUnsafeMutableBufferPointer { pointer in
+                    return http2SettingPointer.pointee.withUnsafeBufferPointer { pointer in
                         cManagerOptions.initial_settings_array = pointer.baseAddress!
                         cManagerOptions.num_initial_settings = http2SettingPointer.pointee.count
                         return body(cManagerOptions)

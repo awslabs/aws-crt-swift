@@ -184,9 +184,7 @@ public struct HTTP2StreamManagerOptions: CStructWithShutdownOptions {
                 cStreamManagerOptions.ideal_concurrent_streams_per_connection = idealConcurrentStreamsPerConnection ?? 0
                 cStreamManagerOptions.max_concurrent_streams_per_connection = maxConcurrentStreamsPerConnection ?? 0
                 if let http2SettingPointer = http2SettingPointer {
-                    // TODO: update after adding const in C
-                    var http2_settings: [aws_http2_setting] = http2SettingPointer.pointee
-                    return http2_settings.withUnsafeMutableBufferPointer { pointer in
+                    return http2SettingPointer.pointee.withUnsafeBufferPointer { pointer in
                         cStreamManagerOptions.initial_settings_array = pointer.baseAddress!
                         cStreamManagerOptions.num_initial_settings = http2SettingPointer.pointee.count
                         return body(cStreamManagerOptions)
