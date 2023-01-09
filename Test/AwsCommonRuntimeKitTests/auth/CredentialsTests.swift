@@ -17,6 +17,7 @@ class CredentialsTests: XCBaseTestCase {
         XCTAssertEqual(secret, credentials.getSecret())
         XCTAssertEqual(sessionToken, credentials.getSessionToken())
         XCTAssertEqual(UInt64(expiration.timeIntervalSince1970), UInt64(credentials.getExpiration()!.timeIntervalSince1970))
+
     }
 
 
@@ -32,6 +33,10 @@ class CredentialsTests: XCBaseTestCase {
         XCTAssertEqual(secret, credentials.getSecret())
         XCTAssertEqual(sessionToken, credentials.getSessionToken())
         XCTAssertNil(credentials.getExpiration())
+
+        let expiration2 = Date(timeIntervalSince1970: (Double) (UInt64.max)+10)
+        let credentials2 = try Credentials(accessKey: accessKey, secret: secret, sessionToken: sessionToken, expiration: expiration2)
+        XCTAssertNil(credentials2.getExpiration())
     }
 
     func testCreateAWSCredentialsWithoutSessionToken() async throws {
