@@ -61,10 +61,6 @@ private class HTTP2AcquireStreamCore {
     func passRetained() -> UnsafeMutableRawPointer {
         Unmanaged.passRetained(self).toOpaque()
     }
-
-    func release() {
-        Unmanaged.passUnretained(self).release()
-    }
 }
 
 private func onStreamAcquired(stream: UnsafeMutablePointer<aws_http_stream>?,

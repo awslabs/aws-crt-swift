@@ -41,7 +41,7 @@ public class HTTP2Stream: HTTPStream {
         var options = aws_http2_stream_write_data_options()
         options.end_stream = endOfStream
         options.on_complete = onWriteComplete
-        try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<UInt64, Error>) in
+        try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
             let stream = IStreamCore(
                 iStreamable: ByteBuffer(data: data),
