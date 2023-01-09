@@ -197,7 +197,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone? = nil,
                                onComplete: HTTPRequestOptions.OnStreamComplete? = nil
     ) throws -> HTTPRequestOptions {
-        let httpRequest: HTTPRequest = try HTTPRequest(method: method, path: path, body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
+        let httpRequest: HTTPRequest = try HTTPRequest(method: method, path: path, body: ByteBuffer(data: body.data(using: .utf8)!))
         httpRequest.addHeader(header: HTTPHeader(name: "Host", value: endpoint))
         httpRequest.addHeader(header: HTTPHeader(name: "Content-Length", value: String(body.count)))
         httpRequest.addHeaders(headers: headers)
@@ -225,7 +225,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                 onComplete: HTTPRequestOptions.OnStreamComplete? = nil,
                                 http2ManualDataWrites: Bool = false) throws -> HTTPRequestOptions {
 
-        let http2Request = try HTTP2Request(body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
+        let http2Request = try HTTP2Request(body: ByteBuffer(data: body.data(using: .utf8)!))
         http2Request.addHeaders(headers: [
             HTTPHeader(name: ":method", value: method),
             HTTPHeader(name: ":path", value: path),
