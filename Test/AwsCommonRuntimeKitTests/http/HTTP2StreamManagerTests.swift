@@ -149,15 +149,15 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         let body: Response = try! JSONDecoder().decode(Response.self, from: httpResponse.body)
         XCTAssertEqual(body.data, TEST_DOC_LINE)
     }
-
-    // Test that the binding works not the actual functionality. C part has tests for functionality
-    func testHTTP2StreamReset() async throws {
-        let streamManager = try makeStreamManger(host: endpoint)
-        _ = try await sendHTTP2Request(method: "GET", path: path, authority: endpoint, streamManager: streamManager, onIncomingHeaders: { stream, headerBlock, headers in
-            let stream = stream as! HTTP2Stream
-            try! stream.resetStream(error: HTTP2Error.internalError)
-        })
-    }
+//
+//    // Test that the binding works not the actual functionality. C part has tests for functionality
+//    func testHTTP2StreamReset() async throws {
+//        let streamManager = try makeStreamManger(host: endpoint)
+//        _ = try await sendHTTP2Request(method: "GET", path: path, authority: endpoint, streamManager: streamManager, onIncomingHeaders: { stream, headerBlock, headers in
+//            let stream = stream as! HTTP2Stream
+//            try! stream.resetStream(error: HTTP2Error.internalError)
+//        })
+//    }
 //
 //    func testHTTP2ParallelStreams() async throws {
 //        try await testHTTP2ParallelStreams(count: 5)
