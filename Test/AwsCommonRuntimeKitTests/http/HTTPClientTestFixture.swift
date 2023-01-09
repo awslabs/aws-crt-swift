@@ -176,7 +176,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                 },
                 onStreamComplete: { stream, error in
                     response?.pointee.error = error
-                    print("waahm7error:\(error)")
+                    print("AWS_TEST_ERROR:\(error)")
                     response?.pointee.statusCode = (try? stream.statusCode()) ?? -1
                     onComplete?(stream, error)
                     semaphore?.signal()
