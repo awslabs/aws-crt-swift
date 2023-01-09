@@ -2,7 +2,6 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import XCTest
 @testable import AwsCommonRuntimeKit
-import AwsCHttp
 
 class HTTPMessageTests: XCBaseTestCase {
     func testAddHeaders() throws {
