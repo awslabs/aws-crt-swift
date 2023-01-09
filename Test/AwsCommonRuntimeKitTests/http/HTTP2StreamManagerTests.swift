@@ -171,7 +171,7 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
 
     func testHTTP2ParallelStreams(count: Int) async throws {
         // Task Group throw a seg fault on linux
-        skipIfLinux()
+        try skipIfLinux()
         let streamManager = try makeStreamManger(host: endpoint)
         let requestCompleteExpectation = XCTestExpectation(description: "Request was completed successfully")
         requestCompleteExpectation.expectedFulfillmentCount = count
