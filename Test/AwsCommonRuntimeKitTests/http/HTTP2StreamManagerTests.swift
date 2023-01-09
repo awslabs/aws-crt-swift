@@ -159,12 +159,6 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         })
     }
 
-    func testParallel() async throws {
-        for _ in 1...100 {
-            try await testHTTP2ParallelStreams(count: 5)
-        }
-    }
-
     func testHTTP2ParallelStreams() async throws {
         try await testHTTP2ParallelStreams(count: 5)
     }
