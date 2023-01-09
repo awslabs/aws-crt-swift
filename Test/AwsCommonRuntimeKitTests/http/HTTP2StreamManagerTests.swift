@@ -103,7 +103,7 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
 
     func testHTTP2Stream() async throws {
         let streamManager = try makeStreamManger(host: endpoint)
-        _ = try await sendHTTP2Request(method: "GET", path: path, authority: endpoint, streamManager: streamManager, http2ManualDataWrites: true)
+        _ = try await sendHTTP2Request(method: "GET", path: path, authority: endpoint, streamManager: streamManager)
     }
 
     func testHTTP2StreamUpload() async throws {
