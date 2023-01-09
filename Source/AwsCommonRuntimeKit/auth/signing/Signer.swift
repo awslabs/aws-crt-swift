@@ -41,7 +41,9 @@ public class Signer {
             aws_signable_destroy(signable)
         }
 
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<HTTPRequestBase, Error>) in
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<
+                                                                HTTPRequestBase,
+                                                                Error>) in
             let signRequestCore = SignRequestCore(request: request,
                                                   continuation: continuation,
                                                   shouldSignHeader: config.shouldSignHeader,
