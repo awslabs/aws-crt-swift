@@ -44,8 +44,8 @@ public class HTTP2Stream: HTTPStream {
         try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<UInt64, Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
             let stream = IStreamCore(
-                    iStreamable: ByteBuffer(data: data),
-                    allocator: callbackData.requestOptions.request.allocator)
+                iStreamable: ByteBuffer(data: data),
+                allocator: callbackData.requestOptions.request.allocator)
             options.data = stream.rawValue
             options.user_data = continuationCore.passRetained()
             guard aws_http2_stream_write_data(
@@ -62,7 +62,7 @@ public class HTTP2Stream: HTTPStream {
 
 private func onWriteComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
                              errorCode: Int32,
-                             userData: UnsafeMutableRawPointer!){
+                             userData: UnsafeMutableRawPointer!) {
 
     let continuation = Unmanaged<ContinuationCore<()>>.fromOpaque(userData).takeRetainedValue().continuation
 

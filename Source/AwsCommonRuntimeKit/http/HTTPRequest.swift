@@ -80,5 +80,3 @@ public class HTTP2Request: HTTPRequestBase {
         addHeaders(headers: headers)
     }
 }
-
-
