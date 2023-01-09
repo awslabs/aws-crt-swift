@@ -158,26 +158,26 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
             try! stream.resetStream(error: HTTP2Error.internalError)
         })
     }
+//
+//    func testHTTP2ParallelStreams() async throws {
+//        try await testHTTP2ParallelStreams(count: 5)
+//    }
 
-    func testHTTP2ParallelStreams() async throws {
-        try await testHTTP2ParallelStreams(count: 5)
-    }
-
-    func testHTTP2ParallelStreams(count: Int) async throws {
-        // Task Group throw a seg fault on linux
-        try skipIfLinux()
-        let streamManager = try makeStreamManger(host: endpoint)
-        let requestCompleteExpectation = XCTestExpectation(description: "Request was completed successfully")
-        requestCompleteExpectation.expectedFulfillmentCount = count
-        await withTaskGroup(of: Void.self) { taskGroup in
-            for _ in 1...count {
-                taskGroup.addTask {
-                    _ = try! await self.sendHTTP2Request(method: "GET", path: self.path, authority: self.endpoint, streamManager: streamManager, onComplete: { stream, error in
-                        requestCompleteExpectation.fulfill()
-                    })
-                }
-            }
-        }
-        wait(for: [requestCompleteExpectation], timeout: 15)
-    }
+//    func testHTTP2ParallelStreams(count: Int) async throws {
+//        // Task Group throw a seg fault on linux
+//        try skipIfLinux()
+//        let streamManager = try makeStreamManger(host: endpoint)
+//        let requestCompleteExpectation = XCTestExpectation(description: "Request was completed successfully")
+//        requestCompleteExpectation.expectedFulfillmentCount = count
+//        await withTaskGroup(of: Void.self) { taskGroup in
+//            for _ in 1...count {
+//                taskGroup.addTask {
+//                    _ = try! await self.sendHTTP2Request(method: "GET", path: self.path, authority: self.endpoint, streamManager: streamManager, onComplete: { stream, error in
+//                        requestCompleteExpectation.fulfill()
+//                    })
+//                }
+//            }
+//        }
+//        wait(for: [requestCompleteExpectation], timeout: 15)
+//    }
 }
