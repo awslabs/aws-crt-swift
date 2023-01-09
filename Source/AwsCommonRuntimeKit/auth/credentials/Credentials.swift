@@ -20,7 +20,8 @@ public final class Credentials {
     ///   - secret: value for the secret access key field
     ///   - sessionToken: (Optional) security token associated with the credentials
     ///   - expiration: (Optional) Point in time after which credentials will no longer be valid.
-    ///                 For credentials that do not expire, use nil. Timezone is always UTC.
+    ///                 For credentials that do not expire, use nil.
+    ///                 If expiration.timeIntervalSince1970 is greater than UInt64.max, it will be converted to nil.
     ///   - allocator: (Optional) allocator to override.
     /// - Throws: CommonRuntimeError.crtError
     public init(accessKey: String,
@@ -30,7 +31,8 @@ public final class Credentials {
                 allocator: Allocator = defaultAllocator) throws {
 
         let expirationTimeout: UInt64
-        if let expiration = expiration {
+        if let expiration = expiration,
+           expiration.timeIntervalSince1970 < Double(UInt64.max) {
             expirationTimeout = UInt64(expiration.timeIntervalSince1970)
         } else {
             expirationTimeout = UInt64.max
