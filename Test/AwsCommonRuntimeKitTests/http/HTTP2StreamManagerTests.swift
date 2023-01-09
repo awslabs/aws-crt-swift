@@ -101,10 +101,10 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         _ = try makeStreamManger(host: endpoint)
     }
 
-//    func testHTTP2Stream() async throws {
-//        let streamManager = try makeStreamManger(host: endpoint)
-//        _ = try await sendHTTP2Request(method: "GET", path: path, authority: endpoint, streamManager: streamManager)
-//    }
+    func testHTTP2Stream() async throws {
+        let streamManager = try makeStreamManger(host: endpoint)
+        _ = try await sendHTTP2Request(method: "GET", path: path, authority: endpoint, streamManager: streamManager)
+    }
 
     func testHTTP2StreamUpload() async throws {
         let streamManager = try makeStreamManger(host: "nghttp2.org")
@@ -149,35 +149,33 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         let body: Response = try! JSONDecoder().decode(Response.self, from: httpResponse.body)
         XCTAssertEqual(body.data, TEST_DOC_LINE)
     }
-//
-//    // Test that the binding works not the actual functionality. C part has tests for functionality
-//    func testHTTP2StreamReset() async throws {
-//        let streamManager = try makeStreamManger(host: endpoint)
-//        _ = try await sendHTTP2Request(method: "GET", path: path, authority: endpoint, streamManager: streamManager, onIncomingHeaders: { stream, headerBlock, headers in
-//            let stream = stream as! HTTP2Stream
-//            try! stream.resetStream(error: HTTP2Error.internalError)
-//        })
-//    }
-//
-//    func testHTTP2ParallelStreams() async throws {
-//        try await testHTTP2ParallelStreams(count: 5)
-//    }
 
-//    func testHTTP2ParallelStreams(count: Int) async throws {
-//        // Task Group throw a seg fault on linux
-//        try skipIfLinux()
-//        let streamManager = try makeStreamManger(host: endpoint)
-//        let requestCompleteExpectation = XCTestExpectation(description: "Request was completed successfully")
-//        requestCompleteExpectation.expectedFulfillmentCount = count
-//        await withTaskGroup(of: Void.self) { taskGroup in
-//            for _ in 1...count {
-//                taskGroup.addTask {
-//                    _ = try! await self.sendHTTP2Request(method: "GET", path: self.path, authority: self.endpoint, streamManager: streamManager, onComplete: { stream, error in
-//                        requestCompleteExpectation.fulfill()
-//                    })
-//                }
-//            }
-//        }
-//        wait(for: [requestCompleteExpectation], timeout: 15)
-//    }
+    // Test that the binding works not the actual functionality. C part has tests for functionality
+    func testHTTP2StreamReset() async throws {
+        let streamManager = try makeStreamManger(host: endpoint)
+        _ = try await sendHTTP2Request(method: "GET", path: path, authority: endpoint, streamManager: streamManager, onIncomingHeaders: { stream, headerBlock, headers in
+            let stream = stream as! HTTP2Stream
+            try! stream.resetStream(error: HTTP2Error.internalError)
+        })
+    }
+
+    func testHTTP2ParallelStreams() async throws {
+        try await testHTTP2ParallelStreams(count: 5)
+    }
+
+    func testHTTP2ParallelStreams(count: Int) async throws {
+        let streamManager = try makeStreamManger(host: endpoint)
+        let requestCompleteExpectation = XCTestExpectation(description: "Request was completed successfully")
+        requestCompleteExpectation.expectedFulfillmentCount = count
+        await withTaskGroup(of: Void.self) { taskGroup in
+            for _ in 1...count {
+                taskGroup.addTask {
+                    _ = try! await self.sendHTTP2Request(method: "GET", path: self.path, authority: self.endpoint, streamManager: streamManager, onComplete: { stream, error in
+                        requestCompleteExpectation.fulfill()
+                    })
+                }
+            }
+        }
+        wait(for: [requestCompleteExpectation], timeout: 15)
+    }
 }
