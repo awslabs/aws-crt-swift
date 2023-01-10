@@ -16,11 +16,6 @@ public class HTTP2Stream: HTTPStream {
     override init(rawValue: UnsafeMutablePointer<aws_http_stream>,
                   callbackData: HTTPStreamCallbackCore) throws {
         try super.init(rawValue: rawValue, callbackData: callbackData)
-        self.callbackData.stream = self
-    }
-
-    // We don't need to activate http2Stream
-    override public func activate() {
     }
 
     /// Reset the HTTP/2 stream (HTTP/2 only).

@@ -1,6 +1,7 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
+import Foundation
 
 public class HTTPStream {
     let rawValue: UnsafeMutablePointer<aws_http_stream>
@@ -8,7 +9,8 @@ public class HTTPStream {
 
     /// Stream keeps a reference to HttpConnection to keep it alive
     private let httpConnection: HTTPClientConnection?
-
+    var activated: Bool = false
+    let lock = NSLock()
     // Called by HTTPClientConnection
     init(
         httpConnection: HTTPClientConnection,
@@ -29,6 +31,7 @@ public class HTTPStream {
         self.callbackData = callbackData
         self.rawValue = rawValue
         self.httpConnection = nil
+        try activate()
     }
 
     /// Opens the Sliding Read/Write Window by the number of bytes passed as an argument for this HTTPStream.
@@ -51,14 +54,22 @@ public class HTTPStream {
         return Int(status)
     }
 
-    // TODO: make it thread safe
     /// Activates the client stream.
     public func activate() throws {
+        lock.lock()
+        defer {
+            lock.unlock()
+        }
+        guard !activated else {
+            return
+        }
+
         callbackData.stream = self
         if aws_http_stream_activate(rawValue) != AWS_OP_SUCCESS {
             callbackData.stream = nil
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
+        activated = true
     }
 
     deinit {
