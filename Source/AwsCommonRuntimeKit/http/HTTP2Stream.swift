@@ -19,6 +19,10 @@ public class HTTP2Stream: HTTPStream {
         self.callbackData.stream = self
     }
 
+    // We don't need to activate http2Stream
+    override public func activate() {
+    }
+
     /// Reset the HTTP/2 stream (HTTP/2 only).
     /// Note that if the stream closes before this async call is fully processed, the RST_STREAM frame will not be sent.
     /// - Parameter error:  Reason to reset the stream.

@@ -113,7 +113,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
         for i in 1...numRetries+1 where httpResponse.statusCode != expectedStatus {
             print("Attempt#\(i) to send an HTTP request")
             let stream = try await streamManager.acquireStream(requestOptions: httpRequestOptions)
-            //try stream.activate()
+            try stream.activate()
             semaphore.wait()
         }
 
