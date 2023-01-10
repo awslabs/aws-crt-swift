@@ -233,8 +233,12 @@ class HTTPClientTestFixture: XCBaseTestCase {
             HTTPHeader(name: ":scheme", value: scheme),
             HTTPHeader(name: ":authority", value: authority)
         ])
+
+        let httpRequest: HTTPRequest = try HTTPRequest(method: method, path: path, body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
+        httpRequest.addHeader(header: HTTPHeader(name: "Host", value: authority))
+        httpRequest.addHeader(header: HTTPHeader(name: "content-length", value: String(body.count)))
         return getRequestOptions(
-                request: http2Request,
+                request: httpRequest,
                 response: response,
                 semaphore: semaphore,
                 onIncomingHeaders: onIncomingHeaders,
