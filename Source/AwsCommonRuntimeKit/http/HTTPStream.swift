@@ -56,6 +56,11 @@ public class HTTPStream {
 
     /// Activates the client stream.
     public func activate() throws {
+        // Double-Checked Locking
+        guard !activated else {
+            return
+        }
+
         lock.lock()
         defer {
             lock.unlock()
