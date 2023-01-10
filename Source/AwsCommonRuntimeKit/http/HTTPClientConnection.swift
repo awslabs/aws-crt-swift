@@ -55,7 +55,7 @@ public class HTTPClientConnection: HTTPExchange {
     /// - Parameter requestOptions: An `HTTPRequestOptions` struct containing callbacks on
     /// the different events from the stream
     /// - Returns: An `HTTPStream` containing the `HTTPClientConnection`
-    public func makeRequest(requestOptions: HTTPRequestOptions) throws -> HTTP1Stream {
+    public func makeRequest(requestOptions: HTTPRequestOptions) throws -> HTTPStream {
         let httpStreamCallbackCore = HTTPStreamCallbackCore(requestOptions: requestOptions)
         do {
             return try HTTP1Stream(httpConnection: self,
