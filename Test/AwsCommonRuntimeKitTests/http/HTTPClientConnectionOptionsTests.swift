@@ -2,7 +2,6 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import XCTest
-import AwsCHttp
 @testable import AwsCommonRuntimeKit
 
 class HTTPClientConnectionOptionsTests: XCBaseTestCase {

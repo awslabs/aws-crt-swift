@@ -3,7 +3,6 @@
 
 import XCTest
 @testable import AwsCommonRuntimeKit
-import AwsCHttp
 
 struct HTTPResponse {
     var statusCode: Int = -1
