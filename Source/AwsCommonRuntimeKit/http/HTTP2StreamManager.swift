@@ -20,6 +20,7 @@ public class HTTP2StreamManager {
     }
 
     /// Acquires an `HTTP2Stream` asynchronously.
+    /// There is no need to call activate.
     /// - Parameter requestOptions: The Request to make to the Server.
     /// - Returns: HTTP2Stream when the stream is acquired
     /// - Throws: CommonRunTimeError.crtError
