@@ -176,7 +176,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                 onStreamComplete: { stream, error in
                     response?.pointee.error = error
                     if error != nil {
-                        print("AWS_TEST_ERROR:\(error)")
+                        print("AWS_TEST_ERROR:\(String(describing: error))")
                     }
                     response?.pointee.statusCode = (try? stream.statusCode()) ?? -1
                     onComplete?(stream, error)
