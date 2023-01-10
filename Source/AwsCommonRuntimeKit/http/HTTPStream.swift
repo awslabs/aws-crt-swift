@@ -1,34 +1,18 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
+import Foundation
 
 public class HTTPStream {
     let rawValue: UnsafeMutablePointer<aws_http_stream>
     var callbackData: HTTPStreamCallbackCore
+    var activated: Bool = false
+    let lock = NSLock()
 
-    /// Stream keeps a reference to HttpConnection to keep it alive
-    private let httpConnection: HTTPClientConnection?
-
-    // Called by HTTPClientConnection
-    init(
-        httpConnection: HTTPClientConnection,
-        options: aws_http_make_request_options,
-        callbackData: HTTPStreamCallbackCore) throws {
-        self.callbackData = callbackData
-        guard let rawValue = withUnsafePointer(
-                to: options, { aws_http_connection_make_request(httpConnection.rawValue, $0) }) else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
-        self.rawValue = rawValue
-        self.httpConnection = httpConnection
-    }
-
-    // Called by Http2Stream
     init(rawValue: UnsafeMutablePointer<aws_http_stream>,
          callbackData: HTTPStreamCallbackCore) throws {
         self.callbackData = callbackData
         self.rawValue = rawValue
-        self.httpConnection = nil
     }
 
     /// Opens the Sliding Read/Write Window by the number of bytes passed as an argument for this HTTPStream.
@@ -51,14 +35,27 @@ public class HTTPStream {
         return Int(status)
     }
 
-    // TODO: make it thread safe
     /// Activates the client stream.
     public func activate() throws {
+        // Double-Checked Locking
+        guard !activated else {
+            return
+        }
+
+        lock.lock()
+        defer {
+            lock.unlock()
+        }
+        guard !activated else {
+            return
+        }
+
         callbackData.stream = self
         if aws_http_stream_activate(rawValue) != AWS_OP_SUCCESS {
             callbackData.stream = nil
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
+        activated = true
     }
 
     deinit {
