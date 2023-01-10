@@ -160,22 +160,23 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
     }
 
     func testHTTP2ParallelStreams() async throws {
-        try await testHTTP2ParallelStreams(count: 5)
+        try await testHTTP2ParallelStreams(count: 20)
     }
 
     func testHTTP2ParallelStreams(count: Int) async throws {
-        let streamManager = try makeStreamManger(host: endpoint)
+        let streamManager = try makeStreamManger(host: "nghttp2.org")
         let requestCompleteExpectation = XCTestExpectation(description: "Request was completed successfully")
         requestCompleteExpectation.expectedFulfillmentCount = count
         await withTaskGroup(of: Void.self) { taskGroup in
             for _ in 1...count {
                 taskGroup.addTask {
-                    _ = try! await self.sendHTTP2Request(method: "GET", path: self.path, authority: self.endpoint, streamManager: streamManager, onComplete: { stream, error in
+                    _ = try! await self.sendHTTP2Request(method: "GET", path: "/httpbin/get", authority: "nghttp2.org", streamManager: streamManager, onComplete: { stream, error in
                         requestCompleteExpectation.fulfill()
                     })
                 }
             }
         }
         wait(for: [requestCompleteExpectation], timeout: 15)
+        print("Request were successfully completed.")
     }
 }
