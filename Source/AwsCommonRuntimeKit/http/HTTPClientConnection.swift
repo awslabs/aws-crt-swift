@@ -55,12 +55,12 @@ public class HTTPClientConnection: HTTPExchange {
     /// - Parameter requestOptions: An `HTTPRequestOptions` struct containing callbacks on
     /// the different events from the stream
     /// - Returns: An `HTTPStream` containing the `HTTPClientConnection`
-    public func makeRequest(requestOptions: HTTPRequestOptions) throws -> HTTPStream {
+    public func makeRequest(requestOptions: HTTPRequestOptions) throws -> HTTP1Stream {
         let httpStreamCallbackCore = HTTPStreamCallbackCore(requestOptions: requestOptions)
         do {
-            return try HTTPStream(httpConnection: self,
-                                  options: httpStreamCallbackCore.getRetainedHttpMakeRequestOptions(),
-                                  callbackData: httpStreamCallbackCore)
+            return try HTTP1Stream(httpConnection: self,
+                                   options: httpStreamCallbackCore.getRetainedHttpMakeRequestOptions(),
+                                   callbackData: httpStreamCallbackCore)
         } catch {
             httpStreamCallbackCore.release()
             throw error

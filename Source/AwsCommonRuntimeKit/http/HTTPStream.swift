@@ -6,32 +6,13 @@ import Foundation
 public class HTTPStream {
     let rawValue: UnsafeMutablePointer<aws_http_stream>
     var callbackData: HTTPStreamCallbackCore
-
-    /// Stream keeps a reference to HttpConnection to keep it alive
-    private let httpConnection: HTTPClientConnection?
     var activated: Bool = false
     let lock = NSLock()
-    // Called by HTTPClientConnection
-    init(
-        httpConnection: HTTPClientConnection,
-        options: aws_http_make_request_options,
-        callbackData: HTTPStreamCallbackCore) throws {
-        self.callbackData = callbackData
-        guard let rawValue = withUnsafePointer(
-                to: options, { aws_http_connection_make_request(httpConnection.rawValue, $0) }) else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
-        self.rawValue = rawValue
-        self.httpConnection = httpConnection
-    }
 
-    // Called by Http2Stream
     init(rawValue: UnsafeMutablePointer<aws_http_stream>,
          callbackData: HTTPStreamCallbackCore) throws {
         self.callbackData = callbackData
         self.rawValue = rawValue
-        self.httpConnection = nil
-        try activate()
     }
 
     /// Opens the Sliding Read/Write Window by the number of bytes passed as an argument for this HTTPStream.

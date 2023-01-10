@@ -5,17 +5,27 @@ import AwsCHttp
 import Foundation
 
 public class HTTP2Stream: HTTPStream {
+    private let httpConnection: HTTPClientConnection?
 
-    override init(
-        httpConnection: HTTPClientConnection,
-        options: aws_http_make_request_options,
-        callbackData: HTTPStreamCallbackCore) throws {
-        try super.init(httpConnection: httpConnection, options: options, callbackData: callbackData)
+    // Called by Connection Manager
+    init(
+            httpConnection: HTTPClientConnection,
+            options: aws_http_make_request_options,
+            callbackData: HTTPStreamCallbackCore) throws {
+        guard let rawValue = withUnsafePointer(
+                to: options, { aws_http_connection_make_request(httpConnection.rawValue, $0) }) else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+        self.httpConnection = httpConnection
+        try super.init(rawValue: rawValue, callbackData: callbackData)
     }
 
+    // Called by Stream manager
     override init(rawValue: UnsafeMutablePointer<aws_http_stream>,
                   callbackData: HTTPStreamCallbackCore) throws {
+        httpConnection = nil
         try super.init(rawValue: rawValue, callbackData: callbackData)
+        try activate()
     }
 
     /// Reset the HTTP/2 stream (HTTP/2 only).
