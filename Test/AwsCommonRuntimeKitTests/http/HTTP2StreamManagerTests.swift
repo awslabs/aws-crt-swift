@@ -168,11 +168,9 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         let requestCompleteExpectation = XCTestExpectation(description: "Request was completed successfully")
         requestCompleteExpectation.expectedFulfillmentCount = count
         await withTaskGroup(of: Void.self) { taskGroup in
-            for _ in 1...count {
+            for i in 1...count {
                 taskGroup.addTask {
-                    _ = try! await self.sendHTTP2Request(method: "GET", path: "/httpbin/get", authority: "nghttp2.org", streamManager: streamManager, onComplete: { stream, error in
-                        requestCompleteExpectation.fulfill()
-                    })
+                    _ = try! await self.sendHTTP2Request(method: "GET", path: "/httpbin/get", authority: "nghttp2.org", streamManager: streamManager)
                 }
             }
         }

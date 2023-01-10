@@ -7,7 +7,7 @@ import AwsCCommon
 
 class XCBaseTestCase: XCTestCase {
     internal let allocator = TracingAllocator(tracingStacksOf: defaultAllocator)
-    let logging = Logger(pipe: stdout, level: .trace, allocator: defaultAllocator)
+    let logging = Logger(pipe: stdout, level: .trace, allocator: aws_default_allocator()!)
 
     override func setUp() {
         super.setUp()
