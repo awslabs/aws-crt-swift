@@ -111,11 +111,12 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         let semaphore = DispatchSemaphore(value: 0)
         var httpResponse = HTTPResponse()
         var onCompleteCalled = false
-
+        let testBody = "testBody"
         let http2RequestOptions = try getHTTP2RequestOptions(
                 method: "PUT",
                 path: "/httpbin/put",
                 authority: "nghttp2.org",
+                body: testBody,
                 response: &httpResponse,
                 semaphore: semaphore,
                 onComplete: { stream, error in
@@ -147,7 +148,7 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         }
 
         let body: Response = try! JSONDecoder().decode(Response.self, from: httpResponse.body)
-        XCTAssertEqual(body.data, TEST_DOC_LINE)
+        XCTAssertEqual(body.data, testBody + TEST_DOC_LINE)
     }
 
     // Test that the binding works not the actual functionality. C part has tests for functionality
