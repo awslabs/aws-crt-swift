@@ -27,6 +27,7 @@ public class HTTPRequestBase {
     }
 
     deinit {
+        print("waahm7message released")
         aws_http_message_release(rawValue)
     }
 }

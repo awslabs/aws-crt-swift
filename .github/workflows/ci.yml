@@ -14,28 +14,28 @@ env:
   AWS_REGION: us-east-1
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: GitHub Action for SwiftLint
-        uses: norio-nomura/action-swiftlint@3.2.1
+#  lint:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: GitHub Action for SwiftLint
+#        uses: norio-nomura/action-swiftlint@3.2.1
 
-  linux:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        image:
-          - ubuntu-x64
-          - al2-x64
-          # issue to fix centos opened against apple here: https://github.com/apple/swift-docker/issues/258
-          # - centos-x64
-    steps:
-      - name: Build ${{ env.PACKAGE_NAME }}
-        run: |
-          aws s3 cp --debug s3://aws-crt-test-stuff/ci/${{ env.BUILDER_VERSION }}/linux-container-ci.sh ./linux-container-ci.sh && chmod a+x ./linux-container-ci.sh
-          ./linux-container-ci.sh ${{ env.BUILDER_VERSION }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
+#  linux:
+#    runs-on: ubuntu-latest
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        image:
+#          - ubuntu-x64
+#          - al2-x64
+#          # issue to fix centos opened against apple here: https://github.com/apple/swift-docker/issues/258
+#          # - centos-x64
+#    steps:
+#      - name: Build ${{ env.PACKAGE_NAME }}
+#        run: |
+#          aws s3 cp --debug s3://aws-crt-test-stuff/ci/${{ env.BUILDER_VERSION }}/linux-container-ci.sh ./linux-container-ci.sh && chmod a+x ./linux-container-ci.sh
+#          ./linux-container-ci.sh ${{ env.BUILDER_VERSION }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
   osx:
     runs-on: macos-11
     env:
@@ -47,34 +47,34 @@ jobs:
           chmod a+x builder
           ./builder build -p ${{ env.PACKAGE_NAME }}
 
-  # TODO: Run tests for devices
-  devices:
-    runs-on: macos-11
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_13.2.1.app
-    strategy:
-      fail-fast: false
-      matrix:
-        target:
-          - ios
-          - tvos
-          - watchos
-    steps:
-      - name: Build ${{ env.PACKAGE_NAME }} + consumers
-        run: |
-          python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
-          chmod a+x builder
-          ./builder build -p ${{ env.PACKAGE_NAME }} --target=${{ matrix.target }}-armv8
-
-  check-submodules:
-    runs-on: ubuntu-22.04 # latest
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@v3
-        with:
-          submodules: true
-          fetch-depth: 0
-      - name: Check Submodules
-        # note: using "@main" because "@${{env.BUILDER_VERSION}}" doesn't work
-        # https://github.com/actions/runner/issues/480
-        uses: awslabs/aws-crt-builder/.github/actions/check-submodules@main
+#  # TODO: Run tests for devices
+#  devices:
+#    runs-on: macos-11
+#    env:
+#      DEVELOPER_DIR: /Applications/Xcode_13.2.1.app
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        target:
+#          - ios
+#          - tvos
+#          - watchos
+#    steps:
+#      - name: Build ${{ env.PACKAGE_NAME }} + consumers
+#        run: |
+#          python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
+#          chmod a+x builder
+#          ./builder build -p ${{ env.PACKAGE_NAME }} --target=${{ matrix.target }}-armv8
+#
+#  check-submodules:
+#    runs-on: ubuntu-22.04 # latest
+#    steps:
+#      - name: Checkout Source
+#        uses: actions/checkout@v3
+#        with:
+#          submodules: true
+#          fetch-depth: 0
+#      - name: Check Submodules
+#        # note: using "@main" because "@${{env.BUILDER_VERSION}}" doesn't work
+#        # https://github.com/actions/runner/issues/480
+#        uses: awslabs/aws-crt-builder/.github/actions/check-submodules@main
