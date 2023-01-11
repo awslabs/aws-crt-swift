@@ -19,5 +19,4 @@ public class HTTP1Stream: HTTPStream {
         self.httpConnection = httpConnection
         try super.init(rawValue: rawValue, callbackData: callbackData)
     }
-
 }

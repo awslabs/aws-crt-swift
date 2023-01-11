@@ -37,6 +37,4 @@ class HTTP2SettingsTests: XCBaseTestCase {
             }
         }
     }
-
-
 }
