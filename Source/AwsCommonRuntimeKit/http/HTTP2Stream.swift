@@ -9,9 +9,9 @@ public class HTTP2Stream: HTTPStream {
 
     // Called by Connection Manager
     init(
-            httpConnection: HTTPClientConnection,
-            options: aws_http_make_request_options,
-            callbackData: HTTPStreamCallbackCore) throws {
+        httpConnection: HTTPClientConnection,
+        options: aws_http_make_request_options,
+        callbackData: HTTPStreamCallbackCore) throws {
         guard let rawValue = withUnsafePointer(
                 to: options, { aws_http_connection_make_request(httpConnection.rawValue, $0) }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -72,9 +72,7 @@ public class HTTP2Stream: HTTPStream {
 private func onWriteComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
                              errorCode: Int32,
                              userData: UnsafeMutableRawPointer!) {
-
     let continuation = Unmanaged<ContinuationCore<()>>.fromOpaque(userData).takeRetainedValue().continuation
-
     guard errorCode == AWS_OP_SUCCESS else {
         continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
