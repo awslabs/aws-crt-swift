@@ -110,9 +110,7 @@ class CredentialsProviderTests: XCBaseTestCase {
     func testCreateCredentialsProviderProfile() async throws {
         do {
 
-            let provider = try CredentialsProvider(source: .profile(
-                    bootstrap: getClientBootstrap(),
-                    configFileNameOverride: Bundle.module.path(forResource: "example_config", ofType: "txt")!,
+            let provider = try CredentialsProvider(source: .profile(configFileNameOverride: Bundle.module.path(forResource: "example_config", ofType: "txt")!,
                     credentialsFileNameOverride: Bundle.module.path(forResource: "example_profile", ofType: "txt")!,
                     shutdownCallback: getShutdownCallback()),
                     allocator: allocator)
