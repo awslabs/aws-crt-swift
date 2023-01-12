@@ -79,5 +79,5 @@ public enum TLSVersion: UInt32 {
     case TLSv1_1 = 2
     case TLSv1_2 = 3
     case TLSv1_3 = 4
-    case SystemDefault = 128
+    case systemDefault = 128
 }
