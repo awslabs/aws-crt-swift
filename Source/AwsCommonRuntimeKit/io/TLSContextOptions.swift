@@ -58,6 +58,10 @@ public class TLSContextOptions: CStruct {
         aws_tls_ctx_options_set_verify_peer(rawValue, verifyPeer)
     }
 
+    public func setMinimumTLSVersion(_ tlsVersion: TLSVersion) {
+        aws_tls_ctx_options_set_minimum_tls_version(rawValue, aws_tls_versions(rawValue: tlsVersion.rawValue))
+    }
+
     typealias RawType = aws_tls_ctx_options
     func withCStruct<Result>(_ body: (aws_tls_ctx_options) -> Result) -> Result {
         return body(rawValue.pointee)
@@ -67,4 +71,13 @@ public class TLSContextOptions: CStruct {
         aws_tls_ctx_options_clean_up(rawValue)
         allocator.release(rawValue)
     }
+}
+
+public enum TLSVersion: UInt32 {
+    case SSLv3 = 0
+    case TLSv1 = 1
+    case TLSv1_1 = 2
+    case TLSv1_2 = 3
+    case TLSv1_3 = 4
+    case SystemDefault = 128
 }
