@@ -52,7 +52,7 @@ public class HTTPRequest: HTTPMessage {
 
         if let body = body {
             let iStreamCore = IStreamCore(iStreamable: body, allocator: allocator)
-            aws_http_message_set_body_stream(self.rawValue, &iStreamCore.rawValue)
+            aws_http_message_set_body_stream(self.rawValue, iStreamCore.rawValue)
         }
         addHeaders(headers: headers)
     }
