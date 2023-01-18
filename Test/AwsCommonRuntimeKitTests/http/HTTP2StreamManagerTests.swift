@@ -23,12 +23,12 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
                         clientBootstrap: bootstrap,
                         hostName: endpoint,
                         port: port,
+                        maxConnections: 30,
                         proxyOptions: HTTPProxyOptions(hostName: "localhost", port: 80),
                         proxyEnvSettings: HTTPProxyEnvSettings(proxyConnectionType: HTTPProxyConnectionType.forward),
                         socketOptions: SocketOptions(socketType: .stream),
                         tlsOptions: tlsConnectionOptions,
                         monitoringOptions: HTTPMonitoringOptions(minThroughputBytesPerSecond: 10, allowableThroughputFailureInterval: 20),
-                        maxConnections: 30,
                         enableStreamManualWindowManagement: true,
                         shutdownCallback: {},
                         priorKnowledge: true,
@@ -92,6 +92,7 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
                         clientBootstrap: bootstrap,
                         hostName: host,
                         port: UInt16(port),
+                        maxConnections: 5,
                         socketOptions: socketOptions,
                         tlsOptions: tlsConnectionOptions))
         return streamManager
