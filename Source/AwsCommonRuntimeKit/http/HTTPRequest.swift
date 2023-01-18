@@ -62,9 +62,6 @@ public class HTTP2Request: HTTPRequestBase {
     /// - Parameters:
     ///   - headers: (Optional) headers to send
     ///   - body: (Optional) body stream to send as part of request
-    ///   - manualDataWrites: Set it to true to indicate body data will be provided over time.
-    ///                       The data can be be supplied via `HTTP2Stream.writeData`.
-    ///                       The last data should be sent with endOfStream as true to complete the stream.
     ///   - allocator: (Optional) allocator to override
     /// - Throws: CommonRuntimeError
     public init(headers: [HTTPHeader] = [HTTPHeader](),
