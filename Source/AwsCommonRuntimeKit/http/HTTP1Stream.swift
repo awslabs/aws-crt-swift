@@ -17,6 +17,6 @@ public class HTTP1Stream: HTTPStream {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.httpConnection = httpConnection
-        try super.init(rawValue: rawValue, callbackData: callbackData)
+        super.init(rawValue: rawValue, callbackData: callbackData)
     }
 }

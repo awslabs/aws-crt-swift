@@ -10,7 +10,7 @@ public class HTTPStream {
     let lock = NSLock()
 
     init(rawValue: UnsafeMutablePointer<aws_http_stream>,
-         callbackData: HTTPStreamCallbackCore) throws {
+         callbackData: HTTPStreamCallbackCore) {
         self.callbackData = callbackData
         self.rawValue = rawValue
     }

@@ -72,10 +72,6 @@ private func onStreamAcquired(stream: UnsafeMutablePointer<aws_http_stream>?,
     }
 
     // SUCCESS
-    do {
-        let http2Stream = try HTTP2Stream(rawValue: stream!, callbackData: acquireStreamCore.callbackCore)
-        acquireStreamCore.continuation.resume(returning: http2Stream)
-    } catch {
-        acquireStreamCore.continuation.resume(throwing: error)
-    }
+    let http2Stream = HTTP2Stream(rawValue: stream!, callbackData: acquireStreamCore.callbackCore)
+    acquireStreamCore.continuation.resume(returning: http2Stream)
 }

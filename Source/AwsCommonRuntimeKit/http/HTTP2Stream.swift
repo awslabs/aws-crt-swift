@@ -17,15 +17,17 @@ public class HTTP2Stream: HTTPStream {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.httpConnection = httpConnection
-        try super.init(rawValue: rawValue, callbackData: callbackData)
+        super.init(rawValue: rawValue, callbackData: callbackData)
     }
 
     // Called by Stream manager
     override init(rawValue: UnsafeMutablePointer<aws_http_stream>,
-                  callbackData: HTTPStreamCallbackCore) throws {
+                  callbackData: HTTPStreamCallbackCore) {
         httpConnection = nil
-        try super.init(rawValue: rawValue, callbackData: callbackData)
-        try activate()
+        super.init(rawValue: rawValue, callbackData: callbackData)
+        callbackData.stream = self
+        // HTTP2Stream is pre-activated in C
+        activated = true
     }
 
     /// Reset the HTTP/2 stream (HTTP/2 only).

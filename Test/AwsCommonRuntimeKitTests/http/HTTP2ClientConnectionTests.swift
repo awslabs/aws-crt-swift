@@ -134,4 +134,51 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
                 actualSha.encodeToHexString().uppercased(),
                 "C7FDB5314B9742467B16BD5EA2F8012190B5E2C44A005F7984F89AAB58219534")
     }
+
+    func testHTTP2StreamUpload() async throws {
+        let connectionManager = try await getHttpConnectionManager(endpoint: "nghttp2.org", alpnList: ["h2"])
+        let semaphore = DispatchSemaphore(value: 0)
+        var httpResponse = HTTPResponse()
+        var onCompleteCalled = false
+        let testBody = "testBody"
+        let http2RequestOptions = try getHTTP2RequestOptions(
+                method: "PUT",
+                path: "/httpbin/put",
+                authority: "nghttp2.org",
+                body: testBody,
+                response: &httpResponse,
+                semaphore: semaphore,
+                onComplete: { stream, error in
+                    onCompleteCalled = true
+                },
+                http2ManualDataWrites: true)
+        let connection = try await connectionManager.acquireConnection()
+        let streamBase = try connection.makeRequest(requestOptions: http2RequestOptions)
+        let stream = streamBase as! HTTP2Stream
+        try stream.activate()
+        XCTAssertFalse(onCompleteCalled)
+        let data = TEST_DOC_LINE.data(using: .utf8)!
+        for chunk in data.chunked(into: 5) {
+            try await stream.writeData(data: chunk, endOfStream: false)
+            XCTAssertFalse(onCompleteCalled)
+        }
+
+        XCTAssertFalse(onCompleteCalled)
+        // Sleep for 5 seconds to make sure onComplete is not triggerred until endOfStream is true
+        try await Task.sleep(nanoseconds: 5_000_000_000)
+        XCTAssertFalse(onCompleteCalled)
+        try await stream.writeData(data: Data(), endOfStream: true)
+        semaphore.wait()
+        XCTAssertTrue(onCompleteCalled)
+        XCTAssertNil(httpResponse.error)
+        XCTAssertEqual(httpResponse.statusCode, 200)
+
+        // Parse json body
+        struct Response: Codable {
+            let data: String
+        }
+
+        let body: Response = try! JSONDecoder().decode(Response.self, from: httpResponse.body)
+        XCTAssertEqual(body.data, testBody + TEST_DOC_LINE)
+    }
 }
