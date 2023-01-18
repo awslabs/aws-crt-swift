@@ -170,6 +170,7 @@ extension CredentialsProvider.Source {
     /// (by default ~/.aws/profile and ~/.aws/credentials)
     ///
     /// - Parameters:
+    ///   - bootstrap:  Connection bootstrap to use for any network connections made while sourcing credentials.
     ///   - configFileNameOverride:  (Optional) Override path to the profile config file (~/.aws/config by default)
     ///   - profileFileNameOverride: (Optional) Override of what profile to use to source credentials from ('default' by default)
     ///   - credentialsFileNameOverride: (Optional) Override path to the profile credentials file (~/.aws/credentials by default)
@@ -177,7 +178,8 @@ extension CredentialsProvider.Source {
     ///   - allocator: (Optional) allocator to override
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
-    public static func `profile`(configFileNameOverride: String? = nil,
+    public static func `profile`(bootstrap: ClientBootstrap,
+                                 configFileNameOverride: String? = nil,
                                  profileFileNameOverride: String? = nil,
                                  credentialsFileNameOverride: String? = nil,
                                  shutdownCallback: ShutdownCallback? = nil,
@@ -185,6 +187,7 @@ extension CredentialsProvider.Source {
         Self { allocator in
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var profileOptionsC = aws_credentials_provider_profile_options()
+            profileOptionsC.bootstrap = bootstrap.rawValue
             profileOptionsC.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
             guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                     configFileNameOverride,
