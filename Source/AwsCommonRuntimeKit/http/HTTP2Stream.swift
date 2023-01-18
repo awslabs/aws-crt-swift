@@ -40,7 +40,7 @@ public class HTTP2Stream: HTTPStream {
     }
 
     /// manualDataWrites must have been enabled during HTTP2Request creation.
-    /// A write with that has end_stream set to be true will end the stream and prevent any further write.
+    /// A write with that has endOfStream set to be true will end the stream and prevent any further write.
     ///
     /// - Parameters:
     ///   - data: Data to write. It can be empty
