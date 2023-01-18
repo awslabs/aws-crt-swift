@@ -13,6 +13,20 @@ public struct HTTP2Settings: CStruct {
     public var maxFrameSize: UInt32?
     public var maxHeaderListSize: UInt32?
 
+    public init(headerTableSize: UInt32? = nil,
+                enablePush: Bool? = nil,
+                maxConcurrentStreams: UInt32? = nil,
+                initialWindowSize: UInt32? = nil,
+                maxFrameSize: UInt32? = nil,
+                maxHeaderListSize: UInt32? = nil) {
+        self.headerTableSize = headerTableSize
+        self.enablePush = enablePush
+        self.maxConcurrentStreams = maxConcurrentStreams
+        self.initialWindowSize = initialWindowSize
+        self.maxFrameSize = maxFrameSize
+        self.maxHeaderListSize = maxHeaderListSize
+    }
+
     typealias RawType = [aws_http2_setting]
     func withCStruct<Result>(_ body: ([aws_http2_setting]) -> Result
     ) -> Result {
