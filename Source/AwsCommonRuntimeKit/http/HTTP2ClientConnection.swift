@@ -49,7 +49,7 @@ public class HTTP2ClientConnection: HTTPClientConnection {
 
     /// Send a PING frame. Round-trip-time is calculated when PING ACK is received from peer.
     /// - Parameter data: (Optional) 8 Bytes data with the PING frame. Data count must be exact 8 bytes.
-    /// - Returns: The round trip time in nano seconds for the connection.
+    /// - Returns: The round trip time in nanoseconds for the connection.
     public func sendPing(data: Data = Data()) async throws -> UInt64 {
         try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<UInt64, Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
