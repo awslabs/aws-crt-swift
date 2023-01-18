@@ -63,7 +63,7 @@ class HTTPTests: HTTPClientTestFixture {
     }
 
     func testManagerLivesUntilComplete() async throws {
-        var connection: HTTPExchange! = nil
+        var connection: HTTPClientConnection! = nil
         let semaphore = DispatchSemaphore(value: 0)
 
         do {

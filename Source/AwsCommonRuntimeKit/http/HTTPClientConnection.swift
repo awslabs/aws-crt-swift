@@ -5,23 +5,8 @@ import AwsCHttp
 import AwsCIo
 import Foundation
 
-/// Represents one HTTP request/response exchange that can be used to
-/// execute requests.
-///
-/// There are two implementations: HTTPClientConnection and HTTP2ClientConnection
-public protocol HTTPExchange {
-    var isOpen: Bool { get }
-    var httpVersion: HTTPVersion { get }
-    func close()
-
-    /// Creates a new http stream from the `HTTPRequestOptions` given.
-    /// The stream will send no data until HTTPStream.activate()
-    /// is called. Call activate() when you're ready for callbacks and events to fire.
-    func makeRequest(requestOptions: HTTPRequestOptions) throws -> HTTPStream
-}
-
 // swiftlint:disable force_try
-public class HTTPClientConnection: HTTPExchange {
+public class HTTPClientConnection {
     private let allocator: Allocator
     let rawValue: UnsafeMutablePointer<aws_http_connection>
     /// This will keep the connection manager alive until connection is alive
