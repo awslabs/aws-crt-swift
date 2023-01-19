@@ -55,7 +55,12 @@ private func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
         count: headersCount).map { HTTPHeader(rawValue: $0) }
     var status: Int32 = 0
     guard aws_http_stream_get_incoming_response_status(stream!, &status) == AWS_OP_SUCCESS else {
-        fatalError("Failed to get HTTP status code in onResponseHeaders callback with error \(CommonRunTimeError.crtError(.makeFromLastError()))")
+        fatalError(
+            """
+            Failed to get HTTP status code in onResponseHeaders callback with error
+            \(CommonRunTimeError.crtError(.makeFromLastError()))
+            """
+        )
     }
     httpStreamCbData.requestOptions.onIncomingHeaders(status,
                                                       HTTPHeaderBlock(rawValue: headerBlock),
@@ -99,7 +104,12 @@ private func onComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
 
     var status: Int32 = 0
     guard aws_http_stream_get_incoming_response_status(stream!, &status) == AWS_OP_SUCCESS else {
-        fatalError("Failed to get HTTP status code in onComplete callback with error \(CommonRunTimeError.crtError(.makeFromLastError()))")
+        fatalError(
+            """
+            Failed to get HTTP status code in onComplete callback with error
+            \(CommonRunTimeError.crtError(.makeFromLastError()))
+            """
+        )
     }
     onStreamCompleteFn(.success(status))
 }
