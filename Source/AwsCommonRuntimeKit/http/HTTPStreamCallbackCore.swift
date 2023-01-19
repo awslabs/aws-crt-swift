@@ -9,7 +9,8 @@ import Foundation
 /// You have to balance the retain & release calls in all cases to avoid leaking memory.
 class HTTPStreamCallbackCore {
     let requestOptions: HTTPRequestOptions
-
+    // buffered list of headers
+    var headers: [HTTPHeader] = [HTTPHeader]()
     init(requestOptions: HTTPRequestOptions) {
         self.requestOptions = requestOptions
     }
@@ -50,21 +51,9 @@ private func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
     let httpStreamCbData = Unmanaged<HTTPStreamCallbackCore>
         .fromOpaque(userData)
         .takeUnretainedValue()
-    let headers = UnsafeBufferPointer(
+    UnsafeBufferPointer(
         start: headerArray,
-        count: headersCount).map { HTTPHeader(rawValue: $0) }
-    var status: Int32 = 0
-    guard aws_http_stream_get_incoming_response_status(stream!, &status) == AWS_OP_SUCCESS else {
-        fatalError(
-            """
-            Failed to get HTTP status code in onResponseHeaders callback with error
-            \(CommonRunTimeError.crtError(.makeFromLastError()))
-            """
-        )
-    }
-    httpStreamCbData.requestOptions.onIncomingHeaders(status,
-                                                      HTTPHeaderBlock(rawValue: headerBlock),
-                                                      headers)
+        count: headersCount).forEach { httpStreamCbData.headers.append(HTTPHeader(rawValue: $0)) }
     return AWS_OP_SUCCESS
 }
 
@@ -72,7 +61,25 @@ private func onResponseHeaderBlockDone(stream: UnsafeMutablePointer<aws_http_str
                                        headerBlock: aws_http_header_block,
                                        userData: UnsafeMutableRawPointer!) -> Int32 {
     let httpStreamCbData = Unmanaged<HTTPStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
-    httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(HTTPHeaderBlock(rawValue: headerBlock))
+    var status: Int32 = 0
+    guard aws_http_stream_get_incoming_response_status(stream!, &status) == AWS_OP_SUCCESS else {
+        fatalError(
+                """
+                Failed to get HTTP status code in onResponseHeaderBlockDone callback with error
+                \(CommonRunTimeError.crtError(.makeFromLastError()))
+                """
+        )
+    }
+    switch HTTPHeaderBlock(rawValue: headerBlock) {
+    case .informational:
+        httpStreamCbData.requestOptions.onInterimResponse?(status, httpStreamCbData.headers)
+    case .main:
+        httpStreamCbData.requestOptions.onResponse(status, httpStreamCbData.headers)
+    case .trailing:
+        httpStreamCbData.requestOptions.onTrailer?(httpStreamCbData.headers)
+    }
+
+    httpStreamCbData.headers.removeAll()
     return AWS_OP_SUCCESS
 }
 

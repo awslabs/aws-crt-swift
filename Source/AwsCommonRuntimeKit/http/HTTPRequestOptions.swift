@@ -3,6 +3,14 @@
 import Foundation
 
 public struct HTTPRequestOptions {
+
+    public typealias OnInterimResponse = (_ statusCode: Int32,
+                                          _ headers: [HTTPHeader]) -> Void
+
+    public typealias OnResponse = (_ statusCode: Int32,
+                                   _ headers: [HTTPHeader]) -> Void
+    public typealias OnTrailer = (_ headers: [HTTPHeader]) -> Void
+
     public typealias OnIncomingHeaders = (_ statusCode: Int32,
                                           _ headerBlock: HTTPHeaderBlock,
                                           _ headers: [HTTPHeader]) -> Void
@@ -13,11 +21,14 @@ public struct HTTPRequestOptions {
     /// Outgoing request.
     let request: HTTPRequestBase
 
-    /// Invoked repeatedly as headers are received.
-    public let onIncomingHeaders: OnIncomingHeaders
+    /// Invoked when informational 1xx interim response is received
+    public let onInterimResponse: OnInterimResponse?
 
-    /// Invoked when response header block has been completely read.
-    public let onIncomingHeadersBlockDone: OnIncomingHeadersBlockDone
+    /// Invoked when main response headers are received.
+    public let onResponse: OnResponse
+
+    /// Invoked when trailer response headers are received.
+    public let onTrailer: OnTrailer?
 
     /// Invoked repeatedly as body data is received.
     public let onIncomingBody: OnIncomingBody
@@ -30,14 +41,16 @@ public struct HTTPRequestOptions {
     public var http2ManualDataWrites: Bool = false
 
     public init(request: HTTPRequestBase,
-                onIncomingHeaders: @escaping OnIncomingHeaders,
-                onIncomingHeadersBlockDone: @escaping OnIncomingHeadersBlockDone,
+                onInterimResponse: OnInterimResponse? = nil,
+                onResponse: @escaping OnResponse,
+                onTrailer: OnTrailer? = nil,
                 onIncomingBody: @escaping OnIncomingBody,
                 onStreamComplete: @escaping OnStreamComplete,
                 http2ManualDataWrites: Bool = false) {
         self.request = request
-        self.onIncomingHeaders = onIncomingHeaders
-        self.onIncomingHeadersBlockDone = onIncomingHeadersBlockDone
+        self.onInterimResponse = onInterimResponse
+        self.onResponse = onResponse
+        self.onTrailer = onTrailer
         self.onIncomingBody = onIncomingBody
         self.onStreamComplete = onStreamComplete
         self.http2ManualDataWrites = http2ManualDataWrites
