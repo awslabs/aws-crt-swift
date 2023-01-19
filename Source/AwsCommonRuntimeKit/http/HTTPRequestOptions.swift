@@ -6,15 +6,9 @@ public struct HTTPRequestOptions {
 
     public typealias OnInterimResponse = (_ statusCode: Int32,
                                           _ headers: [HTTPHeader]) -> Void
-
     public typealias OnResponse = (_ statusCode: Int32,
                                    _ headers: [HTTPHeader]) -> Void
     public typealias OnTrailer = (_ headers: [HTTPHeader]) -> Void
-
-    public typealias OnIncomingHeaders = (_ statusCode: Int32,
-                                          _ headerBlock: HTTPHeaderBlock,
-                                          _ headers: [HTTPHeader]) -> Void
-    public typealias OnIncomingHeadersBlockDone = (_ headerBlock: HTTPHeaderBlock) -> Void
     public typealias OnIncomingBody = (_ bodyChunk: Data) -> Void
     public typealias OnStreamComplete = (_ result: Result<Int32, CommonRunTimeError>) -> Void
 
