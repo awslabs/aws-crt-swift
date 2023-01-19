@@ -39,22 +39,25 @@ private func onConnectionSetup(connection: UnsafeMutablePointer<aws_http_connect
                                errorCode: Int32,
                                userData: UnsafeMutableRawPointer!) {
     let callbackDataCore = Unmanaged<HTTPClientConnectionManagerCallbackCore>.fromOpaque(userData!).takeRetainedValue()
+    let continuation = callbackDataCore.continuation
+
     if errorCode != AWS_OP_SUCCESS {
-        callbackDataCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
 
     // Success
-    let version = HTTPVersion(rawValue: aws_http_connection_get_version(connection))
-    if version == HTTPVersion.version_2 {
-        callbackDataCore.continuation.resume(
+    switch aws_http_connection_get_version(connection) {
+    case AWS_HTTP_VERSION_2: continuation.resume(
             returning: HTTP2ClientConnection(
-                manager: callbackDataCore.connectionManager,
-                connection: connection!))
-    } else {
-        callbackDataCore.continuation.resume(
-            returning: HTTPClientConnection(
-                manager: callbackDataCore.connectionManager,
-                connection: connection!))
+            manager: callbackDataCore.connectionManager,
+            connection: connection!))
+    case AWS_HTTP_VERSION_1_1:
+        continuation.resume(
+                returning: HTTPClientConnection(
+                        manager: callbackDataCore.connectionManager,
+                        connection: connection!))
+    default:
+        continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_HTTP_UNSUPPORTED_PROTOCOL.rawValue)))
     }
 }

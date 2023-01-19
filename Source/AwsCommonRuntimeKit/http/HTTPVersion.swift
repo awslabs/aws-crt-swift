@@ -5,7 +5,6 @@ import AwsCHttp
 /// HTTPVersion of a Connection.
 public enum HTTPVersion {
     case unknown // Invalid version
-    case version_1_0
     case version_1_1
     case version_2
 }
@@ -19,7 +18,6 @@ extension HTTPVersion: RawRepresentable, CaseIterable {
     public var rawValue: aws_http_version {
         switch self {
         case .unknown:  return AWS_HTTP_VERSION_UNKNOWN
-        case .version_1_0: return AWS_HTTP_VERSION_1_0
         case .version_1_1: return AWS_HTTP_VERSION_1_1
         case .version_2: return AWS_HTTP_VERSION_2
         }
