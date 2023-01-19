@@ -4,7 +4,7 @@
 import AwsCHttp
 import Foundation
 
-/// An HTTP2Stream represents a single HTTP/2 specific Http Request/Response.
+/// An HTTP2Stream represents a single HTTP/2 specific HTTP Request/Response.
 public class HTTP2Stream: HTTPStream {
     private let httpConnection: HTTPClientConnection?
 
