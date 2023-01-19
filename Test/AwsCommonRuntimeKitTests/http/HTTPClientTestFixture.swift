@@ -8,7 +8,7 @@ struct HTTPResponse {
     var statusCode: Int = -1
     var headers: [HTTPHeader] = [HTTPHeader]()
     var body: Data = Data()
-    var error: CRTError?
+    var error: CommonRunTimeError?
     var version: HTTPVersion?
 }
 
@@ -160,26 +160,30 @@ class HTTPClientTestFixture: XCBaseTestCase {
                            onComplete: HTTPRequestOptions.OnStreamComplete? = nil,
                            http2ManualDataWrites: Bool = false) -> HTTPRequestOptions {
         HTTPRequestOptions(request: request,
-                onIncomingHeaders: { stream, headerBlock, headers in
+                onIncomingHeaders: { statusCode, headerBlock, headers in
                     for header in headers {
                         response?.pointee.headers.append(header)
                     }
-                    onIncomingHeaders?(stream, headerBlock, headers)
+                    onIncomingHeaders?(statusCode, headerBlock, headers)
                 },
-                onIncomingHeadersBlockDone: { stream, block in
-                    onBlockDone?(stream, block)
+                onIncomingHeadersBlockDone: { block in
+                    onBlockDone?(block)
                 },
-                onIncomingBody: { stream, bodyChunk in
+                onIncomingBody: { bodyChunk in
                     response?.pointee.body += bodyChunk
-                    onBody?(stream, bodyChunk)
+                    onBody?(bodyChunk)
                 },
-                onStreamComplete: { stream, error in
-                    response?.pointee.error = error
-                    if error != nil {
-                        print("AWS_TEST_ERROR:\(String(describing: error))")
+                onStreamComplete: { result in
+                    switch result{
+                    case .success(let status):
+                        response?.pointee.statusCode = Int(status)
+                    case .failure(let error):
+                        response?.pointee.error = error
                     }
-                    response?.pointee.statusCode = (try? stream.statusCode()) ?? -1
-                    onComplete?(stream, error)
+                    if response?.pointee.error != nil {
+                        print("AWS_TEST_ERROR:\(String(describing: response?.pointee.error))")
+                    }
+                    onComplete?(result)
                     semaphore?.signal()
                 },
                 http2ManualDataWrites: http2ManualDataWrites)

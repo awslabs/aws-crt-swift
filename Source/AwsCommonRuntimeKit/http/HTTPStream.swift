@@ -8,8 +8,6 @@ import Foundation
 public class HTTPStream {
     let rawValue: UnsafeMutablePointer<aws_http_stream>
     var callbackData: HTTPStreamCallbackCore
-    var activated: Bool = false
-    let lock = NSLock()
 
     init(rawValue: UnsafeMutablePointer<aws_http_stream>,
          callbackData: HTTPStreamCallbackCore) {
@@ -39,20 +37,9 @@ public class HTTPStream {
 
     /// Activates the client stream.
     public func activate() throws {
-        lock.lock()
-        defer {
-            lock.unlock()
-        }
-        guard !activated else {
-            return
-        }
-
-        callbackData.stream = self
         if aws_http_stream_activate(rawValue) != AWS_OP_SUCCESS {
-            callbackData.stream = nil
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-        activated = true
     }
 
     deinit {

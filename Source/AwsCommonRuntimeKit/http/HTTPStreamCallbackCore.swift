@@ -9,7 +9,6 @@ import Foundation
 /// You have to balance the retain & release calls in all cases to avoid leaking memory.
 class HTTPStreamCallbackCore {
     let requestOptions: HTTPRequestOptions
-    var stream: HTTPStream?
 
     init(requestOptions: HTTPRequestOptions) {
         self.requestOptions = requestOptions
@@ -54,9 +53,11 @@ private func onResponseHeaders(stream: UnsafeMutablePointer<aws_http_stream>?,
     let headers = UnsafeBufferPointer(
         start: headerArray,
         count: headersCount).map { HTTPHeader(rawValue: $0) }
-
-    let stream = httpStreamCbData.stream!
-    httpStreamCbData.requestOptions.onIncomingHeaders(stream,
+    var status: Int32 = 0
+    guard aws_http_stream_get_incoming_response_status(stream!, &status) == AWS_OP_SUCCESS else {
+        fatalError("Failed to get HTTP status code in onResponseHeaders callback with error \(CommonRunTimeError.crtError(.makeFromLastError()))")
+    }
+    httpStreamCbData.requestOptions.onIncomingHeaders(status,
                                                       HTTPHeaderBlock(rawValue: headerBlock),
                                                       headers)
     return AWS_OP_SUCCESS
@@ -66,9 +67,7 @@ private func onResponseHeaderBlockDone(stream: UnsafeMutablePointer<aws_http_str
                                        headerBlock: aws_http_header_block,
                                        userData: UnsafeMutableRawPointer!) -> Int32 {
     let httpStreamCbData = Unmanaged<HTTPStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
-    let stream = httpStreamCbData.stream!
-
-    httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(stream, HTTPHeaderBlock(rawValue: headerBlock))
+    httpStreamCbData.requestOptions.onIncomingHeadersBlockDone(HTTPHeaderBlock(rawValue: headerBlock))
     return AWS_OP_SUCCESS
 }
 
@@ -83,7 +82,7 @@ private func onResponseBody(stream: UnsafeMutablePointer<aws_http_stream>?,
 
     let incomingBodyFn = httpStreamCbData.requestOptions.onIncomingBody
     let callbackBytes = Data(bytesNoCopy: bufPtr, count: bufLen, deallocator: .none)
-    incomingBodyFn((httpStreamCbData.stream)!, callbackBytes)
+    incomingBodyFn(callbackBytes)
     return AWS_OP_SUCCESS
 }
 
@@ -92,11 +91,17 @@ private func onComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
                         userData: UnsafeMutableRawPointer!) {
 
     let httpStreamCbData = Unmanaged<HTTPStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
-    let stream = httpStreamCbData.stream!
     let onStreamCompleteFn = httpStreamCbData.requestOptions.onStreamComplete
-    let crtError = errorCode == AWS_OP_SUCCESS ? nil : CRTError(code: errorCode)
-    onStreamCompleteFn(stream, crtError)
-    httpStreamCbData.stream = nil
+    guard errorCode == AWS_OP_SUCCESS else {
+        onStreamCompleteFn(.failure(CommonRunTimeError.crtError(CRTError(code: errorCode))))
+        return
+    }
+
+    var status: Int32 = 0
+    guard aws_http_stream_get_incoming_response_status(stream!, &status) == AWS_OP_SUCCESS else {
+        fatalError("Failed to get HTTP status code in onComplete callback with error \(CommonRunTimeError.crtError(.makeFromLastError()))")
+    }
+    onStreamCompleteFn(.success(status))
 }
 
 private func onDestroy(userData: UnsafeMutableRawPointer!) {

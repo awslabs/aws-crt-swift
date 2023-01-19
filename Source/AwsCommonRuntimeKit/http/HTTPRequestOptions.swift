@@ -3,13 +3,12 @@
 import Foundation
 
 public struct HTTPRequestOptions {
-    public typealias OnIncomingHeaders = (_ stream: HTTPStream,
+    public typealias OnIncomingHeaders = (_ statusCode: Int32,
                                           _ headerBlock: HTTPHeaderBlock,
                                           _ headers: [HTTPHeader]) -> Void
-    public typealias OnIncomingHeadersBlockDone = (_ stream: HTTPStream,
-                                                   _ headerBlock: HTTPHeaderBlock) -> Void
-    public typealias OnIncomingBody = (_ stream: HTTPStream, _ bodyChunk: Data) -> Void
-    public typealias OnStreamComplete = (_ stream: HTTPStream, _ error: CRTError?) -> Void
+    public typealias OnIncomingHeadersBlockDone = (_ headerBlock: HTTPHeaderBlock) -> Void
+    public typealias OnIncomingBody = (_ bodyChunk: Data) -> Void
+    public typealias OnStreamComplete = (_ result: Result<Int32, CommonRunTimeError>) -> Void
 
     /// Outgoing request.
     let request: HTTPRequestBase

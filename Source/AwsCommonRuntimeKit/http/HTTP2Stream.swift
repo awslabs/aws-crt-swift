@@ -26,9 +26,6 @@ public class HTTP2Stream: HTTPStream {
                   callbackData: HTTPStreamCallbackCore) {
         httpConnection = nil
         super.init(rawValue: rawValue, callbackData: callbackData)
-        callbackData.stream = self
-        // HTTP2Stream is pre-activated in C
-        activated = true
     }
 
     /// Reset the HTTP/2 stream (HTTP/2 only).

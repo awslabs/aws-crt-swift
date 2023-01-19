@@ -286,16 +286,16 @@ struct Elasticurl {
                 }
             }
 
-            let onBody: HTTPRequestOptions.OnIncomingBody = { _, bodyChunk in
+            let onBody: HTTPRequestOptions.OnIncomingBody = { bodyChunk in
                 writeData(data: bodyChunk)
             }
 
-            let onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone = { _, _ in
+            let onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone = { _ in
 
             }
 
-            let onComplete: HTTPRequestOptions.OnStreamComplete = { _, error in
-                print(error?.message ?? "Success")
+            let onComplete: HTTPRequestOptions.OnStreamComplete = { result in
+                print(result)
 
                 semaphore.signal()
             }
