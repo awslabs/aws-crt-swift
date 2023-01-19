@@ -16,6 +16,7 @@ public class RetryStrategy {
     ///   - backOffScaleFactor: (Optional) Scaling factor to add for the backoff. Default is 25ms and maximum is UInt32 ms.
     ///   - jitterMode: (Optional) Jitter mode to use, see comments for aws_exponential_backoff_jitter_mode.
     ///   - generateRandom: (Optional) By default this will be set to use aws_device_random. If you want something else, set it here.
+    ///   - shutdownCallback: (Optional) Shutdown callback to invoke when the resource is cleaned up.
     ///   - allocator: (Optional) allocator to override.
     /// - Returns: `CRTAWSRetryStrategy`
     public init(eventLoopGroup: EventLoopGroup,
@@ -23,7 +24,8 @@ public class RetryStrategy {
                 maxRetries: Int = 10,
                 backOffScaleFactor: TimeInterval = 0.025,
                 jitterMode: ExponentialBackoffJitterMode = .default,
-                generateRandom: (@convention(c) () -> UInt64)? = nil,
+                generateRandom: (() -> UInt64)? = nil,
+                shutdownCallback: ShutdownCallback? = nil,
                 allocator: Allocator = defaultAllocator) throws {
 
         var exponentialBackoffRetryOptions = aws_exponential_backoff_retry_options()
