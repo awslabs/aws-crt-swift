@@ -2,6 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
 
+/// HTTPVersion of a Connection.
 public enum HTTPVersion {
     case unknown // Invalid version
     case version_1_0

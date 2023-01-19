@@ -3,6 +3,7 @@
 import AwsCHttp
 import Foundation
 
+/// An HTTP1Stream represents a single HTTP/1.1 specific Http Request/Response.
 public class HTTP1Stream: HTTPStream {
     /// Stream keeps a reference to HttpConnection to keep it alive
     private let httpConnection: HTTPClientConnection

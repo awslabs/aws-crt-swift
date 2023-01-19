@@ -3,6 +3,7 @@
 import AwsCHttp
 import AwsCIo
 
+/// Represents a single client request to be sent
 public class HTTPRequestBase {
     let rawValue: OpaquePointer
     let allocator: Allocator

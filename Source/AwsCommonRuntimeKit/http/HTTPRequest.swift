@@ -4,6 +4,7 @@ import AwsCHttp
 import AwsCIo
 import AwsCCommon
 
+/// Represents a single client request to be sent on a HTTP 1.1 connection
 public class HTTPRequest: HTTPRequestBase {
 
     public var method: String {
@@ -57,6 +58,7 @@ public class HTTPRequest: HTTPRequestBase {
     }
 }
 
+/// Represents a single client request to be sent on a HTTP2 connection
 public class HTTP2Request: HTTPRequestBase {
     /// Creates an http2 request which can be passed to a connection.
     /// - Parameters:

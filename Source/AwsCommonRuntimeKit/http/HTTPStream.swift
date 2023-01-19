@@ -3,6 +3,8 @@
 import AwsCHttp
 import Foundation
 
+/// An base class that represents a single Http Request/Response for both HTTP/1.1 and HTTP/2.
+/// Can be used to update the Window size, and get status code.
 public class HTTPStream {
     let rawValue: UnsafeMutablePointer<aws_http_stream>
     var callbackData: HTTPStreamCallbackCore

@@ -3,6 +3,7 @@
 import AwsCHttp
 import Collections
 
+/// Manages a Pool of HTTP/2 Streams. Creates and manages HTTP/2 connections under the hood.
 public class HTTP2StreamManager {
     let rawValue: UnsafeMutablePointer<aws_http2_stream_manager>
 
