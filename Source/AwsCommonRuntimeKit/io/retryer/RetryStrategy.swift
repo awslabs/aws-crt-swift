@@ -4,6 +4,8 @@
 import AwsCIo
 import Foundation
 
+public typealias GenerateRandomFn = () -> UInt64
+
 public class RetryStrategy {
     let rawValue: UnsafeMutablePointer<aws_retry_strategy>
 
@@ -24,7 +26,7 @@ public class RetryStrategy {
                 maxRetries: Int = 10,
                 backOffScaleFactor: TimeInterval = 0.025,
                 jitterMode: ExponentialBackoffJitterMode = .default,
-                generateRandom: (() -> UInt64)? = nil,
+                generateRandom: GenerateRandomFn? = nil,
                 shutdownCallback: ShutdownCallback? = nil,
                 allocator: Allocator = defaultAllocator) throws {
 
@@ -33,8 +35,19 @@ public class RetryStrategy {
         exponentialBackoffRetryOptions.max_retries = maxRetries
         exponentialBackoffRetryOptions.backoff_scale_factor_ms = UInt32(backOffScaleFactor.millisecond)
         exponentialBackoffRetryOptions.jitter_mode = jitterMode.rawValue
+
+        let generateRandomCore = GenerateRandomCore(generateRandom: generateRandom)
+        // Retain generate random in every case to make it simpler
+        let retainedGenerateRandom = generateRandomCore.passRetained()
+        let shutdownCore = ShutdownCallbackCore({
+            generateRandomCore.release()
+            shutdownCallback?()
+        })
+        exponentialBackoffRetryOptions.shutdown_options = shutdownCore.getRetainedShutdownOptions()
+
         if let generateRandom = generateRandom {
-            exponentialBackoffRetryOptions.generate_random = generateRandom
+            exponentialBackoffRetryOptions.generate_random_impl = onGenerateRandom
+            exponentialBackoffRetryOptions.generate_random_user_data = retainedGenerateRandom
         }
 
         var standardRetryOptions = aws_standard_retry_options()
@@ -44,6 +57,8 @@ public class RetryStrategy {
         guard let rawValue = (withUnsafePointer(to: standardRetryOptions) { retryOptionsPointer in
             return aws_retry_strategy_new_standard(allocator.rawValue, retryOptionsPointer)
         }) else {
+            generateRandomCore.release()
+            shutdownCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue
@@ -95,6 +110,30 @@ public class RetryStrategy {
     deinit {
         aws_retry_strategy_release(rawValue)
     }
+}
+
+class GenerateRandomCore {
+    let generateRandom: GenerateRandomFn?
+    init(generateRandom: GenerateRandomFn?) {
+        self.generateRandom = generateRandom
+    }
+
+    func passRetained() -> UnsafeMutableRawPointer {
+        return Unmanaged<CredentialsProvidingCore>.passRetained(self).toOpaque()
+    }
+
+    func passUnretained() -> UnsafeMutableRawPointer {
+        return Unmanaged<CredentialsProvidingCore>.passUnretained(self).toOpaque()
+    }
+
+    func release() {
+        Unmanaged.passUnretained(self).release()
+    }
+}
+
+private func onGenerateRandom(userData: UnsafeMutableRawPointer!) -> UInt64 {
+    let generateRandomFn = Unmanaged<GenerateRandomCore>.fromOpaque(userData).takeUnretainedValue()
+    return generateRandomFn.generateRandom!()
 }
 
 private func onRetryReady(token: UnsafeMutablePointer<aws_retry_token>?,
