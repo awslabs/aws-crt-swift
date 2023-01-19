@@ -168,10 +168,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
                     case .success(let status):
                         response?.pointee.statusCode = Int(status)
                     case .failure(let error):
+                        print("AWS_TEST_ERROR:\(String(describing: error))")
                         response?.pointee.error = error
-                    }
-                    if response?.pointee.error != nil {
-                        print("AWS_TEST_ERROR:\(String(describing: response?.pointee.error))")
                     }
                     onComplete?(result)
                     semaphore?.signal()
