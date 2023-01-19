@@ -21,7 +21,7 @@ public struct HTTPRequestOptions {
     /// Invoked when main response headers are received.
     public let onResponse: OnResponse
 
-    /// Invoked when trailer response headers are received.
+    /// Invoked when trailer response is received.
     public let onTrailer: OnTrailer?
 
     /// Invoked repeatedly as body data is received.

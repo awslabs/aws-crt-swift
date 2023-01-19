@@ -280,7 +280,7 @@ struct Elasticurl {
             }
             httpRequest.addHeaders(headers: headers)
 
-            let onResponse: HTTPRequestOptions.OnResponse = { status, headers in
+            let onResponse: HTTPRequestOptions.OnResponse = { _, headers in
                 for header in headers {
                     print(header.name + " : " + header.value)
                 }
