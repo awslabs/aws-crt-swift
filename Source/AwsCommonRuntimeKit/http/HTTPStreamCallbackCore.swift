@@ -72,9 +72,9 @@ private func onResponseHeaderBlockDone(stream: UnsafeMutablePointer<aws_http_str
     }
     switch HTTPHeaderBlock(rawValue: headerBlock) {
     case .informational:
-        httpStreamCbData.requestOptions.onInterimResponse?(status, httpStreamCbData.headers)
+        httpStreamCbData.requestOptions.onInterimResponse?(UInt32(status), httpStreamCbData.headers)
     case .main:
-        httpStreamCbData.requestOptions.onResponse(status, httpStreamCbData.headers)
+        httpStreamCbData.requestOptions.onResponse(UInt32(status), httpStreamCbData.headers)
     case .trailing:
         httpStreamCbData.requestOptions.onTrailer?(httpStreamCbData.headers)
     }
@@ -118,7 +118,7 @@ private func onComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
             """
         )
     }
-    onStreamCompleteFn(.success(status))
+    onStreamCompleteFn(.success(UInt32(status)))
 }
 
 private func onDestroy(userData: UnsafeMutableRawPointer!) {

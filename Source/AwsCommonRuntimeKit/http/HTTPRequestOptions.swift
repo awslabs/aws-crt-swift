@@ -2,30 +2,36 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import Foundation
 
+/// Definition for outgoing request and callbacks to receive response.
 public struct HTTPRequestOptions {
 
-    public typealias OnInterimResponse = (_ statusCode: Int32,
+    /// Callback to receive interim response
+    public typealias OnInterimResponse = (_ statusCode: UInt32,
                                           _ headers: [HTTPHeader]) -> Void
-    public typealias OnResponse = (_ statusCode: Int32,
+    /// Callback to receive main headers
+    public typealias OnResponse = (_ statusCode: UInt32,
                                    _ headers: [HTTPHeader]) -> Void
-    public typealias OnTrailer = (_ headers: [HTTPHeader]) -> Void
+    /// Callback to receive the incoming body
     public typealias OnIncomingBody = (_ bodyChunk: Data) -> Void
-    public typealias OnStreamComplete = (_ result: Result<Int32, CommonRunTimeError>) -> Void
+    /// Callback to receive trailer headers
+    public typealias OnTrailer = (_ headers: [HTTPHeader]) -> Void
+    /// Callback to know when request is completed, whether successful or unsuccessful
+    public typealias OnStreamComplete = (_ result: Result<UInt32, CommonRunTimeError>) -> Void
 
     /// Outgoing request.
     let request: HTTPRequestBase
 
-    /// Invoked when informational 1xx interim response is received
+    /// Invoked 0+ times if informational 1xx interim responses are received.
     public let onInterimResponse: OnInterimResponse?
 
     /// Invoked when main response headers are received.
     public let onResponse: OnResponse
 
-    /// Invoked when trailer response is received.
-    public let onTrailer: OnTrailer?
-
     /// Invoked repeatedly as body data is received.
     public let onIncomingBody: OnIncomingBody
+
+    /// Invoked when trailer headers are received.
+    public let onTrailer: OnTrailer?
 
     /// Invoked when request/response stream is complete, whether successful or unsuccessful
     public let onStreamComplete: OnStreamComplete
@@ -33,12 +39,12 @@ public struct HTTPRequestOptions {
     /// When using HTTP/2, set http2ManualDataWrites to true to specify that request body data will be provided over time.
     /// The stream will only be polled for writing when data has been supplied via `HTTP2Stream.writeData`
     public var http2ManualDataWrites: Bool = false
-
+    
     public init(request: HTTPRequestBase,
                 onInterimResponse: OnInterimResponse? = nil,
                 onResponse: @escaping OnResponse,
-                onTrailer: OnTrailer? = nil,
                 onIncomingBody: @escaping OnIncomingBody,
+                onTrailer: OnTrailer? = nil,
                 onStreamComplete: @escaping OnStreamComplete,
                 http2ManualDataWrites: Bool = false) {
         self.request = request
