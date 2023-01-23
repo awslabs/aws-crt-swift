@@ -4,6 +4,7 @@
 import AwsCIo
 import Foundation
 
+/// function to supply your own generate random implementation.
 public typealias GenerateRandomFn = () -> UInt64
 
 public class RetryStrategy {
