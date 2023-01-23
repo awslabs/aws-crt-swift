@@ -280,18 +280,22 @@ struct Elasticurl {
             }
             httpRequest.addHeaders(headers: headers)
 
-            let onResponse: HTTPRequestOptions.OnResponse = { _, headers in
+            let onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders = { _, _, headers in
                 for header in headers {
                     print(header.name + " : " + header.value)
                 }
             }
 
-            let onBody: HTTPRequestOptions.OnIncomingBody = { bodyChunk in
+            let onBody: HTTPRequestOptions.OnIncomingBody = { _, bodyChunk in
                 writeData(data: bodyChunk)
             }
 
-            let onComplete: HTTPRequestOptions.OnStreamComplete = { result in
-                print(result)
+            let onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone = { _, _ in
+
+            }
+
+            let onComplete: HTTPRequestOptions.OnStreamComplete = { _, error in
+                print(error?.message ?? "Success")
 
                 semaphore.signal()
             }
@@ -309,7 +313,8 @@ struct Elasticurl {
             do {
                 let connection = try await connectionManager.acquireConnection()
                 let requestOptions = HTTPRequestOptions(request: httpRequest,
-                                                        onResponse: onResponse,
+                                                        onIncomingHeaders: onIncomingHeaders,
+                                                        onIncomingHeadersBlockDone: onBlockDone,
                                                         onIncomingBody: onBody,
                                                         onStreamComplete: onComplete)
                 stream = try connection.makeRequest(requestOptions: requestOptions)

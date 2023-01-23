@@ -3,8 +3,7 @@
 import AwsCHttp
 import AwsCIo
 
-/// Represents a single client request to be sent
-public class HTTPRequestBase {
+public class HTTPMessage {
     let rawValue: OpaquePointer
     let allocator: Allocator
 
@@ -21,9 +20,11 @@ public class HTTPRequestBase {
 
     // internal initializer. Consumers will initialize HttpRequest subclass and
     // not interact with this class directly.
-    init(rawValue: OpaquePointer,
-         allocator: Allocator = defaultAllocator) {
+    init(allocator: Allocator = defaultAllocator) throws {
         self.allocator = allocator
+        guard let rawValue = aws_http_message_new_request(allocator.rawValue) else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
         self.rawValue = rawValue
     }
 
@@ -32,7 +33,7 @@ public class HTTPRequestBase {
     }
 }
 
-public extension HTTPRequestBase {
+public extension HTTPMessage {
 
     var headerCount: Int {
         return aws_http_message_get_header_count(rawValue)

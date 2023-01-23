@@ -47,7 +47,7 @@ class UtilityTests: XCBaseTestCase {
             aws_array_list_clean_up(list)
             allocator.release(list)
         }
-        let init_size: size_t  = 4
+        let init_size: size_t  = 4;
 
         "first".withByteCursorPointer { firstCursorPointer in
             aws_array_list_init_dynamic(list, allocator.rawValue, init_size, MemoryLayout.size(ofValue: firstCursorPointer.pointee))

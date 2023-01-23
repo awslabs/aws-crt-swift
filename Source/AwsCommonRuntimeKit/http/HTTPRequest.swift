@@ -4,8 +4,7 @@ import AwsCHttp
 import AwsCIo
 import AwsCCommon
 
-/// Represents a single client request to be sent on a HTTP 1.1 connection
-public class HTTPRequest: HTTPRequestBase {
+public class HTTPRequest: HTTPMessage {
 
     public var method: String {
         get {
@@ -46,36 +45,15 @@ public class HTTPRequest: HTTPRequestBase {
                 headers: [HTTPHeader] = [HTTPHeader](),
                 body: IStreamable? = nil,
                 allocator: Allocator = defaultAllocator) throws {
-        guard let rawValue = aws_http_message_new_request(allocator.rawValue) else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
-        super.init(rawValue: rawValue, allocator: allocator)
+        try super.init(allocator: allocator)
 
         self.method = method
         self.path = path
-        self.body = body
-        addHeaders(headers: headers)
-    }
-}
 
-/// Represents a single client request to be sent on a HTTP2 connection
-public class HTTP2Request: HTTPRequestBase {
-    /// Creates an http2 request which can be passed to a connection.
-    /// - Parameters:
-    ///   - headers: (Optional) headers to send
-    ///   - body: (Optional) body stream to send as part of request
-    ///   - allocator: (Optional) allocator to override
-    /// - Throws: CommonRuntimeError
-    public init(headers: [HTTPHeader] = [HTTPHeader](),
-                body: IStreamable? = nil,
-                allocator: Allocator = defaultAllocator) throws {
-
-        guard let rawValue = aws_http2_message_new_request(allocator.rawValue) else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
+        if let body = body {
+            let iStreamCore = IStreamCore(iStreamable: body, allocator: allocator)
+            aws_http_message_set_body_stream(self.rawValue, iStreamCore.rawValue)
         }
-        super.init(rawValue: rawValue, allocator: allocator)
-
-        self.body = body
         addHeaders(headers: headers)
     }
 }
