@@ -92,7 +92,7 @@ class CredentialsProviderTests: XCBaseTestCase {
         wait(for: [exceptionWasThrown], timeout: 15)
     }
 
-    func withEnvironmentCredentialsClosure<T>(closure: () async throws -> T) async rethrows -> T {
+    func testCreateCredentialsProviderEnv() async throws {
         setenv("AWS_ACCESS_KEY_ID", accessKey, 1)
         setenv("AWS_SECRET_ACCESS_KEY", secret, 1)
         setenv("AWS_SESSION_TOKEN", sessionToken, 1)
@@ -101,23 +101,16 @@ class CredentialsProviderTests: XCBaseTestCase {
             unsetenv("AWS_SECRET_ACCESS_KEY")
             unsetenv("AWS_SESSION_TOKEN")
         }
-        return try await closure()
-    }
+        let provider = try CredentialsProvider(source: .environment())
+        let credentials = try await provider.getCredentials()
+        assertCredentials(credentials: credentials)
 
-    func testCreateCredentialsProviderEnv() async throws {
-        try await withEnvironmentCredentialsClosure {
-            let provider = try CredentialsProvider(source: .environment())
-            let credentials = try await provider.getCredentials()
-            XCTAssertNotNil(credentials)
-            assertCredentials(credentials: credentials)
-        }
     }
 
     func testCreateCredentialsProviderProfile() async throws {
         do {
-            let provider = try CredentialsProvider(source: .profile(
-                    bootstrap: getClientBootstrap(),
-                    configFileNameOverride: Bundle.module.path(forResource: "example_config", ofType: "txt")!,
+
+            let provider = try CredentialsProvider(source: .profile(configFileNameOverride: Bundle.module.path(forResource: "example_config", ofType: "txt")!,
                     credentialsFileNameOverride: Bundle.module.path(forResource: "example_profile", ofType: "txt")!,
                     shutdownCallback: getShutdownCallback()),
                     allocator: allocator)
@@ -154,18 +147,15 @@ class CredentialsProviderTests: XCBaseTestCase {
         wait(for: [shutdownWasCalled], timeout: 15)
     }
 
-    func testCreateAWSCredentialsProviderDefaultChain() async throws {
+    func testCreateAWSCredentialsProviderChain() async throws {
         try skipIfLinux()
         do {
-            try await withEnvironmentCredentialsClosure {
-                let provider = try CredentialsProvider(source: .defaultChain(bootstrap: getClientBootstrap(),
-                        shutdownCallback: getShutdownCallback()),
-                        allocator: allocator)
+            let provider = try CredentialsProvider(source: .defaultChain(bootstrap: getClientBootstrap(),
+                    shutdownCallback: getShutdownCallback()),
+                    allocator: allocator)
 
-                let credentials = try await provider.getCredentials()
-                XCTAssertNotNil(credentials)
-                assertCredentials(credentials: credentials)
-            }
+            let credentials = try await provider.getCredentials()
+            XCTAssertNotNil(credentials)
         }
         wait(for: [shutdownWasCalled], timeout: 15)
     }
