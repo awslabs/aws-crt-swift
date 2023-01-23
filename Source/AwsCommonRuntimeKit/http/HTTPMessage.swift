@@ -11,7 +11,7 @@ public class HTTPMessage {
         willSet(value) {
             if let newBody = value {
                 let iStreamCore = IStreamCore(iStreamable: newBody, allocator: allocator)
-                aws_http_message_set_body_stream(self.rawValue, iStreamCore.rawValue)
+                aws_http_message_set_body_stream(self.rawValue, &iStreamCore.rawValue)
             } else {
                 aws_http_message_set_body_stream(self.rawValue, nil)
             }

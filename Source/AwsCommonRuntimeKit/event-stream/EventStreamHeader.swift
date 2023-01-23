@@ -15,11 +15,6 @@ public struct EventStreamHeader {
 
     /// value.count can not be greater than EventStreamHeader.maxValueLength for supported types.
     public var value: EventStreamHeaderValue
-
-    public init(name: String, value: EventStreamHeaderValue) {
-        self.name = name
-        self.value = value
-    }
 }
 
 public enum EventStreamHeaderValue: Equatable {

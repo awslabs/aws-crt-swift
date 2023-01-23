@@ -6,7 +6,7 @@ import AwsCCommon
 
 /// aws_input_stream has acquire and release functions which manage the lifetime of this object.
 class IStreamCore {
-    var rawValue: UnsafeMutablePointer<aws_input_stream>
+    var rawValue: aws_input_stream
     let iStreamable: IStreamable
     var isEndOfStream: Bool = false
     private let allocator: Allocator
@@ -23,17 +23,16 @@ class IStreamCore {
     init(iStreamable: IStreamable, allocator: Allocator) {
         self.allocator = allocator
         self.iStreamable = iStreamable
-        rawValue = allocator.allocate(capacity: 1)
+        rawValue = aws_input_stream()
         // Use a manually managed vtable pointer to avoid undefined behavior
         self.vtablePointer = allocator.allocate(capacity: 1)
         vtablePointer.initialize(to: vtable)
-        rawValue.pointee.vtable = UnsafePointer(vtablePointer)
+        rawValue.vtable = UnsafePointer(vtablePointer)
 
-        rawValue.pointee.impl = Unmanaged<IStreamCore>.passUnretained(self).toOpaque()
+        rawValue.impl = Unmanaged<IStreamCore>.passUnretained(self).toOpaque()
     }
 
     deinit {
-        allocator.release(rawValue)
         allocator.release(vtablePointer)
     }
 }
