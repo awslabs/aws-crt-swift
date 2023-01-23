@@ -2,11 +2,13 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import XCTest
 @testable import AwsCommonRuntimeKit
+import AwsCHttp
 
 class HTTPMessageTests: XCBaseTestCase {
-
     func testAddHeaders() throws {
-        let httpMessage = try HTTPMessage(allocator: allocator)
+        let httpMessage = HTTPRequestBase(
+                rawValue: aws_http_message_new_request(allocator.rawValue)!,
+                allocator: allocator)
         httpMessage.addHeaders(headers: [
             HTTPHeader(name: "header1", value: "value1"),
             HTTPHeader(name: "header2", value: "value2")])
@@ -17,7 +19,9 @@ class HTTPMessageTests: XCBaseTestCase {
         let headers = [
             HTTPHeader(name: "header1", value: "value1"),
             HTTPHeader(name: "header2", value: "value2")]
-        let httpMessage = try HTTPMessage(allocator: allocator)
+        let httpMessage = HTTPRequestBase(
+                rawValue: aws_http_message_new_request(allocator.rawValue)!,
+                allocator: allocator)
         httpMessage.addHeaders(headers: headers)
         let requestHeaders = httpMessage.getHeaders()
         XCTAssertTrue(headers.elementsEqual(requestHeaders, by: { $0.name == $1.name && $0.value == $1.value}))
@@ -27,7 +31,9 @@ class HTTPMessageTests: XCBaseTestCase {
         let headers = [
             HTTPHeader(name: "header1", value: "value1"),
             HTTPHeader(name: "header2", value: "value2")]
-        let httpMessage = try HTTPMessage(allocator: allocator)
+        let httpMessage = HTTPRequestBase(
+                rawValue: aws_http_message_new_request(allocator.rawValue)!,
+                allocator: allocator)
         httpMessage.addHeaders(headers: headers)
 
         XCTAssertEqual(httpMessage.getHeaderValue(name: "header1"), "value1")
@@ -39,7 +45,9 @@ class HTTPMessageTests: XCBaseTestCase {
         let headers = [
             HTTPHeader(name: "header1", value: "value1"),
             HTTPHeader(name: "header2", value: "value2")]
-        let httpMessage = try HTTPMessage(allocator: allocator)
+        let httpMessage = HTTPRequestBase(
+                rawValue: aws_http_message_new_request(allocator.rawValue)!,
+                allocator: allocator)
         httpMessage.addHeaders(headers: headers)
         XCTAssertEqual(httpMessage.headerCount, 2)
         httpMessage.addHeader(header: HTTPHeader(name: "HeaderToRemove", value: "xyz"))
@@ -53,7 +61,9 @@ class HTTPMessageTests: XCBaseTestCase {
         let headers = [
             HTTPHeader(name: "header1", value: "value1"),
             HTTPHeader(name: "header2", value: "value2")]
-        let httpMessage = try HTTPMessage(allocator: allocator)
+        let httpMessage = HTTPRequestBase(
+                rawValue: aws_http_message_new_request(allocator.rawValue)!,
+                allocator: allocator)
         httpMessage.addHeaders(headers: headers)
         XCTAssertEqual(httpMessage.headerCount, 2)
         httpMessage.addHeader(header: HTTPHeader(name: "", value: "xyz"))
@@ -64,7 +74,9 @@ class HTTPMessageTests: XCBaseTestCase {
         let headers = [
             HTTPHeader(name: "header1", value: "value1"),
             HTTPHeader(name: "header2", value: "value2")]
-        let httpMessage = try HTTPMessage(allocator: allocator)
+        let httpMessage = HTTPRequestBase(
+                rawValue: aws_http_message_new_request(allocator.rawValue)!,
+                allocator: allocator)
         httpMessage.addHeaders(headers: headers)
         XCTAssertEqual(httpMessage.headerCount, 2)
         httpMessage.clearHeaders()
@@ -76,7 +88,9 @@ class HTTPMessageTests: XCBaseTestCase {
         let headers = [
             HTTPHeader(name: "header1", value: "value1"),
             HTTPHeader(name: "header2", value: "value2")]
-        let httpMessage = try HTTPMessage(allocator: allocator)
+        let httpMessage = HTTPRequestBase(
+                rawValue: aws_http_message_new_request(allocator.rawValue)!,
+                allocator: allocator)
         httpMessage.addHeaders(headers: headers)
         XCTAssertEqual(httpMessage.headerCount, 2)
 
