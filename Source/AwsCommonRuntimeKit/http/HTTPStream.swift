@@ -1,18 +1,26 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
-import Foundation
 
-/// An base class that represents a single Http Request/Response for both HTTP/1.1 and HTTP/2.
-/// Can be used to update the Window size, and get status code.
 public class HTTPStream {
     let rawValue: UnsafeMutablePointer<aws_http_stream>
     var callbackData: HTTPStreamCallbackCore
 
-    init(rawValue: UnsafeMutablePointer<aws_http_stream>,
-         callbackData: HTTPStreamCallbackCore) {
+    /// Stream keeps a reference to HttpConnection to keep it alive
+    private let httpConnection: HTTPClientConnection
+
+    // Called by HTTPClientConnection
+    init(
+        httpConnection: HTTPClientConnection,
+        options: aws_http_make_request_options,
+        callbackData: HTTPStreamCallbackCore) throws {
         self.callbackData = callbackData
+        guard let rawValue = withUnsafePointer(
+                to: options, { aws_http_connection_make_request(httpConnection.rawValue, $0) }) else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
         self.rawValue = rawValue
+        self.httpConnection = httpConnection
     }
 
     /// Opens the Sliding Read/Write Window by the number of bytes passed as an argument for this HTTPStream.
@@ -35,9 +43,12 @@ public class HTTPStream {
         return Int(status)
     }
 
+    // TODO: make it thread safe
     /// Activates the client stream.
     public func activate() throws {
+        callbackData.stream = self
         if aws_http_stream_activate(rawValue) != AWS_OP_SUCCESS {
+            callbackData.stream = nil
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
     }

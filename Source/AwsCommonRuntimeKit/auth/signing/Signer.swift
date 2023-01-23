@@ -30,9 +30,9 @@ public class Signer {
     /// - `Throws`: An error of type `AwsCommonRuntimeError` which will pull last error found in the CRT
     /// - `Returns`: Returns a signed http request `HttpRequest`
     public static func signRequest(
-        request: HTTPRequestBase,
+        request: HTTPRequest,
         config: SigningConfig,
-        allocator: Allocator = defaultAllocator) async throws -> HTTPRequestBase {
+        allocator: Allocator = defaultAllocator) async throws -> HTTPRequest {
 
         guard let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -41,9 +41,7 @@ public class Signer {
             aws_signable_destroy(signable)
         }
 
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<
-                                                                HTTPRequestBase,
-                                                                Error>) in
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<HTTPRequest, Error>) in
             let signRequestCore = SignRequestCore(request: request,
                                                   continuation: continuation,
                                                   shouldSignHeader: config.shouldSignHeader,
@@ -76,11 +74,11 @@ public class Signer {
 
 class SignRequestCore {
     let allocator: Allocator
-    let request: HTTPRequestBase
-    var continuation: CheckedContinuation<HTTPRequestBase, Error>
+    let request: HTTPRequest
+    var continuation: CheckedContinuation<HTTPRequest, Error>
     let shouldSignHeader: ((String) -> Bool)?
-    init(request: HTTPRequestBase,
-         continuation: CheckedContinuation<HTTPRequestBase, Error>,
+    init(request: HTTPRequest,
+         continuation: CheckedContinuation<HTTPRequest, Error>,
          shouldSignHeader: ((String) -> Bool)? = nil,
          allocator: Allocator) {
         self.allocator = allocator
