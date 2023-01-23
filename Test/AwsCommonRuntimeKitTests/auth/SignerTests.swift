@@ -42,6 +42,34 @@ class SignerTests: XCBaseTestCase {
         XCTAssert(headers.contains(where: { $0.name == "Host" && $0.value == SIGV4TEST_HOST }))
     }
 
+    func testHTTP2SigningSigv4Headers() async throws {
+        let request = try makeMockHTTP2RequestWithDoNotSignHeader()
+        let provider = try makeMockCredentialsProvider()
+        let shouldSignHeader: (String) -> Bool = { name in
+            return !name.starts(with: "doNotSign")
+        }
+        let config = SigningConfig(
+                algorithm: SigningAlgorithmType.signingV4,
+                signatureType: SignatureType.requestHeaders,
+                service: SIGV4TEST_SERVICE,
+                region: SIGV4TEST_REGION,
+                date: getDate(),
+                credentialsProvider: provider,
+                shouldSignHeader: shouldSignHeader)
+
+        let signedRequest = try await Signer.signRequest(request: request,
+                config: config,
+                allocator: allocator)
+        XCTAssertNotNil(signedRequest)
+        let headers = signedRequest.getHeaders()
+        XCTAssert(headers.contains(where: {
+            $0.name == "Authorization" 
+                    && $0.value.starts(with: "AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/20150830/us-east-1/service/aws4_request, SignedHeaders=:authority;:method;:path;:scheme;x-amz-date, Signature=")
+        }))
+        XCTAssert(headers.contains(where: { $0.name == "X-Amz-Date" }))
+        XCTAssert(headers.contains(where: { $0.name == ":authority" && $0.value == SIGV4TEST_HOST }))
+    }
+
     func testSigningSigv4HeadersWithCredentials() async throws {
         let request = try makeMockRequest()
         let credentials = try makeMockCredentials()
@@ -144,8 +172,18 @@ class SignerTests: XCBaseTestCase {
         return request
     }
 
+    func makeMockHTTP2RequestWithDoNotSignHeader() throws -> HTTP2Request {
+        let request = try HTTP2Request(allocator: allocator)
+        request.addHeader(header: HTTPHeader(name: ":method", value: "GET"))
+        request.addHeader(header: HTTPHeader(name: ":path", value: "/"))
+        request.addHeader(header: HTTPHeader(name: ":scheme", value: "https"))
+        request.addHeader(header: HTTPHeader(name: ":authority", value: SIGV4TEST_HOST))
+        request.addHeader(header: HTTPHeader(name: "doNotSign", value: "test-header"))
+        return request
+    }
+
     func makeMockRequestWithDoNotSignHeader() throws -> HTTPRequest {
-        let request = try HTTPRequest()
+        let request = try HTTPRequest(allocator: allocator)
         request.addHeader(header: HTTPHeader(name: "Host", value: SIGV4TEST_HOST))
         request.addHeader(header: HTTPHeader(name: "doNotSign", value: "test-header"))
         return request
