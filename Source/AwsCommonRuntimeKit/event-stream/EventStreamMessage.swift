@@ -9,14 +9,6 @@ public struct EventStreamMessage {
     var payload: Data = Data()
     var allocator: Allocator = defaultAllocator
 
-    public init(headers: [EventStreamHeader] = [EventStreamHeader](),
-                payload: Data = Data(),
-                allocator: Allocator = defaultAllocator) {
-        self.headers = headers
-        self.payload = payload
-        self.allocator = allocator
-    }
-
     /// Get the binary format of this message (i.e. for sending across the wire manually)
     /// - Returns:  binary Data.
     public func getEncoded() throws -> Data {
