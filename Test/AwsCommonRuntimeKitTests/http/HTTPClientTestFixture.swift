@@ -8,7 +8,7 @@ struct HTTPResponse {
     var statusCode: Int = -1
     var headers: [HTTPHeader] = [HTTPHeader]()
     var body: Data = Data()
-    var error: CRTError?
+    var error: CommonRunTimeError?
     var version: HTTPVersion?
 }
 
@@ -28,9 +28,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
                          expectedVersion: HTTPVersion = HTTPVersion.version_1_1,
                          requestVersion: HTTPVersion = HTTPVersion.version_1_1,
                          numRetries: UInt = 2,
-                         onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders? = nil,
+                         onResponse: HTTPRequestOptions.OnResponse? = nil,
                          onBody: HTTPRequestOptions.OnIncomingBody? = nil,
-                         onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone? = nil,
                          onComplete: HTTPRequestOptions.OnStreamComplete? = nil) async throws -> HTTPResponse {
 
         var httpResponse = HTTPResponse()
@@ -45,9 +44,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
                     body: body,
                     response: &httpResponse,
                     semaphore: semaphore,
-                    onIncomingHeaders: onIncomingHeaders,
+                    onResponse: onResponse,
                     onBody: onBody,
-                    onBlockDone: onBlockDone,
                     onComplete: onComplete)
         } else {
             httpRequestOptions = try getHTTPRequestOptions(
@@ -57,9 +55,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
                     body: body,
                     response: &httpResponse,
                     semaphore: semaphore,
-                    onIncomingHeaders: onIncomingHeaders,
+                    onResponse: onResponse,
                     onBody: onBody,
-                    onBlockDone: onBlockDone,
                     onComplete: onComplete)
         }
 
@@ -88,9 +85,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
                           streamManager: HTTP2StreamManager,
                           numRetries: UInt = 2,
                           http2ManualDataWrites: Bool = false,
-                          onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders? = nil,
+                          onResponse: HTTPRequestOptions.OnResponse? = nil,
                           onBody: HTTPRequestOptions.OnIncomingBody? = nil,
-                          onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone? = nil,
                           onComplete: HTTPRequestOptions.OnStreamComplete? = nil) async throws -> HTTPResponse {
 
         var httpResponse = HTTPResponse()
@@ -104,9 +100,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
                 body: body,
                 response: &httpResponse,
                 semaphore: semaphore,
-                onIncomingHeaders: onIncomingHeaders,
+                onResponse: onResponse,
                 onBody: onBody,
-                onBlockDone: onBlockDone,
                 onComplete: onComplete,
                 http2ManualDataWrites: http2ManualDataWrites)
 
@@ -154,32 +149,29 @@ class HTTPClientTestFixture: XCBaseTestCase {
     func getRequestOptions(request: HTTPRequestBase,
                            response: UnsafeMutablePointer<HTTPResponse>? = nil,
                            semaphore: DispatchSemaphore? = nil,
-                           onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders? = nil,
+                           onResponse: HTTPRequestOptions.OnResponse? = nil,
                            onBody: HTTPRequestOptions.OnIncomingBody? = nil,
-                           onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone? = nil,
                            onComplete: HTTPRequestOptions.OnStreamComplete? = nil,
                            http2ManualDataWrites: Bool = false) -> HTTPRequestOptions {
         HTTPRequestOptions(request: request,
-                onIncomingHeaders: { stream, headerBlock, headers in
-                    for header in headers {
-                        response?.pointee.headers.append(header)
-                    }
-                    onIncomingHeaders?(stream, headerBlock, headers)
+                onResponse: { status, headers in
+                    response?.pointee.headers += headers
+                    onResponse?(status, headers)
                 },
-                onIncomingHeadersBlockDone: { stream, block in
-                    onBlockDone?(stream, block)
-                },
-                onIncomingBody: { stream, bodyChunk in
+
+                onIncomingBody: { bodyChunk in
                     response?.pointee.body += bodyChunk
-                    onBody?(stream, bodyChunk)
+                    onBody?(bodyChunk)
                 },
-                onStreamComplete: { stream, error in
-                    response?.pointee.error = error
-                    if error != nil {
+                onStreamComplete: { result in
+                    switch result{
+                    case .success(let status):
+                        response?.pointee.statusCode = Int(status)
+                    case .failure(let error):
                         print("AWS_TEST_ERROR:\(String(describing: error))")
+                        response?.pointee.error = error
                     }
-                    response?.pointee.statusCode = (try? stream.statusCode()) ?? -1
-                    onComplete?(stream, error)
+                    onComplete?(result)
                     semaphore?.signal()
                 },
                 http2ManualDataWrites: http2ManualDataWrites)
@@ -193,9 +185,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                response: UnsafeMutablePointer<HTTPResponse>? = nil,
                                semaphore: DispatchSemaphore? = nil,
                                headers: [HTTPHeader] = [HTTPHeader](),
-                               onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders? = nil,
+                               onResponse: HTTPRequestOptions.OnResponse? = nil,
                                onBody: HTTPRequestOptions.OnIncomingBody? = nil,
-                               onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone? = nil,
                                onComplete: HTTPRequestOptions.OnStreamComplete? = nil
     ) throws -> HTTPRequestOptions {
         let httpRequest: HTTPRequest = try HTTPRequest(method: method, path: path, body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
@@ -206,9 +197,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
                 request: httpRequest,
                 response: response,
                 semaphore: semaphore,
-                onIncomingHeaders: onIncomingHeaders,
+                onResponse: onResponse,
                 onBody: onBody,
-                onBlockDone: onBlockDone,
                 onComplete: onComplete)
     }
 
@@ -220,9 +210,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                 manualDataWrites: Bool = false,
                                 response: UnsafeMutablePointer<HTTPResponse>? = nil,
                                 semaphore: DispatchSemaphore? = nil,
-                                onIncomingHeaders: HTTPRequestOptions.OnIncomingHeaders? = nil,
+                                onResponse: HTTPRequestOptions.OnResponse? = nil,
                                 onBody: HTTPRequestOptions.OnIncomingBody? = nil,
-                                onBlockDone: HTTPRequestOptions.OnIncomingHeadersBlockDone? = nil,
                                 onComplete: HTTPRequestOptions.OnStreamComplete? = nil,
                                 http2ManualDataWrites: Bool = false) throws -> HTTPRequestOptions {
 
@@ -237,9 +226,8 @@ class HTTPClientTestFixture: XCBaseTestCase {
                 request: http2Request,
                 response: response,
                 semaphore: semaphore,
-                onIncomingHeaders: onIncomingHeaders,
+                onResponse: onResponse,
                 onBody: onBody,
-                onBlockDone: onBlockDone,
                 onComplete: onComplete,
                 http2ManualDataWrites: http2ManualDataWrites)
     }

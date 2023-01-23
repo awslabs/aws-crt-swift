@@ -148,7 +148,7 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
                 body: testBody,
                 response: &httpResponse,
                 semaphore: semaphore,
-                onComplete: { stream, error in
+                onComplete: { _ in
                     onCompleteCalled = true
                 },
                 http2ManualDataWrites: true)

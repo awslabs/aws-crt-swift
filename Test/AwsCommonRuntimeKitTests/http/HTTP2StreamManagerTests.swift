@@ -120,7 +120,7 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
                 body: testBody,
                 response: &httpResponse,
                 semaphore: semaphore,
-                onComplete: { stream, error in
+                onComplete: { _ in
                     onCompleteCalled = true
                 },
                 http2ManualDataWrites: true)
@@ -155,10 +155,13 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
     // Test that the binding works not the actual functionality. C part has tests for functionality
     func testHTTP2StreamReset() async throws {
         let streamManager = try makeStreamManger(host: endpoint)
-        _ = try await sendHTTP2Request(method: "GET", path: path, authority: endpoint, streamManager: streamManager, onIncomingHeaders: { stream, headerBlock, headers in
-            let stream = stream as! HTTP2Stream
-            try! stream.resetStream(error: HTTP2Error.internalError)
-        })
+        let http2RequestOptions = try getHTTP2RequestOptions(
+                method: "PUT",
+                path: "/httpbin/put",
+                authority: "nghttp2.org")
+
+        let stream = try await streamManager.acquireStream(requestOptions: http2RequestOptions)
+        try stream.resetStream(error: HTTP2Error.internalError)
     }
 
     func testHTTP2ParallelStreams() async throws {
@@ -172,7 +175,7 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         await withTaskGroup(of: Void.self) { taskGroup in
             for _ in 1...count {
                 taskGroup.addTask {
-                    _ = try! await self.sendHTTP2Request(method: "GET", path: "/httpbin/get", authority: "nghttp2.org", streamManager: streamManager, onComplete: { stream, error in
+                    _ = try! await self.sendHTTP2Request(method: "GET", path: "/httpbin/get", authority: "nghttp2.org", streamManager: streamManager, onComplete: { _ in
                         requestCompleteExpectation.fulfill()
                     })
                 }
