@@ -5,6 +5,17 @@ import struct Foundation.Data
 import struct Foundation.TimeInterval
 import AwsCCal
 
+class Box<T> {
+    let contents: T
+    init(_ contents: T) {
+        self.contents = contents
+    }
+
+    func passUnretained() -> UnsafeMutableRawPointer {
+        return Unmanaged<Box>.passUnretained(self).toOpaque()
+    }
+}
+
 extension String {
 
     public func base64EncodedMD5(allocator: Allocator = defaultAllocator, truncate: Int = 0) throws -> String {

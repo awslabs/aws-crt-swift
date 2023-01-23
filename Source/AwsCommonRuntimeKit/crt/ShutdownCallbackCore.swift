@@ -11,6 +11,10 @@ public typealias ShutdownCallback = () -> Void
 class ShutdownCallbackCore {
     let shutdownCallback: ShutdownCallback
     let data: AnyObject?
+
+    /// - Parameters:
+    ///   - shutdownCallback: Shutdown callback to trigger. If it is Nil, it will be replaced with empty callback
+    ///   - data: Pass in any data you want to retain till shutdown callback has fired.
     init(_ shutdownCallback: ShutdownCallback?,
          data: AnyObject? = nil) {
         if let shutdownCallback = shutdownCallback {
