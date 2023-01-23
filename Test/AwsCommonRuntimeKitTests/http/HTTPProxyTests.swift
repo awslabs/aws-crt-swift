@@ -191,7 +191,7 @@ class HTTPProxyTests: HTTPClientTestFixture {
                 port: port,
                 alpnList: ["http/1.1"],
                 proxyOptions: proxyOptions)
-        _ = try await sendHttpRequest(method: "GET", endpoint: uri, connectionManager: manager)
+        _ = try await sendHTTPRequest(method: "GET", endpoint: uri, connectionManager: manager)
     }
 
 }

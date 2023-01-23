@@ -71,7 +71,7 @@ public final class TracingAllocator: Allocator {
      * - Parameter framesPerStack: How many frames to record for each allocation
      *   (8 as usually a good default to start with).
      */
-    public convenience init(tracingStacksOf allocator: Allocator, framesPerStack: Int = 16) {
+    public convenience init(tracingStacksOf allocator: Allocator, framesPerStack: Int = 10) {
         self.init(allocator, level: .stacks, framesPerStack: framesPerStack)
     }
 
