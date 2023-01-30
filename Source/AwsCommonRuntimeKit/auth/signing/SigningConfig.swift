@@ -137,32 +137,22 @@ private func onShouldSignHeader(nameCursor: UnsafePointer<aws_byte_cursor>!,
 }
 
 public enum SignatureType {
-    /**
-     A signature for a full http request should be computed, with header updates applied to the signing result.
-     */
+
+    /// A signature for a full http request should be computed, with header updates applied to the signing result.
     case requestHeaders
 
-    /**
-     A signature for a full http request should be computed, with query param updates applied to the signing result.
-     */
+    /// A signature for a full http request should be computed, with query param updates applied to the signing result.
     case requestQueryParams
 
-    /**
-     Compute a signature for a payload chunk.  The signable's input stream should be the chunk data and the
-     signable should contain the most recent signature value (either the original http request or the most recent
-     chunk) in the "previous-signature" property.
-     */
+    /// Compute a signature for a payload chunk. The signable's input stream should be the chunk data and the
+    /// signable should contain the most recent signature value (either the original http request or the most recent
+    /// chunk) in the "previous-signature" property.
     case requestChunk
 
-    /**
-     Compute a signature for an event stream event.  The signable's input stream should be the event payload, the
-     signable should contain the most recent signature value (either the original http request or the most recent
-     event) in the "previous-signature" property as well as any event headers that should be signed with the
-     exception of ":date"
-
-     This option is not yet supported.
-     */
-    case requestEvent
+    /// Compute a signature for the trailing headers.
+    /// the signable should contain the most recent signature value (either the original http request or the most recent
+    /// chunk) in the "previous-signature" property.
+    case requestTrailingHeaders
 }
 
 public enum SignedBodyHeaderType {
@@ -181,7 +171,11 @@ public enum SignedBodyValue: String {
     /// Use this in the case of needing to not use the payload for signing
     case unsignedPayload = "UNSIGNED-PAYLOAD"
     case streamingSha256Payload = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD"
+    case streamingECDSA_P256Sha256Payload = "STREAMING-AWS4-ECDSA-P256-SHA256-PAYLOAD"
+    case streamingECDSA_P256Sha256PayloadTrailer = "STREAMING-AWS4-ECDSA-P256-SHA256-PAYLOAD-TRAILER"
     case streamingSha256Events = "STREAMING-AWS4-HMAC-SHA256-EVENTS"
+    case streamingUnSignedPayloadTrailer = "STREAMING-UNSIGNED-PAYLOAD-TRAILER"
+
 }
 
 public enum SigningAlgorithmType {
@@ -201,7 +195,7 @@ extension SignatureType: RawRepresentable, CaseIterable {
         case .requestHeaders: return AWS_ST_HTTP_REQUEST_HEADERS
         case .requestQueryParams: return AWS_ST_HTTP_REQUEST_QUERY_PARAMS
         case .requestChunk: return AWS_ST_HTTP_REQUEST_CHUNK
-        case .requestEvent: return AWS_ST_HTTP_REQUEST_EVENT
+        case .requestTrailingHeaders: return AWS_ST_HTTP_REQUEST_TRAILING_HEADERS
         }
     }
 }

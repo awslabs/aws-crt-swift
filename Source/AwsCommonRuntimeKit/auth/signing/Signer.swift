@@ -72,6 +72,65 @@ public class Signer {
             }
         }
     }
+
+    public static func signChunk(chunk: IStreamable,
+                                 previousSignature: String,
+                                 config: SigningConfig,
+                                 allocator: Allocator = defaultAllocator) async throws -> String {
+        let iStreamCore = IStreamCore(iStreamable: chunk, allocator: allocator)
+        guard let signable = previousSignature.withByteCursorPointer({ previousSignatureCursor in
+            aws_signable_new_chunk(allocator.rawValue, iStreamCore.rawValue, previousSignatureCursor.pointee)
+        }) else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+        defer {
+            aws_signable_destroy(signable)
+        }
+
+        return try await withCheckedThrowingContinuation { continuation in
+            config.withCPointer { configPointer in
+                configPointer.withMemoryRebound(
+                    to: aws_signing_config_base.self,
+                    capacity: 1) { configBasePointer in
+                    let chunkSignerCore = ChunkSignerCore(
+                        continuation: continuation,
+                        allocator: allocator)
+                    if aws_sign_request_aws(
+                        allocator.rawValue,
+                        signable,
+                        configBasePointer,
+                        onChunkSigningComplete,
+                        chunkSignerCore.passRetained())
+                        != AWS_OP_SUCCESS {
+                        chunkSignerCore.release()
+                        continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
+                    }
+                }
+            }
+        }
+    }
+}
+
+class ChunkSignerCore {
+    let allocator: Allocator
+    var continuation: CheckedContinuation<String, Error>
+    init(continuation: CheckedContinuation<String, Error>,
+         allocator: Allocator) {
+        self.allocator = allocator
+        self.continuation = continuation
+    }
+
+    func passRetained() -> UnsafeMutableRawPointer {
+        return Unmanaged.passRetained(self).toOpaque()
+    }
+
+    func passUnretained() -> UnsafeMutableRawPointer {
+        return Unmanaged.passUnretained(self).toOpaque()
+    }
+
+    func release() {
+        Unmanaged.passUnretained(self).release()
+    }
 }
 
 class SignRequestCore {
@@ -120,4 +179,29 @@ private func onSigningComplete(signingResult: UnsafeMutablePointer<aws_signing_r
     } else {
         signRequestCore.continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
     }
+}
+
+private func onChunkSigningComplete(signingResult: UnsafeMutablePointer<aws_signing_result>?,
+                                    errorCode: Int32,
+                                    userData: UnsafeMutableRawPointer!) {
+    let chunkSignerCore = Unmanaged<ChunkSignerCore>.fromOpaque(userData).takeRetainedValue()
+    guard errorCode == AWS_OP_SUCCESS else {
+        chunkSignerCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        return
+    }
+
+    // Success
+    let awsStringPointer: UnsafeMutablePointer<UnsafeMutablePointer<aws_string>?> = chunkSignerCore.allocator.allocate(capacity: 1)
+    defer {
+        chunkSignerCore.allocator.release(awsStringPointer)
+    }
+
+    guard aws_signing_result_get_property(
+            signingResult!,
+            g_aws_signature_property_name,
+            awsStringPointer) == AWS_OP_SUCCESS else {
+        chunkSignerCore.continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
+        return
+    }
+    chunkSignerCore.continuation.resume(returning: String(awsString: awsStringPointer.pointee!)!)
 }
