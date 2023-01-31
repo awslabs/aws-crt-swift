@@ -53,18 +53,14 @@ public class Signer {
                 shouldSignHeaderUserData = signRequestCore.passUnretained()
             }
             config.withCPointer(userData: shouldSignHeaderUserData) { configPointer in
-                configPointer.withMemoryRebound(
-                    to: aws_signing_config_base.self,
-                    capacity: 1) { configBasePointer in
-
-                    if aws_sign_request_aws(
-                        allocator.rawValue,
-                        signable,
-                        configBasePointer,
-                        onSigningComplete,
-                        signRequestCore.passRetained())
+                configPointer.withMemoryRebound(to: aws_signing_config_base.self,
+                                                capacity: 1) { configBasePointer in
+                    if aws_sign_request_aws(allocator.rawValue,
+                                            signable,
+                                            configBasePointer,
+                                            onSigningComplete,
+                                            signRequestCore.passRetained())
                         != AWS_OP_SUCCESS {
-
                         signRequestCore.release()
                         continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
                     }
@@ -108,11 +104,11 @@ public class Signer {
     ///   - allocator: (Optional) allocator to override
     /// - Returns: Signing Result
     /// - Throws: CommonRunTimeError.crtError
-    public static func signTrailerHeaders(
-            headers: [HTTPHeader],
-            previousSignature: String,
-            config: SigningConfig,
-            allocator: Allocator = defaultAllocator) async throws -> String {
+    public static func signTrailerHeaders(headers: [HTTPHeader],
+                                          previousSignature: String,
+                                          config: SigningConfig,
+                                          allocator: Allocator = defaultAllocator) async throws -> String {
+
         guard let signable = previousSignature.withByteCursorPointer({ previousSignatureCursor in
             headers.withCHeaders(allocator: allocator) { cHeaders in
                 aws_signable_new_trailing_headers(allocator.rawValue, cHeaders, previousSignatureCursor.pointee)
@@ -126,25 +122,22 @@ public class Signer {
         return try await sign(config: config, signable: signable, allocator: allocator)
     }
 
-    private static func sign(
-            config: SigningConfig,
-            signable: UnsafePointer<aws_signable>,
-            allocator: Allocator) async throws -> String {
+    private static func sign(config: SigningConfig,
+                             signable: UnsafePointer<aws_signable>,
+                             allocator: Allocator) async throws -> String {
+
         try await withCheckedThrowingContinuation { continuation in
             config.withCPointer { configPointer in
-                configPointer.withMemoryRebound(
-                        to: aws_signing_config_base.self,
-                        capacity: 1) { configBasePointer in
-                    let chunkSignerCore = ChunkSignerCore(
-                            continuation: continuation,
-                            allocator: allocator)
-                    if aws_sign_request_aws(
-                            allocator.rawValue,
-                            signable,
-                            configBasePointer,
-                            onChunkSigningComplete,
-                            chunkSignerCore.passRetained())
-                               != AWS_OP_SUCCESS {
+                configPointer.withMemoryRebound(to: aws_signing_config_base.self,
+                                                capacity: 1) { configBasePointer in
+                    let chunkSignerCore = ChunkSignerCore(continuation: continuation,
+                                                          allocator: allocator)
+                    if aws_sign_request_aws(allocator.rawValue,
+                                            signable,
+                                            configBasePointer,
+                                            onChunkSigningComplete,
+                                            chunkSignerCore.passRetained())
+                        != AWS_OP_SUCCESS {
                         chunkSignerCore.release()
                         continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
                     }
@@ -234,7 +227,8 @@ private func onChunkSigningComplete(signingResult: UnsafeMutablePointer<aws_sign
     }
 
     // Success
-    let awsStringPointer: UnsafeMutablePointer<UnsafeMutablePointer<aws_string>?> = chunkSignerCore.allocator.allocate(capacity: 1)
+    let awsStringPointer: UnsafeMutablePointer<UnsafeMutablePointer<aws_string>?> =
+        chunkSignerCore.allocator.allocate(capacity: 1)
     defer {
         chunkSignerCore.allocator.release(awsStringPointer)
     }
