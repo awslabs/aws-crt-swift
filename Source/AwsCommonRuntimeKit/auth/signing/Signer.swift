@@ -82,11 +82,11 @@ public class Signer {
     ///   - allocator: (Optional) allocator to override
     /// - Returns: Signature of the chunk
     /// - Throws: CommonRunTimeError.crtError
-    public static func signChunk(chunk: IStreamable,
+    public static func signChunk(chunk: Data,
                                  previousSignature: String,
                                  config: SigningConfig,
                                  allocator: Allocator = defaultAllocator) async throws -> String {
-        let iStreamCore = IStreamCore(iStreamable: chunk, allocator: allocator)
+        let iStreamCore = IStreamCore(iStreamable: ByteBuffer(data: chunk), allocator: allocator)
         guard let signable = previousSignature.withByteCursorPointer({ previousSignatureCursor in
             aws_signable_new_chunk(allocator.rawValue, iStreamCore.rawValue, previousSignatureCursor.pointee)
         }) else {

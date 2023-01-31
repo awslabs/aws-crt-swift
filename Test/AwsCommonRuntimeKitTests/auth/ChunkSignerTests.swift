@@ -43,17 +43,17 @@ class ChunkSignerTests: XCBaseTestCase {
         }))
 
         let firstChunkSignature = try await Signer.signChunk(
-                chunk: ByteBuffer(data: Data(repeating: 97, count: chunk1Size)),
+                chunk: Data(repeating: 97, count: chunk1Size),
                 previousSignature: expectedRequestSignature, config: makeChunkedSigningConfig())
         XCTAssertEqual(firstChunkSignature, expectedFirstChunkSignature)
 
         let secondChunkSignature = try await Signer.signChunk(
-                chunk: ByteBuffer(data: Data(repeating: 97, count: chunk2Size)),
+                chunk: Data(repeating: 97, count: chunk2Size),
                 previousSignature: expectedFirstChunkSignature, config: makeChunkedSigningConfig())
         XCTAssertEqual(secondChunkSignature, expectedSecondChunkSignature)
 
         let finalChunkSignature = try await Signer.signChunk(
-                chunk: ByteBuffer(data: Data()),
+                chunk: Data(),
                 previousSignature: secondChunkSignature, config: makeChunkedSigningConfig())
         XCTAssertEqual(finalChunkSignature, expectedFinalChunkSignature)
 
@@ -71,17 +71,17 @@ class ChunkSignerTests: XCBaseTestCase {
         XCTAssertNotNil(signedRequest)
 
         let firstChunkSignature = try await Signer.signChunk(
-                chunk: ByteBuffer(data: Data(repeating: 97, count: chunk1Size)),
+                chunk: Data(repeating: 97, count: chunk1Size),
                 previousSignature: expectedRequestSignature, config: makeChunkedSigningConfig(sigv4: false))
         XCTAssertNotNil(firstChunkSignature)
 
         let secondChunkSignature = try await Signer.signChunk(
-                chunk: ByteBuffer(data: Data(repeating: 97, count: chunk2Size)),
+                chunk: Data(repeating: 97, count: chunk2Size),
                 previousSignature: expectedFirstChunkSignature, config: makeChunkedSigningConfig())
         XCTAssertNotNil(secondChunkSignature)
 
         let finalChunk = try await Signer.signChunk(
-                chunk: ByteBuffer(data: Data()),
+                chunk: Data(),
                 previousSignature: secondChunkSignature, config: makeChunkedSigningConfig())
         XCTAssertNotNil(finalChunk)
     }
