@@ -28,3 +28,13 @@ public class HTTPHeader: CStruct {
         }
     }
 }
+
+extension Array where Element == HTTPHeader {
+    func withCHeaders<Result>(
+            allocator: Allocator,
+            _ body: (OpaquePointer) -> Result) -> Result {
+        var cHeaders: OpaquePointer = aws_http_headers_new(allocator.rawValue)
+        forEach { $0.withCPointer { _ = aws_http_headers_add_header(cHeaders, $0) } }
+        return body(cHeaders)
+    }
+}

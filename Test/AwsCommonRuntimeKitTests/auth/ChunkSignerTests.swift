@@ -14,13 +14,18 @@ class ChunkSignerTests: XCBaseTestCase {
     let chunk1Size = 65536;
     let chunk2Size = 1024;
     let url = URL(string: "https://s3.amazonaws.com/examplebucket/chunkObject.txt")!
+    let trailingHeaders = [
+        HTTPHeader(name: "first", value: "1st"),
+        HTTPHeader(name: "second", value: "2nd"),
+        HTTPHeader(name: "third", value: "3rd"),
+    ]
+
     let expectedAuthorizationHeader =
             """
             AWS4-HMAC-SHA256 Credential=AKIAIOSFODNN7EXAMPLE/20130524/us-east-1/s3/aws4_request, \
             SignedHeaders=content-encoding;content-length;host;x-amz-content-sha256;x-amz-date;x-amz-decoded-content-length;x-amz-storage-class, \
             Signature=4f232c4386841ef735655705268965c44a0e4690baa4adea153f7db9fa80a0a9
             """
-
     let expectedRequestSignature = "4f232c4386841ef735655705268965c44a0e4690baa4adea153f7db9fa80a0a9"
     let expectedFirstChunkSignature = "ad80c730a21e5b8d04586a2213dd63b9a0e99e0e2307b0ade35a65485a288648"
     let expectedSecondChunkSignature = "0055627c9e194cb4542bae2aa5492e3c1575bbb81b612b7d234b86a503ef5497"
@@ -47,10 +52,16 @@ class ChunkSignerTests: XCBaseTestCase {
                 previousSignature: expectedFirstChunkSignature, config: makeChunkedSigningConfig())
         XCTAssertEqual(secondChunkSignature, expectedSecondChunkSignature)
 
-        let finalChunk = try await Signer.signChunk(
+        let finalChunkSignature = try await Signer.signChunk(
                 chunk: ByteBuffer(data: Data()),
                 previousSignature: secondChunkSignature, config: makeChunkedSigningConfig())
-        XCTAssertEqual(finalChunk, expectedFinalChunkSignature)
+        XCTAssertEqual(finalChunkSignature, expectedFinalChunkSignature)
+
+        let trailerChunkSignature = try await Signer.signTrailerHeaders(
+                headers: trailingHeaders,
+                previousSignature: finalChunkSignature,
+                config: makeTrailingSigningConfig())
+        XCTAssertEqual(trailerChunkSignature, expectedTrailerHeaderSignature)
     }
 
     func testChunkedSigv4ASigning() async throws {

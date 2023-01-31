@@ -73,6 +73,15 @@ public class Signer {
         }
     }
 
+    /// Signs a body chunk according to the supplied signing configuration
+    /// - Parameters:
+    ///   - chunk: Chunk to sign
+    ///   - previousSignature: The signature of the previous component of the request: either the request itself for the first chunk,
+    ///                        or the previous chunk otherwise.
+    ///    - config: The `SigningConfig` to use when signing.
+    ///   - allocator: (Optional) allocator to override
+    /// - Returns: Signature of the chunk
+    /// - Throws: CommonRunTimeError.crtError
     public static func signChunk(chunk: IStreamable,
                                  previousSignature: String,
                                  config: SigningConfig,
@@ -87,21 +96,55 @@ public class Signer {
             aws_signable_destroy(signable)
         }
 
-        return try await withCheckedThrowingContinuation { continuation in
+        return try await sign(config: config, signable: signable, allocator: allocator)
+    }
+
+    /// Signs trailing headers according to the supplied signing configuration
+    /// - Parameters:
+    ///   - headers: list of headers to be sent in the trailer.
+    ///   - previousSignature: The signature of the previous component of the request: either the request itself for the first chunk,
+    ///                        or the previous chunk otherwise.
+    ///   - config: The `SigningConfig` to use when signing.
+    ///   - allocator: (Optional) allocator to override
+    /// - Returns: Signing Result
+    /// - Throws: CommonRunTimeError.crtError
+    public static func signTrailerHeaders(
+            headers: [HTTPHeader],
+            previousSignature: String,
+            config: SigningConfig,
+            allocator: Allocator = defaultAllocator) async throws -> String {
+        guard let signable = previousSignature.withByteCursorPointer({ previousSignatureCursor in
+            headers.withCHeaders(allocator: allocator) { cHeaders in
+                aws_signable_new_trailing_headers(allocator.rawValue, cHeaders, previousSignatureCursor.pointee)
+            }
+        }) else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+        defer {
+            aws_signable_destroy(signable)
+        }
+        return try await sign(config: config, signable: signable, allocator: allocator)
+    }
+
+    private static func sign(
+            config: SigningConfig,
+            signable: UnsafePointer<aws_signable>,
+            allocator: Allocator) async throws -> String {
+        try await withCheckedThrowingContinuation { continuation in
             config.withCPointer { configPointer in
                 configPointer.withMemoryRebound(
-                    to: aws_signing_config_base.self,
-                    capacity: 1) { configBasePointer in
+                        to: aws_signing_config_base.self,
+                        capacity: 1) { configBasePointer in
                     let chunkSignerCore = ChunkSignerCore(
-                        continuation: continuation,
-                        allocator: allocator)
+                            continuation: continuation,
+                            allocator: allocator)
                     if aws_sign_request_aws(
-                        allocator.rawValue,
-                        signable,
-                        configBasePointer,
-                        onChunkSigningComplete,
-                        chunkSignerCore.passRetained())
-                        != AWS_OP_SUCCESS {
+                            allocator.rawValue,
+                            signable,
+                            configBasePointer,
+                            onChunkSigningComplete,
+                            chunkSignerCore.passRetained())
+                               != AWS_OP_SUCCESS {
                         chunkSignerCore.release()
                         continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
                     }
