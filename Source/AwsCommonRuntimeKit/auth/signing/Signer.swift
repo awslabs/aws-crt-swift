@@ -64,7 +64,7 @@ public class Signer {
                         onSigningComplete,
                         signRequestCore.passRetained())
                         != AWS_OP_SUCCESS {
-                        
+
                         signRequestCore.release()
                         continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
                     }
