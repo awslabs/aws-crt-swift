@@ -54,16 +54,16 @@ public class Signer {
             }
             config.withCPointer(userData: shouldSignHeaderUserData) { configPointer in
                 configPointer.withMemoryRebound(
-                        to: aws_signing_config_base.self,
-                        capacity: 1) { configBasePointer in
+                    to: aws_signing_config_base.self,
+                    capacity: 1) { configBasePointer in
 
                     if aws_sign_request_aws(
-                            allocator.rawValue,
-                            signable,
-                            configBasePointer,
-                            onSigningComplete,
-                            signRequestCore.passRetained())
-                            
+                        allocator.rawValue,
+                        signable,
+                        configBasePointer,
+                        onSigningComplete,
+                        signRequestCore.passRetained())
+
                         != AWS_OP_SUCCESS {
                         signRequestCore.release()
                         continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
