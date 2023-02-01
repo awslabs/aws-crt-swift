@@ -70,6 +70,7 @@ public class HostResolver {
 
     func getHostResolutionConfig() -> aws_host_resolution_config {
         var cHostResolutionConfig = aws_host_resolution_config()
+        print("waahm7 \(cHostResolutionConfig))
         cHostResolutionConfig.max_ttl = maxTTL
         cHostResolutionConfig.impl = aws_default_dns_resolve
         return cHostResolutionConfig
