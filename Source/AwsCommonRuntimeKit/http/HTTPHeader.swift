@@ -32,7 +32,7 @@ public class HTTPHeader: CStruct {
 extension Array where Element == HTTPHeader {
     func withCHeaders<Result>(allocator: Allocator,
                               _ body: (OpaquePointer) -> Result) -> Result {
-        var cHeaders: OpaquePointer = aws_http_headers_new(allocator.rawValue)
+        let cHeaders: OpaquePointer = aws_http_headers_new(allocator.rawValue)
         defer {
            aws_http_headers_release(cHeaders)
         }
