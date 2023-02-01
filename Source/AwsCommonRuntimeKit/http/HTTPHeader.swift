@@ -34,7 +34,7 @@ extension Array where Element == HTTPHeader {
                               _ body: (OpaquePointer) -> Result) -> Result {
         let cHeaders: OpaquePointer = aws_http_headers_new(allocator.rawValue)
         defer {
-           aws_http_headers_release(cHeaders)
+            aws_http_headers_release(cHeaders)
         }
         forEach { $0.withCPointer { guard aws_http_headers_add_header(cHeaders, $0) == AWS_OP_SUCCESS else {
             let error = CRTError.makeFromLastError()
