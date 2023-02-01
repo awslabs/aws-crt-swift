@@ -34,7 +34,10 @@ class ChunkSignerTests: XCBaseTestCase {
 
     func testChunkedSigv4Signing() async throws {
         let request = makeChunkedRequest()
-        let signedRequest = try await Signer.signRequest(request: request, config: makeChunkedRequestSigningConfig())
+        let signedRequest = try await Signer.signRequest(
+                request: request,
+                config: makeChunkedRequestSigningConfig(),
+                allocator: allocator)
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
 
@@ -44,45 +47,54 @@ class ChunkSignerTests: XCBaseTestCase {
 
         let firstChunkSignature = try await Signer.signChunk(
                 chunk: Data(repeating: 97, count: chunk1Size),
-                previousSignature: expectedRequestSignature, config: makeChunkedSigningConfig())
+                previousSignature: expectedRequestSignature, config: makeChunkedSigningConfig(),
+                allocator: allocator)
         XCTAssertEqual(firstChunkSignature, expectedFirstChunkSignature)
 
         let secondChunkSignature = try await Signer.signChunk(
                 chunk: Data(repeating: 97, count: chunk2Size),
-                previousSignature: expectedFirstChunkSignature, config: makeChunkedSigningConfig())
+                previousSignature: expectedFirstChunkSignature, config: makeChunkedSigningConfig(),
+                allocator: allocator)
         XCTAssertEqual(secondChunkSignature, expectedSecondChunkSignature)
 
         let finalChunkSignature = try await Signer.signChunk(
                 chunk: Data(),
-                previousSignature: secondChunkSignature, config: makeChunkedSigningConfig())
+                previousSignature: secondChunkSignature, config: makeChunkedSigningConfig(),
+                allocator: allocator)
         XCTAssertEqual(finalChunkSignature, expectedFinalChunkSignature)
 
         let trailerChunkSignature = try await Signer.signTrailerHeaders(
                 headers: trailingHeaders,
                 previousSignature: finalChunkSignature,
-                config: makeTrailingSigningConfig())
+                config: makeTrailingSigningConfig(),
+                allocator: allocator)
         XCTAssertEqual(trailerChunkSignature, expectedTrailerHeaderSignature)
     }
 
     func testChunkedSigv4ASigning() async throws {
         let request = makeChunkedRequest()
-        let signedRequest = try await Signer.signRequest(request: request, config: makeChunkedRequestSigningConfig(sigv4: false))
+        let signedRequest = try await Signer.signRequest(request: request, config: makeChunkedRequestSigningConfig(sigv4: false), allocator: allocator)
         // TODO: verify signature
         XCTAssertNotNil(signedRequest)
 
         let firstChunkSignature = try await Signer.signChunk(
                 chunk: Data(repeating: 97, count: chunk1Size),
-                previousSignature: expectedRequestSignature, config: makeChunkedSigningConfig(sigv4: false))
+                previousSignature: expectedRequestSignature, config: makeChunkedSigningConfig(sigv4: false),
+                allocator: allocator)
         XCTAssertNotNil(firstChunkSignature)
 
         let secondChunkSignature = try await Signer.signChunk(
                 chunk: Data(repeating: 97, count: chunk2Size),
-                previousSignature: expectedFirstChunkSignature, config: makeChunkedSigningConfig())
+                previousSignature: expectedFirstChunkSignature,
+                config: makeChunkedSigningConfig(),
+                allocator: allocator)
         XCTAssertNotNil(secondChunkSignature)
 
         let finalChunk = try await Signer.signChunk(
                 chunk: Data(),
-                previousSignature: secondChunkSignature, config: makeChunkedSigningConfig())
+                previousSignature: secondChunkSignature,
+                config: makeChunkedSigningConfig(),
+                allocator: allocator)
         XCTAssertNotNil(finalChunk)
     }
 
