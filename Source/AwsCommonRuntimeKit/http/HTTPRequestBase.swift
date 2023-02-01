@@ -3,7 +3,8 @@
 import AwsCHttp
 import AwsCIo
 
-public class HTTPMessage {
+/// Represents a single client request to be sent
+public class HTTPRequestBase {
     let rawValue: OpaquePointer
     let allocator: Allocator
 
@@ -11,7 +12,7 @@ public class HTTPMessage {
         willSet(value) {
             if let newBody = value {
                 let iStreamCore = IStreamCore(iStreamable: newBody, allocator: allocator)
-                aws_http_message_set_body_stream(self.rawValue, &iStreamCore.rawValue)
+                aws_http_message_set_body_stream(self.rawValue, iStreamCore.rawValue)
             } else {
                 aws_http_message_set_body_stream(self.rawValue, nil)
             }
@@ -20,11 +21,9 @@ public class HTTPMessage {
 
     // internal initializer. Consumers will initialize HttpRequest subclass and
     // not interact with this class directly.
-    init(allocator: Allocator = defaultAllocator) throws {
+    init(rawValue: OpaquePointer,
+         allocator: Allocator = defaultAllocator) {
         self.allocator = allocator
-        guard let rawValue = aws_http_message_new_request(allocator.rawValue) else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
         self.rawValue = rawValue
     }
 
@@ -33,7 +32,7 @@ public class HTTPMessage {
     }
 }
 
-public extension HTTPMessage {
+public extension HTTPRequestBase {
 
     var headerCount: Int {
         return aws_http_message_get_header_count(rawValue)

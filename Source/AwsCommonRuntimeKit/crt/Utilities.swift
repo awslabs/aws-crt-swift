@@ -66,8 +66,24 @@ extension Data {
         }
     }
 
+    func withAWSByteCursorPointer<Result>(_ body: (UnsafeMutablePointer<aws_byte_cursor>) -> Result) -> Result {
+        let count = self.count
+        return self.withUnsafeBytes { rawBufferPointer -> Result in
+            var cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, count)
+            return withUnsafeMutablePointer(to: &cursor) {
+                body($0)
+            }
+        }
+    }
+
     public func encodeToHexString() -> String {
         map { String(format: "%02x", $0) }.joined()
+    }
+
+    func chunked(into size: Int) -> [Data] {
+        return stride(from: 0, to: count, by: size).map {
+            self[$0 ..< Swift.min($0 + size, count)]
+        }
     }
 }
 
