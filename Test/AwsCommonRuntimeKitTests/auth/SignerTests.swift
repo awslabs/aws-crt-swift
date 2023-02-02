@@ -29,9 +29,10 @@ class SignerTests: XCBaseTestCase {
                 credentialsProvider: provider,
         shouldSignHeader: shouldSignHeader)
 
-        let signedRequest = try await Signer.signRequest(request: request,
-                                                                    config: config,
-                                                                    allocator: allocator)
+        let signedRequest = try await Signer.signRequest(
+                request: request,
+                config: config,
+                allocator: allocator)
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
         XCTAssert(headers.contains(where: {
