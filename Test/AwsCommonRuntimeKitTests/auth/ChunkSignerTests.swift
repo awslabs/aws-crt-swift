@@ -47,19 +47,22 @@ class ChunkSignerTests: XCBaseTestCase {
 
         let firstChunkSignature = try await Signer.signChunk(
                 chunk: Data(repeating: 97, count: chunk1Size),
-                previousSignature: expectedRequestSignature, config: makeChunkedSigningConfig(),
+                previousSignature: expectedRequestSignature,
+                config: makeChunkedSigningConfig(),
                 allocator: allocator)
         XCTAssertEqual(firstChunkSignature, expectedFirstChunkSignature)
 
         let secondChunkSignature = try await Signer.signChunk(
                 chunk: Data(repeating: 97, count: chunk2Size),
-                previousSignature: expectedFirstChunkSignature, config: makeChunkedSigningConfig(),
+                previousSignature: expectedFirstChunkSignature,
+                config: makeChunkedSigningConfig(),
                 allocator: allocator)
         XCTAssertEqual(secondChunkSignature, expectedSecondChunkSignature)
 
         let finalChunkSignature = try await Signer.signChunk(
                 chunk: Data(),
-                previousSignature: secondChunkSignature, config: makeChunkedSigningConfig(),
+                previousSignature: secondChunkSignature,
+                config: makeChunkedSigningConfig(),
                 allocator: allocator)
         XCTAssertEqual(finalChunkSignature, expectedFinalChunkSignature)
 
@@ -79,21 +82,22 @@ class ChunkSignerTests: XCBaseTestCase {
 
         let firstChunkSignature = try await Signer.signChunk(
                 chunk: Data(repeating: 97, count: chunk1Size),
-                previousSignature: expectedRequestSignature, config: makeChunkedSigningConfig(sigv4: false),
+                previousSignature: expectedRequestSignature,
+                config: makeChunkedSigningConfig(sigv4: false),
                 allocator: allocator)
         XCTAssertNotNil(firstChunkSignature)
 
         let secondChunkSignature = try await Signer.signChunk(
                 chunk: Data(repeating: 97, count: chunk2Size),
                 previousSignature: expectedFirstChunkSignature,
-                config: makeChunkedSigningConfig(),
+                config: makeChunkedSigningConfig(sigv4: false),
                 allocator: allocator)
         XCTAssertNotNil(secondChunkSignature)
 
         let finalChunk = try await Signer.signChunk(
                 chunk: Data(),
                 previousSignature: secondChunkSignature,
-                config: makeChunkedSigningConfig(),
+                config: makeChunkedSigningConfig(sigv4: false),
                 allocator: allocator)
         XCTAssertNotNil(finalChunk)
     }
