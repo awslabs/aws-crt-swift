@@ -36,10 +36,14 @@ extension Array where Element == HTTPHeader {
         defer {
             aws_http_headers_release(cHeaders)
         }
-        forEach { $0.withCPointer { guard aws_http_headers_add_header(cHeaders, $0) == AWS_OP_SUCCESS else {
-            let error = CRTError.makeFromLastError()
-            fatalError("Unable to add header due to error code: \(error.code) message:\(error.message)")
-        }} }
+        forEach { 
+            $0.withCPointer { 
+                guard aws_http_headers_add_header(cHeaders, $0) == AWS_OP_SUCCESS else {
+                    let error = CRTError.makeFromLastError()
+                    fatalError("Unable to add header due to error code: \(error.code) message:\(error.message)")
+                }
+            }
+        }
         return body(cHeaders)
     }
 }
