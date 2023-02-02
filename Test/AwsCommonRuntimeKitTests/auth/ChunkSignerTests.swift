@@ -26,11 +26,11 @@ class ChunkSignerTests: XCBaseTestCase {
             SignedHeaders=content-encoding;content-length;host;x-amz-content-sha256;x-amz-date;x-amz-decoded-content-length;x-amz-storage-class, \
             Signature=4f232c4386841ef735655705268965c44a0e4690baa4adea153f7db9fa80a0a9
             """
-    let expectedRequestSignature = "4f232c4386841ef735655705268965c44a0e4690baa4adea153f7db9fa80a0a9".data(using: .utf8)!
-    let expectedFirstChunkSignature = "ad80c730a21e5b8d04586a2213dd63b9a0e99e0e2307b0ade35a65485a288648".data(using: .utf8)!
-    let expectedSecondChunkSignature = "0055627c9e194cb4542bae2aa5492e3c1575bbb81b612b7d234b86a503ef5497".data(using: .utf8)!
-    let expectedFinalChunkSignature = "b6c6ea8a5354eaf15b3cb7646744f4275b71ea724fed81ceb9323e279d449df9".data(using: .utf8)!
-    let expectedTrailerHeaderSignature = "df5735bd9f3295cd9386572292562fefc93ba94e80a0a1ddcbd652c4e0a75e6c".data(using: .utf8)!
+    let expectedRequestSignature = "4f232c4386841ef735655705268965c44a0e4690baa4adea153f7db9fa80a0a9"
+    let expectedFirstChunkSignature = "ad80c730a21e5b8d04586a2213dd63b9a0e99e0e2307b0ade35a65485a288648"
+    let expectedSecondChunkSignature = "0055627c9e194cb4542bae2aa5492e3c1575bbb81b612b7d234b86a503ef5497"
+    let expectedFinalChunkSignature = "b6c6ea8a5354eaf15b3cb7646744f4275b71ea724fed81ceb9323e279d449df9"
+    let expectedTrailerHeaderSignature = "df5735bd9f3295cd9386572292562fefc93ba94e80a0a1ddcbd652c4e0a75e6c"
 
     func testChunkedSigv4Signing() async throws {
         let request = makeChunkedRequest()

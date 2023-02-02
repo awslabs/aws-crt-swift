@@ -83,11 +83,11 @@ public class Signer {
     /// - Returns: Signature of the chunk
     /// - Throws: CommonRunTimeError.crtError
     public static func signChunk(chunk: Data,
-                                 previousSignature: Data,
+                                 previousSignature: String,
                                  config: SigningConfig,
-                                 allocator: Allocator = defaultAllocator) async throws -> Data {
+                                 allocator: Allocator = defaultAllocator) async throws -> String {
         let iStreamCore = IStreamCore(iStreamable: ByteBuffer(data: chunk), allocator: allocator)
-        guard let signable = previousSignature.withAWSByteCursorPointer({ previousSignatureCursor in
+        guard let signable = previousSignature.withByteCursorPointer({ previousSignatureCursor in
             aws_signable_new_chunk(allocator.rawValue, iStreamCore.rawValue, previousSignatureCursor.pointee)
         }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -96,7 +96,7 @@ public class Signer {
             aws_signable_destroy(signable)
         }
 
-        return try await sign(config: config, signable: signable, allocator: allocator).data(using: .utf8)!
+        return try await sign(config: config, signable: signable, allocator: allocator)
     }
 
     /// Signs trailing headers according to the supplied signing configuration
@@ -109,11 +109,11 @@ public class Signer {
     /// - Returns: Signing Result
     /// - Throws: CommonRunTimeError.crtError
     public static func signTrailerHeaders(headers: [HTTPHeader],
-                                          previousSignature: Data,
+                                          previousSignature: String,
                                           config: SigningConfig,
-                                          allocator: Allocator = defaultAllocator) async throws -> Data {
+                                          allocator: Allocator = defaultAllocator) async throws -> String {
 
-        guard let signable = previousSignature.withAWSByteCursorPointer({ previousSignatureCursor in
+        guard let signable = previousSignature.withByteCursorPointer({ previousSignatureCursor in
             headers.withCHeaders(allocator: allocator) { cHeaders in
                 aws_signable_new_trailing_headers(allocator.rawValue, cHeaders, previousSignatureCursor.pointee)
             }
@@ -123,7 +123,7 @@ public class Signer {
         defer {
             aws_signable_destroy(signable)
         }
-        return try await sign(config: config, signable: signable, allocator: allocator).data(using: .utf8)!
+        return try await sign(config: config, signable: signable, allocator: allocator)
     }
 
     private static func sign(config: SigningConfig,
