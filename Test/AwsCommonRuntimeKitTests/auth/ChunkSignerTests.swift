@@ -36,8 +36,7 @@ class ChunkSignerTests: XCBaseTestCase {
         let request = makeChunkedRequest()
         let signedRequest = try await Signer.signRequest(
                 request: request,
-                config: makeChunkedRequestSigningConfig(),
-                allocator: allocator)
+                config: makeChunkedRequestSigningConfig())
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
 
@@ -48,29 +47,25 @@ class ChunkSignerTests: XCBaseTestCase {
         let firstChunkSignature = try await Signer.signChunk(
                 chunk: Data(repeating: 97, count: chunk1Size),
                 previousSignature: expectedRequestSignature,
-                config: makeChunkedSigningConfig(),
-                allocator: allocator)
+                config: makeChunkedSigningConfig())
         XCTAssertEqual(firstChunkSignature, expectedFirstChunkSignature)
 
         let secondChunkSignature = try await Signer.signChunk(
                 chunk: Data(repeating: 97, count: chunk2Size),
                 previousSignature: expectedFirstChunkSignature,
-                config: makeChunkedSigningConfig(),
-                allocator: allocator)
+                config: makeChunkedSigningConfig())
         XCTAssertEqual(secondChunkSignature, expectedSecondChunkSignature)
 
         let finalChunkSignature = try await Signer.signChunk(
                 chunk: Data(),
                 previousSignature: secondChunkSignature,
-                config: makeChunkedSigningConfig(),
-                allocator: allocator)
+                config: makeChunkedSigningConfig())
         XCTAssertEqual(finalChunkSignature, expectedFinalChunkSignature)
 
         let trailerChunkSignature = try await Signer.signTrailerHeaders(
                 headers: trailingHeaders,
                 previousSignature: finalChunkSignature,
-                config: makeTrailingSigningConfig(),
-                allocator: allocator)
+                config: makeTrailingSigningConfig())
         XCTAssertEqual(trailerChunkSignature, expectedTrailerHeaderSignature)
     }
 
