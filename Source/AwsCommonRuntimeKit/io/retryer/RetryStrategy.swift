@@ -4,6 +4,9 @@
 import AwsCIo
 import Foundation
 
+/// function to supply your own generate random implementation.
+public typealias GenerateRandomFn = () -> UInt64
+
 public class RetryStrategy {
     let rawValue: UnsafeMutablePointer<aws_retry_strategy>
 
@@ -16,6 +19,7 @@ public class RetryStrategy {
     ///   - backOffScaleFactor: (Optional) Scaling factor to add for the backoff. Default is 25ms and maximum is UInt32 ms.
     ///   - jitterMode: (Optional) Jitter mode to use, see comments for aws_exponential_backoff_jitter_mode.
     ///   - generateRandom: (Optional) By default this will be set to use aws_device_random. If you want something else, set it here.
+    ///   - shutdownCallback: (Optional) Shutdown callback to invoke when the resource is cleaned up.
     ///   - allocator: (Optional) allocator to override.
     /// - Returns: `CRTAWSRetryStrategy`
     public init(eventLoopGroup: EventLoopGroup,
@@ -23,7 +27,8 @@ public class RetryStrategy {
                 maxRetries: Int = 10,
                 backOffScaleFactor: TimeInterval = 0.025,
                 jitterMode: ExponentialBackoffJitterMode = .default,
-                generateRandom: (@convention(c) () -> UInt64)? = nil,
+                generateRandom: GenerateRandomFn? = nil,
+                shutdownCallback: ShutdownCallback? = nil,
                 allocator: Allocator = defaultAllocator) throws {
 
         var exponentialBackoffRetryOptions = aws_exponential_backoff_retry_options()
@@ -31,19 +36,29 @@ public class RetryStrategy {
         exponentialBackoffRetryOptions.max_retries = maxRetries
         exponentialBackoffRetryOptions.backoff_scale_factor_ms = UInt32(backOffScaleFactor.millisecond)
         exponentialBackoffRetryOptions.jitter_mode = jitterMode.rawValue
-        if let generateRandom = generateRandom {
-            exponentialBackoffRetryOptions.generate_random = generateRandom
+
+        let generateRandomBox = Box(generateRandom)
+        let shutdownCore = ShutdownCallbackCore(shutdownCallback, data: generateRandomBox)
+        if generateRandom != nil {
+            exponentialBackoffRetryOptions.generate_random_impl = onGenerateRandom
+            exponentialBackoffRetryOptions.generate_random_user_data = generateRandomBox.passUnretained()
         }
 
-        var standardRetryOptions = aws_standard_retry_options()
-        standardRetryOptions.initial_bucket_capacity = initialBucketCapacity
-        standardRetryOptions.backoff_retry_options = exponentialBackoffRetryOptions
+        let getRawValue: () -> UnsafeMutablePointer<aws_retry_strategy>? = {
+            withUnsafePointer(to: shutdownCore.getRetainedShutdownOptions(), { shutdownOptionsPointer in
+                exponentialBackoffRetryOptions.shutdown_options = shutdownOptionsPointer
+                var standardRetryOptions = aws_standard_retry_options()
+                standardRetryOptions.initial_bucket_capacity = initialBucketCapacity
+                standardRetryOptions.backoff_retry_options = exponentialBackoffRetryOptions
+                return aws_retry_strategy_new_standard(allocator.rawValue, &standardRetryOptions)
+            })
+        }
 
-        guard let rawValue = (withUnsafePointer(to: standardRetryOptions) { retryOptionsPointer in
-            return aws_retry_strategy_new_standard(allocator.rawValue, retryOptionsPointer)
-        }) else {
+        guard let rawValue = getRawValue() else {
+            shutdownCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
+
         self.rawValue = rawValue
     }
 
@@ -93,6 +108,10 @@ public class RetryStrategy {
     deinit {
         aws_retry_strategy_release(rawValue)
     }
+}
+
+private func onGenerateRandom(userData: UnsafeMutableRawPointer!) -> UInt64 {
+    Unmanaged<Box<GenerateRandomFn>>.fromOpaque(userData).takeUnretainedValue().contents()
 }
 
 private func onRetryReady(token: UnsafeMutablePointer<aws_retry_token>?,

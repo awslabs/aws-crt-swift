@@ -39,7 +39,7 @@ public struct HTTPRequestOptions {
     /// When using HTTP/2, set http2ManualDataWrites to true to specify that request body data will be provided over time.
     /// The stream will only be polled for writing when data has been supplied via `HTTP2Stream.writeData`
     public var http2ManualDataWrites: Bool = false
-
+    
     public init(request: HTTPRequestBase,
                 onInterimResponse: OnInterimResponse? = nil,
                 onResponse: @escaping OnResponse,

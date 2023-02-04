@@ -52,14 +52,19 @@ class CredentialsProviderTests: XCBaseTestCase {
     func testDelegateCredentialsProvider() async throws {
         shutdownWasCalled.expectedFulfillmentCount = 2
         do {
-            let staticProvider = try CredentialsProvider(source: .static(accessKey: accessKey,
-                    secret: secret,
-                    sessionToken: sessionToken,
-                    shutdownCallback: getShutdownCallback()),
-                    allocator: allocator)
-            let delegateProvider = try CredentialsProvider(provider: staticProvider,
-                    shutdownCallback: getShutdownCallback(),
-                    allocator: allocator)
+
+            let delegateProvider: CredentialsProvider!
+            // make sure actual Credentials Provider goes out of scope
+            do {
+                let staticProvider = try CredentialsProvider(source: .static(accessKey: accessKey,
+                        secret: secret,
+                        sessionToken: sessionToken,
+                        shutdownCallback: getShutdownCallback()),
+                        allocator: allocator)
+                delegateProvider = try CredentialsProvider(provider: staticProvider,
+                        shutdownCallback: getShutdownCallback(),
+                        allocator: allocator)
+            }
             let credentials = try await delegateProvider.getCredentials()
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
