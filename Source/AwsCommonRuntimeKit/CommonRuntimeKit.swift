@@ -2,7 +2,7 @@ import AwsCEventStream
 import AwsCAuth
 
 /**
- * Used to initialize the library.
+ * Initializes the library.
  * `CommonRuntimeKit.initialize` must be called before using any other functionality.
  */
 public struct CommonRuntimeKit {
