@@ -17,11 +17,49 @@ class RetryerTests: XCBaseTestCase {
         XCTAssertNotNil(result)
     }
 
-    func testSechudleRetry() async throws {
+    func testScheduleRetry() async throws {
         let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
         let retryer = try RetryStrategy(eventLoopGroup: elg, allocator: allocator)
         let token = try await retryer.acquireToken(partitionId: "partition1")
         XCTAssertNotNil(token)
         _ = try await retryer.scheduleRetry(token: token, errorType: RetryError.serverError)
+    }
+
+    func testShutdownCallback() async throws {
+        let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
+
+        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
+        do {
+            let retryer = try RetryStrategy(eventLoopGroup: elg, shutdownCallback: {
+                shutdownWasCalled.fulfill()
+            }, allocator: allocator)
+            let token = try await retryer.acquireToken(partitionId: "partition1")
+            XCTAssertNotNil(token)
+            _ = try await retryer.scheduleRetry(token: token, errorType: RetryError.serverError)
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
+    }
+
+    func testGenerateRandom() async throws {
+        let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
+        let generateRandomWasCalled = XCTestExpectation(description: "Generate random was called")
+        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
+
+        do {
+            let retryer = try RetryStrategy(
+                    eventLoopGroup: elg,
+                    generateRandom: {
+                        generateRandomWasCalled.fulfill()
+                        return UInt64.random(in: 1...UInt64.max)
+                    },
+                    shutdownCallback: {
+                        shutdownWasCalled.fulfill()
+                    },
+                    allocator: allocator)
+            let token = try await retryer.acquireToken(partitionId: "partition1")
+            XCTAssertNotNil(token)
+            _ = try await retryer.scheduleRetry(token: token, errorType: RetryError.serverError)
+        }
+        wait(for: [generateRandomWasCalled, shutdownWasCalled], timeout: 15)
     }
 }
