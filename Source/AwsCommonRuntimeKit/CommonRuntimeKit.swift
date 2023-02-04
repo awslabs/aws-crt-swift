@@ -29,7 +29,7 @@ public struct CommonRuntimeKit {
     /**
      * This is an optional cleanup function which will block until all the CRT resources have cleaned up.
      * Use this function only if you want to make sure that there are no memory leaks at the end of the application.
-     * Warning: It will hang forever if you are still holding references to CRT Objects such as HostResolver.
+     * Warning: It will hang if you are still holding references to any CRT objects such as HostResolver.
      */
     public static func cleanUp() {
         aws_auth_library_clean_up()
