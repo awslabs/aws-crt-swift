@@ -8,7 +8,7 @@ import AwsCAuth
 public struct CommonRuntimeKit {
 
     /**
-     * Initializes internal stuff used by CommonRuntimeKit.
+     * Initializes the library.
      * Must be called before using any other functionality.
      */
     public static func initialize(allocator: Allocator = defaultAllocator) {
