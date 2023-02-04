@@ -64,10 +64,10 @@ private func onResponseHeaderBlockDone(stream: UnsafeMutablePointer<aws_http_str
     var status: Int32 = 0
     guard aws_http_stream_get_incoming_response_status(stream!, &status) == AWS_OP_SUCCESS else {
         fatalError(
-                """
-                Failed to get HTTP status code in onResponseHeaderBlockDone callback with error
-                \(CommonRunTimeError.crtError(.makeFromLastError()))
-                """
+            """
+            Failed to get HTTP status code in onResponseHeaderBlockDone callback with error
+            \(CommonRunTimeError.crtError(.makeFromLastError()))
+            """
         )
     }
     switch HTTPHeaderBlock(rawValue: headerBlock) {

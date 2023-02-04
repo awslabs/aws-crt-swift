@@ -28,3 +28,22 @@ public class HTTPHeader: CStruct {
         }
     }
 }
+
+extension Array where Element == HTTPHeader {
+    func withCHeaders<Result>(allocator: Allocator,
+                              _ body: (OpaquePointer) -> Result) -> Result {
+        let cHeaders: OpaquePointer = aws_http_headers_new(allocator.rawValue)
+        defer {
+            aws_http_headers_release(cHeaders)
+        }
+        forEach {
+            $0.withCPointer {
+                guard aws_http_headers_add_header(cHeaders, $0) == AWS_OP_SUCCESS else {
+                    let error = CRTError.makeFromLastError()
+                    fatalError("Unable to add header due to error code: \(error.code) message:\(error.message)")
+                }
+            }
+        }
+        return body(cHeaders)
+    }
+}
