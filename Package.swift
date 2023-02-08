@@ -127,20 +127,21 @@ awsCCalPlatformExcludes.append("source/darwin")
 
 // swift never uses Microsoft Visual C++ compiler
 awsCChecksumsExcludes.append("source/intel/visualc")
-#if arch(arm64)
-// includes source/arm
-// TODO: look at the compiler flag in C
-awsCChecksumsExcludes.append("source/intel")
-awsCChecksumsExcludes.append("source/generic")
-#elseif arch(x86_64) || arch(i386)
-// include src/intel/asm
-awsCChecksumsExcludes.append("source/arm")
-awsCChecksumsExcludes.append("source/generic")
-#else
+//TODO: enable hardware acceleration https://github.com/awslabs/aws-sdk-swift/issues/867
+//#if arch(arm64)
+//// includes source/arm
+//// TODO: look at the compiler flag in C
+//awsCChecksumsExcludes.append("source/intel")
+//awsCChecksumsExcludes.append("source/generic")
+//#elseif arch(x86_64) || arch(i386)
+//// include src/intel/asm
+//awsCChecksumsExcludes.append("source/arm")
+//awsCChecksumsExcludes.append("source/generic")
+//#else
 // includes source/generic
 awsCChecksumsExcludes.append("source/arm")
 awsCChecksumsExcludes.append("source/intel")
-#endif
+//#endif
 
 let awsCSdkUtilsPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 
