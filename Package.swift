@@ -58,7 +58,7 @@ var awsCCommonPlatformExcludes = ["source/windows", "source/android",
                                   "scripts/appverifier_ctest.py",
                                   "scripts/appverifier_xml.py"] + excludesFromAll
 
-#if arch(i386) || arch(x86_64
+#if arch(i386) || arch(x86_64)
 // Includes generic
 awsCCommonPlatformExcludes.append("source/arch/arm")
 // temporary cause I can't use intrensics because swiftpm doesn't like the necessary compiler flag.
