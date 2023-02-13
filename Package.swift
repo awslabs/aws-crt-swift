@@ -58,15 +58,19 @@ var awsCCommonPlatformExcludes = ["source/windows", "source/android",
                                   "scripts/appverifier_ctest.py",
                                   "scripts/appverifier_xml.py"] + excludesFromAll
 
-#if arch(i386) || arch(x86_64)
+#if arch(i386) || arch(x86_64
+// Includes generic
 awsCCommonPlatformExcludes.append("source/arch/arm")
 // temporary cause I can't use intrensics because swiftpm doesn't like the necessary compiler flag.
 awsCCommonPlatformExcludes.append("source/arch/intel")
 // unsafeFlagsArray.append("-mavx512f")
 #elseif arch(arm64)
+// Includes arm
+// TODO: works on iphone?
 awsCCommonPlatformExcludes.append("source/arch/intel")
 awsCCommonPlatformExcludes.append("source/arch/generic")
 #else
+// Includes generic
 awsCCommonPlatformExcludes.append("source/arch/intel")
 awsCCommonPlatformExcludes.append("source/arch/arm")
 #endif
@@ -75,6 +79,7 @@ awsCCommonPlatformExcludes.append("source/arch/arm")
 awsCCommonPlatformExcludes.append("source/arch/intel/msvc")
 awsCCommonPlatformExcludes.append("source/arch/arm/msvc")
 #else
+//TODO: Why inlucde msvc?
 awsCCommonPlatformExcludes.append("source/arch/intel/asm")
 awsCCommonPlatformExcludes.append("source/arch/arm/asm")
 #endif
@@ -82,7 +87,7 @@ awsCCommonPlatformExcludes.append("source/arch/arm/asm")
 var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11.md", "THIRD-PARTY-LICENSES.txt",
                               "source/pkcs11/v2.40"] + excludesFromAll
 
-#if os(macOS)
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
@@ -114,7 +119,7 @@ var awsCChecksumsExcludes = [
     "cmake",
     "tests"]
 
-#if os(macOS)
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/unix")
 #elseif(Windows)
