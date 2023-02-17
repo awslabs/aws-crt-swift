@@ -3,7 +3,7 @@
 
 import AwsCIo
 
-public struct HostAddress {
+public struct HostAddress: CStruct {
     /// Address type (ipv6, ipv4 etc)
     public let addressType: HostAddressType
 
@@ -17,13 +17,40 @@ public struct HostAddress {
     /// Service record. Currently, unused largely because we use Http, but this may change as we add more protocols.
     public let service: String? = nil
 
-    var rawValue: aws_host_address
+    let allocator: Allocator
+    let expiry: UInt64
+    let useCount: Int
+    let connectionFailureCount: Int
+    let weight: UInt8
 
     init(hostAddress: aws_host_address) {
-        self.hostName = String(awsString: hostAddress.host)!
-        self.address = String(awsString: hostAddress.address)!
-        self.addressType = HostAddressType(rawValue: hostAddress.record_type)
-        self.rawValue = hostAddress
+        hostName = String(awsString: hostAddress.host)!
+        address = String(awsString: hostAddress.address)!
+        addressType = HostAddressType(rawValue: hostAddress.record_type)
+        allocator = hostAddress.allocator
+        expiry = hostAddress.expiry
+        useCount = hostAddress.use_count
+        connectionFailureCount = hostAddress.connection_failure_count
+        weight = hostAddress.weight
+
+    }
+
+    typealias RawType = aws_host_address
+
+    func withCStruct<Result>(_ body: (aws_host_address) -> Result) -> Result {
+        let cAddress = AWSString(address, allocator: allocator)
+        let cHostName = AWSString(hostName, allocator: allocator)
+
+        var cHostAddress = aws_host_address()
+        cHostAddress.record_type = addressType.rawValue
+        cHostAddress.address = UnsafePointer(cAddress.rawValue)
+        cHostAddress.host = UnsafePointer(cHostName.rawValue)
+        cHostAddress.allocator = allocator.rawValue
+        cHostAddress.expiry = expiry
+        cHostAddress.use_count = useCount
+        cHostAddress.connection_failure_count = connectionFailureCount
+        cHostAddress.weight = weight
+        return body(cHostAddress)
     }
 }
 

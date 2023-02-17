@@ -46,6 +46,7 @@ class HostResolverTests: XCBaseTestCase {
         var addresses = try await resolver.resolveAddress(args: HostResolverArguments(hostName: "localhost"))
         XCTAssert(addresses.count >= 1, "Address Count is (\(String(describing: addresses.count)))")
         try resolver.reportFailureOnAddress(address: addresses[0])
+        addresses = try await resolver.resolveAddress(args: HostResolverArguments(hostName: "localhost"))
         XCTAssert(addresses.count >= 1, "Address Count is (\(String(describing: addresses.count)))")
     }
 
