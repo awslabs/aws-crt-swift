@@ -4,17 +4,16 @@
 import AwsCIo
 
 public struct HostAddress: CStruct {
-    /// Address type (ipv6, ipv4 etc)
+    /// Address type is ipv4 or ipv6
     public let addressType: HostAddressType
 
-    /// The resolved numerical address represented as a String
-    /// passing this string to pton(), for example, should correctly return the numerical representation
+    /// Resolved numerical address represented as a String
     public let address: String
 
     /// host name of the resolved address
     public let hostName: String
 
-    /// Service record. Currently, unused largely because we use Http, but this may change as we add more protocols.
+    /// Service record. Currently, unused because we use HTTP, but this may change as we add more protocols.
     public let service: String? = nil
 
     let allocator: Allocator
@@ -32,11 +31,9 @@ public struct HostAddress: CStruct {
         useCount = hostAddress.use_count
         connectionFailureCount = hostAddress.connection_failure_count
         weight = hostAddress.weight
-
     }
 
     typealias RawType = aws_host_address
-
     func withCStruct<Result>(_ body: (aws_host_address) -> Result) -> Result {
         let cAddress = AWSString(address, allocator: allocator)
         let cHostName = AWSString(hostName, allocator: allocator)
@@ -59,7 +56,7 @@ public struct HostResolverArguments {
     /// Host name to resolve
     public var hostName: String
 
-    /// Service record. Currently unused largely because we use Http, but this may
+    /// Service record. Currently unused because we use HTTP, but this may
     /// change as we add more protocols.
     public var service: String?
 
