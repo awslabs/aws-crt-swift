@@ -83,7 +83,7 @@ public class HostResolver: HostResolverProtocol {
     }
 
     public func reportFailureOnAddress(address: HostAddress) throws {
-        guard address.withCPointer ({ cAddress in
+        guard address.withCPointer({ cAddress in
             aws_host_resolver_record_connection_failure(rawValue, cAddress)
         }) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
