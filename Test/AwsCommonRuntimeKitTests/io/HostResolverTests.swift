@@ -12,9 +12,40 @@ class HostResolverTests: XCBaseTestCase {
                                            maxTTL: 5,
                                            allocator: allocator)
         
-        let addresses = try await resolver.resolve(host: "localhost")
+        let addresses = try await resolver.resolveAddress(args: HostResolverArguments(hostName: "localhost"))
         XCTAssertNoThrow(addresses)
         XCTAssertNotNil(addresses.count)
+        XCTAssert(addresses.count >= 1, "Address Count is (\(String(describing: addresses.count)))")
+    }
+
+    func testPurgeCache() async throws {
+        let elg = try EventLoopGroup(allocator: allocator)
+        let resolver = try HostResolver(eventLoopGroup: elg,
+                maxHosts: 8,
+                maxTTL: 5,
+                allocator: allocator)
+
+        var addresses = try await resolver.resolveAddress(args: HostResolverArguments(hostName: "localhost"))
+        XCTAssert(addresses.count >= 1, "Address Count is (\(String(describing: addresses.count)))")
+        try await resolver.purgeCache(args: HostResolverArguments(hostName: "localHost"))
+        try await resolver.purgeCache(args: HostResolverArguments(hostName: "localHost"))
+        addresses = try await resolver.resolveAddress(args: HostResolverArguments(hostName: "localhost"))
+        XCTAssert(addresses.count >= 1, "Address Count is (\(String(describing: addresses.count)))")
+        try await resolver.purgeCache()
+        try await resolver.purgeCache()
+        XCTAssert(addresses.count >= 1, "Address Count is (\(String(describing: addresses.count)))")
+    }
+
+    func testReportConnectionOnFailure() async throws {
+        let elg = try EventLoopGroup(allocator: allocator)
+        let resolver = try HostResolver(eventLoopGroup: elg,
+                maxHosts: 8,
+                maxTTL: 5,
+                allocator: allocator)
+
+        var addresses = try await resolver.resolveAddress(args: HostResolverArguments(hostName: "localhost"))
+        XCTAssert(addresses.count >= 1, "Address Count is (\(String(describing: addresses.count)))")
+        try resolver.reportFailureOnAddress(address: addresses[0])
         XCTAssert(addresses.count >= 1, "Address Count is (\(String(describing: addresses.count)))")
     }
 

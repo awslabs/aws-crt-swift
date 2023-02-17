@@ -4,21 +4,40 @@
 import AwsCIo
 
 public struct HostAddress {
-    public var host: String
-    public var address: String
-    public var recordType: AddressRecordType
+    /// Address type (ipv6, ipv4 etc)
+    public let addressType: HostAddressType
+
+    /// The resolved numerical address represented as a String
+    /// passing this string to pton(), for example, should correctly return the numerical representation
+    public let address: String
+
+    /// host name of the resolved address
+    public let hostName: String
+
+    /// Service record. Currently, unused largely because we use Http, but this may change as we add more protocols.
+    public let service: String? = nil
+
+    var rawValue: aws_host_address
 
     init(hostAddress: aws_host_address) {
-        self.host = String(awsString: hostAddress.host)!
+        self.hostName = String(awsString: hostAddress.host)!
         self.address = String(awsString: hostAddress.address)!
-        self.recordType = AddressRecordType(rawValue: hostAddress.record_type)
+        self.addressType = HostAddressType(rawValue: hostAddress.record_type)
+        self.rawValue = hostAddress
     }
+}
 
-    public init(host: String,
-                address: String,
-                recordType: AddressRecordType = .typeA) {
-        self.host = host
-        self.address = address
-        self.recordType = recordType
+public struct HostResolverArguments {
+
+    /// Host name to resolve
+    public var hostName: String
+
+    /// Service record. Currently unused largely because we use Http, but this may
+    /// change as we add more protocols.
+    public var service: String? = nil
+
+    public init(hostName: String, service: String? = nil) {
+        self.hostName = hostName
+        self.service = service
     }
 }

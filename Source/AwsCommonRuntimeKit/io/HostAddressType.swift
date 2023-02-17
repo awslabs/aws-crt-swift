@@ -3,21 +3,21 @@
 
 import AwsCIo
 
-public enum AddressRecordType {
-    case typeA
-    case typeAAAA
+public enum HostAddressType {
+    case A
+    case AAAA
 }
 
-extension AddressRecordType: RawRepresentable, CaseIterable {
+extension HostAddressType: RawRepresentable, CaseIterable {
 
     public init(rawValue: aws_address_record_type) {
         let value = Self.allCases.first { $0.rawValue == rawValue }
-        self = value ?? .typeA
+        self = value ?? .A
     }
     public var rawValue: aws_address_record_type {
         switch self {
-        case .typeA:  return aws_address_record_type(rawValue: 0)
-        case .typeAAAA:  return aws_address_record_type(rawValue: 1)
+        case .A:  return aws_address_record_type(rawValue: 0)
+        case .AAAA:  return aws_address_record_type(rawValue: 1)
         }
     }
 }
