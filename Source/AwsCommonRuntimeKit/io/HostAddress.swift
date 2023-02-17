@@ -34,7 +34,7 @@ public struct HostResolverArguments {
 
     /// Service record. Currently unused largely because we use Http, but this may
     /// change as we add more protocols.
-    public var service: String? = nil
+    public var service: String?
 
     public init(hostName: String, service: String? = nil) {
         self.hostName = hostName

@@ -108,7 +108,11 @@ public class HostResolver: HostResolverProtocol {
     public func purgeCache() async throws {
         return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
-            guard aws_host_resolver_purge_cache_with_callback(rawValue, onPurgeCacheComplete, continuationCore.passRetained()) == AWS_OP_SUCCESS else {
+            guard aws_host_resolver_purge_cache_with_callback(
+                    rawValue,
+                    onPurgeCacheComplete,
+                    continuationCore.passRetained()) == AWS_OP_SUCCESS
+            else {
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 return
