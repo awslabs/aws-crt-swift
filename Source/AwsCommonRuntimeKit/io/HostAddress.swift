@@ -5,13 +5,14 @@ import AwsCIo
 
 /// Represents a single HostAddress resolved by the Host Resolver
 public struct HostAddress: CStruct {
+
     /// Address type is ipv4 or ipv6
     public let addressType: HostAddressType
 
     /// Resolved numerical address represented as a String
     public let address: String
 
-    /// host name of the resolved address
+    /// Host name of the resolved address
     public let hostName: String
 
     /// Service record. Currently, unused because we use HTTP, but this may change as we add more protocols.
