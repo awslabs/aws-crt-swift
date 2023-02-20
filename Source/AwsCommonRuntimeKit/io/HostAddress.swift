@@ -3,6 +3,7 @@
 
 import AwsCIo
 
+/// Represents a single HostAddress resolved by the Host Resolver
 public struct HostAddress: CStruct {
     /// Address type is ipv4 or ipv6
     public let addressType: HostAddressType
@@ -51,6 +52,7 @@ public struct HostAddress: CStruct {
     }
 }
 
+/// Arguments for Host Resolver operations
 public struct HostResolverArguments {
 
     /// Host name to resolve

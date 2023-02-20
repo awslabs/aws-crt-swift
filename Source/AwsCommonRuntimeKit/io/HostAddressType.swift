@@ -3,6 +3,7 @@
 
 import AwsCIo
 
+/// Type of Host Address (ipv4 or ipv6)
 public enum HostAddressType {
     case A
     case AAAA
