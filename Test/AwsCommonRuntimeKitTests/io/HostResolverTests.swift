@@ -27,12 +27,12 @@ class HostResolverTests: XCBaseTestCase {
 
         var addresses = try await resolver.resolveAddress(args: HostResolverArguments(hostName: "localhost"))
         XCTAssert(addresses.count >= 1, "Address Count is (\(String(describing: addresses.count)))")
-        try await resolver.purgeCache(args: HostResolverArguments(hostName: "localHost"))
-        try await resolver.purgeCache(args: HostResolverArguments(hostName: "localHost"))
+        await resolver.purgeCache(args: HostResolverArguments(hostName: "localHost"))
+        await resolver.purgeCache(args: HostResolverArguments(hostName: "localHost"))
         addresses = try await resolver.resolveAddress(args: HostResolverArguments(hostName: "localhost"))
         XCTAssert(addresses.count >= 1, "Address Count is (\(String(describing: addresses.count)))")
-        try await resolver.purgeCache()
-        try await resolver.purgeCache()
+        await resolver.purgeCache()
+        await resolver.purgeCache()
         addresses = try await resolver.resolveAddress(args: HostResolverArguments(hostName: "localhost"))
         XCTAssert(addresses.count >= 1, "Address Count is (\(String(describing: addresses.count)))")
     }
@@ -46,7 +46,7 @@ class HostResolverTests: XCBaseTestCase {
 
         var addresses = try await resolver.resolveAddress(args: HostResolverArguments(hostName: "localhost"))
         XCTAssert(addresses.count >= 1, "Address Count is (\(String(describing: addresses.count)))")
-        try resolver.reportFailureOnAddress(address: addresses[0])
+        resolver.reportFailureOnAddress(address: addresses[0])
         addresses = try await resolver.resolveAddress(args: HostResolverArguments(hostName: "localhost"))
         XCTAssert(addresses.count >= 1, "Address Count is (\(String(describing: addresses.count)))")
     }

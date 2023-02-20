@@ -14,8 +14,16 @@ class Box<T> {
         self.contents = contents
     }
 
+    func passRetained() -> UnsafeMutableRawPointer {
+        Unmanaged<Box>.passRetained(self).toOpaque()
+    }
+
     func passUnretained() -> UnsafeMutableRawPointer {
-        return Unmanaged<Box>.passUnretained(self).toOpaque()
+        Unmanaged<Box>.passUnretained(self).toOpaque()
+    }
+
+    func release() {
+        Unmanaged.passUnretained(self).release()
     }
 }
 

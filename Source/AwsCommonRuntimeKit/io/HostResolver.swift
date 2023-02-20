@@ -11,11 +11,11 @@ public protocol HostResolverProtocol {
     func resolveAddress(args: HostResolverArguments) async throws -> [HostAddress]
     /// Reports a failure on an address so that the background cache can accommodate
     /// the failure and likely not return the address until it recovers.
-    func reportFailureOnAddress(address: HostAddress) throws
+    func reportFailureOnAddress(address: HostAddress)
     /// Empties the cache for an address.
-    func purgeCache(args: HostResolverArguments) async throws
+    func purgeCache(args: HostResolverArguments) async
     /// Empties the cache for all addresses.
-    func purgeCache() async throws
+    func purgeCache() async
 }
 
 /// CRT Host Resolver which performs async DNS lookups
@@ -87,42 +87,44 @@ public class HostResolver: HostResolverProtocol {
 
     /// Reports a failure on an address so that the background cache can accommodate
     /// the failure and likely not return the address until it recovers.
-    public func reportFailureOnAddress(address: HostAddress) throws {
-        guard address.withCPointer({ cAddress in
-            aws_host_resolver_record_connection_failure(rawValue, cAddress)
-        }) == AWS_OP_SUCCESS else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
+    /// Note: While the underlying C API may report an error, we ignore it because users don't care and
+    /// don't have a good way to deal with it.
+    public func reportFailureOnAddress(address: HostAddress) {
+        address.withCPointer { cAddress in
+            _ = aws_host_resolver_record_connection_failure(rawValue, cAddress)
         }
     }
 
     /// Purges the cache for a specific address
-    public func purgeCache(args: HostResolverArguments) async throws {
+    /// Note: While the underlying C API may report an error, we ignore it because users don't care and
+    /// don't have a good way to deal with it.
+    public func purgeCache(args: HostResolverArguments) async {
         let host = AWSString(args.hostName, allocator: allocator)
-        return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
-            let continuationCore = ContinuationCore(continuation: continuation)
+        return await withCheckedContinuation({ (continuation: CheckedContinuation<(), Never>) in
+            let continuationCore = Box(continuation)
             var purgeCacheOptions = aws_host_resolver_purge_host_options()
             purgeCacheOptions.host = UnsafePointer(host.rawValue)
             purgeCacheOptions.on_host_purge_complete_callback = onPurgeCacheComplete
             purgeCacheOptions.user_data = continuationCore.passRetained()
             guard aws_host_resolver_purge_host_cache(rawValue, &purgeCacheOptions) == AWS_OP_SUCCESS else {
                 continuationCore.release()
-                continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 return
             }
         })
     }
 
     /// Wipe out anything cached by resolver.
-    public func purgeCache() async throws {
-        return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
-            let continuationCore = ContinuationCore(continuation: continuation)
+    /// Note: While the underlying C API may report an error, we ignore it because users don't care and
+    /// don't have a good way to deal with it.
+    public func purgeCache() async {
+        await withCheckedContinuation({ (continuation: CheckedContinuation<(), Never>) in
+            let continuationCore = Box(continuation)
             guard aws_host_resolver_purge_cache_with_callback(
                     rawValue,
                     onPurgeCacheComplete,
                     continuationCore.passRetained()) == AWS_OP_SUCCESS
             else {
                 continuationCore.release()
-                continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 return
             }
         })
@@ -141,8 +143,10 @@ public class HostResolver: HostResolverProtocol {
 }
 
 private func onPurgeCacheComplete(_ userData: UnsafeMutableRawPointer!) {
-    let continuationCore = Unmanaged<ContinuationCore<()>>.fromOpaque(userData).takeRetainedValue()
-    continuationCore.continuation.resume()
+    let continuationCore = Unmanaged<Box<CheckedContinuation<(), Error>>>
+        .fromOpaque(userData)
+        .takeRetainedValue()
+    continuationCore.contents.resume()
 }
 
 private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>?,
