@@ -7,8 +7,8 @@ import AwsCAuth
  */
 public struct CommonRuntimeKit {
 
-     /// Initializes the library.
-     /// Must be called before using any other functionality.
+    /// Initializes the library.
+    /// Must be called before using any other functionality.
     /// - Parameters:
     ///   - allocator: (Optional) default allocator to override
     ///   - overrideDefaultAllocator: (Optional) Set it to true to override default allocator for the duration of whole application.
@@ -16,7 +16,7 @@ public struct CommonRuntimeKit {
     public static func initialize(allocator: Allocator = defaultAllocator, overrideDefaultAllocator: Bool = false) {
         aws_auth_library_init(allocator.rawValue)
         aws_event_stream_library_init(allocator.rawValue)
-        if(overrideDefaultAllocator) {
+        if overrideDefaultAllocator {
             defaultAllocator = allocator.rawValue
         }
     }
