@@ -143,7 +143,7 @@ public class HostResolver: HostResolverProtocol {
 }
 
 private func onPurgeCacheComplete(_ userData: UnsafeMutableRawPointer!) {
-    let continuationCore = Unmanaged<Box<CheckedContinuation<(), Error>>>
+    let continuationCore = Unmanaged<Box<CheckedContinuation<(), Never>>>
         .fromOpaque(userData)
         .takeRetainedValue()
     continuationCore.contents.resume()
