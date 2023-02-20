@@ -6,7 +6,7 @@ import AwsCCommon
  The default allocator.
  You are probably looking to use `allocator` instead.
  */
-public let defaultAllocator = aws_default_allocator()!
+internal(set) public var defaultAllocator = aws_default_allocator()!
 
 /// An allocator is used to allocate memory on the heap.
 public protocol Allocator {

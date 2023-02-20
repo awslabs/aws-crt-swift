@@ -11,8 +11,7 @@ class XCBaseTestCase: XCTestCase {
 
     override func setUp() {
         super.setUp()
-
-        CommonRuntimeKit.initialize(allocator: self.allocator)
+        CommonRuntimeKit.initialize(allocator: allocator, overrideDefaultAllocator: true)
     }
 
     override func tearDown() {
