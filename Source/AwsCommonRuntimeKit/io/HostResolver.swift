@@ -108,6 +108,7 @@ public class HostResolver: HostResolverProtocol {
             purgeCacheOptions.user_data = continuationCore.passRetained()
             guard aws_host_resolver_purge_host_cache(rawValue, &purgeCacheOptions) == AWS_OP_SUCCESS else {
                 continuationCore.release()
+                continuation.resume()
                 return
             }
         })
@@ -125,6 +126,7 @@ public class HostResolver: HostResolverProtocol {
                     continuationCore.passRetained()) == AWS_OP_SUCCESS
             else {
                 continuationCore.release()
+                continuation.resume()
                 return
             }
         })
