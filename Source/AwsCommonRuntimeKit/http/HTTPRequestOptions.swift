@@ -12,11 +12,11 @@ public struct HTTPRequestOptions {
     public typealias OnResponse = (_ statusCode: UInt32,
                                    _ headers: [HTTPHeader]) -> Void
     /// Callback to receive the incoming body
-    public typealias OnIncomingBody = (_ bodyChunk: Data) -> Void
+    public typealias OnIncomingBody = (_ bodyChunk: Data) throws -> Void
     /// Callback to receive trailer headers
     public typealias OnTrailer = (_ headers: [HTTPHeader]) -> Void
     /// Callback to know when request is completed, whether successful or unsuccessful
-    public typealias OnStreamComplete = (_ result: Result<UInt32, CommonRunTimeError>) -> Void
+    public typealias OnStreamComplete = (_ result: Result<UInt32, CommonRunTimeError>) throws -> Void
 
     /// Outgoing request.
     let request: HTTPRequestBase
