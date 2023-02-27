@@ -8,11 +8,16 @@ import AwsCIo
 public protocol HostResolverProtocol {
     /// Resolves the address(es) for HostResolverArguments and returns a list of
     /// addresses with (most likely) two addresses, one AAAA and one A.
+    /// - Parameter args: The host name to resolve address for.
+    /// - Returns: List of resolved host addresses.
+    /// - Throws: CommonRunTimeError.crtError
     func resolveAddress(args: HostResolverArguments) async throws -> [HostAddress]
     /// Reports a failure on an address so that the background cache can accommodate
     /// the failure and likely not return the address until it recovers.
+    /// - Parameter address: The address to report the failure for.
     func reportFailureOnAddress(address: HostAddress)
     /// Empties the cache for an address.
+    /// - Parameter args: The host name to purge the cache.
     func purgeCache(args: HostResolverArguments) async
     /// Empties the cache for all addresses.
     func purgeCache() async
@@ -65,6 +70,9 @@ public class HostResolver: HostResolverProtocol {
 
     /// Resolves the address(es) for HostResolverArguments and returns a list of
     /// addresses with (most likely) two addresses, one AAAA and one A.
+    /// - Parameter args: The host name to resolve address for.
+    /// - Returns: List of resolved host addresses.
+    /// - Throws: CommonRunTimeError.crtError
     public func resolveAddress(args: HostResolverArguments) async throws -> [HostAddress] {
         let host = args.hostName
         return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<[HostAddress], Error>) in
@@ -89,6 +97,7 @@ public class HostResolver: HostResolverProtocol {
     /// the failure and likely not return the address until it recovers.
     /// Note: While the underlying C API may report an error, we ignore it because users don't care and
     /// don't have a good way to deal with it.
+    /// - Parameter address: The address to report the failure for.
     public func reportFailureOnAddress(address: HostAddress) {
         address.withCPointer { cAddress in
             _ = aws_host_resolver_record_connection_failure(rawValue, cAddress)
@@ -98,6 +107,7 @@ public class HostResolver: HostResolverProtocol {
     /// Purges the cache for a specific address
     /// Note: While the underlying C API may report an error, we ignore it because users don't care and
     /// don't have a good way to deal with it.
+    /// - Parameter args: The host name to purge the cache.
     public func purgeCache(args: HostResolverArguments) async {
         let host = AWSString(args.hostName, allocator: allocator)
         return await withCheckedContinuation({ (continuation: CheckedContinuation<(), Never>) in
