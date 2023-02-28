@@ -4,11 +4,32 @@
 import AwsCCommon
 import AwsCIo
 
-public class HostResolver {
+/// All host resolver implementation must conform to this protocol.
+public protocol HostResolverProtocol {
+    /// Resolves the address(es) for HostResolverArguments and returns a list of
+    /// addresses with (most likely) two addresses, one AAAA and one A.
+    /// - Parameter args: The host name to resolve address for.
+    /// - Returns: List of resolved host addresses.
+    /// - Throws: CommonRunTimeError.crtError
+    func resolveAddress(args: HostResolverArguments) async throws -> [HostAddress]
+    /// Reports a failure on an address so that the background cache can accommodate
+    /// the failure and likely not return the address until it recovers.
+    /// - Parameter address: The address to report the failure for.
+    func reportFailureOnAddress(address: HostAddress)
+    /// Empties the cache for an address.
+    /// - Parameter args: The host name to purge the cache.
+    func purgeCache(args: HostResolverArguments) async
+    /// Empties the cache for all addresses.
+    func purgeCache() async
+}
+
+/// CRT Host Resolver which performs async DNS lookups
+public class HostResolver: HostResolverProtocol {
     let rawValue: UnsafeMutablePointer<aws_host_resolver>
     let maxTTL: Int
     private let allocator: Allocator
 
+    /// Creates a host resolver with the default behavior.
     public static func makeDefault(eventLoopGroup: EventLoopGroup,
                                    maxHosts: Int = 16,
                                    maxTTL: Int = 30,
@@ -47,7 +68,13 @@ public class HostResolver {
         self.maxTTL = maxTTL
     }
 
-    public func resolve(host: String) async throws -> [HostAddress] {
+    /// Resolves the address(es) for HostResolverArguments and returns a list of
+    /// addresses with (most likely) two addresses, one AAAA and one A.
+    /// - Parameter args: The host name to resolve address for.
+    /// - Returns: List of resolved host addresses.
+    /// - Throws: CommonRunTimeError.crtError
+    public func resolveAddress(args: HostResolverArguments) async throws -> [HostAddress] {
+        let host = args.hostName
         return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<[HostAddress], Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
             let hostStr = AWSString(host, allocator: allocator)
@@ -59,11 +86,58 @@ public class HostResolver {
                     hostResolutionConfigPointer,
                     continuationCore.passRetained()) != AWS_OP_SUCCESS {
 
-                    // TODO: this is wrong. Sometimes it triggers the error callback and sometimes it doesn't.
-                    // I have a fix in progress in aws-c-io
                     continuationCore.release()
                     continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
+            }
+        })
+    }
+
+    /// Reports a failure on an address so that the background cache can accommodate
+    /// the failure and likely not return the address until it recovers.
+    /// Note: While the underlying C API may report an error, we ignore it because users don't care and
+    /// don't have a good way to deal with it.
+    /// - Parameter address: The address to report the failure for.
+    public func reportFailureOnAddress(address: HostAddress) {
+        address.withCPointer { cAddress in
+            _ = aws_host_resolver_record_connection_failure(rawValue, cAddress)
+        }
+    }
+
+    /// Purges the cache for a specific address
+    /// Note: While the underlying C API may report an error, we ignore it because users don't care and
+    /// don't have a good way to deal with it.
+    /// - Parameter args: The host name to purge the cache.
+    public func purgeCache(args: HostResolverArguments) async {
+        let host = AWSString(args.hostName, allocator: allocator)
+        return await withCheckedContinuation({ (continuation: CheckedContinuation<(), Never>) in
+            let continuationCore = Box(continuation)
+            var purgeCacheOptions = aws_host_resolver_purge_host_options()
+            purgeCacheOptions.host = UnsafePointer(host.rawValue)
+            purgeCacheOptions.on_host_purge_complete_callback = onPurgeCacheComplete
+            purgeCacheOptions.user_data = continuationCore.passRetained()
+            guard aws_host_resolver_purge_host_cache(rawValue, &purgeCacheOptions) == AWS_OP_SUCCESS else {
+                continuationCore.release()
+                continuation.resume()
+                return
+            }
+        })
+    }
+
+    /// Wipe out anything cached by resolver.
+    /// Note: While the underlying C API may report an error, we ignore it because users don't care and
+    /// don't have a good way to deal with it.
+    public func purgeCache() async {
+        await withCheckedContinuation({ (continuation: CheckedContinuation<(), Never>) in
+            let continuationCore = Box(continuation)
+            guard aws_host_resolver_purge_cache_with_callback(
+                    rawValue,
+                    onPurgeCacheComplete,
+                    continuationCore.passRetained()) == AWS_OP_SUCCESS
+            else {
+                continuationCore.release()
+                continuation.resume()
+                return
             }
         })
     }
@@ -78,6 +152,13 @@ public class HostResolver {
     deinit {
         aws_host_resolver_release(rawValue)
     }
+}
+
+private func onPurgeCacheComplete(_ userData: UnsafeMutableRawPointer!) {
+    let continuationCore = Unmanaged<Box<CheckedContinuation<(), Never>>>
+        .fromOpaque(userData)
+        .takeRetainedValue()
+    continuationCore.contents.resume()
 }
 
 private func onHostResolved(_ resolver: UnsafeMutablePointer<aws_host_resolver>?,

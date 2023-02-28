@@ -3,22 +3,68 @@
 
 import AwsCIo
 
-public struct HostAddress {
-    public var host: String
-    public var address: String
-    public var recordType: AddressRecordType
+/// Represents a single HostAddress resolved by the Host Resolver
+public struct HostAddress: CStruct {
+
+    /// Address type is ipv4 or ipv6
+    public let addressType: HostAddressType
+
+    /// Resolved numerical address represented as a String
+    public let address: String
+
+    /// Host name of the resolved address
+    public let hostName: String
+
+    /// Service record. Currently, unused because we use HTTP, but this may change as we add more protocols.
+    public let service: String? = nil
+
+    let allocator: Allocator
+    let expiry: UInt64
+    let useCount: Int
+    let connectionFailureCount: Int
+    let weight: UInt8
 
     init(hostAddress: aws_host_address) {
-        self.host = String(awsString: hostAddress.host)!
-        self.address = String(awsString: hostAddress.address)!
-        self.recordType = AddressRecordType(rawValue: hostAddress.record_type)
+        hostName = String(awsString: hostAddress.host)!
+        address = String(awsString: hostAddress.address)!
+        addressType = HostAddressType(rawValue: hostAddress.record_type)
+        allocator = hostAddress.allocator
+        expiry = hostAddress.expiry
+        useCount = hostAddress.use_count
+        connectionFailureCount = hostAddress.connection_failure_count
+        weight = hostAddress.weight
     }
 
-    public init(host: String,
-                address: String,
-                recordType: AddressRecordType = .typeA) {
-        self.host = host
-        self.address = address
-        self.recordType = recordType
+    typealias RawType = aws_host_address
+    func withCStruct<Result>(_ body: (aws_host_address) -> Result) -> Result {
+        let cAddress = AWSString(address, allocator: allocator)
+        let cHostName = AWSString(hostName, allocator: allocator)
+
+        var cHostAddress = aws_host_address()
+        cHostAddress.record_type = addressType.rawValue
+        cHostAddress.address = UnsafePointer(cAddress.rawValue)
+        cHostAddress.host = UnsafePointer(cHostName.rawValue)
+        cHostAddress.allocator = allocator.rawValue
+        cHostAddress.expiry = expiry
+        cHostAddress.use_count = useCount
+        cHostAddress.connection_failure_count = connectionFailureCount
+        cHostAddress.weight = weight
+        return body(cHostAddress)
+    }
+}
+
+/// Arguments for Host Resolver operations
+public struct HostResolverArguments {
+
+    /// Host name to resolve
+    public var hostName: String
+
+    /// Service record. Currently unused because we use HTTP, but this may
+    /// change as we add more protocols.
+    public var service: String?
+
+    public init(hostName: String, service: String? = nil) {
+        self.hostName = hostName
+        self.service = service
     }
 }
