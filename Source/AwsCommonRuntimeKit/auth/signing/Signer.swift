@@ -105,7 +105,7 @@ public class Signer {
     ///   - event: Encoded event to sign
     ///   - previousSignature: The signature of the previous component of the request: either the request itself for the first event,
     ///                        or the previous event otherwise.
-    ///    - config: The `SigningConfig` to use when signing. The `SignatureType` must be `requestEvent`.
+    ///   - config: The `SigningConfig` to use when signing. The `SignatureType` must be `requestEvent`.
     ///   - allocator: (Optional) allocator to override
     /// - Returns: Signature of the event. You will need to add the signature as well as date header to the request.
     /// - Throws: CommonRunTimeError.crtError
@@ -113,7 +113,10 @@ public class Signer {
                                  previousSignature: String,
                                  config: SigningConfig,
                                  allocator: Allocator = defaultAllocator) async throws -> String {
-        try await signChunk(chunk: event, previousSignature: previousSignature, config: config, allocator: allocator)
+        guard config.signatureType == SignatureType.requestEvent else {
+            throw CommonRunTimeError.crtError(.init(code: AWS_AUTH_SIGNING_MISMATCHED_CONFIGURATION.rawValue))
+        }
+        return try await signChunk(chunk: event, previousSignature: previousSignature, config: config, allocator: allocator)
     }
 
     /// Signs trailing headers according to the supplied signing configuration
