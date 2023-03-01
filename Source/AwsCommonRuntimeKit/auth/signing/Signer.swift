@@ -116,7 +116,11 @@ public class Signer {
         guard config.signatureType == SignatureType.requestEvent else {
             throw CommonRunTimeError.crtError(.init(code: AWS_AUTH_SIGNING_MISMATCHED_CONFIGURATION.rawValue))
         }
-        return try await signChunk(chunk: event, previousSignature: previousSignature, config: config, allocator: allocator)
+        return try await signChunk(
+            chunk: event,
+            previousSignature: previousSignature,
+            config: config,
+            allocator: allocator)
     }
 
     /// Signs trailing headers according to the supplied signing configuration
