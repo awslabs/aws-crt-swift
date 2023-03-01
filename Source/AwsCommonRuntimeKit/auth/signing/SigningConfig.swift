@@ -153,6 +153,13 @@ public enum SignatureType {
     /// the signable should contain the most recent signature value (either the original http request or the most recent
     /// chunk) in the "previous-signature" property.
     case requestTrailingHeaders
+
+    /// Compute a signature for an event stream event. The input should be the encoded event-stream
+    /// message (headers + payload), the signable should contain the most recent signature value (either the original
+    /// http request or the most recent event) in the "previous-signature" property.
+    ///
+    /// This option is only supported for Sigv4 for now.
+    case requestEvent
 }
 
 public enum SignedBodyHeaderType {
@@ -204,6 +211,7 @@ extension SignatureType: RawRepresentable, CaseIterable {
         case .requestQueryParams: return AWS_ST_HTTP_REQUEST_QUERY_PARAMS
         case .requestChunk: return AWS_ST_HTTP_REQUEST_CHUNK
         case .requestTrailingHeaders: return AWS_ST_HTTP_REQUEST_TRAILING_HEADERS
+        case .requestEvent: return AWS_ST_HTTP_REQUEST_EVENT
         }
     }
 }

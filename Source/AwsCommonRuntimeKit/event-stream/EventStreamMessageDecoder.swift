@@ -54,7 +54,7 @@ public class EventStreamMessageDecoder {
     /// Pass data to decode. This will trigger the callbacks with the decoded result.
     /// - Parameter data:  The data to decode
     /// - Throws: CommonRunTimeError.crtException
-    func decode(data: Data) throws {
+    public func decode(data: Data) throws {
         guard data.withAWSByteBufPointer({
             aws_event_stream_streaming_decoder_pump(
                 &rawValue,
