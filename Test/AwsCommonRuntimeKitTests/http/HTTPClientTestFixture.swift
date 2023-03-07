@@ -161,7 +161,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
 
                 onIncomingBody: { bodyChunk in
                     response?.pointee.body += bodyChunk
-                    onBody?(bodyChunk)
+                    try onBody?(bodyChunk)
                 },
                 onStreamComplete: { result in
                     switch result{
@@ -171,7 +171,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                         print("AWS_TEST_ERROR:\(String(describing: error))")
                         response?.pointee.error = error
                     }
-                    onComplete?(result)
+                    try onComplete?(result)
                     semaphore?.signal()
                 },
                 http2ManualDataWrites: http2ManualDataWrites)
