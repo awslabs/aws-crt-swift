@@ -171,7 +171,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                         print("AWS_TEST_ERROR:\(String(describing: error))")
                         response?.pointee.error = error
                     }
-                    try onComplete?(result)
+                    onComplete?(result)
                     semaphore?.signal()
                 },
                 http2ManualDataWrites: http2ManualDataWrites)

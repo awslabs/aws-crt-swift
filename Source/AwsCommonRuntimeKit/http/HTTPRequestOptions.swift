@@ -16,7 +16,7 @@ public struct HTTPRequestOptions {
     /// Callback to receive trailer headers
     public typealias OnTrailer = (_ headers: [HTTPHeader]) -> Void
     /// Callback to know when request is completed, whether successful or unsuccessful
-    public typealias OnStreamComplete = (_ result: Result<UInt32, CommonRunTimeError>) throws -> Void
+    public typealias OnStreamComplete = (_ result: Result<UInt32, CommonRunTimeError>) -> Void
 
     /// Outgoing request.
     let request: HTTPRequestBase

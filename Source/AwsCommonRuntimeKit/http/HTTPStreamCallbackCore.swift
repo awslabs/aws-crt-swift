@@ -110,11 +110,7 @@ private func onComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
     let httpStreamCbData = Unmanaged<HTTPStreamCallbackCore>.fromOpaque(userData).takeUnretainedValue()
     let onStreamCompleteFn = httpStreamCbData.requestOptions.onStreamComplete
     guard errorCode == AWS_OP_SUCCESS else {
-        do {
-            try onStreamCompleteFn(.failure(CommonRunTimeError.crtError(CRTError(code: errorCode))))
-        } catch {
-            fatalError("C callback needs to updated.")
-        }
+        onStreamCompleteFn(.failure(CommonRunTimeError.crtError(CRTError(code: errorCode))))
         return
     }
 
@@ -127,11 +123,7 @@ private func onComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
             """
         )
     }
-    do {
-        try onStreamCompleteFn(.success(UInt32(status)))
-    } catch {
-        fatalError("C callback needs to updated.")
-    }
+    onStreamCompleteFn(.success(UInt32(status)))
 }
 
 private func onDestroy(userData: UnsafeMutableRawPointer!) {
