@@ -156,7 +156,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
         HTTPRequestOptions(request: request,
                 onResponse: { status, headers in
                     response?.pointee.headers += headers
-                    onResponse?(status, headers)
+                    try onResponse?(status, headers)
                 },
 
                 onIncomingBody: { bodyChunk in

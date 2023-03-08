@@ -7,14 +7,14 @@ public struct HTTPRequestOptions {
 
     /// Callback to receive interim response
     public typealias OnInterimResponse = (_ statusCode: UInt32,
-                                          _ headers: [HTTPHeader]) -> Void
+                                          _ headers: [HTTPHeader]) throws -> Void
     /// Callback to receive main headers
     public typealias OnResponse = (_ statusCode: UInt32,
-                                   _ headers: [HTTPHeader]) -> Void
+                                   _ headers: [HTTPHeader]) throws -> Void
     /// Callback to receive the incoming body
     public typealias OnIncomingBody = (_ bodyChunk: Data) throws -> Void
     /// Callback to receive trailer headers
-    public typealias OnTrailer = (_ headers: [HTTPHeader]) -> Void
+    public typealias OnTrailer = (_ headers: [HTTPHeader]) throws -> Void
     /// Callback to know when request is completed, whether successful or unsuccessful
     public typealias OnStreamComplete = (_ result: Result<UInt32, CommonRunTimeError>) -> Void
 
