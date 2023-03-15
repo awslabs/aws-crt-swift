@@ -56,22 +56,6 @@ public class FileBasedConfiguration {
         self.rawValue = rawValue
     }
 
-    /// Create a FileBasedConfiguration by parsing text in a buffer. Primarily for testing.
-    init(fromData data: Data,
-         source: aws_profile_source_type,
-         allocator: Allocator = defaultAllocator) throws {
-        let byteCount = data.count
-        guard let rawValue  = (data.withUnsafeBytes { rawBufferPointer -> OpaquePointer? in
-            var byteBuf = aws_byte_buf_from_array(rawBufferPointer.baseAddress, byteCount)
-            return aws_profile_collection_new_from_buffer(allocator.rawValue,
-                                                          &byteBuf,
-                                                          source)
-        }) else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
-        self.rawValue = rawValue
-    }
-
     /// Retrieves a reference to a profile with the specified name, if it exists, from the profile collection
     ///
     /// - Parameters:
