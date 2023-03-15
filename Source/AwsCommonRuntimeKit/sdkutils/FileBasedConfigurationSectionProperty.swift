@@ -6,12 +6,12 @@ import AwsCSdkUtils
 /// Represents a section property in the file based configuration.
 public class FileBasedConfigurationSectionProperty {
     let rawValue: OpaquePointer
-    // Keep a reference of collection to keep it alive
-    let collection: FileBasedConfiguration
+    // Keep a reference of configuration to keep it alive
+    let fileBasedConfiguration: FileBasedConfiguration
 
     init(rawValue: OpaquePointer, collection: FileBasedConfiguration) {
         self.rawValue = rawValue
-        self.collection = collection
+        self.fileBasedConfiguration = collection
     }
 
     /// Returns the property's string value
