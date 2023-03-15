@@ -85,11 +85,6 @@ public class FileBasedConfiguration {
         return FileBasedConfigurationSection(rawValue: profilePointer, collection: self)
     }
 
-    /// Returns how many sections a collection holds
-    public var profileCount: Int {
-        return aws_profile_collection_get_profile_count(rawValue)
-    }
-
     deinit {
         aws_profile_collection_release(rawValue)
     }
