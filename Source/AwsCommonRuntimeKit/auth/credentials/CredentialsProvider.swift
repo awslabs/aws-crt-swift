@@ -166,10 +166,11 @@ extension CredentialsProvider.Source {
             profileOptionsC.bootstrap = bootstrap.rawValue
             profileOptionsC.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
             profileOptionsC.profile_collection_cached = fileBasedConfiguration.rawValue
-            guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(profileFileNameOverride, { profileCursor in
-                profileOptionsC.profile_name_override = profileCursor
-                return aws_credentials_provider_new_profile(allocator.rawValue, &profileOptionsC)
-            })
+            guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
+                    profileFileNameOverride, { profileCursor in
+                        profileOptionsC.profile_name_override = profileCursor
+                        return aws_credentials_provider_new_profile(allocator.rawValue, &profileOptionsC)
+                    })
             else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())

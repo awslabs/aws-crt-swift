@@ -29,7 +29,7 @@ class FileBasedConfigurationTests: XCBaseTestCase {
         let fakeCreds = "[default]\r\naws_access_key_id=AccessKey\r\naws_secret_access_key=Sekrit".data(using: .utf8)!
         let credentialsFileBasedConfiguration = try FileBasedConfiguration(fromData: fakeCreds, source: .credentials, allocator: allocator)
 
-        let mergedCollection = try FileBasedConfiguration(configProfileCollection: profileFileBasedConfiguration, credentialProfileCollection: credentialsFileBasedConfiguration)
+        let mergedCollection = try FileBasedConfiguration(configFileBasedConfiguration: profileFileBasedConfiguration, credentialFileBasedConfiguration: credentialsFileBasedConfiguration)
         let profile = mergedCollection.getSection(name: "default", sectionType: FileBasedConfigSectionType.profile, allocator: allocator)!
 
         let accessKey = profile.getProperty(name: "aws_access_key_id")!

@@ -9,8 +9,8 @@ public class FileBasedConfiguration {
 
     /// Create a FileBasedConfiguration by merging the configuration from config file and credentials file.
     /// - Parameters:
-    ///   - configFilePath: (Optional) If a file path is provided use that, otherwise load config from the default config file.
-    ///   - credentialsFilePath: (Optional) If a file path is provided use that, otherwise load config from the default config file.
+    ///   - configFilePath: (Optional) If a file path is provided use that, otherwise loads config from the default location (~/.aws/config).
+    ///   - credentialsFilePath: (Optional) If a file path is provided use that, otherwise loads config from the default location (~/.aws/credentials)
     ///   - allocator: (Optional) allocator to override
     /// - Throws:
     public init(configFilePath: String? = nil,
@@ -63,13 +63,7 @@ public class FileBasedConfiguration {
     public init(fromFile path: String,
                 source: FileBasedConfigSourceType,
                 allocator: Allocator = defaultAllocator) throws {
-        var finalizedPath = path
-        if path.hasPrefix("~"),
-           let homeDirectory = aws_get_home_directory(allocator.rawValue),
-           let homeDirectoryString = String(awsString: homeDirectory) {
-            finalizedPath = homeDirectoryString + path.dropFirst()
-        }
-        let awsString = AWSString(finalizedPath, allocator: allocator)
+        let awsString = AWSString(path, allocator: allocator)
         guard let profilePointer = aws_profile_collection_new_from_file(allocator.rawValue,
                                                                         awsString.rawValue,
                                                                         source.rawValue)
@@ -97,12 +91,12 @@ public class FileBasedConfiguration {
 
     /// Create a FileBasedConfiguration by merging a config-file-based profile
     /// collection and a credentials-file-based profile collection
-    public init(configProfileCollection: FileBasedConfiguration,
-                credentialProfileCollection: FileBasedConfiguration,
+    public init(configFileBasedConfiguration: FileBasedConfiguration,
+                credentialFileBasedConfiguration: FileBasedConfiguration,
                 allocator: Allocator = defaultAllocator) throws {
         guard let rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
-                                                                   configProfileCollection.rawValue,
-                                                                   credentialProfileCollection.rawValue)
+                                                                   configFileBasedConfiguration.rawValue,
+                                                                   credentialFileBasedConfiguration.rawValue)
         else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
