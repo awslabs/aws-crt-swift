@@ -3,6 +3,7 @@
 
 import AwsCSdkUtils
 
+/// Represents a section in the FileBasedConfiguration
 public class FileBasedConfigurationSection {
     let rawValue: OpaquePointer
     // Keep a reference of collection to keep it alive
@@ -19,6 +20,10 @@ public class FileBasedConfigurationSection {
     }
 
     /// Retrieves a reference to a property with the specified name, if it exists, from a profile
+    /// - Parameters:
+    ///   - name: The name of property to retrieve
+    ///   - allocator: (Optional) default allocator to override
+    /// - Returns:
     public func getProperty(name: String, allocator: Allocator = defaultAllocator) -> FileBasedConfigurationSectionProperty? {
         let nameAwsString = AWSString(name, allocator: allocator)
         guard let propPointer = aws_profile_get_property(rawValue, nameAwsString.rawValue) else {

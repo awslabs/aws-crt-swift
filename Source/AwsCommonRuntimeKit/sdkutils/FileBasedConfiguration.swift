@@ -56,18 +56,19 @@ public class FileBasedConfiguration {
         self.rawValue = rawValue
     }
 
-    /// Retrieves a reference to a profile with the specified name, if it exists, from the profile collection
+    /// Retrieves a reference to a section with the specified name, if it exists.
     ///
     /// - Parameters:
     ///   - name: The name of the section to retrieve
     ///   - sectionType: Type of section to retrieve
     ///   - allocator: (Optional) default allocator to override
-    /// - Returns:
+    /// - Returns: FileBasedConfigurationSection if it exists.
     public func getSection(name: String, sectionType: FileBasedConfigSectionType, allocator: Allocator = defaultAllocator) -> FileBasedConfigurationSection? {
         let awsString = AWSString(name, allocator: allocator)
-        guard let profilePointer = aws_profile_collection_get_section(self.rawValue,
-                                                                      sectionType.rawValue,
-                                                                      awsString.rawValue)
+        guard let profilePointer = aws_profile_collection_get_section(
+                self.rawValue,
+                sectionType.rawValue,
+                awsString.rawValue)
         else {
             return nil
         }
