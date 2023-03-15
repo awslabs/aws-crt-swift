@@ -11,40 +11,42 @@ public class ProfileCollection {
     public init(configFilePath: String? = nil,
                 credentialsFilePath: String? = nil,
                 allocator: Allocator = defaultAllocator) throws {
-
-        guard let credentials_file_path = withOptionalByteCursorPointerFromString(credentialsFilePath, {
+        // load file path for configuration files
+        guard let credentialsFilePath = withOptionalByteCursorPointerFromString(credentialsFilePath, {
             aws_get_credentials_file_path(allocator.rawValue, $0)
         })
         else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         defer {
-            aws_string_destroy(credentials_file_path)
+            aws_string_destroy(credentialsFilePath)
         }
 
-        guard let config_file_path = withOptionalByteCursorPointerFromString(configFilePath, {
+        guard let configFilePath = withOptionalByteCursorPointerFromString(configFilePath, {
             aws_get_config_file_path(allocator.rawValue, $0)
         })
         else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         defer {
-            aws_string_destroy(config_file_path)
+            aws_string_destroy(configFilePath)
         }
 
-        let config_profiles = aws_profile_collection_new_from_file(allocator.rawValue, config_file_path, ProfileSourceType.config.rawValue)
+        // load configuration collections
+        let configCollection = aws_profile_collection_new_from_file(allocator.rawValue, configFilePath, ProfileSourceType.config.rawValue)
         defer {
-            aws_profile_collection_release(config_profiles)
+            aws_profile_collection_release(configCollection)
         }
 
-        let credentials_profiles = aws_profile_collection_new_from_file(allocator.rawValue, credentials_file_path, ProfileSourceType.credentials.rawValue)
+        let credentialsCollection = aws_profile_collection_new_from_file(allocator.rawValue, credentialsFilePath, ProfileSourceType.credentials.rawValue)
         defer {
-            aws_profile_collection_release(credentials_profiles)
+            aws_profile_collection_release(credentialsCollection)
         }
 
+        // merge the two collections
         guard let rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
-                                                                   config_profiles,
-                                                                   credentials_profiles)
+                                                                   configCollection,
+                                                                   credentialsCollection)
         else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
