@@ -122,14 +122,15 @@ class CredentialsProviderTests: XCBaseTestCase {
         do {
             let provider = try CredentialsProvider(source: .profile(
                     bootstrap: getClientBootstrap(),
-                    configFileNameOverride: Bundle.module.path(forResource: "example_config", ofType: "txt")!,
-                    credentialsFileNameOverride: Bundle.module.path(forResource: "example_profile", ofType: "txt")!,
+                    profileCollection: ProfileCollection(
+                            configFilePath: Bundle.module.path(forResource: "example_profile", ofType: "txt")!,
+                            credentialsFilePath: Bundle.module.path(forResource: "example_credentials", ofType: "txt")!),
                     shutdownCallback: getShutdownCallback()),
                     allocator: allocator)
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
-            XCTAssertEqual("default_access_key_id", credentials.getAccessKey())
-            XCTAssertEqual("default_secret_access_key", credentials.getSecret())
+            XCTAssertEqual("accessKey", credentials.getAccessKey())
+            XCTAssertEqual("secretKey", credentials.getSecret())
         }
         wait(for: [shutdownWasCalled], timeout: 15)
     }
@@ -164,6 +165,7 @@ class CredentialsProviderTests: XCBaseTestCase {
         do {
             try await withEnvironmentCredentialsClosure {
                 let provider = try CredentialsProvider(source: .defaultChain(bootstrap: getClientBootstrap(),
+                        profileCollection: ProfileCollection(),
                         shutdownCallback: getShutdownCallback()),
                         allocator: allocator)
 
@@ -177,7 +179,8 @@ class CredentialsProviderTests: XCBaseTestCase {
 
     func testCreateDestroyStsWebIdentityInvalidEnv() async throws {
         XCTAssertThrowsError(try CredentialsProvider(source: .stsWebIdentity(bootstrap: getClientBootstrap(),
-                tlsContext: getTlsContext()),
+                tlsContext: getTlsContext(),
+                profileCollection: ProfileCollection()),
                 allocator: allocator))
     }
 

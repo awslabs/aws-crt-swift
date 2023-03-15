@@ -8,16 +8,54 @@ public class ProfileCollection {
     var rawValue: OpaquePointer
 
     /// Create a new profile collection by parsing a file with the specified path
+    public init(configFilePath: String? = nil,
+                credentialsFilePath: String? = nil,
+                allocator: Allocator = defaultAllocator) throws {
+
+        guard let credentials_file_path = withOptionalByteCursorPointerFromString(credentialsFilePath, {
+            aws_get_credentials_file_path(allocator.rawValue, $0)
+        })
+        else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+        defer {
+            aws_string_destroy(credentials_file_path)
+        }
+
+        guard let config_file_path = withOptionalByteCursorPointerFromString(configFilePath, {
+            aws_get_config_file_path(allocator.rawValue, $0)
+        })
+        else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+        defer {
+            aws_string_destroy(config_file_path)
+        }
+
+        let config_profiles = aws_profile_collection_new_from_file(allocator.rawValue, config_file_path, ProfileSourceType.config.rawValue)
+        defer {
+            aws_profile_collection_release(config_profiles)
+        }
+
+        let credentials_profiles = aws_profile_collection_new_from_file(allocator.rawValue, credentials_file_path, ProfileSourceType.credentials.rawValue)
+        defer {
+            aws_profile_collection_release(credentials_profiles)
+        }
+
+        guard let rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
+                                                                   config_profiles,
+                                                                   credentials_profiles)
+        else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+        self.rawValue = rawValue
+    }
+
+    /// Create a new profile collection by parsing a file with the specified path
     public init(fromFile path: String,
                 source: ProfileSourceType,
                 allocator: Allocator = defaultAllocator) throws {
-        var finalizedPath = path
-        if path.hasPrefix("~"),
-           let homeDirectory = aws_get_home_directory(allocator.rawValue),
-           let homeDirectoryString = String(awsString: homeDirectory) {
-            finalizedPath = homeDirectoryString + path.dropFirst()
-        }
-        let awsString = AWSString(finalizedPath, allocator: allocator)
+        let awsString = AWSString(path, allocator: allocator)
         guard let profilePointer = aws_profile_collection_new_from_file(allocator.rawValue,
                                                                         awsString.rawValue,
                                                                         source.rawValue)

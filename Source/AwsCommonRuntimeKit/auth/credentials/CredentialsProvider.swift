@@ -149,17 +149,15 @@ extension CredentialsProvider.Source {
     ///
     /// - Parameters:
     ///   - bootstrap:  Connection bootstrap to use for any network connections made while sourcing credentials.
-    ///   - configFileNameOverride:  (Optional) Override path to the profile config file (~/.aws/config by default)
+    ///   - profileCollection: The profile collection to read the properties from.
     ///   - profileFileNameOverride: (Optional) Override of what profile to use to source credentials from ('default' by default)
-    ///   - credentialsFileNameOverride: (Optional) Override path to the profile credentials file (~/.aws/credentials by default)
     ///   - shutdownCallback:  (Optional) shutdown callback
     ///   - allocator: (Optional) allocator to override
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `profile`(bootstrap: ClientBootstrap,
-                                 configFileNameOverride: String? = nil,
+                                 profileCollection: ProfileCollection,
                                  profileFileNameOverride: String? = nil,
-                                 credentialsFileNameOverride: String? = nil,
                                  shutdownCallback: ShutdownCallback? = nil,
                                  allocator: Allocator = defaultAllocator) -> Self {
         Self { allocator in
@@ -167,15 +165,11 @@ extension CredentialsProvider.Source {
             var profileOptionsC = aws_credentials_provider_profile_options()
             profileOptionsC.bootstrap = bootstrap.rawValue
             profileOptionsC.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
-            guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
-                    configFileNameOverride,
-                    credentialsFileNameOverride,
-                    profileFileNameOverride, { configCursor, credentialsCursor, profileCursor in
-                        profileOptionsC.config_file_name_override = configCursor
-                        profileOptionsC.credentials_file_name_override = credentialsCursor
-                        profileOptionsC.profile_name_override = profileCursor
-                        return aws_credentials_provider_new_profile(allocator.rawValue, &profileOptionsC)
-                    })
+            profileOptionsC.profile_collection_cached = profileCollection.rawValue
+            guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(profileFileNameOverride, { profileCursor in
+                profileOptionsC.profile_name_override = profileCursor
+                return aws_credentials_provider_new_profile(allocator.rawValue, &profileOptionsC)
+            })
             else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
@@ -255,11 +249,13 @@ extension CredentialsProvider.Source {
     ///
     /// - Parameters:
     ///   - bootstrap:  Connection bootstrap to use for any network connections made while sourcing credentials.
+    ///   - profileCollection: The profile collection to read the properties from.
     ///   - shutdownCallback:  (Optional) shutdown callback
     ///   - allocator: (Optional) allocator to override
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `defaultChain`(bootstrap: ClientBootstrap,
+                                      profileCollection: ProfileCollection,
                                       shutdownCallback: ShutdownCallback? = nil,
                                       allocator: Allocator = defaultAllocator) -> Self {
         Self { allocator in
@@ -267,6 +263,7 @@ extension CredentialsProvider.Source {
 
             var chainDefaultOptions = aws_credentials_provider_chain_default_options()
             chainDefaultOptions.bootstrap = bootstrap.rawValue
+            chainDefaultOptions.profile_collection_cached = profileCollection.rawValue
             chainDefaultOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
             guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue,
@@ -357,12 +354,14 @@ extension CredentialsProvider.Source {
     /// - Parameters:
     ///   - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials.
     ///   - tlsContext: Client TLS context to use when querying STS web identity provider.
+    ///   - profileCollection: The profile collection to read the properties from.
     ///   - shutdownCallback:  (Optional) shutdown callback
     ///   - allocator: (Optional) allocator to override
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `stsWebIdentity`(bootstrap: ClientBootstrap,
                                         tlsContext: TLSContext,
+                                        profileCollection: ProfileCollection,
                                         shutdownCallback: ShutdownCallback? = nil,
                                         allocator: Allocator = defaultAllocator) -> Self {
         Self { allocator in
@@ -370,6 +369,7 @@ extension CredentialsProvider.Source {
             var stsOptions = aws_credentials_provider_sts_web_identity_options()
             stsOptions.bootstrap = bootstrap.rawValue
             stsOptions.tls_ctx = tlsContext.rawValue
+            stsOptions.config_profile_collection_cached = profileCollection.rawValue
             stsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
             guard let provider = aws_credentials_provider_new_sts_web_identity(allocator.rawValue,

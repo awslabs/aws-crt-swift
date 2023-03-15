@@ -39,7 +39,7 @@ class ProfileCollectionTests: XCBaseTestCase {
     }
 
     func testGetPropertyFromConfigFile() throws {
-        let profileCollection = try ProfileCollection(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .credentials, allocator: allocator)
+        let profileCollection = try ProfileCollection(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .config, allocator: allocator)
         let profile = profileCollection.getProfile(name: "default", allocator: allocator)!
         let property = profile.getProperty(name: "aws_access_key_id", allocator: allocator)!
         XCTAssertEqual("default_access_key_id", property.value)
@@ -53,11 +53,32 @@ class ProfileCollectionTests: XCBaseTestCase {
         XCTAssertEqual("example_secret_access_key", secretAccessKey.value)
     }
 
+    func testMergedCollectionFromPath() throws {
+        let profilePath = Bundle.module.path(forResource: "example_profile", ofType: "txt")!
+        let configPath = Bundle.module.path(forResource: "example_credentials", ofType: "txt")!
+        let profileCollection = try ProfileCollection(configFilePath: profilePath, credentialsFilePath: configPath, allocator: allocator)
+        XCTAssertNotNil(profileCollection)
+        let profile = profileCollection.getProfile(name: "default", allocator: allocator)!
+        let property = profile.getProperty(name: "aws_access_key_id", allocator: allocator)!
+        XCTAssertEqual("accessKey", property.value)
+
+        let s3Properties = profile.getProperty(name: "s3")!
+        let subPropertyValue = s3Properties.getSubProperty(name: "max_concurrent_requests")!
+        XCTAssertEqual("20", subPropertyValue)
+
+        let crtUserProfile = profileCollection.getProfile(name: "crt_user", allocator: allocator)!
+        let secretAccessKey = crtUserProfile.getProperty(name: "aws_secret_access_key")!
+        XCTAssertEqual("example_secret_access_key", secretAccessKey.value)
+
+        let credProfile = profileCollection.getProfile(name: "credentials")!
+        XCTAssertEqual("accessKey1", credProfile.getProperty(name: "aws_access_key_id")?.value)
+    }
+
     func testCollectionOutOfScope() throws {
         var profile: Profile! = nil
         var crtUserProfile: Profile! = nil
         do{
-            let profileCollection = try ProfileCollection(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .credentials, allocator: allocator)
+            let profileCollection = try ProfileCollection(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .config, allocator: allocator)
             profile = profileCollection.getProfile(name: "default", allocator: allocator)!
             crtUserProfile = profileCollection.getProfile(name: "crt_user", allocator: allocator)!
         }
