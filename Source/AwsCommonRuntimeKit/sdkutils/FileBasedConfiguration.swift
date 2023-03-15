@@ -36,20 +36,27 @@ public class FileBasedConfiguration {
             aws_string_destroy(configFilePath)
         }
 
-        let configCollection = aws_profile_collection_new_from_file(allocator.rawValue, configFilePath, AWS_PST_CONFIG)
+        let configCollection = aws_profile_collection_new_from_file(
+            allocator.rawValue,
+            configFilePath,
+            AWS_PST_CONFIG)
         defer {
             aws_profile_collection_release(configCollection)
         }
 
-        let credentialsCollection = aws_profile_collection_new_from_file(allocator.rawValue, credentialsFilePath, AWS_PST_CREDENTIALS)
+        let credentialsCollection = aws_profile_collection_new_from_file(
+            allocator.rawValue,
+            credentialsFilePath,
+            AWS_PST_CREDENTIALS)
         defer {
             aws_profile_collection_release(credentialsCollection)
         }
 
         // merge the two configurations
-        guard let rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
-                                                                   configCollection,
-                                                                   credentialsCollection)
+        guard let rawValue = aws_profile_collection_new_from_merge(
+                allocator.rawValue,
+                configCollection,
+                credentialsCollection)
         else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
@@ -63,7 +70,11 @@ public class FileBasedConfiguration {
     ///   - sectionType: Type of section to retrieve
     ///   - allocator: (Optional) default allocator to override
     /// - Returns: FileBasedConfigurationSection if it exists.
-    public func getSection(name: String, sectionType: FileBasedConfigSectionType, allocator: Allocator = defaultAllocator) -> FileBasedConfigurationSection? {
+    public func getSection(
+        name: String,
+        sectionType: FileBasedConfigSectionType,
+        allocator: Allocator = defaultAllocator) -> FileBasedConfigurationSection? {
+
         let awsString = AWSString(name, allocator: allocator)
         guard let profilePointer = aws_profile_collection_get_section(
                 self.rawValue,
@@ -81,6 +92,6 @@ public class FileBasedConfiguration {
     }
 
     deinit {
-        aws_profile_collection_destroy(rawValue)
+        aws_profile_collection_release(rawValue)
     }
 }

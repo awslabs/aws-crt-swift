@@ -24,7 +24,10 @@ public class FileBasedConfigurationSection {
     ///   - name: The name of property to retrieve
     ///   - allocator: (Optional) default allocator to override
     /// - Returns:
-    public func getProperty(name: String, allocator: Allocator = defaultAllocator) -> FileBasedConfigurationSectionProperty? {
+    public func getProperty(
+        name: String,
+        allocator: Allocator = defaultAllocator) -> FileBasedConfigurationSectionProperty? {
+
         let nameAwsString = AWSString(name, allocator: allocator)
         guard let propPointer = aws_profile_get_property(rawValue, nameAwsString.rawValue) else {
             return nil
