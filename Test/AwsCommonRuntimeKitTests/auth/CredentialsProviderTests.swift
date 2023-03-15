@@ -122,7 +122,7 @@ class CredentialsProviderTests: XCBaseTestCase {
         do {
             let provider = try CredentialsProvider(source: .profile(
                     bootstrap: getClientBootstrap(),
-                    profileCollection: ProfileCollection(
+                    fileBasedConfiguration: FileBasedConfiguration(
                             configFilePath: Bundle.module.path(forResource: "example_profile", ofType: "txt")!,
                             credentialsFilePath: Bundle.module.path(forResource: "example_credentials", ofType: "txt")!),
                     shutdownCallback: getShutdownCallback()),
@@ -165,7 +165,7 @@ class CredentialsProviderTests: XCBaseTestCase {
         do {
             try await withEnvironmentCredentialsClosure {
                 let provider = try CredentialsProvider(source: .defaultChain(bootstrap: getClientBootstrap(),
-                        profileCollection: ProfileCollection(),
+                        fileBasedConfiguration: FileBasedConfiguration(),
                         shutdownCallback: getShutdownCallback()),
                         allocator: allocator)
 
@@ -180,7 +180,7 @@ class CredentialsProviderTests: XCBaseTestCase {
     func testCreateDestroyStsWebIdentityInvalidEnv() async throws {
         XCTAssertThrowsError(try CredentialsProvider(source: .stsWebIdentity(bootstrap: getClientBootstrap(),
                 tlsContext: getTlsContext(),
-                profileCollection: ProfileCollection()),
+                fileBasedConfiguration: FileBasedConfiguration()),
                 allocator: allocator))
     }
 

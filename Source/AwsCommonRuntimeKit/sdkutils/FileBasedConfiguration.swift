@@ -4,10 +4,15 @@
 import AwsCSdkUtils
 import struct Foundation.Data
 
-public class ProfileCollection {
+public class FileBasedConfiguration {
     var rawValue: OpaquePointer
 
-    /// Create a new profile collection by parsing a file with the specified path
+    /// Create a FileBasedConfiguration by merging the configuration from config file and credentials file.
+    /// - Parameters:
+    ///   - configFilePath: (Optional) If a file path is provided use that, otherwise load config from the default config file.
+    ///   - credentialsFilePath: (Optional) If a file path is provided use that, otherwise load config from the default config file.
+    ///   - allocator: (Optional) allocator to override
+    /// - Throws:
     public init(configFilePath: String? = nil,
                 credentialsFilePath: String? = nil,
                 allocator: Allocator = defaultAllocator) throws {
@@ -33,12 +38,12 @@ public class ProfileCollection {
         }
 
         // load configuration collections
-        let configCollection = aws_profile_collection_new_from_file(allocator.rawValue, configFilePath, ProfileSourceType.config.rawValue)
+        let configCollection = aws_profile_collection_new_from_file(allocator.rawValue, configFilePath, FileBasedConfigSourceType.config.rawValue)
         defer {
             aws_profile_collection_release(configCollection)
         }
 
-        let credentialsCollection = aws_profile_collection_new_from_file(allocator.rawValue, credentialsFilePath, ProfileSourceType.credentials.rawValue)
+        let credentialsCollection = aws_profile_collection_new_from_file(allocator.rawValue, credentialsFilePath, FileBasedConfigSourceType.credentials.rawValue)
         defer {
             aws_profile_collection_release(credentialsCollection)
         }
@@ -53,11 +58,18 @@ public class ProfileCollection {
         self.rawValue = rawValue
     }
 
-    /// Create a new profile collection by parsing a file with the specified path
+    @available(*, deprecated, message: "Please use ")
+    /// Create a new FileBasedConfiguration by parsing a file with the specified path
     public init(fromFile path: String,
-                source: ProfileSourceType,
+                source: FileBasedConfigSourceType,
                 allocator: Allocator = defaultAllocator) throws {
-        let awsString = AWSString(path, allocator: allocator)
+        var finalizedPath = path
+        if path.hasPrefix("~"),
+           let homeDirectory = aws_get_home_directory(allocator.rawValue),
+           let homeDirectoryString = String(awsString: homeDirectory) {
+            finalizedPath = homeDirectoryString + path.dropFirst()
+        }
+        let awsString = AWSString(finalizedPath, allocator: allocator)
         guard let profilePointer = aws_profile_collection_new_from_file(allocator.rawValue,
                                                                         awsString.rawValue,
                                                                         source.rawValue)
@@ -67,9 +79,9 @@ public class ProfileCollection {
         self.rawValue = profilePointer
     }
 
-    /// Create a new profile collection by parsing text in a buffer. Primarily for testing.
+    /// Create a FileBasedConfiguration by parsing text in a buffer. Primarily for testing.
     init(fromData data: Data,
-         source: ProfileSourceType,
+         source: FileBasedConfigSourceType,
          allocator: Allocator = defaultAllocator) throws {
         let byteCount = data.count
         guard let rawValue  = (data.withUnsafeBytes { rawBufferPointer -> OpaquePointer? in
@@ -77,18 +89,16 @@ public class ProfileCollection {
             return aws_profile_collection_new_from_buffer(allocator.rawValue,
                                                           &byteBuf,
                                                           source.rawValue)
-
         }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-
         self.rawValue = rawValue
     }
 
-    /// Create a new profile collection by merging a config-file-based profile
+    /// Create a FileBasedConfiguration by merging a config-file-based profile
     /// collection and a credentials-file-based profile collection
-    public init(configProfileCollection: ProfileCollection,
-                credentialProfileCollection: ProfileCollection,
+    public init(configProfileCollection: FileBasedConfiguration,
+                credentialProfileCollection: FileBasedConfiguration,
                 allocator: Allocator = defaultAllocator) throws {
         guard let rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
                                                                    configProfileCollection.rawValue,
@@ -100,17 +110,24 @@ public class ProfileCollection {
     }
 
     /// Retrieves a reference to a profile with the specified name, if it exists, from the profile collection
-    public func getProfile(name: String, allocator: Allocator = defaultAllocator) -> Profile? {
+    ///
+    /// - Parameters:
+    ///   - name: The name of the section to retrieve
+    ///   - sectionType: Type of section to retrieve
+    ///   - allocator: (Optional) default allocator to override
+    /// - Returns:
+    public func getSection(name: String, sectionType: FileBasedConfigSectionType, allocator: Allocator = defaultAllocator) -> FileBasedConfigurationSection? {
         let awsString = AWSString(name, allocator: allocator)
-        guard let profilePointer = aws_profile_collection_get_profile(self.rawValue,
+        guard let profilePointer = aws_profile_collection_get_section(self.rawValue,
+                                                                      sectionType.rawValue,
                                                                       awsString.rawValue)
         else {
             return nil
         }
-        return Profile(rawValue: profilePointer, collection: self)
+        return FileBasedConfigurationSection(rawValue: profilePointer, collection: self)
     }
 
-    /// Returns how many profiles a collection holds
+    /// Returns how many sections a collection holds
     public var profileCount: Int {
         return aws_profile_collection_get_profile_count(rawValue)
     }

@@ -3,12 +3,12 @@
 
 import AwsCSdkUtils
 
-public class Profile {
+public class FileBasedConfigurationSection {
     let rawValue: OpaquePointer
     // Keep a reference of collection to keep it alive
-    let collection: ProfileCollection
+    let collection: FileBasedConfiguration
 
-    init(rawValue: OpaquePointer, collection: ProfileCollection) {
+    init(rawValue: OpaquePointer, collection: FileBasedConfiguration) {
         self.rawValue = rawValue
         self.collection = collection
     }
@@ -19,15 +19,15 @@ public class Profile {
     }
 
     /// Retrieves a reference to a property with the specified name, if it exists, from a profile
-    public func getProperty(name: String, allocator: Allocator = defaultAllocator) -> ProfileProperty? {
+    public func getProperty(name: String, allocator: Allocator = defaultAllocator) -> FileBasedConfigurationSectionProperty? {
         let nameAwsString = AWSString(name, allocator: allocator)
         guard let propPointer = aws_profile_get_property(rawValue, nameAwsString.rawValue) else {
             return nil
         }
-        return ProfileProperty(rawValue: propPointer, collection: collection)
+        return FileBasedConfigurationSectionProperty(rawValue: propPointer, collection: collection)
     }
 
-    /// Returns how many properties a profile holds
+    /// Returns how many properties a section holds
     public var propertyCount: Int {
         aws_profile_get_property_count(rawValue)
     }

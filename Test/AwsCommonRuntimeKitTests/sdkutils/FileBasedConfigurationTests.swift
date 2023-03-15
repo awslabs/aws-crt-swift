@@ -5,32 +5,32 @@ import XCTest
 import Foundation
 @testable import AwsCommonRuntimeKit
 
-class ProfileCollectionTests: XCBaseTestCase {
+class FileBasedConfigurationTests: XCBaseTestCase {
     func testGetPropertyFromBufferConfig() throws {
         let fakeConfig = "[default]\r\nregion=us-west-2".data(using: .utf8)!
-        let profileCollection = try ProfileCollection(fromData: fakeConfig, source: .config, allocator: allocator)
-        let profile = profileCollection.getProfile(name: "default", allocator: allocator)
-        let property = profile?.getProperty(name: "region", allocator: allocator)
+        let fileBasedConfiguration = try FileBasedConfiguration(fromData: fakeConfig, source: .config, allocator: allocator)
+        let section = fileBasedConfiguration.getSection(name: "default", sectionType: FileBasedConfigSectionType.profile, allocator: allocator)
+        let property = section?.getProperty(name: "region", allocator: allocator)
         XCTAssertEqual("us-west-2", property?.value)
     }
 
     func testGetPropertyFromBufferCreds() throws {
         let fakeCreds = "[default]\r\naws_access_key_id=AccessKey\r\naws_secret_access_key=Sekrit".data(using: .utf8)!
-        let profileCollection = try ProfileCollection(fromData: fakeCreds, source: .credentials, allocator: allocator)
-        let profile = profileCollection.getProfile(name: "default", allocator: allocator)!
+        let fileBasedConfiguration = try FileBasedConfiguration(fromData: fakeCreds, source: .credentials, allocator: allocator)
+        let profile = fileBasedConfiguration.getSection(name: "default", sectionType: FileBasedConfigSectionType.profile, allocator: allocator)!
         let property = profile.getProperty(name: "aws_access_key_id", allocator: allocator)!
         XCTAssertEqual("AccessKey", property.value)
     }
 
     func testGetProfileCollectionFromMerge() throws {
         let fakeConfig = "[default]\r\nregion=us-west-2".data(using: .utf8)!
-        let profileCollectionConfig = try ProfileCollection(fromData: fakeConfig, source: .config)
+        let profileFileBasedConfiguration = try FileBasedConfiguration(fromData: fakeConfig, source: .config)
 
         let fakeCreds = "[default]\r\naws_access_key_id=AccessKey\r\naws_secret_access_key=Sekrit".data(using: .utf8)!
-        let profileCollectionCreds = try ProfileCollection(fromData: fakeCreds, source: .credentials, allocator: allocator)
+        let credentialsFileBasedConfiguration = try FileBasedConfiguration(fromData: fakeCreds, source: .credentials, allocator: allocator)
 
-        let mergedCollection = try ProfileCollection(configProfileCollection: profileCollectionConfig, credentialProfileCollection: profileCollectionCreds)
-        let profile = mergedCollection.getProfile(name: "default", allocator: allocator)!
+        let mergedCollection = try FileBasedConfiguration(configProfileCollection: profileFileBasedConfiguration, credentialProfileCollection: credentialsFileBasedConfiguration)
+        let profile = mergedCollection.getSection(name: "default", sectionType: FileBasedConfigSectionType.profile, allocator: allocator)!
 
         let accessKey = profile.getProperty(name: "aws_access_key_id")!
         XCTAssertEqual("AccessKey", accessKey.value)
@@ -39,8 +39,8 @@ class ProfileCollectionTests: XCBaseTestCase {
     }
 
     func testGetPropertyFromConfigFile() throws {
-        let profileCollection = try ProfileCollection(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .config, allocator: allocator)
-        let profile = profileCollection.getProfile(name: "default", allocator: allocator)!
+        let fileBasedConfiguration = try FileBasedConfiguration(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .config, allocator: allocator)
+        let profile = fileBasedConfiguration.getSection(name: "default", sectionType: FileBasedConfigSectionType.profile, allocator: allocator)!
         let property = profile.getProperty(name: "aws_access_key_id", allocator: allocator)!
         XCTAssertEqual("default_access_key_id", property.value)
 
@@ -48,7 +48,7 @@ class ProfileCollectionTests: XCBaseTestCase {
         let subPropertyValue = s3Properties.getSubProperty(name: "max_concurrent_requests")!
         XCTAssertEqual("20", subPropertyValue)
 
-        let crtUserProfile = profileCollection.getProfile(name: "crt_user", allocator: allocator)!
+        let crtUserProfile = fileBasedConfiguration.getSection(name: "crt_user", sectionType: FileBasedConfigSectionType.profile, allocator: allocator)!
         let secretAccessKey = crtUserProfile.getProperty(name: "aws_secret_access_key")!
         XCTAssertEqual("example_secret_access_key", secretAccessKey.value)
     }
@@ -56,9 +56,9 @@ class ProfileCollectionTests: XCBaseTestCase {
     func testMergedCollectionFromPath() throws {
         let profilePath = Bundle.module.path(forResource: "example_profile", ofType: "txt")!
         let configPath = Bundle.module.path(forResource: "example_credentials", ofType: "txt")!
-        let profileCollection = try ProfileCollection(configFilePath: profilePath, credentialsFilePath: configPath, allocator: allocator)
-        XCTAssertNotNil(profileCollection)
-        let profile = profileCollection.getProfile(name: "default", allocator: allocator)!
+        let fileBasedConfiguration = try FileBasedConfiguration(configFilePath: profilePath, credentialsFilePath: configPath, allocator: allocator)
+        XCTAssertNotNil(fileBasedConfiguration)
+        let profile = fileBasedConfiguration.getSection(name: "default", sectionType: FileBasedConfigSectionType.profile, allocator: allocator)!
         let property = profile.getProperty(name: "aws_access_key_id", allocator: allocator)!
         XCTAssertEqual("accessKey", property.value)
 
@@ -66,21 +66,21 @@ class ProfileCollectionTests: XCBaseTestCase {
         let subPropertyValue = s3Properties.getSubProperty(name: "max_concurrent_requests")!
         XCTAssertEqual("20", subPropertyValue)
 
-        let crtUserProfile = profileCollection.getProfile(name: "crt_user", allocator: allocator)!
+        let crtUserProfile = fileBasedConfiguration.getSection(name: "crt_user", sectionType: FileBasedConfigSectionType.profile, allocator: allocator)!
         let secretAccessKey = crtUserProfile.getProperty(name: "aws_secret_access_key")!
         XCTAssertEqual("example_secret_access_key", secretAccessKey.value)
 
-        let credProfile = profileCollection.getProfile(name: "credentials")!
+        let credProfile = fileBasedConfiguration.getSection(name: "credentials", sectionType: FileBasedConfigSectionType.profile)!
         XCTAssertEqual("accessKey1", credProfile.getProperty(name: "aws_access_key_id")?.value)
     }
 
     func testCollectionOutOfScope() throws {
-        var profile: Profile! = nil
-        var crtUserProfile: Profile! = nil
+        var profile: FileBasedConfigurationSection! = nil
+        var crtUserProfile: FileBasedConfigurationSection! = nil
         do{
-            let profileCollection = try ProfileCollection(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .config, allocator: allocator)
-            profile = profileCollection.getProfile(name: "default", allocator: allocator)!
-            crtUserProfile = profileCollection.getProfile(name: "crt_user", allocator: allocator)!
+            let fileBasedConfiguration = try FileBasedConfiguration(fromFile: Bundle.module.path(forResource: "example_profile", ofType: "txt")!, source: .config, allocator: allocator)
+            profile = fileBasedConfiguration.getSection(name: "default", sectionType: FileBasedConfigSectionType.profile, allocator: allocator)!
+            crtUserProfile = fileBasedConfiguration.getSection(name: "crt_user", sectionType: FileBasedConfigSectionType.profile, allocator: allocator)!
         }
         let property = profile.getProperty(name: "aws_access_key_id", allocator: allocator)!
         XCTAssertEqual("default_access_key_id", property.value)

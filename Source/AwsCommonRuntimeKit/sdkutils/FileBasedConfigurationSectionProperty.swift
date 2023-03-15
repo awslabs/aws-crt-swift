@@ -3,12 +3,12 @@
 
 import AwsCSdkUtils
 
-public class ProfileProperty {
+public class FileBasedConfigurationSectionProperty {
     let rawValue: OpaquePointer
     // Keep a reference of collection to keep it alive
-    let collection: ProfileCollection
+    let collection: FileBasedConfiguration
 
-    init(rawValue: OpaquePointer, collection: ProfileCollection) {
+    init(rawValue: OpaquePointer, collection: FileBasedConfiguration) {
         self.rawValue = rawValue
         self.collection = collection
     }
