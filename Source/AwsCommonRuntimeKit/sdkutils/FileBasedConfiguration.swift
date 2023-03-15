@@ -12,11 +12,10 @@ public class FileBasedConfiguration {
     ///   - configFilePath: (Optional) If a file path is provided use that, otherwise loads config from the default location (~/.aws/config).
     ///   - credentialsFilePath: (Optional) If a file path is provided use that, otherwise loads config from the default location (~/.aws/credentials)
     ///   - allocator: (Optional) allocator to override
-    /// - Throws:
+    /// - Throws: CommonRuntimeError.crtError
     public init(configFilePath: String? = nil,
                 credentialsFilePath: String? = nil,
                 allocator: Allocator = defaultAllocator) throws {
-        // load file path for configuration files
         guard let credentialsFilePath = withOptionalByteCursorPointerFromString(credentialsFilePath, {
             aws_get_credentials_file_path(allocator.rawValue, $0)
         })
@@ -37,18 +36,17 @@ public class FileBasedConfiguration {
             aws_string_destroy(configFilePath)
         }
 
-        // load configuration collections
-        let configCollection = aws_profile_collection_new_from_file(allocator.rawValue, configFilePath, FileBasedConfigSourceType.config.rawValue)
+        let configCollection = aws_profile_collection_new_from_file(allocator.rawValue, configFilePath, AWS_PST_CONFIG)
         defer {
             aws_profile_collection_release(configCollection)
         }
 
-        let credentialsCollection = aws_profile_collection_new_from_file(allocator.rawValue, credentialsFilePath, FileBasedConfigSourceType.credentials.rawValue)
+        let credentialsCollection = aws_profile_collection_new_from_file(allocator.rawValue, credentialsFilePath, AWS_PST_CREDENTIALS)
         defer {
             aws_profile_collection_release(credentialsCollection)
         }
 
-        // merge the two collections
+        // merge the two configurations
         guard let rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
                                                                    configCollection,
                                                                    credentialsCollection)
@@ -58,46 +56,17 @@ public class FileBasedConfiguration {
         self.rawValue = rawValue
     }
 
-    @available(*, deprecated, message: "Please use ")
-    /// Create a new FileBasedConfiguration by parsing a file with the specified path
-    public init(fromFile path: String,
-                source: FileBasedConfigSourceType,
-                allocator: Allocator = defaultAllocator) throws {
-        let awsString = AWSString(path, allocator: allocator)
-        guard let profilePointer = aws_profile_collection_new_from_file(allocator.rawValue,
-                                                                        awsString.rawValue,
-                                                                        source.rawValue)
-        else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
-        self.rawValue = profilePointer
-    }
-
     /// Create a FileBasedConfiguration by parsing text in a buffer. Primarily for testing.
     init(fromData data: Data,
-         source: FileBasedConfigSourceType,
+         source: aws_profile_source_type,
          allocator: Allocator = defaultAllocator) throws {
         let byteCount = data.count
         guard let rawValue  = (data.withUnsafeBytes { rawBufferPointer -> OpaquePointer? in
             var byteBuf = aws_byte_buf_from_array(rawBufferPointer.baseAddress, byteCount)
             return aws_profile_collection_new_from_buffer(allocator.rawValue,
                                                           &byteBuf,
-                                                          source.rawValue)
+                                                          source)
         }) else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
-        self.rawValue = rawValue
-    }
-
-    /// Create a FileBasedConfiguration by merging a config-file-based profile
-    /// collection and a credentials-file-based profile collection
-    public init(configFileBasedConfiguration: FileBasedConfiguration,
-                credentialFileBasedConfiguration: FileBasedConfiguration,
-                allocator: Allocator = defaultAllocator) throws {
-        guard let rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
-                                                                   configFileBasedConfiguration.rawValue,
-                                                                   credentialFileBasedConfiguration.rawValue)
-        else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue

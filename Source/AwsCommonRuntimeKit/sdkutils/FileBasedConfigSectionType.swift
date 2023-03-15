@@ -2,20 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCSdkUtils
 
-public enum FileBasedConfigSourceType {
-    case config
-    case credentials
-}
-
-extension FileBasedConfigSourceType {
-    var rawValue: aws_profile_source_type {
-        switch self {
-        case .config: return AWS_PST_CONFIG
-        case .credentials: return AWS_PST_CREDENTIALS
-        }
-    }
-}
-
+/// Type of section in a config file
 public enum FileBasedConfigSectionType {
     case profile
     case sso_session
