@@ -64,7 +64,6 @@ public class FileBasedConfiguration {
     }
 
     /// Retrieves a reference to a section with the specified name, if it exists.
-    ///
     /// - Parameters:
     ///   - name: The name of the section to retrieve
     ///   - sectionType: Type of section to retrieve
