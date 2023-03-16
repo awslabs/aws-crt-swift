@@ -5,14 +5,14 @@ import AwsCSdkUtils
 /// Type of section in a config file
 public enum FileBasedConfigSectionType {
     case profile
-    case sso_session
+    case ssoSession
 }
 
 extension FileBasedConfigSectionType {
     var rawValue: aws_profile_section_type {
         switch self {
         case .profile: return AWS_PROFILE_SECTION_TYPE_PROFILE
-        case .sso_session: return AWS_PROFILE_SECTION_TYPE_SSO_SESSION
+        case .ssoSession: return AWS_PROFILE_SECTION_TYPE_SSO_SESSION
         }
     }
 }

@@ -34,8 +34,8 @@ class FileBasedConfigurationTests: XCBaseTestCase {
     }
 
     func testCollectionOutOfScope() throws {
-        var defaultSection: FileBasedConfigurationSection! = nil
-        var crtUserSection: FileBasedConfigurationSection! = nil
+        var defaultSection: FileBasedConfiguration.Section! = nil
+        var crtUserSection: FileBasedConfiguration.Section! = nil
         do{
             let profilePath = Bundle.module.path(forResource: "example_profile", ofType: "txt")!
             let configPath = Bundle.module.path(forResource: "example_credentials", ofType: "txt")!
@@ -52,5 +52,15 @@ class FileBasedConfigurationTests: XCBaseTestCase {
 
         let secretAccessKey = crtUserSection.getProperty(name: "aws_secret_access_key")!
         XCTAssertEqual("example_secret_access_key", secretAccessKey.value)
+    }
+
+    func testDefaultProfileName() throws {
+        XCTAssertEqual(FileBasedConfiguration.defaultProfileName, "default")
+
+        setenv("AWS_PROFILE", "", 1)
+        XCTAssertEqual(FileBasedConfiguration.defaultProfileName, "")
+        setenv("AWS_PROFILE", "profile", 1)
+        XCTAssertEqual(FileBasedConfiguration.defaultProfileName, "profile")
+        unsetenv("AWS_PROFILE")
     }
 }

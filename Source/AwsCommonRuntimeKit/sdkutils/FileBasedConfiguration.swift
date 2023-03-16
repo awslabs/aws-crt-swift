@@ -7,15 +7,28 @@ import struct Foundation.Data
 public class FileBasedConfiguration {
     var rawValue: OpaquePointer
 
+    /// If the `AWS_PROFILE` environment variable is set, use it. Otherwise, return "default".
+    public static var defaultProfileName: String {
+        let profileName = aws_get_profile_name(defaultAllocator.rawValue, nil)!
+        defer {
+            aws_string_destroy(profileName)
+        }
+        return String(awsString: profileName)!
+    }
+
     /// Create a FileBasedConfiguration by merging the configuration from config file and credentials file.
     /// - Parameters:
-    ///   - configFilePath: (Optional) If a file path is provided use that, otherwise loads config from the default location (~/.aws/config).
-    ///   - credentialsFilePath: (Optional) If a file path is provided use that, otherwise loads config from the default location (~/.aws/credentials)
+    ///   - configFilePath: (Optional) If a file path is provided, use that. Otherwise, if the `AWS_CONFIG_FILE` environment variable is set, load the path from it;
+    ///                     if not, load the config from the default location (~/.aws/config).
+    ///   - credentialsFilePath: (Optional) If a file path is provided, use that. Otherwise, if the `AWS_SHARED_CREDENTIALS_FILE` environment variable is set, load the path from it;
+    ///                          if not, load the config from the default location (~/.aws/credentials).
     ///   - allocator: (Optional) allocator to override
     /// - Throws: CommonRuntimeError.crtError
-    public init(configFilePath: String? = nil,
-                credentialsFilePath: String? = nil,
-                allocator: Allocator = defaultAllocator) throws {
+    public init(
+            configFilePath: String? = nil,
+            credentialsFilePath: String? = nil,
+            allocator: Allocator = defaultAllocator
+    ) throws {
         guard let credentialsFilePath = withOptionalByteCursorPointerFromString(credentialsFilePath, {
             aws_get_credentials_file_path(allocator.rawValue, $0)
         })
@@ -72,8 +85,8 @@ public class FileBasedConfiguration {
     public func getSection(
         name: String,
         sectionType: FileBasedConfigSectionType,
-        allocator: Allocator = defaultAllocator) -> FileBasedConfigurationSection? {
-
+        allocator: Allocator = defaultAllocator
+    ) -> Section? {
         let awsString = AWSString(name, allocator: allocator)
         guard let sectionPointer = aws_profile_collection_get_section(
                 self.rawValue,
@@ -82,10 +95,88 @@ public class FileBasedConfiguration {
         else {
             return nil
         }
-        return FileBasedConfigurationSection(rawValue: sectionPointer, collection: self)
+        return Section(rawValue: sectionPointer, collection: self)
     }
 
     deinit {
         aws_profile_collection_release(rawValue)
+    }
+}
+
+extension FileBasedConfiguration {
+    /// Represents a section in the FileBasedConfiguration
+    public class Section {
+        let rawValue: OpaquePointer
+        // Keep a reference of collection to keep it alive
+        let collection: FileBasedConfiguration
+
+        init(rawValue: OpaquePointer, collection: FileBasedConfiguration) {
+            self.rawValue = rawValue
+            self.collection = collection
+        }
+
+        /// Returns a reference to the name of the provided profile
+        public var name: String {
+            String(awsString: aws_profile_get_name(rawValue))!
+        }
+
+        /// Retrieves a reference to a property with the specified name, if it exists, from a profile
+        /// - Parameters:
+        ///   - name: The name of property to retrieve
+        ///   - allocator: (Optional) default allocator to override
+        /// - Returns: A reference to a property with the specified name, if it exists, from a profile
+        public func getProperty(
+                name: String,
+                allocator: Allocator = defaultAllocator
+        ) -> FileBasedConfiguration.Section.Property? {
+            let nameAwsString = AWSString(name, allocator: allocator)
+            guard let propPointer = aws_profile_get_property(rawValue, nameAwsString.rawValue) else {
+                return nil
+            }
+            return FileBasedConfiguration.Section.Property(rawValue: propPointer, collection: collection)
+        }
+
+        /// Returns how many properties a section holds
+        public var propertyCount: Int {
+            aws_profile_get_property_count(rawValue)
+        }
+    }
+}
+
+extension FileBasedConfiguration.Section {
+    /// Represents a section property in the file based configuration.
+    public class Property {
+        let rawValue: OpaquePointer
+        // Keep a reference of configuration to keep it alive
+        let fileBasedConfiguration: FileBasedConfiguration
+
+        init(rawValue: OpaquePointer, collection: FileBasedConfiguration) {
+            self.rawValue = rawValue
+            self.fileBasedConfiguration = collection
+        }
+
+        /// Returns the property's string value
+        public var value: String {
+            let awsString = aws_profile_property_get_value(rawValue)!
+            return String(awsString: awsString)!
+        }
+
+        /// Returns the value of a sub property with the given name, if it exists, in the property
+        /// - Parameters:
+        ///   - name: The name of the sub property value to retrieve
+        ///   - allocator: (Optional) allocator to override
+        /// - Returns: value of sub property if it exists.
+        public func getSubProperty(name: String, allocator: Allocator = defaultAllocator) -> String? {
+            let awsString = AWSString(name, allocator: allocator)
+            guard let stringPointer = aws_profile_property_get_sub_property(rawValue, awsString.rawValue) else {
+                return nil
+            }
+            return String(awsString: stringPointer)
+        }
+
+        /// Returns how many sub properties the property holds
+        public var subPropertyCount: Int {
+            aws_profile_property_get_sub_property_count(rawValue)
+        }
     }
 }
