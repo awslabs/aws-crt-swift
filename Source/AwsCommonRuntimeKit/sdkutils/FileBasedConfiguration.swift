@@ -95,7 +95,7 @@ public class FileBasedConfiguration {
         else {
             return nil
         }
-        return Section(rawValue: sectionPointer, collection: self)
+        return Section(rawValue: sectionPointer, fileBasedConfiguration: self)
     }
 
     deinit {
@@ -107,12 +107,12 @@ extension FileBasedConfiguration {
     /// Represents a section in the FileBasedConfiguration
     public class Section {
         let rawValue: OpaquePointer
-        // Keep a reference of collection to keep it alive
-        let collection: FileBasedConfiguration
+        // Keep a reference of configuration to keep it alive
+        let fileBasedConfiguration: FileBasedConfiguration
 
-        init(rawValue: OpaquePointer, collection: FileBasedConfiguration) {
+        init(rawValue: OpaquePointer, fileBasedConfiguration: FileBasedConfiguration) {
             self.rawValue = rawValue
-            self.collection = collection
+            self.fileBasedConfiguration = fileBasedConfiguration
         }
 
         /// Returns a reference to the name of the provided profile
@@ -133,7 +133,7 @@ extension FileBasedConfiguration {
             guard let propPointer = aws_profile_get_property(rawValue, nameAwsString.rawValue) else {
                 return nil
             }
-            return FileBasedConfiguration.Section.Property(rawValue: propPointer, collection: collection)
+            return FileBasedConfiguration.Section.Property(rawValue: propPointer, fileBasedConfiguration: fileBasedConfiguration)
         }
 
         /// Returns how many properties a section holds
@@ -150,9 +150,9 @@ extension FileBasedConfiguration.Section {
         // Keep a reference of configuration to keep it alive
         let fileBasedConfiguration: FileBasedConfiguration
 
-        init(rawValue: OpaquePointer, collection: FileBasedConfiguration) {
+        init(rawValue: OpaquePointer, fileBasedConfiguration: FileBasedConfiguration) {
             self.rawValue = rawValue
-            self.fileBasedConfiguration = collection
+            self.fileBasedConfiguration = fileBasedConfiguration
         }
 
         /// Returns the property's string value
