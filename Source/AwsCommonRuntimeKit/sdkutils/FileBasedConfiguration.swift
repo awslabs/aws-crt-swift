@@ -75,14 +75,14 @@ public class FileBasedConfiguration {
         allocator: Allocator = defaultAllocator) -> FileBasedConfigurationSection? {
 
         let awsString = AWSString(name, allocator: allocator)
-        guard let profilePointer = aws_profile_collection_get_section(
+        guard let sectionPointer = aws_profile_collection_get_section(
                 self.rawValue,
                 sectionType.rawValue,
                 awsString.rawValue)
         else {
             return nil
         }
-        return FileBasedConfigurationSection(rawValue: profilePointer, collection: self)
+        return FileBasedConfigurationSection(rawValue: sectionPointer, collection: self)
     }
 
     deinit {
