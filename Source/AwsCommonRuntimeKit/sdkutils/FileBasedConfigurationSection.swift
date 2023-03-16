@@ -23,7 +23,7 @@ public class FileBasedConfigurationSection {
     /// - Parameters:
     ///   - name: The name of property to retrieve
     ///   - allocator: (Optional) default allocator to override
-    /// - Returns:
+    /// - Returns: A reference to a property with the specified name, if it exists, from a profile
     public func getProperty(
         name: String,
         allocator: Allocator = defaultAllocator) -> FileBasedConfigurationSectionProperty? {
