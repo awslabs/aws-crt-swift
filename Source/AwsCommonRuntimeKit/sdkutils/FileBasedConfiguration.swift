@@ -25,9 +25,9 @@ public class FileBasedConfiguration {
     ///   - allocator: (Optional) allocator to override
     /// - Throws: CommonRuntimeError.crtError
     public init(
-            configFilePath: String? = nil,
-            credentialsFilePath: String? = nil,
-            allocator: Allocator = defaultAllocator
+        configFilePath: String? = nil,
+        credentialsFilePath: String? = nil,
+        allocator: Allocator = defaultAllocator
     ) throws {
         guard let credentialsFilePath = withOptionalByteCursorPointerFromString(credentialsFilePath, {
             aws_get_credentials_file_path(allocator.rawValue, $0)
@@ -81,7 +81,7 @@ public class FileBasedConfiguration {
     ///   - name: The name of the section to retrieve
     ///   - sectionType: Type of section to retrieve
     ///   - allocator: (Optional) default allocator to override
-    /// - Returns: FileBasedConfigurationSection if it exists.
+    /// - Returns: FileBasedConfiguration.Section if it exists.
     public func getSection(
         name: String,
         sectionType: FileBasedConfigSectionType,
@@ -126,8 +126,8 @@ extension FileBasedConfiguration {
         ///   - allocator: (Optional) default allocator to override
         /// - Returns: A reference to a property with the specified name, if it exists, from a profile
         public func getProperty(
-                name: String,
-                allocator: Allocator = defaultAllocator
+            name: String,
+            allocator: Allocator = defaultAllocator
         ) -> FileBasedConfiguration.Section.Property? {
             let nameAwsString = AWSString(name, allocator: allocator)
             guard let propPointer = aws_profile_get_property(rawValue, nameAwsString.rawValue) else {

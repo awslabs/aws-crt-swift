@@ -36,7 +36,7 @@ class FileBasedConfigurationTests: XCBaseTestCase {
     func testCollectionOutOfScope() throws {
         var defaultSection: FileBasedConfiguration.Section! = nil
         var crtUserSection: FileBasedConfiguration.Section! = nil
-        do{
+        do {
             let profilePath = Bundle.module.path(forResource: "example_profile", ofType: "txt")!
             let configPath = Bundle.module.path(forResource: "example_credentials", ofType: "txt")!
             let fileBasedConfiguration = try FileBasedConfiguration(configFilePath: profilePath, credentialsFilePath: configPath, allocator: allocator)
