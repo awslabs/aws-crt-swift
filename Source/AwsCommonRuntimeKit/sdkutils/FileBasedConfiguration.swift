@@ -133,7 +133,9 @@ extension FileBasedConfiguration {
             guard let propPointer = aws_profile_get_property(rawValue, nameAwsString.rawValue) else {
                 return nil
             }
-            return FileBasedConfiguration.Section.Property(rawValue: propPointer, fileBasedConfiguration: fileBasedConfiguration)
+            return FileBasedConfiguration.Section.Property(
+                rawValue: propPointer,
+                fileBasedConfiguration: fileBasedConfiguration)
         }
 
         /// Returns how many properties a section holds
