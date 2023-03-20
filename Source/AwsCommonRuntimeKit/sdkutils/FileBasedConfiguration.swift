@@ -84,7 +84,7 @@ public class FileBasedConfiguration {
     /// - Returns: FileBasedConfiguration.Section if it exists.
     public func getSection(
         name: String,
-        sectionType: FileBasedConfigSectionType,
+        sectionType: SectionType,
         allocator: Allocator = defaultAllocator
     ) -> Section? {
         let awsString = AWSString(name, allocator: allocator)
@@ -103,7 +103,17 @@ public class FileBasedConfiguration {
     }
 }
 
+
+
+
 extension FileBasedConfiguration {
+
+    /// Type of section in a config file
+    public enum SectionType {
+        case profile
+        case ssoSession
+    }
+
     /// Represents a section in the FileBasedConfiguration
     public class Section {
         let rawValue: OpaquePointer
@@ -141,6 +151,15 @@ extension FileBasedConfiguration {
         /// Returns how many properties a section holds
         public var propertyCount: Int {
             aws_profile_get_property_count(rawValue)
+        }
+    }
+}
+
+extension FileBasedConfiguration.SectionType {
+    var rawValue: aws_profile_section_type {
+        switch self {
+        case .profile: return AWS_PROFILE_SECTION_TYPE_PROFILE
+        case .ssoSession: return AWS_PROFILE_SECTION_TYPE_SSO_SESSION
         }
     }
 }
