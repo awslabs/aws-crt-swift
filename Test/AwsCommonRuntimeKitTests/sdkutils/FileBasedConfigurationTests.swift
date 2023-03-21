@@ -63,4 +63,26 @@ class FileBasedConfigurationTests: XCBaseTestCase {
         XCTAssertEqual(FileBasedConfiguration.defaultProfileName, "profile")
         unsetenv("AWS_PROFILE")
     }
+
+    func testResolveConfigPath() throws {
+        // from $HOME
+        let home = "/test/home"
+        setenv("HOME", home, 1)
+        XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .config), "\(home)/.aws/config")
+        XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .credentials), "\(home)/.aws/credentials")
+
+        // from environment
+        setenv("AWS_CONFIG_FILE", "/environment/.aws/config", 1)
+        setenv("AWS_SHARED_CREDENTIALS_FILE", "/environment/.aws/credentials", 1)
+        XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .config), "/environment/.aws/config")
+        XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .credentials), "/environment/.aws/credentials")
+
+        // from absolute path
+        XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .config, overridePath: "/path/.aws/config"), "/path/.aws/config")
+        XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .credentials, overridePath: "/path/.aws/credentials"), "/path/.aws/credentials")
+
+        // from relative path
+        XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .config, overridePath: "~/.aws/config"), "\(home)/.aws/config")
+        XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .credentials, overridePath: "~/.aws/credentials"), "\(home)/.aws/credentials")
+    }
 }

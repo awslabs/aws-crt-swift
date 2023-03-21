@@ -76,6 +76,37 @@ public class FileBasedConfiguration {
         self.rawValue = rawValue
     }
 
+    /// If a file path is provided, use that. Otherwise, there are a few options:
+    /// - If the source type is config, check if the `AWS_CONFIG_FILE environment` variable is set.
+    ///   If it is, load the path from it. If not, load the config from the default location ~/.aws/config.
+    /// - If the source type is credentials, check if the `AWS_SHARED_CREDENTIALS_FILE` environment variable is set.
+    ///   If it is, load the path from it. If not, load the credentials from the default location ~/.aws/credentials.
+    /// - Parameters:
+    ///   - sourceType: The type of source file
+    ///   - overridePath: (Optional) path to override. If provided, it will do limited home directory expansion/resolution.
+    ///   - allocator: (Optional) default allocator to override
+    /// - Returns: Resolved path
+    /// - Throws: CommonRuntimeError.crtError
+    public static func resolveConfigPath(
+            sourceType: SourceType,
+            overridePath: String? = nil,
+            allocator: Allocator = defaultAllocator
+    ) throws -> String {
+        guard let filePath: UnsafeMutablePointer<aws_string> = withOptionalByteCursorPointerFromString(overridePath, { path in
+            switch sourceType {
+            case .config:  return aws_get_config_file_path(allocator.rawValue, path)
+            case .credentials: return aws_get_credentials_file_path(allocator.rawValue, path)
+            }
+        }) else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+        defer {
+            aws_string_destroy(filePath)
+        }
+
+        return String(awsString: filePath)!
+    }
+
     /// Retrieves a reference to a section with the specified name, if it exists.
     /// - Parameters:
     ///   - name: The name of the section to retrieve
@@ -103,15 +134,18 @@ public class FileBasedConfiguration {
     }
 }
 
-
-
-
 extension FileBasedConfiguration {
 
     /// Type of section in a config file
     public enum SectionType {
         case profile
         case ssoSession
+    }
+
+    /// Source of file based config
+    public enum SourceType {
+        case config
+        case credentials
     }
 
     /// Represents a section in the FileBasedConfiguration
@@ -151,6 +185,16 @@ extension FileBasedConfiguration {
         /// Returns how many properties a section holds
         public var propertyCount: Int {
             aws_profile_get_property_count(rawValue)
+        }
+    }
+
+}
+
+extension FileBasedConfiguration.SourceType {
+    var rawValue: aws_profile_source_type {
+        switch self {
+        case .config: return AWS_PST_CONFIG
+        case .credentials: return AWS_PST_CREDENTIALS
         }
     }
 }
