@@ -88,16 +88,17 @@ public class FileBasedConfiguration {
     /// - Returns: Resolved path
     /// - Throws: CommonRuntimeError.crtError
     public static func resolveConfigPath(
-            sourceType: SourceType,
-            overridePath: String? = nil,
-            allocator: Allocator = defaultAllocator
+        sourceType: SourceType,
+        overridePath: String? = nil,
+        allocator: Allocator = defaultAllocator
     ) throws -> String {
-        guard let filePath: UnsafeMutablePointer<aws_string> = withOptionalByteCursorPointerFromString(overridePath, { path in
-            switch sourceType {
-            case .config:  return aws_get_config_file_path(allocator.rawValue, path)
-            case .credentials: return aws_get_credentials_file_path(allocator.rawValue, path)
-            }
-        }) else {
+        guard let filePath: UnsafeMutablePointer<aws_string> = withOptionalByteCursorPointerFromString(
+                overridePath, { path in
+                    switch sourceType {
+                    case .config:  return aws_get_config_file_path(allocator.rawValue, path)
+                    case .credentials: return aws_get_credentials_file_path(allocator.rawValue, path)
+                    }
+                }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         defer {
