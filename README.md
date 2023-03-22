@@ -1,4 +1,7 @@
 # AwsCommonRuntimeKit
+The AWS CRT for Swift is currently in developer preview and is intended strictly for feedback purposes only. 
+Do not use this for production workloads.
+
 ## Building
 
 You can either build with Xcode
