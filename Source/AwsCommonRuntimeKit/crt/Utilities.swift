@@ -35,7 +35,7 @@ extension String {
         try bufferData.withUnsafeMutableBytes { bufferPointer in
             var buffer = aws_byte_buf_from_empty_array(bufferPointer.baseAddress, bufferSize)
             guard self.withByteCursorPointer({ strCursorPointer in
-                aws_md5_compute(defaultAllocator.rawValue, strCursorPointer, &buffer, truncate)
+                aws_md5_compute(allocator.rawValue, strCursorPointer, &buffer, truncate)
             }) == AWS_OP_SUCCESS else {
                 throw CommonRunTimeError.crtError(.makeFromLastError())
             }
@@ -70,7 +70,7 @@ extension Data {
             var bufferData = Data(count: bufferSize)
             try bufferData.withUnsafeMutableBytes { bufferDataPointer in
                 var buffer = aws_byte_buf_from_empty_array(bufferDataPointer.baseAddress, bufferSize)
-                guard aws_sha256_compute(defaultAllocator.rawValue, &byteCursor, &buffer, truncate) == AWS_OP_SUCCESS else {
+                guard aws_sha256_compute(allocator.rawValue, &byteCursor, &buffer, truncate) == AWS_OP_SUCCESS else {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
             }

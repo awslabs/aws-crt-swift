@@ -51,7 +51,7 @@ public class HostResolver: HostResolverProtocol {
                 options.max_entries = maxHosts
                 options.el_group = eventLoopGroup.rawValue
                 options.shutdown_options = shutdownCallbackCorePointer
-                return aws_host_resolver_new_default(defaultAllocator.rawValue, &options)
+                return aws_host_resolver_new_default(allocator.rawValue, &options)
             }
         }
 

@@ -21,9 +21,9 @@ class IStreamCore {
 
     init(iStreamable: IStreamable) {
         self.iStreamable = iStreamable
-        rawValue = defaultAllocator.allocate(capacity: 1)
+        rawValue = allocator.allocate(capacity: 1)
         // Use a manually managed vtable pointer to avoid undefined behavior
-        self.vtablePointer = defaultAllocator.allocate(capacity: 1)
+        self.vtablePointer = allocator.allocate(capacity: 1)
         vtablePointer.initialize(to: vtable)
         rawValue.pointee.vtable = UnsafePointer(vtablePointer)
 
@@ -31,8 +31,8 @@ class IStreamCore {
     }
 
     deinit {
-        defaultAllocator.release(rawValue)
-        defaultAllocator.release(vtablePointer)
+        allocator.release(rawValue)
+        allocator.release(vtablePointer)
     }
 }
 

@@ -48,7 +48,7 @@ public class RetryStrategy {
                 var standardRetryOptions = aws_standard_retry_options()
                 standardRetryOptions.initial_bucket_capacity = initialBucketCapacity
                 standardRetryOptions.backoff_retry_options = exponentialBackoffRetryOptions
-                return aws_retry_strategy_new_standard(defaultAllocator.rawValue, &standardRetryOptions)
+                return aws_retry_strategy_new_standard(allocator.rawValue, &standardRetryOptions)
             })
         }
 

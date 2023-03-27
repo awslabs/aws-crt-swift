@@ -46,7 +46,7 @@ public class EventStreamMessageDecoder {
         decoderOptions.on_error = onErrorFn
         decoderOptions.user_data = callbackCore.passUnretained()
 
-        aws_event_stream_streaming_decoder_init_from_options(&rawValue, defaultAllocator.rawValue, &decoderOptions)
+        aws_event_stream_streaming_decoder_init_from_options(&rawValue, allocator.rawValue, &decoderOptions)
     }
 
     /// Pass data to decode. This will trigger the callbacks with the decoded result.

@@ -12,12 +12,12 @@ public class ProfileCollection {
                 source: ProfileSourceType) throws {
         var finalizedPath = path
         if path.hasPrefix("~"),
-           let homeDirectory = aws_get_home_directory(defaultAllocator.rawValue),
+           let homeDirectory = aws_get_home_directory(allocator.rawValue),
            let homeDirectoryString = String(awsString: homeDirectory) {
             finalizedPath = homeDirectoryString + path.dropFirst()
         }
         let awsString = AWSString(finalizedPath)
-        guard let profilePointer = aws_profile_collection_new_from_file(defaultAllocator.rawValue,
+        guard let profilePointer = aws_profile_collection_new_from_file(allocator.rawValue,
                                                                         awsString.rawValue,
                                                                         source.rawValue)
         else {
@@ -32,7 +32,7 @@ public class ProfileCollection {
         let byteCount = data.count
         guard let rawValue  = (data.withUnsafeBytes { rawBufferPointer -> OpaquePointer? in
             var byteBuf = aws_byte_buf_from_array(rawBufferPointer.baseAddress, byteCount)
-            return aws_profile_collection_new_from_buffer(defaultAllocator.rawValue,
+            return aws_profile_collection_new_from_buffer(allocator.rawValue,
                                                           &byteBuf,
                                                           source.rawValue)
 
@@ -47,7 +47,7 @@ public class ProfileCollection {
     /// collection and a credentials-file-based profile collection
     public init(configProfileCollection: ProfileCollection,
                 credentialProfileCollection: ProfileCollection) throws {
-        guard let rawValue = aws_profile_collection_new_from_merge(defaultAllocator.rawValue,
+        guard let rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
                                                                    configProfileCollection.rawValue,
                                                                    credentialProfileCollection.rawValue)
         else {

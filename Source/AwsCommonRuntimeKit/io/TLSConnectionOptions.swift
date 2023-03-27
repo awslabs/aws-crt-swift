@@ -33,13 +33,13 @@ public struct TLSConnectionOptions: CStruct {
             if let alpnList = alpnList {
                 _ = aws_tls_connection_options_set_alpn_list(
                     tlsConnectionsOptionsPointer,
-                    defaultAllocator.rawValue,
+                    allocator.rawValue,
                     alpnList.joined(separator: ";"))
             }
             _ = serverName?.withByteCursorPointer { serverNameCursorPointer in
                 aws_tls_connection_options_set_server_name(
                     tlsConnectionsOptionsPointer,
-                    defaultAllocator.rawValue,
+                    allocator.rawValue,
                     serverNameCursorPointer)
             }
             return body(tlsConnectionsOptionsPointer.pointee)

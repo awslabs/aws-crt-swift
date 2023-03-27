@@ -239,7 +239,7 @@ struct Elasticurl {
                 exit(EXIT_FAILURE)
             }
 
-            let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
+            let allocator = TracingAllocator(tracingBytesOf: allocator)
 
             CommonRuntimeKit.initialize()
 

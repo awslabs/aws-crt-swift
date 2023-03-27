@@ -13,7 +13,7 @@ public class HTTPClientConnectionManager {
         let shutdownOptions = shutdownCallbackCore.getRetainedShutdownOptions()
         guard let rawValue: OpaquePointer = (
                 options.withCPointer(shutdownOptions: shutdownOptions) { managerOptionsPointer in
-                    return aws_http_connection_manager_new(defaultAllocator.rawValue, managerOptionsPointer)
+                    return aws_http_connection_manager_new(allocator.rawValue, managerOptionsPointer)
                 }) else {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())

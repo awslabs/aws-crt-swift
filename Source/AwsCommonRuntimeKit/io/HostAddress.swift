@@ -42,7 +42,7 @@ public struct HostAddress: CStruct {
         cHostAddress.record_type = addressType.rawValue
         cHostAddress.address = UnsafePointer(cAddress.rawValue)
         cHostAddress.host = UnsafePointer(cHostName.rawValue)
-        cHostAddress.allocator = defaultAllocator.rawValue
+        cHostAddress.allocator = allocator.rawValue
         cHostAddress.expiry = expiry
         cHostAddress.use_count = useCount
         cHostAddress.connection_failure_count = connectionFailureCount

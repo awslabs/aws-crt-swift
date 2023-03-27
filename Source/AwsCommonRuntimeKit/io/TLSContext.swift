@@ -10,9 +10,9 @@ public class TLSContext {
         guard let rawValue = (options.withCPointer { optionsPointer -> UnsafeMutablePointer<aws_tls_ctx>? in
             switch mode {
             case .client:
-                return aws_tls_client_ctx_new(defaultAllocator.rawValue, optionsPointer)
+                return aws_tls_client_ctx_new(allocator.rawValue, optionsPointer)
             case .server:
-                return aws_tls_server_ctx_new(defaultAllocator.rawValue, optionsPointer)
+                return aws_tls_server_ctx_new(allocator.rawValue, optionsPointer)
             }
         })  else {
             throw CommonRunTimeError.crtError(.makeFromLastError())

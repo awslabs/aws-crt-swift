@@ -33,7 +33,7 @@ public class Signer {
         request: HTTPRequestBase,
         config: SigningConfig) async throws -> HTTPRequestBase {
 
-        guard let signable = aws_signable_new_http_request(defaultAllocator.rawValue, request.rawValue) else {
+        guard let signable = aws_signable_new_http_request(allocator.rawValue, request.rawValue) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         defer {
@@ -56,7 +56,7 @@ public class Signer {
                     capacity: 1) { configBasePointer in
 
                     if aws_sign_request_aws(
-                        defaultAllocator.rawValue,
+                        allocator.rawValue,
                         signable,
                         configBasePointer,
                         onRequestSigningComplete,
@@ -84,7 +84,7 @@ public class Signer {
                                  config: SigningConfig) async throws -> String {
         let iStreamCore = IStreamCore(iStreamable: ByteBuffer(data: chunk))
         guard let signable = previousSignature.withByteCursorPointer({ previousSignatureCursor in
-            aws_signable_new_chunk(defaultAllocator.rawValue, iStreamCore.rawValue, previousSignatureCursor.pointee)
+            aws_signable_new_chunk(allocator.rawValue, iStreamCore.rawValue, previousSignatureCursor.pointee)
         }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
@@ -130,7 +130,7 @@ public class Signer {
 
         guard let signable = previousSignature.withByteCursorPointer({ previousSignatureCursor in
             headers.withCHeaders() { cHeaders in
-                aws_signable_new_trailing_headers(defaultAllocator.rawValue, cHeaders, previousSignatureCursor.pointee)
+                aws_signable_new_trailing_headers(allocator.rawValue, cHeaders, previousSignatureCursor.pointee)
             }
         }) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -149,7 +149,7 @@ public class Signer {
                 configPointer.withMemoryRebound(to: aws_signing_config_base.self,
                                                 capacity: 1) { configBasePointer in
                     let continuationCore = ContinuationCore(continuation: continuation)
-                    if aws_sign_request_aws(defaultAllocator.rawValue,
+                    if aws_sign_request_aws(allocator.rawValue,
                                             signable,
                                             configBasePointer,
                                             onSigningComplete,
@@ -200,7 +200,7 @@ private func onRequestSigningComplete(signingResult: UnsafeMutablePointer<aws_si
 
     // Success
     let signedRequest = aws_apply_signing_result_to_http_request(signRequestCore.request.rawValue,
-                                                                 defaultAllocator.rawValue,
+                                                                 allocator.rawValue,
                                                                  signingResult!)
     if signedRequest == AWS_OP_SUCCESS {
         signRequestCore.continuation.resume(returning: signRequestCore.request)

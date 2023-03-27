@@ -50,7 +50,7 @@ class UtilityTests: XCBaseTestCase {
         let init_size: size_t  = 4
 
         "first".withByteCursorPointer { firstCursorPointer in
-            aws_array_list_init_dynamic(list, defaultAllocator.rawValue, init_size, MemoryLayout.size(ofValue: firstCursorPointer.pointee))
+            aws_array_list_init_dynamic(list, allocator.rawValue, init_size, MemoryLayout.size(ofValue: firstCursorPointer.pointee))
             XCTAssertEqual(0, list.pointee.length)
             aws_array_list_push_front(list, firstCursorPointer)
             XCTAssertEqual(1, list.pointee.length)

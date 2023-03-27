@@ -42,7 +42,7 @@ public final class Credentials {
             sessionToken) { accessKeyCursor, secretCursor, sessionTokenCursor in
 
             return aws_credentials_new(
-                defaultAllocator.rawValue,
+                allocator.rawValue,
                 accessKeyCursor,
                 secretCursor,
                 sessionTokenCursor,

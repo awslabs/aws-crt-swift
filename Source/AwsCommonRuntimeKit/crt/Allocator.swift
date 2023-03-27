@@ -6,7 +6,7 @@ import AwsCCommon
  The default allocator.
  You are probably looking to use `allocator` instead.
  */
-internal(set) public var defaultAllocator = aws_default_allocator()!
+internal(set) public var allocator = aws_default_allocator()!
 
 /// An allocator is used to allocate memory on the heap.
 public protocol Allocator {
@@ -75,8 +75,8 @@ public final class TracingAllocator: Allocator {
         self.init(allocator, level: .stacks, framesPerStack: framesPerStack)
     }
 
-    private init(_ allocator: Allocator, level: TracingLevel, framesPerStack: Int) {
-        self.rawValue = aws_mem_tracer_new(defaultAllocator.rawValue, nil, aws_mem_trace_level(level.rawValue), framesPerStack)
+    private init(_ tracingAllocator: Allocator, level: TracingLevel, framesPerStack: Int) {
+        self.rawValue = aws_mem_tracer_new(tracingAllocator.rawValue, nil, aws_mem_trace_level(level.rawValue), framesPerStack)
     }
 
     deinit {

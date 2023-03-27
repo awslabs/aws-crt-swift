@@ -12,7 +12,7 @@ public class HTTP2StreamManager {
         let shutdownOptions = shutdownCallbackCore.getRetainedShutdownOptions()
         guard let rawValue: UnsafeMutablePointer<aws_http2_stream_manager> = (
                 options.withCPointer(shutdownOptions: shutdownOptions) { managerOptions in
-                    aws_http2_stream_manager_new(defaultAllocator.rawValue, managerOptions)
+                    aws_http2_stream_manager_new(allocator.rawValue, managerOptions)
                 }) else {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())

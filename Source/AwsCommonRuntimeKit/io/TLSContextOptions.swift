@@ -16,16 +16,16 @@ public class TLSContextOptions: CStruct {
     }
 
     init() {
-        self.rawValue = defaultAllocator.allocate(capacity: 1)
-        aws_tls_ctx_options_init_default_client(rawValue, defaultAllocator.rawValue)
+        self.rawValue = allocator.allocate(capacity: 1)
+        aws_tls_ctx_options_init_default_client(rawValue, allocator.rawValue)
     }
 
     init(mtlsPkcs12FromPath path: String,
          password: String) throws {
-        self.rawValue = defaultAllocator.allocate(capacity: 1)
+        self.rawValue = allocator.allocate(capacity: 1)
         if (password.withByteCursorPointer { passwordCursorPointer in
             aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,
-                                                                  defaultAllocator.rawValue,
+                                                                  allocator.rawValue,
                                                                   path,
                                                                   passwordCursorPointer)
         }) != AWS_OP_SUCCESS {
@@ -64,7 +64,7 @@ public class TLSContextOptions: CStruct {
 
     deinit {
         aws_tls_ctx_options_clean_up(rawValue)
-        defaultAllocator.release(rawValue)
+        allocator.release(rawValue)
     }
 }
 

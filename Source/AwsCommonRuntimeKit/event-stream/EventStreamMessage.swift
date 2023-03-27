@@ -24,7 +24,7 @@ public struct EventStreamMessage {
             aws_event_stream_message_clean_up(&rawValue)
         }
 
-        guard aws_event_stream_headers_list_init(&rawHeaders, defaultAllocator.rawValue) == AWS_OP_SUCCESS else {
+        guard aws_event_stream_headers_list_init(&rawHeaders, allocator.rawValue) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         try headers.forEach {
@@ -34,7 +34,7 @@ public struct EventStreamMessage {
         guard payload.withAWSByteBufPointer({ byteBuff in
             // TODO (optimization): we could avoid the extra copies of headers and data
             // if there were an API in C that let us encode everything directly into a pre-allocated buffer
-            aws_event_stream_message_init(&rawValue, defaultAllocator.rawValue, &rawHeaders, byteBuff)
+            aws_event_stream_message_init(&rawValue, allocator.rawValue, &rawHeaders, byteBuff)
         }) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }

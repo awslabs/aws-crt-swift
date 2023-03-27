@@ -67,7 +67,7 @@ extension CredentialsProvider {
                                                                 get_credentials: getCredentialsDelegateFn,
                                                                 delegate_user_data: providerBox.passUnretained())
 
-        guard let provider = aws_credentials_provider_new_delegate(defaultAllocator.rawValue, &options) else {
+        guard let provider = aws_credentials_provider_new_delegate(allocator.rawValue, &options) else {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
@@ -102,7 +102,7 @@ extension CredentialsProvider.Source {
                         staticOptions.access_key_id = accessKeyCursor
                         staticOptions.secret_access_key = secretCursor
                         staticOptions.session_token = sessionTokenCursor
-                        return aws_credentials_provider_new_static(defaultAllocator.rawValue, &staticOptions)
+                        return aws_credentials_provider_new_static(allocator.rawValue, &staticOptions)
                     })
             else {
                 shutdownCallbackCore.release()
@@ -127,7 +127,7 @@ extension CredentialsProvider.Source {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var envOptions = aws_credentials_provider_environment_options()
             envOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
-            guard let provider = aws_credentials_provider_new_environment(defaultAllocator.rawValue,
+            guard let provider = aws_credentials_provider_new_environment(allocator.rawValue,
                                                                           &envOptions)
             else {
                 shutdownCallbackCore.release()
@@ -165,7 +165,7 @@ extension CredentialsProvider.Source {
                         profileOptionsC.config_file_name_override = configCursor
                         profileOptionsC.credentials_file_name_override = credentialsCursor
                         profileOptionsC.profile_name_override = profileCursor
-                        return aws_credentials_provider_new_profile(defaultAllocator.rawValue, &profileOptionsC)
+                        return aws_credentials_provider_new_profile(allocator.rawValue, &profileOptionsC)
                     })
             else {
                 shutdownCallbackCore.release()
@@ -192,7 +192,7 @@ extension CredentialsProvider.Source {
             imdsOptions.bootstrap = bootstrap.rawValue
             imdsOptions.imds_version = imdsVersion.rawValue
             imdsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
-            guard let provider = aws_credentials_provider_new_imds(defaultAllocator.rawValue,
+            guard let provider = aws_credentials_provider_new_imds(allocator.rawValue,
                                                                    &imdsOptions)
             else {
                 shutdownCallbackCore.release()
@@ -224,7 +224,7 @@ extension CredentialsProvider.Source {
             cachedOptions.refresh_time_in_milliseconds = refreshTime.millisecond
             cachedOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
-            guard let provider = aws_credentials_provider_new_cached(defaultAllocator.rawValue, &cachedOptions) else {
+            guard let provider = aws_credentials_provider_new_cached(allocator.rawValue, &cachedOptions) else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
             }
@@ -254,7 +254,7 @@ extension CredentialsProvider.Source {
             chainDefaultOptions.bootstrap = bootstrap.rawValue
             chainDefaultOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
-            guard let provider = aws_credentials_provider_new_chain_default(defaultAllocator.rawValue,
+            guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue,
                                                                             &chainDefaultOptions)
             else {
                 shutdownCallbackCore.release()
@@ -308,7 +308,7 @@ extension CredentialsProvider.Source {
 
                                 x509Options.proxy_options = proxyOptionsPointer
                                 x509Options.tls_connection_options = tlsConnectionOptionsPointer
-                                return aws_credentials_provider_new_x509(defaultAllocator.rawValue, &x509Options)
+                                return aws_credentials_provider_new_x509(allocator.rawValue, &x509Options)
                             }})
             else {
                 shutdownCallbackCore.release()
@@ -353,7 +353,7 @@ extension CredentialsProvider.Source {
             stsOptions.tls_ctx = tlsContext.rawValue
             stsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
-            guard let provider = aws_credentials_provider_new_sts_web_identity(defaultAllocator.rawValue,
+            guard let provider = aws_credentials_provider_new_sts_web_identity(allocator.rawValue,
                                                                                &stsOptions)
             else {
                 shutdownCallbackCore.release()
@@ -395,7 +395,7 @@ extension CredentialsProvider.Source {
                     sessionName, { roleArnCursor, sessionNameCursor in
                         stsOptions.role_arn = roleArnCursor
                         stsOptions.session_name = sessionNameCursor
-                        return aws_credentials_provider_new_sts(defaultAllocator.rawValue, &stsOptions)
+                        return aws_credentials_provider_new_sts(allocator.rawValue, &stsOptions)
                     })
             else {
                 shutdownCallbackCore.release()
@@ -447,7 +447,7 @@ extension CredentialsProvider.Source {
                 ecsOptions.host = hostCursor
                 ecsOptions.auth_token = authTokenCursor
                 ecsOptions.path_and_query = pathAndQueryCursor
-                return aws_credentials_provider_new_ecs(defaultAllocator.rawValue, &ecsOptions)
+                return aws_credentials_provider_new_ecs(allocator.rawValue, &ecsOptions)
             })
             else {
                 shutdownCallbackCore.release()

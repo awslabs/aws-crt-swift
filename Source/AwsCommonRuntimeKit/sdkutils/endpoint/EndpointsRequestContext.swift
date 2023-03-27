@@ -10,7 +10,7 @@ public class EndpointsRequestContext {
     /// Initialize a new request context
     /// - Parameter  to use for request context creation
     public init() throws {
-        guard let rawValue = aws_endpoints_request_context_new(defaultAllocator.rawValue) else {
+        guard let rawValue = aws_endpoints_request_context_new(allocator.rawValue) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue
@@ -25,7 +25,7 @@ public class EndpointsRequestContext {
             return
         }
         if withByteCursorFromStrings(name, value, { nameCursor, valueCursor in
-            aws_endpoints_request_context_add_string(defaultAllocator.rawValue,
+            aws_endpoints_request_context_add_string(allocator.rawValue,
                                                      rawValue,
                                                      nameCursor,
                                                      valueCursor)
@@ -43,7 +43,7 @@ public class EndpointsRequestContext {
             return
         }
         if (name.withByteCursor { nameCursor in
-            aws_endpoints_request_context_add_boolean(defaultAllocator.rawValue, rawValue, nameCursor, value)
+            aws_endpoints_request_context_add_boolean(allocator.rawValue, rawValue, nameCursor, value)
         }) != AWS_OP_SUCCESS {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }

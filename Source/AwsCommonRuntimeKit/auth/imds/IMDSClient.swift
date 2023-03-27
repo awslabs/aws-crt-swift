@@ -17,7 +17,7 @@ public class IMDSClient {
         imdsOptions.bootstrap = bootstrap.rawValue
         imdsOptions.retry_strategy = retryStrategy.rawValue
         imdsOptions.imds_version = protocolVersion.rawValue
-        guard let rawValue = aws_imds_client_new(defaultAllocator.rawValue, &imdsOptions) else {
+        guard let rawValue = aws_imds_client_new(allocator.rawValue, &imdsOptions) else {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }

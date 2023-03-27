@@ -44,7 +44,7 @@ public class HTTPRequest: HTTPRequestBase {
                 path: String = "/",
                 headers: [HTTPHeader] = [HTTPHeader](),
                 body: IStreamable? = nil) throws {
-        guard let rawValue = aws_http_message_new_request(defaultAllocator.rawValue) else {
+        guard let rawValue = aws_http_message_new_request(allocator.rawValue) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         super.init(rawValue: rawValue)
@@ -66,7 +66,7 @@ public class HTTP2Request: HTTPRequestBase {
     public init(headers: [HTTPHeader] = [HTTPHeader](),
                 body: IStreamable? = nil) throws {
 
-        guard let rawValue = aws_http2_message_new_request(defaultAllocator.rawValue) else {
+        guard let rawValue = aws_http2_message_new_request(allocator.rawValue) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         super.init(rawValue: rawValue)

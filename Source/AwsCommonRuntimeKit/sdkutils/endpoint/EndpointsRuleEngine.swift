@@ -16,7 +16,7 @@ public class EndpointsRuleEngine {
     public init(partitions: String, ruleSet: String ) throws {
         let getRawValue: () throws -> OpaquePointer = {
             guard let partitions = (partitions.withByteCursor { partitionsCursor in
-                aws_partitions_config_new_from_string(defaultAllocator.rawValue, partitionsCursor)
+                aws_partitions_config_new_from_string(allocator.rawValue, partitionsCursor)
             }) else {
                 throw CommonRunTimeError.crtError(.makeFromLastError())
             }
@@ -25,7 +25,7 @@ public class EndpointsRuleEngine {
             }
 
             guard let ruleSet = (ruleSet.withByteCursor { ruleSetCursor in
-                aws_endpoints_ruleset_new_from_string(defaultAllocator.rawValue, ruleSetCursor)
+                aws_endpoints_ruleset_new_from_string(allocator.rawValue, ruleSetCursor)
             }) else {
                 throw CommonRunTimeError.crtError(.makeFromLastError())
             }
@@ -33,7 +33,7 @@ public class EndpointsRuleEngine {
                 aws_endpoints_ruleset_release(ruleSet)
             }
 
-            guard let rawValue = aws_endpoints_rule_engine_new(defaultAllocator.rawValue, ruleSet, partitions) else {
+            guard let rawValue = aws_endpoints_rule_engine_new(allocator.rawValue, ruleSet, partitions) else {
                 throw CommonRunTimeError.crtError(.makeFromLastError())
             }
             return rawValue
