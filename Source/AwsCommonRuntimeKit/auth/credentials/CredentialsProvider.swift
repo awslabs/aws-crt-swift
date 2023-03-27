@@ -123,7 +123,7 @@ extension CredentialsProvider.Source {
     /// - Throws: CommonRuntimeError.crtError
     public static func `environment`(shutdownCallback: ShutdownCallback? = nil) -> Self {
 
-        Self { 
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var envOptions = aws_credentials_provider_environment_options()
             envOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
@@ -153,7 +153,7 @@ extension CredentialsProvider.Source {
                                  profileFileNameOverride: String? = nil,
                                  credentialsFileNameOverride: String? = nil,
                                  shutdownCallback: ShutdownCallback? = nil) -> Self {
-        Self { 
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var profileOptionsC = aws_credentials_provider_profile_options()
             profileOptionsC.bootstrap = bootstrap.rawValue
@@ -186,7 +186,7 @@ extension CredentialsProvider.Source {
     public static func `imds`(bootstrap: ClientBootstrap,
                               imdsVersion: IMDSProtocolVersion = IMDSProtocolVersion.version2,
                               shutdownCallback: ShutdownCallback? = nil) -> Self {
-        Self { 
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var imdsOptions = aws_credentials_provider_imds_options()
             imdsOptions.bootstrap = bootstrap.rawValue
@@ -216,7 +216,7 @@ extension CredentialsProvider.Source {
     public static func `cached`(source: CredentialsProvider,
                                 refreshTime: TimeInterval = 0,
                                 shutdownCallback: ShutdownCallback? = nil) -> Self {
-        Self { 
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
 
             var cachedOptions = aws_credentials_provider_cached_options()
@@ -247,7 +247,7 @@ extension CredentialsProvider.Source {
     /// - Throws: CommonRuntimeError.crtError
     public static func `defaultChain`(bootstrap: ClientBootstrap,
                                       shutdownCallback: ShutdownCallback? = nil) -> Self {
-        Self { 
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
 
             var chainDefaultOptions = aws_credentials_provider_chain_default_options()
@@ -287,7 +287,7 @@ extension CredentialsProvider.Source {
                               endpoint: String,
                               proxyOptions: HTTPProxyOptions? = nil,
                               shutdownCallback: ShutdownCallback? = nil) -> Self {
-        Self { 
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
 
             var x509Options = aws_credentials_provider_x509_options()
@@ -346,7 +346,7 @@ extension CredentialsProvider.Source {
     public static func `stsWebIdentity`(bootstrap: ClientBootstrap,
                                         tlsContext: TLSContext,
                                         shutdownCallback: ShutdownCallback? = nil) -> Self {
-        Self { 
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var stsOptions = aws_credentials_provider_sts_web_identity_options()
             stsOptions.bootstrap = bootstrap.rawValue
@@ -382,7 +382,7 @@ extension CredentialsProvider.Source {
                              sessionName: String,
                              duration: TimeInterval,
                              shutdownCallback: ShutdownCallback? = nil) -> Self {
-        Self { 
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var stsOptions = aws_credentials_provider_sts_options()
             stsOptions.tls_ctx = tlsContext.rawValue
@@ -432,7 +432,7 @@ extension CredentialsProvider.Source {
                              pathAndQuery: String,
                              host: String,
                              shutdownCallback: ShutdownCallback? = nil) -> Self {
-        Self { 
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var ecsOptions = aws_credentials_provider_ecs_options()
             ecsOptions.tls_ctx = tlsContext?.rawValue

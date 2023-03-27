@@ -129,7 +129,7 @@ public class Signer {
                                           config: SigningConfig) async throws -> String {
 
         guard let signable = previousSignature.withByteCursorPointer({ previousSignatureCursor in
-            headers.withCHeaders() { cHeaders in
+            headers.withCHeaders { cHeaders in
                 aws_signable_new_trailing_headers(allocator.rawValue, cHeaders, previousSignatureCursor.pointee)
             }
         }) else {
