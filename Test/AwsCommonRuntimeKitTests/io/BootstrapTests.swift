@@ -6,15 +6,13 @@ import XCTest
 class BootstrapTests: XCBaseTestCase {
 
   func testCanCreateBootstrap() throws {
-    let elg = try EventLoopGroup(allocator: allocator)
+    let elg = try EventLoopGroup()
     let resolver = try HostResolver(eventLoopGroup: elg,
                                            maxHosts: 8,
-                                           maxTTL: 30,
-                                           allocator: allocator)
+                                           maxTTL: 30)
 
     _ = try ClientBootstrap(eventLoopGroup: elg,
-                            hostResolver: resolver,
-                            allocator: allocator)
+                            hostResolver: resolver)
   }
 
   func testBootstrapShutdownCallback() async throws {
@@ -25,16 +23,14 @@ class BootstrapTests: XCBaseTestCase {
     }
 
     do {
-      let elg = try EventLoopGroup(allocator: allocator, shutdownCallback: shutdownCallback)
+      let elg = try EventLoopGroup(shutdownCallback: shutdownCallback)
       let resolver = try HostResolver(eventLoopGroup: elg,
               maxHosts: 8,
               maxTTL: 30,
-              allocator: allocator,
               shutdownCallback: shutdownCallback)
 
       _ = try ClientBootstrap(eventLoopGroup: elg,
               hostResolver: resolver,
-              allocator: allocator,
               shutdownCallback: shutdownCallback)
     }
     wait(for: [shutdownWasCalled], timeout: 15)

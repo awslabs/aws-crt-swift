@@ -44,7 +44,6 @@ public class HTTP2Stream: HTTPStream {
     ///   - data: Data to write. It can be empty
     ///   - endOfStream: Set it true to end the stream and prevent any further write.
     ///                  The last frame must be send with the value true.
-    ///   - allocator: (Optional) allocator to override
     /// - Throws:
     public func writeData(data: Data, endOfStream: Bool) async throws {
         var options = aws_http2_stream_write_data_options()
@@ -53,8 +52,7 @@ public class HTTP2Stream: HTTPStream {
         try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
             let stream = IStreamCore(
-                iStreamable: ByteBuffer(data: data),
-                allocator: callbackData.requestOptions.request.allocator)
+                iStreamable: ByteBuffer(data: data))
             options.data = stream.rawValue
             options.user_data = continuationCore.passRetained()
             guard aws_http2_stream_write_data(

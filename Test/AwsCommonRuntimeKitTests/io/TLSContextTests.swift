@@ -6,8 +6,8 @@ import XCTest
 class TLSContextTests: XCBaseTestCase {
 
   func testCreateTlsContextWithOptions() throws {
-    let options = TLSContextOptions(allocator: allocator)
-    let context = try TLSContext(options: options, mode: .client, allocator: allocator)
-    _ = TLSConnectionOptions(context: context, allocator: allocator)
+    let options = TLSContextOptions()
+    let context = try TLSContext(options: options, mode: .client)
+    _ = TLSConnectionOptions(context: context)
   }
 }

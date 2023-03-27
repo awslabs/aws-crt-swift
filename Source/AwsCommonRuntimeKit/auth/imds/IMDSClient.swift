@@ -6,13 +6,10 @@ import AwsCAuth
 // swiftlint:disable type_body_length
 public class IMDSClient {
     let rawValue: OpaquePointer
-    let allocator: Allocator
     public init(bootstrap: ClientBootstrap,
                 retryStrategy: RetryStrategy,
                 protocolVersion: IMDSProtocolVersion = IMDSProtocolVersion.version2,
-                shutdownCallback: ShutdownCallback? = nil,
-                allocator: Allocator = defaultAllocator) throws {
-        self.allocator = allocator
+                shutdownCallback: ShutdownCallback? = nil) throws {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         let shutdownOptions = shutdownCallbackCore.getRetainedIMDSClientShutdownOptions()
         var imdsOptions = aws_imds_client_options()
@@ -20,7 +17,7 @@ public class IMDSClient {
         imdsOptions.bootstrap = bootstrap.rawValue
         imdsOptions.retry_strategy = retryStrategy.rawValue
         imdsOptions.imds_version = protocolVersion.rawValue
-        guard let rawValue = aws_imds_client_new(allocator.rawValue, &imdsOptions) else {
+        guard let rawValue = aws_imds_client_new(defaultAllocator.rawValue, &imdsOptions) else {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }

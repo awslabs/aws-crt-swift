@@ -13,7 +13,7 @@ class SigningConfigTests: XCBaseTestCase {
                 service: "testService",
                 region: "testRegion",
                 date: Date(timeIntervalSinceNow: 100),
-                credentials: try Credentials(accessKey: "access", secret: "secret", allocator: allocator),
+                credentials: try Credentials(accessKey: "access", secret: "secret"),
                 expiration: TimeInterval(1000),
                 signedBodyHeader: SignedBodyHeaderType.contentSha256,
                 signedBodyValue: SignedBodyValue.streamingSha256Payload)

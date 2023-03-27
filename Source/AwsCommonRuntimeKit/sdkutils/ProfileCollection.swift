@@ -9,16 +9,15 @@ public class ProfileCollection {
 
     /// Create a new profile collection by parsing a file with the specified path
     public init(fromFile path: String,
-                source: ProfileSourceType,
-                allocator: Allocator = defaultAllocator) throws {
+                source: ProfileSourceType) throws {
         var finalizedPath = path
         if path.hasPrefix("~"),
-           let homeDirectory = aws_get_home_directory(allocator.rawValue),
+           let homeDirectory = aws_get_home_directory(defaultAllocator.rawValue),
            let homeDirectoryString = String(awsString: homeDirectory) {
             finalizedPath = homeDirectoryString + path.dropFirst()
         }
-        let awsString = AWSString(finalizedPath, allocator: allocator)
-        guard let profilePointer = aws_profile_collection_new_from_file(allocator.rawValue,
+        let awsString = AWSString(finalizedPath)
+        guard let profilePointer = aws_profile_collection_new_from_file(defaultAllocator.rawValue,
                                                                         awsString.rawValue,
                                                                         source.rawValue)
         else {
@@ -29,12 +28,11 @@ public class ProfileCollection {
 
     /// Create a new profile collection by parsing text in a buffer. Primarily for testing.
     init(fromData data: Data,
-         source: ProfileSourceType,
-         allocator: Allocator = defaultAllocator) throws {
+         source: ProfileSourceType) throws {
         let byteCount = data.count
         guard let rawValue  = (data.withUnsafeBytes { rawBufferPointer -> OpaquePointer? in
             var byteBuf = aws_byte_buf_from_array(rawBufferPointer.baseAddress, byteCount)
-            return aws_profile_collection_new_from_buffer(allocator.rawValue,
+            return aws_profile_collection_new_from_buffer(defaultAllocator.rawValue,
                                                           &byteBuf,
                                                           source.rawValue)
 
@@ -48,9 +46,8 @@ public class ProfileCollection {
     /// Create a new profile collection by merging a config-file-based profile
     /// collection and a credentials-file-based profile collection
     public init(configProfileCollection: ProfileCollection,
-                credentialProfileCollection: ProfileCollection,
-                allocator: Allocator = defaultAllocator) throws {
-        guard let rawValue = aws_profile_collection_new_from_merge(allocator.rawValue,
+                credentialProfileCollection: ProfileCollection) throws {
+        guard let rawValue = aws_profile_collection_new_from_merge(defaultAllocator.rawValue,
                                                                    configProfileCollection.rawValue,
                                                                    credentialProfileCollection.rawValue)
         else {
@@ -60,8 +57,8 @@ public class ProfileCollection {
     }
 
     /// Retrieves a reference to a profile with the specified name, if it exists, from the profile collection
-    public func getProfile(name: String, allocator: Allocator = defaultAllocator) -> Profile? {
-        let awsString = AWSString(name, allocator: allocator)
+    public func getProfile(name: String ) -> Profile? {
+        let awsString = AWSString(name)
         guard let profilePointer = aws_profile_collection_get_profile(self.rawValue,
                                                                       awsString.rawValue)
         else {

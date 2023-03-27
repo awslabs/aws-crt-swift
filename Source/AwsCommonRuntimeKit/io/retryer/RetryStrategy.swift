@@ -20,7 +20,6 @@ public class RetryStrategy {
     ///   - jitterMode: (Optional) Jitter mode to use, see comments for aws_exponential_backoff_jitter_mode.
     ///   - generateRandom: (Optional) By default this will be set to use aws_device_random. If you want something else, set it here.
     ///   - shutdownCallback: (Optional) Shutdown callback to invoke when the resource is cleaned up.
-    ///   - allocator: (Optional) allocator to override.
     /// - Returns: `CRTAWSRetryStrategy`
     public init(eventLoopGroup: EventLoopGroup,
                 initialBucketCapacity: Int = 500,
@@ -28,8 +27,7 @@ public class RetryStrategy {
                 backOffScaleFactor: TimeInterval = 0.025,
                 jitterMode: ExponentialBackoffJitterMode = .default,
                 generateRandom: GenerateRandomFn? = nil,
-                shutdownCallback: ShutdownCallback? = nil,
-                allocator: Allocator = defaultAllocator) throws {
+                shutdownCallback: ShutdownCallback? = nil) throws {
 
         var exponentialBackoffRetryOptions = aws_exponential_backoff_retry_options()
         exponentialBackoffRetryOptions.el_group = eventLoopGroup.rawValue
@@ -50,7 +48,7 @@ public class RetryStrategy {
                 var standardRetryOptions = aws_standard_retry_options()
                 standardRetryOptions.initial_bucket_capacity = initialBucketCapacity
                 standardRetryOptions.backoff_retry_options = exponentialBackoffRetryOptions
-                return aws_retry_strategy_new_standard(allocator.rawValue, &standardRetryOptions)
+                return aws_retry_strategy_new_standard(defaultAllocator.rawValue, &standardRetryOptions)
             })
         }
 

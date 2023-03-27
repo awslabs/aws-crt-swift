@@ -7,7 +7,6 @@ public class ClientBootstrap {
 
     public init(eventLoopGroup elg: EventLoopGroup,
                 hostResolver: HostResolver,
-                allocator: Allocator = defaultAllocator,
                 shutdownCallback: ShutdownCallback? = nil) throws {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         let shutdownOptions = shutdownCallbackCore.getRetainedShutdownOptions()
@@ -19,7 +18,7 @@ public class ClientBootstrap {
                 options.host_resolution_config = hostResolutionConfigPointer
                 options.on_shutdown_complete = shutdownOptions.shutdown_callback_fn
                 options.user_data = shutdownOptions.shutdown_callback_user_data
-                return aws_client_bootstrap_new(allocator.rawValue, &options)
+                return aws_client_bootstrap_new(defaultAllocator.rawValue, &options)
             }
         }
 

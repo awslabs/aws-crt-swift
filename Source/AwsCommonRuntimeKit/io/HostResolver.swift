@@ -27,28 +27,23 @@ public protocol HostResolverProtocol {
 public class HostResolver: HostResolverProtocol {
     let rawValue: UnsafeMutablePointer<aws_host_resolver>
     let maxTTL: Int
-    private let allocator: Allocator
 
     /// Creates a host resolver with the default behavior.
     public static func makeDefault(eventLoopGroup: EventLoopGroup,
                                    maxHosts: Int = 16,
                                    maxTTL: Int = 30,
-                                   allocator: Allocator = defaultAllocator,
                                    shutdownCallback: ShutdownCallback? = nil) throws -> HostResolver {
         try HostResolver(
             eventLoopGroup: eventLoopGroup,
             maxHosts: maxHosts,
             maxTTL: maxTTL,
-            allocator: allocator,
             shutdownCallback: shutdownCallback)
     }
 
     init(eventLoopGroup: EventLoopGroup,
          maxHosts: Int,
          maxTTL: Int,
-         allocator: Allocator = defaultAllocator,
          shutdownCallback: ShutdownCallback? = nil) throws {
-        self.allocator = allocator
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         let getRawValue: () -> UnsafeMutablePointer<aws_host_resolver>? = {
             withUnsafePointer(to: shutdownCallbackCore.getRetainedShutdownOptions()) { shutdownCallbackCorePointer in
@@ -56,7 +51,7 @@ public class HostResolver: HostResolverProtocol {
                 options.max_entries = maxHosts
                 options.el_group = eventLoopGroup.rawValue
                 options.shutdown_options = shutdownCallbackCorePointer
-                return aws_host_resolver_new_default(allocator.rawValue, &options)
+                return aws_host_resolver_new_default(defaultAllocator.rawValue, &options)
             }
         }
 
@@ -77,15 +72,15 @@ public class HostResolver: HostResolverProtocol {
         let host = args.hostName
         return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<[HostAddress], Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
-            let hostStr = AWSString(host, allocator: allocator)
+            let hostStr = AWSString(host)
             withUnsafePointer(to: getHostResolutionConfig()) { hostResolutionConfigPointer in
                 if aws_host_resolver_resolve_host(
                     rawValue,
                     hostStr.rawValue,
                     onHostResolved,
                     hostResolutionConfigPointer,
-                    continuationCore.passRetained()) != AWS_OP_SUCCESS {
-
+                    continuationCore.passRetained()
+                ) != AWS_OP_SUCCESS {
                     continuationCore.release()
                     continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
@@ -109,7 +104,7 @@ public class HostResolver: HostResolverProtocol {
     /// don't have a good way to deal with it.
     /// - Parameter args: The host name to purge the cache.
     public func purgeCache(args: HostResolverArguments) async {
-        let host = AWSString(args.hostName, allocator: allocator)
+        let host = AWSString(args.hostName)
         return await withCheckedContinuation({ (continuation: CheckedContinuation<(), Never>) in
             let continuationCore = Box(continuation)
             var purgeCacheOptions = aws_host_resolver_purge_host_options()

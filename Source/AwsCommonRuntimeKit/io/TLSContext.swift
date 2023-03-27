@@ -6,13 +6,13 @@ import AwsCIo
 public class TLSContext {
     var rawValue: UnsafeMutablePointer<aws_tls_ctx>
 
-    public init(options: TLSContextOptions, mode: TLSMode, allocator: Allocator = defaultAllocator) throws {
+    public init(options: TLSContextOptions, mode: TLSMode ) throws {
         guard let rawValue = (options.withCPointer { optionsPointer -> UnsafeMutablePointer<aws_tls_ctx>? in
             switch mode {
             case .client:
-                return aws_tls_client_ctx_new(allocator.rawValue, optionsPointer)
+                return aws_tls_client_ctx_new(defaultAllocator.rawValue, optionsPointer)
             case .server:
-                return aws_tls_server_ctx_new(allocator.rawValue, optionsPointer)
+                return aws_tls_server_ctx_new(defaultAllocator.rawValue, optionsPointer)
             }
         })  else {
             throw CommonRunTimeError.crtError(.makeFromLastError())

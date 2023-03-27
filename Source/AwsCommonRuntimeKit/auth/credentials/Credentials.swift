@@ -22,13 +22,11 @@ public final class Credentials {
     ///   - expiration: (Optional) Point in time after which credentials will no longer be valid.
     ///                 For credentials that do not expire, use nil.
     ///                 If expiration.timeIntervalSince1970 is greater than UInt64.max, it will be converted to nil.
-    ///   - allocator: (Optional) allocator to override.
     /// - Throws: CommonRuntimeError.crtError
     public init(accessKey: String,
                 secret: String,
                 sessionToken: String? = nil,
-                expiration: Date? = nil,
-                allocator: Allocator = defaultAllocator) throws {
+                expiration: Date? = nil) throws {
 
         let expirationTimeout: UInt64
         if let expiration = expiration,
@@ -44,7 +42,7 @@ public final class Credentials {
             sessionToken) { accessKeyCursor, secretCursor, sessionTokenCursor in
 
             return aws_credentials_new(
-                allocator.rawValue,
+                defaultAllocator.rawValue,
                 accessKeyCursor,
                 secretCursor,
                 sessionTokenCursor,

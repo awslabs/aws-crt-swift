@@ -6,20 +6,20 @@ class RetryerTests: XCBaseTestCase {
     let expectation = XCTestExpectation(description: "Credentials callback was called")
     
     func testCreateAWSRetryer() throws {
-        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-        _ = try RetryStrategy(eventLoopGroup: elg, allocator: allocator)
+        let elg = try EventLoopGroup(threadCount: 1)
+        _ = try RetryStrategy(eventLoopGroup: elg)
     }
     
     func testAcquireToken() async throws {
-        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-        let retryer = try RetryStrategy(eventLoopGroup: elg, allocator: allocator)
+        let elg = try EventLoopGroup(threadCount: 1)
+        let retryer = try RetryStrategy(eventLoopGroup: elg)
         let result = try await retryer.acquireToken(partitionId: "partition1")
         XCTAssertNotNil(result)
     }
 
     func testScheduleRetry() async throws {
-        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-        let retryer = try RetryStrategy(eventLoopGroup: elg, allocator: allocator)
+        let elg = try EventLoopGroup(threadCount: 1)
+        let retryer = try RetryStrategy(eventLoopGroup: elg)
         let token = try await retryer.acquireToken(partitionId: "partition1")
         XCTAssertNotNil(token)
         _ = try await retryer.scheduleRetry(token: token, errorType: RetryError.serverError)
@@ -28,11 +28,11 @@ class RetryerTests: XCBaseTestCase {
     func testShutdownCallback() async throws {
         let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
 
-        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
+        let elg = try EventLoopGroup(threadCount: 1)
         do {
             let retryer = try RetryStrategy(eventLoopGroup: elg, shutdownCallback: {
                 shutdownWasCalled.fulfill()
-            }, allocator: allocator)
+            })
             let token = try await retryer.acquireToken(partitionId: "partition1")
             XCTAssertNotNil(token)
             _ = try await retryer.scheduleRetry(token: token, errorType: RetryError.serverError)
@@ -43,7 +43,7 @@ class RetryerTests: XCBaseTestCase {
     func testGenerateRandom() async throws {
         let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
         let generateRandomWasCalled = XCTestExpectation(description: "Generate random was called")
-        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
+        let elg = try EventLoopGroup(threadCount: 1)
 
         do {
             let retryer = try RetryStrategy(
@@ -54,8 +54,7 @@ class RetryerTests: XCBaseTestCase {
                     },
                     shutdownCallback: {
                         shutdownWasCalled.fulfill()
-                    },
-                    allocator: allocator)
+                    })
             let token = try await retryer.acquireToken(partitionId: "partition1")
             XCTAssertNotNil(token)
             _ = try await retryer.scheduleRetry(token: token, errorType: RetryError.serverError)

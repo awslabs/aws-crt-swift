@@ -24,13 +24,11 @@ public class EventStreamMessageDecoder {
     ///   - onHeaderReceived: Called when a header is encountered.
     ///   - onComplete: Called when a message decoding is complete and CRC is verified.
     ///   - onError: Called when an error is encountered. The decoder is not in a good state for usage after this callback.
-    ///   - allocator: (Optional) allocator to override.
     public init(onPayloadSegment: @escaping OnPayloadSegment,
                 onPreludeReceived: @escaping OnPreludeReceived,
                 onHeaderReceived: @escaping OnHeaderReceived,
                 onComplete: @escaping OnComplete,
-                onError: @escaping OnError,
-                allocator: Allocator = defaultAllocator) {
+                onError: @escaping OnError) {
 
         rawValue = aws_event_stream_streaming_decoder()
         callbackCore = EventStreamMessageDecoderCallbackCore(
@@ -48,7 +46,7 @@ public class EventStreamMessageDecoder {
         decoderOptions.on_error = onErrorFn
         decoderOptions.user_data = callbackCore.passUnretained()
 
-        aws_event_stream_streaming_decoder_init_from_options(&rawValue, allocator.rawValue, &decoderOptions)
+        aws_event_stream_streaming_decoder_init_from_options(&rawValue, defaultAllocator.rawValue, &decoderOptions)
     }
 
     /// Pass data to decode. This will trigger the callbacks with the decoded result.

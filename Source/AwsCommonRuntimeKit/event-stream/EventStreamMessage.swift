@@ -7,14 +7,11 @@ import Foundation
 public struct EventStreamMessage {
     var headers: [EventStreamHeader] = [EventStreamHeader]()
     var payload: Data = Data()
-    var allocator: Allocator = defaultAllocator
 
     public init(headers: [EventStreamHeader] = [EventStreamHeader](),
-                payload: Data = Data(),
-                allocator: Allocator = defaultAllocator) {
+                payload: Data = Data()) {
         self.headers = headers
         self.payload = payload
-        self.allocator = allocator
     }
 
     /// Get the binary format of this message (i.e. for sending across the wire manually)
@@ -27,7 +24,7 @@ public struct EventStreamMessage {
             aws_event_stream_message_clean_up(&rawValue)
         }
 
-        guard aws_event_stream_headers_list_init(&rawHeaders, allocator.rawValue) == AWS_OP_SUCCESS else {
+        guard aws_event_stream_headers_list_init(&rawHeaders, defaultAllocator.rawValue) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         try headers.forEach {
@@ -37,7 +34,7 @@ public struct EventStreamMessage {
         guard payload.withAWSByteBufPointer({ byteBuff in
             // TODO (optimization): we could avoid the extra copies of headers and data
             // if there were an API in C that let us encode everything directly into a pre-allocated buffer
-            aws_event_stream_message_init(&rawValue, allocator.rawValue, &rawHeaders, byteBuff)
+            aws_event_stream_message_init(&rawValue, defaultAllocator.rawValue, &rawHeaders, byteBuff)
         }) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }

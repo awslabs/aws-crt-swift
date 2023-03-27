@@ -7,8 +7,8 @@ import XCTest
 class HTTPProxyOptionsTests: XCBaseTestCase {
 
     func testCreateProxyOptions() throws {
-        let context = try TLSContext(options: TLSContextOptions(allocator: allocator), mode: TLSMode.client)
-        let tlsOptions = TLSConnectionOptions(context: context, allocator: allocator)
+        let context = try TLSContext(options: TLSContextOptions(), mode: TLSMode.client)
+        let tlsOptions = TLSConnectionOptions(context: context)
         let proxyOptions = HTTPProxyOptions(
                 hostName: "test",
                 port: 80,

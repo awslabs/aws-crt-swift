@@ -36,8 +36,7 @@ class ChunkSignerTests: XCBaseTestCase {
         let request = makeChunkedRequest()
         let signedRequest = try await Signer.signRequest(
                 request: request,
-                config: makeChunkedRequestSigningConfig(),
-                allocator: allocator)
+                config: makeChunkedRequestSigningConfig())
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
 
@@ -48,57 +47,50 @@ class ChunkSignerTests: XCBaseTestCase {
         let firstChunkSignature = try await Signer.signChunk(
                 chunk: Data(repeating: 97, count: chunk1Size),
                 previousSignature: expectedRequestSignature,
-                config: makeChunkedSigningConfig(),
-                allocator: allocator)
+                config: makeChunkedSigningConfig())
         XCTAssertEqual(firstChunkSignature, expectedFirstChunkSignature)
 
         let secondChunkSignature = try await Signer.signChunk(
                 chunk: Data(repeating: 97, count: chunk2Size),
                 previousSignature: expectedFirstChunkSignature,
-                config: makeChunkedSigningConfig(),
-                allocator: allocator)
+                config: makeChunkedSigningConfig())
         XCTAssertEqual(secondChunkSignature, expectedSecondChunkSignature)
 
         let finalChunkSignature = try await Signer.signChunk(
                 chunk: Data(),
                 previousSignature: secondChunkSignature,
-                config: makeChunkedSigningConfig(),
-                allocator: allocator)
+                config: makeChunkedSigningConfig())
         XCTAssertEqual(finalChunkSignature, expectedFinalChunkSignature)
 
         let trailerChunkSignature = try await Signer.signTrailerHeaders(
                 headers: trailingHeaders,
                 previousSignature: finalChunkSignature,
-                config: makeTrailingSigningConfig(),
-                allocator: allocator)
+                config: makeTrailingSigningConfig())
         XCTAssertEqual(trailerChunkSignature, expectedTrailerHeaderSignature)
     }
 
     func testChunkedSigv4ASigning() async throws {
         let request = makeChunkedRequest()
-        let signedRequest = try await Signer.signRequest(request: request, config: makeChunkedRequestSigningConfig(sigv4: false), allocator: allocator)
+        let signedRequest = try await Signer.signRequest(request: request, config: makeChunkedRequestSigningConfig(sigv4: false))
         // TODO: verify signature
         XCTAssertNotNil(signedRequest)
 
         let firstChunkSignature = try await Signer.signChunk(
                 chunk: Data(repeating: 97, count: chunk1Size),
                 previousSignature: expectedRequestSignature,
-                config: makeChunkedSigningConfig(sigv4: false),
-                allocator: allocator)
+                config: makeChunkedSigningConfig(sigv4: false))
         XCTAssertNotNil(firstChunkSignature)
 
         let secondChunkSignature = try await Signer.signChunk(
                 chunk: Data(repeating: 97, count: chunk2Size),
                 previousSignature: expectedFirstChunkSignature,
-                config: makeChunkedSigningConfig(sigv4: false),
-                allocator: allocator)
+                config: makeChunkedSigningConfig(sigv4: false))
         XCTAssertNotNil(secondChunkSignature)
 
         let finalChunk = try await Signer.signChunk(
                 chunk: Data(),
                 previousSignature: secondChunkSignature,
-                config: makeChunkedSigningConfig(sigv4: false),
-                allocator: allocator)
+                config: makeChunkedSigningConfig(sigv4: false))
         XCTAssertNotNil(finalChunk)
     }
 
@@ -142,7 +134,7 @@ class ChunkSignerTests: XCBaseTestCase {
     }
 
     func makeChunkedRequest(trailer: Bool = false) -> HTTPRequestBase {
-        let request = try! HTTPRequest(method: "PUT", path: url.path, allocator: allocator)
+        let request = try! HTTPRequest(method: "PUT", path: url.path)
         request.addHeaders(headers: [
             HTTPHeader(name: "Host", value: url.host!),
             HTTPHeader(name: "x-amz-storage-class", value: "REDUCED_REDUNDANCY"),

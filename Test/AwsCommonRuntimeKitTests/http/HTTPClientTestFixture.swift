@@ -124,17 +124,15 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                   proxyOptions: HTTPProxyOptions? = nil,
                                   monitoringOptions: HTTPMonitoringOptions? = nil,
                                   socketOptions: SocketOptions = SocketOptions(socketType: .stream)) async throws -> HTTPClientConnectionManager {
-        let tlsContextOptions = TLSContextOptions(allocator: allocator)
+        let tlsContextOptions = TLSContextOptions()
         tlsContextOptions.setAlpnList(alpnList)
-        let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)
-        var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext, allocator: allocator)
+        let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client)
+        var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext)
         tlsConnectionOptions.serverName = endpoint
 
-        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-        let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
-        let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                hostResolver: hostResolver,
-                allocator: allocator)
+        let elg = try EventLoopGroup(threadCount: 1)
+        let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30)
+        let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: hostResolver)
 
         let httpClientOptions = HTTPClientConnectionOptions(clientBootstrap: bootstrap,
                 hostName: endpoint,
@@ -189,7 +187,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                                onComplete: HTTPRequestOptions.OnStreamComplete? = nil
     ) throws -> HTTPRequestOptions {
-        let httpRequest: HTTPRequest = try HTTPRequest(method: method, path: path, body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
+        let httpRequest: HTTPRequest = try HTTPRequest(method: method, path: path, body: ByteBuffer(data: body.data(using: .utf8)!))
         httpRequest.addHeader(header: HTTPHeader(name: "Host", value: endpoint))
         httpRequest.addHeader(header: HTTPHeader(name: "Content-Length", value: String(body.count)))
         httpRequest.addHeaders(headers: headers)
@@ -215,7 +213,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                 onComplete: HTTPRequestOptions.OnStreamComplete? = nil,
                                 http2ManualDataWrites: Bool = false) throws -> HTTPRequestOptions {
 
-        let http2Request = try HTTP2Request(body: ByteBuffer(data: body.data(using: .utf8)!), allocator: allocator)
+        let http2Request = try HTTP2Request(body: ByteBuffer(data: body.data(using: .utf8)!))
         http2Request.addHeaders(headers: [
             HTTPHeader(name: ":method", value: method),
             HTTPHeader(name: ":path", value: path),

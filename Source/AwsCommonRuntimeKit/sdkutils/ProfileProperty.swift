@@ -20,8 +20,8 @@ public class ProfileProperty {
     }
 
     /// Returns the value of a sub property with the given name, if it exists, in the property
-    public func getSubProperty(name: String, allocator: Allocator = defaultAllocator) -> String? {
-        let awsString = AWSString(name, allocator: allocator)
+    public func getSubProperty(name: String ) -> String? {
+        let awsString = AWSString(name)
         guard let stringPointer = aws_profile_property_get_sub_property(rawValue, awsString.rawValue) else {
             return nil
         }

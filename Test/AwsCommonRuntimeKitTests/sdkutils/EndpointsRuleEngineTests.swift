@@ -215,8 +215,8 @@ class EndpointsRuleEngineTests: XCBaseTestCase {
       """#
 
     func testResolve() throws {
-        let engine = try EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
-        let context = try EndpointsRequestContext(allocator: allocator)
+        let engine = try EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet)
+        let context = try EndpointsRequestContext()
         try context.add(name: "Region", value: "us-west-2")
         let resolved = try engine.resolve(context: context)
         guard case ResolvedEndpoint.endpoint(url: let url,
@@ -249,8 +249,8 @@ class EndpointsRuleEngineTests: XCBaseTestCase {
     }
 
     func testResolveError() throws {
-        let engine = try EndpointsRuleEngine(partitions: partitions, ruleSet: errorRuleSet, allocator: allocator)
-        let context = try EndpointsRequestContext(allocator: allocator)
+        let engine = try EndpointsRuleEngine(partitions: partitions, ruleSet: errorRuleSet)
+        let context = try EndpointsRequestContext()
         let resolved = try engine.resolve(context: context)
         guard case ResolvedEndpoint.error(message: let error) = resolved else {
             XCTFail("Endpoint resolved to an endpoint")
@@ -261,13 +261,13 @@ class EndpointsRuleEngineTests: XCBaseTestCase {
 
     func testRuleSetParsingPerformance() {
         measure {
-            _ = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
+            _ = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet)
         }
     }
 
     func testRuleSetEvaluationPerformance() {
-        let engine = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
-        let context = try! EndpointsRequestContext(allocator: allocator)
+        let engine = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet)
+        let context = try! EndpointsRequestContext()
         try! context.add(name: "Region", value: "us-west-2")
         measure {
             let _ = try! engine.resolve(context: context)
@@ -276,8 +276,8 @@ class EndpointsRuleEngineTests: XCBaseTestCase {
 
     func testResolvePerformance() {
         measure {
-            let engine = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet, allocator: allocator)
-            let context = try! EndpointsRequestContext(allocator: allocator)
+            let engine = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet)
+            let context = try! EndpointsRequestContext()
             try! context.add(name: "Region", value: "us-west-2")
             let _ = try! engine.resolve(context: context)
         }

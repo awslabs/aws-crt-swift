@@ -9,7 +9,6 @@ class IStreamCore {
     var rawValue: UnsafeMutablePointer<aws_input_stream>
     let iStreamable: IStreamable
     var isEndOfStream: Bool = false
-    private let allocator: Allocator
     private var vtable = aws_input_stream_vtable(
         seek: doSeek,
         read: doRead,
@@ -20,12 +19,11 @@ class IStreamCore {
     )
     private let vtablePointer: UnsafeMutablePointer<aws_input_stream_vtable>
 
-    init(iStreamable: IStreamable, allocator: Allocator) {
-        self.allocator = allocator
+    init(iStreamable: IStreamable) {
         self.iStreamable = iStreamable
-        rawValue = allocator.allocate(capacity: 1)
+        rawValue = defaultAllocator.allocate(capacity: 1)
         // Use a manually managed vtable pointer to avoid undefined behavior
-        self.vtablePointer = allocator.allocate(capacity: 1)
+        self.vtablePointer = defaultAllocator.allocate(capacity: 1)
         vtablePointer.initialize(to: vtable)
         rawValue.pointee.vtable = UnsafePointer(vtablePointer)
 
@@ -33,8 +31,8 @@ class IStreamCore {
     }
 
     deinit {
-        allocator.release(rawValue)
-        allocator.release(vtablePointer)
+        defaultAllocator.release(rawValue)
+        defaultAllocator.release(vtablePointer)
     }
 }
 

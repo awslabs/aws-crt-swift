@@ -7,17 +7,14 @@ import Foundation
 
 // swiftlint:disable force_try
 public class HTTPClientConnection {
-    private let allocator: Allocator
     let rawValue: UnsafeMutablePointer<aws_http_connection>
     /// This will keep the connection manager alive until connection is alive
     let manager: HTTPClientConnectionManager
 
     /// Called by HTTPClientConnectionManager
     init(manager: HTTPClientConnectionManager,
-         connection: UnsafeMutablePointer<aws_http_connection>,
-         allocator: Allocator = defaultAllocator) {
+         connection: UnsafeMutablePointer<aws_http_connection>) {
         self.manager = manager
-        self.allocator = allocator
         self.rawValue = connection
     }
 

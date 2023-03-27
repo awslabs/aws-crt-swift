@@ -19,8 +19,8 @@ public class Profile {
     }
 
     /// Retrieves a reference to a property with the specified name, if it exists, from a profile
-    public func getProperty(name: String, allocator: Allocator = defaultAllocator) -> ProfileProperty? {
-        let nameAwsString = AWSString(name, allocator: allocator)
+    public func getProperty(name: String ) -> ProfileProperty? {
+        let nameAwsString = AWSString(name)
         guard let propPointer = aws_profile_get_property(rawValue, nameAwsString.rawValue) else {
             return nil
         }

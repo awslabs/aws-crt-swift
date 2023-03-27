@@ -8,14 +8,14 @@ class UtilityTests: XCBaseTestCase {
 
     func testMd5() throws {
         let hello = "Hello"
-        let md5 = try hello.base64EncodedMD5(allocator: allocator)
+        let md5 = try hello.base64EncodedMD5()
         XCTAssertEqual(md5, "ixqZU8RhEpaoJ6v4xHgE1w==")
     }
 
     func testMd5Payload() throws {
         let payload = "{\"foo\":\"base64 encoded md5 checksum\"}"
 
-        let md5 = try payload.base64EncodedMD5(allocator: allocator)
+        let md5 = try payload.base64EncodedMD5()
 
         XCTAssertEqual(md5, "iB0/3YSo7maijL0IGOgA9g==")
     }
@@ -50,7 +50,7 @@ class UtilityTests: XCBaseTestCase {
         let init_size: size_t  = 4
 
         "first".withByteCursorPointer { firstCursorPointer in
-            aws_array_list_init_dynamic(list, allocator.rawValue, init_size, MemoryLayout.size(ofValue: firstCursorPointer.pointee))
+            aws_array_list_init_dynamic(list, defaultAllocator.rawValue, init_size, MemoryLayout.size(ofValue: firstCursorPointer.pointee))
             XCTAssertEqual(0, list.pointee.length)
             aws_array_list_push_front(list, firstCursorPointer)
             XCTAssertEqual(1, list.pointee.length)

@@ -7,7 +7,7 @@ import AwsCCommon
 class HTTPRequestTests: XCBaseTestCase {
 
     func testCreateHttpRequest() throws {
-        let httpRequest = try HTTPRequest(method: "PUT", path: "testPath", allocator: allocator)
+        let httpRequest = try HTTPRequest(method: "PUT", path: "testPath")
         XCTAssertEqual(httpRequest.method, "PUT")
         XCTAssertEqual(httpRequest.path, "testPath")
 
@@ -19,7 +19,7 @@ class HTTPRequestTests: XCBaseTestCase {
     }
 
     func testEmptyMethodAndPath() throws {
-        let httpRequest = try HTTPRequest(method: "", path: "path", allocator: allocator)
+        let httpRequest = try HTTPRequest(method: "", path: "path")
         XCTAssertEqual(httpRequest.method, "")
         XCTAssertEqual(httpRequest.path, "path")
 
@@ -31,7 +31,7 @@ class HTTPRequestTests: XCBaseTestCase {
     }
 
     func testCreateHttpRequestWithHeaders() throws {
-        let httpRequest = try HTTPRequest(headers: [HTTPHeader(name: "Name", value: "Value")], allocator: allocator)
+        let httpRequest = try HTTPRequest(headers: [HTTPHeader(name: "Name", value: "Value")])
         XCTAssertEqual(httpRequest.headerCount, 1)
     }
 

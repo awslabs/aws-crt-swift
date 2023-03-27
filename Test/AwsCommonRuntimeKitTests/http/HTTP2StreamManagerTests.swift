@@ -9,14 +9,13 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
     let path = "/random_32_byte.data";
 
     func testStreamManagerCreate() throws {
-        let tlsContextOptions = TLSContextOptions(allocator: allocator)
-        let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)
-        let tlsConnectionOptions = TLSConnectionOptions(context: tlsContext, allocator: allocator)
-        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-        let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
+        let tlsContextOptions = TLSContextOptions()
+        let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client)
+        let tlsConnectionOptions = TLSConnectionOptions(context: tlsContext)
+        let elg = try EventLoopGroup(threadCount: 1)
+        let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30)
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                hostResolver: hostResolver,
-                allocator: allocator)
+                hostResolver: hostResolver)
         let port = UInt16(443)
 
         let options = HTTP2StreamManagerOptions(
@@ -70,20 +69,19 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
     }
 
     func makeStreamManger(host: String, port: Int = 443) throws -> HTTP2StreamManager {
-        let tlsContextOptions = TLSContextOptions(allocator: allocator)
+        let tlsContextOptions = TLSContextOptions()
         tlsContextOptions.setAlpnList(["h2"])
-        let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)
+        let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client)
 
-        var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext, allocator: allocator)
+        var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext)
 
         tlsConnectionOptions.serverName = host
 
-        let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-        let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
+        let elg = try EventLoopGroup(threadCount: 1)
+        let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30)
 
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                hostResolver: hostResolver,
-                allocator: allocator)
+                hostResolver: hostResolver)
 
         let socketOptions = SocketOptions(socketType: .stream)
         let port = UInt16(443)

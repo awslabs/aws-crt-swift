@@ -4,7 +4,6 @@
 import AwsCIo
 
 public struct TLSConnectionOptions: CStruct {
-    private let allocator: Allocator
     public var context: TLSContext
     public var alpnList: [String]?
     public var serverName: String?
@@ -12,9 +11,7 @@ public struct TLSConnectionOptions: CStruct {
     public init(
         context: TLSContext,
         alpnList: [String]? = nil,
-        serverName: String? = nil,
-        allocator: Allocator = defaultAllocator) {
-        self.allocator = allocator
+        serverName: String? = nil) {
         self.context = context
         self.alpnList = alpnList
         self.serverName = serverName
@@ -36,13 +33,13 @@ public struct TLSConnectionOptions: CStruct {
             if let alpnList = alpnList {
                 _ = aws_tls_connection_options_set_alpn_list(
                     tlsConnectionsOptionsPointer,
-                    self.allocator.rawValue,
+                    defaultAllocator.rawValue,
                     alpnList.joined(separator: ";"))
             }
             _ = serverName?.withByteCursorPointer { serverNameCursorPointer in
                 aws_tls_connection_options_set_server_name(
                     tlsConnectionsOptionsPointer,
-                    allocator.rawValue,
+                    defaultAllocator.rawValue,
                     serverNameCursorPointer)
             }
             return body(tlsConnectionsOptionsPointer.pointee)

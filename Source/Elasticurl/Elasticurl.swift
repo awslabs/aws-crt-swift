@@ -223,10 +223,10 @@ struct Elasticurl {
         createOutputFile()
         if let traceFile = context.traceFile {
             print("enable logging with trace file")
-            logger = Logger(filePath: traceFile, level: context.logLevel, allocator: defaultAllocator)
+            logger = Logger(filePath: traceFile, level: context.logLevel)
         } else {
             print("enable logging with stdout")
-            logger = Logger(pipe: stdout, level: context.logLevel, allocator: defaultAllocator)
+            logger = Logger(pipe: stdout, level: context.logLevel)
         }
 
         await run()
@@ -241,24 +241,23 @@ struct Elasticurl {
 
             let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
 
-            CommonRuntimeKit.initialize(allocator: allocator)
+            CommonRuntimeKit.initialize()
 
             let port = UInt16(443)
 
-            let tlsContextOptions = TLSContextOptions.makeDefault(allocator: allocator)
+            let tlsContextOptions = TLSContextOptions.makeDefault()
             tlsContextOptions.setAlpnList(context.alpnList)
-            let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)
+            let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client)
 
-            var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext, allocator: allocator)
+            var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext)
 
             tlsConnectionOptions.serverName = host
 
-            let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
+            let elg = try EventLoopGroup(threadCount: 1)
             let hostResolver = try HostResolver.makeDefault(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30)
 
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                                                hostResolver: hostResolver,
-                                                allocator: allocator)
+                                                hostResolver: hostResolver)
 
             let socketOptions = SocketOptions(socketType: .stream)
 
@@ -266,7 +265,7 @@ struct Elasticurl {
 
             var stream: HTTPStream?
             let path = context.url.path == "" ? "/" : context.url.path
-            let httpRequest: HTTPRequest = try HTTPRequest(method: context.verb, path: path, allocator: allocator)
+            let httpRequest: HTTPRequest = try HTTPRequest(method: context.verb, path: path)
             var headers = [HTTPHeader]()
             headers.append(HTTPHeader(name: "Host", value: host))
             headers.append(HTTPHeader(name: "User-Agent", value: "Elasticurl"))
