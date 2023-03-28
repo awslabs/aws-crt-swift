@@ -76,7 +76,11 @@ public final class TracingAllocator: Allocator {
     }
 
     private init(_ tracingAllocator: Allocator, level: TracingLevel, framesPerStack: Int) {
-        self.rawValue = aws_mem_tracer_new(tracingAllocator.rawValue, nil, aws_mem_trace_level(level.rawValue), framesPerStack)
+        self.rawValue = aws_mem_tracer_new(
+            tracingAllocator.rawValue,
+            nil,
+            aws_mem_trace_level(level.rawValue),
+            framesPerStack)
     }
 
     deinit {

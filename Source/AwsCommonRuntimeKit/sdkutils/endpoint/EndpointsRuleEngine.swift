@@ -13,7 +13,7 @@ public class EndpointsRuleEngine {
     /// - Parameters:
     ///   - partitions: JSON string containing partition data
     ///   - ruleSet: The rule set string to use for the rule engine
-    public init(partitions: String, ruleSet: String ) throws {
+    public init(partitions: String, ruleSet: String) throws {
         let getRawValue: () throws -> OpaquePointer = {
             guard let partitions = (partitions.withByteCursor { partitionsCursor in
                 aws_partitions_config_new_from_string(allocator.rawValue, partitionsCursor)

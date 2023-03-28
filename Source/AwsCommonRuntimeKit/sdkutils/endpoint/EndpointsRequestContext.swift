@@ -8,7 +8,6 @@ public class EndpointsRequestContext {
     let rawValue: UnsafeMutablePointer<aws_endpoints_request_context>
 
     /// Initialize a new request context
-    /// - Parameter  to use for request context creation
     public init() throws {
         guard let rawValue = aws_endpoints_request_context_new(allocator.rawValue) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
