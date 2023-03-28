@@ -6,7 +6,7 @@ import AwsCIo
 public class TLSContext {
     var rawValue: UnsafeMutablePointer<aws_tls_ctx>
 
-    public init(options: TLSContextOptions, mode: TLSMode ) throws {
+    public init(options: TLSContextOptions, mode: TLSMode) throws {
         guard let rawValue = (options.withCPointer { optionsPointer -> UnsafeMutablePointer<aws_tls_ctx>? in
             switch mode {
             case .client:

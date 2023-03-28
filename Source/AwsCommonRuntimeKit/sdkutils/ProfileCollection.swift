@@ -57,7 +57,7 @@ public class ProfileCollection {
     }
 
     /// Retrieves a reference to a profile with the specified name, if it exists, from the profile collection
-    public func getProfile(name: String ) -> Profile? {
+    public func getProfile(name: String) -> Profile? {
         let awsString = AWSString(name)
         guard let profilePointer = aws_profile_collection_get_profile(self.rawValue,
                                                                       awsString.rawValue)
