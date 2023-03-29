@@ -117,13 +117,14 @@ class CredentialsProviderTests: XCBaseTestCase {
         do {
             let provider = try CredentialsProvider(source: .profile(
                     bootstrap: getClientBootstrap(),
-                    configFileNameOverride: Bundle.module.path(forResource: "example_config", ofType: "txt")!,
-                    credentialsFileNameOverride: Bundle.module.path(forResource: "example_profile", ofType: "txt")!,
+                    fileBasedConfiguration: FileBasedConfiguration(
+                            configFilePath: Bundle.module.path(forResource: "example_profile", ofType: "txt")!,
+                            credentialsFilePath: Bundle.module.path(forResource: "example_credentials", ofType: "txt")!),
                     shutdownCallback: getShutdownCallback()))
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
-            XCTAssertEqual("default_access_key_id", credentials.getAccessKey())
-            XCTAssertEqual("default_secret_access_key", credentials.getSecret())
+            XCTAssertEqual("accessKey", credentials.getAccessKey())
+            XCTAssertEqual("secretKey", credentials.getSecret())
         }
         wait(for: [shutdownWasCalled], timeout: 15)
     }
@@ -154,8 +155,11 @@ class CredentialsProviderTests: XCBaseTestCase {
         try skipIfLinux()
         do {
             try await withEnvironmentCredentialsClosure {
-                let provider = try CredentialsProvider(source: .defaultChain(bootstrap: getClientBootstrap(),
-                        shutdownCallback: getShutdownCallback()))
+                let provider = try CredentialsProvider(source: .defaultChain(
+                        bootstrap: getClientBootstrap(),
+                        fileBasedConfiguration: FileBasedConfiguration(),
+                        shutdownCallback: getShutdownCallback())
+                )
 
                 let credentials = try await provider.getCredentials()
                 XCTAssertNotNil(credentials)
@@ -166,8 +170,12 @@ class CredentialsProviderTests: XCBaseTestCase {
     }
 
     func testCreateDestroyStsWebIdentityInvalidEnv() async throws {
-        XCTAssertThrowsError(try CredentialsProvider(source: .stsWebIdentity(bootstrap: getClientBootstrap(),
-                tlsContext: getTlsContext())))
+        XCTAssertThrowsError(try CredentialsProvider(source: .stsWebIdentity(
+                bootstrap: getClientBootstrap(),
+                tlsContext: getTlsContext(),
+                fileBasedConfiguration: FileBasedConfiguration()))
+        )
+
     }
 
     func testCreateDestroyStsInvalidRole() async throws {
