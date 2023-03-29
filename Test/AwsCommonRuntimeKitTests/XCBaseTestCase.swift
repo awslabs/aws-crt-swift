@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import XCTest
-import AwsCommonRuntimeKit
+@testable import AwsCommonRuntimeKit
 import AwsCCommon
 
 class XCBaseTestCase: XCTestCase {

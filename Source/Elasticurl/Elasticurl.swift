@@ -239,9 +239,7 @@ struct Elasticurl {
                 exit(EXIT_FAILURE)
             }
 
-            let allocator = TracingAllocator(tracingBytesOf: allocator)
-
-            CommonRuntimeKit.initialize(customAllocator: allocator)
+            CommonRuntimeKit.initialize()
 
             let port = UInt16(443)
 

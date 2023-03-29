@@ -9,9 +9,16 @@ public struct CommonRuntimeKit {
 
     /// Initializes the library.
     /// Must be called before using any other functionality.
+    public static func initialize() {
+        aws_auth_library_init(allocator.rawValue)
+        aws_event_stream_library_init(allocator.rawValue)
+    }
+
+    /// Initializes the library.
+    /// Must be called before using any other functionality.
     /// - Parameters:
     ///   - customAllocator: (Optional) allocator to override. If not provided default allocator will be used.
-    public static func initialize(customAllocator: Allocator? = nil) {
+    static func initialize(customAllocator: Allocator? = nil) {
         if let customAllocator = customAllocator {
             allocator = customAllocator.rawValue
         }
