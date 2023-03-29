@@ -14,18 +14,6 @@ public struct CommonRuntimeKit {
         aws_event_stream_library_init(allocator.rawValue)
     }
 
-    /// Initializes the library.
-    /// Must be called before using any other functionality.
-    /// - Parameters:
-    ///   - customAllocator: (Optional) allocator to override. If not provided default allocator will be used.
-    static func initialize(customAllocator: Allocator? = nil) {
-        if let customAllocator = customAllocator {
-            allocator = customAllocator.rawValue
-        }
-        aws_auth_library_init(allocator.rawValue)
-        aws_event_stream_library_init(allocator.rawValue)
-    }
-
     /**
      * This is an optional cleanup function which will block until all the CRT resources have cleaned up.
      * Use this function only if you want to make sure that there are no memory leaks at the end of the application.

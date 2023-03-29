@@ -11,7 +11,9 @@ class XCBaseTestCase: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        CommonRuntimeKit.initialize(customAllocator: tracingAllocator)
+        // Override the allocator with tracing allocator
+        allocator = tracingAllocator.rawValue
+        CommonRuntimeKit.initialize()
     }
 
     override func tearDown() {
