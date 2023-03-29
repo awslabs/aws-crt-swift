@@ -6,7 +6,7 @@ import AwsCCommon
 public class Logger {
     var logger: aws_logger
 
-    public init(pipe: UnsafeMutablePointer<FILE>?, level: LogLevel ) {
+    public init(pipe: UnsafeMutablePointer<FILE>?, level: LogLevel) {
         logger = aws_logger()
         var options = aws_logger_standard_options()
         options.level = level.rawValue
@@ -15,7 +15,7 @@ public class Logger {
         aws_logger_set(&logger)
     }
 
-    public init(filePath: String, level: LogLevel ) {
+    public init(filePath: String, level: LogLevel) {
         logger = aws_logger()
         filePath.withCString { cFilePath in
             var options = aws_logger_standard_options()
