@@ -29,7 +29,7 @@ class Box<T> {
 
 extension String {
 
-    public func base64EncodedMD5( truncate: Int = 0) throws -> String {
+    public func base64EncodedMD5(truncate: Int = 0) throws -> String {
         let bufferSize = 16
         var bufferData = Data(count: bufferSize)
         try bufferData.withUnsafeMutableBytes { bufferPointer in
