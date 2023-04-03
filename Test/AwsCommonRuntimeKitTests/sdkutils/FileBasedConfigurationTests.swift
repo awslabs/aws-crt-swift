@@ -10,11 +10,11 @@ class FileBasedConfigurationTests: XCBaseTestCase {
     func testMergedCollectionFromPath() throws {
         let profilePath = Bundle.module.path(forResource: "example_profile", ofType: "txt")!
         let configPath = Bundle.module.path(forResource: "example_credentials", ofType: "txt")!
-        let fileBasedConfiguration = try FileBasedConfiguration(configFilePath: profilePath, credentialsFilePath: configPath, allocator: allocator)
+        let fileBasedConfiguration = try FileBasedConfiguration(configFilePath: profilePath, credentialsFilePath: configPath)
         XCTAssertNotNil(fileBasedConfiguration)
-        let defaultSection = fileBasedConfiguration.getSection(name: "default", sectionType: .profile, allocator: allocator)!
+        let defaultSection = fileBasedConfiguration.getSection(name: "default", sectionType: .profile)!
         XCTAssertEqual(defaultSection.propertyCount, 3)
-        let property = defaultSection.getProperty(name: "aws_access_key_id", allocator: allocator)!
+        let property = defaultSection.getProperty(name: "aws_access_key_id")!
         XCTAssertEqual("accessKey", property.value)
 
         let s3Properties = defaultSection.getProperty(name: "s3")!
@@ -22,7 +22,7 @@ class FileBasedConfigurationTests: XCBaseTestCase {
         let subPropertyValue = s3Properties.getSubProperty(name: "max_concurrent_requests")!
         XCTAssertEqual("20", subPropertyValue)
 
-        let crtUserSection = fileBasedConfiguration.getSection(name: "crt_user", sectionType: .profile, allocator: allocator)!
+        let crtUserSection = fileBasedConfiguration.getSection(name: "crt_user", sectionType: .profile)!
         XCTAssertEqual(crtUserSection.propertyCount, 2)
         let secretAccessKey = crtUserSection.getProperty(name: "aws_secret_access_key")!
         XCTAssertEqual("example_secret_access_key", secretAccessKey.value)
@@ -39,11 +39,11 @@ class FileBasedConfigurationTests: XCBaseTestCase {
         do {
             let profilePath = Bundle.module.path(forResource: "example_profile", ofType: "txt")!
             let configPath = Bundle.module.path(forResource: "example_credentials", ofType: "txt")!
-            let fileBasedConfiguration = try FileBasedConfiguration(configFilePath: profilePath, credentialsFilePath: configPath, allocator: allocator)
-            defaultSection = fileBasedConfiguration.getSection(name: "default", sectionType: .profile, allocator: allocator)!
-            crtUserSection = fileBasedConfiguration.getSection(name: "crt_user", sectionType: .profile, allocator: allocator)!
+            let fileBasedConfiguration = try FileBasedConfiguration(configFilePath: profilePath, credentialsFilePath: configPath)
+            defaultSection = fileBasedConfiguration.getSection(name: "default", sectionType: .profile)!
+            crtUserSection = fileBasedConfiguration.getSection(name: "crt_user", sectionType: .profile)!
         }
-        let property = defaultSection.getProperty(name: "aws_access_key_id", allocator: allocator)!
+        let property = defaultSection.getProperty(name: "aws_access_key_id")!
         XCTAssertEqual("accessKey", property.value)
 
         let s3Properties = defaultSection.getProperty(name: "s3")!

@@ -32,20 +32,18 @@ class CredentialsProviderTests: XCBaseTestCase {
     }
 
     func getClientBootstrap() throws -> ClientBootstrap {
-        let elg = try EventLoopGroup(threadCount: 0, allocator: allocator)
+        let elg = try EventLoopGroup(threadCount: 0)
         let hostResolver = try HostResolver(eventLoopGroup: elg,
                 maxHosts: 8,
-                maxTTL: 30,
-                allocator: allocator)
+                maxTTL: 30)
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                hostResolver: hostResolver,
-                allocator: allocator)
+                hostResolver: hostResolver)
         return bootstrap
     }
 
     func getTlsContext() throws -> TLSContext {
-        let options = TLSContextOptions(allocator: allocator)
-        let context = try TLSContext(options: options, mode: .client, allocator: allocator)
+        let options = TLSContextOptions()
+        let context = try TLSContext(options: options, mode: .client)
         return context
     }
 
@@ -59,11 +57,9 @@ class CredentialsProviderTests: XCBaseTestCase {
                 let staticProvider = try CredentialsProvider(source: .static(accessKey: accessKey,
                         secret: secret,
                         sessionToken: sessionToken,
-                        shutdownCallback: getShutdownCallback()),
-                        allocator: allocator)
+                        shutdownCallback: getShutdownCallback()))
                 delegateProvider = try CredentialsProvider(provider: staticProvider,
-                        shutdownCallback: getShutdownCallback(),
-                        allocator: allocator)
+                        shutdownCallback: getShutdownCallback())
             }
             let credentials = try await delegateProvider.getCredentials()
             XCTAssertNotNil(credentials)
@@ -77,8 +73,7 @@ class CredentialsProviderTests: XCBaseTestCase {
             let provider = try CredentialsProvider(source: .static(accessKey: accessKey,
                     secret: secret,
                     sessionToken: sessionToken,
-                    shutdownCallback: getShutdownCallback()),
-                    allocator: allocator)
+                    shutdownCallback: getShutdownCallback()))
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
@@ -125,8 +120,7 @@ class CredentialsProviderTests: XCBaseTestCase {
                     fileBasedConfiguration: FileBasedConfiguration(
                             configFilePath: Bundle.module.path(forResource: "example_profile", ofType: "txt")!,
                             credentialsFilePath: Bundle.module.path(forResource: "example_credentials", ofType: "txt")!),
-                    shutdownCallback: getShutdownCallback()),
-                    allocator: allocator)
+                    shutdownCallback: getShutdownCallback()))
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
             XCTAssertEqual("accessKey", credentials.getAccessKey())
@@ -138,8 +132,7 @@ class CredentialsProviderTests: XCBaseTestCase {
     func testCreateCredentialsProviderImds() async throws {
         do {
             _ = try CredentialsProvider(source: .imds(bootstrap: getClientBootstrap(),
-                    shutdownCallback: getShutdownCallback()),
-                    allocator: allocator)
+                    shutdownCallback: getShutdownCallback()))
         }
         wait(for: [shutdownWasCalled], timeout: 15)
     }
@@ -148,11 +141,9 @@ class CredentialsProviderTests: XCBaseTestCase {
         do {
             let staticProvider = try CredentialsProvider(source: .static(accessKey: accessKey,
                     secret: secret,
-                    sessionToken: sessionToken),
-                    allocator: allocator)
+                    sessionToken: sessionToken))
             let cacheProvider = try CredentialsProvider(source: .cached(source: staticProvider,
-                    shutdownCallback: getShutdownCallback()),
-                    allocator: allocator)
+                    shutdownCallback: getShutdownCallback()))
             let credentials = try await cacheProvider.getCredentials()
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
@@ -164,10 +155,11 @@ class CredentialsProviderTests: XCBaseTestCase {
         try skipIfLinux()
         do {
             try await withEnvironmentCredentialsClosure {
-                let provider = try CredentialsProvider(source: .defaultChain(bootstrap: getClientBootstrap(),
+                let provider = try CredentialsProvider(source: .defaultChain(
+                        bootstrap: getClientBootstrap(),
                         fileBasedConfiguration: FileBasedConfiguration(),
-                        shutdownCallback: getShutdownCallback()),
-                        allocator: allocator)
+                        shutdownCallback: getShutdownCallback())
+                )
 
                 let credentials = try await provider.getCredentials()
                 XCTAssertNotNil(credentials)
@@ -178,10 +170,12 @@ class CredentialsProviderTests: XCBaseTestCase {
     }
 
     func testCreateDestroyStsWebIdentityInvalidEnv() async throws {
-        XCTAssertThrowsError(try CredentialsProvider(source: .stsWebIdentity(bootstrap: getClientBootstrap(),
+        XCTAssertThrowsError(try CredentialsProvider(source: .stsWebIdentity(
+                bootstrap: getClientBootstrap(),
                 tlsContext: getTlsContext(),
-                fileBasedConfiguration: FileBasedConfiguration()),
-                allocator: allocator))
+                fileBasedConfiguration: FileBasedConfiguration()))
+        )
+
     }
 
     func testCreateDestroyStsInvalidRole() async throws {
@@ -194,8 +188,7 @@ class CredentialsProviderTests: XCBaseTestCase {
                 roleArn: "invalid-role-arn",
                 sessionName: "test-session",
                 duration: 10,
-                shutdownCallback: getShutdownCallback()),
-                allocator: allocator))
+                shutdownCallback: getShutdownCallback())))
     }
 
     func testCreateDestroyEcsMissingCreds() async throws {
@@ -206,8 +199,7 @@ class CredentialsProviderTests: XCBaseTestCase {
                     authToken: "",
                     pathAndQuery: "",
                     host: "",
-                    shutdownCallback: getShutdownCallback()),
-                    allocator: allocator)
+                    shutdownCallback: getShutdownCallback()))
             _ = try await provider.getCredentials()
         } catch {
             exceptionWasThrown.fulfill()

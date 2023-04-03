@@ -6,12 +6,11 @@ import AwsCIo
 /// Represents a single client request to be sent
 public class HTTPRequestBase {
     let rawValue: OpaquePointer
-    let allocator: Allocator
 
     public var body: IStreamable? {
         willSet(value) {
             if let newBody = value {
-                let iStreamCore = IStreamCore(iStreamable: newBody, allocator: allocator)
+                let iStreamCore = IStreamCore(iStreamable: newBody)
                 aws_http_message_set_body_stream(self.rawValue, iStreamCore.rawValue)
             } else {
                 aws_http_message_set_body_stream(self.rawValue, nil)
@@ -21,9 +20,7 @@ public class HTTPRequestBase {
 
     // internal initializer. Consumers will initialize HttpRequest subclass and
     // not interact with this class directly.
-    init(rawValue: OpaquePointer,
-         allocator: Allocator = defaultAllocator) {
-        self.allocator = allocator
+    init(rawValue: OpaquePointer) {
         self.rawValue = rawValue
     }
 

@@ -9,7 +9,7 @@ public class FileBasedConfiguration {
 
     /// If the `AWS_PROFILE` environment variable is set, use it. Otherwise, return "default".
     public static var defaultProfileName: String {
-        let profileName = aws_get_profile_name(defaultAllocator.rawValue, nil)!
+        let profileName = aws_get_profile_name(allocator.rawValue, nil)!
         defer {
             aws_string_destroy(profileName)
         }
@@ -22,12 +22,10 @@ public class FileBasedConfiguration {
     ///                     if not, load the config from the default location (~/.aws/config).
     ///   - credentialsFilePath: (Optional) If a file path is provided, use that. Otherwise, if the `AWS_SHARED_CREDENTIALS_FILE` environment variable is set, load the path from it;
     ///                          if not, load the config from the default location (~/.aws/credentials).
-    ///   - allocator: (Optional) allocator to override
     /// - Throws: CommonRuntimeError.crtError
     public init(
         configFilePath: String? = nil,
-        credentialsFilePath: String? = nil,
-        allocator: Allocator = defaultAllocator
+        credentialsFilePath: String? = nil
     ) throws {
         guard let credentialsFilePath = withOptionalByteCursorPointerFromString(credentialsFilePath, {
             aws_get_credentials_file_path(allocator.rawValue, $0)
@@ -84,13 +82,11 @@ public class FileBasedConfiguration {
     /// - Parameters:
     ///   - sourceType: The type of source file
     ///   - overridePath: (Optional) path to override. If provided, it will do limited home directory expansion/resolution.
-    ///   - allocator: (Optional) default allocator to override
     /// - Returns: Resolved path
     /// - Throws: CommonRuntimeError.crtError
     public static func resolveConfigPath(
         sourceType: SourceType,
-        overridePath: String? = nil,
-        allocator: Allocator = defaultAllocator
+        overridePath: String? = nil
     ) throws -> String {
         guard let filePath: UnsafeMutablePointer<aws_string> = withOptionalByteCursorPointerFromString(
                 overridePath, { path in
@@ -112,14 +108,12 @@ public class FileBasedConfiguration {
     /// - Parameters:
     ///   - name: The name of the section to retrieve
     ///   - sectionType: Type of section to retrieve
-    ///   - allocator: (Optional) default allocator to override
     /// - Returns: FileBasedConfiguration.Section if it exists.
     public func getSection(
         name: String,
-        sectionType: SectionType,
-        allocator: Allocator = defaultAllocator
+        sectionType: SectionType
     ) -> Section? {
-        let awsString = AWSString(name, allocator: allocator)
+        let awsString = AWSString(name)
         guard let sectionPointer = aws_profile_collection_get_section(
                 self.rawValue,
                 sectionType.rawValue,
@@ -168,13 +162,11 @@ extension FileBasedConfiguration {
         /// Retrieves a reference to a property with the specified name, if it exists, from a profile
         /// - Parameters:
         ///   - name: The name of property to retrieve
-        ///   - allocator: (Optional) default allocator to override
         /// - Returns: A reference to a property with the specified name, if it exists, from a profile
         public func getProperty(
-            name: String,
-            allocator: Allocator = defaultAllocator
+            name: String
         ) -> FileBasedConfiguration.Section.Property? {
-            let nameAwsString = AWSString(name, allocator: allocator)
+            let nameAwsString = AWSString(name)
             guard let propPointer = aws_profile_get_property(rawValue, nameAwsString.rawValue) else {
                 return nil
             }
@@ -230,10 +222,9 @@ extension FileBasedConfiguration.Section {
         /// Returns the value of a sub property with the given name, if it exists, in the property
         /// - Parameters:
         ///   - name: The name of the sub property value to retrieve
-        ///   - allocator: (Optional) allocator to override
         /// - Returns: value of sub property if it exists.
-        public func getSubProperty(name: String, allocator: Allocator = defaultAllocator) -> String? {
-            let awsString = AWSString(name, allocator: allocator)
+        public func getSubProperty(name: String) -> String? {
+            let awsString = AWSString(name)
             guard let stringPointer = aws_profile_property_get_sub_property(rawValue, awsString.rawValue) else {
                 return nil
             }

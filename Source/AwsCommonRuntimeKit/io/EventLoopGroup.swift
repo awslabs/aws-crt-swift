@@ -7,7 +7,6 @@ import Foundation
 public final class EventLoopGroup {
     let rawValue: UnsafeMutablePointer<aws_event_loop_group>
     public init(threadCount: UInt16 = 0,
-                allocator: Allocator = defaultAllocator,
                 shutdownCallback: ShutdownCallback? = nil) throws {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         let getRawValue: () -> UnsafeMutablePointer<aws_event_loop_group>? = {

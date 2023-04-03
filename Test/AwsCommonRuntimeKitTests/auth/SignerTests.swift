@@ -31,8 +31,7 @@ class SignerTests: XCBaseTestCase {
 
         let signedRequest = try await Signer.signRequest(
                 request: request,
-                config: config,
-                allocator: allocator)
+                config: config)
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
         XCTAssert(headers.contains(where: {
@@ -59,8 +58,7 @@ class SignerTests: XCBaseTestCase {
                 shouldSignHeader: shouldSignHeader)
 
         let signedRequest = try await Signer.signRequest(request: request,
-                config: config,
-                allocator: allocator)
+                config: config)
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
         XCTAssert(headers.contains(where: {
@@ -82,9 +80,7 @@ class SignerTests: XCBaseTestCase {
                 date: getDate(),
                 credentials: credentials)
 
-        let signedRequest = try await Signer.signRequest(request: request,
-                                                                    config: config, 
-                                                                    allocator: allocator)
+        let signedRequest = try await Signer.signRequest(request: request, config: config)
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
         XCTAssert(headers.contains(where: { $0.name == "Authorization" }))
@@ -104,9 +100,7 @@ class SignerTests: XCBaseTestCase {
                 credentials: credentials,
                 signedBodyHeader: .contentSha256)
 
-        let signedRequest = try await Signer.signRequest(request: request,
-                                                                    config: config, 
-                                                                    allocator: allocator)
+        let signedRequest = try await Signer.signRequest(request: request, config: config)
 
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
@@ -136,9 +130,7 @@ class SignerTests: XCBaseTestCase {
                 credentialsProvider: provider,
                 shouldSignHeader: shouldSignHeader)
 
-        let signedRequest = try await Signer.signRequest(request: request,
-                                                                    config: config, 
-                                                                    allocator: allocator)
+        let signedRequest = try await Signer.signRequest(request: request, config: config)
 
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
@@ -159,22 +151,20 @@ class SignerTests: XCBaseTestCase {
                 service: SIGV4TEST_HOST,
                 region: SIGV4TEST_REGION,
                 credentials: credentials)
-        let signedRequest = try await Signer.signRequest(request: request,
-                                                                    config: config, 
-                                                                    allocator: allocator)
+        let signedRequest = try await Signer.signRequest(request: request, config: config)
         XCTAssertNotNil(signedRequest)
         let headers = signedRequest.getHeaders()
         XCTAssert(headers.contains(where: { $0.name == "Authorization" }))
     }
 
     func makeMockRequest() throws -> HTTPRequest {
-        let request = try HTTPRequest(allocator: allocator)
+        let request = try HTTPRequest()
         request.addHeader(header: HTTPHeader(name: "Host", value: SIGV4TEST_HOST))
         return request
     }
 
     func makeMockHTTP2RequestWithDoNotSignHeader() throws -> HTTP2Request {
-        let request = try HTTP2Request(allocator: allocator)
+        let request = try HTTP2Request()
         request.addHeader(header: HTTPHeader(name: ":method", value: "GET"))
         request.addHeader(header: HTTPHeader(name: ":path", value: "/"))
         request.addHeader(header: HTTPHeader(name: ":scheme", value: "https"))
@@ -184,14 +174,14 @@ class SignerTests: XCBaseTestCase {
     }
 
     func makeMockRequestWithDoNotSignHeader() throws -> HTTPRequest {
-        let request = try HTTPRequest(allocator: allocator)
+        let request = try HTTPRequest()
         request.addHeader(header: HTTPHeader(name: "Host", value: SIGV4TEST_HOST))
         request.addHeader(header: HTTPHeader(name: "doNotSign", value: "test-header"))
         return request
     }
 
     func makeMockRequestWithBody() throws -> HTTPRequest {
-        let request = try HTTPRequest(allocator: allocator)
+        let request = try HTTPRequest()
         let byteBuffer = ByteBuffer(data: "hello".data(using: .utf8)!)
         request.body = byteBuffer
         request.addHeader(header: HTTPHeader(name: "Host", value: SIGV4TEST_HOST))
@@ -202,15 +192,13 @@ class SignerTests: XCBaseTestCase {
     func makeMockCredentials() throws -> Credentials {
         try Credentials(accessKey: SIGV4TEST_SECRET_ACCESS_KEY,
                 secret: SIGV4TEST_SECRET_ACCESS_KEY,
-                sessionToken: SIGV4TEST_SESSION_TOKEN,
-                allocator: allocator)
+                sessionToken: SIGV4TEST_SESSION_TOKEN)
     }
 
     func makeMockCredentialsProvider() throws -> CredentialsProvider {
         try CredentialsProvider(source: .static(accessKey: SIGV4TEST_ACCESS_KEY_ID,
                 secret: SIGV4TEST_SECRET_ACCESS_KEY,
-                sessionToken: SIGV4TEST_SESSION_TOKEN),
-                allocator: allocator)
+                sessionToken: SIGV4TEST_SESSION_TOKEN))
     }
 
     func getDate() -> Date {

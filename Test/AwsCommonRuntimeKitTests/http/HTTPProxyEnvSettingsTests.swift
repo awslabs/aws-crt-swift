@@ -14,8 +14,8 @@ class HTTPProxyEnvSettingsTests: XCBaseTestCase {
     func testCreateProxyEnvSettingsNonDefault() throws {
         let connectionType = HTTPProxyConnectionType.tunnel
         let envVarType = HTTPProxyEnvType.enable
-        let context = try TLSContext(options: TLSContextOptions(allocator: allocator), mode: TLSMode.client)
-        let tlsOptions = TLSConnectionOptions(context: context, allocator: allocator)
+        let context = try TLSContext(options: TLSContextOptions(), mode: TLSMode.client)
+        let tlsOptions = TLSConnectionOptions(context: context)
 
         let proxyEnvSetting = HTTPProxyEnvSettings(envVarType: envVarType, proxyConnectionType: connectionType, tlsOptions: tlsOptions)
         XCTAssertNotNil(proxyEnvSetting)

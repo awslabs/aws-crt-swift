@@ -9,20 +9,19 @@ class HTTPClientConnectionManagerTests: XCBaseTestCase {
         let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
         do {
             let host = "https://aws-crt-test-stuff.s3.amazonaws.com/http_test_doc.txt"
-            let tlsContextOptions = TLSContextOptions(allocator: allocator)
+            let tlsContextOptions = TLSContextOptions()
             tlsContextOptions.setAlpnList(["h2","http/1.1"])
-            let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client, allocator: allocator)
+            let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client)
 
-            var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext, allocator: allocator)
+            var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext)
 
             tlsConnectionOptions.serverName = host
 
-            let elg = try EventLoopGroup(threadCount: 1, allocator: allocator)
-            let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30, allocator: allocator)
+            let elg = try EventLoopGroup(threadCount: 1)
+            let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30)
 
             let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                    hostResolver: hostResolver,
-                    allocator: allocator)
+                    hostResolver: hostResolver)
 
             let socketOptions = SocketOptions(socketType: .stream)
             let port = UInt16(443)

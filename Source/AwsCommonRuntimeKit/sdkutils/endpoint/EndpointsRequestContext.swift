@@ -8,8 +8,7 @@ public class EndpointsRequestContext {
     let rawValue: UnsafeMutablePointer<aws_endpoints_request_context>
 
     /// Initialize a new request context
-    /// - Parameter allocator: Allocator to use for request context creation
-    public init(allocator: Allocator = defaultAllocator) throws {
+    public init() throws {
         guard let rawValue = aws_endpoints_request_context_new(allocator.rawValue) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
@@ -20,8 +19,7 @@ public class EndpointsRequestContext {
     /// - Parameters:
     ///   - name: The name of the parameter
     ///   - value: The value of the parameter
-    ///   - allocator: The allocator to use for the parameter
-    public func add(name: String, value: String?, allocator: Allocator = defaultAllocator) throws {
+    public func add(name: String, value: String?) throws {
         guard let value = value else {
             return
         }
@@ -39,8 +37,7 @@ public class EndpointsRequestContext {
     /// - Parameters:
     ///   - name: The name of the parameter
     ///   - value: The value of the parameter
-    ///   - allocator: The allocator to use for the parameter
-    public func add(name: String, value: Bool?, allocator: Allocator = defaultAllocator) throws {
+    public func add(name: String, value: Bool?) throws {
         guard let value = value else {
             return
         }

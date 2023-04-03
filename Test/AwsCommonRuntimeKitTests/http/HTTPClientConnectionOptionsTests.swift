@@ -7,18 +7,16 @@ import XCTest
 class HTTPClientConnectionOptionsTests: XCBaseTestCase {
 
     func testCreateHttpClientOptions() throws {
-        let context = try TLSContext(options: TLSContextOptions(allocator: allocator), mode: TLSMode.client)
-        let tlsOptions = TLSConnectionOptions(context: context, allocator: allocator)
+        let context = try TLSContext(options: TLSContextOptions(), mode: TLSMode.client)
+        let tlsOptions = TLSConnectionOptions(context: context)
 
-        let elg = try EventLoopGroup(allocator: allocator)
+        let elg = try EventLoopGroup()
         let resolver = try HostResolver(eventLoopGroup: elg,
                 maxHosts: 8,
-                maxTTL: 30,
-                allocator: allocator)
+                maxTTL: 30)
 
         let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                hostResolver: resolver,
-                allocator: allocator)
+                hostResolver: resolver)
 
         let shutdownCallback = {
         }

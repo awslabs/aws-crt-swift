@@ -3,30 +3,25 @@
 
 import AwsCIo
 public class TLSContextOptions: CStruct {
-    private let allocator: Allocator
     private var rawValue: UnsafeMutablePointer<aws_tls_ctx_options>
 
-    public static func makeDefault(allocator: Allocator = defaultAllocator) -> TLSContextOptions {
-        TLSContextOptions(allocator: allocator)
+    public static func makeDefault() -> TLSContextOptions {
+        TLSContextOptions()
     }
 
     public static func makeMtlsPkcs12FromPath(
         path: String,
-        password: String,
-        allocator: Allocator = defaultAllocator) throws -> TLSContextOptions {
-        try TLSContextOptions(mtlsPkcs12FromPath: path, password: password, allocator: allocator)
+        password: String) throws -> TLSContextOptions {
+        try TLSContextOptions(mtlsPkcs12FromPath: path, password: password)
     }
 
-    init(allocator: Allocator) {
-        self.allocator = allocator
+    init() {
         self.rawValue = allocator.allocate(capacity: 1)
         aws_tls_ctx_options_init_default_client(rawValue, allocator.rawValue)
     }
 
     init(mtlsPkcs12FromPath path: String,
-         password: String,
-         allocator: Allocator) throws {
-        self.allocator = allocator
+         password: String) throws {
         self.rawValue = allocator.allocate(capacity: 1)
         if (password.withByteCursorPointer { passwordCursorPointer in
             aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,

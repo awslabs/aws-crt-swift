@@ -39,17 +39,15 @@ public class HTTPRequest: HTTPRequestBase {
     ///   - path: Path and query string for Http Request. Must not be empty.
     ///   - headers: (Optional) headers to send
     ///   - body: (Optional) body stream to send as part of request
-    ///   - allocator: (Optional) allocator to override
     /// - Throws: CommonRuntimeError
     public init(method: String = "GET",
                 path: String = "/",
                 headers: [HTTPHeader] = [HTTPHeader](),
-                body: IStreamable? = nil,
-                allocator: Allocator = defaultAllocator) throws {
+                body: IStreamable? = nil) throws {
         guard let rawValue = aws_http_message_new_request(allocator.rawValue) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-        super.init(rawValue: rawValue, allocator: allocator)
+        super.init(rawValue: rawValue)
 
         self.method = method
         self.path = path
@@ -64,16 +62,14 @@ public class HTTP2Request: HTTPRequestBase {
     /// - Parameters:
     ///   - headers: (Optional) headers to send
     ///   - body: (Optional) body stream to send as part of request
-    ///   - allocator: (Optional) allocator to override
     /// - Throws: CommonRuntimeError
     public init(headers: [HTTPHeader] = [HTTPHeader](),
-                body: IStreamable? = nil,
-                allocator: Allocator = defaultAllocator) throws {
+                body: IStreamable? = nil) throws {
 
         guard let rawValue = aws_http2_message_new_request(allocator.rawValue) else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-        super.init(rawValue: rawValue, allocator: allocator)
+        super.init(rawValue: rawValue)
 
         self.body = body
         addHeaders(headers: headers)

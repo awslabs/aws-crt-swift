@@ -6,7 +6,7 @@ import XCTest
 class TracingAllocatorTests: XCBaseTestCase {
 
   func testTracingAllocatorCorrectlyTracesAllocations() throws {
-    let allocator = TracingAllocator(tracingBytesOf: defaultAllocator)
+    let allocator = TracingAllocator(tracingBytesOf: allocator)
     XCTAssertEqual(allocator.bytes, 0)
     XCTAssertEqual(allocator.count, 0)
 

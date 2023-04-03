@@ -8,7 +8,7 @@ typealias OnConnectionAcquired =  (HTTPClientConnection?, Int32) -> Void
 public class HTTPClientConnectionManager {
     let rawValue: OpaquePointer
 
-    public init(options: HTTPClientConnectionOptions, allocator: Allocator = defaultAllocator) throws {
+    public init(options: HTTPClientConnectionOptions) throws {
         let shutdownCallbackCore = ShutdownCallbackCore(options.shutdownCallback)
         let shutdownOptions = shutdownCallbackCore.getRetainedShutdownOptions()
         guard let rawValue: OpaquePointer = (

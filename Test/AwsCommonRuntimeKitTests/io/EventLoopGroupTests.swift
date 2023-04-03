@@ -8,13 +8,13 @@ class EventLoopGroupTests: XCBaseTestCase {
 
     func testCanCreateGroup() async throws {
         let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
-        _ = try EventLoopGroup(allocator: allocator) {
+        _ = try EventLoopGroup() {
             shutdownWasCalled.fulfill()
         }
         wait(for: [shutdownWasCalled], timeout: 15)
     }
 
     func testCanCreateGroupWithThreads() throws {
-        _ = try EventLoopGroup(threadCount: 2, allocator: allocator)
+        _ = try EventLoopGroup(threadCount: 2)
     }
 }

@@ -2,24 +2,26 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import XCTest
-import AwsCommonRuntimeKit
+@testable import AwsCommonRuntimeKit
 import AwsCCommon
 
 class XCBaseTestCase: XCTestCase {
-    internal let allocator = TracingAllocator(tracingStacksOf: defaultAllocator)
-    let logging = Logger(pipe: stdout, level: .trace, allocator: defaultAllocator)
+    internal let tracingAllocator = TracingAllocator(tracingStacksOf: allocator)
+    let logging = Logger(pipe: stdout, level: .trace)
 
     override func setUp() {
         super.setUp()
-        CommonRuntimeKit.initialize(allocator: allocator, overrideDefaultAllocator: true)
+        // Override the allocator with tracing allocator
+        allocator = tracingAllocator.rawValue
+        CommonRuntimeKit.initialize()
     }
 
     override func tearDown() {
         CommonRuntimeKit.cleanUp()
 
-        allocator.dump()
-        XCTAssertEqual(allocator.count, 0,
-                       "Memory was leaked: \(allocator.bytes) bytes in \(allocator.count) allocations")
+        tracingAllocator.dump()
+        XCTAssertEqual(tracingAllocator.count, 0,
+                       "Memory was leaked: \(tracingAllocator.bytes) bytes in \(tracingAllocator.count) allocations")
 
         super.tearDown()
     }

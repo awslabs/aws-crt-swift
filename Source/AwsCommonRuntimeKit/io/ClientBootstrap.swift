@@ -7,7 +7,6 @@ public class ClientBootstrap {
 
     public init(eventLoopGroup elg: EventLoopGroup,
                 hostResolver: HostResolver,
-                allocator: Allocator = defaultAllocator,
                 shutdownCallback: ShutdownCallback? = nil) throws {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         let shutdownOptions = shutdownCallbackCore.getRetainedShutdownOptions()

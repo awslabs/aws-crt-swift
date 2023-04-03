@@ -6,10 +6,10 @@ import AwsCCommon
  The default allocator.
  You are probably looking to use `allocator` instead.
  */
-internal(set) public var defaultAllocator = aws_default_allocator()!
+var allocator = aws_default_allocator()!
 
 /// An allocator is used to allocate memory on the heap.
-public protocol Allocator {
+protocol Allocator {
 
     /// The raw `aws_allocator` pointer.
     var rawValue: UnsafeMutablePointer<aws_allocator> { get }
@@ -43,15 +43,15 @@ internal extension Allocator {
 }
 
 /// An `Allocator` that traces memory allocations.
-public final class TracingAllocator: Allocator {
-    public let rawValue: UnsafeMutablePointer<aws_allocator>
+final class TracingAllocator: Allocator {
+    let rawValue: UnsafeMutablePointer<aws_allocator>
 
     /**
      Creates an `Allocator` that doesn't track anything.
 
      - Parameter allocator: The allocator to be traced.
      */
-    public convenience init(_ allocator: Allocator = defaultAllocator) {
+    convenience init(_ allocator: Allocator) {
         self.init(allocator, level: .none, framesPerStack: 0)
     }
 
@@ -60,7 +60,7 @@ public final class TracingAllocator: Allocator {
      *
      * - Parameter allocator: The allocator to be traced.
      */
-    public convenience init(tracingBytesOf allocator: Allocator) {
+    convenience init(tracingBytesOf allocator: Allocator) {
         self.init(allocator, level: .bytes, framesPerStack: 0)
     }
 
@@ -71,12 +71,16 @@ public final class TracingAllocator: Allocator {
      * - Parameter framesPerStack: How many frames to record for each allocation
      *   (8 as usually a good default to start with).
      */
-    public convenience init(tracingStacksOf allocator: Allocator, framesPerStack: Int = 10) {
+    convenience init(tracingStacksOf allocator: Allocator, framesPerStack: Int = 10) {
         self.init(allocator, level: .stacks, framesPerStack: framesPerStack)
     }
 
-    private init(_ allocator: Allocator, level: TracingLevel, framesPerStack: Int) {
-        self.rawValue = aws_mem_tracer_new(allocator.rawValue, nil, aws_mem_trace_level(level.rawValue), framesPerStack)
+    private init(_ tracingAllocator: Allocator, level: TracingLevel, framesPerStack: Int) {
+        self.rawValue = aws_mem_tracer_new(
+            tracingAllocator.rawValue,
+            nil,
+            aws_mem_trace_level(level.rawValue),
+            framesPerStack)
     }
 
     deinit {
@@ -84,12 +88,12 @@ public final class TracingAllocator: Allocator {
     }
 
     /// The current number of bytes in outstanding allocations.
-    public var bytes: Int {
+    var bytes: Int {
         return aws_mem_tracer_bytes(self.rawValue)
     }
 
     /// The current number of outstanding allocations.
-    public var count: Int {
+    var count: Int {
         return aws_mem_tracer_count(self.rawValue)
     }
 
@@ -98,7 +102,7 @@ public final class TracingAllocator: Allocator {
      information gathered based on the trace level set when this instance was
      created.
      */
-    public func dump() {
+    func dump() {
         aws_mem_tracer_dump(self.rawValue)
     }
 
@@ -114,5 +118,5 @@ public final class TracingAllocator: Allocator {
 
 extension UnsafeMutablePointer: Allocator where Pointee == aws_allocator {
     @inlinable
-    public var rawValue: UnsafeMutablePointer<Pointee> { return self }
+    var rawValue: UnsafeMutablePointer<Pointee> { return self }
 }

@@ -12,13 +12,10 @@ public protocol CredentialsProviding {
 
 public class CredentialsProvider: CredentialsProviding {
 
-    let allocator: Allocator
     let rawValue: UnsafeMutablePointer<aws_credentials_provider>
 
-    init(credentialsProvider: UnsafeMutablePointer<aws_credentials_provider>,
-         allocator: Allocator) {
+    init(credentialsProvider: UnsafeMutablePointer<aws_credentials_provider>) {
         self.rawValue = credentialsProvider
-        self.allocator = allocator
     }
 
     /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
@@ -46,13 +43,13 @@ public class CredentialsProvider: CredentialsProviding {
 extension CredentialsProvider {
     /// A credential source
     public struct Source {
-        let makeProvider: (Allocator) throws -> UnsafeMutablePointer<aws_credentials_provider>
+        let makeProvider: () throws -> UnsafeMutablePointer<aws_credentials_provider>
     }
 
     /// Creates a credentials provider that sources the credentials from the provided source
-    public convenience init(source: Source, allocator: Allocator = defaultAllocator) throws {
-        let unsafeProvider = try source.makeProvider(allocator)
-        self.init(credentialsProvider: unsafeProvider, allocator: allocator)
+    public convenience init(source: Source) throws {
+        let unsafeProvider = try source.makeProvider()
+        self.init(credentialsProvider: unsafeProvider)
     }
 
     /// Create a credentials provider that depends on provider to fetch the credentials.
@@ -60,11 +57,9 @@ extension CredentialsProvider {
     /// - Parameters:
     ///   - provider: The credential provider to use to fetch the credential provider.
     ///   - shutdownCallback:  (Optional) shutdown callback
-    ///   - allocator: (Optional) allocator to override.
     /// - Throws: CommonRuntimeError.crtError
     public convenience init(provider: CredentialsProviding,
-                            shutdownCallback: ShutdownCallback? = nil,
-                            allocator: Allocator = defaultAllocator) throws {
+                            shutdownCallback: ShutdownCallback? = nil) throws {
         let providerBox = Box(provider)
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback, data: providerBox)
         let shutdownOptions = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
@@ -76,7 +71,7 @@ extension CredentialsProvider {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-        self.init(credentialsProvider: provider, allocator: allocator)
+        self.init(credentialsProvider: provider)
     }
 }
 
@@ -95,7 +90,7 @@ extension CredentialsProvider.Source {
                                 secret: String,
                                 sessionToken: String? = nil,
                                 shutdownCallback: ShutdownCallback? = nil) -> Self {
-        Self { allocator in
+        Self {
 
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var staticOptions = aws_credentials_provider_static_options()
@@ -124,13 +119,11 @@ extension CredentialsProvider.Source {
     ///
     /// - Parameters:
     ///   - shutdownCallback:  (Optional) shutdown callback.
-    ///   - allocator: (Optional) allocator to override.
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
-    public static func `environment`(shutdownCallback: ShutdownCallback? = nil,
-                                     allocator: Allocator = defaultAllocator) -> Self {
+    public static func `environment`(shutdownCallback: ShutdownCallback? = nil) -> Self {
 
-        Self { allocator in
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var envOptions = aws_credentials_provider_environment_options()
             envOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
@@ -152,15 +145,13 @@ extension CredentialsProvider.Source {
     ///   - fileBasedConfiguration: The file based configuration to read the configuration from.
     ///   - profileFileNameOverride: (Optional) Override of what profile to use to source credentials from ('default' by default)
     ///   - shutdownCallback:  (Optional) shutdown callback
-    ///   - allocator: (Optional) allocator to override
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `profile`(bootstrap: ClientBootstrap,
                                  fileBasedConfiguration: FileBasedConfiguration,
                                  profileFileNameOverride: String? = nil,
-                                 shutdownCallback: ShutdownCallback? = nil,
-                                 allocator: Allocator = defaultAllocator) -> Self {
-        Self { allocator in
+                                 shutdownCallback: ShutdownCallback? = nil) -> Self {
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var profileOptionsC = aws_credentials_provider_profile_options()
             profileOptionsC.bootstrap = bootstrap.rawValue
@@ -185,14 +176,12 @@ extension CredentialsProvider.Source {
     ///   - bootstrap:  Connection bootstrap to use for any network connections made while sourcing credentials.
     ///   - imdsVersion:  (Optional) Which version of the imds query protocol to use.
     ///   - shutdownCallback:  (Optional) shutdown callback
-    ///   - allocator: (Optional) allocator to override
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `imds`(bootstrap: ClientBootstrap,
                               imdsVersion: IMDSProtocolVersion = IMDSProtocolVersion.version2,
-                              shutdownCallback: ShutdownCallback? = nil,
-                              allocator: Allocator = defaultAllocator) -> Self {
-        Self { allocator in
+                              shutdownCallback: ShutdownCallback? = nil) -> Self {
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var imdsOptions = aws_credentials_provider_imds_options()
             imdsOptions.bootstrap = bootstrap.rawValue
@@ -217,14 +206,12 @@ extension CredentialsProvider.Source {
     ///     the refresh time period will be the minimum of this time and any expiration timestamp on the credentials
     ///     themselves.
     ///   - shutdownCallback:  (Optional) shutdown callback.
-    ///   - allocator: (Optional) allocator to override.
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `cached`(source: CredentialsProvider,
                                 refreshTime: TimeInterval = 0,
-                                shutdownCallback: ShutdownCallback? = nil,
-                                allocator: Allocator = defaultAllocator) -> Self {
-        Self { allocator in
+                                shutdownCallback: ShutdownCallback? = nil) -> Self {
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
 
             var cachedOptions = aws_credentials_provider_cached_options()
@@ -252,14 +239,12 @@ extension CredentialsProvider.Source {
     ///   - bootstrap:  Connection bootstrap to use for any network connections made while sourcing credentials.
     ///   - fileBasedConfiguration: The file based configuration to read the configuration from.
     ///   - shutdownCallback:  (Optional) shutdown callback
-    ///   - allocator: (Optional) allocator to override
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `defaultChain`(bootstrap: ClientBootstrap,
                                       fileBasedConfiguration: FileBasedConfiguration,
-                                      shutdownCallback: ShutdownCallback? = nil,
-                                      allocator: Allocator = defaultAllocator) -> Self {
-        Self { allocator in
+                                      shutdownCallback: ShutdownCallback? = nil) -> Self {
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
 
             var chainDefaultOptions = aws_credentials_provider_chain_default_options()
@@ -291,7 +276,6 @@ extension CredentialsProvider.Source {
     ///   - endpoint: Per-account X509 credentials sourcing endpoint.
     ///   - proxyOptions: (Optional) Http proxy configuration for the http request that fetches credentials.
     ///   - shutdownCallback: (Optional) shutdown callback
-    ///   - allocator: (Optional) allocator to override
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `x509`(bootstrap: ClientBootstrap,
@@ -300,9 +284,8 @@ extension CredentialsProvider.Source {
                               roleAlias: String,
                               endpoint: String,
                               proxyOptions: HTTPProxyOptions? = nil,
-                              shutdownCallback: ShutdownCallback? = nil,
-                              allocator: Allocator = defaultAllocator) -> Self {
-        Self { allocator in
+                              shutdownCallback: ShutdownCallback? = nil) -> Self {
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
 
             var x509Options = aws_credentials_provider_x509_options()
@@ -357,15 +340,13 @@ extension CredentialsProvider.Source {
     ///   - tlsContext: Client TLS context to use when querying STS web identity provider.
     ///   - fileBasedConfiguration: The file based configuration to read the configuration from.
     ///   - shutdownCallback:  (Optional) shutdown callback
-    ///   - allocator: (Optional) allocator to override
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `stsWebIdentity`(bootstrap: ClientBootstrap,
                                         tlsContext: TLSContext,
                                         fileBasedConfiguration: FileBasedConfiguration,
-                                        shutdownCallback: ShutdownCallback? = nil,
-                                        allocator: Allocator = defaultAllocator) -> Self {
-        Self { allocator in
+                                        shutdownCallback: ShutdownCallback? = nil) -> Self {
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var stsOptions = aws_credentials_provider_sts_web_identity_options()
             stsOptions.bootstrap = bootstrap.rawValue
@@ -393,7 +374,6 @@ extension CredentialsProvider.Source {
     ///   - sessionName: Assumed role session identifier to be associated with the sourced credentials.
     ///   - duration: How long sourced credentials should remain valid for, in seconds. 900 is the minimum allowed value.
     ///   - shutdownCallback:  (Optional) shutdown callback
-    ///   - allocator: (Optional) allocator to override
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `sts`(bootstrap: ClientBootstrap,
@@ -402,9 +382,8 @@ extension CredentialsProvider.Source {
                              roleArn: String,
                              sessionName: String,
                              duration: TimeInterval,
-                             shutdownCallback: ShutdownCallback? = nil,
-                             allocator: Allocator = defaultAllocator) -> Self {
-        Self { allocator in
+                             shutdownCallback: ShutdownCallback? = nil) -> Self {
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var stsOptions = aws_credentials_provider_sts_options()
             stsOptions.tls_ctx = tlsContext.rawValue
@@ -446,7 +425,6 @@ extension CredentialsProvider.Source {
     ///    - pathAndQuery: Http path and query string for the credentials query.
     ///    - host: Host to query credentials from.
     ///   - shutdownCallback:  (Optional) shutdown callback
-    ///   - allocator: (Optional) allocator to override
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `ecs`(bootstrap: ClientBootstrap,
@@ -454,9 +432,8 @@ extension CredentialsProvider.Source {
                              authToken: String,
                              pathAndQuery: String,
                              host: String,
-                             shutdownCallback: ShutdownCallback? = nil,
-                             allocator: Allocator = defaultAllocator) -> Self {
-        Self { allocator in
+                             shutdownCallback: ShutdownCallback? = nil) -> Self {
+        Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var ecsOptions = aws_credentials_provider_ecs_options()
             ecsOptions.tls_ctx = tlsContext?.rawValue

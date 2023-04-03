@@ -24,7 +24,7 @@ class EventStreamTests: XCBaseTestCase {
             EventStreamHeader(name: "timestamp", value: .timestamp(value: Date(timeIntervalSinceNow: 10))),
             EventStreamHeader(name: "uuid", value: .uuid(value: UUID(uuidString: "63318232-1C63-4D04-9A0C-6907F347704E")!)),
         ]
-        let message = EventStreamMessage(headers: headers, allocator: allocator)
+        let message = EventStreamMessage(headers: headers)
         let encoded = try message.getEncoded()
         var decodedHeaders = [EventStreamHeader]()
         let decoder = EventStreamMessageDecoder(
@@ -53,7 +53,7 @@ class EventStreamTests: XCBaseTestCase {
         let onCompleteWasCalled = XCTestExpectation(description: "OnComplete was called")
 
         let payload = "payload".data(using: .utf8)!
-        let message = EventStreamMessage(payload: payload, allocator: allocator)
+        let message = EventStreamMessage(payload: payload)
         let encoded = try message.getEncoded()
         var decodedPayload = Data()
         let decoder = EventStreamMessageDecoder(
@@ -84,7 +84,7 @@ class EventStreamTests: XCBaseTestCase {
         do {
             let headers = [EventStreamHeader(name: "int16", value: .int32(value: 16))]
             let payload = "payload".data(using: .utf8)!
-            let message = EventStreamMessage(headers: headers, payload: payload, allocator: allocator)
+            let message = EventStreamMessage(headers: headers, payload: payload)
             encoded = try message.getEncoded()
         }
 
@@ -120,7 +120,7 @@ class EventStreamTests: XCBaseTestCase {
 
         let headers = [EventStreamHeader(name: "int16", value: .int32(value: 16))]
         let payload = "payload".data(using: .utf8)!
-        let message = EventStreamMessage(headers: headers, payload: payload, allocator: allocator)
+        let message = EventStreamMessage(headers: headers, payload: payload)
         let encoded = try message.getEncoded()
 
         var decodedPayload = Data()
@@ -154,7 +154,7 @@ class EventStreamTests: XCBaseTestCase {
     func testEmpty() async throws {
         let onCompleteWasCalled = XCTestExpectation(description: "OnComplete was called")
 
-        let message = EventStreamMessage(allocator: allocator)
+        let message = EventStreamMessage()
         let encoded = try message.getEncoded()
         let decoder = EventStreamMessageDecoder(
                 onPayloadSegment: { payload, finalSegment in

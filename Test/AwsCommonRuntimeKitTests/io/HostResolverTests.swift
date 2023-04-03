@@ -6,11 +6,10 @@ import XCTest
 class HostResolverTests: XCBaseTestCase {
     
     func testCanResolveHosts() async throws {
-        let elg = try EventLoopGroup(allocator: allocator)
+        let elg = try EventLoopGroup()
         let resolver = try HostResolver(eventLoopGroup: elg,
                                            maxHosts: 8,
-                                           maxTTL: 5,
-                                           allocator: allocator)
+                                           maxTTL: 5)
         
         let addresses = try await resolver.resolveAddress(args: HostResolverArguments(hostName: "localhost"))
         XCTAssertNoThrow(addresses)
@@ -19,11 +18,10 @@ class HostResolverTests: XCBaseTestCase {
     }
 
     func testPurgeCache() async throws {
-        let elg = try EventLoopGroup(allocator: allocator)
+        let elg = try EventLoopGroup()
         let resolver = try HostResolver(eventLoopGroup: elg,
                 maxHosts: 8,
-                maxTTL: 5,
-                allocator: allocator)
+                maxTTL: 5)
 
         var addresses = try await resolver.resolveAddress(args: HostResolverArguments(hostName: "localhost"))
         XCTAssert(addresses.count >= 1, "Address Count is (\(String(describing: addresses.count)))")
@@ -38,11 +36,10 @@ class HostResolverTests: XCBaseTestCase {
     }
 
     func testReportConnectionOnFailure() async throws {
-        let elg = try EventLoopGroup(allocator: allocator)
+        let elg = try EventLoopGroup()
         let resolver = try HostResolver(eventLoopGroup: elg,
                 maxHosts: 8,
-                maxTTL: 5,
-                allocator: allocator)
+                maxTTL: 5)
 
         var addresses = try await resolver.resolveAddress(args: HostResolverArguments(hostName: "localhost"))
         XCTAssert(addresses.count >= 1, "Address Count is (\(String(describing: addresses.count)))")
@@ -58,11 +55,10 @@ class HostResolverTests: XCBaseTestCase {
             shutdownWasCalled.fulfill()
         }
         do {
-            let elg = try EventLoopGroup(allocator: self.allocator, shutdownCallback: shutdownCallback)
+            let elg = try EventLoopGroup(shutdownCallback: shutdownCallback)
             _ = try HostResolver(eventLoopGroup: elg,
                     maxHosts: 8,
                     maxTTL: 5,
-                    allocator: self.allocator,
                     shutdownCallback: shutdownCallback)
         }
         wait(for: [shutdownWasCalled], timeout: 15)
