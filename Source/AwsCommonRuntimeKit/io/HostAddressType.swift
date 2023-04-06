@@ -13,12 +13,15 @@ extension HostAddressType: RawRepresentable, CaseIterable {
 
     public init(rawValue: aws_address_record_type) {
         let value = Self.allCases.first { $0.rawValue == rawValue }
-        self = value ?? .A
+        guard let value = value else {
+            fatalError("Unexpected HostAddressType found")
+        }
+        self = value
     }
     public var rawValue: aws_address_record_type {
         switch self {
-        case .A:  return aws_address_record_type(rawValue: 0)
-        case .AAAA:  return aws_address_record_type(rawValue: 1)
+        case .A:  return AWS_ADDRESS_RECORD_TYPE_A
+        case .AAAA:  return AWS_ADDRESS_RECORD_TYPE_AAAA
         }
     }
 }

@@ -8,14 +8,8 @@ public enum IMDSProtocolVersion {
     case version1
 }
 
-extension IMDSProtocolVersion: RawRepresentable, CaseIterable {
-
-    public init(rawValue: aws_imds_protocol_version) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
-        self = value ?? .version2
-    }
-
-    public var rawValue: aws_imds_protocol_version {
+extension IMDSProtocolVersion {
+    var rawValue: aws_imds_protocol_version {
         switch self {
         case .version2: return IMDS_PROTOCOL_V2
         case .version1: return IMDS_PROTOCOL_V1

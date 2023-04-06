@@ -9,13 +9,8 @@ public enum HTTPProxyAuthenticationType {
     case basic
 }
 
-extension HTTPProxyAuthenticationType: RawRepresentable, CaseIterable {
-
-    public init(rawValue: aws_http_proxy_authentication_type) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
-        self = value ?? .none
-    }
-    public var rawValue: aws_http_proxy_authentication_type {
+extension HTTPProxyAuthenticationType {
+    var rawValue: aws_http_proxy_authentication_type {
         switch self {
         case .none:  return AWS_HPAT_NONE
         case .basic: return AWS_HPAT_BASIC

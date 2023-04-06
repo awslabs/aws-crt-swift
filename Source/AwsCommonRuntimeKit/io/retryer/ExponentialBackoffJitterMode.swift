@@ -12,13 +12,8 @@ public enum ExponentialBackoffJitterMode {
     case decorrelated
 }
 
-extension ExponentialBackoffJitterMode: RawRepresentable, CaseIterable {
-
-    public init(rawValue: aws_exponential_backoff_jitter_mode) {
-        let value = Self.allCases.first { $0.rawValue == rawValue }
-        self = value ?? .default
-    }
-    public var rawValue: aws_exponential_backoff_jitter_mode {
+extension ExponentialBackoffJitterMode {
+    var rawValue: aws_exponential_backoff_jitter_mode {
         switch self {
         case .default:  return aws_exponential_backoff_jitter_mode(rawValue: 0)
         case .none:  return aws_exponential_backoff_jitter_mode(rawValue: 1)

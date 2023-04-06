@@ -198,14 +198,8 @@ public enum SigningAlgorithmType {
     case signingV4Asymmetric
 }
 
-extension SignatureType: RawRepresentable, CaseIterable {
-
-    public init(rawValue: aws_signature_type) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
-        self = value ?? .requestHeaders
-    }
-
-    public var rawValue: aws_signature_type {
+extension SignatureType {
+    var rawValue: aws_signature_type {
         switch self {
         case .requestHeaders: return AWS_ST_HTTP_REQUEST_HEADERS
         case .requestQueryParams: return AWS_ST_HTTP_REQUEST_QUERY_PARAMS
