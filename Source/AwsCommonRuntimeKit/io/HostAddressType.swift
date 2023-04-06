@@ -9,16 +9,13 @@ public enum HostAddressType {
     case AAAA
 }
 
-extension HostAddressType: RawRepresentable, CaseIterable {
+extension HostAddressType: CaseIterable {
 
-    public init(rawValue: aws_address_record_type) {
-        let value = Self.allCases.first { $0.rawValue == rawValue }
-        guard let value = value else {
-            fatalError("Unexpected HostAddressType found")
-        }
-        self = value
+    init(rawValue: aws_address_record_type) {
+        self = Self.allCases.first(where: {$0.rawValue == rawValue})!
     }
-    public var rawValue: aws_address_record_type {
+
+    var rawValue: aws_address_record_type {
         switch self {
         case .A:  return AWS_ADDRESS_RECORD_TYPE_A
         case .AAAA:  return AWS_ADDRESS_RECORD_TYPE_AAAA
