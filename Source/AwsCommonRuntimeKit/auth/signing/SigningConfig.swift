@@ -210,12 +210,8 @@ extension SignatureType {
     }
 }
 
-extension SignedBodyHeaderType: RawRepresentable, CaseIterable {
-    public init(rawValue: aws_signed_body_header_type) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
-        self = value ?? .none
-    }
-    public var rawValue: aws_signed_body_header_type {
+extension SignedBodyHeaderType {
+    var rawValue: aws_signed_body_header_type {
         switch self {
         case .none: return AWS_SBHT_NONE
         case .contentSha256: return AWS_SBHT_X_AMZ_CONTENT_SHA256
@@ -223,13 +219,8 @@ extension SignedBodyHeaderType: RawRepresentable, CaseIterable {
     }
 }
 
-extension SigningAlgorithmType: RawRepresentable, CaseIterable {
-
-    public init(rawValue: aws_signing_algorithm) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
-        self = value ?? .signingV4
-    }
-    public var rawValue: aws_signing_algorithm {
+extension SigningAlgorithmType {
+    var rawValue: aws_signing_algorithm {
         switch self {
         case .signingV4: return AWS_SIGNING_ALGORITHM_V4
         case .signingV4Asymmetric: return AWS_SIGNING_ALGORITHM_V4_ASYMMETRIC

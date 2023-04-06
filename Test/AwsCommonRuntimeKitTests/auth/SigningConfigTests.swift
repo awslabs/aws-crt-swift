@@ -17,6 +17,7 @@ class SigningConfigTests: XCBaseTestCase {
                 expiration: TimeInterval(1000),
                 signedBodyHeader: SignedBodyHeaderType.contentSha256,
                 signedBodyValue: SignedBodyValue.streamingSha256Payload)
+
         signingConfig.withCStruct { cSigningConfig in
             XCTAssertEqual(signingConfig.algorithm.rawValue, cSigningConfig.algorithm)
             XCTAssertEqual(signingConfig.signatureType.rawValue, cSigningConfig.signature_type)
