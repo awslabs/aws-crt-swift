@@ -154,7 +154,6 @@ var awsCHttpPlatformExcludes = [
     "integration-testing",
     "include/aws/http/private",
     "CODE_OF_CONDUCT.md",
-    "sanitizer-blacklist.txt",
     "codebuild/linux-integration-tests.yml"] + excludesFromAll
 
 let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
