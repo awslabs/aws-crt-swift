@@ -37,7 +37,7 @@ let s2nExcludes = ["bin", "codebuild", "coverage", "docker-images",
                    "scripts/", "codebuild", "bindings/rust", "VERSIONING.rst", "tests",
                    "cmake/s2n-config.cmake", "CMakeLists.txt", "README.md", "cmake", "NOTICE", "LICENSE"]
 packageTargets.append(.target(
-    name: "S2N",
+    name: "AwsCS2N",
     dependencies: ["LibCrypto"],
     path: "aws-common-runtime/s2n",
     exclude: s2nExcludes,
@@ -45,10 +45,11 @@ packageTargets.append(.target(
     cSettings: [
         .headerSearchPath("./"),
         .define("POSIX_C_SOURCE=200809L"),
-        .define("S2N_NO_PQ")
+        .define("S2N_NO_PQ"),
+        .unsafeFlags(["-fno-implicit-module-maps"])
     ]
 ))
-ioDependencies.append("S2N")
+ioDependencies.append("AwsCS2N")
 calDependencies.append("LibCrypto")
 #endif
 // aws-c-common config
