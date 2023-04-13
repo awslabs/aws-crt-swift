@@ -61,9 +61,9 @@ body:
       required: false
 
   - type: input
-    id: swift-crt-version
+    id: aws-crt-swift-version
     attributes:
-      label: AWS CRT SWIFT version used
+      label: {} aws-crt-swift version used
     validations:
       required: true
 
@@ -71,7 +71,7 @@ body:
     id: compiler-version
     attributes:
       label: Compiler and Version used
-      description: Xcode version, Swift compiler version, Swift Tools version
+      description: gcc --version / Visual Studio / clang --version
     validations:
       required: true
 
