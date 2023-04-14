@@ -70,7 +70,8 @@ body:
   - type: input
     id: compiler-version
     attributes:
-      label: swift version used
+      label: Compiler and Version used
+      description: Xcode version, Swift compiler version, Swift Tools version
     validations:
       required: true
 
