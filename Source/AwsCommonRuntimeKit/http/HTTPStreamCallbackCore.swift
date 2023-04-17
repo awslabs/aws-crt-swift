@@ -71,15 +71,13 @@ private func onResponseHeaderBlockDone(stream: UnsafeMutablePointer<aws_http_str
         )
     }
 
-    if let headerBlock = HTTPHeaderBlock(rawValue: headerBlock) {
-        switch headerBlock {
-        case .informational:
-            httpStreamCbData.requestOptions.onInterimResponse?(UInt32(status), httpStreamCbData.headers)
-        case .main:
-            httpStreamCbData.requestOptions.onResponse(UInt32(status), httpStreamCbData.headers)
-        case .trailing:
-            httpStreamCbData.requestOptions.onTrailer?(httpStreamCbData.headers)
-        }
+    switch HTTPHeaderBlock(rawValue: headerBlock) {
+    case .informational:
+        httpStreamCbData.requestOptions.onInterimResponse?(UInt32(status), httpStreamCbData.headers)
+    case .main:
+        httpStreamCbData.requestOptions.onResponse(UInt32(status), httpStreamCbData.headers)
+    case .trailing:
+        httpStreamCbData.requestOptions.onTrailer?(httpStreamCbData.headers)
     }
 
     httpStreamCbData.headers.removeAll()

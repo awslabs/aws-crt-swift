@@ -13,12 +13,8 @@ enum HTTPHeaderBlock {
 
 extension HTTPHeaderBlock: RawRepresentable, CaseIterable {
 
-    init?(rawValue: aws_http_header_block) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
-        guard let value = value else {
-            return nil
-        }
-        self = value
+    init(rawValue: aws_http_header_block) {
+        self = Self.allCases.first(where: {$0.rawValue == rawValue})!
     }
 
     var rawValue: aws_http_header_block {
