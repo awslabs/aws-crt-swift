@@ -14,16 +14,11 @@ public enum SocketType {
     case datagram
 }
 
-extension SocketType: RawRepresentable, CaseIterable {
-
-    public init(rawValue: aws_socket_type) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
-        self = value ?? .stream
-    }
-    public var rawValue: aws_socket_type {
+extension SocketType {
+  var rawValue: aws_socket_type {
         switch self {
-        case .stream: return aws_socket_type(rawValue: 0)
-        case .datagram: return aws_socket_type(rawValue: 1)
+        case .stream: return AWS_SOCKET_STREAM
+        case .datagram: return AWS_SOCKET_DGRAM
         }
     }
 }

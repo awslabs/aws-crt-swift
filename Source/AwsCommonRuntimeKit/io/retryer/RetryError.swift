@@ -17,18 +17,13 @@ public enum RetryError {
     case clientError
 }
 
-extension RetryError: RawRepresentable, CaseIterable {
-
-    public init(rawValue: aws_retry_error_type) {
-        let value = Self.allCases.first { $0.rawValue == rawValue }
-        self = value ?? .transient
-    }
-    public var rawValue: aws_retry_error_type {
+extension RetryError {
+    var rawValue: aws_retry_error_type {
         switch self {
-        case .transient:  return aws_retry_error_type(rawValue: 0)
-        case .throttling:  return aws_retry_error_type(rawValue: 1)
-        case .serverError: return aws_retry_error_type(rawValue: 2)
-        case .clientError: return aws_retry_error_type(rawValue: 3)
+        case .transient:  return AWS_RETRY_ERROR_TYPE_TRANSIENT
+        case .throttling:  return AWS_RETRY_ERROR_TYPE_THROTTLING
+        case .serverError: return AWS_RETRY_ERROR_TYPE_SERVER_ERROR
+        case .clientError: return AWS_RETRY_ERROR_TYPE_CLIENT_ERROR
         }
     }
 }

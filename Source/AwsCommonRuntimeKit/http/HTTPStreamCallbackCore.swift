@@ -70,6 +70,7 @@ private func onResponseHeaderBlockDone(stream: UnsafeMutablePointer<aws_http_str
             """
         )
     }
+
     switch HTTPHeaderBlock(rawValue: headerBlock) {
     case .informational:
         httpStreamCbData.requestOptions.onInterimResponse?(UInt32(status), httpStreamCbData.headers)

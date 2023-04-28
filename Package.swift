@@ -53,7 +53,7 @@ calDependencies.append("LibCrypto")
 #endif
 // aws-c-common config
 var awsCCommonPlatformExcludes = ["source/windows", "source/android",
-                                  "AWSCRTAndroidTestRunner", "docker-images", "verification",
+                                  "AWSCRTAndroidTestRunner", "verification",
                                   "include/aws/common/", "sanitizer-blacklist.txt",
                                   "scripts/appverifier_ctest.py",
                                   "scripts/appverifier_xml.py"] + excludesFromAll

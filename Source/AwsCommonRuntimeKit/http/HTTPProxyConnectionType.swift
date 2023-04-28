@@ -15,13 +15,8 @@ public enum HTTPProxyConnectionType {
     case tunnel
 }
 
-extension HTTPProxyConnectionType: RawRepresentable, CaseIterable {
-
-    public init(rawValue: aws_http_proxy_connection_type) {
-        let value = Self.allCases.first(where: {$0.rawValue == rawValue})
-        self = value ?? .forward
-    }
-    public var rawValue: aws_http_proxy_connection_type {
+extension HTTPProxyConnectionType {
+    var rawValue: aws_http_proxy_connection_type {
         switch self {
         case .legacy:  return AWS_HPCT_HTTP_LEGACY
         case .forward: return AWS_HPCT_HTTP_FORWARD
