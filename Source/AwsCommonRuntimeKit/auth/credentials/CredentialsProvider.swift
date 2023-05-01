@@ -351,11 +351,36 @@ extension CredentialsProvider.Source {
             var stsOptions = aws_credentials_provider_sts_web_identity_options()
             stsOptions.bootstrap = bootstrap.rawValue
             stsOptions.tls_ctx = tlsContext.rawValue
-            stsOptions.config_profile_collection_cached = fileBasedConfiguration.rawValue
             stsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
             guard let provider = aws_credentials_provider_new_sts_web_identity(allocator.rawValue,
                                                                                &stsOptions)
+            else {
+                shutdownCallbackCore.release()
+                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+            }
+            return provider
+        }
+    }
+
+    public static func `sso`(bootstrap: ClientBootstrap,
+                             tlsContext: TLSContext,
+                             fileBasedConfiguration: FileBasedConfiguration,
+                             profileFileNameOverride: String? = nil,
+                             shutdownCallback: ShutdownCallback? = nil) -> Self {
+        Self {
+            let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
+            var ssoOptions = aws_credentials_provider_sso_options()
+            ssoOptions.bootstrap = bootstrap.rawValue
+            ssoOptions.tls_ctx = tlsContext.rawValue
+            ssoOptions.config_file_cached = fileBasedConfiguration.rawValue
+            ssoOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
+
+            guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
+                    profileFileNameOverride, { profileCursor in
+                ssoOptions.profile_name_override = profileCursor
+                return aws_credentials_provider_new_sso(allocator.rawValue, &ssoOptions)
+            })
             else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
