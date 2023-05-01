@@ -351,6 +351,7 @@ extension CredentialsProvider.Source {
             var stsOptions = aws_credentials_provider_sts_web_identity_options()
             stsOptions.bootstrap = bootstrap.rawValue
             stsOptions.tls_ctx = tlsContext.rawValue
+            stsOptions.config_profile_collection_cached = fileBasedConfiguration.rawValue
             stsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
             guard let provider = aws_credentials_provider_new_sts_web_identity(allocator.rawValue,
@@ -412,7 +413,6 @@ extension CredentialsProvider.Source {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var stsOptions = aws_credentials_provider_sts_options()
             stsOptions.tls_ctx = tlsContext.rawValue
-            stsOptions.config_profile_collection_cached = fileBasedConfiguration.rawValue
             stsOptions.creds_provider = credentialsProvider.rawValue
             stsOptions.duration_seconds = UInt16(duration)
             stsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
