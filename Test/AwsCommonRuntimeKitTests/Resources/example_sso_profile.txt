@@ -6,7 +6,7 @@ s3 =
 [profile crt_user]
 aws_access_key_id = example_access_key_id
 aws_secret_access_key = example_secret_access_key
-sso_start_url = https://d-926758e41c.awsapps.com/start
+sso_start_url = https://d-test.awsapps.com/start
 sso_region = us-west-2
-sso_account_id = 069542832437
-sso_role_name = AdministratorAccess
+sso_account_id = 12345
+sso_role_name = roleName
