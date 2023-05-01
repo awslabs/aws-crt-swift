@@ -141,7 +141,7 @@ class CredentialsProviderTests: XCBaseTestCase {
                     shutdownCallback: getShutdownCallback()))
             XCTAssertNotNil(provider)
             // get credentials with fail in CI due to expired token, so do not assert on credentials.
-            _ = try await provider.getCredentials()
+            _ = try? await provider.getCredentials()
         }
         wait(for: [shutdownWasCalled], timeout: 15)
     }
