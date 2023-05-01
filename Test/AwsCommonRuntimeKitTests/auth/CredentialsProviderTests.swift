@@ -135,7 +135,8 @@ class CredentialsProviderTests: XCBaseTestCase {
                     bootstrap: getClientBootstrap(),
                     tlsContext: getTlsContext(),
                     fileBasedConfiguration: FileBasedConfiguration(
-                            configFilePath: Bundle.module.path(forResource: "example_sso_profile", ofType: "txt")!),
+                            configFilePath: Bundle.module.path(forResource: "example_sso_profile", ofType: "txt")!,
+                            credentialsFilePath: Bundle.module.path(forResource: "example_credentials", ofType: "txt")!),
                     profileFileNameOverride: "crt_user",
                     shutdownCallback: getShutdownCallback()))
             XCTAssertNotNil(provider)
