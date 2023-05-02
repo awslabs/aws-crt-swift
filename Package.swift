@@ -15,43 +15,15 @@ var package = Package(name: "aws-crt-swift",
                       dependencies: [.package(url: "https://github.com/apple/swift-collections", from: "1.0.2")]
 )
 
-var calDependencies: [Target.Dependency] = ["AwsCCommon"]
-var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
+let cSettings: [CSetting] = [
+    .define("DEBUG_BUILD", .when(configuration: .debug))
+]
 
-#if os(Linux)
-packageTargets.append( .systemLibrary(
-    name: "LibCrypto",
-    pkgConfig: "libcrypto",
-    providers: [
-        .apt(["openssl libssl-dev"]),
-        .yum(["openssl openssl-devel"])
-    ]
-))
-// add pq-crypto back after adding in platform and chipset detection
-let s2nExcludes = ["bin", "codebuild", "coverage", "docker-images",
-                   "docs", "lib", "pq-crypto/kyber_r3",
-                   "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
-                   "libcrypto-build", "scram",
-                   "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
-                   "tls/Makefile", "utils/Makefile", "error/Makefile", "tls/extensions/Makefile",
-                   "scripts/", "codebuild", "bindings/rust", "VERSIONING.rst", "tests",
-                   "cmake/s2n-config.cmake", "CMakeLists.txt", "README.md", "cmake", "NOTICE", "LICENSE"]
-packageTargets.append(.target(
-    name: "S2N",
-    dependencies: ["LibCrypto"],
-    path: "aws-common-runtime/s2n",
-    exclude: s2nExcludes,
-    publicHeadersPath: "api",
-    cSettings: [
-        .headerSearchPath("./"),
-        .define("POSIX_C_SOURCE=200809L"),
-        .define("S2N_NO_PQ")
-    ]
-))
-ioDependencies.append("S2N")
-calDependencies.append("LibCrypto")
-#endif
-// aws-c-common config
+//////////////////////////////////////////////////////////////////////
+/// Configure C targets.
+/// Note: We can not use unsafe flags because SwiftPM makes the target ineligible for use by other packages.
+/// Configure aws-c-common
+//////////////////////////////////////////////////////////////////////
 var awsCCommonPlatformExcludes = ["source/windows", "source/android",
                                   "AWSCRTAndroidTestRunner", "verification",
                                   "include/aws/common/", "sanitizer-blacklist.txt",
@@ -79,8 +51,81 @@ awsCCommonPlatformExcludes.append("source/arch/intel/asm")
 awsCCommonPlatformExcludes.append("source/arch/arm/asm")
 #endif
 
+
+//////////////////////////////////////////////////////////////////////
+/// aws-c-cal
+//////////////////////////////////////////////////////////////////////
+var calDependencies: [Target.Dependency] = ["AwsCCommon"]
+#if os(Linux)
+packageTargets.append( .systemLibrary(
+    name: "LibCrypto",
+    pkgConfig: "libcrypto",
+    providers: [
+        .apt(["openssl libssl-dev"]),
+        .yum(["openssl openssl-devel"])
+    ]
+))
+calDependencies.append("LibCrypto")
+#endif
+
+var awsCCalPlatformExcludes = [
+    "bin",
+    "include/aws/cal/private",
+    "CODE_OF_CONDUCT.md",
+    "sanitizer-blacklist.txt",
+    "ecdsa-fuzz-corpus/windows/p256_sig_corpus.txt",
+    "ecdsa-fuzz-corpus/darwin/p256_sig_corpus.txt"] + excludesFromAll
+
+#if os(macOS)
+awsCCalPlatformExcludes.append("source/windows")
+awsCCalPlatformExcludes.append("source/unix")
+#elseif(Windows)
+awsCCalPlatformExcludes.append("source/darwin")
+awsCCalPlatformExcludes.append("source/unix")
+#else
+awsCCalPlatformExcludes.append("source/windows")
+awsCCalPlatformExcludes.append("source/darwin")
+#endif
+
+//////////////////////////////////////////////////////////////////////
+/// s2n-tls
+//////////////////////////////////////////////////////////////////////
+#if os(Linux)
+// add pq-crypto back after adding in platform and chipset detection
+let s2nExcludes = ["bin", "codebuild", "coverage", "docker-images",
+                   "docs", "lib", "pq-crypto/kyber_r3",
+                   "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
+                   "libcrypto-build", "scram",
+                   "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
+                   "tls/Makefile", "utils/Makefile", "error/Makefile", "tls/extensions/Makefile",
+                   "scripts/", "codebuild", "bindings/rust", "VERSIONING.rst", "tests",
+                   "cmake/s2n-config.cmake", "CMakeLists.txt", "README.md", "cmake", "NOTICE", "LICENSE"]
+packageTargets.append(.target(
+        name: "S2N",
+        dependencies: ["LibCrypto"],
+        path: "aws-common-runtime/s2n",
+        exclude: s2nExcludes,
+        publicHeadersPath: "api",
+        cSettings: [
+            .headerSearchPath("./"),
+            .define("POSIX_C_SOURCE=200809L"),
+            .define("S2N_NO_PQ")
+        ]
+))
+#endif
+
+//////////////////////////////////////////////////////////////////////
+/// aws-c-io
+//////////////////////////////////////////////////////////////////////
+var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
 var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11.md", "THIRD-PARTY-LICENSES.txt",
                               "source/pkcs11/v2.40"] + excludesFromAll
+var cSettingsIO = cSettings
+
+#if os(Linux)
+ioDependencies.append("S2N")
+cSettingsIO.append(.define("USE_S2N"))
+#endif
 
 #if os(macOS)
 awsCIoPlatformExcludes.append("source/windows")
@@ -97,13 +142,9 @@ awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
 #endif
 
-var awsCCalPlatformExcludes = [
-    "bin",
-    "include/aws/cal/private",
-    "CODE_OF_CONDUCT.md",
-    "sanitizer-blacklist.txt",
-    "ecdsa-fuzz-corpus/windows/p256_sig_corpus.txt",
-    "ecdsa-fuzz-corpus/darwin/p256_sig_corpus.txt"] + excludesFromAll
+//////////////////////////////////////////////////////////////////////
+/// aws-c-checksums
+//////////////////////////////////////////////////////////////////////
 
 var awsCChecksumsExcludes = [
     "CMakeLists.txt",
@@ -114,16 +155,6 @@ var awsCChecksumsExcludes = [
     "cmake",
     "tests"]
 
-#if os(macOS)
-awsCCalPlatformExcludes.append("source/windows")
-awsCCalPlatformExcludes.append("source/unix")
-#elseif(Windows)
-awsCCalPlatformExcludes.append("source/darwin")
-awsCCalPlatformExcludes.append("source/unix")
-#else
-awsCCalPlatformExcludes.append("source/windows")
-awsCCalPlatformExcludes.append("source/darwin")
-#endif
 
 // swift never uses Microsoft Visual C++ compiler
 awsCChecksumsExcludes.append("source/intel/visualc")
@@ -143,11 +174,20 @@ awsCChecksumsExcludes.append("source/arm")
 awsCChecksumsExcludes.append("source/intel")
 // #endif
 
+//////////////////////////////////////////////////////////////////////
+/// aws-c-sdkutils
+//////////////////////////////////////////////////////////////////////
 let awsCSdkUtilsPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
 
+//////////////////////////////////////////////////////////////////////
+/// aws-c-compression
+//////////////////////////////////////////////////////////////////////
 var awsCCompressionPlatformExcludes = ["source/huffman_generator/", "CODE_OF_CONDUCT.md",
                                        "codebuild"] + excludesFromAll
 
+//////////////////////////////////////////////////////////////////////
+/// aws-c-http
+//////////////////////////////////////////////////////////////////////
 var awsCHttpPlatformExcludes = [
     "bin",
     "integration-testing",
@@ -156,22 +196,19 @@ var awsCHttpPlatformExcludes = [
     "sanitizer-blacklist.txt",
     "codebuild/linux-integration-tests.yml"] + excludesFromAll
 
+//////////////////////////////////////////////////////////////////////
+/// aws-c-auth
+//////////////////////////////////////////////////////////////////////
 let awsCAuthPlatformExcludes = ["CODE_OF_CONDUCT.md"] + excludesFromAll
+
+//////////////////////////////////////////////////////////////////////
+/// aws-c-eventstreams
+//////////////////////////////////////////////////////////////////////
 let awsCEventStreamExcludes = [
     "bin",
     "CODE_OF_CONDUCT.md",
     "clang-tidy/run-clang-tidy.sh"] + excludesFromAll
 
-let cFlags = ["-g", "-fno-omit-frame-pointer"]
-let cSettings: [CSetting] = [
-    //    .unsafeFlags(cFlags),
-    .define("DEBUG_BUILD", .when(configuration: .debug))
-]
-
-var cSettingsIO = cSettings
-#if os(Linux)
-cSettingsIO.append(.define("USE_S2N"))
-#endif
 
 packageTargets.append(contentsOf: [
     .target(
@@ -254,11 +291,7 @@ packageTargets.append(contentsOf: [
                         "AwsChecksums",
                         "AwsCEventStream",
                         .product(name: "Collections", package: "swift-collections")],
-        path: "Source/AwsCommonRuntimeKit",
-        swiftSettings: [
-            //            .unsafeFlags(["-g"]),
-            //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
-        ]
+        path: "Source/AwsCommonRuntimeKit"
     ),
     .testTarget(
         name: "AwsCommonRuntimeKitTests",
@@ -266,20 +299,12 @@ packageTargets.append(contentsOf: [
         path: "Test/AwsCommonRuntimeKitTests",
         resources: [
             .copy("Resources")
-        ],
-        swiftSettings: [
-            //            .unsafeFlags(["-g"]),
-            //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
         ]
     ),
     .executableTarget(
         name: "Elasticurl",
         dependencies: ["AwsCommonRuntimeKit"],
-        path: "Source/Elasticurl",
-        swiftSettings: [
-            //            .unsafeFlags(["-g"]),
-            //            .unsafeFlags(["-Onone"], .when(configuration: .debug))
-        ]
+        path: "Source/Elasticurl"
     )
 ] )
 package.targets = packageTargets
