@@ -51,7 +51,6 @@ awsCCommonPlatformExcludes.append("source/arch/intel/asm")
 awsCCommonPlatformExcludes.append("source/arch/arm/asm")
 #endif
 
-
 //////////////////////////////////////////////////////////////////////
 /// aws-c-cal
 //////////////////////////////////////////////////////////////////////
@@ -101,16 +100,16 @@ let s2nExcludes = ["bin", "codebuild", "coverage", "docker-images",
                    "scripts/", "codebuild", "bindings/rust", "VERSIONING.rst", "tests",
                    "cmake/s2n-config.cmake", "CMakeLists.txt", "README.md", "cmake", "NOTICE", "LICENSE"]
 packageTargets.append(.target(
-        name: "S2N",
-        dependencies: ["LibCrypto"],
-        path: "aws-common-runtime/s2n",
-        exclude: s2nExcludes,
-        publicHeadersPath: "api",
-        cSettings: [
-            .headerSearchPath("./"),
-            .define("POSIX_C_SOURCE=200809L"),
-            .define("S2N_NO_PQ")
-        ]
+    name: "S2N",
+    dependencies: ["LibCrypto"],
+    path: "aws-common-runtime/s2n",
+    exclude: s2nExcludes,
+    publicHeadersPath: "api",
+    cSettings: [
+        .headerSearchPath("./"),
+        .define("POSIX_C_SOURCE=200809L"),
+        .define("S2N_NO_PQ")
+    ]
 ))
 #endif
 
@@ -145,7 +144,6 @@ awsCIoPlatformExcludes.append("source/darwin")
 //////////////////////////////////////////////////////////////////////
 /// aws-c-checksums
 //////////////////////////////////////////////////////////////////////
-
 var awsCChecksumsExcludes = [
     "CMakeLists.txt",
     "LICENSE",
@@ -154,7 +152,6 @@ var awsCChecksumsExcludes = [
     "format-check.sh",
     "cmake",
     "tests"]
-
 
 // swift never uses Microsoft Visual C++ compiler
 awsCChecksumsExcludes.append("source/intel/visualc")
@@ -208,7 +205,6 @@ let awsCEventStreamExcludes = [
     "bin",
     "CODE_OF_CONDUCT.md",
     "clang-tidy/run-clang-tidy.sh"] + excludesFromAll
-
 
 packageTargets.append(contentsOf: [
     .target(
