@@ -24,31 +24,27 @@ let cSettings: [CSetting] = [
 /// Note: We can not use unsafe flags because SwiftPM makes the target ineligible for use by other packages.
 /// Configure aws-c-common
 //////////////////////////////////////////////////////////////////////
-var awsCCommonPlatformExcludes = ["source/windows", "source/android",
+var awsCCommonPlatformExcludes = ["source/android",
                                   "AWSCRTAndroidTestRunner", "verification",
                                   "include/aws/common/", "sanitizer-blacklist.txt",
                                   "scripts/appverifier_ctest.py",
                                   "scripts/appverifier_xml.py"] + excludesFromAll
+// Swift never uses MSVC
+awsCCommonPlatformExcludes.append("source/arch/intel/msvc")
+awsCCommonPlatformExcludes.append("source/arch/arm/msvc")
 
-#if arch(i386) || arch(x86_64)
-awsCCommonPlatformExcludes.append("source/arch/arm")
-// temporary cause I can't use intrensics because swiftpm doesn't like the necessary compiler flag.
-awsCCommonPlatformExcludes.append("source/arch/intel")
-// unsafeFlagsArray.append("-mavx512f")
-#elseif arch(arm64)
+#if arch(arm64) && !os(Windows)
+// includes arch/arm
 awsCCommonPlatformExcludes.append("source/arch/intel")
 awsCCommonPlatformExcludes.append("source/arch/generic")
 #else
+// includes arch/generic
 awsCCommonPlatformExcludes.append("source/arch/intel")
 awsCCommonPlatformExcludes.append("source/arch/arm")
 #endif
 
 #if !os(Windows)
-awsCCommonPlatformExcludes.append("source/arch/intel/msvc")
-awsCCommonPlatformExcludes.append("source/arch/arm/msvc")
-#else
-awsCCommonPlatformExcludes.append("source/arch/intel/asm")
-awsCCommonPlatformExcludes.append("source/arch/arm/asm")
+awsCCommonPlatformExcludes.append("source/windows")
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -75,7 +71,7 @@ var awsCCalPlatformExcludes = [
     "ecdsa-fuzz-corpus/windows/p256_sig_corpus.txt",
     "ecdsa-fuzz-corpus/darwin/p256_sig_corpus.txt"] + excludesFromAll
 
-#if os(macOS)
+#if os(macOS) || os(iOS)
 awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/unix")
 #elseif(Windows)
@@ -155,6 +151,7 @@ var awsCChecksumsExcludes = [
 
 // swift never uses Microsoft Visual C++ compiler
 awsCChecksumsExcludes.append("source/intel/visualc")
+
 // TODO: enable hardware acceleration https://github.com/awslabs/aws-sdk-swift/issues/867
 // #if arch(arm64)
 //// includes source/arm
