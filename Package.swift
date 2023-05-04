@@ -22,6 +22,7 @@ let cSettings: [CSetting] = [
 //////////////////////////////////////////////////////////////////////
 /// Configure C targets.
 /// Note: We can not use unsafe flags because SwiftPM makes the target ineligible for use by other packages.
+///       We are also not using any architecture based conditionals due to lack of proper cross compilation support.
 /// Configure aws-c-common
 //////////////////////////////////////////////////////////////////////
 var awsCCommonPlatformExcludes = ["source/android",
@@ -29,20 +30,11 @@ var awsCCommonPlatformExcludes = ["source/android",
                                   "include/aws/common/", "sanitizer-blacklist.txt",
                                   "scripts/appverifier_ctest.py",
                                   "scripts/appverifier_xml.py"] + excludesFromAll
-// Swift never uses MSVC
-awsCCommonPlatformExcludes.append("source/arch/intel/msvc")
-awsCCommonPlatformExcludes.append("source/arch/arm/msvc")
 
-#if arch(arm64) && !os(Windows)
-// includes arch/arm
-awsCCommonPlatformExcludes.append("source/arch/intel")
-awsCCommonPlatformExcludes.append("source/arch/generic")
-#else
+
 // includes arch/generic
 awsCCommonPlatformExcludes.append("source/arch/intel")
 awsCCommonPlatformExcludes.append("source/arch/arm")
-#endif
-
 #if !os(Windows)
 awsCCommonPlatformExcludes.append("source/windows")
 #endif
