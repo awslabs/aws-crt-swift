@@ -27,7 +27,7 @@ let cSettings: [CSetting] = [
 //////////////////////////////////////////////////////////////////////
 var awsCCommonPlatformExcludes = ["source/android",
                                   "AWSCRTAndroidTestRunner", "verification",
-                                  "include/aws/common/", "sanitizer-blacklist.txt",
+                                  "include/aws/common/",
                                   "scripts/appverifier_ctest.py",
                                   "scripts/appverifier_xml.py"] + excludesFromAll
 
@@ -62,15 +62,15 @@ var awsCCalPlatformExcludes = [
     "ecdsa-fuzz-corpus/windows/p256_sig_corpus.txt",
     "ecdsa-fuzz-corpus/darwin/p256_sig_corpus.txt"] + excludesFromAll
 
-#if os(macOS)
-awsCCalPlatformExcludes.append("source/windows")
-awsCCalPlatformExcludes.append("source/unix")
-#elseif os(Windows)
+#if os(Windows)
 awsCCalPlatformExcludes.append("source/darwin")
 awsCCalPlatformExcludes.append("source/unix")
-#else
+#elseif os(Linux)
 awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
+#else  // macOS, iOS, watchOS, tvOS
+awsCCalPlatformExcludes.append("source/windows")
+awsCCalPlatformExcludes.append("source/unix")
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -113,19 +113,19 @@ ioDependencies.append("S2N")
 cSettingsIO.append(.define("USE_S2N"))
 #endif
 
-#if os(macOS)
-awsCIoPlatformExcludes.append("source/windows")
-awsCIoPlatformExcludes.append("source/linux")
-awsCIoPlatformExcludes.append("source/s2n")
-#elseif(Windows)
+#if os(Windows)
 awsCIoPlatformExcludes.append("source/posix")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
 awsCIoPlatformExcludes.append("source/darwin")
-#else
+#elseif os(Linux)
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
+#else  // macOS, iOS, watchOS, tvOS
+awsCIoPlatformExcludes.append("source/windows")
+awsCIoPlatformExcludes.append("source/linux")
+awsCIoPlatformExcludes.append("source/s2n")
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -177,7 +177,6 @@ var awsCHttpPlatformExcludes = [
     "integration-testing",
     "include/aws/http/private",
     "CODE_OF_CONDUCT.md",
-    "sanitizer-blacklist.txt",
     "codebuild/linux-integration-tests.yml"] + excludesFromAll
 
 //////////////////////////////////////////////////////////////////////
