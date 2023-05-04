@@ -143,7 +143,6 @@ var awsCChecksumsExcludes = [
 
 // swift never uses Microsoft Visual C++ compiler
 awsCChecksumsExcludes.append("source/intel/visualc")
-
 // TODO: enable hardware acceleration https://github.com/awslabs/aws-sdk-swift/issues/867
 // #if arch(arm64)
 //// includes source/arm
