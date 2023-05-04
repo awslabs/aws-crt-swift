@@ -31,7 +31,6 @@ var awsCCommonPlatformExcludes = ["source/android",
                                   "scripts/appverifier_ctest.py",
                                   "scripts/appverifier_xml.py"] + excludesFromAll
 
-
 // includes arch/generic
 awsCCommonPlatformExcludes.append("source/arch/intel")
 awsCCommonPlatformExcludes.append("source/arch/arm")
