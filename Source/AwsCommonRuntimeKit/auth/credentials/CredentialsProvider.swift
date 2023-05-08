@@ -364,6 +364,17 @@ extension CredentialsProvider.Source {
         }
     }
 
+    /// Creates a provider that that sources credentials using GetRoleCredentialsRequest to the AWS Single
+    /// Sign-On Service to maintain short-lived sessions.
+    /// [Details link](https://docs.aws.amazon.com/sdkref/latest/guide/feature-sso-credentials.html)
+    /// - Parameters:
+    ///   - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials.
+    ///   - tlsContext: Client TLS context to use when querying STS web identity provider.
+    ///   - fileBasedConfiguration: The file based configuration to read the configuration from.
+    ///   - profileFileNameOverride: (Optional) Override of what profile to use to source credentials from ('default' by default)
+    ///   - shutdownCallback:  (Optional) shutdown callback
+    /// - Returns: `CredentialsProvider`
+    /// - Throws: CommonRuntimeError.crtError
     public static func `sso`(bootstrap: ClientBootstrap,
                              tlsContext: TLSContext,
                              fileBasedConfiguration: FileBasedConfiguration,
