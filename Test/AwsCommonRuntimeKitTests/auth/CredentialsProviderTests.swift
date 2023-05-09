@@ -129,6 +129,23 @@ class CredentialsProviderTests: XCBaseTestCase {
         wait(for: [shutdownWasCalled], timeout: 15)
     }
 
+    func testCreateCredentialsProviderSSO() async throws {
+        do {
+            let provider = try CredentialsProvider(source: .sso(
+                    bootstrap: getClientBootstrap(),
+                    tlsContext: getTlsContext(),
+                    fileBasedConfiguration: FileBasedConfiguration(
+                            configFilePath: Bundle.module.path(forResource: "example_sso_profile", ofType: "txt")!,
+                            credentialsFilePath: Bundle.module.path(forResource: "example_credentials", ofType: "txt")!),
+                    profileFileNameOverride: "crt_user",
+                    shutdownCallback: getShutdownCallback()))
+            XCTAssertNotNil(provider)
+            // get credentials will fail in CI due to expired token, so do not assert on credentials.
+            _ = try? await provider.getCredentials()
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
+    }
+
     func testCreateCredentialsProviderImds() async throws {
         do {
             _ = try CredentialsProvider(source: .imds(bootstrap: getClientBootstrap(),
