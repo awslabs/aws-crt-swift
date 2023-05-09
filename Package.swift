@@ -22,33 +22,20 @@ let cSettings: [CSetting] = [
 //////////////////////////////////////////////////////////////////////
 /// Configure C targets.
 /// Note: We can not use unsafe flags because SwiftPM makes the target ineligible for use by other packages.
+///       We are also not using any architecture based conditionals due to lack of proper cross compilation support.
 /// Configure aws-c-common
 //////////////////////////////////////////////////////////////////////
-var awsCCommonPlatformExcludes = ["source/windows", "source/android",
+var awsCCommonPlatformExcludes = ["source/android",
                                   "AWSCRTAndroidTestRunner", "verification",
-                                  "include/aws/common/", "sanitizer-blacklist.txt",
+                                  "include/aws/common/",
                                   "scripts/appverifier_ctest.py",
                                   "scripts/appverifier_xml.py"] + excludesFromAll
 
-#if arch(i386) || arch(x86_64)
-awsCCommonPlatformExcludes.append("source/arch/arm")
-// temporary cause I can't use intrensics because swiftpm doesn't like the necessary compiler flag.
-awsCCommonPlatformExcludes.append("source/arch/intel")
-// unsafeFlagsArray.append("-mavx512f")
-#elseif arch(arm64)
-awsCCommonPlatformExcludes.append("source/arch/intel")
-awsCCommonPlatformExcludes.append("source/arch/generic")
-#else
+// includes arch/generic
 awsCCommonPlatformExcludes.append("source/arch/intel")
 awsCCommonPlatformExcludes.append("source/arch/arm")
-#endif
-
 #if !os(Windows)
-awsCCommonPlatformExcludes.append("source/arch/intel/msvc")
-awsCCommonPlatformExcludes.append("source/arch/arm/msvc")
-#else
-awsCCommonPlatformExcludes.append("source/arch/intel/asm")
-awsCCommonPlatformExcludes.append("source/arch/arm/asm")
+awsCCommonPlatformExcludes.append("source/windows")
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -75,15 +62,15 @@ var awsCCalPlatformExcludes = [
     "ecdsa-fuzz-corpus/windows/p256_sig_corpus.txt",
     "ecdsa-fuzz-corpus/darwin/p256_sig_corpus.txt"] + excludesFromAll
 
-#if os(macOS)
-awsCCalPlatformExcludes.append("source/windows")
-awsCCalPlatformExcludes.append("source/unix")
-#elseif(Windows)
+#if os(Windows)
 awsCCalPlatformExcludes.append("source/darwin")
 awsCCalPlatformExcludes.append("source/unix")
-#else
+#elseif os(Linux)
 awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
+#else  // macOS, iOS, watchOS, tvOS
+awsCCalPlatformExcludes.append("source/windows")
+awsCCalPlatformExcludes.append("source/unix")
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -126,19 +113,19 @@ ioDependencies.append("S2N")
 cSettingsIO.append(.define("USE_S2N"))
 #endif
 
-#if os(macOS)
-awsCIoPlatformExcludes.append("source/windows")
-awsCIoPlatformExcludes.append("source/linux")
-awsCIoPlatformExcludes.append("source/s2n")
-#elseif(Windows)
+#if os(Windows)
 awsCIoPlatformExcludes.append("source/posix")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
 awsCIoPlatformExcludes.append("source/darwin")
-#else
+#elseif os(Linux)
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
+#else  // macOS, iOS, watchOS, tvOS
+awsCIoPlatformExcludes.append("source/windows")
+awsCIoPlatformExcludes.append("source/linux")
+awsCIoPlatformExcludes.append("source/s2n")
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -190,7 +177,6 @@ var awsCHttpPlatformExcludes = [
     "integration-testing",
     "include/aws/http/private",
     "CODE_OF_CONDUCT.md",
-    "sanitizer-blacklist.txt",
     "codebuild/linux-integration-tests.yml"] + excludesFromAll
 
 //////////////////////////////////////////////////////////////////////
