@@ -58,7 +58,6 @@ var awsCCalPlatformExcludes = [
     "bin",
     "include/aws/cal/private",
     "CODE_OF_CONDUCT.md",
-    "sanitizer-blacklist.txt",
     "ecdsa-fuzz-corpus/windows/p256_sig_corpus.txt",
     "ecdsa-fuzz-corpus/darwin/p256_sig_corpus.txt"] + excludesFromAll
 
@@ -87,7 +86,7 @@ let s2nExcludes = ["bin", "codebuild", "coverage", "docker-images",
                    "scripts/", "codebuild", "bindings/rust", "VERSIONING.rst", "tests",
                    "cmake/s2n-config.cmake", "CMakeLists.txt", "README.md", "cmake", "NOTICE", "LICENSE"]
 packageTargets.append(.target(
-    name: "S2N",
+    name: "S2N_TLS",
     dependencies: ["LibCrypto"],
     path: "aws-common-runtime/s2n",
     exclude: s2nExcludes,
@@ -109,7 +108,7 @@ var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11
 var cSettingsIO = cSettings
 
 #if os(Linux)
-ioDependencies.append("S2N")
+ioDependencies.append("S2N_TLS")
 cSettingsIO.append(.define("USE_S2N"))
 #endif
 
