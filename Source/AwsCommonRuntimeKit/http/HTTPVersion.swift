@@ -9,13 +9,14 @@ public enum HTTPVersion {
     case version_2
 }
 
-extension HTTPVersion: RawRepresentable, CaseIterable {
+extension HTTPVersion: CaseIterable {
 
-    public init(rawValue: aws_http_version) {
+    init(rawValue: aws_http_version) {
         let value = Self.allCases.first(where: {$0.rawValue == rawValue})
         self = value ?? .unknown
     }
-    public var rawValue: aws_http_version {
+
+    var rawValue: aws_http_version {
         switch self {
         case .unknown:  return AWS_HTTP_VERSION_UNKNOWN
         case .version_1_1: return AWS_HTTP_VERSION_1_1

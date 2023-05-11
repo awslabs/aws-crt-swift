@@ -364,6 +364,43 @@ extension CredentialsProvider.Source {
         }
     }
 
+    /// Creates a provider that that sources credentials using GetRoleCredentialsRequest to the AWS Single
+    /// Sign-On Service to maintain short-lived sessions.
+    /// [Details link](https://docs.aws.amazon.com/sdkref/latest/guide/feature-sso-credentials.html)
+    /// - Parameters:
+    ///   - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials.
+    ///   - tlsContext: Client TLS context to use when querying STS web identity provider.
+    ///   - fileBasedConfiguration: The file based configuration to read the configuration from.
+    ///   - profileFileNameOverride: (Optional) Override of what profile to use to source credentials from ('default' by default)
+    ///   - shutdownCallback:  (Optional) shutdown callback
+    /// - Returns: `CredentialsProvider`
+    /// - Throws: CommonRuntimeError.crtError
+    public static func `sso`(bootstrap: ClientBootstrap,
+                             tlsContext: TLSContext,
+                             fileBasedConfiguration: FileBasedConfiguration,
+                             profileFileNameOverride: String? = nil,
+                             shutdownCallback: ShutdownCallback? = nil) -> Self {
+        Self {
+            let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
+            var ssoOptions = aws_credentials_provider_sso_options()
+            ssoOptions.bootstrap = bootstrap.rawValue
+            ssoOptions.tls_ctx = tlsContext.rawValue
+            ssoOptions.config_file_cached = fileBasedConfiguration.rawValue
+            ssoOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
+
+            guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
+                    profileFileNameOverride, { profileCursor in
+                ssoOptions.profile_name_override = profileCursor
+                return aws_credentials_provider_new_sso(allocator.rawValue, &ssoOptions)
+            })
+            else {
+                shutdownCallbackCore.release()
+                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+            }
+            return provider
+        }
+    }
+
     /// Creates a provider that assumes an IAM role via. STS AssumeRole() API. This provider will fetch new credentials
     /// upon each call to `getCredentials`
     /// - Parameters:
