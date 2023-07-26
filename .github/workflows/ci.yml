@@ -1,7 +1,9 @@
 name: CI
 
 on:
-  pull_request:
+  push:
+    branches-ignore:
+      - 'main'
 
 env:
   BUILDER_VERSION: v0.9.28
