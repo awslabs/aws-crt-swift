@@ -170,6 +170,51 @@ extension CredentialsProvider.Source {
         }
     }
 
+    /// The process credentials provider sources credentials from running a command or process.
+    /// The command to run is sourced from a profile in the AWS config file, using the standard
+    /// profile selection rules. The profile key the command is read from is "credential_process."
+    /// E.g.:
+    ///  [default]
+    ///  credential_process=/opt/amazon/bin/my-credential-fetcher --argsA=abc
+    /// On successfully running the command, the output should be a json data with the following
+    /// format:
+    /// {
+    ///     "Version": 1,
+    ///     "AccessKeyId": "accesskey",
+    ///     "SecretAccessKey": "secretAccessKey"
+    ///     "SessionToken": "....",
+    ///     "Expiration": "2019-05-29T00:21:43Z"
+    /// }
+    /// Version here identifies the command output format version.
+    ///
+    /// - Parameters:
+    ///   - fileBasedConfiguration: The file based configuration to read the configuration from.
+    ///   - profileFileNameOverride: (Optional) Override of what profile to use to source credentials from ('default' by default)
+    ///   - shutdownCallback:  (Optional) shutdown callback
+    /// - Returns: `CredentialsProvider`
+    /// - Throws: CommonRuntimeError.crtError
+    public static func `process`(fileBasedConfiguration: FileBasedConfiguration,
+                                 profileFileNameOverride: String? = nil,
+                                 shutdownCallback: ShutdownCallback? = nil) -> Self {
+        Self {
+            let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
+            var processOptionsC = aws_credentials_provider_process_options()
+            processOptionsC.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
+            processOptionsC.config_profile_collection_cached = fileBasedConfiguration.rawValue
+            guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
+                    profileFileNameOverride, { profileCursor in
+                processOptionsC.profile_to_use = profileCursor
+                return aws_credentials_provider_new_process(allocator.rawValue, &processOptionsC)
+            })
+            else {
+                shutdownCallbackCore.release()
+                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+            }
+            return provider
+        }
+    }
+
+
     /// Creates a credentials provider that sources credentials from ec2 instance metadata.
     ///
     /// - Parameters:
