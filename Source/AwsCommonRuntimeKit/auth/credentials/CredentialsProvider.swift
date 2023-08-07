@@ -214,7 +214,6 @@ extension CredentialsProvider.Source {
         }
     }
 
-
     /// Creates a credentials provider that sources credentials from ec2 instance metadata.
     ///
     /// - Parameters:
