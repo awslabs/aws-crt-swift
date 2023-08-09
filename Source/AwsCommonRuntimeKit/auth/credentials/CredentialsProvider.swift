@@ -466,7 +466,7 @@ extension CredentialsProvider.Source {
     /// - Throws: CommonRuntimeError.crtError
     public static func `ecs`(bootstrap: ClientBootstrap,
                              tlsContext: TLSContext? = nil,
-                             authToken: String,
+                             authToken: String? = nil,
                              pathAndQuery: String,
                              host: String,
                              shutdownCallback: ShutdownCallback? = nil) -> Self {
