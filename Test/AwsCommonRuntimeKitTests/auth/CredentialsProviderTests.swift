@@ -129,6 +129,21 @@ class CredentialsProviderTests: XCBaseTestCase {
         wait(for: [shutdownWasCalled], timeout: 15)
     }
 
+    func testCreateCredentialsProviderProcess() async throws {
+        do {
+            let provider = try CredentialsProvider(source: .process(
+                    fileBasedConfiguration: FileBasedConfiguration(
+                            configFilePath: Bundle.module.path(forResource: "example_profile", ofType: "txt")!),
+                    shutdownCallback: getShutdownCallback()))
+            let credentials = try await provider.getCredentials()
+            XCTAssertNotNil(credentials)
+            XCTAssertEqual("AccessKey123", credentials.getAccessKey())
+            XCTAssertEqual("SecretAccessKey123", credentials.getSecret())
+            XCTAssertEqual("SessionToken123", credentials.getSessionToken())
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
+    }
+
     func testCreateCredentialsProviderSSO() async throws {
         do {
             let provider = try CredentialsProvider(source: .sso(

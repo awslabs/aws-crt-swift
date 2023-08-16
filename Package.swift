@@ -279,7 +279,7 @@ packageTargets.append(contentsOf: [
         dependencies: ["AwsCommonRuntimeKit"],
         path: "Test/AwsCommonRuntimeKitTests",
         resources: [
-            .copy("Resources")
+            .process("Resources")
         ]
     ),
     .executableTarget(
