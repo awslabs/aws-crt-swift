@@ -265,3 +265,25 @@ func withByteCursorFromStrings<Result>(
         }
     }
 }
+
+func withByteCursorFromStrings<Result>(
+    _ arg1: String?,
+    _ arg2: String?,
+    _ arg3: String?,
+    _ arg4: String?,
+    _ body: (aws_byte_cursor, aws_byte_cursor, aws_byte_cursor, aws_byte_cursor) -> Result
+) -> Result {
+    return withOptionalCString(to: arg1) { arg1C in
+        return withOptionalCString(to: arg2) { arg2C in
+            return withOptionalCString(to: arg3) {arg3c in
+                return withOptionalCString(to: arg4) {arg4c in
+                    return body(
+                        aws_byte_cursor_from_c_str(arg1C),
+                        aws_byte_cursor_from_c_str(arg2C),
+                        aws_byte_cursor_from_c_str(arg3c),
+                        aws_byte_cursor_from_c_str(arg4c))
+                }
+            }
+        }
+    }
+}
