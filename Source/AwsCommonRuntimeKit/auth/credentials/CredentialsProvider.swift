@@ -405,20 +405,18 @@ extension CredentialsProvider.Source {
             stsOptions.tls_ctx = tlsContext.rawValue
             stsOptions.config_profile_collection_cached = fileBasedConfiguration.rawValue
             stsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
-            guard let provider: UnsafeMutablePointer<aws_credentials_provider> = 
-                    withByteCursorFromStrings(
+            guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                         region,
                         roleArn,
                         roleSessionName,
-                        tokenFilePath,
-                        { regionCursor, roleArnCursor, roleSessionNameCursor, tokenFilePathCursor in
-                    stsOptions.region = regionCursor
-                    stsOptions.role_arn = roleArnCursor
-                    stsOptions.role_session_name = roleSessionNameCursor
-                    stsOptions.token_file_path = tokenFilePathCursor
-                    return aws_credentials_provider_new_sts_web_identity(allocator.rawValue,
-                                                                         &stsOptions)
-                })
+                        tokenFilePath, { regionCursor, roleArnCursor, roleSessionNameCursor, tokenFilePathCursor in
+                            stsOptions.region = regionCursor
+                            stsOptions.role_arn = roleArnCursor
+                            stsOptions.role_session_name = roleSessionNameCursor
+                            stsOptions.token_file_path = tokenFilePathCursor
+                            return aws_credentials_provider_new_sts_web_identity(allocator.rawValue,
+                                                                                 &stsOptions)
+                        })
             else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
