@@ -424,7 +424,6 @@ extension CredentialsProvider.Source {
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
             }
             return provider
-
         }
     }
 
