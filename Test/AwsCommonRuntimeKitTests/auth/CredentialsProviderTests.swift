@@ -207,7 +207,17 @@ class CredentialsProviderTests: XCBaseTestCase {
                 tlsContext: getTlsContext(),
                 fileBasedConfiguration: FileBasedConfiguration()))
         )
-
+    }
+    
+    func testCreateDestroyStsWebIdentity() async throws {
+        _ = try! CredentialsProvider(source: .stsWebIdentity(
+                bootstrap: getClientBootstrap(),
+                tlsContext: getTlsContext(),
+                fileBasedConfiguration: FileBasedConfiguration(),
+                region: "region",
+                roleArn: "roleArn",
+                roleSessionName: "roleSessionName",
+                tokenFilePath: "tokenFilePath"))
     }
 
     func testCreateDestroyStsInvalidRole() async throws {
