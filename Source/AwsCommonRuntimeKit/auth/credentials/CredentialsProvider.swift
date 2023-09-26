@@ -383,12 +383,20 @@ extension CredentialsProvider.Source {
     ///   - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials.
     ///   - tlsContext: Client TLS context to use when querying STS web identity provider.
     ///   - fileBasedConfiguration: The file based configuration to read the configuration from.
+    ///   - region: (Optional) region override
+    ///   - roleArn: (Optional) roleArn override
+    ///   - roleSessionName: (Optional) roleSessionName override
+    ///   - tokenFilePath: (Optional) tokenFilePath override
     ///   - shutdownCallback:  (Optional) shutdown callback
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `stsWebIdentity`(bootstrap: ClientBootstrap,
                                         tlsContext: TLSContext,
                                         fileBasedConfiguration: FileBasedConfiguration,
+                                        region: String? = nil,
+                                        roleArn: String? = nil,
+                                        roleSessionName: String? = nil,
+                                        tokenFilePath: String? = nil,
                                         shutdownCallback: ShutdownCallback? = nil) -> Self {
         Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
@@ -397,9 +405,18 @@ extension CredentialsProvider.Source {
             stsOptions.tls_ctx = tlsContext.rawValue
             stsOptions.config_profile_collection_cached = fileBasedConfiguration.rawValue
             stsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
-
-            guard let provider = aws_credentials_provider_new_sts_web_identity(allocator.rawValue,
-                                                                               &stsOptions)
+            guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
+                        region,
+                        roleArn,
+                        roleSessionName,
+                        tokenFilePath, { regionCursor, roleArnCursor, roleSessionNameCursor, tokenFilePathCursor in
+                            stsOptions.region = regionCursor
+                            stsOptions.role_arn = roleArnCursor
+                            stsOptions.role_session_name = roleSessionNameCursor
+                            stsOptions.token_file_path = tokenFilePathCursor
+                            return aws_credentials_provider_new_sts_web_identity(allocator.rawValue,
+                                                                                 &stsOptions)
+                        })
             else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
