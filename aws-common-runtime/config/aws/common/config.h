@@ -41,4 +41,5 @@
 #define AWS_AFFINITY_METHOD 0
 
 #define AWS_HAVE_EXECINFO 1
+/* Disable Intel VTune tracing API here since aws-crt-swift doesn't use CMake */
 #define INTEL_NO_ITTNOTIFY_API
