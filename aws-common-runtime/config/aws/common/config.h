@@ -43,3 +43,6 @@
 #define AWS_HAVE_EXECINFO 1
 /* Disable Intel VTune tracing API here since aws-crt-swift doesn't use CMake */
 #define INTEL_NO_ITTNOTIFY_API
+
+/* Don't use APIs forbidden by App Stores (e.g. non-public system APIs) */
+#define AWS_APPSTORE_SAFE 1
