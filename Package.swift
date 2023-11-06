@@ -248,7 +248,7 @@ packageTargets.append(contentsOf: [
         cSettings: cSettings
     ),
     .target(
-        name: "AwsChecksums",
+        name: "AwsCChecksums",
         dependencies: ["AwsCCommon"],
         path: "aws-common-runtime/aws-checksums",
         exclude: awsCChecksumsExcludes,
@@ -256,7 +256,7 @@ packageTargets.append(contentsOf: [
     ),
     .target(
         name: "AwsCEventStream",
-        dependencies: ["AwsChecksums", "AwsCCommon", "AwsCIo", "AwsCCal"],
+        dependencies: ["AwsCChecksums", "AwsCCommon", "AwsCIo", "AwsCCal"],
         path: "aws-common-runtime/aws-c-event-stream",
         exclude: awsCEventStreamExcludes,
         cSettings: cSettings
@@ -269,7 +269,7 @@ packageTargets.append(contentsOf: [
                         "AwsCCompression",
                         "AwsCIo",
                         "AwsCCommon",
-                        "AwsChecksums",
+                        "AwsCChecksums",
                         "AwsCEventStream",
                         .product(name: "Collections", package: "swift-collections")],
         path: "Source/AwsCommonRuntimeKit"

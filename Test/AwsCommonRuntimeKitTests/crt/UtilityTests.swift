@@ -41,6 +41,26 @@ class UtilityTests: XCBaseTestCase {
         XCTAssertEqual(sha256Data.base64EncodedString(), "lBSnDP4sj/yN8eIVOJlv+vC56hw+7JtN0132GiMQXRg=")
     }
 
+    
+    func testSha1() throws {
+        let hello = "Hello".data(using: .utf8)!
+        XCTAssertEqual(try! hello.sha1().encodeToHexString(), "f7ff9e8b7bb2e09b70935a5d785e0cc5d9d0abf0")
+    }
+
+    func testSha1EmptyString() throws {
+        let empty = "".data(using: .utf8)!
+        XCTAssertEqual(try! empty.sha1().encodeToHexString(), "da39a3ee5e6b4b0d3255bfef95601890afd80709")
+    }
+
+    func testSha1PayloadOutOfScope() throws {
+        var sha1Data: Data! = nil
+        do {
+            let payload = "{\"foo\":\"base64 encoded sha1 checksum\"}".data(using: .utf8)!
+            sha1Data = try! payload.sha1()
+        }
+        XCTAssertEqual(sha1Data.encodeToHexString(), "bc3c579755c719da780d4429d6e9cf32f0c29c7e")
+    }
+    
     func testByteCursorListToStringArray() throws {
         let list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
         defer {
