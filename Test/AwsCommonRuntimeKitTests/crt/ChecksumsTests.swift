@@ -4,7 +4,6 @@ import XCTest
 import AwsCCommon
 @testable import AwsCommonRuntimeKit
 
-
 class ChecksumsTests: XCBaseTestCase {
     
     func testCRC32() throws {
@@ -12,7 +11,6 @@ class ChecksumsTests: XCBaseTestCase {
         XCTAssertEqual("Hello".data(using: .utf8)!.crc32(), 4157704578)
         XCTAssertEqual("{\"foo\":\"base64 encoded sha1 checksum\"}".data(using: .utf8)!.crc32(), 1195144130)
     }
-
     
     func testCRC32C() throws {
         XCTAssertEqual("".data(using: .utf8)!.crc32c(), 0)
