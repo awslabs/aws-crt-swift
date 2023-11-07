@@ -5,12 +5,11 @@ import struct Foundation.Data
 import struct Foundation.TimeInterval
 import AwsCCal
 
-
 extension String {
     
     /// Computes the md5 hash over input and writes the digest output to 'output'. Use this if you don't need to stream the data you're hashing and you can load
     /// the entire input to hash into memory.
-    /// - Parameter truncate: If you specify truncate something other than 0, the output will be truncated to that number of bytes. 
+    /// - Parameter truncate: If you specify truncate something other than 0, the output will be truncated to that number of bytes.
     public func base64EncodedMD5(truncate: Int = 0) throws -> String {
         let bufferSize = 16
         var bufferData = Data(count: bufferSize)
@@ -25,7 +24,6 @@ extension String {
         return bufferData.base64EncodedString()
     }
 }
-
 
 extension Data {
     
@@ -64,5 +62,4 @@ extension Data {
             return bufferData
         }
     }
-    
 }
