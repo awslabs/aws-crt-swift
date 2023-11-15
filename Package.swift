@@ -29,7 +29,9 @@ var awsCCommonPlatformExcludes = ["source/android",
                                   "AWSCRTAndroidTestRunner", "verification",
                                   "include/aws/common/",
                                   "scripts/appverifier_ctest.py",
-                                  "scripts/appverifier_xml.py"] + excludesFromAll
+                                  "scripts/appverifier_xml.py",
+                                  "source/linux/system_info.c",
+                                  "bin/"] + excludesFromAll
 
 // includes arch/generic
 awsCCommonPlatformExcludes.append("source/arch/intel")
