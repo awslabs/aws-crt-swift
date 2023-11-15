@@ -6,8 +6,8 @@ on:
       - 'main'
 
 env:
-  BUILDER_VERSION: swift-5.7
-  BUILDER_SOURCE: channels
+  BUILDER_VERSION: v0.9.51
+  BUILDER_SOURCE: releases
   BUILDER_HOST: https://d19elf31gohf1l.cloudfront.net
   PACKAGE_NAME: aws-crt-swift
   RUN: ${{ github.run_id }}-${{ github.run_number }}
