@@ -227,6 +227,7 @@ extension CredentialsProvider.Source {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var imdsOptions = aws_credentials_provider_imds_options()
             imdsOptions.bootstrap = bootstrap.rawValue
+            imdsOptions.ec2_metadata_v1_disabled = true
             imdsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
             guard let provider = aws_credentials_provider_new_imds(allocator.rawValue,
                                                                    &imdsOptions)
