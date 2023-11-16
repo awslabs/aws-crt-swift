@@ -215,6 +215,7 @@ extension CredentialsProvider.Source {
     }
 
     /// Creates a credentials provider that sources credentials from ec2 instance metadata.
+    /// It will use IMDSv2 to fetch the credentials.
     ///
     /// - Parameters:
     ///   - bootstrap:  Connection bootstrap to use for any network connections made while sourcing credentials.
