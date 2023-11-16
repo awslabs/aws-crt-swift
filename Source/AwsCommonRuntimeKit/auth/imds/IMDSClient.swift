@@ -9,7 +9,7 @@ public class IMDSClient {
     
     /// Creates an IMDSClient that always uses IMDSv2
     ///  - Parameters:
-    ///     - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials
+    ///     - bootstrap: Connection bootstrap to use for any network connections
     ///     - retryStrategy: RetryStrategy to use with the client
     ///     - shutdownCallback:  (Optional) shutdown callback
     public init(bootstrap: ClientBootstrap,
