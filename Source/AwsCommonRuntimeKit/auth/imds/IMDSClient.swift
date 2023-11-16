@@ -21,7 +21,6 @@ public class IMDSClient {
         imdsOptions.shutdown_options = shutdownOptions
         imdsOptions.bootstrap = bootstrap.rawValue
         imdsOptions.retry_strategy = retryStrategy.rawValue
-        imdsOptions.imds_version = IMDS_PROTOCOL_V2
         imdsOptions.ec2_metadata_v1_disabled = true
         guard let rawValue = aws_imds_client_new(allocator.rawValue, &imdsOptions) else {
             shutdownCallbackCore.release()
