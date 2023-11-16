@@ -6,9 +6,14 @@ import AwsCAuth
 // swiftlint:disable type_body_length
 public class IMDSClient {
     let rawValue: OpaquePointer
+    
+    /// Creates an IMDSClient that always uses IMDSv2
+    ///  - Parameters:
+    ///     - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials
+    ///     - retryStrategy: RetryStrategy to use with the client
+    ///     - shutdownCallback:  (Optional) shutdown callback
     public init(bootstrap: ClientBootstrap,
                 retryStrategy: RetryStrategy,
-                protocolVersion: IMDSProtocolVersion = IMDSProtocolVersion.version2,
                 shutdownCallback: ShutdownCallback? = nil) throws {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         let shutdownOptions = shutdownCallbackCore.getRetainedIMDSClientShutdownOptions()
@@ -16,7 +21,8 @@ public class IMDSClient {
         imdsOptions.shutdown_options = shutdownOptions
         imdsOptions.bootstrap = bootstrap.rawValue
         imdsOptions.retry_strategy = retryStrategy.rawValue
-        imdsOptions.imds_version = protocolVersion.rawValue
+        imdsOptions.imds_version = IMDS_PROTOCOL_V2
+        imdsOptions.ec2_metadata_v1_disabled = true
         guard let rawValue = aws_imds_client_new(allocator.rawValue, &imdsOptions) else {
             shutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
