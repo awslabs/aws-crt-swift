@@ -54,36 +54,37 @@ extension EventStreamMessage {
         }
         let addCHeader: () throws -> Int32 = {
             return try header.name.withCString { headerName in
+                let headerNameLength = UInt8(header.name.utf8.count)
                 switch header.value {
                 case .bool(let value):
                     return aws_event_stream_add_bool_header(
                         rawHeaders,
                         headerName,
-                        UInt8(header.name.count),
+                        headerNameLength,
                         Int8(value.uintValue))
                 case .byte(let value):
                     return aws_event_stream_add_byte_header(
                         rawHeaders,
                         headerName,
-                        UInt8(header.name.count),
+                        headerNameLength,
                         value)
                 case .int16(let value):
                     return aws_event_stream_add_int16_header(
                         rawHeaders,
                         headerName,
-                        UInt8(header.name.count),
+                        headerNameLength,
                         value)
                 case .int32(let value):
                     return aws_event_stream_add_int32_header(
                         rawHeaders,
                         headerName,
-                        UInt8(header.name.count),
+                        headerNameLength,
                         value)
                 case .int64(let value):
                     return aws_event_stream_add_int64_header(
                         rawHeaders,
                         headerName,
-                        UInt8(header.name.count),
+                        headerNameLength,
                         value)
                 case .byteBuf(var value):
                     if value.count > EventStreamHeader.maxValueLength {
@@ -96,7 +97,7 @@ extension EventStreamMessage {
                         return aws_event_stream_add_bytebuf_header(
                             rawHeaders,
                             headerName,
-                            UInt8(header.name.count),
+                            headerNameLength,
                             bytes,
                             UInt16($0.count),
                             1)
@@ -111,16 +112,16 @@ extension EventStreamMessage {
                         aws_event_stream_add_string_header(
                             rawHeaders,
                             headerName,
-                            UInt8(header.name.count),
+                            headerNameLength,
                             $0,
-                            UInt16(value.count),
+                            UInt16(value.utf8.count),
                             1)
                     }
                 case .timestamp(let value):
                     return aws_event_stream_add_timestamp_header(
                         rawHeaders,
                         headerName,
-                        UInt8(header.name.count),
+                        headerNameLength,
                         Int64(value.millisecondsSince1970))
                 case .uuid(let value):
                     return withUnsafeBytes(of: value) {

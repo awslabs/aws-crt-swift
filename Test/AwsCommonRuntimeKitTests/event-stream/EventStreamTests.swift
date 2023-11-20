@@ -20,6 +20,7 @@ class EventStreamTests: XCBaseTestCase {
             EventStreamHeader(name: "byteBuf", value: .byteBuf(value: "data".data(using: .utf8)!)),
             EventStreamHeader(name: "host", value: .string(value: "aws-crt-test-stuff.s3.amazonaws.com")),
             EventStreamHeader(name: "host", value: .string(value: "aws-crt-test-stuff.s3.amazonaws.com")),
+            EventStreamHeader(name: "headerWithUtf8Character🧐", value: .string(value: "testValueWithEmoji🤯")),
             EventStreamHeader(name: "bool", value: .bool(value: false)),
             EventStreamHeader(name: "timestamp", value: .timestamp(value: Date(timeIntervalSinceNow: 10))),
             EventStreamHeader(name: "uuid", value: .uuid(value: UUID(uuidString: "63318232-1C63-4D04-9A0C-6907F347704E")!)),
@@ -32,8 +33,8 @@ class EventStreamTests: XCBaseTestCase {
                     XCTFail("OnPayload callback is triggered unexpectedly.")
                 },
                 onPreludeReceived: { totalLength, headersLength in
-                    XCTAssertEqual(totalLength, 210)
-                    XCTAssertEqual(headersLength, 194)
+                    XCTAssertEqual(totalLength, 263)
+                    XCTAssertEqual(headersLength, 247)
                 },
                 onHeaderReceived: { header in
                     decodedHeaders.append(header)
