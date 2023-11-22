@@ -6,7 +6,7 @@ final class AWSString {
     let rawValue: UnsafeMutablePointer<aws_string>
 
     init(_ str: String) {
-        self.rawValue = aws_string_new_from_array(allocator.rawValue, str, str.count)
+        self.rawValue = aws_string_new_from_array(allocator.rawValue, str, str.utf8.count)
     }
 
     var count: Int {
