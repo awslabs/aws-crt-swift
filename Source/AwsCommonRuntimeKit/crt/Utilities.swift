@@ -182,7 +182,7 @@ func withOptionalByteCursorPointerFromString<Result>(
     guard let arg1 = arg1 else {
         return body(nil)
     }
-    return withUnsafePointer(to: aws_byte_cursor_from_c_str(self)) { byteCursorPointer in
+    return withUnsafePointer(to: aws_byte_cursor_from_c_str(arg1)) { byteCursorPointer in
         body(byteCursorPointer)
     }
 }
