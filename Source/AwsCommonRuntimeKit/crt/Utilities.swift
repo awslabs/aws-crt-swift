@@ -31,13 +31,17 @@ extension String {
 
     func withByteCursor<Result>(_ body: (aws_byte_cursor) -> Result
     ) -> Result {
-        return body(aws_byte_cursor_from_c_str(self))
+        return self.withCString { arg1C in
+            return body(aws_byte_cursor_from_c_str(arg1C))
+        }
     }
 
     func withByteCursorPointer<Result>(_ body: (UnsafePointer<aws_byte_cursor>) -> Result
     ) -> Result {
-        return withUnsafePointer(to: aws_byte_cursor_from_c_str(self)) { byteCursorPointer in
-            return body(byteCursorPointer)
+        return self.withCString { arg1C in
+            return withUnsafePointer(to: aws_byte_cursor_from_c_str(arg1C)) { byteCursorPointer in
+                return body(byteCursorPointer)
+            }
         }
     }
 }
@@ -170,7 +174,9 @@ extension Bool {
 func withOptionalCString<Result>(
     to arg1: String?, _ body: (UnsafePointer<Int8>?) -> Result) -> Result {
     if let arg1 = arg1 {
-        return body(arg1)
+        return arg1.withCString { cString in
+            return body(cString)
+        }
     }
     return body(nil)
 }
@@ -182,8 +188,10 @@ func withOptionalByteCursorPointerFromString<Result>(
     guard let arg1 = arg1 else {
         return body(nil)
     }
-    return withUnsafePointer(to: aws_byte_cursor_from_c_str(arg1)) { byteCursorPointer in
-        body(byteCursorPointer)
+    return arg1.withCString { arg1C in
+        withUnsafePointer(to: aws_byte_cursor_from_c_str(arg1C)) { byteCursorPointer in
+            body(byteCursorPointer)
+        }
     }
 }
 
