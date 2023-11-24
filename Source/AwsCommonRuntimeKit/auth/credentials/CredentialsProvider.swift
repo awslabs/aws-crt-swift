@@ -215,21 +215,20 @@ extension CredentialsProvider.Source {
     }
 
     /// Creates a credentials provider that sources credentials from ec2 instance metadata.
+    /// It will use IMDSv2 to fetch the credentials.
     ///
     /// - Parameters:
     ///   - bootstrap:  Connection bootstrap to use for any network connections made while sourcing credentials.
-    ///   - imdsVersion:  (Optional) Which version of the imds query protocol to use.
     ///   - shutdownCallback:  (Optional) shutdown callback
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `imds`(bootstrap: ClientBootstrap,
-                              imdsVersion: IMDSProtocolVersion = IMDSProtocolVersion.version2,
                               shutdownCallback: ShutdownCallback? = nil) -> Self {
         Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var imdsOptions = aws_credentials_provider_imds_options()
             imdsOptions.bootstrap = bootstrap.rawValue
-            imdsOptions.imds_version = imdsVersion.rawValue
+            imdsOptions.ec2_metadata_v1_disabled = true
             imdsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
             guard let provider = aws_credentials_provider_new_imds(allocator.rawValue,
                                                                    &imdsOptions)
