@@ -33,7 +33,7 @@ class HTTPTests: HTTPClientTestFixture {
         let response = try await sendHTTPRequest(
                 method: "PUT",
                 endpoint: host,
-                path: "/anything",
+                path: "/put",
                 body: TEST_DOC_LINE,
                 connectionManager: connectionManager)
 
