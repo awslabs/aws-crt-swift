@@ -136,7 +136,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
 
         let httpClientOptions = HTTPClientConnectionOptions(clientBootstrap: bootstrap,
                 hostName: endpoint,
-                port: UInt16(port),
+                port: UInt32(port),
                 proxyOptions: proxyOptions,
                 socketOptions: socketOptions,
                 tlsOptions: ssh ? tlsConnectionOptions : nil,

@@ -11,7 +11,7 @@ public struct HTTPClientConnectionOptions: CStructWithShutdownOptions {
     /// The IO channel window size to use for connections in the connection pool
     public var initialWindowSize: Int
     /// The port to connect to for connections in the connection pool
-    public var port: UInt16
+    public var port: UInt32
     /// The proxy options for connections in the connection pool
     public var proxyOptions: HTTPProxyOptions?
     /// Configuration for using proxy from environment variable. Only works when proxyOptions is not set.
@@ -45,7 +45,7 @@ public struct HTTPClientConnectionOptions: CStructWithShutdownOptions {
     public init(clientBootstrap: ClientBootstrap,
                 hostName: String,
                 initialWindowSize: Int = Int.max,
-                port: UInt16,
+                port: UInt32,
                 proxyOptions: HTTPProxyOptions? = nil,
                 proxyEnvSettings: HTTPProxyEnvSettings? = nil,
                 socketOptions: SocketOptions = SocketOptions(),

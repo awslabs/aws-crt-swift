@@ -24,7 +24,7 @@ class HTTPClientConnectionManagerTests: XCBaseTestCase {
                     hostResolver: hostResolver)
 
             let socketOptions = SocketOptions(socketType: .stream)
-            let port = UInt16(443)
+            let port = UInt32(443)
             let httpClientOptions = HTTPClientConnectionOptions(clientBootstrap: bootstrap,
                     hostName: host,
                     initialWindowSize: Int.max,
