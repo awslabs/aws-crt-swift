@@ -9,11 +9,11 @@ public struct HTTPProxyOptions: CStruct {
     public var basicAuthUsername: String?
     public var basicAuthPassword: String?
     public var hostName: String
-    public var port: UInt16
+    public var port: UInt32
     public var tlsOptions: TLSConnectionOptions?
 
     public init(hostName: String,
-                port: UInt16,
+                port: UInt32,
                 authType: HTTPProxyAuthenticationType = .none,
                 basicAuthUsername: String? = nil,
                 basicAuthPassword: String? = nil,

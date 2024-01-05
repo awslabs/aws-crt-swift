@@ -24,7 +24,7 @@ class HTTPClientConnectionOptionsTests: XCBaseTestCase {
         let httpClientOptions = HTTPClientConnectionOptions(clientBootstrap: clientBootstrap,
                 hostName: "test",
                 initialWindowSize: 100,
-                port: UInt16(80),
+                port: UInt32(80),
                 proxyOptions: HTTPProxyOptions(hostName: "test", port: 8080),
                 proxyEnvSettings: HTTPProxyEnvSettings(envVarType: HTTPProxyEnvType.disable),
                 socketOptions: SocketOptions(socketType: .stream),

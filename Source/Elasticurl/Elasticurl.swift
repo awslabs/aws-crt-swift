@@ -241,7 +241,7 @@ struct Elasticurl {
 
             CommonRuntimeKit.initialize()
 
-            let port = UInt16(443)
+            let port = UInt32(443)
 
             let tlsContextOptions = TLSContextOptions.makeDefault()
             tlsContextOptions.setAlpnList(context.alpnList)

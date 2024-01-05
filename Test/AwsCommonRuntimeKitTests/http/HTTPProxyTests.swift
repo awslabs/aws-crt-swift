@@ -167,7 +167,7 @@ class HTTPProxyTests: HTTPClientTestFixture {
     func getProxyOptions(type: ProxyTestType, authType: HTTPProxyAuthenticationType) throws -> HTTPProxyOptions {
         HTTPProxyOptions(
                 hostName: getProxyHost(type: type, authType: authType),
-                port: UInt16(getProxyPort(type: type, authType: authType))!,
+                port: UInt32(getProxyPort(type: type, authType: authType))!,
                 authType: authType,
                 basicAuthUsername: HTTPProxyBasicAuthUsername,
                 basicAuthPassword: HTTPProxyBasicAuthPassword,
