@@ -13,7 +13,7 @@ class HTTPTests: HTTPClientTestFixture {
     func testGetHTTPSRequest() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
         _ = try await sendHTTPRequest(method: "GET", endpoint: host, path: getPath, connectionManager: connectionManager)
-        _ = try await sendHTTPRequest(method: "GET", endpoint: host, path: "/delete", expectedStatus: 405, connectionManager: connectionManager)
+        _ = try await sendHTTPRequest(method: "GET", endpoint: host, path: "/delete", expectedStatus: 404, connectionManager: connectionManager)
     }
     
     func testGetHTTPSRequestWithUtf8Header() async throws {
