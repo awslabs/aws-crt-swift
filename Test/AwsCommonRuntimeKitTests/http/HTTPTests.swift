@@ -7,7 +7,7 @@ import AwsCCommon
 import AwsCHttp
 
 class HTTPTests: HTTPClientTestFixture {
-    let host = "httpbin.org"
+    let host = "postman-echo.com"
     let getPath = "/get"
 
     func testGetHTTPSRequest() async throws {
@@ -16,10 +16,11 @@ class HTTPTests: HTTPClientTestFixture {
         _ = try await sendHTTPRequest(method: "GET", endpoint: host, path: "/delete", expectedStatus: 405, connectionManager: connectionManager)
     }
     
-    func testGetHTTPSRequestWithNonAsciiHeader() async throws {
+    func testGetHTTPSRequestWithUtf8Header() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
-        let headers = try await sendHTTPRequest(method: "GET", endpoint: host, path: "/response-headers?X-Test-Header=TestValue", connectionManager: connectionManager).headers
-        
+        let utf8Header = HTTPHeader(name: "TestHeader", value: "TestValueWithEmoji🤯")
+        let headers = try await sendHTTPRequest(method: "GET", endpoint: host, path: "/response-headers?\(utf8Header.name)=\(utf8Header.value)", connectionManager: connectionManager).headers
+        XCTAssertTrue(headers.contains(where: {$0.name == utf8Header.name && $0.value==utf8Header.value}))
     }
 
     func testGetHTTPRequest() async throws {
