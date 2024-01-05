@@ -34,8 +34,8 @@ class EventStreamTests: XCBaseTestCase {
                     XCTFail("OnPayload callback is triggered unexpectedly.")
                 },
                 onPreludeReceived: { totalLength, headersLength in
-//                    XCTAssertEqual(totalLength, 263)
-//                    XCTAssertEqual(headersLength, 247)
+                    XCTAssertEqual(totalLength, 279)
+                    XCTAssertEqual(headersLength, 263)
                 },
                 onHeaderReceived: { header in
                     decodedHeaders.append(header)
