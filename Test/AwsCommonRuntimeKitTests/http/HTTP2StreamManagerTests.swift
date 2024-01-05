@@ -16,7 +16,7 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30)
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
                 hostResolver: hostResolver)
-        let port = UInt16(443)
+        let port = UInt32(443)
 
         let options = HTTP2StreamManagerOptions(
                         clientBootstrap: bootstrap,
@@ -84,12 +84,12 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
                 hostResolver: hostResolver)
 
         let socketOptions = SocketOptions(socketType: .stream)
-        let port = UInt16(443)
+        let port = UInt32(443)
         let streamManager = try HTTP2StreamManager(
                 options: HTTP2StreamManagerOptions(
                         clientBootstrap: bootstrap,
                         hostName: host,
-                        port: UInt16(port),
+                        port: UInt32(port),
                         maxConnections: 5,
                         socketOptions: socketOptions,
                         tlsOptions: tlsConnectionOptions))
