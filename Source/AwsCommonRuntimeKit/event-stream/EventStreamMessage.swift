@@ -87,7 +87,8 @@ extension EventStreamMessage {
                     headerNameLength,
                     value)
             case .byteBuf(var value):
-                if value.count > EventStreamHeader.maxValueLength {
+                let valueCount = value.count 
+                if valueCount > EventStreamHeader.maxValueLength {
                     throw CommonRunTimeError.crtError(
                         .init(
                             code: AWS_ERROR_EVENT_STREAM_MESSAGE_INVALID_HEADERS_LEN.rawValue))
@@ -99,7 +100,7 @@ extension EventStreamMessage {
                         header.name,
                         headerNameLength,
                         bytes,
-                        UInt16($0.count),
+                        UInt16(valueCount),
                         1)
                 }
             case .string(let value):

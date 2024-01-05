@@ -94,7 +94,7 @@ extension aws_byte_buf {
     }
 
     func toData() -> Data {
-        if(self.len == 0) {
+        if self.len == 0 {
             return Data()
         }
         return Data(bytes: self.buffer, count: self.len)
