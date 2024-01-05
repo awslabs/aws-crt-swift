@@ -14,7 +14,7 @@ public struct HTTP2StreamManagerOptions: CStructWithShutdownOptions {
     public var hostName: String
 
     /// The port to connect to for connections in the connection pool
-    public var port: UInt16
+    public var port: UInt32
     /// The proxy options for connections in the connection pool
     public var proxyOptions: HTTPProxyOptions?
     /// Configuration for using proxy from environment variable. Only works when proxyOptions is not set.
@@ -104,7 +104,7 @@ public struct HTTP2StreamManagerOptions: CStructWithShutdownOptions {
 
     public init(clientBootstrap: ClientBootstrap,
                 hostName: String,
-                port: UInt16,
+                port: UInt32,
                 maxConnections: Int,
                 proxyOptions: HTTPProxyOptions? = nil,
                 proxyEnvSettings: HTTPProxyEnvSettings? = nil,
