@@ -32,7 +32,7 @@ extension String {
     func withByteCursor<Result>(_ body: (aws_byte_cursor) -> Result
     ) -> Result {
         return self.withCString { arg1C in
-            return body(aws_byte_cursor_from_c_str(arg1C))
+            return body(aws_byte_cursor_from_array(arg1C, self.utf8.count))
         }
     }
 
@@ -94,6 +94,9 @@ extension aws_byte_buf {
     }
 
     func toData() -> Data {
+        if(self.len == 0) {
+            return Data()
+        }
         return Data(bytes: self.buffer, count: self.len)
     }
 }

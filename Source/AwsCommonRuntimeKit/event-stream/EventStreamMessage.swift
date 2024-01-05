@@ -47,14 +47,14 @@ public struct EventStreamMessage {
 
 extension EventStreamMessage {
     func addHeader(header: EventStreamHeader, rawHeaders: UnsafeMutablePointer<aws_array_list>) throws {
-        if header.name.utf8.count > EventStreamHeader.maxNameLength {
+        let headerNameLength = header.name.utf8.count
+        if headerNameLength > EventStreamHeader.maxNameLength {
             throw CommonRunTimeError.crtError(
                 .init(
                     code: AWS_ERROR_EVENT_STREAM_MESSAGE_INVALID_HEADERS_LEN.rawValue))
         }
         let addCHeader: () throws -> Int32 = {
-            let headerNameLength = UInt8(header.name.utf8.count)
-            
+            let headerNameLength = UInt8(headerNameLength)
             switch header.value {
             case .bool(let value):
                 return aws_event_stream_add_bool_header(

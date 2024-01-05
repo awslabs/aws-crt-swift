@@ -15,6 +15,12 @@ class HTTPTests: HTTPClientTestFixture {
         _ = try await sendHTTPRequest(method: "GET", endpoint: host, path: getPath, connectionManager: connectionManager)
         _ = try await sendHTTPRequest(method: "GET", endpoint: host, path: "/delete", expectedStatus: 405, connectionManager: connectionManager)
     }
+    
+    func testGetHTTPSRequestWithNonAsciiHeader() async throws {
+        let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
+        let headers = try await sendHTTPRequest(method: "GET", endpoint: host, path: "/response-headers?X-Test-Header=TestValue", connectionManager: connectionManager).headers
+        
+    }
 
     func testGetHTTPRequest() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: false, port: 80)
