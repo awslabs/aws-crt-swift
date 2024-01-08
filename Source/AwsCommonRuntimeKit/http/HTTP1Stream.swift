@@ -24,7 +24,6 @@ public class HTTP1Stream: HTTPStream {
     /// Submit a chunk of data to be sent on an HTTP/1.1 stream.
     /// The stream must have specified "chunked" in a "transfer-encoding" header and no body.
     /// activate() must be called before any chunks are submitted.
-    /// A final chunk with size 0 must be submitted to successfully complete the HTTP-stream.
     /// - Parameters:
     ///     - chunk: Chunk to write
     /// - endOfStream: Set it true to end the stream and prevent any further write.
