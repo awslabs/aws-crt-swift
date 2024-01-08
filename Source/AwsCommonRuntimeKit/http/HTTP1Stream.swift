@@ -31,6 +31,9 @@ public class HTTP1Stream: HTTPStream {
     /// - Throws:
     public override func writeChunk(chunk: Data, endOfStream: Bool) async throws {
         if endOfStream && !chunk.isEmpty {
+            /// The HTTP/1.1 does not support writing a chunk and sending the end of the stream simultaneously.
+            /// It requires sending an empty chunk at the end to finish the stream.
+            /// To maintain consistency with HTTP/2, if there is data and `endOfStream` is true, then send the data and the empty stream in two calls.
             try await writeChunk(chunk: chunk, endOfStream: false)
             return try await writeChunk(chunk: Data(), endOfStream: false)
         }
