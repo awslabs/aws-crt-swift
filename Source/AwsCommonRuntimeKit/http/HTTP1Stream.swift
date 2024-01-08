@@ -27,11 +27,18 @@ public class HTTP1Stream: HTTPStream {
     /// A final chunk with size 0 must be submitted to successfully complete the HTTP-stream.
     /// - Parameters:
     ///     - chunk: Chunk to write
+    /// - endOfStream: Set it true to end the stream and prevent any further write.
+    ///              The last chunk must be send with the value true.
     /// - Throws:
-    public override func writeChunk(chunk: Data) async throws {
+    public override func writeChunk(chunk: Data, endOfStream: Bool) async throws {
+        if endOfStream && !chunk.isEmpty {
+            try await writeChunk(chunk: chunk, endOfStream: false)
+            return try await writeChunk(chunk: Data(), endOfStream: false)
+        }
+        
         var options = aws_http1_chunk_options()
         options.on_complete = onWriteComplete
-        try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
+        return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
             let stream = IStreamCore(
                 iStreamable: ByteBuffer(data: chunk))

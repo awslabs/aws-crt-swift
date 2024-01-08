@@ -42,7 +42,8 @@ public class HTTPStream {
         }
     }
     
-    public func writeChunk(chunk: Data) async throws {
+    /// This method must be overriden in each subclass.
+    public func writeChunk(chunk: Data, endOfStream: Bool) async throws {
         fatalError("writeChunk is not implemented for HTTPStream base")
     }
     

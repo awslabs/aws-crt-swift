@@ -45,9 +45,9 @@ public class HTTP2Stream: HTTPStream {
     ///   - endOfStream: Set it true to end the stream and prevent any further write.
     ///                  The last frame must be send with the value true.
     /// - Throws:
-    public override func writeChunk(chunk: Data) async throws {
+    public override func writeChunk(chunk: Data, endOfStream: Bool) async throws {
         var options = aws_http2_stream_write_data_options()
-        options.end_stream = chunk.isEmpty
+        options.end_stream = endOfStream
         options.on_complete = onWriteComplete
         try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)

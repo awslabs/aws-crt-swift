@@ -59,7 +59,7 @@ class HTTPTests: HTTPClientTestFixture {
         XCTAssertFalse(onCompleteCalled)
         let data = TEST_DOC_LINE.data(using: .utf8)!
         for chunk in data.chunked(into: 5) {
-            try await streamBase.writeChunk(chunk: chunk)
+            try await streamBase.writeChunk(chunk: chunk, endOfStream: false)
             XCTAssertFalse(onCompleteCalled)
         }
 
@@ -67,7 +67,7 @@ class HTTPTests: HTTPClientTestFixture {
         // Sleep for 5 seconds to make sure onComplete is not triggerred
         try await Task.sleep(nanoseconds: 5_000_000_000)
         XCTAssertFalse(onCompleteCalled)
-        try await streamBase.writeChunk(chunk: Data())
+        try await streamBase.writeChunk(chunk: Data(), endOfStream: false)
         semaphore.wait()
         XCTAssertTrue(onCompleteCalled)
         XCTAssertNil(httpResponse.error)
