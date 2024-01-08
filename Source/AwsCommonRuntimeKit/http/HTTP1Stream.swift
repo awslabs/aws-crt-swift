@@ -20,4 +20,48 @@ public class HTTP1Stream: HTTPStream {
         self.httpConnection = httpConnection
         super.init(rawValue: rawValue, callbackData: callbackData)
     }
+
+    /// Submit a chunk of data to be sent on an HTTP/1.1 stream.
+    /// The stream must have specified "chunked" in a "transfer-encoding" header.
+    /// activate() must be called before any chunks are submitted.
+    /// A final chunk with size 0 must be submitted to successfully complete the HTTP-stream.
+    /// - Parameters:
+    ///     - data: Data to write
+    /// - Throws: 
+    public func writeData(data: Data) async throws {
+        var options = aws_http1_chunk_options()
+        options.on_complete = onWriteComplete
+        try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
+            let continuationCore = ContinuationCore(continuation: continuation)
+            let stream = IStreamCore(
+                iStreamable: ByteBuffer(data: data))
+            options.chunk_data = stream.rawValue
+            options.chunk_data_size = UInt64(data.count)
+            options.user_data = continuationCore.passRetained()
+            guard aws_http1_stream_write_chunk(
+                    rawValue,
+                    &options) == AWS_OP_SUCCESS else {
+                continuationCore.release()
+                continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
+                return
+            }
+
+        })
+    }
+
 }
+
+
+private func onWriteComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
+                             errorCode: Int32,
+                             userData: UnsafeMutableRawPointer!) {
+    let continuation = Unmanaged<ContinuationCore<()>>.fromOpaque(userData).takeRetainedValue().continuation
+    guard errorCode == AWS_OP_SUCCESS else {
+        continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        return
+    }
+
+    // SUCCESS
+    continuation.resume()
+}
+
