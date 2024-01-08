@@ -47,7 +47,7 @@ public class HTTP2Stream: HTTPStream {
     /// - Throws:
     public override func writeChunk(chunk: Data) async throws {
         var options = aws_http2_stream_write_data_options()
-        options.end_stream = chunk.count == 0
+        options.end_stream = chunk.isEmpty
         options.on_complete = onWriteComplete
         try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)

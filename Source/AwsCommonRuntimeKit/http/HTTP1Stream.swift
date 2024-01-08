@@ -45,12 +45,9 @@ public class HTTP1Stream: HTTPStream {
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
                 return
             }
-
         })
     }
-
 }
-
 
 private func onWriteComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
                              errorCode: Int32,
@@ -64,4 +61,3 @@ private func onWriteComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
     // SUCCESS
     continuation.resume()
 }
-
