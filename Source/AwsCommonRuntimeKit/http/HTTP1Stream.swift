@@ -25,8 +25,8 @@ public class HTTP1Stream: HTTPStream {
     /// The stream must have specified "chunked" in a "transfer-encoding" header and no body.
     /// activate() must be called before any chunks are submitted.
     /// - Parameters:
-    ///     - chunk: Chunk to write
-    /// - endOfStream: Set it true to end the stream and prevent any further write. The last chunk must be send with the value true.
+    ///     - chunk: The chunk to write. If the chunk is empty, it will signify the end of the stream.
+    ///     - endOfStream: Set it true to end the stream and prevent any further write. The last chunk must be send with the value true.
     /// - Throws: CommonRunTimeError.crtError
     public override func writeChunk(chunk: Data, endOfStream: Bool) async throws {
         if endOfStream && !chunk.isEmpty {
@@ -34,7 +34,7 @@ public class HTTP1Stream: HTTPStream {
             /// It requires sending an empty chunk at the end to finish the stream.
             /// To maintain consistency with HTTP/2, if there is data and `endOfStream` is true, then send the data and the empty stream in two calls.
             try await writeChunk(chunk: chunk, endOfStream: false)
-            return try await writeChunk(chunk: Data(), endOfStream: false)
+            return try await writeChunk(chunk: Data(), endOfStream: true)
         }
         
         var options = aws_http1_chunk_options()
@@ -47,8 +47,8 @@ public class HTTP1Stream: HTTPStream {
             options.chunk_data_size = UInt64(chunk.count)
             options.user_data = continuationCore.passRetained()
             guard aws_http1_stream_write_chunk(
-                    rawValue,
-                    &options) == AWS_OP_SUCCESS else {
+                rawValue,
+                &options) == AWS_OP_SUCCESS else {
                 continuationCore.release()
                 continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
                 return
