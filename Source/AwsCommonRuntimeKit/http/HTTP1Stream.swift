@@ -26,9 +26,8 @@ public class HTTP1Stream: HTTPStream {
     /// activate() must be called before any chunks are submitted.
     /// - Parameters:
     ///     - chunk: Chunk to write
-    /// - endOfStream: Set it true to end the stream and prevent any further write.
-    ///              The last chunk must be send with the value true.
-    /// - Throws:
+    /// - endOfStream: Set it true to end the stream and prevent any further write. The last chunk must be send with the value true.
+    /// - Throws: CommonRunTimeError.crtError
     public override func writeChunk(chunk: Data, endOfStream: Bool) async throws {
         if endOfStream && !chunk.isEmpty {
             /// The HTTP/1.1 does not support writing a chunk and sending the end of the stream simultaneously.

@@ -44,7 +44,7 @@ public class HTTP2Stream: HTTPStream {
     ///   - data: Data to write. It can be empty
     ///   - endOfStream: Set it true to end the stream and prevent any further write.
     ///                  The last frame must be send with the value true.
-    /// - Throws:
+    /// - Throws: CommonRunTimeError.crtError
     public override func writeChunk(chunk: Data, endOfStream: Bool) async throws {
         var options = aws_http2_stream_write_data_options()
         options.end_stream = endOfStream
