@@ -55,12 +55,11 @@ class HTTPTests: HTTPClientTestFixture {
                 useChunkedEncoding: true)
         let connection = try await connectionManager.acquireConnection()
         let streamBase = try connection.makeRequest(requestOptions: httpRequestOptions)
-        let stream = streamBase as! HTTP1Stream
-        try stream.activate()
+        try streamBase.activate()
         XCTAssertFalse(onCompleteCalled)
         let data = TEST_DOC_LINE.data(using: .utf8)!
         for chunk in data.chunked(into: 5) {
-            try await stream.writeData(data: chunk)
+            try await streamBase.writeChunk(chunk: chunk)
             XCTAssertFalse(onCompleteCalled)
         }
 
@@ -68,7 +67,7 @@ class HTTPTests: HTTPClientTestFixture {
         // Sleep for 5 seconds to make sure onComplete is not triggerred
         try await Task.sleep(nanoseconds: 5_000_000_000)
         XCTAssertFalse(onCompleteCalled)
-        try await stream.writeData(data: Data())
+        try await streamBase.writeChunk(chunk: Data())
         semaphore.wait()
         XCTAssertTrue(onCompleteCalled)
         XCTAssertNil(httpResponse.error)

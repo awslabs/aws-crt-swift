@@ -127,7 +127,7 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         XCTAssertFalse(onCompleteCalled)
         let data = TEST_DOC_LINE.data(using: .utf8)!
         for chunk in data.chunked(into: 5) {
-            try await stream.writeData(data: chunk, endOfStream: false)
+            try await stream.writeChunk(chunk: chunk)
             XCTAssertFalse(onCompleteCalled)
         }
 
@@ -135,7 +135,7 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         // Sleep for 5 seconds to make sure onComplete is not triggerred until endOfStream is true
         try await Task.sleep(nanoseconds: 5_000_000_000)
         XCTAssertFalse(onCompleteCalled)
-        try await stream.writeData(data: Data(), endOfStream: true)
+        try await stream.writeChunk(chunk: Data())
         semaphore.wait()
         XCTAssertTrue(onCompleteCalled)
         XCTAssertNil(httpResponse.error)
