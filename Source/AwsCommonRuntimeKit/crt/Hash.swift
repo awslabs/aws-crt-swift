@@ -7,7 +7,7 @@ import AwsCCal
 
 extension Data {
     
-    /// Computes the base64 encoded md5 hash over data. Use this if you don't need to stream the data you're hashing and you can load
+    /// Computes the md5 hash over data. Use this if you don't need to stream the data you're hashing and you can load
     /// the entire input to hash into memory.
     /// - Parameter truncate: If you specify truncate something other than 0, the output will be truncated to that number of bytes.
     public func computeMD5(truncate: Int = 0) throws -> Data {
