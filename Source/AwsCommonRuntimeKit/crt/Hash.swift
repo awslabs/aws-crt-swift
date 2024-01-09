@@ -10,7 +10,7 @@ extension Data {
     /// Computes the base64 encoded md5 hash over data. Use this if you don't need to stream the data you're hashing and you can load
     /// the entire input to hash into memory.
     /// - Parameter truncate: If you specify truncate something other than 0, the output will be truncated to that number of bytes.
-    public func base64EncodedMD5(truncate: Int = 0) throws -> String {
+    public func computeMD5(truncate: Int = 0) throws -> Data {
         try self.withUnsafeBytes { bufferPointer in
             var byteCursor = aws_byte_cursor_from_array(bufferPointer.baseAddress, count)
 
@@ -22,14 +22,14 @@ extension Data {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
             }
-            return bufferData.base64EncodedString()
+            return bufferData
         }
     }
     
     /// Computes the sha256 hash over data.
     /// - Parameter truncate: If you specify truncate something other than 0, the output will be truncated to that number of bytes. For
     /// example, if you want a SHA256 digest as the first 16 bytes, set truncate to 16.
-    public func sha256(truncate: Int = 0) throws -> Data {
+    public func computeSHA256(truncate: Int = 0) throws -> Data {
         try self.withUnsafeBytes { bufferPointer in
             var byteCursor = aws_byte_cursor_from_array(bufferPointer.baseAddress, count)
             let bufferSize = Int(AWS_SHA256_LEN)
@@ -47,7 +47,7 @@ extension Data {
     /// Computes the sha1 hash over data.
     /// - Parameter truncate: If you specify truncate something other than 0, the output will be truncated to that number of bytes. For
     /// example, if you want a SHA1 digest as the first 10 bytes, set truncate to 10.
-    public func sha1(truncate: Int = 0) throws -> Data {
+    public func compteSHA1(truncate: Int = 0) throws -> Data {
         try self.withUnsafeBytes { bufferPointer in
             var byteCursor = aws_byte_cursor_from_array(bufferPointer.baseAddress, count)
             let bufferSize = Int(AWS_SHA1_LEN)
