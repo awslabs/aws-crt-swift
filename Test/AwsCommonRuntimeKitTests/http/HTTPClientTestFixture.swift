@@ -185,11 +185,17 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                headers: [HTTPHeader] = [HTTPHeader](),
                                onResponse: HTTPRequestOptions.OnResponse? = nil,
                                onBody: HTTPRequestOptions.OnIncomingBody? = nil,
-                               onComplete: HTTPRequestOptions.OnStreamComplete? = nil
+                               onComplete: HTTPRequestOptions.OnStreamComplete? = nil,
+                               useChunkedEncoding: Bool = false
     ) throws -> HTTPRequestOptions {
-        let httpRequest: HTTPRequest = try HTTPRequest(method: method, path: path, body: ByteBuffer(data: body.data(using: .utf8)!))
+        let httpRequest: HTTPRequest = try HTTPRequest(method: method, path: path, body: useChunkedEncoding ? nil : ByteBuffer(data: body.data(using: .utf8)!))
         httpRequest.addHeader(header: HTTPHeader(name: "Host", value: endpoint))
-        httpRequest.addHeader(header: HTTPHeader(name: "Content-Length", value: String(body.count)))
+        if (useChunkedEncoding) {
+            httpRequest.addHeader(header: HTTPHeader(name: "Transfer-Encoding", value: "chunked"))
+        }
+        else {
+            httpRequest.addHeader(header: HTTPHeader(name: "Content-Length", value: String(body.count)))
+        }
         httpRequest.addHeaders(headers: headers)
         return getRequestOptions(
                 request: httpRequest,

@@ -7,13 +7,13 @@ import AwsCCommon
 import AwsCHttp
 
 class HTTPTests: HTTPClientTestFixture {
-    let host = "httpbin.org"
+    let host = "postman-echo.com"
     let getPath = "/get"
 
     func testGetHTTPSRequest() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
         _ = try await sendHTTPRequest(method: "GET", endpoint: host, path: getPath, connectionManager: connectionManager)
-        _ = try await sendHTTPRequest(method: "GET", endpoint: host, path: "/delete", expectedStatus: 405, connectionManager: connectionManager)
+        _ = try await sendHTTPRequest(method: "GET", endpoint: host, path: "/delete", expectedStatus: 404, connectionManager: connectionManager)
     }
 
     func testGetHTTPRequest() async throws {
@@ -21,12 +21,12 @@ class HTTPTests: HTTPClientTestFixture {
         _ = try await sendHTTPRequest(method: "GET", endpoint: host, path: getPath, connectionManager: connectionManager)
     }
 
-    func testPutHttpRequest() async throws {
+    func testPutHTTPRequest() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
         let response = try await sendHTTPRequest(
                 method: "PUT",
                 endpoint: host,
-                path: "/anything",
+                path: "/put",
                 body: TEST_DOC_LINE,
                 connectionManager: connectionManager)
 
@@ -38,6 +38,97 @@ class HTTPTests: HTTPClientTestFixture {
         XCTAssertEqual(body.data, TEST_DOC_LINE)
     }
 
+    func testHTTPChunkTransferEncoding() async throws {
+        let connectionManager = try await getHttpConnectionManager(endpoint: host, alpnList: ["http/1.1"])
+        let semaphore = DispatchSemaphore(value: 0)
+        var httpResponse = HTTPResponse()
+        var onCompleteCalled = false
+        let httpRequestOptions = try getHTTPRequestOptions(
+                method: "PUT",
+                endpoint: host,
+                path: "/put",
+                response: &httpResponse,
+                semaphore: semaphore,
+                onComplete: { _ in
+                    onCompleteCalled = true
+                },
+                useChunkedEncoding: true)
+        let connection = try await connectionManager.acquireConnection()
+        let streamBase = try connection.makeRequest(requestOptions: httpRequestOptions)
+        try streamBase.activate()
+        XCTAssertFalse(onCompleteCalled)
+        let data = TEST_DOC_LINE.data(using: .utf8)!
+        for chunk in data.chunked(into: 5) {
+            try await streamBase.writeChunk(chunk: chunk, endOfStream: false)
+            XCTAssertFalse(onCompleteCalled)
+        }
+
+        XCTAssertFalse(onCompleteCalled)
+        // Sleep for 5 seconds to make sure onComplete is not triggerred
+        try await Task.sleep(nanoseconds: 5_000_000_000)
+        XCTAssertFalse(onCompleteCalled)
+        try await streamBase.writeChunk(chunk: Data(), endOfStream: true)
+        semaphore.wait()
+        XCTAssertTrue(onCompleteCalled)
+        XCTAssertNil(httpResponse.error)
+        XCTAssertEqual(httpResponse.statusCode, 200)
+
+        // Parse json body
+        struct Response: Codable {
+            let data: String
+        }
+
+        let body: Response = try! JSONDecoder().decode(Response.self, from: httpResponse.body)
+        XCTAssertEqual(body.data, TEST_DOC_LINE)
+    }
+
+    func testHTTPChunkTransferEncodingWithDataInLastChunk() async throws {
+        let connectionManager = try await getHttpConnectionManager(endpoint: host, alpnList: ["http/1.1"])
+        let semaphore = DispatchSemaphore(value: 0)
+        var httpResponse = HTTPResponse()
+        var onCompleteCalled = false
+        let httpRequestOptions = try getHTTPRequestOptions(
+                method: "PUT",
+                endpoint: host,
+                path: "/put",
+                response: &httpResponse,
+                semaphore: semaphore,
+                onComplete: { _ in
+                    onCompleteCalled = true
+                },
+                useChunkedEncoding: true)
+        let connection = try await connectionManager.acquireConnection()
+        let streamBase = try connection.makeRequest(requestOptions: httpRequestOptions)
+        try streamBase.activate()
+        XCTAssertFalse(onCompleteCalled)
+        let data = TEST_DOC_LINE.data(using: .utf8)!
+        for chunk in data.chunked(into: 5) {
+            try await streamBase.writeChunk(chunk: chunk, endOfStream: false)
+            XCTAssertFalse(onCompleteCalled)
+        }
+
+        XCTAssertFalse(onCompleteCalled)
+        // Sleep for 5 seconds to make sure onComplete is not triggerred
+        try await Task.sleep(nanoseconds: 5_000_000_000)
+        XCTAssertFalse(onCompleteCalled)
+        
+        let lastChunkData = Data("last chunk data".utf8)
+        try await streamBase.writeChunk(chunk: lastChunkData, endOfStream: true)
+        semaphore.wait()
+        XCTAssertTrue(onCompleteCalled)
+        XCTAssertNil(httpResponse.error)
+        XCTAssertEqual(httpResponse.statusCode, 200)
+
+        // Parse json body
+        struct Response: Codable {
+            let data: String
+        }
+
+        let body: Response = try! JSONDecoder().decode(Response.self, from: httpResponse.body)
+        XCTAssertEqual(body.data, TEST_DOC_LINE + String(decoding: lastChunkData, as: UTF8.self))
+    }
+
+    
     func testHTTPStreamIsReleasedIfNotActivated() async throws {
         do {
             let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: getPath)
