@@ -8,14 +8,14 @@ class HashTests: XCBaseTestCase {
 
     func testMd5() throws {
         let hello = "Hello"
-        let md5 = try hello.base64EncodedMD5()
+        let md5 = try hello.data(using: .utf8)!.base64EncodedMD5()
         XCTAssertEqual(md5, "ixqZU8RhEpaoJ6v4xHgE1w==")
     }
 
     func testMd5Payload() throws {
         let payload = "{\"foo\":\"base64 encoded md5 checksum\"}"
 
-        let md5 = try payload.base64EncodedMD5()
+        let md5 = try payload.data(using: .utf8)!.base64EncodedMD5()
 
         XCTAssertEqual(md5, "iB0/3YSo7maijL0IGOgA9g==")
     }

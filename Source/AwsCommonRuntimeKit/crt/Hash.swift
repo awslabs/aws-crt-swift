@@ -5,27 +5,26 @@ import struct Foundation.Data
 import struct Foundation.TimeInterval
 import AwsCCal
 
-extension String {
+extension Data {
     
-    /// Computes the md5 hash over input and writes the digest output to 'output'. Use this if you don't need to stream the data you're hashing and you can load
+    /// Computes the base64 encoded md5 hash over data. Use this if you don't need to stream the data you're hashing and you can load
     /// the entire input to hash into memory.
     /// - Parameter truncate: If you specify truncate something other than 0, the output will be truncated to that number of bytes.
     public func base64EncodedMD5(truncate: Int = 0) throws -> String {
-        let bufferSize = 16
-        var bufferData = Data(count: bufferSize)
-        try bufferData.withUnsafeMutableBytes { bufferPointer in
-            var buffer = aws_byte_buf_from_empty_array(bufferPointer.baseAddress, bufferSize)
-            guard self.withByteCursorPointer({ strCursorPointer in
-                aws_md5_compute(allocator.rawValue, strCursorPointer, &buffer, truncate)
-            }) == AWS_OP_SUCCESS else {
-                throw CommonRunTimeError.crtError(.makeFromLastError())
-            }
-        }
-        return bufferData.base64EncodedString()
-    }
-}
+        try self.withUnsafeBytes { bufferPointer in
+            var byteCursor = aws_byte_cursor_from_array(bufferPointer.baseAddress, count)
 
-extension Data {
+            let bufferSize = 16
+            var bufferData = Data(count: bufferSize)
+            try bufferData.withUnsafeMutableBytes { bufferPointer in
+                var buffer = aws_byte_buf_from_empty_array(bufferPointer.baseAddress, bufferSize)
+                guard aws_md5_compute(allocator.rawValue, &byteCursor, &buffer, truncate) == AWS_OP_SUCCESS else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+            }
+            return bufferData.base64EncodedString()
+        }
+    }
     
     /// Computes the sha256 hash over data.
     /// - Parameter truncate: If you specify truncate something other than 0, the output will be truncated to that number of bytes. For
