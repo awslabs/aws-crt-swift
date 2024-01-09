@@ -3,7 +3,7 @@
 import AwsCHttp
 import Foundation
 
-/// An base class that represents a single Http Request/Response for both HTTP/1.1 and HTTP/2.
+/// An base abstract class that represents a single Http Request/Response for both HTTP/1.1 and HTTP/2.
 /// Can be used to update the Window size, and get status code.
 public class HTTPStream {
     let rawValue: UnsafeMutablePointer<aws_http_stream>
@@ -41,7 +41,14 @@ public class HTTPStream {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
     }
-
+    
+    /// This method must be overridden in each subclass because this function is specific to each subclass.
+    /// For HTTP/1.1 see ``HTTP1Stream/writeChunk(chunk:endOfStream:)``
+    /// For HTTP2: see  ``HTTP2Stream/writeChunk(chunk:endOfStream:)``
+    public func writeChunk(chunk: Data, endOfStream: Bool) async throws {
+        fatalError("writeChunk is not implemented for HTTPStream base")
+    }
+    
     deinit {
         aws_http_stream_release(rawValue)
     }
