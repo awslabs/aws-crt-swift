@@ -7,15 +7,15 @@ import AwsCCommon
 class ChecksumsTests: XCBaseTestCase {
     
     func testCRC32() throws {
-        XCTAssertEqual("".data(using: .utf8)!.crc32(), 0)
-        XCTAssertEqual("Hello".data(using: .utf8)!.crc32(), 4157704578)
-        XCTAssertEqual("{\"foo\":\"base64 encoded sha1 checksum\"}".data(using: .utf8)!.crc32(), 1195144130)
+        XCTAssertEqual("".data(using: .utf8)!.computeCRC32(), 0)
+        XCTAssertEqual("Hello".data(using: .utf8)!.computeCRC32(), 4157704578)
+        XCTAssertEqual("{\"foo\":\"base64 encoded sha1 checksum\"}".data(using: .utf8)!.computeCRC32(), 1195144130)
     }
     
     func testCRC32C() throws {
-        XCTAssertEqual("".data(using: .utf8)!.crc32c(), 0)
-        XCTAssertEqual("Hello".data(using: .utf8)!.crc32c(), 2178485787)
-        XCTAssertEqual("{\"foo\":\"base64 encoded sha1 checksum\"}".data(using: .utf8)!.crc32c(), 3565301023)
+        XCTAssertEqual("".data(using: .utf8)!.computeCRC32C(), 0)
+        XCTAssertEqual("Hello".data(using: .utf8)!.computeCRC32C(), 2178485787)
+        XCTAssertEqual("{\"foo\":\"base64 encoded sha1 checksum\"}".data(using: .utf8)!.computeCRC32C(), 3565301023)
     }
     
 }

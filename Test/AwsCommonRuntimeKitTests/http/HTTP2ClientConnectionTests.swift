@@ -114,7 +114,7 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
                 connectionManager: connectionManager,
                 expectedVersion: expectedVersion,
                 requestVersion: .version_2)
-        let actualSha = try response.body.sha256()
+        let actualSha = try response.body.computeSHA256()
         XCTAssertEqual(
                 actualSha.encodeToHexString().uppercased(),
                 "C7FDB5314B9742467B16BD5EA2F8012190B5E2C44A005F7984F89AAB58219534")
@@ -129,7 +129,7 @@ class HTTP2ClientConnectionTests: HTTPClientTestFixture {
                 connectionManager: connectionManager,
                 expectedVersion: expectedVersion,
                 requestVersion: .version_1_1)
-        let actualSha = try response.body.sha256()
+        let actualSha = try response.body.computeSHA256()
         XCTAssertEqual(
                 actualSha.encodeToHexString().uppercased(),
                 "C7FDB5314B9742467B16BD5EA2F8012190B5E2C44A005F7984F89AAB58219534")
