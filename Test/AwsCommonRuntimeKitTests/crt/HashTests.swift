@@ -44,19 +44,19 @@ class HashTests: XCBaseTestCase {
     
     func testSha1() throws {
         let hello = "Hello".data(using: .utf8)!
-        XCTAssertEqual(try! hello.compteSHA1().encodeToHexString(), "f7ff9e8b7bb2e09b70935a5d785e0cc5d9d0abf0")
+        XCTAssertEqual(try! hello.computeSHA1().encodeToHexString(), "f7ff9e8b7bb2e09b70935a5d785e0cc5d9d0abf0")
     }
 
     func testSha1EmptyString() throws {
         let empty = "".data(using: .utf8)!
-        XCTAssertEqual(try! empty.compteSHA1().encodeToHexString(), "da39a3ee5e6b4b0d3255bfef95601890afd80709")
+        XCTAssertEqual(try! empty.computeSHA1().encodeToHexString(), "da39a3ee5e6b4b0d3255bfef95601890afd80709")
     }
 
     func testSha1PayloadOutOfScope() throws {
         var sha1Data: Data! = nil
         do {
             let payload = "{\"foo\":\"base64 encoded sha1 checksum\"}".data(using: .utf8)!
-            sha1Data = try! payload.compteSHA1()
+            sha1Data = try! payload.computeSHA1()
         }
         XCTAssertEqual(sha1Data.encodeToHexString(), "bc3c579755c719da780d4429d6e9cf32f0c29c7e")
     }
