@@ -136,7 +136,7 @@ extension aws_byte_cursor {
     func toOptionalString() -> String? {
         if self.len == 0 { return nil }
         let data = Data(bytesNoCopy: self.ptr, count: self.len, deallocator: .none)
-        return String(decoding: data, as: UTF8.self)
+        return String(data: data, encoding: .utf8)
     }
 }
 
