@@ -33,7 +33,7 @@ var awsCCommonPlatformExcludes = ["source/android",
                                   "source/linux/system_info.c",
                                   "bin/"] + excludesFromAll
 
-// includes arch/generic because the Swift PM doesn't like the necessary compiler flags.
+// includes arch/generic because the SwiftPM doesn't like the necessary compiler flags.
 awsCCommonPlatformExcludes.append("source/arch/intel")
 awsCCommonPlatformExcludes.append("source/arch/arm")
 #if !os(Windows)
@@ -144,8 +144,8 @@ var awsCChecksumsExcludes = [
 // swift never uses Microsoft Visual C++ compiler
 awsCChecksumsExcludes.append("source/intel/visualc")
 
-// Hardware accelerated checksums are disabled because Swift PM doesn't like the necessary compiler flags.
-// We can add it once Swift package manager has the necessary support for CPU flags or builds C libraries
+// Hardware accelerated checksums are disabled because SwiftPM doesn't like the necessary compiler flags.
+// We can add it once SwiftPM has the necessary support for CPU flags or builds C libraries
 // using CMake.
 // See: https://github.com/apple/swift-package-manager/issues/4555
 // Also, see issue: https://github.com/awslabs/aws-sdk-swift/issues/867 before enabling hardware accelerated checksums.
