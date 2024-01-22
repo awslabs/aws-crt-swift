@@ -21,7 +21,8 @@ public struct HTTP2StreamManagerOptions: CStructWithShutdownOptions {
     public var proxyEnvSettings: HTTPProxyEnvSettings?
     /// The socket options to use for connections in the connection pool
     public var socketOptions: SocketOptions
-    /// The tls options to use for connections in the connection pool
+    /// The TLS options for creating secure (HTTPS) connections.
+    /// Leave as NULL to create cleartext (HTTP) connections. For H2, `http2_prior_knowledge` must also be set (see RFC-7540 3.4).
     public var tlsOptions: TLSConnectionOptions?
 
     /// HTTP/2 Stream window control.
