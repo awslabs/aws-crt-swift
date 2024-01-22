@@ -18,7 +18,8 @@ public struct HTTPClientConnectionOptions: CStructWithShutdownOptions {
     public var proxyEnvSettings: HTTPProxyEnvSettings?
     /// The socket options to use for connections in the connection pool
     public var socketOptions: SocketOptions
-    /// The tls options to use for connections in the connection pool
+    /// The TLS options to create secure (HTTPS) connections.
+    /// Leave NULL to create cleartext (HTTP) connections.
     public var tlsOptions: TLSConnectionOptions?
 
     /// If set to true, then the TCP read back pressure mechanism will be enabled. You should
