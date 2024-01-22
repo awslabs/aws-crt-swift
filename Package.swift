@@ -143,8 +143,10 @@ var awsCChecksumsExcludes = [
 
 // swift never uses Microsoft Visual C++ compiler
 awsCChecksumsExcludes.append("source/intel/visualc")
+
 // Hardware accellarated checksums are disabled because Swift PM doesn't like the necessary compiler flag.
-// We can add it once Swift PM manager has the necessary support for compiler flags or build using CMake.
+// We can add it once Swift package manager has the necessary support for compiler flags or build C libraries
+// using CMake.
 // See: https://github.com/apple/swift-package-manager/issues/4555
 // Also see issue: https://github.com/awslabs/aws-sdk-swift/issues/867 before enabling hardware accelarated checksums.
 // includes source/generic
