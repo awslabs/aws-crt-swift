@@ -183,6 +183,8 @@ public enum SignedBodyValue: String {
     case unsignedPayload = "UNSIGNED-PAYLOAD"
     /// For streaming sha256 payload
     case streamingSha256Payload = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD"
+    /// For streaming sha256 payload trailer
+    case streamingSha256PayloadTrailer = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER"
     /// For streaming sigv4a sha256 payload
     case streamingECDSA_P256Sha256Payload = "STREAMING-AWS4-ECDSA-P256-SHA256-PAYLOAD"
     /// For streaming sigv4a sha256 payload trailer
