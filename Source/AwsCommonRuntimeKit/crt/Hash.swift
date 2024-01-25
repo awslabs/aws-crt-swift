@@ -5,12 +5,19 @@ import struct Foundation.Data
 import struct Foundation.TimeInterval
 import AwsCCal
 
-
 public enum HashAlgorithm {
     case SHA1
     case SHA256
+    
+    var size: Int {
+        switch self {
+        case .SHA1:
+            return Int(AWS_SHA1_LEN)
+        case .SHA256:
+            return Int(AWS_SHA256_LEN)
+        }
+    }
 }
-
 
 public class Hash {
     let rawValue: UnsafeMutablePointer<aws_hash>
@@ -32,18 +39,12 @@ public class Hash {
                 throw CommonRunTimeError.crtError(.makeFromLastError())
             }
         }
-     }
+    }
     
     public func finalize(truncate: Int = 0) throws -> Data {
-        let bufferSize: Int = switch algorithm {
-        case .SHA1:
-            Int(AWS_SHA1_LEN)
-        case .SHA256:
-            Int(AWS_SHA256_LEN)
-        }
-        var bufferData = Data(count: bufferSize)
+        var bufferData = Data(count: algorithm.size)
         try bufferData.withUnsafeMutableBytes { bufferPointer in
-            var buffer = aws_byte_buf_from_empty_array(bufferPointer.baseAddress, bufferSize)
+            var buffer = aws_byte_buf_from_empty_array(bufferPointer.baseAddress, algorithm.size)
             guard aws_hash_finalize(rawValue, &buffer, truncate) == AWS_OP_SUCCESS else {
                 throw CommonRunTimeError.crtError(.makeFromLastError())
             }
@@ -65,7 +66,7 @@ extension Data {
     public func computeMD5(truncate: Int = 0) throws -> Data {
         try self.withUnsafeBytes { bufferPointer in
             var byteCursor = aws_byte_cursor_from_array(bufferPointer.baseAddress, count)
-
+            
             let bufferSize = 16
             var bufferData = Data(count: bufferSize)
             try bufferData.withUnsafeMutableBytes { bufferPointer in
