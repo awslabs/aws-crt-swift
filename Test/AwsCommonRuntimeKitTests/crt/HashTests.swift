@@ -30,12 +30,18 @@ class HashTests: XCBaseTestCase {
     func testSha256WithUpdate() throws {
         let hello = "Hello".data(using: .utf8)!
         let world = "World".data(using: .utf8)!
+        
+        let helloWorld = "HelloWorld".data(using: .utf8)!
+        let sha256 = try! helloWorld.computeSHA256().encodeToHexString()
 
         let hash = Hash(algorithm: .SHA256)
         try hash.update(data: hello)
         try hash.update(data: world)
+        let finalizedHash = try hash.finalize().encodeToHexString()
         
-        XCTAssertEqual(try hash.finalize().encodeToHexString(), "872e4e50ce9990d8b041330c47c9ddd11bec6b503ae9386a99da8584e9bb12c4")
+        
+        XCTAssertEqual(sha256, finalizedHash)
+        XCTAssertEqual(finalizedHash, "872e4e50ce9990d8b041330c47c9ddd11bec6b503ae9386a99da8584e9bb12c4")
     }
 
 
@@ -64,11 +70,18 @@ class HashTests: XCBaseTestCase {
     func testSha1WithUpdate() throws {
         let hello = "Hello".data(using: .utf8)!
         let world = "World".data(using: .utf8)!
-            
+        
+        let helloWorld = "HelloWorld".data(using: .utf8)!
+        let sha1 = try! helloWorld.computeSHA1().encodeToHexString()
+
+        
         let hash = Hash(algorithm: .SHA1)
         try hash.update(data: hello)
         try hash.update(data: world)
-        XCTAssertEqual(try hash.finalize().encodeToHexString(), "db8ac1c259eb89d4a131b253bacfca5f319d54f2")
+        let finalizedHash = try hash.finalize().encodeToHexString()
+        
+        XCTAssertEqual(sha1, finalizedHash)
+        XCTAssertEqual(finalizedHash, "db8ac1c259eb89d4a131b253bacfca5f319d54f2")
     }
 
 
