@@ -2,6 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import XCTest
 import AwsCCommon
+
 @testable import AwsCommonRuntimeKit
 
 class HashTests: XCBaseTestCase {
@@ -25,6 +26,18 @@ class HashTests: XCBaseTestCase {
         let sha256 = try! hello.computeSHA256().base64EncodedString()
         XCTAssertEqual(sha256, "GF+NsyJx/iX1Yab8k4suJkMG7DBO2lGAB9F2SCY4GWk=")
     }
+    
+    func testSha256WithUpdate() throws {
+        let hello = "Hello".data(using: .utf8)!
+        let world = "World".data(using: .utf8)!
+
+        let hash = Hash(algorithm: .SHA256)
+        try hash.update(data: hello)
+        try hash.update(data: world)
+        
+        XCTAssertEqual(try hash.finalize().encodeToHexString(), "872e4e50ce9990d8b041330c47c9ddd11bec6b503ae9386a99da8584e9bb12c4")
+    }
+
 
     func testSha256EmptyString() throws {
         let empty = "".data(using: .utf8)!
@@ -46,6 +59,18 @@ class HashTests: XCBaseTestCase {
         let hello = "Hello".data(using: .utf8)!
         XCTAssertEqual(try! hello.computeSHA1().encodeToHexString(), "f7ff9e8b7bb2e09b70935a5d785e0cc5d9d0abf0")
     }
+    
+    
+    func testSha1WithUpdate() throws {
+        let hello = "Hello".data(using: .utf8)!
+        let world = "World".data(using: .utf8)!
+            
+        let hash = Hash(algorithm: .SHA1)
+        try hash.update(data: hello)
+        try hash.update(data: world)
+        XCTAssertEqual(try hash.finalize().encodeToHexString(), "db8ac1c259eb89d4a131b253bacfca5f319d54f2")
+    }
+
 
     func testSha1EmptyString() throws {
         let empty = "".data(using: .utf8)!
