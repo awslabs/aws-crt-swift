@@ -6,7 +6,7 @@ var logger: aws_logger? = nil
 
 public struct Logger {
     public static func initilize(pipe: UnsafeMutablePointer<FILE>?, level: LogLevel) {
-        // Cleanup the log if it was previously initilizedcongrations
+        // Clean up the logger if it was previously initialized
         if var logger = logger {
             aws_logger_clean_up(&logger)
             aws_logger_set(nil)
@@ -20,7 +20,7 @@ public struct Logger {
     }
 
     public static func initilize(filePath: String, level: LogLevel) {
-        // Cleanup the log if it was previously initilized
+        // Clean up the logger if it was previously initialized
         if var logger = logger {
             aws_logger_clean_up(&logger)
             aws_logger_set(nil)
