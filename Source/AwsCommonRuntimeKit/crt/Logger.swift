@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCCommon
-var logger: aws_logger? = nil
+var logger: aws_logger?
 
 public struct Logger {
     public static func initilize(pipe: UnsafeMutablePointer<FILE>?, level: LogLevel) {
