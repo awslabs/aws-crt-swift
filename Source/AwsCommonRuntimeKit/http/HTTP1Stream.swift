@@ -55,14 +55,6 @@ public class HTTP1Stream: HTTPStream {
             }
         })
     }
-    
-    public func addChunkedTrailer(headers: [HTTPHeader]) throws {
-        guard (headers.withCHeaders { cHeaders in
-            return aws_http1_stream_add_chunked_trailer(rawValue, cHeaders)
-        }) == AWS_OP_SUCCESS else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
-    }
 }
 
 private func onWriteComplete(stream: UnsafeMutablePointer<aws_http_stream>?,
