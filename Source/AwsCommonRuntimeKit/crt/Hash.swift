@@ -8,6 +8,7 @@ import AwsCCal
 public enum HashAlgorithm {
     case SHA1
     case SHA256
+    case MD5
     
     var size: Int {
         switch self {
@@ -15,6 +16,8 @@ public enum HashAlgorithm {
             return Int(AWS_SHA1_LEN)
         case .SHA256:
             return Int(AWS_SHA256_LEN)
+        case .MD5:
+            return Int(AWS_MD5_LEN)
         }
     }
 }
@@ -29,6 +32,8 @@ public class Hash {
             rawValue = aws_sha1_new(allocator.rawValue)
         case .SHA256:
             rawValue = aws_sha256_new(allocator.rawValue)
+        case .MD5:
+            rawValue = aws_md5_new(allocator.rawValue)
         }
     }
     

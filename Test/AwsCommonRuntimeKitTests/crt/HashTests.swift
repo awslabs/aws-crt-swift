@@ -20,6 +20,24 @@ class HashTests: XCBaseTestCase {
 
         XCTAssertEqual(md5, "iB0/3YSo7maijL0IGOgA9g==")
     }
+    
+    func testMd5PayloadWithUpdate() throws {
+        let hello = "Hello".data(using: .utf8)!
+        let world = "World".data(using: .utf8)!
+        
+        let helloWorld = "HelloWorld".data(using: .utf8)!
+        let md5 = try! helloWorld.computeMD5().encodeToHexString()
+
+        let hash = Hash(algorithm: .MD5)
+        try hash.update(data: hello)
+        try hash.update(data: world)
+        let finalizedHash = try hash.finalize().encodeToHexString()
+        
+        
+        XCTAssertEqual(md5, finalizedHash)
+        XCTAssertEqual(finalizedHash, "68e109f0f40ca72a15e05cc22786f8e6")
+    }
+
 
     func testSha256() throws {
         let hello = "Hello".data(using: .utf8)!
