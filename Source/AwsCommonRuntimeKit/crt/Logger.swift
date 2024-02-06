@@ -26,7 +26,7 @@ public struct Logger {
             aws_logger_set(nil)
         }
         logger = aws_logger()
-
+        
         filePath.withCString { cFilePath in
             var options = aws_logger_standard_options()
             options.level = level.rawValue
