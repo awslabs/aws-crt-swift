@@ -12,7 +12,7 @@ var package = Package(name: "aws-crt-swift",
                         .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
                         .executable(name: "Elasticurl", targets: ["Elasticurl"])
                       ],
-                      dependencies: [.package(url: "https://github.com/apple/swift-collections", from: "1.0.2")]
+                      dependencies: []
 )
 
 let cSettings: [CSetting] = [
@@ -266,8 +266,7 @@ packageTargets.append(contentsOf: [
                         "AwsCIo",
                         "AwsCCommon",
                         "AwsCChecksums",
-                        "AwsCEventStream",
-                        .product(name: "Collections", package: "swift-collections")],
+                        "AwsCEventStream"],
         path: "Source/AwsCommonRuntimeKit"
     ),
     .testTarget(
