@@ -1,7 +1,6 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCHttp
-import Collections
 
 /// Manages a Pool of HTTP/2 Streams. Creates and manages HTTP/2 connections under the hood.
 public class HTTP2StreamManager {
