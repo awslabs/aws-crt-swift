@@ -11,8 +11,7 @@ var package = Package(name: "aws-crt-swift",
                       products: [
                         .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
                         .executable(name: "Elasticurl", targets: ["Elasticurl"])
-                      ],
-                      dependencies: []
+                      ]
 )
 
 let cSettings: [CSetting] = [
