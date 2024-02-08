@@ -31,7 +31,6 @@ struct Context {
 struct Elasticurl {
     private static let version = "0.1.0"
     private static var context = Context()
-    private static var logger = Logger(pipe: stdout, level: context.logLevel)
 
     static func parseArguments() {
 
@@ -223,10 +222,10 @@ struct Elasticurl {
         createOutputFile()
         if let traceFile = context.traceFile {
             print("enable logging with trace file")
-            logger = Logger(filePath: traceFile, level: context.logLevel)
+            Logger.initilize(filePath: traceFile, level: context.logLevel)
         } else {
             print("enable logging with stdout")
-            logger = Logger(pipe: stdout, level: context.logLevel)
+            Logger.initilize(pipe: stdout, level: context.logLevel)
         }
 
         await run()
