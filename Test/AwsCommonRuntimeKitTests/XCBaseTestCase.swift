@@ -7,10 +7,11 @@ import AwsCCommon
 
 class XCBaseTestCase: XCTestCase {
     internal let tracingAllocator = TracingAllocator(tracingStacksOf: allocator)
-    let logging = Logger(pipe: stdout, level: .trace)
 
     override func setUp() {
         super.setUp()
+        Logger.initilize(pipe: stdout, level: .trace)
+
         // Override the allocator with tracing allocator
         allocator = tracingAllocator.rawValue
         CommonRuntimeKit.initialize()
