@@ -225,7 +225,7 @@ struct Elasticurl {
             Logger.initilize(filePath: traceFile, level: context.logLevel)
         } else {
             print("enable logging with stdout")
-            Logger.initilize(pipe: stdout, level: context.logLevel)
+            Logger.initialize(pipe: stdout, level: context.logLevel)
         }
 
         await run()
