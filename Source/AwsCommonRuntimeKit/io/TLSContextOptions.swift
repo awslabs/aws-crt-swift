@@ -14,13 +14,13 @@ public class TLSContextOptions: CStruct {
         password: String) throws -> TLSContextOptions {
         try TLSContextOptions(mtlsPkcs12FromPath: path, password: password)
     }
-    
+
     public static func makeMtlsFromRawData(
         certificateData: String,
         privateKeyData: String) throws -> TLSContextOptions {
         try TLSContextOptions(certificateData: privateKeyData, privateKeyData: privateKeyData)
     }
-    
+
     public static func makeMtlsFromFilePath(
         certificatePath: String,
         privateKeyPath: String) throws -> TLSContextOptions {
@@ -44,7 +44,7 @@ public class TLSContextOptions: CStruct {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
-    
+
     init(certificateData cert_data: String,
          privateKeyData private_key_data: String) throws {
         self.rawValue = allocator.allocate(capacity: 1)
@@ -55,11 +55,11 @@ public class TLSContextOptions: CStruct {
                                                      certificateByteCursor,
                                                      privatekeyByteCursor)
             }
-        } != AWS_OP_SUCCESS){
+        } != AWS_OP_SUCCESS) {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
-    
+
     init(certificatePath cert_path: String,
          privateKeyPath private_path: String) throws {
         self.rawValue = allocator.allocate(capacity: 1)
