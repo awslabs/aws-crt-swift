@@ -53,10 +53,11 @@ public class TLSContextOptions: CStruct {
                 aws_tls_ctx_options_init_client_mtls(rawValue,
                                                      allocator.rawValue,
                                                      certificateByteCursor,
-                                                     privatekeyByteCursor)}} != AWS_OP_SUCCESS)
-                {
-                    throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
-                }
+                                                     privatekeyByteCursor)
+            }
+        } != AWS_OP_SUCCESS){
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
     }
     
     init(certificatePath cert_path: String,
