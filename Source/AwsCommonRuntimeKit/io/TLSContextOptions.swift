@@ -55,7 +55,7 @@ public class TLSContextOptions: CStruct {
                                                      certificateByteCursor,
                                                      privatekeyByteCursor)}} != AWS_OP_SUCCESS)
                 {
-                    throw CommonRunTimeError.crtError(CRTError.makeFromLastError());
+                    throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
                 }
     }
     
