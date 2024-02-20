@@ -533,19 +533,19 @@ public struct ClientOptions {
     var bootstrap: ClientBootstrap
 
     /// The socket properties of the underlying MQTT connections made by the client or None if defaults are used.
-    // var socketOptions: SocketOptions
+    var socketOptions: SocketOptions
 
     /// The TLS context for secure socket connections. If None, then a plaintext connection will be used.
-    // var tlsCtx: ClientTlsContext
+    var tlsCtx: TLSContext
 
     /// The (tunneling) HTTP proxy usage when establishing MQTT connections
-    // var httpProxyOptions: HttpProxyOptions
+    var httpProxyOptions: HTTPProxyOptions
 
     /// This callback allows a custom transformation of the HTTP request that acts as the websocket handshake. Websockets will be used if this is set to a valid transformation callback.  To use websockets but not perform a transformation, just set this as a trivial completion callback.  If None, the connection will be made with direct MQTT.
     // var websocketHandshakeTransform: Callable[[WebsocketHandshakeTransformArgs], None] = None
 
     /// All configurable options with respect to the CONNECT packet sent by the client, including the will. These connect properties will be used for every connection attempt made by the client.
-    var connectOptions: ConnectPacket
+    // var connectOptions: ConnectPacket
 
     /// How the MQTT5 client should behave with respect to MQTT sessions.
     var sessionBehavior: ClientSessionBehaviorType
