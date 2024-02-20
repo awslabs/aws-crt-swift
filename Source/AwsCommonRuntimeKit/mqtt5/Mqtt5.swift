@@ -473,3 +473,51 @@ public enum InboundTopicAliasBehaviorType: Int {
     /// Forbid the server from sending PUBLISH packets to the client that use topic aliasing
     case disabled = 2
 }
+
+/// Mqtt behavior settings that are dynamically negotiated as part of the CONNECT/CONNACK exchange.
+/// While you can infer all of these values from a combination of:
+/// - defaults as specified in the mqtt5 spec
+/// - your CONNECT settings
+/// - the CONNACK from the broker
+/// the client instead does the combining for you and emits a NegotiatedSettings object with final, authoritative values.
+/// Negotiated settings are communicated with every successful connection establishment.
+public struct NegotiatedSettings {
+    /// The maximum QoS allowed for publishes on this connection instance
+    var maximumQos: QoS
+
+    /// The amount of time in seconds the server will retain the MQTT session after a disconnect.
+    var sessionExpiryIntervalSec: Int
+
+    /// The number of in-flight QoS 1 and QoS 2 publications the server is willing to process concurrently.
+    var receiveMaximumFromServer: Int
+
+    /// The maximum packet size the server is willing to accept.
+    var maximumPacketSizeToServer: Int
+
+    /// The maximum allowed topic alias value on publishes sent from client to server
+    var topicAliasMaximumToServer: Int
+
+    /// The maximum allowed topic alias value on publishes sent from server to client
+    var topicAliasMaximumToClient: Int
+
+    /// The maximum amount of time in seconds between client packets. The client will use PINGREQs to ensure this limit is not breached.  The server will disconnect the client for inactivity if no MQTT packet is received in a time interval equal to 1.5 x this value.
+    var serverKeepAliveSec: Int
+
+    /// Whether the server supports retained messages.
+    var retainAvailable: Bool
+
+    /// Whether the server supports wildcard subscriptions.
+    var wildcardSubscriptionsAvailable: Bool
+
+    /// Whether the server supports subscription identifiers
+    var subscriptionIdentifiersAvailable: Bool
+
+    /// Whether the server supports shared subscriptions
+    var sharedSubscriptionsAvailable: Bool
+
+    /// Whether the client has rejoined an existing session.
+    var rejoinedSession: Bool
+
+    /// The final client id in use by the newly-established connection.  This will be the configured client id if one was given in the configuration, otherwise, if no client id was specified, this will be the client id assigned by the server.  Reconnection attempts will always use the auto-assigned client id, allowing for auto-assigned session resumption.
+    var clientId: String
+}
