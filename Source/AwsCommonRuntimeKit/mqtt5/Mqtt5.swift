@@ -3,7 +3,7 @@
 
 /// MQTT message delivery quality of service.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901234>`__ encoding values.
-public enum QoS {
+public enum QoS: Int {
 
     /// The message is delivered according to the capabilities of the underlying network. No response is sent by the
     /// receiver and no retry is performed by the sender. The message arrives at the receiver either once or not at all.
@@ -19,7 +19,7 @@ public enum QoS {
 
 /// Server return code for connect attempts.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901079>`__ encoding values.
-public enum ConnectReasonCode {
+public enum ConnectReasonCode: Int {
 
     /// Returned when the connection is accepted.
     case SUCCESS = 0
@@ -97,7 +97,7 @@ public enum ConnectReasonCode {
 
 /// Reason code inside DISCONNECT packets.  Helps determine why a connection was terminated.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901208>`__ encoding values.
-public enum DisconnectReasonCode {
+public enum DisconnectReasonCode: Int {
 
     /// Returned when the remote endpoint wishes to disconnect normally. Will not trigger the publish of a Will message if a
     /// Will message was configured on the connection.
@@ -231,7 +231,7 @@ public enum DisconnectReasonCode {
 
 /// Reason code inside PUBACK packets that indicates the result of the associated PUBLISH request.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901124>`__ encoding values.
-public enum PubackReasonCode {
+public enum PubackReasonCode: Int {
 
     /// Returned when the (QoS 1) publish was accepted by the recipient.
     /// May be sent by the client or the server.
@@ -275,7 +275,7 @@ public enum PubackReasonCode {
 /// Reason code inside SUBACK packet payloads.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901178>`__ encoding values.
 /// This will only be sent by the server and not the client.
-public enum SubackReasonCode {
+public enum SubackReasonCode: Int {
 
     /// Returned when the subscription was accepted and the maximum QoS sent will be QoS 0.
     case GRANTED_QOS_0 = 0
@@ -321,7 +321,7 @@ public enum SubackReasonCode {
 /// Reason codes inside UNSUBACK packet payloads that specify the results for each topic filter in the associated
 /// UNSUBSCRIBE packet.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901194>`__ encoding values.
-public enum UnsubackReasonCode {
+public enum UnsubackReasonCode: Int {
 
     /// Returned when the unsubscribe was successful and the client is no longer subscribed to the topic filter on the server.
     case SUCCESS = 0
@@ -347,7 +347,7 @@ public enum UnsubackReasonCode {
 }
 
 /// Controls how the mqtt client should behave with respect to MQTT sessions.
-public enum ClientSessionBehaviorType {
+public enum ClientSessionBehaviorType: Int {
 
     /// Default client session behavior. Maps to CLEAN.
     case DEFAULT = 0
@@ -369,7 +369,7 @@ public enum ClientSessionBehaviorType {
 
 /// Additional controls for client behavior with respect to operation validation and flow control; these checks
 /// go beyond the MQTT5 spec to respect limits of specific MQTT brokers.
-public enum ExtendedValidationAndFlowControlOptions {
+public enum ExtendedValidationAndFlowControlOptions: Int {
 
     /// Do not do any additional validation or flow control
     case NONE = 0
@@ -390,7 +390,7 @@ public enum ExtendedValidationAndFlowControlOptions {
 /// Controls how disconnects affect the queued and in-progress operations tracked by the client.  Also controls
 /// how operations are handled while the client is not connected.  In particular, if the client is not connected,
 /// then any operation that would be failed on disconnect (according to these rules) will be rejected.
-public enum ClienOperationQueueBehaviorType {
+public enum ClienOperationQueueBehaviorType: Int {
 
     /// Default client operation queue behavior. Maps to FAIL_QOS0_PUBLISH_ON_DISCONNECT.
     case DEFAULT = 0
@@ -412,7 +412,7 @@ public enum ClienOperationQueueBehaviorType {
 /// Controls how the reconnect delay is modified in order to smooth out the distribution of reconnection attempt
 /// timepoints for a large set of reconnecting clients.
 /// See `Exponential Backoff and Jitter <https:///aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/>`_
-public enum ExponentialBackoffJitterMode {
+public enum ExponentialBackoffJitterMode: Int {
 
     /// Maps to Full
     case DEFAULT = 0
@@ -430,7 +430,7 @@ public enum ExponentialBackoffJitterMode {
 
 /// Optional property describing a PUBLISH payload's format.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901111>`__ encoding values.
-public enum PayloadFormatIndicator {
+public enum PayloadFormatIndicator: Int {
 
     /// The payload is arbitrary binary data
     case AWS_MQTT5_PFI_BYTES = 0
@@ -442,7 +442,7 @@ public enum PayloadFormatIndicator {
 /// Configures how retained messages should be handled when subscribing with a topic filter that matches topics with
 /// associated retained messages.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901169>`_ encoding values.
-public enum RetainHandlingType {
+public enum RetainHandlingType: Int {
 
     /// The server should always send all retained messages on topics that match a subscription's filter.
     case SEND_ON_SUBSCRIBE = 0
@@ -457,7 +457,7 @@ public enum RetainHandlingType {
 
 /// An enumeration that controls how the client applies topic aliasing to outbound publish packets.
 /// Topic alias behavior is described in `MQTT5 Topic Aliasing <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901113>`_
-public enum OutboundTopicAliasBehaviorType {
+public enum OutboundTopicAliasBehaviorType: Int {
     /// Maps to Disabled.  This keeps the client from being broken (by default) if the broker
     /// topic aliasing implementation has a problem.
     case DEFAULT = 0
@@ -480,7 +480,7 @@ public enum OutboundTopicAliasBehaviorType {
 /// An enumeration that controls whether or not the client allows the broker to send publishes that use topic
 /// aliasing.
 /// Topic alias behavior is described in `MQTT5 Topic Aliasing <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901113>`_
-public enum InboundTopicAliasBehaviorType {
+public enum InboundTopicAliasBehaviorType: Int {
 
     /// Maps to Disabled.  This keeps the client from being broken (by default) if the broker
     /// topic aliasing implementation has a problem.
