@@ -38,7 +38,7 @@ public enum ConnectReasonCode: Int {
     case implementationSpecificError = 131
 
     /// Returned when the server does not support MQTT5 protocol version specified in the connection.
-    case unsopportedProtocolVersion = 132
+    case unsupportedProtocolVersion = 132
 
     /// Returned when the client identifier in the CONNECT packet is a valid string but not one that
     /// is allowed on the server.
