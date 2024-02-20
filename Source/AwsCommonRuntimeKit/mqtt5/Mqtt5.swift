@@ -9,7 +9,7 @@ public enum QoS: Int {
     /// receiver and no retry is performed by the sender. The message arrives at the receiver either once or not at all.
     case AT_MOST_ONCE = 0
 
-    ///A level of service that ensures that the message arrives at the receiver at least once.
+    /// A level of service that ensures that the message arrives at the receiver at least once.
     case AT_LEAST_ONCE = 1
 
     /// A level of service that ensures that the message arrives at the receiver exactly once.
