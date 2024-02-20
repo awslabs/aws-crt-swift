@@ -521,3 +521,80 @@ public struct NegotiatedSettings {
     /// The final client id in use by the newly-established connection.  This will be the configured client id if one was given in the configuration, otherwise, if no client id was specified, this will be the client id assigned by the server.  Reconnection attempts will always use the auto-assigned client id, allowing for auto-assigned session resumption.
     var clientId: String
 }
+
+public struct ClientOptions {
+    /// Host name of the MQTT server to connect to.
+    var hostName: String
+
+    /// Network port of the MQTT server to connect to.
+    var port: Int
+
+    /// The Client bootstrap used
+    var bootstrap: ClientBootstrap
+
+    /// The socket properties of the underlying MQTT connections made by the client or None if defaults are used.
+    // var socketOptions: SocketOptions
+
+    /// The TLS context for secure socket connections. If None, then a plaintext connection will be used.
+    // var tlsCtx: ClientTlsContext
+
+    /// The (tunneling) HTTP proxy usage when establishing MQTT connections
+    // var httpProxyOptions: HttpProxyOptions
+
+    /// This callback allows a custom transformation of the HTTP request that acts as the websocket handshake. Websockets will be used if this is set to a valid transformation callback.  To use websockets but not perform a transformation, just set this as a trivial completion callback.  If None, the connection will be made with direct MQTT.
+    // var websocketHandshakeTransform: Callable[[WebsocketHandshakeTransformArgs], None] = None
+
+    /// All configurable options with respect to the CONNECT packet sent by the client, including the will. These connect properties will be used for every connection attempt made by the client.
+    var connectOptions: ConnectPacket
+
+    /// How the MQTT5 client should behave with respect to MQTT sessions.
+    var sessionBehavior: ClientSessionBehaviorType
+
+    /// The additional controls for client behavior with respect to operation validation and flow control; these checks go beyond the base MQTT5 spec to respect limits of specific MQTT brokers.
+    var extendedValidationAndFlowControlOptions: ExtendedValidationAndFlowControlOptions
+
+    /// Returns how disconnects affect the queued and in-progress operations tracked by the client.  Also controls how new operations are handled while the client is not connected.  In particular, if the client is not connected, then any operation that would be failed on disconnect (according to these rules) will also be rejected.
+    var offline_queue_behavior: ClientOperationQueueBehaviorType
+
+    /// How the reconnect delay is modified in order to smooth out the distribution of reconnection attempt timepoints for a large set of reconnecting clients.
+    var retryJitterMode: ExponentialBackoffJitterMode
+
+    /// The minimum amount of time to wait to reconnect after a disconnect. Exponential backoff is performed with jitter after each connection failure.
+    var minReconnectDelayMs: Int
+
+    /// The maximum amount of time to wait to reconnect after a disconnect.  Exponential backoff is performed with jitter after each connection failure.
+    var maxReconnectDelayMs: Int
+
+    /// The amount of time that must elapse with an established connection before the reconnect delay is reset to the minimum. This helps alleviate bandwidth-waste in fast reconnect cycles due to permission failures on operations.
+    var minConnectedTimeToResetReconnectDelay_ms: Int
+
+    /// The time interval to wait after sending a PINGREQ for a PINGRESP to arrive. If one does not arrive, the client will close the current connection.
+    var pingTimeoutMs: Int
+
+    /// The time interval to wait after sending a CONNECT request for a CONNACK to arrive.  If one does not arrive, the connection will be shut down.
+    var connackTimeoutMs: Int
+
+    /// The time interval to wait for an ack after sending a QoS 1+ PUBLISH, SUBSCRIBE, or UNSUBSCRIBE before failing the operation.
+    var ackTimeoutSec: Int
+
+    /// All configurable options with respect to client topic aliasing behavior.
+    var topicAliasingOptions: TopicAliasingOptions
+
+    /// Callback for all publish packets received by client.
+    // onPublish_callback_fn: Callable[[PublishReceivedData], None]
+
+    /// Callback for Lifecycle Event Stopped.
+    // onLifecycleEventStopped_fn: Callable[[LifecycleStoppedData], None]
+
+    /// Callback for Lifecycle Event Attempting Connect.
+    // onLifecycleEventAttemptingConnectFn: Callable[[LifecycleAttemptingConnectData], None]
+
+    /// Callback for Lifecycle Event Connection Success.
+    // onLifecycleEventConnectionSuccessFn: Callable[[LifecycleConnectSuccessData], None]
+
+    /// Callback for Lifecycle Event Connection Failure.
+    // onLifecycleEventConnectionFailureFn: Callable[[LifecycleConnectFailureData], None]
+
+    /// Callback for Lifecycle Event Disconnection.
+    // onLifecycleEventDisconnectionFn: Callable[[LifecycleDisconnectData], None]
+}
