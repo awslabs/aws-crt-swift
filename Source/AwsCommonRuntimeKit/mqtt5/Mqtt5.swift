@@ -7,14 +7,14 @@ public enum QoS: Int {
 
     /// The message is delivered according to the capabilities of the underlying network. No response is sent by the
     /// receiver and no retry is performed by the sender. The message arrives at the receiver either once or not at all.
-    case AT_MOST_ONCE = 0
+    case atMostOnce = 0
 
     /// A level of service that ensures that the message arrives at the receiver at least once.
-    case AT_LEAST_ONCE = 1
+    case atLeastOnce = 1
 
     /// A level of service that ensures that the message arrives at the receiver exactly once.
     /// Note that this client does not currently support QoS 2 as of (March 2024)
-    case EXACTLY_ONCE = 2
+    case exactlyOnce = 2
 }
 
 /// Server return code for connect attempts.
@@ -22,77 +22,77 @@ public enum QoS: Int {
 public enum ConnectReasonCode: Int {
 
     /// Returned when the connection is accepted.
-    case SUCCESS = 0
+    case success = 0
 
     /// Returned when the server has a failure but does not want to specify a reason or none
     /// of the other reason codes apply.
-    case UNSPECIFIED_ERROR = 128
+    case unspecifiedError = 128
 
     /// Returned when data in the CONNECT packet could not be correctly parsed by the server.
-    case MALFORMED_PACKET = 129
+    case malformedPacket = 129
 
     /// Returned when data in the CONNECT packet does not conform to the MQTT5 specification requirements.
-    case PROTOCOL_ERROR = 130
+    case protocolError = 130
 
     /// Returned when the CONNECT packet is valid but was not accepted by the server.
-    case IMPLEMENTATION_SPECIFIC_ERROR = 131
+    case implementationSpecificError = 131
 
     /// Returned when the server does not support MQTT5 protocol version specified in the connection.
-    case UNSUPPORTED_PROTOCOL_VERSION = 132
+    case unsopportedProtocolVersion = 132
 
     /// Returned when the client identifier in the CONNECT packet is a valid string but not one that
     /// is allowed on the server.
-    case CLIENT_IDENTIFIER_NOT_VALID = 133
+    case clientIdentifierNotValid = 133
 
     /// Returned when the server does not accept the username and/or password specified by the client
     /// in the connection packet.
-    case BAD_USERNAME_OR_PASSWORD = 134
+    case badUsernameOrPassword = 134
 
     /// Returned when the client is not authorized to connect to the server.
-    case NOT_AUTHORIZED = 135
+    case notAuthorized = 135
 
     /// Returned when the MQTT5 server is not available.
-    case SERVER_UNAVAILABLE = 136
+    case serverUnavailable = 136
 
     /// Returned when the server is too busy to make a connection. It is recommended that the client try again later.
-    case SERVER_BUSY = 137
+    case serverBusy = 137
 
     /// Returned when the client has been banned by the server.
-    case BANNED = 138
+    case banned = 138
 
     /// Returned when the authentication method used in the connection is either not supported on the server or it does
     /// not match the authentication method currently in use in the CONNECT packet.
-    case BAD_AUTHENTICATION_METHOD = 140
+    case badAuthenticationMethod = 140
 
     /// Returned when the Will topic name sent in the CONNECT packet is correctly formed, but is not accepted by
     /// the server.
-    case TOPIC_NAME_INVALID = 144
+    case topicNameInvalid = 144
 
     /// Returned when the CONNECT packet exceeded the maximum permissible size on the server.
-    case PACKET_TOO_LARGE = 149
+    case packetTooLarge = 149
 
     /// Returned when the quota limits set on the server have been met and/or exceeded.
-    case QUOTA_EXCEEDED = 151
+    case quotaExceeded = 151
 
     /// Returned when the Will payload in the CONNECT packet does not match the specified payload format indicator.
-    case PAYLOAD_FORMAT_INVALID = 153
+    case payloadFormatInvalid = 153
 
     /// Returned when the server does not retain messages but the CONNECT packet on the client had Will retain enabled.
-    case RETAIN_NOT_SUPPORTED = 154
+    case retainNotSupported = 154
 
     /// Returned when the server does not support the QOS setting set in the Will QOS in the CONNECT packet.
-    case QOS_NOT_SUPPORTED = 155
+    case qosNotSupported = 155
 
     /// Returned when the server is telling the client to temporarily use another server instead of the one they
     /// are trying to connect to.
-    case USE_ANOTHER_SERVER = 156
+    case useAnotherServer = 156
 
     /// Returned when the server is telling the client to permanently use another server instead of the one they
     /// are trying to connect to.
-    case SERVER_MOVED = 157
+    case serverMoved = 157
 
     /// Returned when the server connection rate limit has been exceeded.
-    case CONNECTION_RATE_EXCEEDED = 159
+    case connectionRateExceeded = 159
 }
 
 /// Reason code inside DISCONNECT packets.  Helps determine why a connection was terminated.
@@ -102,131 +102,131 @@ public enum DisconnectReasonCode: Int {
     /// Returned when the remote endpoint wishes to disconnect normally. Will not trigger the publish of a Will message if a
     /// Will message was configured on the connection.
     /// May be sent by the client or server.
-    case NORMAL_DISCONNECTION = 0
+    case normalDisconnection = 0
 
     /// Returns when the client wants to disconnect but requires that the server publish the Will message configured
     /// on the connection.
     /// May only be sent by the client.
-    case DISCONNECT_WITH_WILL_MESSAGE = 4
+    case disconnectWithWillMessage = 4
 
     /// Returned when the connection was closed but the sender does not want to specify a reason or none
     /// of the other reason codes apply.
     /// May be sent by the client or the server.
-    case UNSPECIFIED_ERROR = 128
+    case unspecifiedError = 128
 
     /// Indicates the remote endpoint received a packet that does not conform to the MQTT specification.
     /// May be sent by the client or the server.
-    case MALFORMED_PACKET = 129
+    case malformedPacket = 129
 
     /// Returned when an unexpected or out-of-order packet was received by the remote endpoint.
     /// May be sent by the client or the server.
-    case PROTOCOL_ERROR = 130
+    case protocolError = 130
 
     /// Returned when a valid packet was received by the remote endpoint, but could not be processed by the current implementation.
     /// May be sent by the client or the server.
-    case IMPLEMENTATION_SPECIFIC_ERROR = 131
+    case implementationSpecificError = 131
 
     /// Returned when the remote endpoint received a packet that represented an operation that was not authorized within
     /// the current connection.
     /// May only be sent by the server.
-    case NOT_AUTHORIZED = 135
+    case notAuthorized = 135
 
     /// Returned when the server is busy and cannot continue processing packets from the client.
     /// May only be sent by the server.
-    case SERVER_BUSY = 137
+    case serverBusy = 137
 
     /// Returned when the server is shutting down.
     /// May only be sent by the server.
-    case SERVER_SHUTTING_DOWN = 139
+    case serverShuttingDown = 139
 
     /// Returned when the server closes the connection because no packet from the client has been received in
     /// 1.5 times the KeepAlive time set when the connection was established.
     /// May only be sent by the server.
-    case KEEP_ALIVE_TIMEOUT = 141
+    case keepAliveTimout = 141
 
     /// Returned when the server has established another connection with the same client ID as a client's current
     /// connection, causing the current client to become disconnected.
     /// May only be sent by the server.
-    case SESSION_TAKEN_OVER = 142
+    case sessionTakenOver = 142
 
     /// Returned when the topic filter name is correctly formed but not accepted by the server.
     /// May only be sent by the server.
-    case TOPIC_FILTER_INVALID = 143
+    case topicFilterInvalid = 143
 
     /// Returned when topic name is correctly formed, but is not accepted.
     /// May be sent by the client or the server.
-    case TOPIC_NAME_INVALID = 144
+    case topicNameInvalid = 144
 
     /// Returned when the remote endpoint reached a state where there were more in-progress QoS1+ publishes then the
     /// limit it established for itself when the connection was opened.
     /// May be sent by the client or the server.
-    case RECEIVE_MAXIMUM_EXCEEDED = 147
+    case receiveMaximumExceeded = 147
 
     /// Returned when the remote endpoint receives a PUBLISH packet that contained a topic alias greater than the
     /// maximum topic alias limit that it established for itself when the connection was opened.
     /// May be sent by the client or the server.
-    case TOPIC_ALIAS_INVALID = 148
+    case topicAliasInvalid = 148
 
     /// Returned when the remote endpoint received a packet whose size was greater than the maximum packet size limit
     /// it established for itself when the connection was opened.
     /// May be sent by the client or the server.
-    case PACKET_TOO_LARGE = 149
+    case packetTooLarge = 149
 
     /// Returned when the remote endpoint's incoming data rate was too high.
     /// May be sent by the client or the server.
-    case MESSAGE_RATE_TOO_HIGH = 150
+    case messageRateTooHigh = 150
 
     /// Returned when an internal quota of the remote endpoint was exceeded.
     /// May be sent by the client or the server.
-    case QUOTA_EXCEEDED = 151
+    case quotaExceeded = 151
 
     /// Returned when the connection was closed due to an administrative action.
     /// May be sent by the client or the server.
-    case ADMINISTRATIVE_ACTION = 152
+    case administrativeAction = 152
 
     /// Returned when the remote endpoint received a packet where payload format did not match the format specified
     /// by the payload format indicator.
     /// May be sent by the client or the server.
-    case PAYLOAD_FORMAT_INVALID = 153
+    case payloadFormatInvalid = 153
 
     /// Returned when the server does not support retained messages.
     /// May only be sent by the server.
-    case RETAIN_NOT_SUPPORTED = 154
+    case retainNotSupported = 154
 
     /// Returned when the client sends a QoS that is greater than the maximum QoS established when the connection was
     /// opened.
     /// May only be sent by the server.
-    case QOS_NOT_SUPPORTED = 155
+    case qosNotSupported = 155
 
     /// Returned by the server to tell the client to temporarily use a different server.
     /// May only be sent by the server.
-    case USE_ANOTHER_SERVER = 156
+    case useAnotherServer = 156
 
     /// Returned by the server to tell the client to permanently use a different server.
     /// May only be sent by the server.
-    case SERVER_MOVED = 157
+    case serverMoved = 157
 
     /// Returned by the server to tell the client that shared subscriptions are not supported on the server.
     /// May only be sent by the server.
-    case SHARED_SUBSCRIPTIONS_NOT_SUPPORTED = 158
+    case sharedSubscriptionsNotSupported = 158
 
     /// Returned when the server disconnects the client due to the connection rate being too high.
     /// May only be sent by the server.
-    case CONNECTION_RATE_EXCEEDED = 159
+    case connectionRateExceeded = 159
 
     /// Returned by the server when the maximum connection time authorized for the connection was exceeded.
     /// May only be sent by the server.
-    case MAXIMUM_CONNECT_TIME = 160
+    case maximumConnectTime = 160
 
     /// Returned by the server when it received a SUBSCRIBE packet with a subscription identifier, but the server does
     /// not support subscription identifiers.
     /// May only be sent by the server.
-    case SUBSCRIPTION_IDENTIFIERS_NOT_SUPPORTED = 161
+    case subscriptionIdentifiersNotSupported = 161
 
     /// Returned by the server when it received a SUBSCRIBE packet with a wildcard topic filter, but the server does
     /// not support wildcard topic filters.
     /// May only be sent by the server.
-    case WILDCARD_SUBSCRIPTIONS_NOT_SUPPORTED = 162
+    case wildcardSubscriptionsNotSupported = 162
 }
 
 /// Reason code inside PUBACK packets that indicates the result of the associated PUBLISH request.
@@ -235,41 +235,41 @@ public enum PubackReasonCode: Int {
 
     /// Returned when the (QoS 1) publish was accepted by the recipient.
     /// May be sent by the client or the server.
-    case SUCCESS = 0
+    case success = 0
 
     /// Returned when the (QoS 1) publish was accepted but there were no matching subscribers.
     /// May only be sent by the server.
-    case NO_MATCHING_SUBSCRIBERS = 16
+    case noMatchingSubscribers = 16
 
     /// Returned when the (QoS 1) publish was not accepted and the receiver does not want to specify a reason or none
     /// of the other reason codes apply.
     /// May be sent by the client or the server.
-    case UNSPECIFIED_ERROR = 128
+    case unspecifiedError = 128
 
     /// Returned when the (QoS 1) publish was valid but the receiver was not willing to accept it.
     /// May be sent by the client or the server.
-    case IMPLEMENTATION_SPECIFIC_ERROR = 131
+    case implementationSpecificError = 131
 
     /// Returned when the (QoS 1) publish was not authorized by the receiver.
     /// May be sent by the client or the server.
-    case NOT_AUTHORIZED = 135
+    case notAuthorized = 135
 
     /// Returned when the topic name was valid but the receiver was not willing to accept it.
     /// May be sent by the client or the server.
-    case TOPIC_NAME_INVALID = 144
+    case topicNameInvalid = 144
 
     /// Returned when the packet identifier used in the associated PUBLISH was already in use.
     /// This can indicate a mismatch in the session state between client and server.
     /// May be sent by the client or the server.
-    case PACKET_IDENTIFIER_IN_USE = 145
+    case packetIdentifierInUse = 145
 
     /// Returned when the associated PUBLISH failed because an internal quota on the recipient was exceeded.
     /// May be sent by the client or the server.
-    case QUOTA_EXCEEDED = 151
+    case quotaExceeded = 151
 
     /// Returned when the PUBLISH packet's payload format did not match its payload format indicator property.
     /// May be sent by the client or the server.
-    case case PAYLOAD_FORMAT_INVALID = 153
+    case payloadFormatInvalid = 153
 }
 
 /// Reason code inside SUBACK packet payloads.
@@ -278,44 +278,44 @@ public enum PubackReasonCode: Int {
 public enum SubackReasonCode: Int {
 
     /// Returned when the subscription was accepted and the maximum QoS sent will be QoS 0.
-    case GRANTED_QOS_0 = 0
+    case grantedQos0 = 0
 
     /// Returned when the subscription was accepted and the maximum QoS sent will be QoS 1.
-    case GRANTED_QOS_1 = 1
+    case grantedQos1 = 1
 
     /// Returned when the subscription was accepted and the maximum QoS sent will be QoS 2.
-    case GRANTED_QOS_2 = 2
+    case grantedQos2 = 2
 
     /// Returned when the connection was closed but the sender does not want to specify a reason or none
     /// of the other reason codes apply.
-    case UNSPECIFIED_ERROR = 128
+    case unspecifiedError = 128
 
     /// Returned when the subscription was valid but the server did not accept it.
-    case IMPLEMENTATION_SPECIFIC_ERROR = 131
+    case implementationSpecificError = 131
 
     /// Returned when the client was not authorized to make the subscription on the server.
-    case NOT_AUTHORIZED = 135
+    case notAuthorized = 135
 
     /// Returned when the subscription topic filter was correctly formed but not allowed for the client.
-    case TOPIC_FILTER_INVALID = 143
+    case topicFilterInvalid = 143
 
     /// Returned when the packet identifier was already in use on the server.
-    case PACKET_IDENTIFIER_IN_USE = 145
+    case packetIdentifierInUse = 145
 
     /// Returned when a subscribe-related quota set on the server was exceeded.
-    case QUOTA_EXCEEDED = 151
+    case quotaExceeded = 151
 
     /// Returned when the subscription's topic filter was a shared subscription and the server does not support
     /// shared subscriptions.
-    case SHARED_SUBSCRIPTIONS_NOT_SUPPORTED = 158
+    case sharedSubscriptionsNotSupported = 158
 
     /// Returned when the SUBSCRIBE packet contained a subscription identifier and the server does not support
     /// subscription identifiers.
-    case SUBSCRIPTION_IDENTIFIERS_NOT_SUPPORTED = 161
+    case subscriptionIdentifiersNotSupported = 161
 
     /// Returned when the subscription's topic filter contains a wildcard but the server does not support
     /// wildcard subscriptions.
-    case WILDCARD_SUBSCRIPTIONS_NOT_SUPPORTED = 162
+    case wildcardSubscriptionsNotSupported = 162
 }
 
 /// Reason codes inside UNSUBACK packet payloads that specify the results for each topic filter in the associated
@@ -324,47 +324,47 @@ public enum SubackReasonCode: Int {
 public enum UnsubackReasonCode: Int {
 
     /// Returned when the unsubscribe was successful and the client is no longer subscribed to the topic filter on the server.
-    case SUCCESS = 0
+    case success = 0
 
     /// Returned when the topic filter did not match one of the client's existing topic filters on the server.
-    case NO_SUBSCRIPTION_EXISTED = 17
+    case noSubscriptionExisted = 17
 
     /// Returned when the unsubscribe of the topic filter was not accepted and the server does not want to specify a
     /// reason or none of the other reason codes apply.
-    case UNSPECIFIED_ERROR = 128
+    case unspecifiedError = 128
 
     /// Returned when the topic filter was valid but the server does not accept an unsubscribe for it.
-    case IMPLEMENTATION_SPECIFIC_ERROR = 131
+    case implementationSpecificError = 131
 
     /// Returned when the client was not authorized to unsubscribe from that topic filter on the server.
-    case NOT_AUTHORIZED = 135
+    case notAuthorized = 135
 
     /// Returned when the topic filter was correctly formed but is not allowed for the client on the server.
-    case TOPIC_NAME_INVALID = 144
+    case topicNameInvalid = 144
 
     /// Returned when the packet identifier was already in use on the server.
-    case PACKET_IDENTIFIER_IN_USE = 145
+    case packetIdentifierInUse = 145
 }
 
 /// Controls how the mqtt client should behave with respect to MQTT sessions.
 public enum ClientSessionBehaviorType: Int {
 
     /// Default client session behavior. Maps to CLEAN.
-    case DEFAULT = 0
+    case default = 0
 
     /// Always ask for a clean session when connecting
-    case CLEAN = 1
+    case clean = 1
 
     /// Always attempt to rejoin an existing session after an initial connection success.
     /// Session rejoin requires an appropriate non-zero session expiry interval in the client's CONNECT options.
-    case REJOIN_POST_SUCCESS = 2
+    case rejoinPostSuccess = 2
 
     /// Always attempt to rejoin an existing session.  Since the client does not support durable session persistence,
     /// this option is not guaranteed to be spec compliant because any unacknowledged qos1 publishes (which are
     /// part of the client session state) will not be present on the initial connection.  Until we support
     /// durable session resumption, this option is technically spec-breaking, but useful.
     /// Always rejoin requires an appropriate non-zero session expiry interval in the client's CONNECT options.
-    case REJOIN_ALWAYS = 3
+    case rejoinAlways = 3
 }
 
 /// Additional controls for client behavior with respect to operation validation and flow control; these checks
@@ -372,7 +372,7 @@ public enum ClientSessionBehaviorType: Int {
 public enum ExtendedValidationAndFlowControlOptions: Int {
 
     /// Do not do any additional validation or flow control
-    case NONE = 0
+    case none = 0
 
     /// Apply additional client-side validation and operational flow control that respects the
     /// default AWS IoT Core limits.
@@ -384,7 +384,7 @@ public enum ExtendedValidationAndFlowControlOptions: Int {
     /// Also applies the following flow control:
     /// * Outbound throughput throttled to 512KB/s
     /// * Outbound publish TPS throttled to 100
-    case AWS_IOT_CORE_DEFAULTS = 1
+    case awsIotCoreDefaults = 1
 }
 
 /// Controls how disconnects affect the queued and in-progress operations tracked by the client.  Also controls
@@ -393,22 +393,24 @@ public enum ExtendedValidationAndFlowControlOptions: Int {
 public enum ClienOperationQueueBehaviorType: Int {
 
     /// Default client operation queue behavior. Maps to FAIL_QOS0_PUBLISH_ON_DISCONNECT.
-    case DEFAULT = 0
+    case default = 0
 
     /// Re-queues QoS 1+ publishes on disconnect; un-acked publishes go to the front while unprocessed publishes stay
     /// in place.  All other operations (QoS 0 publishes, subscribe, unsubscribe) are failed.
-    case FAIL_NON_QOS1_PUBLISH_ON_DISCONNECT = 1
+    case failNonQos1PublishOnDisconnect = 1
 
     /// QoS 0 publishes that are not complete at the time of disconnection are failed.  Un-acked QoS 1+ publishes are
     /// re-queued at the head of the line for immediate retransmission on a session resumption.  All other operations
     /// are requeued in original order behind any retransmissions.
-    case FAIL_QOS0_PUBLISH_ON_DISCONNECT = 2
+    case failQos0PublishOnDisconnect = 2
 
     /// All operations that are not complete at the time of disconnection are failed, except operations that
     /// the MQTT5 spec requires to be retransmitted (un-acked QoS1+ publishes).
-    case FAIL_ALL_ON_DISCONNECT = 3
+    case failAllOnDisconnect = 3
 }
 
+// TODO DEBUG enum exists in io/retryer/ExponentialBackoffJitterMode.swift
+/*
 /// Controls how the reconnect delay is modified in order to smooth out the distribution of reconnection attempt
 /// timepoints for a large set of reconnecting clients.
 /// See `Exponential Backoff and Jitter <https:///aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/>`_
@@ -427,16 +429,17 @@ public enum ExponentialBackoffJitterMode: Int {
     /// interval and a scaling (greater than 1) of the current backoff value
     case DECORRELATED = 3
 }
+*/
 
 /// Optional property describing a PUBLISH payload's format.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901111>`__ encoding values.
 public enum PayloadFormatIndicator: Int {
 
     /// The payload is arbitrary binary data
-    case AWS_MQTT5_PFI_BYTES = 0
+    case awsMqtt5PfiBytes = 0
 
     /// The payload is a well-formed utf-8 string value.
-    case AWS_MQTT5_PFI_UTF8 = 1
+    case awsMqtt5PfiUtf8 = 1
 }
 
 /// Configures how retained messages should be handled when subscribing with a topic filter that matches topics with
@@ -445,14 +448,14 @@ public enum PayloadFormatIndicator: Int {
 public enum RetainHandlingType: Int {
 
     /// The server should always send all retained messages on topics that match a subscription's filter.
-    case SEND_ON_SUBSCRIBE = 0
+    case sendOnSubscribe = 0
 
     /// The server should send retained messages on topics that match the subscription's filter, but only for the
     /// first matching subscription, per session.
-    case SEND_ON_SUBSCRIBE_IF_NEW = 1
+    case sendOnSubscribeIfNew = 1
 
     /// Subscriptions must not trigger any retained message publishes from the server.
-    case DONT_SEND = 2
+    case dontSend = 2
 }
 
 /// An enumeration that controls how the client applies topic aliasing to outbound publish packets.
@@ -460,21 +463,21 @@ public enum RetainHandlingType: Int {
 public enum OutboundTopicAliasBehaviorType: Int {
     /// Maps to Disabled.  This keeps the client from being broken (by default) if the broker
     /// topic aliasing implementation has a problem.
-    case DEFAULT = 0
+    case default = 0
 
     ///  Outbound aliasing is the user's responsibility.  Client will cache and use
     ///  previously-established aliases if they fall within the negotiated limits of the connection.
     ///  The user must still always submit a full topic in their publishes because disconnections disrupt
     ///  topic alias mappings unpredictably.  The client will properly use a requested alias when the most-recently-seen
     ///  binding for a topic alias value matches the alias and topic in the publish packet.
-    case MANUAL = 1
+    case manual = 1
 
     /// (Recommended) The client will ignore any user-specified topic aliasing and instead use an LRU cache to drive
     ///  alias usage.
-    case LRU = 2
+    case lru = 2
 
     /// Completely disable outbound topic aliasing.
-    case DISABLED = 3
+    case disabled = 3
 }
 
 /// An enumeration that controls whether or not the client allows the broker to send publishes that use topic
@@ -484,11 +487,11 @@ public enum InboundTopicAliasBehaviorType: Int {
 
     /// Maps to Disabled.  This keeps the client from being broken (by default) if the broker
     /// topic aliasing implementation has a problem.
-    case DEFAULT = 0
+    case default = 0
 
     /// Allow the server to send PUBLISH packets to the client that use topic aliasing
-    case ENABLED = 1
+    case enabled = 1
 
     /// Forbid the server from sending PUBLISH packets to the client that use topic aliasing
-    case DISABLED = 2
+    case disabled = 2
 }
