@@ -1,0 +1,60 @@
+name: ApplePlatformTest
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  AWS_SWIFT_SDK_USE_LOCAL_DEPS: 1
+
+jobs:
+  apple:
+    runs-on: ${{ matrix.runner }}
+    env:
+      DEVELOPER_DIR: /Applications/${{ matrix.xcode }}.app/Contents/Developer
+    strategy:
+      fail-fast: false
+      matrix:
+        # This matrix runs tests on iOS sim & Mac, on oldest & newest supported Xcodes
+        runner:
+          - macos-13-xlarge
+          - macos-14-xlarge
+        xcode:
+          - Xcode_14.1
+          - Xcode_15.2
+        destination:
+          - 'platform=iOS Simulator,OS=16.1,name=iPhone 14'
+          - 'platform=iOS Simulator,OS=17.2,name=iPhone 15'
+          - 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
+          - 'platform=tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
+          - 'platform=OS X'
+        exclude:
+          # Don't run old macOS with new Xcode
+          - runner: macos-13-xlarge
+            xcode: Xcode_15.2
+          # Don't run new macOS with old Xcode
+          - runner: macos-14-xlarge
+            xcode: Xcode_14.1
+          # Don't run old simulators with new Xcode
+          - destination: 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
+            xcode: Xcode_15.2
+          - destination: 'platform=iOS Simulator,OS=16.1,name=iPhone 14'
+            xcode: Xcode_15.2
+          # Don't run new simulators with old Xcode
+          - destination: 'platform=tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
+            xcode: Xcode_14.1
+          - destination: 'platform=iOS Simulator,OS=17.2,name=iPhone 15'
+            xcode: Xcode_14.1
+    steps:
+      - name: Checkout aws-sdk-swift
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Build and Run Protocol & Unit Tests
+        run: |
+          set -o pipefail && \
+          NSUnbufferedIO=YES xcodebuild \
+            -scheme aws-crt-swift-Package \
+            -destination '${{ matrix.destination }}' \
+            test 2>&1 \
+            | xcpretty
