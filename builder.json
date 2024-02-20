@@ -23,22 +23,37 @@
   "targets": {
     "ios": {
       "!build_steps": [
-        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS' test"
+        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS'"
       ]
     },
     "tvos": {
       "!build_steps": [
-        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=tvOS' test"
+        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=tvOS'"
       ]
     },
     "watchos": {
       "!build_steps": [
-        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=watchOS' test"
+        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=watchOS'"
       ]
     },
     "macos": {
       "+test_steps": [
        "./integ_test.sh"
+      ]
+    },
+    "ios": {
+      "+test_steps": [
+        "xcodebuild -scheme aws-crt-swift -destination 'generic/platform=iOS' test"
+      ]
+    },
+    "tvos": {
+      "+test_steps": [
+        "xcodebuild -scheme AwsCommonRuntimeKitTests -destination 'generic/platform=tvOS' test"
+      ]
+    },
+    "watchos": {
+      "+test_steps": [
+        "xcodebuild -scheme aws-crt-swift -destination 'generic/platform=watchOS' test"
       ]
     }
   }
