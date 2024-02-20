@@ -350,7 +350,7 @@ public enum UnsubackReasonCode: Int {
 public enum ClientSessionBehaviorType: Int {
 
     /// Default client session behavior. Maps to CLEAN.
-    case default = 0
+    case `default` = 0
 
     /// Always ask for a clean session when connecting
     case clean = 1
@@ -393,7 +393,7 @@ public enum ExtendedValidationAndFlowControlOptions: Int {
 public enum ClienOperationQueueBehaviorType: Int {
 
     /// Default client operation queue behavior. Maps to FAIL_QOS0_PUBLISH_ON_DISCONNECT.
-    case default = 0
+    case `default` = 0
 
     /// Re-queues QoS 1+ publishes on disconnect; un-acked publishes go to the front while unprocessed publishes stay
     /// in place.  All other operations (QoS 0 publishes, subscribe, unsubscribe) are failed.
@@ -441,7 +441,7 @@ public enum RetainHandlingType: Int {
 public enum OutboundTopicAliasBehaviorType: Int {
     /// Maps to Disabled.  This keeps the client from being broken (by default) if the broker
     /// topic aliasing implementation has a problem.
-    case default = 0
+    case `default` = 0
 
     ///  Outbound aliasing is the user's responsibility.  Client will cache and use
     ///  previously-established aliases if they fall within the negotiated limits of the connection.
@@ -465,7 +465,7 @@ public enum InboundTopicAliasBehaviorType: Int {
 
     /// Maps to Disabled.  This keeps the client from being broken (by default) if the broker
     /// topic aliasing implementation has a problem.
-    case default = 0
+    case `default` = 0
 
     /// Allow the server to send PUBLISH packets to the client that use topic aliasing
     case enabled = 1
