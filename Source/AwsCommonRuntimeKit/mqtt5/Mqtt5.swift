@@ -409,28 +409,6 @@ public enum ClienOperationQueueBehaviorType: Int {
     case failAllOnDisconnect = 3
 }
 
-// TODO DEBUG enum exists in io/retryer/ExponentialBackoffJitterMode.swift
-/*
-/// Controls how the reconnect delay is modified in order to smooth out the distribution of reconnection attempt
-/// timepoints for a large set of reconnecting clients.
-/// See `Exponential Backoff and Jitter <https:///aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/>`_
-public enum ExponentialBackoffJitterMode: Int {
-
-    /// Maps to Full
-    case DEFAULT = 0
-
-    /// Do not perform any randomization on the reconnect delay
-    case NONE = 1
-
-    /// Fully random between no delay and the current exponential backoff value.
-    case FULL = 2
-
-    /// Backoff is taken randomly from the interval between the base backoff
-    /// interval and a scaling (greater than 1) of the current backoff value
-    case DECORRELATED = 3
-}
-*/
-
 /// Optional property describing a PUBLISH payload's format.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901111>`__ encoding values.
 public enum PayloadFormatIndicator: Int {
