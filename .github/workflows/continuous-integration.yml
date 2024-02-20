@@ -1,8 +1,9 @@
 name: ApplePlatformTest
 
 on:
-  pull_request:
-  workflow_dispatch:
+  push:
+    branches-ignore:
+      - 'main'
 
 env:
   AWS_SWIFT_SDK_USE_LOCAL_DEPS: 1
