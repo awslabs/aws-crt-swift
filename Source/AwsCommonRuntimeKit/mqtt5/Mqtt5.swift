@@ -390,7 +390,7 @@ public enum ExtendedValidationAndFlowControlOptions: Int {
 /// Controls how disconnects affect the queued and in-progress operations tracked by the client.  Also controls
 /// how operations are handled while the client is not connected.  In particular, if the client is not connected,
 /// then any operation that would be failed on disconnect (according to these rules) will be rejected.
-public enum ClienOperationQueueBehaviorType: Int {
+public enum ClientOperationQueueBehaviorType: Int {
 
     /// Default client operation queue behavior. Maps to FAIL_QOS0_PUBLISH_ON_DISCONNECT.
     case `default` = 0
@@ -472,6 +472,22 @@ public enum InboundTopicAliasBehaviorType: Int {
 
     /// Forbid the server from sending PUBLISH packets to the client that use topic aliasing
     case disabled = 2
+}
+
+/// Configuration for all client topic aliasing behavior.
+public struct TopicAliasingOptions {
+
+    /// Controls what kind of outbound topic aliasing behavior the client should attempt to use.  If topic aliasing is not supported by the server, this setting has no effect and any attempts to directly manipulate the topic alias id in outbound publishes will be ignored.  If left undefined, then outbound topic aliasing is disabled.
+    outbound_behavior: OutboundTopicAliasBehaviorType
+
+    /// If outbound topic aliasing is set to LRU, this controls the maximum size of the cache.  If outbound topic aliasing is set to LRU and this is zero or undefined, a sensible default is used (25).  If outbound topic aliasing is not set to LRU, then this setting has no effect.
+    outbound_cache_max_size: Int
+
+    /// Controls whether or not the client allows the broker to use topic aliasing when sending publishes.  Even if inbound topic aliasing is enabled, it is up to the server to choose whether or not to use it.  If left undefined, then inbound topic aliasing is disabled.
+    inbound_behavior: InboundTopicAliasBehaviorType
+
+    /// If inbound topic aliasing is enabled, this will control the size of the inbound alias cache.  If inbound aliases are enabled and this is zero or undefined, then a sensible default will be used (25).  If inbound aliases are disabled, this setting has no effect.  Behaviorally, this value overrides anything present in the topic_alias_maximum field of the CONNECT packet options.
+    inbound_cache_max_size: Int
 }
 
 /// Mqtt behavior settings that are dynamically negotiated as part of the CONNECT/CONNACK exchange.
