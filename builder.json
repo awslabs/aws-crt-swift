@@ -6,6 +6,7 @@
     "swift --version",
     "swift build -c release"
   ],
+  "run_tests": true,
   "test_steps": [
     "swift test"
   ],
@@ -39,21 +40,6 @@
     "macos": {
       "+test_steps": [
        "./integ_test.sh"
-      ]
-    },
-    "ios": {
-      "+test_steps": [
-        "xcodebuild -scheme aws-crt-swift-Package -destination 'generic/platform=iOS' test"
-      ]
-    },
-    "tvos": {
-      "+test_steps": [
-        "xcodebuild -scheme aws-crt-swift-Package -destination 'generic/platform=tvOS' test"
-      ]
-    },
-    "watchos": {
-      "+test_steps": [
-        "xcodebuild -scheme aws-crt-swift-Package -destination 'generic/platform=watchOS' test"
       ]
     }
   }
