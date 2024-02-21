@@ -588,6 +588,12 @@ public struct PublishPacket {
     var userProperties: [UserProperty]
 }
 
+
+/// defines signature of the Publish callback
+typealias onPublishCallback = () -> Void
+
+typealias onLifecycleEventStopped = () -> Void
+
 /// Data model of an `MQTT5 CONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901033>`_ packet.
 public struct ConnectPacket {
 
@@ -624,9 +630,8 @@ public struct ConnectPacket {
     /// The definition of a message to be published when the connection's session is destroyed by the server or when the will delay interval has elapsed, whichever comes first.  If None, then nothing will be sent.
     var will: PublishPacket
 
-    // TODO implement userProperties
     /// List of MQTT5 user properties included with the packet.
-    var userProperties = [UserProperty]()
+    var userProperties = [UserProperty]
 }
 
 /// Configuration for the creation of MQTT5 clients
@@ -690,10 +695,12 @@ public struct ClientOptions {
     var topicAliasingOptions: TopicAliasingOptions
 
     /// Callback for all publish packets received by client.
+    var onPublishCallbackFn: onPublishCallback?
     // onPublish_callback_fn: Callable[[PublishReceivedData], None]
 
     /// Callback for Lifecycle Event Stopped.
-    // onLifecycleEventStopped_fn: Callable[[LifecycleStoppedData], None]
+    onLifecycleEventStoppedFn: onLifecycleEventStopped?
+    // onLifecycleEventStoppedFn: Callable[[LifecycleStoppedData], None]
 
     /// Callback for Lifecycle Event Attempting Connect.
     // onLifecycleEventAttemptingConnectFn: Callable[[LifecycleAttemptingConnectData], None]
