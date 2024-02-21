@@ -15,6 +15,18 @@ public class TLSContextOptions: CStruct {
         try TLSContextOptions(mtlsPkcs12FromPath: path, password: password)
     }
 
+    public static func makeMtlsFromRawData(
+        certificateData: String,
+        privateKeyData: String) throws -> TLSContextOptions {
+        try TLSContextOptions(certificateData: privateKeyData, privateKeyData: privateKeyData)
+    }
+
+    public static func makeMtlsFromFilePath(
+        certificatePath: String,
+        privateKeyPath: String) throws -> TLSContextOptions {
+        try TLSContextOptions(certificatePath: certificatePath, privateKeyPath: privateKeyPath)
+    }
+
     init() {
         self.rawValue = allocator.allocate(capacity: 1)
         aws_tls_ctx_options_init_default_client(rawValue, allocator.rawValue)
@@ -29,6 +41,32 @@ public class TLSContextOptions: CStruct {
                                                                   path,
                                                                   passwordCursorPointer)
         }) != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+    }
+
+    init(certificateData cert_data: String,
+         privateKeyData private_key_data: String) throws {
+        self.rawValue = allocator.allocate(capacity: 1)
+        if( cert_data.withByteCursorPointer { certificateByteCursor in
+            private_key_data.withByteCursorPointer { privatekeyByteCursor in
+                aws_tls_ctx_options_init_client_mtls(rawValue,
+                                                     allocator.rawValue,
+                                                     certificateByteCursor,
+                                                     privatekeyByteCursor)
+            }
+        } != AWS_OP_SUCCESS) {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+    }
+
+    init(certificatePath cert_path: String,
+         privateKeyPath private_path: String) throws {
+        self.rawValue = allocator.allocate(capacity: 1)
+        if aws_tls_ctx_options_init_client_mtls_from_path(rawValue,
+                                                           allocator.rawValue,
+                                                           cert_path,
+                                                           private_path) != AWS_OP_SUCCESS {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
