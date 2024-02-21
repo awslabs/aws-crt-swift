@@ -631,7 +631,7 @@ public struct ConnectPacket {
     var will: PublishPacket
 
     /// List of MQTT5 user properties included with the packet.
-    var userProperties = [UserProperty]
+    var userProperties: [UserProperty]
 }
 
 /// Configuration for the creation of MQTT5 clients
@@ -699,7 +699,7 @@ public struct ClientOptions {
     // onPublish_callback_fn: Callable[[PublishReceivedData], None]
 
     /// Callback for Lifecycle Event Stopped.
-    onLifecycleEventStoppedFn: onLifecycleEventStopped?
+    var onLifecycleEventStoppedFn: onLifecycleEventStopped?
     // onLifecycleEventStoppedFn: Callable[[LifecycleStoppedData], None]
 
     /// Callback for Lifecycle Event Attempting Connect.
