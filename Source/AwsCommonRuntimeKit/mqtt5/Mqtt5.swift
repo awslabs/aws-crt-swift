@@ -579,13 +579,13 @@ public struct PublishPacket {
     var correlationData: String // Unicode objects are converted to C Strings using 'utf-8' encoding
 
     /// The subscription identifiers of all the subscriptions this message matched.
-    var subscriptionIdentifiers: [Int]() // ignore attempts to set but provide in received packets
+    var subscriptionIdentifiers: [Int] // ignore attempts to set but provide in received packets
 
     /// Property specifying the content type of the payload.  Not internally meaningful to MQTT5.
     var contentType: String
 
     /// List of MQTT5 user properties included with the packet.
-    var userProperties: [UserProperty]()
+    var userProperties: [UserProperty]
 }
 
 /// Data model of an `MQTT5 CONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901033>`_ packet.
