@@ -538,6 +538,98 @@ public struct NegotiatedSettings {
     var clientId: String
 }
 
+/// Mqtt5 User Property
+public struct UserProperty {
+
+    /// Property name
+    var name: String
+
+    /// Property value
+    var value: String
+}
+
+/// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet
+public struct PublishPacket {
+
+    /// The payload of the publish message.
+    var payload: String // Unicode objects are converted to C Strings using 'utf-8' encoding
+
+    /// The MQTT quality of service associated with this PUBLISH packet.
+    var qos: QoS = QoS.atMostOnce
+
+    /// True if this is a retained message, false otherwise.
+    var retain: Bool = false
+
+    /// The topic associated with this PUBLISH packet.
+    var topic: String
+
+    /// Property specifying the format of the payload data. The mqtt5 client does not enforce or use this value in a meaningful way.
+    var payloadFormatIndicator: PayloadFormatIndicator
+
+    /// Sent publishes - indicates the maximum amount of time allowed to elapse for message delivery before the server should instead delete the message (relative to a recipient). Received publishes - indicates the remaining amount of time (from the server's perspective) before the message would have been deleted relative to the subscribing client. If left None, indicates no expiration timeout.
+    var messageExpiryIntervalSec: Int
+
+    /// An integer value that is used to identify the Topic instead of using the Topic Name.  On outbound publishes, this will only be used if the outbound topic aliasing behavior has been set to Manual.
+    var topicAlias: Int
+
+    /// Opaque topic string intended to assist with request/response implementations.  Not internally meaningful to MQTT5 or this client.
+    var responseTopic: String
+
+    /// Opaque binary data used to correlate between publish messages, as a potential method for request-response implementation.  Not internally meaningful to MQTT5.
+    var correlationData: String // Unicode objects are converted to C Strings using 'utf-8' encoding
+
+    /// The subscription identifiers of all the subscriptions this message matched.
+    var subscriptionIdentifiers: [Int]() // ignore attempts to set but provide in received packets
+
+    /// Property specifying the content type of the payload.  Not internally meaningful to MQTT5.
+    var contentType: String
+
+    /// List of MQTT5 user properties included with the packet.
+    var userProperties: [UserProperty]()
+}
+
+/// Data model of an `MQTT5 CONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901033>`_ packet.
+public struct ConnectPacket {
+
+    /// The maximum time interval, in seconds, that is permitted to elapse between the point at which the client finishes transmitting one MQTT packet and the point it starts sending the next.  The client will use PINGREQ packets to maintain this property. If the responding CONNACK contains a keep alive property value, then that is the negotiated keep alive value. Otherwise, the keep alive sent by the client is the negotiated value.
+    var keepAliveIntervalSec: Int
+
+    /// A unique string identifying the client to the server.  Used to restore session state between connections. If left empty, the broker will auto-assign a unique client id.  When reconnecting, the mqtt5 client will always use the auto-assigned client id.
+    var clientId: String
+
+    /// A string value that the server may use for client authentication and authorization.
+    var username: String
+
+    /// Opaque binary data that the server may use for client authentication and authorization.
+    var password: String
+
+    /// A time interval, in seconds, that the client requests the server to persist this connection's MQTT session state for.  Has no meaning if the client has not been configured to rejoin sessions.  Must be non-zero in order to successfully rejoin a session. If the responding CONNACK contains a session expiry property value, then that is the negotiated session expiry value.  Otherwise, the session expiry sent by the client is the negotiated value.
+    var sessionExpiryIntervalSec: Int
+
+    /// If true, requests that the server send response information in the subsequent CONNACK.  This response information may be used to set up request-response implementations over MQTT, but doing so is outside the scope of the MQTT5 spec and client.
+    var requestResponseInformation: Bool
+
+    /// If true, requests that the server send additional diagnostic information (via response string or user properties) in DISCONNECT or CONNACK packets from the server.
+    var requestProblemInformation: Bool
+
+    /// Notifies the server of the maximum number of in-flight QoS 1 and 2 messages the client is willing to handle.  If omitted or None, then no limit is requested.
+    var receiveMaximum: Int
+
+    /// Notifies the server of the maximum packet size the client is willing to handle.  If omitted or None, then no limit beyond the natural limits of MQTT packet size is requested.
+    var maximumPacketSize: Int
+
+    /// A time interval, in seconds, that the server should wait (for a session reconnection) before sending the will message associated with the connection's session.  If omitted or None, the server will send the will when the associated session is destroyed.  If the session is destroyed before a will delay interval has elapsed, then the will must be sent at the time of session destruction.
+    var willDelayIntervalSec: Int
+
+    /// The definition of a message to be published when the connection's session is destroyed by the server or when the will delay interval has elapsed, whichever comes first.  If None, then nothing will be sent.
+    var will: PublishPacket
+
+    // TODO implement userProperties
+    /// List of MQTT5 user properties included with the packet.
+    var userProperties = [UserProperty]()
+}
+
+/// Configuration for the creation of MQTT5 clients
 public struct ClientOptions {
     /// Host name of the MQTT server to connect to.
     var hostName: String
@@ -557,11 +649,12 @@ public struct ClientOptions {
     /// The (tunneling) HTTP proxy usage when establishing MQTT connections
     var httpProxyOptions: HTTPProxyOptions
 
+    // TODO WebSocket implementation
     /// This callback allows a custom transformation of the HTTP request that acts as the websocket handshake. Websockets will be used if this is set to a valid transformation callback.  To use websockets but not perform a transformation, just set this as a trivial completion callback.  If None, the connection will be made with direct MQTT.
     // var websocketHandshakeTransform: Callable[[WebsocketHandshakeTransformArgs], None] = None
 
     /// All configurable options with respect to the CONNECT packet sent by the client, including the will. These connect properties will be used for every connection attempt made by the client.
-    // var connectOptions: ConnectPacket
+    var connectOptions: ConnectPacket
 
     /// How the MQTT5 client should behave with respect to MQTT sessions.
     var sessionBehavior: ClientSessionBehaviorType
