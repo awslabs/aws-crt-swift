@@ -478,16 +478,16 @@ public enum InboundTopicAliasBehaviorType: Int {
 public struct TopicAliasingOptions {
 
     /// Controls what kind of outbound topic aliasing behavior the client should attempt to use.  If topic aliasing is not supported by the server, this setting has no effect and any attempts to directly manipulate the topic alias id in outbound publishes will be ignored.  If left undefined, then outbound topic aliasing is disabled.
-    var outbound_behavior: OutboundTopicAliasBehaviorType
+    var outboundBehavior: OutboundTopicAliasBehaviorType
 
     /// If outbound topic aliasing is set to LRU, this controls the maximum size of the cache.  If outbound topic aliasing is set to LRU and this is zero or undefined, a sensible default is used (25).  If outbound topic aliasing is not set to LRU, then this setting has no effect.
-    var outbound_cache_max_size: Int
+    var outboundCacheMaxSize: Int
 
     /// Controls whether or not the client allows the broker to use topic aliasing when sending publishes.  Even if inbound topic aliasing is enabled, it is up to the server to choose whether or not to use it.  If left undefined, then inbound topic aliasing is disabled.
-    var inbound_behavior: InboundTopicAliasBehaviorType
+    var inboundBehavior: InboundTopicAliasBehaviorType
 
     /// If inbound topic aliasing is enabled, this will control the size of the inbound alias cache.  If inbound aliases are enabled and this is zero or undefined, then a sensible default will be used (25).  If inbound aliases are disabled, this setting has no effect.  Behaviorally, this value overrides anything present in the topic_alias_maximum field of the CONNECT packet options.
-    var inbound_cache_max_size: Int
+    var inboundCacheMaxSize: Int
 }
 
 /// Mqtt behavior settings that are dynamically negotiated as part of the CONNECT/CONNACK exchange.
@@ -589,10 +589,11 @@ public struct PublishPacket {
 }
 
 
-/// defines signature of the Publish callback
-typealias onPublishCallback = () -> Void
+/// Defines signature of the Publish callback
+typealias OnPublishCallback = () -> Void
 
-typealias onLifecycleEventStopped = () -> Void
+/// Defines signature of the Lifecycle Event Stopped callback
+typealias OnLifecycleEventStopped = () -> Void
 
 /// Data model of an `MQTT5 CONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901033>`_ packet.
 public struct ConnectPacket {
@@ -668,7 +669,7 @@ public struct ClientOptions {
     var extendedValidationAndFlowControlOptions: ExtendedValidationAndFlowControlOptions
 
     /// Returns how disconnects affect the queued and in-progress operations tracked by the client.  Also controls how new operations are handled while the client is not connected.  In particular, if the client is not connected, then any operation that would be failed on disconnect (according to these rules) will also be rejected.
-    var offline_queue_behavior: ClientOperationQueueBehaviorType
+    var offlineQueueBehavior: ClientOperationQueueBehaviorType
 
     /// How the reconnect delay is modified in order to smooth out the distribution of reconnection attempt timepoints for a large set of reconnecting clients.
     var retryJitterMode: ExponentialBackoffJitterMode
@@ -680,7 +681,7 @@ public struct ClientOptions {
     var maxReconnectDelayMs: Int
 
     /// The amount of time that must elapse with an established connection before the reconnect delay is reset to the minimum. This helps alleviate bandwidth-waste in fast reconnect cycles due to permission failures on operations.
-    var minConnectedTimeToResetReconnectDelay_ms: Int
+    var minConnectedTimeToResetReconnectDelayMs: Int
 
     /// The time interval to wait after sending a PINGREQ for a PINGRESP to arrive. If one does not arrive, the client will close the current connection.
     var pingTimeoutMs: Int
@@ -695,12 +696,10 @@ public struct ClientOptions {
     var topicAliasingOptions: TopicAliasingOptions
 
     /// Callback for all publish packets received by client.
-    var onPublishCallbackFn: onPublishCallback?
-    // onPublish_callback_fn: Callable[[PublishReceivedData], None]
+    var onPublishCallbackFn: OnPublishCallback? // onPublish_callback_fn: Callable[[PublishReceivedData], None]
 
     /// Callback for Lifecycle Event Stopped.
-    var onLifecycleEventStoppedFn: onLifecycleEventStopped?
-    // onLifecycleEventStoppedFn: Callable[[LifecycleStoppedData], None]
+    var onLifecycleEventStoppedFn: OnLifecycleEventStopped? // onLifecycleEventStoppedFn: Callable[[LifecycleStoppedData], None]
 
     /// Callback for Lifecycle Event Attempting Connect.
     // onLifecycleEventAttemptingConnectFn: Callable[[LifecycleAttemptingConnectData], None]
