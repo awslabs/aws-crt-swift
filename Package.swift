@@ -186,6 +186,15 @@ let awsCEventStreamExcludes = [
     "CODE_OF_CONDUCT.md",
     "clang-tidy/run-clang-tidy.sh"] + excludesFromAll
 
+//////////////////////////////////////////////////////////////////////
+/// aws-c-mqtt
+//////////////////////////////////////////////////////////////////////
+
+// TODO additional mqtt excludes
+let awsCMqttExcludes = [
+    "bin"
+]
+
 packageTargets.append(contentsOf: [
     .target(
         name: "AwsCPlatformConfig",
@@ -257,6 +266,13 @@ packageTargets.append(contentsOf: [
         cSettings: cSettings
     ),
     .target(
+        name: "AwsCMqtt",
+        dependencies: ["AwsCHttp", "AwsCCal", "AwsCIo", "AwsCCommon"],
+        path: "aws-common-runtime/aws-c-mqtt",
+        exclude: awsCMqttExcludes,
+        cSettings: cSettings
+    ),
+    .target(
         name: "AwsCommonRuntimeKit",
         dependencies: [ "AwsCAuth",
                         "AwsCHttp",
@@ -265,7 +281,8 @@ packageTargets.append(contentsOf: [
                         "AwsCIo",
                         "AwsCCommon",
                         "AwsCChecksums",
-                        "AwsCEventStream"],
+                        "AwsCEventStream",
+                        "AwsCMqtt"],
         path: "Source/AwsCommonRuntimeKit"
     ),
     .testTarget(
