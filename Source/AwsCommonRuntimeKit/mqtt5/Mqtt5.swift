@@ -588,6 +588,18 @@ public struct PublishPacket {
     var userProperties: [UserProperty]
 }
 
+/// "Data model of an `MQTT5 PUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901121>`_ packet
+public struct PubackPacket{
+
+    /// Success indicator or failure reason for the associated PUBLISH packet.
+    var reasonCode: PubackReasonCode
+
+    /// Additional diagnostic information about the result of the PUBLISH attempt.
+    var reasonString: String
+
+    /// List of MQTT5 user properties included with the packet.
+    var userProperties: [UserProperty]
+}
 
 /// Defines signature of the Publish callback
 typealias OnPublishCallback = () -> Void
