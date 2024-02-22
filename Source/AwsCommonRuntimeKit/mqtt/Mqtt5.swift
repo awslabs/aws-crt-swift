@@ -698,7 +698,7 @@ typealias OnLifecycleEventStopped = () -> Void
 public struct ConnectOptions {
 
     /// The maximum time interval, in seconds, that is permitted to elapse between the point at which the client finishes transmitting one MQTT packet and the point it starts sending the next.  The client will use PINGREQ packets to maintain this property. If the responding CONNACK contains a keep alive property value, then that is the negotiated keep alive value. Otherwise, the keep alive sent by the client is the negotiated value.
-    var keepAliveIntervalSec: Int
+    var keepAliveIntervalSec: UInt16
 
     /// A unique string identifying the client to the server.  Used to restore session state between connections. If left empty, the broker will auto-assign a unique client id.  When reconnecting, the mqtt5 client will always use the auto-assigned client id.
     var clientId: String
@@ -710,7 +710,7 @@ public struct ConnectOptions {
     var password: String
 
     /// A time interval, in seconds, that the client requests the server to persist this connection's MQTT session state for.  Has no meaning if the client has not been configured to rejoin sessions.  Must be non-zero in order to successfully rejoin a session. If the responding CONNACK contains a session expiry property value, then that is the negotiated session expiry value.  Otherwise, the session expiry sent by the client is the negotiated value.
-    var sessionExpiryIntervalSec: Int
+    var sessionExpiryIntervalSec: UInt32
 
     /// If true, requests that the server send response information in the subsequent CONNACK.  This response information may be used to set up request-response implementations over MQTT, but doing so is outside the scope of the MQTT5 spec and client.
     var requestResponseInformation: Bool
@@ -719,13 +719,13 @@ public struct ConnectOptions {
     var requestProblemInformation: Bool
 
     /// Notifies the server of the maximum number of in-flight QoS 1 and 2 messages the client is willing to handle.  If omitted or None, then no limit is requested.
-    var receiveMaximum: Int
+    var receiveMaximum: UInt16
 
     /// Notifies the server of the maximum packet size the client is willing to handle.  If omitted or None, then no limit beyond the natural limits of MQTT packet size is requested.
-    var maximumPacketSize: Int
+    var maximumPacketSize: UInt32
 
     /// A time interval, in seconds, that the server should wait (for a session reconnection) before sending the will message associated with the connection's session.  If omitted or None, the server will send the will when the associated session is destroyed.  If the session is destroyed before a will delay interval has elapsed, then the will must be sent at the time of session destruction.
-    var willDelayIntervalSec: Int
+    var willDelayIntervalSec: UInt32
 
     /// The definition of a message to be published when the connection's session is destroyed by the server or when the will delay interval has elapsed, whichever comes first.  If None, then nothing will be sent.
     var will: PublishPacket
@@ -795,7 +795,7 @@ public struct ClientOptions {
     var hostName: String
 
     /// Network port of the MQTT server to connect to.
-    var port: Int
+    var port: UInt32
 
     /// The Client bootstrap used
     var bootstrap: ClientBootstrap
@@ -829,22 +829,22 @@ public struct ClientOptions {
     var retryJitterMode: ExponentialBackoffJitterMode
 
     /// The minimum amount of time to wait to reconnect after a disconnect. Exponential backoff is performed with jitter after each connection failure.
-    var minReconnectDelayMs: Int
+    var minReconnectDelayMs: UInt64
 
     /// The maximum amount of time to wait to reconnect after a disconnect.  Exponential backoff is performed with jitter after each connection failure.
-    var maxReconnectDelayMs: Int
+    var maxReconnectDelayMs: UInt64
 
     /// The amount of time that must elapse with an established connection before the reconnect delay is reset to the minimum. This helps alleviate bandwidth-waste in fast reconnect cycles due to permission failures on operations.
-    var minConnectedTimeToResetReconnectDelayMs: Int
+    var minConnectedTimeToResetReconnectDelayMs: UInt64
 
     /// The time interval to wait after sending a PINGREQ for a PINGRESP to arrive. If one does not arrive, the client will close the current connection.
-    var pingTimeoutMs: Int
+    var pingTimeoutMs: UInt32
 
     /// The time interval to wait after sending a CONNECT request for a CONNACK to arrive.  If one does not arrive, the connection will be shut down.
-    var connackTimeoutMs: Int
+    var connackTimeoutMs: UInt32
 
     /// The time interval to wait for an ack after sending a QoS 1+ PUBLISH, SUBSCRIBE, or UNSUBSCRIBE before failing the operation.
-    var ackTimeoutSec: Int
+    var ackTimeoutSec: UInt32
 
     /// All configurable options with respect to client topic aliasing behavior.
     var topicAliasingOptions: TopicAliasingOptions
