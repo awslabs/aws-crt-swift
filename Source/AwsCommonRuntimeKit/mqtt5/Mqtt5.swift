@@ -867,3 +867,19 @@ public struct ClientOptions {
     /// Callback for Lifecycle Event Disconnection.
     // onLifecycleEventDisconnectionFn: Callable[[LifecycleDisconnectData], None]
 }
+
+/// Dataclass containing some simple statistics about the current state of the client's queue of operations
+public struct ClientOperationStatistics {
+
+    /// Total number of operations submitted to the client that have not yet been completed.  Unacked operations are a subset of this.
+    var incompleteOperationCount: Int = 0
+
+    /// Total packet size of operations submitted to the client that have not yet been completed.  Unacked operations are a subset of this.
+    var incompleteOperationSize: Int = 0
+
+    /// Total number of operations that have been sent to the server and are waiting for a corresponding ACK before they can be completed.
+    var unackedOperationCount: Int = 0
+
+    /// Total packet size of operations that have been sent to the server and are waiting for a corresponding ACK before they can be completed.
+    var unackedOperationSize: Int = 0
+}
