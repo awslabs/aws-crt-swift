@@ -27,7 +27,7 @@
         "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS'"
       ],
       "!test_steps": [
-        "xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=iOS Simulator,OS=16.1,name=iPhone 14'"
+        "xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=iOS Simulator,OS=16.2,name=iPhone 14'"
        ]
     },
     "tvos": {
