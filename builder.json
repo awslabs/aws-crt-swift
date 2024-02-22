@@ -49,7 +49,7 @@
     "macos": {
       "+test_steps": [
         "crt-ci-prep",
-        "xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=OSX'",
+        "xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=macOS'",
         "./integ_test.sh"
       ]
     }
