@@ -608,7 +608,7 @@ public struct Subscription {
     var topicFilter: String
 
     /// The maximum QoS on which the subscriber will accept publish messages
-    var qos: QoS = QoS.AT_MOST_ONCE
+    var qos: QoS = QoS.atMostOnce
 
     /// Whether the server will not send publishes to a client when that client was the one who sent the publish
     var noLocal: Bool = false
