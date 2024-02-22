@@ -61,6 +61,8 @@ jobs:
           - ios
           - tvos
           - watchos
+        xcode:
+          - Xcode_14.1
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
