@@ -669,6 +669,25 @@ public struct UnsubackPacket {
     var reasonCodes: [DisconnectReasonCode]
 }
 
+/// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
+public struct DisconnectPacket {
+
+    /// Value indicating the reason that the sender is closing the connection
+    var reasonCode: DisconnectReasonCode = DisconnectReasonCode.normalDisconnection
+
+    /// A change to the session expiry interval negotiated at connection time as part of the disconnect.  Only valid for DISCONNECT packets sent from client to server.  It is not valid to attempt to change session expiry from zero to a non-zero value.
+    var sessionExpiryIntervalSec: Int
+
+    /// Additional diagnostic information about the reason that the sender is closing the connection
+    var reasonString: String
+
+    /// List of MQTT5 user properties included with the packet.
+    var userProperties: [UserProperty]
+
+    /// Property indicating an alternate server that the client may temporarily or permanently attempt to connect to instead of the configured endpoint.  Will only be set if the reason code indicates another server may be used (ServerMoved, UseAnotherServer).
+    var serverReference: String
+}
+
 /// Defines signature of the Publish callback
 typealias OnPublishCallback = () -> Void
 
