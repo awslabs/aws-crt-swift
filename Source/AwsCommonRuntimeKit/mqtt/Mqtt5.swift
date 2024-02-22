@@ -546,6 +546,11 @@ public class UserProperty {
 
     /// Property value
     var value: String
+
+    init(name: String, value: String){
+        this.name = name;
+        this.value = value;
+    }
 }
 
 /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet
@@ -586,6 +591,11 @@ public class PublishPacket {
 
     /// Array of MQTT5 user properties included with the packet.
     var userProperties: [UserProperty]
+
+    init(qos: QoS, topic: String){
+        this.qos = qos;
+        this.topic = topic;
+    }
 }
 
 /// "Data model of an `MQTT5 PUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901121>`_ packet
