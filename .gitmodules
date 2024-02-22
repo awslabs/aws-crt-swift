@@ -28,3 +28,6 @@
 [submodule "aws-common-runtime/aws-c-event-stream"]
 	path = aws-common-runtime/aws-c-event-stream
 	url = https://github.com/awslabs/aws-c-event-stream
+[submodule "aws-common-runtime/aws-c-mqtt"]
+	path = aws-common-runtime/aws-c-mqtt
+	url = https://github.com/awslabs/aws-c-mqtt.git
