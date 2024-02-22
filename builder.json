@@ -27,7 +27,7 @@
         "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS'"
       ],
       "!test_steps": [
-        "xcodebuild -scheme aws-crt-swift-Package -destination 'generic/platform=iOS'"
+        "xcodebuild -scheme aws-crt-swift-Package -destination test 'platform=iOS Simulator,OS=16.1,name=iPhone 14'"
        ]
     },
     "tvos": {
@@ -35,19 +35,17 @@
         "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=tvOS'"
       ],
       "!test_steps": [
-        "xcodebuild -scheme aws-crt-swift-Package -destination 'generic/platform=tvOS'"
+        "xcodebuild -scheme aws-crt-swift-Package -destination test 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'"
        ]
     },
     "watchos": {
       "!build_steps": [
         "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=watchOS'"
-      ],
-      "!test_steps": [
-        "xcodebuild -scheme aws-crt-swift-Package -destination 'generic/platform=watchos'"
-       ]
+      ]
     },
     "macos": {
       "+test_steps": [
+       "xcodebuild -scheme aws-crt-swift-Package -destination test 'platform=OSX'",
        "./integ_test.sh"
       ]
     }
