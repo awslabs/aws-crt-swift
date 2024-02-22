@@ -190,7 +190,6 @@ let awsCEventStreamExcludes = [
 /// aws-c-mqtt
 //////////////////////////////////////////////////////////////////////
 
-// TODO additional mqtt excludes
 let awsCMqttExcludes = [
     "bin",
     "CODE_OF_CONDUCT.md",
