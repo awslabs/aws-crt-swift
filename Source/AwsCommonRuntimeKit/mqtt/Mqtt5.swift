@@ -584,7 +584,7 @@ public struct PublishPacket {
     /// Property specifying the content type of the payload.  Not internally meaningful to MQTT5.
     var contentType: String
 
-    /// List of MQTT5 user properties included with the packet.
+    /// Array of MQTT5 user properties included with the packet.
     var userProperties: [UserProperty]
 }
 
@@ -597,7 +597,7 @@ public struct PubackPacket {
     /// Additional diagnostic information about the result of the PUBLISH attempt.
     var reasonString: String
 
-    /// List of MQTT5 user properties included with the packet.
+    /// Array of MQTT5 user properties included with the packet.
     var userProperties: [UserProperty]
 }
 
@@ -623,13 +623,13 @@ public struct Subscription {
 /// Data model of an `MQTT5 SUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901161>`_ packet.
 public struct SubscribePacket {
 
-    /// The list of topic filters that the client wishes to listen to
+    /// Array of topic filters that the client wishes to listen to
     var subscriptions: [Subscription]
 
     /// The positive int to associate with all topic filters in this request.  Publish packets that match a subscription in this request should include this identifier in the resulting message.
     var subscriptionIdentifier: Int
 
-    /// The list of MQTT5 user properties included with the packet.
+    /// Array of MQTT5 user properties included with the packet.
     var userProperties: [UserProperty]
 }
 
@@ -639,20 +639,20 @@ public struct SubackPacket {
     /// Additional diagnostic information about the result of the SUBSCRIBE attempt.
     var reasonString: String
 
-    /// List of MQTT5 user properties included with the packet.
+    /// Array of MQTT5 user properties included with the packet.
     var userProperties: [UserProperty]
 
-    /// List of reason codes indicating the result of each individual subscription entry in the associated SUBSCRIBE packet.
+    /// Array of reason codes indicating the result of each individual subscription entry in the associated SUBSCRIBE packet.
     var reasonCodes: [SubackReasonCode]
 }
 
 /// Data model of an `MQTT5 UNSUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc384800445>`_ packet.
 public struct UnsubscribePacket {
 
-    /// List of topic filters that the client wishes to unsubscribe from.
+    /// Array of topic filters that the client wishes to unsubscribe from.
     var topicFilters: [String]
 
-    /// List of MQTT5 user properties included with the packet.
+    /// Array of MQTT5 user properties included with the packet.
     var userProperties: [UserProperty]
 }
 
@@ -662,10 +662,10 @@ public struct UnsubackPacket {
     /// Additional diagnostic information about the result of the UNSUBSCRIBE attempt.
     var reasonString: String
 
-    /// List of MQTT5 user properties included with the packet.
+    /// Array of MQTT5 user properties included with the packet.
     var userProperties: [UserProperty]
 
-    /// A list of reason codes indicating the result of unsubscribing from each individual topic filter entry in the associated UNSUBSCRIBE packet.
+    /// Array of reason codes indicating the result of unsubscribing from each individual topic filter entry in the associated UNSUBSCRIBE packet.
     var reasonCodes: [DisconnectReasonCode]
 }
 
@@ -681,7 +681,7 @@ public struct DisconnectPacket {
     /// Additional diagnostic information about the reason that the sender is closing the connection
     var reasonString: String
 
-    /// List of MQTT5 user properties included with the packet.
+    /// Array of MQTT5 user properties included with the packet.
     var userProperties: [UserProperty]
 
     /// Property indicating an alternate server that the client may temporarily or permanently attempt to connect to instead of the configured endpoint.  Will only be set if the reason code indicates another server may be used (ServerMoved, UseAnotherServer).
@@ -730,7 +730,7 @@ public struct ConnectPacket {
     /// The definition of a message to be published when the connection's session is destroyed by the server or when the will delay interval has elapsed, whichever comes first.  If None, then nothing will be sent.
     var will: PublishPacket
 
-    /// List of MQTT5 user properties included with the packet.
+    /// Array of MQTT5 user properties included with the packet.
     var userProperties: [UserProperty]
 }
 
@@ -767,7 +767,7 @@ public struct ConnackPacket {
     /// Additional diagnostic information about the result of the connection attempt.
     var reasonString: String
 
-    /// List of MQTT5 user properties included with the packet.
+    /// Array of MQTT5 user properties included with the packet.
     var userProperties: [UserProperty]
 
     /// Indicates whether the server supports wildcard subscriptions.  If None, wildcard subscriptions are supported.
