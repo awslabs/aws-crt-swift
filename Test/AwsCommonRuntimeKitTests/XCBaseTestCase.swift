@@ -10,7 +10,7 @@ class XCBaseTestCase: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        Logger.initialize(pipe: stdout, level: .trace)
+        Logger.initialize(pipe: stdout, level: .error)
 
         // Override the allocator with tracing allocator
         allocator = tracingAllocator.rawValue
