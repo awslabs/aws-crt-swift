@@ -646,6 +646,29 @@ public struct SubackPacket {
     var reasonCodes: [SubackReasonCode]
 }
 
+/// Data model of an `MQTT5 UNSUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc384800445>`_ packet.
+public struct UnsubscribePacket {
+
+    /// List of topic filters that the client wishes to unsubscribe from.
+    var topicFilters: [String]
+
+    /// List of MQTT5 user properties included with the packet.
+    var userProperties: [UserProperty]
+}
+
+/// Data model of an `MQTT5 UNSUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc471483687>`_ packet.
+public struct UnsubackPacket {
+
+    /// Additional diagnostic information about the result of the UNSUBSCRIBE attempt.
+    var reasonString: String
+
+    /// List of MQTT5 user properties included with the packet.
+    var userProperties: [UserProperty]
+
+    /// A list of reason codes indicating the result of unsubscribing from each individual topic filter entry in the associated UNSUBSCRIBE packet.
+    var reasonCodes: [DisconnectReasonCode]
+}
+
 /// Defines signature of the Publish callback
 typealias OnPublishCallback = () -> Void
 
