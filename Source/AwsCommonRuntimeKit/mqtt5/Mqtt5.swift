@@ -635,6 +635,61 @@ public struct ConnectPacket {
     var userProperties: [UserProperty]
 }
 
+/// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
+public struct ConnackPacket {
+
+    /// True if the client rejoined an existing session on the server, false otherwise.
+    var sessionPresent: Bool
+
+    /// Indicates either success or the reason for failure for the connection attempt.
+    var reasonCode: ConnectReasonCode
+
+    /// A time interval, in seconds, that the server will persist this connection's MQTT session state for.  If present, this value overrides any session expiry specified in the preceding CONNECT packet.
+    var sessionExpiryIntervalSec: Int
+
+    /// The maximum amount of in-flight QoS 1 or 2 messages that the server is willing to handle at once. If omitted or None, the limit is based on the valid MQTT packet id space (65535).
+    var receiveMaximum: Int
+
+    /// The maximum message delivery quality of service that the server will allow on this connection.
+    var maximumQos: QoS
+
+    /// Indicates whether the server supports retained messages.  If None, retained messages are supported.
+    var retainAvailable: Bool
+
+    /// Specifies the maximum packet size, in bytes, that the server is willing to accept.  If None, there is no limit beyond what is imposed by the MQTT spec itself.
+    var maximumPacketSize: Int
+
+    /// Specifies a client identifier assigned to this connection by the server.  Only valid when the client id of the preceding CONNECT packet was left empty.
+    var assignedClientIdentifier: String
+
+    /// The maximum allowed value for topic aliases in outbound publish packets.  If 0 or None, then outbound topic aliasing is not allowed.
+    var topicAliasMaximum: Int
+
+    /// Additional diagnostic information about the result of the connection attempt.
+    var reasonString: String
+
+    /// List of MQTT5 user properties included with the packet.
+    var userProperties: [UserProperty]
+
+    /// Indicates whether the server supports wildcard subscriptions.  If None, wildcard subscriptions are supported.
+    var wildcardSubscriptionsAvailable: Bool
+
+    /// Indicates whether the server supports subscription identifiers.  If None, subscription identifiers are supported.
+    var subscriptionIdentifiersAvailable: Bool
+
+    /// Indicates whether the server supports shared subscription topic filters.  If None, shared subscriptions are supported.
+    var sharedSubscriptionAvailable: Bool
+
+    /// Server-requested override of the keep alive interval, in seconds.  If None, the keep alive value sent by the client should be used.
+    var serverKeepAliveSec: Int
+
+    /// A value that can be used in the creation of a response topic associated with this connection. MQTT5-based request/response is outside the purview of the MQTT5 spec and this client.
+    var responseInformation: String
+
+    /// Property indicating an alternate server that the client may temporarily or permanently attempt to connect to instead of the configured endpoint.  Will only be set if the reason code indicates another server may be used (ServerMoved, UseAnotherServer).
+    var serverReference: String
+}
+
 /// Configuration for the creation of MQTT5 clients
 public struct ClientOptions {
     /// Host name of the MQTT server to connect to.
