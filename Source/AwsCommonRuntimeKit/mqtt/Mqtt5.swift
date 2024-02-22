@@ -475,7 +475,7 @@ public enum InboundTopicAliasBehaviorType: Int {
 }
 
 /// Configuration for all client topic aliasing behavior.
-public struct TopicAliasingOptions {
+public class TopicAliasingOptions {
 
     /// Controls what kind of outbound topic aliasing behavior the client should attempt to use.  If topic aliasing is not supported by the server, this setting has no effect and any attempts to directly manipulate the topic alias id in outbound publishes will be ignored.  If left undefined, then outbound topic aliasing is disabled.
     var outboundBehavior: OutboundTopicAliasBehaviorType
@@ -497,7 +497,7 @@ public struct TopicAliasingOptions {
 /// - the CONNACK from the broker
 /// the client instead does the combining for you and emits a NegotiatedSettings object with final, authoritative values.
 /// Negotiated settings are communicated with every successful connection establishment.
-public struct NegotiatedSettings {
+public class NegotiatedSettings {
     /// The maximum QoS allowed for publishes on this connection instance
     var maximumQos: QoS
 
@@ -539,7 +539,7 @@ public struct NegotiatedSettings {
 }
 
 /// Mqtt5 User Property
-public struct UserProperty {
+public class UserProperty {
 
     /// Property name
     var name: String
@@ -549,7 +549,7 @@ public struct UserProperty {
 }
 
 /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet
-public struct PublishPacket {
+public class PublishPacket {
 
     /// The payload of the publish message.
     var payload: String // Unicode objects are converted to C Strings using 'utf-8' encoding
@@ -589,7 +589,7 @@ public struct PublishPacket {
 }
 
 /// "Data model of an `MQTT5 PUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901121>`_ packet
-public struct PubackPacket {
+public class PubackPacket {
 
     /// Success indicator or failure reason for the associated PUBLISH packet.
     var reasonCode: PubackReasonCode
@@ -602,7 +602,7 @@ public struct PubackPacket {
 }
 
 /// Configures a single subscription within a Subscribe operation
-public struct Subscription {
+public class Subscription {
 
     /// The topic filter to subscribe to
     var topicFilter: String
@@ -621,7 +621,7 @@ public struct Subscription {
 }
 
 /// Data model of an `MQTT5 SUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901161>`_ packet.
-public struct SubscribePacket {
+public class SubscribePacket {
 
     /// Array of topic filters that the client wishes to listen to
     var subscriptions: [Subscription]
@@ -634,7 +634,7 @@ public struct SubscribePacket {
 }
 
 /// Data model of an `MQTT5 SUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901171>`_ packet.
-public struct SubackPacket {
+public class SubackPacket {
 
     /// Additional diagnostic information about the result of the SUBSCRIBE attempt.
     var reasonString: String
@@ -647,7 +647,7 @@ public struct SubackPacket {
 }
 
 /// Data model of an `MQTT5 UNSUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc384800445>`_ packet.
-public struct UnsubscribePacket {
+public class UnsubscribePacket {
 
     /// Array of topic filters that the client wishes to unsubscribe from.
     var topicFilters: [String]
@@ -657,7 +657,7 @@ public struct UnsubscribePacket {
 }
 
 /// Data model of an `MQTT5 UNSUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc471483687>`_ packet.
-public struct UnsubackPacket {
+public class UnsubackPacket {
 
     /// Additional diagnostic information about the result of the UNSUBSCRIBE attempt.
     var reasonString: String
@@ -670,7 +670,7 @@ public struct UnsubackPacket {
 }
 
 /// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
-public struct DisconnectPacket {
+public class DisconnectPacket {
 
     /// Value indicating the reason that the sender is closing the connection
     var reasonCode: DisconnectReasonCode = DisconnectReasonCode.normalDisconnection
@@ -695,7 +695,7 @@ typealias OnPublishCallback = () -> Void
 typealias OnLifecycleEventStopped = () -> Void
 
 /// Data model of an `MQTT5 CONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901033>`_ packet.
-public struct ConnectOptions {
+public class ConnectOptions {
 
     /// The maximum time interval, in seconds, that is permitted to elapse between the point at which the client finishes transmitting one MQTT packet and the point it starts sending the next.  The client will use PINGREQ packets to maintain this property. If the responding CONNACK contains a keep alive property value, then that is the negotiated keep alive value. Otherwise, the keep alive sent by the client is the negotiated value.
     var keepAliveIntervalSec: UInt16
@@ -724,7 +724,7 @@ public struct ConnectOptions {
     /// Notifies the server of the maximum packet size the client is willing to handle.  If omitted or None, then no limit beyond the natural limits of MQTT packet size is requested.
     var maximumPacketSize: UInt32
 
-    /// A time interval, in seconds, that the server should wait (for a session reconnection) before sending the will message associated with the connection's session.  If omitted or None, the server will send the will when the associated session is destroyed.  If the session is destroyed before a will delay interval has elapsed, then the will must be sent at the time of session destruction.
+    /// A time interval, in seconds, that the server should wait (for a session reconnection) before sending the will message associated with the connection's session.  If omitted or None, the server will send the will when the associated session is destroyed.  If the session is destroyed before a will delay interval has elapsed, then the will must be sent at the time of session declassion.
     var willDelayIntervalSec: UInt32
 
     /// The definition of a message to be published when the connection's session is destroyed by the server or when the will delay interval has elapsed, whichever comes first.  If None, then nothing will be sent.
@@ -735,7 +735,7 @@ public struct ConnectOptions {
 }
 
 /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
-public struct ConnackPacket {
+public class ConnackPacket {
 
     /// True if the client rejoined an existing session on the server, false otherwise.
     var sessionPresent: Bool
@@ -790,7 +790,7 @@ public struct ConnackPacket {
 }
 
 /// Configuration for the creation of MQTT5 clients
-public struct ClientOptions {
+public class ClientOptions {
     /// Host name of the MQTT server to connect to.
     var hostName: String
 
@@ -869,7 +869,7 @@ public struct ClientOptions {
 }
 
 /// Dataclass containing some simple statistics about the current state of the client's queue of operations
-public struct ClientOperationStatistics {
+public class ClientOperationStatistics {
 
     /// Total number of operations submitted to the client that have not yet been completed.  Unacked operations are a subset of this.
     var incompleteOperationCount: Int = 0
