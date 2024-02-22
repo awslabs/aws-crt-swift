@@ -35,15 +35,15 @@ extension XCTestCase {
     }
 
     func skipIfiOS() throws {
-        if #available(iOS 10, *) {
+        #if os(iOS)
             throw XCTSkip("Skipping test on iOS")
-        }
+        #endif
     }
 
     func skipifmacOS() throws {
-        if #available(macOS 10.14, *) {
+        #if os(macOS)
             throw XCTSkip("Skipping test on macOS")
-        }
+        #endif
     }
 
     func skipIfLinux() throws {
