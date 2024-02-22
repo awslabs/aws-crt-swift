@@ -589,7 +589,7 @@ public struct PublishPacket {
 }
 
 /// "Data model of an `MQTT5 PUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901121>`_ packet
-public struct PubackPacket{
+public struct PubackPacket {
 
     /// Success indicator or failure reason for the associated PUBLISH packet.
     var reasonCode: PubackReasonCode
@@ -598,6 +598,38 @@ public struct PubackPacket{
     var reasonString: String
 
     /// List of MQTT5 user properties included with the packet.
+    var userProperties: [UserProperty]
+}
+
+/// Configures a single subscription within a Subscribe operation
+public struct Subscription {
+
+    /// The topic filter to subscribe to
+    var topicFilter: String
+
+    /// The maximum QoS on which the subscriber will accept publish messages
+    var qos: QoS = QoS.AT_MOST_ONCE
+
+    /// Whether the server will not send publishes to a client when that client was the one who sent the publish
+    var noLocal: Bool = false
+
+    /// Whether messages sent due to this subscription keep the retain flag preserved on the message
+    var retainAsPublished: Bool = false
+
+    /// Whether retained messages on matching topics be sent in reaction to this subscription
+    var retainHandlingType = RetainHandlingType.sendOnSubscribe
+}
+
+/// Data model of an `MQTT5 SUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901161>`_ packet.
+public struct SubscribePacket {
+
+    /// The list of topic filters that the client wishes to listen to
+    var subscriptions: [Subscription]
+
+    /// The positive int to associate with all topic filters in this request.  Publish packets that match a subscription in this request should include this identifier in the resulting message.
+    var subscriptionIdentifier: Int
+
+    /// The list of MQTT5 user properties included with the packet.
     var userProperties: [UserProperty]
 }
 
