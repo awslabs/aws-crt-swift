@@ -499,26 +499,27 @@ public class TopicAliasingOptions {
 /// the client instead does the combining for you and emits a NegotiatedSettings object with final, authoritative values.
 /// Negotiated settings are communicated with every successful connection establishment.
 public class NegotiatedSettings {
+
     /// The maximum QoS allowed for publishes on this connection instance
     var maximumQos: QoS
 
     /// The amount of time in seconds the server will retain the MQTT session after a disconnect.
-    var sessionExpiryIntervalSec: Int
+    var sessionExpiryIntervalSec: UInt32
 
     /// The number of in-flight QoS 1 and QoS 2 publications the server is willing to process concurrently.
-    var receiveMaximumFromServer: Int
+    var receiveMaximumFromServer: UInt16
 
     /// The maximum packet size the server is willing to accept.
-    var maximumPacketSizeToServer: Int
+    var maximumPacketSizeToServer: UInt32
 
     /// The maximum allowed topic alias value on publishes sent from client to server
-    var topicAliasMaximumToServer: Int
+    var topicAliasMaximumToServer: UInt16
 
     /// The maximum allowed topic alias value on publishes sent from server to client
-    var topicAliasMaximumToClient: Int
+    var topicAliasMaximumToClient: UInt16
 
     /// The maximum amount of time in seconds between client packets. The client will use PINGREQs to ensure this limit is not breached.  The server will disconnect the client for inactivity if no MQTT packet is received in a time interval equal to 1.5 x this value.
-    var serverKeepAliveSec: Int
+    var serverKeepAliveSec: UInt16
 
     /// Whether the server supports retained messages.
     var retainAvailable: Bool
@@ -537,6 +538,25 @@ public class NegotiatedSettings {
 
     /// The final client id in use by the newly-established connection.  This will be the configured client id if one was given in the configuration, otherwise, if no client id was specified, this will be the client id assigned by the server.  Reconnection attempts will always use the auto-assigned client id, allowing for auto-assigned session resumption.
     var clientId: String
+
+    init(maximumQos: QoS, sessionExpiryIntervalSec: UInt32, receiveMaximumFromServer: UInt16, maximumPacketSizeToServer: Uint32,
+        topicAliasMaximumToServer: UInt16, topicAliasMaximumToClient: UInt16, serverKeepAliveSec: UInt16, retainAvailable: Bool,
+        wildcardSubscriptionsAvailable: Bool, subscriptionIdentifiersAvailable: Bool, sharedSubscriptionsAvailable: Bool, rejoinedSession: Bool,
+        clientId: String) {
+            this.maximumQos = maximumQos
+            this.sessionExpiryIntervalSec = sessionExpiryIntervalSec
+            this.receiveMaximumFromServer = receiveMaximumFromServer
+            this.maximumPacketSizeToServer = maximumPacketSizeToServer
+            this.topicAliasMaximumToServer = topicAliasMaximumToServer
+            this.topicAliasMaximumToClient = topicAliasMaximumToClient
+            this.serverKeepAliveSec = serverKeepAliveSec
+            this.retainAvailable = retainAvailable
+            this.wildcardSubscriptionsAvailable = wildcardSubscriptionsAvailable
+            this.subscriptionIdentifiersAvailable = subscriptionIdentifiersAvailable
+            this.sharedSubscriptionsAvailable = sharedSubscriptionsAvailable
+            this.rejoinedSession = rejoinedSession
+            this.clientId = clientId
+        }
 }
 
 /// Mqtt5 User Property
@@ -549,8 +569,8 @@ public class UserProperty {
     var value: String
 
     init(name: String, value: String){
-        this.name = name;
-        this.value = value;
+        this.name = name
+        this.value = value
     }
 }
 
@@ -594,8 +614,8 @@ public class PublishPacket {
     var userProperties: [UserProperty]
 
     init(qos: QoS, topic: String){
-        this.qos = qos;
-        this.topic = topic;
+        this.qos = qos
+        this.topic = topic
     }
 }
 
