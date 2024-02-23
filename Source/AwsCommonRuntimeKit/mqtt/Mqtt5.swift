@@ -701,11 +701,18 @@ public class UnsubscribePacket {
     var topicFilters: [String]
 
     /// Array of MQTT5 user properties included with the packet.
-    var userProperties: [UserProperty]
+    var userProperties: [UserProperty]?
+
+    init (topicFilters: [String]){
+        self.topicFilters = topicFilters
+    }
 }
 
 /// Data model of an `MQTT5 UNSUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc471483687>`_ packet.
 public class UnsubackPacket {
+
+    /// Array of reason codes indicating the result of unsubscribing from each individual topic filter entry in the associated UNSUBSCRIBE packet.
+    var reasonCodes: [DisconnectReasonCode]
 
     /// Additional diagnostic information about the result of the UNSUBSCRIBE attempt.
     var reasonString: String
@@ -713,8 +720,9 @@ public class UnsubackPacket {
     /// Array of MQTT5 user properties included with the packet.
     var userProperties: [UserProperty]
 
-    /// Array of reason codes indicating the result of unsubscribing from each individual topic filter entry in the associated UNSUBSCRIBE packet.
-    var reasonCodes: [DisconnectReasonCode]
+    init (reasonCodes: [DisconnectReasonCode]) {
+        self.reasonCodes = reasonCodes
+    }
 }
 
 /// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
