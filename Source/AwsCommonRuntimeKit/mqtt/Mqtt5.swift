@@ -578,7 +578,7 @@ public class UserProperty {
 public class PublishPacket {
 
     /// The payload of the publish message.
-    var payload: String // Unicode objects are converted to C Strings using 'utf-8' encoding
+    var payload: String? // Unicode objects are converted to C Strings using 'utf-8' encoding
 
     /// The MQTT quality of service associated with this PUBLISH packet.
     var qos: QoS = QoS.atMostOnce
@@ -590,28 +590,28 @@ public class PublishPacket {
     var topic: String
 
     /// Property specifying the format of the payload data. The mqtt5 client does not enforce or use this value in a meaningful way.
-    var payloadFormatIndicator: PayloadFormatIndicator
+    var payloadFormatIndicator: PayloadFormatIndicator?
 
     /// Sent publishes - indicates the maximum amount of time allowed to elapse for message delivery before the server should instead delete the message (relative to a recipient). Received publishes - indicates the remaining amount of time (from the server's perspective) before the message would have been deleted relative to the subscribing client. If left None, indicates no expiration timeout.
-    var messageExpiryIntervalSec: Int
+    var messageExpiryIntervalSec: Int?
 
     /// An integer value that is used to identify the Topic instead of using the Topic Name.  On outbound publishes, this will only be used if the outbound topic aliasing behavior has been set to Manual.
-    var topicAlias: Int
+    var topicAlias: Int?
 
     /// Opaque topic string intended to assist with request/response implementations.  Not internally meaningful to MQTT5 or this client.
-    var responseTopic: String
+    var responseTopic: String?
 
     /// Opaque binary data used to correlate between publish messages, as a potential method for request-response implementation.  Not internally meaningful to MQTT5.
-    var correlationData: String // Unicode objects are converted to C Strings using 'utf-8' encoding
+    var correlationData: String? // Unicode objects are converted to C Strings using 'utf-8' encoding
 
     /// The subscription identifiers of all the subscriptions this message matched.
-    var subscriptionIdentifiers: [Int] // ignore attempts to set but provide in received packets
+    var subscriptionIdentifiers: [Int]? // ignore attempts to set but provide in received packets
 
     /// Property specifying the content type of the payload.  Not internally meaningful to MQTT5.
-    var contentType: String
+    var contentType: String?
 
     /// Array of MQTT5 user properties included with the packet.
-    var userProperties: [UserProperty]
+    var userProperties: [UserProperty]?
 
     init(qos: QoS, topic: String){
         self.qos = qos
