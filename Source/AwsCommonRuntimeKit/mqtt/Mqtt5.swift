@@ -478,16 +478,17 @@ public enum InboundTopicAliasBehaviorType: Int {
 public class TopicAliasingOptions {
 
     /// Controls what kind of outbound topic aliasing behavior the client should attempt to use.  If topic aliasing is not supported by the server, this setting has no effect and any attempts to directly manipulate the topic alias id in outbound publishes will be ignored.  If left undefined, then outbound topic aliasing is disabled.
-    var outboundBehavior: OutboundTopicAliasBehaviorType
+    var outboundBehavior: OutboundTopicAliasBehaviorType?
 
     /// If outbound topic aliasing is set to LRU, this controls the maximum size of the cache.  If outbound topic aliasing is set to LRU and this is zero or undefined, a sensible default is used (25).  If outbound topic aliasing is not set to LRU, then this setting has no effect.
-    var outboundCacheMaxSize: Int
+    var outboundCacheMaxSize: UInt16?
 
     /// Controls whether or not the client allows the broker to use topic aliasing when sending publishes.  Even if inbound topic aliasing is enabled, it is up to the server to choose whether or not to use it.  If left undefined, then inbound topic aliasing is disabled.
-    var inboundBehavior: InboundTopicAliasBehaviorType
+    var inboundBehavior: InboundTopicAliasBehaviorType?
 
     /// If inbound topic aliasing is enabled, this will control the size of the inbound alias cache.  If inbound aliases are enabled and this is zero or undefined, then a sensible default will be used (25).  If inbound aliases are disabled, this setting has no effect.  Behaviorally, this value overrides anything present in the topic_alias_maximum field of the CONNECT packet options.
-    var inboundCacheMaxSize: Int
+    var inboundCacheMaxSize: UInt16?
+
 }
 
 /// Mqtt behavior settings that are dynamically negotiated as part of the CONNECT/CONNACK exchange.
