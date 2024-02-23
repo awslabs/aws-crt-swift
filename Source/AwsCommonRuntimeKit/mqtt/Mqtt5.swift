@@ -715,10 +715,10 @@ public class UnsubackPacket {
     var reasonCodes: [DisconnectReasonCode]
 
     /// Additional diagnostic information about the result of the UNSUBSCRIBE attempt.
-    var reasonString: String
+    var reasonString: String?
 
     /// Array of MQTT5 user properties included with the packet.
-    var userProperties: [UserProperty]
+    var userProperties: [UserProperty]?
 
     init (reasonCodes: [DisconnectReasonCode]) {
         self.reasonCodes = reasonCodes
@@ -928,14 +928,22 @@ public class ClientOptions {
 public class ClientOperationStatistics {
 
     /// Total number of operations submitted to the client that have not yet been completed.  Unacked operations are a subset of this.
-    var incompleteOperationCount: Int = 0
+    var incompleteOperationCount: UInt64
 
     /// Total packet size of operations submitted to the client that have not yet been completed.  Unacked operations are a subset of this.
-    var incompleteOperationSize: Int = 0
+    var incompleteOperationSize: UInt64
 
     /// Total number of operations that have been sent to the server and are waiting for a corresponding ACK before they can be completed.
-    var unackedOperationCount: Int = 0
+    var unackedOperationCount: UInt64
 
     /// Total packet size of operations that have been sent to the server and are waiting for a corresponding ACK before they can be completed.
-    var unackedOperationSize: Int = 0
+    var unackedOperationSize: UInt64
+
+    init (incompleteOperationCount: UInt64, incompleteOperationSize: UInt64,
+        unackedOperationCount: UInt64, unackedOperationSize: UInt64) {
+            self.incompleteOperationCount = incompleteOperationCount
+            self.incompleteOperationSize = incompleteOperationSize
+            self.unackedOperationCount = unackedOperationCount
+            self.unackedOperationSize = unackedOperationSize
+        }
 }
