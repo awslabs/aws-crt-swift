@@ -539,23 +539,23 @@ public class NegotiatedSettings {
     /// The final client id in use by the newly-established connection.  This will be the configured client id if one was given in the configuration, otherwise, if no client id was specified, this will be the client id assigned by the server.  Reconnection attempts will always use the auto-assigned client id, allowing for auto-assigned session resumption.
     var clientId: String
 
-    init(maximumQos: QoS, sessionExpiryIntervalSec: UInt32, receiveMaximumFromServer: UInt16, maximumPacketSizeToServer: Uint32,
+    init (maximumQos: QoS, sessionExpiryIntervalSec: UInt32, receiveMaximumFromServer: UInt16, maximumPacketSizeToServer: Uint32,
         topicAliasMaximumToServer: UInt16, topicAliasMaximumToClient: UInt16, serverKeepAliveSec: UInt16, retainAvailable: Bool,
         wildcardSubscriptionsAvailable: Bool, subscriptionIdentifiersAvailable: Bool, sharedSubscriptionsAvailable: Bool, rejoinedSession: Bool,
         clientId: String) {
-            this.maximumQos = maximumQos
-            this.sessionExpiryIntervalSec = sessionExpiryIntervalSec
-            this.receiveMaximumFromServer = receiveMaximumFromServer
-            this.maximumPacketSizeToServer = maximumPacketSizeToServer
-            this.topicAliasMaximumToServer = topicAliasMaximumToServer
-            this.topicAliasMaximumToClient = topicAliasMaximumToClient
-            this.serverKeepAliveSec = serverKeepAliveSec
-            this.retainAvailable = retainAvailable
-            this.wildcardSubscriptionsAvailable = wildcardSubscriptionsAvailable
-            this.subscriptionIdentifiersAvailable = subscriptionIdentifiersAvailable
-            this.sharedSubscriptionsAvailable = sharedSubscriptionsAvailable
-            this.rejoinedSession = rejoinedSession
-            this.clientId = clientId
+            self.maximumQos = maximumQos
+            self.sessionExpiryIntervalSec = sessionExpiryIntervalSec
+            self.receiveMaximumFromServer = receiveMaximumFromServer
+            self.maximumPacketSizeToServer = maximumPacketSizeToServer
+            self.topicAliasMaximumToServer = topicAliasMaximumToServer
+            self.topicAliasMaximumToClient = topicAliasMaximumToClient
+            self.serverKeepAliveSec = serverKeepAliveSec
+            self.retainAvailable = retainAvailable
+            self.wildcardSubscriptionsAvailable = wildcardSubscriptionsAvailable
+            self.subscriptionIdentifiersAvailable = subscriptionIdentifiersAvailable
+            self.sharedSubscriptionsAvailable = sharedSubscriptionsAvailable
+            self.rejoinedSession = rejoinedSession
+            self.clientId = clientId
         }
 }
 
@@ -568,9 +568,9 @@ public class UserProperty {
     /// Property value
     var value: String
 
-    init(name: String, value: String){
-        this.name = name
-        this.value = value
+    init (name: String, value: String){
+        self.name = name
+        self.value = value
     }
 }
 
@@ -614,8 +614,8 @@ public class PublishPacket {
     var userProperties: [UserProperty]
 
     init(qos: QoS, topic: String){
-        this.qos = qos
-        this.topic = topic
+        self.qos = qos
+        self.topic = topic
     }
 }
 
