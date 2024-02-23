@@ -643,7 +643,7 @@ public class Subscription {
     var topicFilter: String
 
     /// The maximum QoS on which the subscriber will accept publish messages
-    var qos: QoS = QoS.atMostOnce
+    var qos: QoS
 
     /// Whether the server will not send publishes to a client when that client was the one who sent the publish
     var noLocal: Bool?
@@ -652,7 +652,7 @@ public class Subscription {
     var retainAsPublished: Bool?
 
     /// Whether retained messages on matching topics be sent in reaction to this subscription
-    var retainHandlingType = RetainHandlingType?
+    var retainHandlingType: RetainHandlingType?
 
     init (topicFilter: String, qos: QoS) {
         self.topicFilter = topicFilter
@@ -680,14 +680,18 @@ public class SubscribePacket {
 /// Data model of an `MQTT5 SUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901171>`_ packet.
 public class SubackPacket {
 
-    /// Additional diagnostic information about the result of the SUBSCRIBE attempt.
-    var reasonString: String
-
-    /// Array of MQTT5 user properties included with the packet.
-    var userProperties: [UserProperty]
-
     /// Array of reason codes indicating the result of each individual subscription entry in the associated SUBSCRIBE packet.
     var reasonCodes: [SubackReasonCode]
+
+    /// Additional diagnostic information about the result of the SUBSCRIBE attempt.
+    var reasonString: String?
+
+    /// Array of MQTT5 user properties included with the packet.
+    var userProperties: [UserProperty]?
+
+    init (reasonCodes: [SubackReasonCode]) {
+        self.reasonCodes = reasonCodes
+    }
 }
 
 /// Data model of an `MQTT5 UNSUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc384800445>`_ packet.
