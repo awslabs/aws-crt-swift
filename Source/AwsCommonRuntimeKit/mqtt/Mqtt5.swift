@@ -539,7 +539,7 @@ public class NegotiatedSettings {
     /// The final client id in use by the newly-established connection.  This will be the configured client id if one was given in the configuration, otherwise, if no client id was specified, this will be the client id assigned by the server.  Reconnection attempts will always use the auto-assigned client id, allowing for auto-assigned session resumption.
     var clientId: String
 
-    init (maximumQos: QoS, sessionExpiryIntervalSec: UInt32, receiveMaximumFromServer: UInt16, maximumPacketSizeToServer: Uint32,
+    init (maximumQos: QoS, sessionExpiryIntervalSec: UInt32, receiveMaximumFromServer: UInt16, maximumPacketSizeToServer: UInt32,
         topicAliasMaximumToServer: UInt16, topicAliasMaximumToClient: UInt16, serverKeepAliveSec: UInt16, retainAvailable: Bool,
         wildcardSubscriptionsAvailable: Bool, subscriptionIdentifiersAvailable: Bool, sharedSubscriptionsAvailable: Bool, rejoinedSession: Bool,
         clientId: String) {
@@ -626,10 +626,14 @@ public class PubackPacket {
     var reasonCode: PubackReasonCode
 
     /// Additional diagnostic information about the result of the PUBLISH attempt.
-    var reasonString: String
+    var reasonString: String?
 
     /// Array of MQTT5 user properties included with the packet.
-    var userProperties: [UserProperty]
+    var userProperties: [UserProperty]?
+
+    init (reasonCode: PubackReasonCode) {
+        self.reasonCode = reasonCode
+    }
 }
 
 /// Configures a single subscription within a Subscribe operation
@@ -642,13 +646,18 @@ public class Subscription {
     var qos: QoS = QoS.atMostOnce
 
     /// Whether the server will not send publishes to a client when that client was the one who sent the publish
-    var noLocal: Bool = false
+    var noLocal: Bool?
 
     /// Whether messages sent due to this subscription keep the retain flag preserved on the message
-    var retainAsPublished: Bool = false
+    var retainAsPublished: Bool?
 
     /// Whether retained messages on matching topics be sent in reaction to this subscription
-    var retainHandlingType = RetainHandlingType.sendOnSubscribe
+    var retainHandlingType = RetainHandlingType?
+
+    init (topicFilter: String, qos: QoS) {
+        self.topicFilter = topicFilter
+        self.qos = qos
+    }
 }
 
 /// Data model of an `MQTT5 SUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901161>`_ packet.
@@ -658,10 +667,14 @@ public class SubscribePacket {
     var subscriptions: [Subscription]
 
     /// The positive int to associate with all topic filters in this request.  Publish packets that match a subscription in this request should include this identifier in the resulting message.
-    var subscriptionIdentifier: Int
+    var subscriptionIdentifier: Int?
 
     /// Array of MQTT5 user properties included with the packet.
-    var userProperties: [UserProperty]
+    var userProperties: [UserProperty]?
+
+    init (subscription: Subscription) {
+        self.subscriptions = [subscription]
+    }
 }
 
 /// Data model of an `MQTT5 SUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901171>`_ packet.
