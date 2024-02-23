@@ -52,6 +52,7 @@ jobs:
   # TODO: Run tests for devices
   devices:
     runs-on: macos-12
+    environment: stage
     env:
       DEVELOPER_DIR: /Applications/Xcode.app
     strategy:
