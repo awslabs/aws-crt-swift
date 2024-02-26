@@ -732,7 +732,7 @@ public class DisconnectPacket {
     var reasonCode: DisconnectReasonCode = DisconnectReasonCode.normalDisconnection
 
     /// A change to the session expiry interval negotiated at connection time as part of the disconnect.  Only valid for DISCONNECT packets sent from client to server.  It is not valid to attempt to change session expiry from zero to a non-zero value.
-    var sessionExpiryIntervalSec: Int
+    var sessionExpiryIntervalSec: Int?
 
     /// Additional diagnostic information about the reason that the sender is closing the connection
     var reasonString: String?
