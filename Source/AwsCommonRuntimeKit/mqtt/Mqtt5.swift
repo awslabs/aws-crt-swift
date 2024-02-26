@@ -582,7 +582,7 @@ public class PublishPacket {
     var payload: String? // Unicode objects are converted to C Strings using 'utf-8' encoding
 
     /// The MQTT quality of service associated with this PUBLISH packet.
-    let qos: QoS = QoS.atMostOnce
+    let qos: QoS
 
     /// The topic associated with this PUBLISH packet.
     let topic: String
@@ -747,12 +747,6 @@ public class DisconnectPacket {
 
 }
 
-/// Defines signature of the Publish callback
-typealias OnPublishCallback = () -> Void
-
-/// Defines signature of the Lifecycle Event Stopped callback
-typealias OnLifecycleEventStopped = () -> Void
-
 /// Data model of an `MQTT5 CONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901033>`_ packet.
 public class ConnectOptions {
 
@@ -853,6 +847,24 @@ public class ConnackPacket {
     }
 }
 
+/// Defines signature of the Publish callback
+typealias OnPublishCallback = () -> Void
+
+/// Defines signature of the Lifecycle Event Stopped callback
+typealias OnLifecycleEventStopped = () -> Void
+
+/// Defines signature of the Lifecycle Event Attepmting Connect callback
+typealias OnLifecycleEventAttemptingConnect = () -> Void
+
+/// Defines signature of the Lifecycle Event Connection Success callback
+typealias OnLifecycleEventConnectionSuccess = () -> Void
+
+/// Defines signature of the Lifecycle Event Connection Failure callback
+typealias OnLifecycleEventConnectionFailure = () -> Void
+
+/// Defines signature of the Lifecycle Event Disconnection callback
+typealias OnLifecycleEventDisconnection = () -> Void
+
 /// Configuration for the creation of MQTT5 clients
 public class ClientOptions {
     /// Host name of the MQTT server to connect to.
@@ -914,22 +926,22 @@ public class ClientOptions {
     var topicAliasingOptions: TopicAliasingOptions?
 
     /// Callback for all publish packets received by client.
-    var onPublishCallbackFn: OnPublishCallback? // onPublish_callback_fn: Callable[[PublishReceivedData], None]
+    var onPublishCallbackFn: OnPublishCallback?
 
     /// Callback for Lifecycle Event Stopped.
-    var onLifecycleEventStoppedFn: OnLifecycleEventStopped? // onLifecycleEventStoppedFn: Callable[[LifecycleStoppedData], None]
+    var onLifecycleEventStoppedFn: OnLifecycleEventStopped?
 
     /// Callback for Lifecycle Event Attempting Connect.
-    // onLifecycleEventAttemptingConnectFn: Callable[[LifecycleAttemptingConnectData], None]
+    var onLifecycleEventAttemptingConnectFn: OnLifecycleEventAttemptingConnect?
 
     /// Callback for Lifecycle Event Connection Success.
-    // onLifecycleEventConnectionSuccessFn: Callable[[LifecycleConnectSuccessData], None]
+    var onLifecycleEventConnectionSuccessFn: OnLifecycleEventConnectionSuccess?
 
     /// Callback for Lifecycle Event Connection Failure.
-    // onLifecycleEventConnectionFailureFn: Callable[[LifecycleConnectFailureData], None]
+    var onLifecycleEventConnectionFailureFn: OnLifecycleEventConnectionFailure?
 
     /// Callback for Lifecycle Event Disconnection.
-    // onLifecycleEventDisconnectionFn: Callable[[LifecycleDisconnectData], None]
+    var onLifecycleEventDisconnectionFn: OnLifecycleEventDisconnection?
 
     init (hostName: String, port: UInt32, bootstrap: ClientBootstrap, socketOptions: SocketOptions,
         tlsCtx: TLSContext) {
