@@ -101,13 +101,13 @@ jobs:
           - destination: 'platform=iOS Simulator,OS=17.2,name=iPhone 15'
             xcode: Xcode_14.1
           - destination: 'platform=tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
-            target: [ios, watchos]
+            target: ios
           - destination: 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
-            target: [ios, watchos]
+            target: ios
           - destination: 'platform=iOS Simulator,OS=16.1,name=iPhone 14'
-            target: [tvos, watchos]
+            target: tvos
           - destination: 'platform=iOS Simulator,OS=17.2,name=iPhone 15'
-            target: [tvos, watchos]
+            target: tvos
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
