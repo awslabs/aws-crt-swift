@@ -83,15 +83,6 @@ jobs:
           - 'platform=iOS Simulator,OS=17.2,name=iPhone 15'
           - 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
           - 'platform=tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
-        include:
-          - target: ios
-            destination: 'platform=iOS Simulator,OS=16.1,name=iPhone 14'
-          - target: ios
-            destination: 'platform=iOS Simulator,OS=17.2,name=iPhone 15'
-          - target: tvos
-            destination: 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
-          - target: tvos
-            destination: 'platform=tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
         exclude:
           # Don't run old macOS with new Xcode
           - runner: macos-13-xlarge
@@ -109,6 +100,14 @@ jobs:
             xcode: Xcode_14.1
           - destination: 'platform=iOS Simulator,OS=17.2,name=iPhone 15'
             xcode: Xcode_14.1
+          - destination: 'platform=tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
+            target: [ios, watchos]
+          - destination: 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
+            target: [ios, watchos]
+          - destination: 'platform=iOS Simulator,OS=16.1,name=iPhone 14'
+            target: [tvos, watchos]
+          - destination: 'platform=iOS Simulator,OS=17.2,name=iPhone 15'
+            target: [tvos, watchos]
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
