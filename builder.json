@@ -30,7 +30,7 @@
         "security create-keychain -p test build.keychain",
         "security default-keychain -s build.keychain",
         "crt-ci-prep",
-        "xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=iOS Simulator,OS=16.2,name=iPhone 14'"
+        "sudo xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=iOS Simulator,OS=16.2,name=iPhone 14'"
        ]
     },
     "tvos": {
@@ -55,7 +55,7 @@
         "crt-ci-prep",
         "security create-keychain -p test build.keychain",
         "security default-keychain -s build.keychain",
-        "xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=macOS'",
+        "sudo xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=macOS'",
         "./integ_test.sh"
       ]
     }
