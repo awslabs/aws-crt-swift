@@ -568,7 +568,7 @@ public class UserProperty {
     /// Property value
     var value: String
 
-    init (name: String, value: String){
+    init (name: String, value: String) {
         self.name = name
         self.value = value
     }
@@ -613,7 +613,7 @@ public class PublishPacket {
     /// Array of MQTT5 user properties included with the packet.
     var userProperties: [UserProperty]?
 
-    init(qos: QoS, topic: String){
+    init(qos: QoS, topic: String) {
         self.qos = qos
         self.topic = topic
     }
@@ -703,7 +703,7 @@ public class UnsubscribePacket {
     /// Array of MQTT5 user properties included with the packet.
     var userProperties: [UserProperty]?
 
-    init (topicFilters: [String]){
+    init (topicFilters: [String]) {
         self.topicFilters = topicFilters
     }
 }
