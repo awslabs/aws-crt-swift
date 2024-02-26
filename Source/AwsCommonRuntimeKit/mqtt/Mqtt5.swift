@@ -859,10 +859,14 @@ public class PublishReceivedData {
 }
 
 /// Defines signature of the Publish callback
-typealias OnPublishCallback = (publishReceivedData: PublishReceivedData) -> Void
+typealias OnPublishCallback = (PublishReceivedData) -> Void
+
+public class LifecycleStoppedData {
+
+}
 
 /// Defines signature of the Lifecycle Event Stopped callback
-typealias OnLifecycleEventStopped = () -> Void
+typealias OnLifecycleEventStopped = (LifecycleStoppedData) -> Void
 
 /// Defines signature of the Lifecycle Event Attepmting Connect callback
 typealias OnLifecycleEventAttemptingConnect = () -> Void
