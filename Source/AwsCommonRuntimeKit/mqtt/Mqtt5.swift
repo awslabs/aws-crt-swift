@@ -847,11 +847,11 @@ public class ConnackPacket {
     }
 }
 
-/// Dataclass containing data related to a Publish Received Callback
+/// Class containing data related to a Publish Received Callback
 public class PublishReceivedData {
 
     /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet.
-    var publishPacket: PublishPacket
+    let publishPacket: PublishPacket
 
     init (publishPacket: PublishPacket) {
         self.publishPacket = publishPacket
@@ -861,24 +861,68 @@ public class PublishReceivedData {
 /// Defines signature of the Publish callback
 typealias OnPublishCallback = (PublishReceivedData) -> Void
 
-public class LifecycleStoppedData {
-
-}
+/// Class containing results of an Stopped Lifecycle Event. Currently unused.
+public class LifecycleStoppedData { }
 
 /// Defines signature of the Lifecycle Event Stopped callback
 typealias OnLifecycleEventStopped = (LifecycleStoppedData) -> Void
 
+/// Class containing results of an Attempting Connect Lifecycle Event. Currently unused.
+public class LifecycleAttemptingConnectData { }
+
 /// Defines signature of the Lifecycle Event Attepmting Connect callback
-typealias OnLifecycleEventAttemptingConnect = () -> Void
+typealias OnLifecycleEventAttemptingConnect = (LifecycleAttemptingConnectData) -> Void
+
+/// Class containing results of a Connect Success Lifecycle Event.
+public class LifecycleConnectSuccessData {
+
+    /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
+    let connackPacket: ConnackPacket
+
+    /// Mqtt behavior settings that have been dynamically negotiated as part of the CONNECT/CONNACK exchange.
+    let negotiatedSettings: NegotiatedSettings
+
+    init (connackPacket: ConnackPacket, negotiatedSettings NegotiatedSettings) {
+        self.connackPacket = connackPacket
+        self.negotiatedSettings = negotiatedSettings
+    }
+}
 
 /// Defines signature of the Lifecycle Event Connection Success callback
-typealias OnLifecycleEventConnectionSuccess = () -> Void
+typealias OnLifecycleEventConnectionSuccess = (LifecycleConnectSuccessData) -> Void
+
+/// Dataclass containing results of a Connect Failure Lifecycle Event.
+public class LifecycleConnectFailureData {
+
+    /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
+    connackPacket: ConnackPacket
+
+    // TODO error code or exception must also be included here
+
+    init (connackPacket: ConnackPacket) {
+        self.connackPacket = connackPacket
+    }
+
+}
 
 /// Defines signature of the Lifecycle Event Connection Failure callback
-typealias OnLifecycleEventConnectionFailure = () -> Void
+typealias OnLifecycleEventConnectionFailure = (LifecycleConnectFailureData) -> Void
+
+/// Dataclass containing results of a Disconnect Lifecycle Event
+public class LifecycleDisconnectData {
+
+    /// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
+    disconnectPacket: DisconnectPacket
+
+    // TODO error code or exception must also be included here
+
+    init (disconnectPacket: DisconnectPacket) {
+        self.disconnectPacket = disconnectPacket
+    }
+}
 
 /// Defines signature of the Lifecycle Event Disconnection callback
-typealias OnLifecycleEventDisconnection = () -> Void
+typealias OnLifecycleEventDisconnection = (LifecycleDisconnectData) -> Void
 
 /// Configuration for the creation of MQTT5 clients
 public class ClientOptions {
