@@ -501,43 +501,43 @@ public class TopicAliasingOptions {
 public class NegotiatedSettings {
 
     /// The maximum QoS allowed for publishes on this connection instance
-    var maximumQos: QoS
+    let maximumQos: QoS
 
     /// The amount of time in seconds the server will retain the MQTT session after a disconnect.
-    var sessionExpiryIntervalSec: UInt32
+    let sessionExpiryIntervalSec: UInt32
 
     /// The number of in-flight QoS 1 and QoS 2 publications the server is willing to process concurrently.
-    var receiveMaximumFromServer: UInt16
+    let receiveMaximumFromServer: UInt16
 
     /// The maximum packet size the server is willing to accept.
-    var maximumPacketSizeToServer: UInt32
+    let maximumPacketSizeToServer: UInt32
 
     /// The maximum allowed topic alias value on publishes sent from client to server
-    var topicAliasMaximumToServer: UInt16
+    let topicAliasMaximumToServer: UInt16
 
     /// The maximum allowed topic alias value on publishes sent from server to client
-    var topicAliasMaximumToClient: UInt16
+    let topicAliasMaximumToClient: UInt16
 
     /// The maximum amount of time in seconds between client packets. The client will use PINGREQs to ensure this limit is not breached.  The server will disconnect the client for inactivity if no MQTT packet is received in a time interval equal to 1.5 x this value.
-    var serverKeepAliveSec: UInt16
+    let serverKeepAliveSec: UInt16
 
     /// Whether the server supports retained messages.
-    var retainAvailable: Bool
+    let retainAvailable: Bool
 
     /// Whether the server supports wildcard subscriptions.
-    var wildcardSubscriptionsAvailable: Bool
+    let wildcardSubscriptionsAvailable: Bool
 
     /// Whether the server supports subscription identifiers
-    var subscriptionIdentifiersAvailable: Bool
+    let subscriptionIdentifiersAvailable: Bool
 
     /// Whether the server supports shared subscriptions
-    var sharedSubscriptionsAvailable: Bool
+    let sharedSubscriptionsAvailable: Bool
 
     /// Whether the client has rejoined an existing session.
-    var rejoinedSession: Bool
+    let rejoinedSession: Bool
 
     /// The final client id in use by the newly-established connection.  This will be the configured client id if one was given in the configuration, otherwise, if no client id was specified, this will be the client id assigned by the server.  Reconnection attempts will always use the auto-assigned client id, allowing for auto-assigned session resumption.
-    var clientId: String
+    let clientId: String
 
     init (maximumQos: QoS, sessionExpiryIntervalSec: UInt32, receiveMaximumFromServer: UInt16, maximumPacketSizeToServer: UInt32,
         topicAliasMaximumToServer: UInt16, topicAliasMaximumToClient: UInt16, serverKeepAliveSec: UInt16, retainAvailable: Bool,
