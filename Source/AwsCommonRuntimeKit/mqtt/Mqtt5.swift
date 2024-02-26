@@ -735,13 +735,14 @@ public class DisconnectPacket {
     var sessionExpiryIntervalSec: Int
 
     /// Additional diagnostic information about the reason that the sender is closing the connection
-    var reasonString: String
-
-    /// Array of MQTT5 user properties included with the packet.
-    var userProperties: [UserProperty]
+    var reasonString: String?
 
     /// Property indicating an alternate server that the client may temporarily or permanently attempt to connect to instead of the configured endpoint.  Will only be set if the reason code indicates another server may be used (ServerMoved, UseAnotherServer).
-    var serverReference: String
+    var serverReference: String?
+
+    /// Array of MQTT5 user properties included with the packet.
+    var userProperties: [UserProperty]?
+
 }
 
 /// Defines signature of the Publish callback
