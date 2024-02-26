@@ -882,7 +882,7 @@ public class LifecycleConnectSuccessData {
     /// Mqtt behavior settings that have been dynamically negotiated as part of the CONNECT/CONNACK exchange.
     let negotiatedSettings: NegotiatedSettings
 
-    init (connackPacket: ConnackPacket, negotiatedSettings NegotiatedSettings) {
+    init (connackPacket: ConnackPacket, negotiatedSettings: NegotiatedSettings) {
         self.connackPacket = connackPacket
         self.negotiatedSettings = negotiatedSettings
     }
@@ -895,7 +895,7 @@ typealias OnLifecycleEventConnectionSuccess = (LifecycleConnectSuccessData) -> V
 public class LifecycleConnectFailureData {
 
     /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
-    connackPacket: ConnackPacket
+    let connackPacket: ConnackPacket
 
     // TODO error code or exception must also be included here
 
@@ -912,7 +912,7 @@ typealias OnLifecycleEventConnectionFailure = (LifecycleConnectFailureData) -> V
 public class LifecycleDisconnectData {
 
     /// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
-    disconnectPacket: DisconnectPacket
+    let disconnectPacket: DisconnectPacket
 
     // TODO error code or exception must also be included here
 
