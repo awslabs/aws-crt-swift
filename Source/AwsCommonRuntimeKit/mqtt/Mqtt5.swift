@@ -414,10 +414,10 @@ public enum ClientOperationQueueBehaviorType: Int {
 public enum PayloadFormatIndicator: Int {
 
     /// The payload is arbitrary binary data
-    case awsMqtt5PfiBytes = 0
+    case bytes = 0
 
     /// The payload is a well-formed utf-8 string value.
-    case awsMqtt5PfiUtf8 = 1
+    case utf8 = 1
 }
 
 /// Configures how retained messages should be handled when subscribing with a topic filter that matches topics with
@@ -593,10 +593,10 @@ public class PublishPacket {
     var payloadFormatIndicator: PayloadFormatIndicator?
 
     /// Sent publishes - indicates the maximum amount of time allowed to elapse for message delivery before the server should instead delete the message (relative to a recipient). Received publishes - indicates the remaining amount of time (from the server's perspective) before the message would have been deleted relative to the subscribing client. If left None, indicates no expiration timeout.
-    var messageExpiryIntervalSec: Int?
+    var messageExpiryIntervalSec: UInt32?
 
     /// An integer value that is used to identify the Topic instead of using the Topic Name.  On outbound publishes, this will only be used if the outbound topic aliasing behavior has been set to Manual.
-    var topicAlias: Int?
+    var topicAlias: UInt16?
 
     /// Opaque topic string intended to assist with request/response implementations.  Not internally meaningful to MQTT5 or this client.
     var responseTopic: String?
@@ -605,7 +605,7 @@ public class PublishPacket {
     var correlationData: String? // Unicode objects are converted to C Strings using 'utf-8' encoding
 
     /// The subscription identifiers of all the subscriptions this message matched.
-    var subscriptionIdentifiers: [Int]? // ignore attempts to set but provide in received packets
+    var subscriptionIdentifiers: [UInt32]? // ignore attempts to set but provide in received packets
 
     /// Property specifying the content type of the payload.  Not internally meaningful to MQTT5.
     var contentType: String?
@@ -617,6 +617,7 @@ public class PublishPacket {
         self.qos = qos
         self.topic = topic
     }
+
 }
 
 /// "Data model of an `MQTT5 PUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901121>`_ packet
@@ -667,7 +668,7 @@ public class SubscribePacket {
     var subscriptions: [Subscription]
 
     /// The positive int to associate with all topic filters in this request.  Publish packets that match a subscription in this request should include this identifier in the resulting message.
-    var subscriptionIdentifier: Int?
+    var subscriptionIdentifier: UInt32?
 
     /// Array of MQTT5 user properties included with the packet.
     var userProperties: [UserProperty]?
@@ -732,7 +733,7 @@ public class DisconnectPacket {
     var reasonCode: DisconnectReasonCode = DisconnectReasonCode.normalDisconnection
 
     /// A change to the session expiry interval negotiated at connection time as part of the disconnect.  Only valid for DISCONNECT packets sent from client to server.  It is not valid to attempt to change session expiry from zero to a non-zero value.
-    var sessionExpiryIntervalSec: Int?
+    var sessionExpiryIntervalSec: UInt32?
 
     /// Additional diagnostic information about the reason that the sender is closing the connection
     var reasonString: String?
@@ -801,10 +802,10 @@ public class ConnackPacket {
     var reasonCode: ConnectReasonCode
 
     /// A time interval, in seconds, that the server will persist this connection's MQTT session state for.  If present, this value overrides any session expiry specified in the preceding CONNECT packet.
-    var sessionExpiryIntervalSec: Int?
+    var sessionExpiryIntervalSec: UInt32?
 
     /// The maximum amount of in-flight QoS 1 or 2 messages that the server is willing to handle at once. If omitted or None, the limit is based on the valid MQTT packet id space (65535).
-    var receiveMaximum: Int?
+    var receiveMaximum: UInt16?
 
     /// The maximum message delivery quality of service that the server will allow on this connection.
     var maximumQos: QoS?
@@ -813,13 +814,13 @@ public class ConnackPacket {
     var retainAvailable: Bool?
 
     /// Specifies the maximum packet size, in bytes, that the server is willing to accept.  If None, there is no limit beyond what is imposed by the MQTT spec itself.
-    var maximumPacketSize: Int?
+    var maximumPacketSize: UInt32?
 
     /// Specifies a client identifier assigned to this connection by the server.  Only valid when the client id of the preceding CONNECT packet was left empty.
     var assignedClientIdentifier: String?
 
     /// The maximum allowed value for topic aliases in outbound publish packets.  If 0 or None, then outbound topic aliasing is not allowed.
-    var topicAliasMaximum: Int?
+    var topicAliasMaximum: UInt16?
 
     /// Additional diagnostic information about the result of the connection attempt.
     var reasonString: String?
@@ -837,7 +838,7 @@ public class ConnackPacket {
     var sharedSubscriptionAvailable: Bool?
 
     /// Server-requested override of the keep alive interval, in seconds.  If None, the keep alive value sent by the client should be used.
-    var serverKeepAliveSec: Int?
+    var serverKeepAliveSec: UInt16?
 
     /// A value that can be used in the creation of a response topic associated with this connection. MQTT5-based request/response is outside the purview of the MQTT5 spec and this client.
     var responseInformation: String?
