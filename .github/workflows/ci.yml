@@ -92,6 +92,7 @@ jobs:
             destination: 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
           - target: tvos
             destination: 'platform=tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
+        exclude:
           # Don't run old macOS with new Xcode
           - runner: macos-13-xlarge
             xcode: Xcode_15.2
