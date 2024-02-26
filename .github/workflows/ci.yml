@@ -78,18 +78,20 @@ jobs:
         xcode:
           - Xcode_14.1
           - Xcode_15.2
+        destination:
+          - 'platform=iOS Simulator,OS=16.1,name=iPhone 14'
+          - 'platform=iOS Simulator,OS=17.2,name=iPhone 15'
+          - 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
+          - 'platform=tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
         include:
           - target: ios
             destination: 'platform=iOS Simulator,OS=16.1,name=iPhone 14'
           - target: ios
             destination: 'platform=iOS Simulator,OS=17.2,name=iPhone 15'
-          - target: tvOS
+          - target: tvos
             destination: 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
-          - target: tvOS
+          - target: tvos
             destination: 'platform=tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
-          - target: watchOS
-            destination: 'watchOS'
-        exclude:
           # Don't run old macOS with new Xcode
           - runner: macos-13-xlarge
             xcode: Xcode_15.2
