@@ -12,7 +12,8 @@ class TLSContextTests: XCBaseTestCase {
   }
 
     func testCreateTlsContextWithFilePath() throws{
-        try skipIfiOS();
+        try skipIfiOS()
+        try skipIfwatchOS()
         let cert_path = try GetEnvironmentVarOrSkip(environmentVarName: "AWS_TEST_MQTT311_IOT_CORE_X509_CERT")
         let private_key_path = try GetEnvironmentVarOrSkip(environmentVarName: "AWS_TEST_MQTT311_IOT_CORE_X509_KEY")
         let options = try TLSContextOptions.makeMtlsFromFilePath(certificatePath: cert_path!, privateKeyPath: private_key_path!)

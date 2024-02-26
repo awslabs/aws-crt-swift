@@ -51,6 +51,18 @@ extension XCTestCase {
             throw XCTSkip("Skipping test on linux")
         #endif
     }
+
+    func skipIfwatchOS() throws {
+        #if os(watchOS)
+            throw XCTSkip("Skipping test on linux")
+        #endif
+    }
+
+    func skipIftvOS() throws {
+        #if os(tvOS)
+            throw XCTSkip("Skipping test on linux")
+        #endif
+    }
 }
 
 extension XCTestCase {
