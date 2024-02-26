@@ -930,12 +930,12 @@ public class ClientOptions {
     // onLifecycleEventDisconnectionFn: Callable[[LifecycleDisconnectData], None]
 
     init (hostName: String, port: UInt32, bootstrap: ClientBootstrap, socketOptions: SocketOptions,
-        tlsCtx: tlsContext) {
+        tlsCtx: TLSContext) {
         self.hostName = hostName
         self.port = port
         self.bootstrap = bootstrap
         self.socketOptions = socketOptions
-        self.tlsContext = tlsContext
+        self.tlsCtx = tlsCtx
     }
 }
 
