@@ -869,47 +869,47 @@ public class ClientOptions {
     var tlsCtx: TLSContext
 
     /// The (tunneling) HTTP proxy usage when establishing MQTT connections
-    var httpProxyOptions: HTTPProxyOptions
+    var httpProxyOptions: HTTPProxyOptions?
 
     // TODO WebSocket implementation
     /// This callback allows a custom transformation of the HTTP request that acts as the websocket handshake. Websockets will be used if this is set to a valid transformation callback.  To use websockets but not perform a transformation, just set this as a trivial completion callback.  If None, the connection will be made with direct MQTT.
     // var websocketHandshakeTransform: Callable[[WebsocketHandshakeTransformArgs], None] = None
 
     /// All configurable options with respect to the CONNECT packet sent by the client, including the will. These connect properties will be used for every connection attempt made by the client.
-    var connectOptions: ConnectOptions
+    var connectOptions: ConnectOptions?
 
     /// How the MQTT5 client should behave with respect to MQTT sessions.
-    var sessionBehavior: ClientSessionBehaviorType
+    var sessionBehavior: ClientSessionBehaviorType?
 
     /// The additional controls for client behavior with respect to operation validation and flow control; these checks go beyond the base MQTT5 spec to respect limits of specific MQTT brokers.
-    var extendedValidationAndFlowControlOptions: ExtendedValidationAndFlowControlOptions
+    var extendedValidationAndFlowControlOptions: ExtendedValidationAndFlowControlOptions?
 
     /// Returns how disconnects affect the queued and in-progress operations tracked by the client.  Also controls how new operations are handled while the client is not connected.  In particular, if the client is not connected, then any operation that would be failed on disconnect (according to these rules) will also be rejected.
-    var offlineQueueBehavior: ClientOperationQueueBehaviorType
+    var offlineQueueBehavior: ClientOperationQueueBehaviorType?
 
     /// How the reconnect delay is modified in order to smooth out the distribution of reconnection attempt timepoints for a large set of reconnecting clients.
-    var retryJitterMode: ExponentialBackoffJitterMode
+    var retryJitterMode: ExponentialBackoffJitterMode?
 
     /// The minimum amount of time to wait to reconnect after a disconnect. Exponential backoff is performed with jitter after each connection failure.
-    var minReconnectDelayMs: UInt64
+    var minReconnectDelayMs: UInt64?
 
     /// The maximum amount of time to wait to reconnect after a disconnect.  Exponential backoff is performed with jitter after each connection failure.
-    var maxReconnectDelayMs: UInt64
+    var maxReconnectDelayMs: UInt64?
 
     /// The amount of time that must elapse with an established connection before the reconnect delay is reset to the minimum. This helps alleviate bandwidth-waste in fast reconnect cycles due to permission failures on operations.
-    var minConnectedTimeToResetReconnectDelayMs: UInt64
+    var minConnectedTimeToResetReconnectDelayMs: UInt64?
 
     /// The time interval to wait after sending a PINGREQ for a PINGRESP to arrive. If one does not arrive, the client will close the current connection.
-    var pingTimeoutMs: UInt32
+    var pingTimeoutMs: UInt32?
 
     /// The time interval to wait after sending a CONNECT request for a CONNACK to arrive.  If one does not arrive, the connection will be shut down.
-    var connackTimeoutMs: UInt32
+    var connackTimeoutMs: UInt32?
 
     /// The time interval to wait for an ack after sending a QoS 1+ PUBLISH, SUBSCRIBE, or UNSUBSCRIBE before failing the operation.
-    var ackTimeoutSec: UInt32
+    var ackTimeoutSec: UInt32?
 
     /// All configurable options with respect to client topic aliasing behavior.
-    var topicAliasingOptions: TopicAliasingOptions
+    var topicAliasingOptions: TopicAliasingOptions?
 
     /// Callback for all publish packets received by client.
     var onPublishCallbackFn: OnPublishCallback? // onPublish_callback_fn: Callable[[PublishReceivedData], None]
@@ -928,6 +928,15 @@ public class ClientOptions {
 
     /// Callback for Lifecycle Event Disconnection.
     // onLifecycleEventDisconnectionFn: Callable[[LifecycleDisconnectData], None]
+
+    init (hostName: String, port: UInt32, bootstrap: ClientBootstrap, socketOptions: SocketOptions,
+        tlsCtx: TLSContext) {
+        self.hostName = hostName
+        self.port = port
+        self.bootstrap = bootstrap
+        self.socketOptions = socketOptions
+        self.tlsContext = tlsContext
+    }
 }
 
 /// Dataclass containing some simple statistics about the current state of the client's queue of operations
