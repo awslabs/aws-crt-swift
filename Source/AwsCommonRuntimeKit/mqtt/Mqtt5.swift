@@ -563,10 +563,10 @@ public class NegotiatedSettings {
 public class UserProperty {
 
     /// Property name
-    var name: String
+    let name: String
 
     /// Property value
-    var value: String
+    let value: String
 
     init (name: String, value: String) {
         self.name = name
