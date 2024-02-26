@@ -755,40 +755,40 @@ typealias OnLifecycleEventStopped = () -> Void
 public class ConnectOptions {
 
     /// The maximum time interval, in seconds, that is permitted to elapse between the point at which the client finishes transmitting one MQTT packet and the point it starts sending the next.  The client will use PINGREQ packets to maintain this property. If the responding CONNACK contains a keep alive property value, then that is the negotiated keep alive value. Otherwise, the keep alive sent by the client is the negotiated value.
-    var keepAliveIntervalSec: UInt16
+    var keepAliveIntervalSec: UInt16?
 
     /// A unique string identifying the client to the server.  Used to restore session state between connections. If left empty, the broker will auto-assign a unique client id.  When reconnecting, the mqtt5 client will always use the auto-assigned client id.
-    var clientId: String
+    var clientId: String?
 
     /// A string value that the server may use for client authentication and authorization.
-    var username: String
+    var username: String?
 
     /// Opaque binary data that the server may use for client authentication and authorization.
-    var password: String
+    var password: String?
 
     /// A time interval, in seconds, that the client requests the server to persist this connection's MQTT session state for.  Has no meaning if the client has not been configured to rejoin sessions.  Must be non-zero in order to successfully rejoin a session. If the responding CONNACK contains a session expiry property value, then that is the negotiated session expiry value.  Otherwise, the session expiry sent by the client is the negotiated value.
-    var sessionExpiryIntervalSec: UInt32
+    var sessionExpiryIntervalSec: UInt32?
 
     /// If true, requests that the server send response information in the subsequent CONNACK.  This response information may be used to set up request-response implementations over MQTT, but doing so is outside the scope of the MQTT5 spec and client.
-    var requestResponseInformation: Bool
+    var requestResponseInformation: Bool?
 
     /// If true, requests that the server send additional diagnostic information (via response string or user properties) in DISCONNECT or CONNACK packets from the server.
-    var requestProblemInformation: Bool
+    var requestProblemInformation: Bool?
 
     /// Notifies the server of the maximum number of in-flight QoS 1 and 2 messages the client is willing to handle.  If omitted or None, then no limit is requested.
-    var receiveMaximum: UInt16
+    var receiveMaximum: UInt16?
 
     /// Notifies the server of the maximum packet size the client is willing to handle.  If omitted or None, then no limit beyond the natural limits of MQTT packet size is requested.
-    var maximumPacketSize: UInt32
+    var maximumPacketSize: UInt32?
 
     /// A time interval, in seconds, that the server should wait (for a session reconnection) before sending the will message associated with the connection's session.  If omitted or None, the server will send the will when the associated session is destroyed.  If the session is destroyed before a will delay interval has elapsed, then the will must be sent at the time of session declassion.
-    var willDelayIntervalSec: UInt32
+    var willDelayIntervalSec: UInt32?
 
     /// The definition of a message to be published when the connection's session is destroyed by the server or when the will delay interval has elapsed, whichever comes first.  If None, then nothing will be sent.
-    var will: PublishPacket
+    var will: PublishPacket?
 
     /// Array of MQTT5 user properties included with the packet.
-    var userProperties: [UserProperty]
+    var userProperties: [UserProperty]?
 }
 
 /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
