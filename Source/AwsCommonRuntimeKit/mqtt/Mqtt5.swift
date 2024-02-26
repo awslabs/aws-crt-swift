@@ -577,17 +577,18 @@ public class UserProperty {
 /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet
 public class PublishPacket {
 
+    // TODO this could be a byte array using [UInt8] instead but we probably want to handle converting it to a utf-8 string for the customer within this class if they want a string.
     /// The payload of the publish message.
     var payload: String? // Unicode objects are converted to C Strings using 'utf-8' encoding
 
     /// The MQTT quality of service associated with this PUBLISH packet.
-    var qos: QoS = QoS.atMostOnce
+    let qos: QoS = QoS.atMostOnce
+
+    /// The topic associated with this PUBLISH packet.
+    let topic: String
 
     /// True if this is a retained message, false otherwise.
     var retain: Bool = false
-
-    /// The topic associated with this PUBLISH packet.
-    var topic: String
 
     /// Property specifying the format of the payload data. The mqtt5 client does not enforce or use this value in a meaningful way.
     var payloadFormatIndicator: PayloadFormatIndicator?
@@ -624,7 +625,7 @@ public class PublishPacket {
 public class PubackPacket {
 
     /// Success indicator or failure reason for the associated PUBLISH packet.
-    var reasonCode: PubackReasonCode
+    let reasonCode: PubackReasonCode
 
     /// Additional diagnostic information about the result of the PUBLISH attempt.
     var reasonString: String?
@@ -641,10 +642,10 @@ public class PubackPacket {
 public class Subscription {
 
     /// The topic filter to subscribe to
-    var topicFilter: String
+    let topicFilter: String
 
     /// The maximum QoS on which the subscriber will accept publish messages
-    var qos: QoS
+    let qos: QoS
 
     /// Whether the server will not send publishes to a client when that client was the one who sent the publish
     var noLocal: Bool?
@@ -682,7 +683,7 @@ public class SubscribePacket {
 public class SubackPacket {
 
     /// Array of reason codes indicating the result of each individual subscription entry in the associated SUBSCRIBE packet.
-    var reasonCodes: [SubackReasonCode]
+    let reasonCodes: [SubackReasonCode]
 
     /// Additional diagnostic information about the result of the SUBSCRIBE attempt.
     var reasonString: String?
@@ -713,7 +714,7 @@ public class UnsubscribePacket {
 public class UnsubackPacket {
 
     /// Array of reason codes indicating the result of unsubscribing from each individual topic filter entry in the associated UNSUBSCRIBE packet.
-    var reasonCodes: [DisconnectReasonCode]
+    let reasonCodes: [DisconnectReasonCode]
 
     /// Additional diagnostic information about the result of the UNSUBSCRIBE attempt.
     var reasonString: String?
@@ -796,10 +797,10 @@ public class ConnectOptions {
 public class ConnackPacket {
 
     /// True if the client rejoined an existing session on the server, false otherwise.
-    var sessionPresent: Bool
+    let sessionPresent: Bool
 
     /// Indicates either success or the reason for failure for the connection attempt.
-    var reasonCode: ConnectReasonCode
+    let reasonCode: ConnectReasonCode
 
     /// A time interval, in seconds, that the server will persist this connection's MQTT session state for.  If present, this value overrides any session expiry specified in the preceding CONNECT packet.
     var sessionExpiryIntervalSec: UInt32?
@@ -944,16 +945,16 @@ public class ClientOptions {
 public class ClientOperationStatistics {
 
     /// Total number of operations submitted to the client that have not yet been completed.  Unacked operations are a subset of this.
-    var incompleteOperationCount: UInt64
+    let incompleteOperationCount: UInt64
 
     /// Total packet size of operations submitted to the client that have not yet been completed.  Unacked operations are a subset of this.
-    var incompleteOperationSize: UInt64
+    let incompleteOperationSize: UInt64
 
     /// Total number of operations that have been sent to the server and are waiting for a corresponding ACK before they can be completed.
-    var unackedOperationCount: UInt64
+    let unackedOperationCount: UInt64
 
     /// Total packet size of operations that have been sent to the server and are waiting for a corresponding ACK before they can be completed.
-    var unackedOperationSize: UInt64
+    let unackedOperationSize: UInt64
 
     init (incompleteOperationCount: UInt64, incompleteOperationSize: UInt64,
         unackedOperationCount: UInt64, unackedOperationSize: UInt64) {
