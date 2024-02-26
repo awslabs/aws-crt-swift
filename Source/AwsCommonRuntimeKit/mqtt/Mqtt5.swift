@@ -894,12 +894,14 @@ typealias OnLifecycleEventConnectionSuccess = (LifecycleConnectSuccessData) -> V
 /// Dataclass containing results of a Connect Failure Lifecycle Event.
 public class LifecycleConnectFailureData {
 
+    /// Error which caused connection failure.
+    let errorCode: Int
+
     /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
     let connackPacket: ConnackPacket
 
-    // TODO error code or exception must also be included here
-
-    init (connackPacket: ConnackPacket) {
+    init (errorCode: Int, connackPacket: ConnackPacket) {
+        self.errorCode = errorCode
         self.connackPacket = connackPacket
     }
 
@@ -911,12 +913,14 @@ typealias OnLifecycleEventConnectionFailure = (LifecycleConnectFailureData) -> V
 /// Dataclass containing results of a Disconnect Lifecycle Event
 public class LifecycleDisconnectData {
 
+    /// Error which caused disconnection.
+    let errorCode: Int
+
     /// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
     let disconnectPacket: DisconnectPacket
 
-    // TODO error code or exception must also be included here
-
-    init (disconnectPacket: DisconnectPacket) {
+    init (errorCode: Int, disconnectPacket: DisconnectPacket) {
+        self.errorCode = errorCode
         self.disconnectPacket = disconnectPacket
     }
 }
