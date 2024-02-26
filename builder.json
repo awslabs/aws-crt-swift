@@ -27,7 +27,7 @@
         "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS'"
       ],
       "!test_steps": [
-        "security create-keychain -p $KEYCHAIN_PASSWORD build.keychain",
+        "security create-keychain -p test build.keychain",
         "security default-keychain -s build.keychain",
         "crt-ci-prep",
         "xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=iOS Simulator,OS=16.2,name=iPhone 14'"
@@ -39,7 +39,7 @@
       ],
       "!test_steps": [
         "crt-ci-prep",
-        "security create-keychain -p $KEYCHAIN_PASSWORD build.keychain",
+        "security create-keychain -p test build.keychain",
         "security default-keychain -s build.keychain",
         "xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'"
       ]
@@ -53,7 +53,7 @@
     "macos": {
       "+test_steps": [
         "crt-ci-prep",
-        "security create-keychain -p $KEYCHAIN_PASSWORD build.keychain",
+        "security create-keychain -p test build.keychain",
         "security default-keychain -s build.keychain",
         "xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=macOS'",
         "./integ_test.sh"
