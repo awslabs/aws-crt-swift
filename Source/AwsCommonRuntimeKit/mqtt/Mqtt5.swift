@@ -847,8 +847,19 @@ public class ConnackPacket {
     }
 }
 
+/// Dataclass containing data related to a Publish Received Callback
+public class PublishReceivedData {
+
+    /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet.
+    var publishPacket: PublishPacket
+
+    init (publishPacket: PublishPacket) {
+        self.publishPacket = publishPacket
+    }
+}
+
 /// Defines signature of the Publish callback
-typealias OnPublishCallback = () -> Void
+typealias OnPublishCallback = (publishReceivedData: PublishReceivedData) -> Void
 
 /// Defines signature of the Lifecycle Event Stopped callback
 typealias OnLifecycleEventStopped = () -> Void
