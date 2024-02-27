@@ -623,7 +623,7 @@ public class PublishPacket {
     /// Get payload converted to a utf8 String
     func payloadAsString() -> String? {
         if let data = payload {
-            return String(payload: data, encoding: .utf8)
+            return String(data: data, encoding: .utf8)
         }
         return nil
     }
