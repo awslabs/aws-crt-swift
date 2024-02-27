@@ -1,6 +1,8 @@
 ///  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ///  SPDX-License-Identifier: Apache-2.0.
 
+import Foundation
+
 /// MQTT message delivery quality of service.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901234>`__ encoding values.
 public enum QoS: Int {
@@ -578,7 +580,7 @@ public class UserProperty {
 public class PublishPacket {
 
     /// The payload of the publish message in a byte buffer format
-    var payload: Data? // Unicode objects are converted to C Strings using 'utf-8' encoding
+    var payload: Data?
 
     /// The MQTT quality of service associated with this PUBLISH packet.
     let qos: QoS
@@ -618,7 +620,7 @@ public class PublishPacket {
         self.topic = topic
     }
 
-    /// Get payload as a utf8 String
+    /// Get payload converted to a utf8 String
     func payloadAsString() -> String? {
         if let data = payload {
             return String(payload: data, encoding: .utf8)
