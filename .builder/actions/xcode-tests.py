@@ -11,6 +11,6 @@ class XCodeTests(Builder.Action):
             'aws-crt-swift-Package',
             'test',
             '-destination',
-            destination
+            'platform=\'{}\''.format(destination)
         ]
         env.shell.exec(commands, check=True)

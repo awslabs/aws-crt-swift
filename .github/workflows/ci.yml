@@ -38,6 +38,7 @@ jobs:
         run: |
           aws s3 cp --debug s3://aws-crt-test-stuff/ci/${{ env.BUILDER_VERSION }}/linux-container-ci.sh ./linux-container-ci.sh && chmod a+x ./linux-container-ci.sh
           ./linux-container-ci.sh ${{ env.BUILDER_VERSION }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
+
   osx:
     runs-on: ${{ matrix.runner }}
     env:
@@ -81,10 +82,10 @@ jobs:
           - Xcode_14.1
           - Xcode_15.2
         destination:
-          - 'platform=iOS Simulator,OS=16.1,name=iPhone 14'
-          - 'platform=iOS Simulator,OS=17.2,name=iPhone 15'
-          - 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
-          - 'platform=tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
+          - 'iOS Simulator,OS=16.1,name=iPhone 14'
+          - 'iOS Simulator,OS=17.2,name=iPhone 15'
+          - 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
+          - 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
         exclude:
           # Don't run old macOS with new Xcode
           - runner: macos-13-xlarge
@@ -95,30 +96,30 @@ jobs:
           - runner: macos-14-xlarge
             xcode: Xcode_14.1
           # Don't run old simulators with new Xcode
-          - destination: 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
+          - destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
             xcode: Xcode_15.2
-          - destination: 'platform=iOS Simulator,OS=16.1,name=iPhone 14'
+          - destination: 'iOS Simulator,OS=16.1,name=iPhone 14'
             xcode: Xcode_15.2
           # Don't run new simulators with old Xcode
-          - destination: 'platform=tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
+          - destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
             xcode: Xcode_14.1
-          - destination: 'platform=iOS Simulator,OS=17.2,name=iPhone 15'
+          - destination: 'iOS Simulator,OS=17.2,name=iPhone 15'
             xcode: Xcode_14.1
-          - destination: 'platform=tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
+          - destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
             target: ios
-          - destination: 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
+          - destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
             target: ios
-          - destination: 'platform=iOS Simulator,OS=16.1,name=iPhone 14'
+          - destination: 'iOS Simulator,OS=16.1,name=iPhone 14'
             target: tvos
-          - destination: 'platform=iOS Simulator,OS=17.2,name=iPhone 15'
+          - destination: 'iOS Simulator,OS=17.2,name=iPhone 15'
             target: tvos
-          - destination: 'platform=tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
+          - destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'
             target: watchos
-          - destination: 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
+          - destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'
             target: watchos
-          - destination: 'platform=iOS Simulator,OS=16.1,name=iPhone 14'
+          - destination: 'iOS Simulator,OS=16.1,name=iPhone 14'
             target: watchos
-          - destination: 'platform=iOS Simulator,OS=17.2,name=iPhone 15'
+          - destination: 'iOS Simulator,OS=17.2,name=iPhone 15'
             target: watchos
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
