@@ -685,11 +685,6 @@ public class SubscribePacket {
     init (subscription: Subscription) {
         self.subscriptions = [subscription]
     }
-
-    /// Add a Subscription to the SubscriptionPacket
-    func addSubscription(subscription: Subscription) -> Void {
-        subscriptions.append(subscription)
-    }
 }
 
 /// Data model of an `MQTT5 SUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901171>`_ packet.
