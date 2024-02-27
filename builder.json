@@ -9,7 +9,7 @@
   "run_tests": true,
   "test_steps": [
     "crt-ci-prep",
-    "sudo swift test"
+    "swift test"
   ],
   "hosts": {
     "al2012": {
@@ -38,7 +38,6 @@
       ],
       "!test_steps": [
         "crt-ci-prep",
-        "xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'",
         "xcode-tests"
       ]
     },
@@ -53,7 +52,6 @@
     },
     "macos": {
       "+test_steps": [
-        "xcode-tests",
         "./integ_test.sh"
       ]
     }
