@@ -903,13 +903,13 @@ typealias OnLifecycleEventConnectionSuccess = (LifecycleConnectSuccessData) -> V
 public class LifecycleConnectFailureData {
 
     /// Error which caused connection failure.
-    let errorCode: Int
+    let crtError: CRTError
 
     /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
     let connackPacket: ConnackPacket
 
-    init (errorCode: Int, connackPacket: ConnackPacket) {
-        self.errorCode = errorCode
+    init (crtError: CRTError, connackPacket: ConnackPacket) {
+        self.crtError = crtError
         self.connackPacket = connackPacket
     }
 
@@ -922,13 +922,13 @@ typealias OnLifecycleEventConnectionFailure = (LifecycleConnectFailureData) -> V
 public class LifecycleDisconnectData {
 
     /// Error which caused disconnection.
-    let errorCode: Int
+    let crtError: CRTError
 
     /// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
     let disconnectPacket: DisconnectPacket
 
-    init (errorCode: Int, disconnectPacket: DisconnectPacket) {
-        self.errorCode = errorCode
+    init (crtError: CRTError, disconnectPacket: DisconnectPacket) {
+        self.crtError = crtError
         self.disconnectPacket = disconnectPacket
     }
 }
