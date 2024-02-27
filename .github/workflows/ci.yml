@@ -41,7 +41,8 @@ jobs:
   osx:
     runs-on: ${{ matrix.runner }}
     env:
-      DEVELOPER_DIR: /Applications/${{ matrix.xcode }}.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode.app
+      NSUnbufferedIO: YES
     strategy:
       fail-fast: false
       matrix:
@@ -63,6 +64,7 @@ jobs:
     env:
       DEVELOPER_DIR: /Applications/${{ matrix.xcode }}.app/Contents/Developer
       XCODE_DESTINATION: ${{matrix.destination}}
+      NSUnbufferedIO: YES
     strategy:
       fail-fast: false
       matrix:
@@ -86,6 +88,8 @@ jobs:
         exclude:
           # Don't run old macOS with new Xcode
           - runner: macos-13-xlarge
+            xcode: Xcode_15.2
+          - runner: macos-12
             xcode: Xcode_15.2
           # Don't run new macOS with old Xcode
           - runner: macos-14-xlarge

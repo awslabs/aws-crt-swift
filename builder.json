@@ -43,7 +43,6 @@
     },
     "watchos": {
       "!build_steps": [
-        "crt-ci-prep",
         "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=watchOS'"
       ],
       "!test_steps": [
@@ -53,6 +52,8 @@
     },
     "macos": {
       "+test_steps": [
+        "crt-ci-prep",
+        "xcode-tests",
         "./integ_test.sh"
       ]
     }
