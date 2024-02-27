@@ -38,7 +38,7 @@
       ],
       "!test_steps": [
         "crt-ci-prep",
-        "xcode-tests"
+        "xcodebuild -scheme aws-crt-swift-Package test -destination platform=tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)"
       ]
     },
     "watchos": {
@@ -52,7 +52,6 @@
     },
     "macos": {
       "+test_steps": [
-        "crt-ci-prep",
         "xcode-tests",
         "./integ_test.sh"
       ]
