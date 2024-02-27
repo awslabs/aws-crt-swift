@@ -9,7 +9,7 @@
   "run_tests": true,
   "test_steps": [
     "crt-ci-prep",
-    "swift test"
+    "sudo swift test"
   ],
   "hosts": {
     "al2012": {
