@@ -577,9 +577,8 @@ public class UserProperty {
 /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet
 public class PublishPacket {
 
-    // TODO this could be a byte array using [UInt8] instead but we probably want to handle converting it to a utf-8 string for the customer within this class if they want a string.
-    /// The payload of the publish message.
-    var payload: String? // Unicode objects are converted to C Strings using 'utf-8' encoding
+    /// The payload of the publish message in a byte buffer format
+    var payload: Data? // Unicode objects are converted to C Strings using 'utf-8' encoding
 
     /// The MQTT quality of service associated with this PUBLISH packet.
     let qos: QoS
@@ -619,6 +618,13 @@ public class PublishPacket {
         self.topic = topic
     }
 
+    /// Get payload as a utf8 String
+    func payloadAsString() -> String? {
+        if let data = payload {
+            return String(payload: data, encoding: .utf8)
+        }
+        return nil
+    }
 }
 
 /// "Data model of an `MQTT5 PUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901121>`_ packet
