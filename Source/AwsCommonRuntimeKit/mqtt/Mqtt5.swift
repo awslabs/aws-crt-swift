@@ -688,11 +688,7 @@ public class SubscribePacket {
 
     /// Add a Subscription to the SubscriptionPacket
     func addSubscription(subscription: Subscription) -> Void {
-        if let subs = subscriptions {
-            subscriptions.append(subscription)
-        } else {
-            subscriptions = [subscription]
-        }
+        subscriptions.append(subscription)
     }
 }
 
