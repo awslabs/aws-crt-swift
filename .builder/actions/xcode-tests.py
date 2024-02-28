@@ -7,7 +7,7 @@ class XCodeTests(Builder.Action):
         destination = env.shell.getenv("XCODE_DESTINATION")
         commands =[
             'sudo',
-            '-e',
+            '-E',
             'xcodebuild',
             '-scheme',
             'aws-crt-swift-Package',
