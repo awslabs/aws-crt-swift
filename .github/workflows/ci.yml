@@ -79,7 +79,7 @@ jobs:
            { os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15'},
            { os: tvos, destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'},
            { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'},
-           { os: watchos, destination: 'watchOS, OS=10.2, name=Apple Watch SE (40mm) (2nd generation)'}]
+           { os: watchos, destination: 'watchOS Simulator,OS=10.2,name=Apple Watch SE (40mm) (2nd generation)'}]
         xcode:
           - Xcode_14.1
           - Xcode_15.2
