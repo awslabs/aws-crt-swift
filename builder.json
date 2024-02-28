@@ -51,7 +51,7 @@
     },
     "macos": {
       "+test_steps": [
-        "xcode-tests",
+        "sudo -E xcodebuild -scheme aws-crt-swift-Package -destination 'platform=OS X'",
         "./integ_test.sh"
       ]
     }

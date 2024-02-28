@@ -58,7 +58,7 @@ jobs:
         run: |
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
           chmod a+wx builder
-          sudo -E ./builder build -p ${{ env.PACKAGE_NAME }}
+          ./builder build -p ${{ env.PACKAGE_NAME }}
 
   # TODO: Run tests for devices
   devices:
@@ -81,7 +81,7 @@ jobs:
            { os: tvos, destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'},
            { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'},
            { os: watchos, destination: 'watchOS Simulator,OS=10.2,name=Apple Watch SE (40mm) (2nd generation)'},
-           { os: watchos, destination: 'watchOS Simulator,OS=9.0, name=Apple Watch Series 5 (40mm)'}]
+           { os: watchos, destination: 'watchOS Simulator,OS=9.0,name=Apple Watch Series 5 (40mm)'}]
         xcode:
           - Xcode_14.1
           - Xcode_15.2
@@ -106,7 +106,7 @@ jobs:
             xcode: Xcode_14.1
           - target: { os: watchos, destination: 'watchOS Simulator,OS=10.2,name=Apple Watch SE (40mm) (2nd generation)'}
             xcode: Xcode_14.1
-          - target: { os: watchos, destination: 'watchOS Simulator,OS=9.0, name=Apple Watch Series 5 (40mm)'}
+          - target: { os: watchos, destination: 'watchOS Simulator,OS=9.0,name=Apple Watch Series 5 (40mm)'}
             xcode: Xcode_15.2
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
