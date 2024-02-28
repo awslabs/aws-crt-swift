@@ -8,8 +8,7 @@
   ],
   "run_tests": true,
   "test_steps": [
-    "crt-ci-prep",
-    "sudo -E swift test"
+    "crt-ci-prep"
   ],
   "hosts": {
     "al2012": {
@@ -52,6 +51,7 @@
     },
     "macos": {
       "+test_steps": [
+        "xcode-tests",
         "./integ_test.sh"
       ]
     }
