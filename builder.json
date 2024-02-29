@@ -51,8 +51,9 @@
     },
     "macos": {
       "+test_steps": [
-        "sudo security create-keychain -p test build.keychain",
-        "sudo security default-keychain -s build.keychain",
+        "security create-keychain -p test build.keychain",
+        "security default-keychain -s build.keychain",
+        "security import $AWS_TEST_MQTT311_IOT_CORE_X509_CERT -k build.keychain",
         "sudo -E xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=OS X'",
         "./integ_test.sh"
       ]
