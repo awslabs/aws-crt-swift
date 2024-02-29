@@ -10,7 +10,7 @@ class XCBaseTestCase: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        Logger.initialize(pipe: stdout, level: .trace)
+        Logger.initialize(pipe: stdout, level: .error)
 
         // Override the allocator with tracing allocator
         allocator = tracingAllocator.rawValue
@@ -35,20 +35,44 @@ extension XCTestCase {
     }
 
     func skipIfiOS() throws {
-        if #available(iOS 10, *) {
+        #if os(iOS)
             throw XCTSkip("Skipping test on iOS")
-        }
+        #endif
     }
 
     func skipifmacOS() throws {
-        if #available(macOS 10.14, *) {
+        #if os(macOS)
             throw XCTSkip("Skipping test on macOS")
-        }
+        #endif
     }
 
     func skipIfLinux() throws {
         #if os(Linux)
             throw XCTSkip("Skipping test on linux")
         #endif
+    }
+
+    func skipIfwatchOS() throws {
+        #if os(watchOS)
+            throw XCTSkip("Skipping test on watchOS")
+        #endif
+    }
+
+    func skipIftvOS() throws {
+        #if os(tvOS)
+            throw XCTSkip("Skipping test on tvOS")
+        #endif
+    }
+}
+
+extension XCTestCase {
+    /// Return the environment variable value, or Skip the test if env var is not set.
+    func GetEnvironmentVarOrSkip(environmentVarName name: String) throws -> String? {
+        let result = ProcessInfo.processInfo.environment[name]
+        guard result != nil else {
+            try skipTest(message: "Skipping test because environment is not configured properly.")
+            return nil
+        }
+        return result
     }
 }
