@@ -75,6 +75,13 @@ public class TLSContextOptions: CStruct {
         return aws_tls_is_alpn_available()
     }
 
+    public func set_keychain_path(keychainpath: String)
+    {
+        keychainpath.withByteCursorPointer { keychainCursor in
+            aws_tls_ctx_options_set_keychain_path(rawValue, keychainCursor)
+        }
+    }
+    
     public func overrideDefaultTrustStore(caPath: String, caFile: String) throws {
         if aws_tls_ctx_options_override_default_trust_store_from_path(rawValue,
                                                                       caPath,
