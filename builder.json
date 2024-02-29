@@ -51,6 +51,8 @@
     },
     "macos": {
       "+test_steps": [
+        "security create-keychain -p test build.keychain",
+        "security default-keychain -s build.keychain",
         "sudo -E xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=OS X'",
         "./integ_test.sh"
       ]
