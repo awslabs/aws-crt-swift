@@ -55,6 +55,7 @@
         "security default-keychain -s build.keychain",
         "security unlock-keychain -p test build.keychain",
         "security import $AWS_TEST_MQTT311_IOT_CORE_X509_CERT -k build.keychain",
+        "security list-keychains",
         "xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=OS X'",
         "./integ_test.sh"
       ]
