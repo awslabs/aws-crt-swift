@@ -51,6 +51,7 @@
     },
     "macos": {
       "+test_steps": [
+        "uname -a",
         "security list-keychains",
         "xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=OS X'",
         "./integ_test.sh"
