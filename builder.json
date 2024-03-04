@@ -45,6 +45,7 @@
     },
     "linux":{
       "!test_steps":[
+        "crt-ci-prep",
         "swift test"
       ]
     }
