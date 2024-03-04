@@ -40,9 +40,9 @@ jobs:
           ./linux-container-ci.sh ${{ env.BUILDER_VERSION }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
 
   osx:
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ matrix.runner.image }}
     env:
-      DEVELOPER_DIR: /Applications/Xcode.app
+      DEVELOPER_DIR: /Applications/${{ matrix.runner.xcode }}.app/Contents/Developer
       XCODE_DESTINATION: 'OS X'
       NSUnbufferedIO: YES
     strategy:
@@ -50,9 +50,9 @@ jobs:
       matrix:
         # This matrix runs tests on iOS sim & Mac, on oldest & newest supported Xcodes
         runner:
-          - macos-13-xlarge
-          - macos-14-xlarge
-          - macos-12
+          - { image: macos-13-xlarge, xcode: Xcode_14.1}
+          - { image: macos-14-xlarge, xcode: Xcode_15.2}
+          - { image: macos-12, xcode: Xcode_14.1}
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
