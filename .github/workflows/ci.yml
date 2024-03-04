@@ -47,11 +47,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # This matrix runs tests on iOS sim & Mac, on oldest & newest supported Xcodes
+        # This matrix runs tests on Mac, on oldest & newest supported Xcodes
         runner:
+          - macos-12
+          - macos-13
+          - macos-14
           - macos-13-xlarge
           - macos-14-xlarge
-          - macos-12
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
@@ -68,11 +70,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # This matrix runs tests on iOS sim & Mac, on oldest & newest supported Xcodes
+        # This matrix runs tests on iOS, tvOS & watchOS, on oldest & newest supported Xcodes
         runner:
+          - macos-12
+          - macos-13
+          - macos-14
           - macos-13-xlarge
           - macos-14-xlarge
-          - macos-12
         target:
           [{ os: ios, destination: 'iOS Simulator,OS=16.1,name=iPhone 14'},
            { os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15'},
@@ -88,9 +92,13 @@ jobs:
           - runner: macos-13-xlarge
             xcode: Xcode_15.2
           - runner: macos-12
+            xcode: Xcode_15.
+          - runner: macos-13
             xcode: Xcode_15.2
           # Don't run new macOS with old Xcode
           - runner: macos-14-xlarge
+            xcode: Xcode_14.1
+          - runner: macos-14
             xcode: Xcode_14.1
           # Don't run old simulators with new Xcode
           - target: { os: tvos, destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'}
