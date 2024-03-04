@@ -59,7 +59,6 @@ jobs:
           chmod a+x builder
           ./builder build -p ${{ env.PACKAGE_NAME }}
 
-  # TODO: Run tests for devices
   devices:
     runs-on: ${{ matrix.runner }}
     env:
