@@ -1,6 +1,7 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import XCTest
+import Foundation
 @testable import AwsCommonRuntimeKit
 
 class TLSContextTests: XCBaseTestCase {
@@ -10,6 +11,29 @@ class TLSContextTests: XCBaseTestCase {
     let context = try TLSContext(options: options, mode: .client)
     _ = TLSConnectionOptions(context: context)
   }
+
+    static func run_shell(_ command: String) -> String {
+        let task = Process()
+        let pipe = Pipe()
+        
+        task.standardOutput = pipe
+        task.standardError = pipe
+        task.arguments = ["-c", command]
+        task.launchPath = "/bin/zsh"
+        task.standardInput = nil
+        task.launch()
+        
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let output = String(data: data, encoding: .utf8)!
+        
+        return output
+    }
+    
+    func testTlsWithSecurityDefaultKeychain() throws
+    {
+        print(TLSContextTests.run_shell("security default-keychain"));
+    }
+
 
     func testCreateTlsContextWithFilePath() throws{
         try skipIfiOS()
@@ -21,4 +45,6 @@ class TLSContextTests: XCBaseTestCase {
         let context = try TLSContext(options: options, mode: .client)
         _ = TLSConnectionOptions(context: context)
     }
+    
+
 }
