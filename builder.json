@@ -52,10 +52,10 @@
     "macos": {
       "+test_steps": [
         "uname -a",
-        "sudo -E security default-keychain",
+        "security default-keychain",
         "security list-keychains",
         "security set-keychain-settings /Users/runner/Library/Keychains/login.keychain-db",
-        "sudo -E xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=OS X'",
+        "xcodebuild -scheme aws-crt-swift-Package test -destination 'platform=OS X'",
         "./integ_test.sh"
       ]
     }

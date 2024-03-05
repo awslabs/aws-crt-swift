@@ -58,7 +58,7 @@ jobs:
           security default-keychain
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
           chmod a+wx builder
-          sudo -E ./builder build -p ${{ env.PACKAGE_NAME }}
+          ./builder build -p ${{ env.PACKAGE_NAME }}
 
   # TODO: Run tests for devices
   devices:
