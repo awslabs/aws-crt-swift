@@ -7,7 +7,8 @@ import AwsCIo
 /// timepoints for a large set of reconnecting clients.
 /// See `Exponential Backoff and Jitter <https:///aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/>`_
 public enum ExponentialBackoffJitterMode {
-    /// Maps to Full/// Link to documentation: https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/
+    /// Maps to full
+    /// Link to documentation: https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/
     case `default`
 
     /// Do not perform any randomization on the reconnect delay
