@@ -2,15 +2,6 @@
 The AWS CRT for Swift is currently in developer preview and is intended strictly for feedback purposes only.
 Do not use this for production workloads.
 
-# AWS CRT Swift
-Swift bindings for the AWS Common Runtime.
-
-## License
-This library is licenced under the Apache 2.0 License.
-
-## Minimum Requirements
-* Swift 5.7+
-
 ## Building
 
 You can either build with Xcode
