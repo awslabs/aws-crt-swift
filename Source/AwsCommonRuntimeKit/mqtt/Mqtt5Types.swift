@@ -562,7 +562,7 @@ public class NegotiatedSettings {
 }
 
 /// Data model of an `MQTT5 CONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901033>`_ packet.
-public class ConnectOptions {
+public class MqttConnectOptions {
 
     /// The maximum time interval, in seconds, that is permitted to elapse between the point at which the client finishes transmitting one MQTT packet and the point it starts sending the next.  The client will use PINGREQ packets to maintain this property. If the responding CONNACK contains a keep alive property value, then that is the negotiated keep alive value. Otherwise, the keep alive sent by the client is the negotiated value.
     var keepAliveIntervalSec: UInt16?
@@ -683,7 +683,7 @@ public class LifecycleDisconnectData {
 typealias OnLifecycleEventDisconnection = (LifecycleDisconnectData) -> Void
 
 /// Configuration for the creation of MQTT5 clients
-public class ClientOptions {
+public class MqttClientOptions {
     /// Host name of the MQTT server to connect to.
     var hostName: String
 
@@ -707,7 +707,7 @@ public class ClientOptions {
     // var websocketHandshakeTransform: Callable[[WebsocketHandshakeTransformArgs], None] = None
 
     /// All configurable options with respect to the CONNECT packet sent by the client, including the will. These connect properties will be used for every connection attempt made by the client.
-    var connectOptions: ConnectOptions?
+    var connectOptions: MqttConnectOptions?
 
     /// How the MQTT5 client should behave with respect to MQTT sessions.
     var sessionBehavior: ClientSessionBehaviorType?
