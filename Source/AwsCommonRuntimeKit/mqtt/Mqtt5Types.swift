@@ -491,6 +491,111 @@ public class TopicAliasingOptions {
 
 }
 
+/// Dataclass containing some simple statistics about the current state of the client's queue of operations
+public class ClientOperationStatistics {
+
+    /// Total number of operations submitted to the client that have not yet been completed.  Unacked operations are a subset of this.
+    let incompleteOperationCount: UInt64
+
+    /// Total packet size of operations submitted to the client that have not yet been completed.  Unacked operations are a subset of this.
+    let incompleteOperationSize: UInt64
+
+    /// Total number of operations that have been sent to the server and are waiting for a corresponding ACK before they can be completed.
+    let unackedOperationCount: UInt64
+
+    /// Total packet size of operations that have been sent to the server and are waiting for a corresponding ACK before they can be completed.
+    let unackedOperationSize: UInt64
+
+    init (incompleteOperationCount: UInt64, incompleteOperationSize: UInt64,
+        unackedOperationCount: UInt64, unackedOperationSize: UInt64) {
+            self.incompleteOperationCount = incompleteOperationCount
+            self.incompleteOperationSize = incompleteOperationSize
+            self.unackedOperationCount = unackedOperationCount
+            self.unackedOperationSize = unackedOperationSize
+        }
+}
+
+/// Class containing data related to a Publish Received Callback
+public class PublishReceivedData {
+
+    /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet.
+    let publishPacket: PublishPacket
+
+    init (publishPacket: PublishPacket) {
+        self.publishPacket = publishPacket
+    }
+}
+
+/// Defines signature of the Publish callback
+typealias OnPublishCallback = (PublishReceivedData) -> Void
+
+/// Class containing results of an Stopped Lifecycle Event. Currently unused.
+public class LifecycleStoppedData { }
+
+/// Defines signature of the Lifecycle Event Stopped callback
+typealias OnLifecycleEventStopped = (LifecycleStoppedData) -> Void
+
+/// Class containing results of an Attempting Connect Lifecycle Event. Currently unused.
+public class LifecycleAttemptingConnectData { }
+
+/// Defines signature of the Lifecycle Event Attempting Connect callback
+typealias OnLifecycleEventAttemptingConnect = (LifecycleAttemptingConnectData) -> Void
+
+/// Class containing results of a Connect Success Lifecycle Event.
+public class LifecycleConnectSuccessData {
+
+    /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
+    let connackPacket: ConnackPacket
+
+    /// Mqtt behavior settings that have been dynamically negotiated as part of the CONNECT/CONNACK exchange.
+    let negotiatedSettings: NegotiatedSettings
+
+    init (connackPacket: ConnackPacket, negotiatedSettings: NegotiatedSettings) {
+        self.connackPacket = connackPacket
+        self.negotiatedSettings = negotiatedSettings
+    }
+}
+
+/// Defines signature of the Lifecycle Event Connection Success callback
+typealias OnLifecycleEventConnectionSuccess = (LifecycleConnectSuccessData) -> Void
+
+/// Dataclass containing results of a Connect Failure Lifecycle Event.
+public class LifecycleConnectFailureData {
+
+    /// Error which caused connection failure.
+    let crtError: CRTError
+
+    /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
+    let connackPacket: ConnackPacket
+
+    init (crtError: CRTError, connackPacket: ConnackPacket) {
+        self.crtError = crtError
+        self.connackPacket = connackPacket
+    }
+
+}
+
+/// Defines signature of the Lifecycle Event Connection Failure callback
+typealias OnLifecycleEventConnectionFailure = (LifecycleConnectFailureData) -> Void
+
+/// Dataclass containing results of a Disconnect Lifecycle Event
+public class LifecycleDisconnectData {
+
+    /// Error which caused disconnection.
+    let crtError: CRTError
+
+    /// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
+    let disconnectPacket: DisconnectPacket
+
+    init (crtError: CRTError, disconnectPacket: DisconnectPacket) {
+        self.crtError = crtError
+        self.disconnectPacket = disconnectPacket
+    }
+}
+
+/// Defines signature of the Lifecycle Event Disconnection callback
+typealias OnLifecycleEventDisconnection = (LifecycleDisconnectData) -> Void
+
 /// Mqtt behavior settings that are dynamically negotiated as part of the CONNECT/CONNACK exchange.
 /// While you can infer all of these values from a combination of:
 /// - defaults as specified in the mqtt5 spec
@@ -599,87 +704,6 @@ public class MqttConnectOptions {
     var userProperties: [UserProperty]?
 }
 
-/// Class containing data related to a Publish Received Callback
-public class PublishReceivedData {
-
-    /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet.
-    let publishPacket: PublishPacket
-
-    init (publishPacket: PublishPacket) {
-        self.publishPacket = publishPacket
-    }
-}
-
-/// Defines signature of the Publish callback
-typealias OnPublishCallback = (PublishReceivedData) -> Void
-
-/// Class containing results of an Stopped Lifecycle Event. Currently unused.
-public class LifecycleStoppedData { }
-
-/// Defines signature of the Lifecycle Event Stopped callback
-typealias OnLifecycleEventStopped = (LifecycleStoppedData) -> Void
-
-/// Class containing results of an Attempting Connect Lifecycle Event. Currently unused.
-public class LifecycleAttemptingConnectData { }
-
-/// Defines signature of the Lifecycle Event Attempting Connect callback
-typealias OnLifecycleEventAttemptingConnect = (LifecycleAttemptingConnectData) -> Void
-
-/// Class containing results of a Connect Success Lifecycle Event.
-public class LifecycleConnectSuccessData {
-
-    /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
-    let connackPacket: ConnackPacket
-
-    /// Mqtt behavior settings that have been dynamically negotiated as part of the CONNECT/CONNACK exchange.
-    let negotiatedSettings: NegotiatedSettings
-
-    init (connackPacket: ConnackPacket, negotiatedSettings: NegotiatedSettings) {
-        self.connackPacket = connackPacket
-        self.negotiatedSettings = negotiatedSettings
-    }
-}
-
-/// Defines signature of the Lifecycle Event Connection Success callback
-typealias OnLifecycleEventConnectionSuccess = (LifecycleConnectSuccessData) -> Void
-
-/// Dataclass containing results of a Connect Failure Lifecycle Event.
-public class LifecycleConnectFailureData {
-
-    /// Error which caused connection failure.
-    let crtError: CRTError
-
-    /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
-    let connackPacket: ConnackPacket
-
-    init (crtError: CRTError, connackPacket: ConnackPacket) {
-        self.crtError = crtError
-        self.connackPacket = connackPacket
-    }
-
-}
-
-/// Defines signature of the Lifecycle Event Connection Failure callback
-typealias OnLifecycleEventConnectionFailure = (LifecycleConnectFailureData) -> Void
-
-/// Dataclass containing results of a Disconnect Lifecycle Event
-public class LifecycleDisconnectData {
-
-    /// Error which caused disconnection.
-    let crtError: CRTError
-
-    /// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
-    let disconnectPacket: DisconnectPacket
-
-    init (crtError: CRTError, disconnectPacket: DisconnectPacket) {
-        self.crtError = crtError
-        self.disconnectPacket = disconnectPacket
-    }
-}
-
-/// Defines signature of the Lifecycle Event Disconnection callback
-typealias OnLifecycleEventDisconnection = (LifecycleDisconnectData) -> Void
-
 /// Configuration for the creation of MQTT5 clients
 public class MqttClientOptions {
     /// Host name of the MQTT server to connect to.
@@ -766,28 +790,4 @@ public class MqttClientOptions {
         self.socketOptions = socketOptions
         self.tlsCtx = tlsCtx
     }
-}
-
-/// Dataclass containing some simple statistics about the current state of the client's queue of operations
-public class ClientOperationStatistics {
-
-    /// Total number of operations submitted to the client that have not yet been completed.  Unacked operations are a subset of this.
-    let incompleteOperationCount: UInt64
-
-    /// Total packet size of operations submitted to the client that have not yet been completed.  Unacked operations are a subset of this.
-    let incompleteOperationSize: UInt64
-
-    /// Total number of operations that have been sent to the server and are waiting for a corresponding ACK before they can be completed.
-    let unackedOperationCount: UInt64
-
-    /// Total packet size of operations that have been sent to the server and are waiting for a corresponding ACK before they can be completed.
-    let unackedOperationSize: UInt64
-
-    init (incompleteOperationCount: UInt64, incompleteOperationSize: UInt64,
-        unackedOperationCount: UInt64, unackedOperationSize: UInt64) {
-            self.incompleteOperationCount = incompleteOperationCount
-            self.incompleteOperationSize = incompleteOperationSize
-            self.unackedOperationCount = unackedOperationCount
-            self.unackedOperationSize = unackedOperationSize
-        }
 }
