@@ -106,8 +106,8 @@ public class PubackPacket {
     public let userProperties: [UserProperty]?
 
     init (reasonCode: PubackReasonCode,
-        reasonString: String? = nil,
-        userProperties: [UserProperty]? = nil) {
+          reasonString: String? = nil,
+          userProperties: [UserProperty]? = nil) {
         self.reasonCode = reasonCode
         self.reasonString = reasonString
         self.userProperties = userProperties
@@ -133,10 +133,10 @@ public class Subscription {
     public let retainHandlingType: RetainHandlingType?
 
     init (topicFilter: String,
-        qos: QoS,
-        noLocal: Bool? = nil,
-        retainAsPublished: Bool? = nil,
-        retainHandlingType: RetainHandlingType? = nil) {
+          qos: QoS,
+          noLocal: Bool? = nil,
+          retainAsPublished: Bool? = nil,
+          retainHandlingType: RetainHandlingType? = nil) {
         self.topicFilter = topicFilter
         self.qos = qos
         self.noLocal = noLocal
@@ -158,18 +158,18 @@ public class SubscribePacket {
     public let userProperties: [UserProperty]?
 
     init (subscriptions: [Subscription],
-        subscriptionIdentifier: UInt32? = nil,
-        userProperties: [UserProperty]? = nil) {
-        self.subscriptions = subscriptions
-        self.subscriptionIdentifier = subscriptionIdentifier
-        self.userProperties = userProperties
+          subscriptionIdentifier: UInt32? = nil,
+          userProperties: [UserProperty]? = nil) {
+          self.subscriptions = subscriptions
+          self.subscriptionIdentifier = subscriptionIdentifier
+          self.userProperties = userProperties
     }
 
     // Allow a SubscribePacket to be created directly using a topic filter and QoS
     convenience init (topicFilter: String,
-        qos: QoS,
-        subscriptionIdentifier: UInt32? = nil,
-        userProperties: [UserProperty]? = nil) {
+                      qos: QoS,
+                      subscriptionIdentifier: UInt32? = nil,
+                      userProperties: [UserProperty]? = nil) {
         self.init(subscriptions: [Subscription(topicFilter: topicFilter, qos: qos)],
             subscriptionIdentifier: subscriptionIdentifier,
             userProperties: userProperties)
@@ -177,14 +177,12 @@ public class SubscribePacket {
 
     // Allow a SubscribePacket to be created directly using a single Subscription
     convenience init (subscription: Subscription,
-        subscriptionIdentifier: UInt32? = nil,
-        userProperties: [UserProperty]? = nil) {
+                      subscriptionIdentifier: UInt32? = nil,
+                      userProperties: [UserProperty]? = nil) {
         self.init(subscriptions: [subscription],
             subscriptionIdentifier: subscriptionIdentifier,
             userProperties: userProperties)
     }
-
-
 }
 
 /// Data model of an `MQTT5 SUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901171>`_ packet.
@@ -200,8 +198,8 @@ public class SubackPacket {
     public let userProperties: [UserProperty]?
 
     init (reasonCodes: [SubackReasonCode],
-        reasonString: String? = nil,
-        userProperties: [UserProperty]? = nil) {
+          reasonString: String? = nil,
+          userProperties: [UserProperty]? = nil) {
         self.reasonCodes = reasonCodes
         self.reasonString = reasonString
         self.userProperties = userProperties
@@ -218,14 +216,14 @@ public class UnsubscribePacket {
     public let userProperties: [UserProperty]?
 
     init (topicFilters: [String],
-        userProperties: [UserProperty]? = nil) {
+          userProperties: [UserProperty]? = nil) {
         self.topicFilters = topicFilters
         self.userProperties = userProperties
     }
 
     // Allow an UnsubscribePacket to be created directly using a single topic filter
     convenience init (topicFilter: String,
-        userProperties: [UserProperty]? = nil) {
+                      userProperties: [UserProperty]? = nil) {
             self.init(topicFilters: [topicFilter],
                 userProperties: userProperties)
         }
@@ -244,8 +242,8 @@ public class UnsubackPacket {
     public let userProperties: [UserProperty]?
 
     init (reasonCodes: [DisconnectReasonCode],
-        reasonString: String? = nil,
-        userProperties: [UserProperty]? = nil) {
+          reasonString: String? = nil,
+          userProperties: [UserProperty]? = nil) {
         self.reasonCodes = reasonCodes
         self.reasonString = reasonString
         self.userProperties = userProperties
@@ -271,10 +269,10 @@ public class DisconnectPacket {
     public let userProperties: [UserProperty]?
 
     init (reasonCode: DisconnectReasonCode = DisconnectReasonCode.normalDisconnection,
-        sessionExpiryIntervalSec: UInt32? = nil,
-        reasonString: String? = nil,
-        serverReference: String? = nil,
-        userProperties: [UserProperty]? = nil) {
+          sessionExpiryIntervalSec: UInt32? = nil,
+          reasonString: String? = nil,
+          serverReference: String? = nil,
+          userProperties: [UserProperty]? = nil) {
             self.reasonCode = reasonCode
             self.sessionExpiryIntervalSec = sessionExpiryIntervalSec
             self.reasonString = reasonString
@@ -338,22 +336,22 @@ public class ConnackPacket {
     public let serverReference: String?
 
     init (sessionPresent: Bool,
-        reasonCode: ConnectReasonCode,
-        sessionExpiryIntervalSec: UInt32? = nil,
-        receiveMaximum: UInt16? = nil,
-        maximumQos: QoS? = nil,
-        retainAvailable: Bool? = nil,
-        maximumPacketSize: UInt32? = nil,
-        assignedClientIdentifier: String? = nil,
-        topicAliasMaximum: UInt16? = nil,
-        reasonString: String? = nil,
-        userProperties: [UserProperty]? = nil,
-        wildcardSubscriptionsAvailable: Bool? = nil,
-        subscriptionIdentifiersAvailable: Bool? = nil,
-        sharedSubscriptionAvailable: Bool? = nil,
-        serverKeepAliveSec: UInt16? = nil,
-        responseInformation: String? = nil,
-        serverReference: String? = nil) {
+          reasonCode: ConnectReasonCode,
+          sessionExpiryIntervalSec: UInt32? = nil,
+          receiveMaximum: UInt16? = nil,
+          maximumQos: QoS? = nil,
+          retainAvailable: Bool? = nil,
+          maximumPacketSize: UInt32? = nil,
+          assignedClientIdentifier: String? = nil,
+          topicAliasMaximum: UInt16? = nil,
+          reasonString: String? = nil,
+          userProperties: [UserProperty]? = nil,
+          wildcardSubscriptionsAvailable: Bool? = nil,
+          subscriptionIdentifiersAvailable: Bool? = nil,
+          sharedSubscriptionAvailable: Bool? = nil,
+          serverKeepAliveSec: UInt16? = nil,
+          responseInformation: String? = nil,
+          serverReference: String? = nil) {
         self.sessionPresent = sessionPresent
         self.reasonCode = reasonCode
 
