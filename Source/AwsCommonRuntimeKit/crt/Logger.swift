@@ -5,7 +5,7 @@ import AwsCCommon
 var logger: aws_logger?
 
 public struct Logger {
-    public static func initilize(pipe: UnsafeMutablePointer<FILE>?, level: LogLevel) {
+    public static func initialize(pipe: UnsafeMutablePointer<FILE>?, level: LogLevel) {
         // Clean up the logger if it was previously initialized
         if var logger = logger {
             aws_logger_clean_up(&logger)
