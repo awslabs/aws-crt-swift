@@ -506,7 +506,7 @@ public class ClientOperationStatistics {
     /// Total packet size of operations that have been sent to the server and are waiting for a corresponding ACK before they can be completed.
     public let unackedOperationSize: UInt64
 
-    init (incompleteOperationCount: UInt64, incompleteOperationSize: UInt64,
+    public init (incompleteOperationCount: UInt64, incompleteOperationSize: UInt64,
         unackedOperationCount: UInt64, unackedOperationSize: UInt64) {
             self.incompleteOperationCount = incompleteOperationCount
             self.incompleteOperationSize = incompleteOperationSize
@@ -521,7 +521,7 @@ public class PublishReceivedData {
     /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet.
     public let publishPacket: PublishPacket
 
-    init (publishPacket: PublishPacket) {
+    public init (publishPacket: PublishPacket) {
         self.publishPacket = publishPacket
     }
 }
@@ -550,7 +550,7 @@ public class LifecycleConnectSuccessData {
     /// Mqtt behavior settings that have been dynamically negotiated as part of the CONNECT/CONNACK exchange.
     public let negotiatedSettings: NegotiatedSettings
 
-    init (connackPacket: ConnackPacket, negotiatedSettings: NegotiatedSettings) {
+    public init (connackPacket: ConnackPacket, negotiatedSettings: NegotiatedSettings) {
         self.connackPacket = connackPacket
         self.negotiatedSettings = negotiatedSettings
     }
@@ -568,7 +568,7 @@ public class LifecycleConnectFailureData {
     /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
     public let connackPacket: ConnackPacket
 
-    init (crtError: CRTError, connackPacket: ConnackPacket) {
+    public init (crtError: CRTError, connackPacket: ConnackPacket) {
         self.crtError = crtError
         self.connackPacket = connackPacket
     }
@@ -587,7 +587,7 @@ public class LifecycleDisconnectData {
     /// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
     public let disconnectPacket: DisconnectPacket
 
-    init (crtError: CRTError, disconnectPacket: DisconnectPacket) {
+    public init (crtError: CRTError, disconnectPacket: DisconnectPacket) {
         self.crtError = crtError
         self.disconnectPacket = disconnectPacket
     }
@@ -644,7 +644,7 @@ public class NegotiatedSettings {
     /// The final client id in use by the newly-established connection.  This will be the configured client id if one was given in the configuration, otherwise, if no client id was specified, this will be the client id assigned by the server.  Reconnection attempts will always use the auto-assigned client id, allowing for auto-assigned session resumption.
     public let clientId: String
 
-    init (
+    public init (
         maximumQos: QoS,
         sessionExpiryIntervalSec: UInt32,
         receiveMaximumFromServer: UInt16,
@@ -714,7 +714,7 @@ public class MqttConnectOptions {
     /// Array of MQTT5 user properties included with the packet.
     public let userProperties: [UserProperty]?
 
-    init (
+    public init (
         keepAliveIntervalSec: UInt16? = nil,
         clientId: String? = nil,
         username: String? = nil,
@@ -821,7 +821,7 @@ public class MqttClientOptions {
     /// Callback for Lifecycle Event Disconnection.
     public let onLifecycleEventDisconnectionFn: OnLifecycleEventDisconnection?
 
-    init (
+    public init (
         hostName: String,
         port: UInt32,
         bootstrap: ClientBootstrap,
