@@ -12,7 +12,7 @@ public class UserProperty {
     /// Property value
     public let value: String
 
-    init (name: String, value: String) {
+    public init (name: String, value: String) {
         self.name = name
         self.value = value
     }
@@ -57,7 +57,7 @@ public class PublishPacket {
     /// Array of MQTT5 user properties included with the packet.
     public let userProperties: [UserProperty]?
 
-    init(qos: QoS,
+    public init(qos: QoS,
          topic: String,
          payload: Data? = nil,
          retain: Bool = false,
@@ -105,7 +105,7 @@ public class PubackPacket {
     /// Array of MQTT5 user properties included with the packet.
     public let userProperties: [UserProperty]?
 
-    init (reasonCode: PubackReasonCode,
+    public init (reasonCode: PubackReasonCode,
           reasonString: String? = nil,
           userProperties: [UserProperty]? = nil) {
         self.reasonCode = reasonCode
@@ -132,7 +132,7 @@ public class Subscription {
     /// Whether retained messages on matching topics be sent in reaction to this subscription
     public let retainHandlingType: RetainHandlingType?
 
-    init (topicFilter: String,
+    public init (topicFilter: String,
           qos: QoS,
           noLocal: Bool? = nil,
           retainAsPublished: Bool? = nil,
@@ -157,7 +157,7 @@ public class SubscribePacket {
     /// Array of MQTT5 user properties included with the packet.
     public let userProperties: [UserProperty]?
 
-    init (subscriptions: [Subscription],
+    public init (subscriptions: [Subscription],
           subscriptionIdentifier: UInt32? = nil,
           userProperties: [UserProperty]? = nil) {
           self.subscriptions = subscriptions
@@ -166,7 +166,7 @@ public class SubscribePacket {
     }
 
     // Allow a SubscribePacket to be created directly using a topic filter and QoS
-    convenience init (topicFilter: String,
+    public convenience init (topicFilter: String,
                       qos: QoS,
                       subscriptionIdentifier: UInt32? = nil,
                       userProperties: [UserProperty]? = nil) {
@@ -176,7 +176,7 @@ public class SubscribePacket {
     }
 
     // Allow a SubscribePacket to be created directly using a single Subscription
-    convenience init (subscription: Subscription,
+    public convenience init (subscription: Subscription,
                       subscriptionIdentifier: UInt32? = nil,
                       userProperties: [UserProperty]? = nil) {
         self.init(subscriptions: [subscription],
@@ -197,7 +197,7 @@ public class SubackPacket {
     /// Array of MQTT5 user properties included with the packet.
     public let userProperties: [UserProperty]?
 
-    init (reasonCodes: [SubackReasonCode],
+    public init (reasonCodes: [SubackReasonCode],
           reasonString: String? = nil,
           userProperties: [UserProperty]? = nil) {
         self.reasonCodes = reasonCodes
@@ -215,14 +215,14 @@ public class UnsubscribePacket {
     /// Array of MQTT5 user properties included with the packet.
     public let userProperties: [UserProperty]?
 
-    init (topicFilters: [String],
+    public init (topicFilters: [String],
           userProperties: [UserProperty]? = nil) {
         self.topicFilters = topicFilters
         self.userProperties = userProperties
     }
 
     // Allow an UnsubscribePacket to be created directly using a single topic filter
-    convenience init (topicFilter: String,
+    public convenience init (topicFilter: String,
                       userProperties: [UserProperty]? = nil) {
             self.init(topicFilters: [topicFilter],
                 userProperties: userProperties)
@@ -241,7 +241,7 @@ public class UnsubackPacket {
     /// Array of MQTT5 user properties included with the packet.
     public let userProperties: [UserProperty]?
 
-    init (reasonCodes: [DisconnectReasonCode],
+    public init (reasonCodes: [DisconnectReasonCode],
           reasonString: String? = nil,
           userProperties: [UserProperty]? = nil) {
         self.reasonCodes = reasonCodes
@@ -268,7 +268,7 @@ public class DisconnectPacket {
     /// Array of MQTT5 user properties included with the packet.
     public let userProperties: [UserProperty]?
 
-    init (reasonCode: DisconnectReasonCode = DisconnectReasonCode.normalDisconnection,
+    public init (reasonCode: DisconnectReasonCode = DisconnectReasonCode.normalDisconnection,
           sessionExpiryIntervalSec: UInt32? = nil,
           reasonString: String? = nil,
           serverReference: String? = nil,
@@ -335,7 +335,7 @@ public class ConnackPacket {
     /// Property indicating an alternate server that the client may temporarily or permanently attempt to connect to instead of the configured endpoint.  Will only be set if the reason code indicates another server may be used (ServerMoved, UseAnotherServer).
     public let serverReference: String?
 
-    init (sessionPresent: Bool,
+    public init (sessionPresent: Bool,
           reasonCode: ConnectReasonCode,
           sessionExpiryIntervalSec: UInt32? = nil,
           receiveMaximum: UInt16? = nil,
