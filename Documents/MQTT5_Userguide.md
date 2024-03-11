@@ -284,6 +284,9 @@ The Subscribe operation takes a description of the SUBSCRIBE packet you wish to 
                 // Asynchronous operation
 
             }
+
+            promise(.success(suback))
+            promise(.failure(error))
         }
     }
 
