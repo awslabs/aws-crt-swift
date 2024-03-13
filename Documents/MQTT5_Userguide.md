@@ -69,41 +69,47 @@ For X509 based mutual TLS, you can create a client where the certificate and pri
     // PKCS#1 or PKCS#8 PEM encoded private key file
     let priKeyFilepath String = "<private key file path>"
 
-    // other builder configurations can be added using external parameter names in the builder
-
     // Create an MQTT Client using mqttClientBuilder
-    client: MqttClient = mqttClientBuilder.mtlsFromPath(
-        endpoint: "<account-specific endpoint>",
-        certFilepath: certFilepath,
-        priKeyFilepath: priKeyFilepath))
+    // other builder configurations can be added using external parameter names in the builder
+    let client = MqttClientBuilder.mtlsFromPath(
+            endpoint: "<account-specific endpoint>",
+            certFilepath: certFilepath,
+            priKeyFilepath: priKeyFilepath))
 ```
 
 #### **Direct MQTT with Custom Authentication**
 AWS IoT Core Custom Authentication allows you to use a lambda to gate access to IoT Core resources.  For this authentication method,
 you must supply an additional configuration structure containing fields relevant to AWS IoT Core Custom Authentication.
 If your custom authenticator does not use signing, you don't specify anything related to the token signature:
-
 ```swift
-    // other builder configurations can be added using external parameter names in the builder
+    // Create a Custom Authentication Options object
+    let mqttCustomAuthOptions: MqttCustomAuthOptions = MqttCustomAuthOptions(
+            authAuthorizerName: "<Name of your custom authorizer>",
+            authUsername: "<Value of the username field that should be passed to the authorizer's lambda>",
+            authPassword: <Binary data value of the password field to be passed to the authorizer lambda>)
 
-    client: MqttClient = mqttClientBuilder.directWithCustomAuthorizer(
-        endpoint: "<account-specific endpoint>",
-        authAuthorizerName: "<Name of your custom authorizer>",
-        authUsername: "<Value of the username field that should be passed to the authorizer's lambda>",
-        authPassword: <Binary data value of the password field to be passed to the authorizer lambda>)
+    // Create an MQTT Client using mqttClientBuilder
+    // other builder configurations can be added using external parameter names in the builder
+    let client: MqttClient = mqttClientBuilder.directWithCustomAuthorizer(
+            endpoint: "<account-specific endpoint>",
+            mqttCustomAuthoOptions: mqttCustomAuthOptions)
 ```
 
 If your custom authorizer uses signing, you must specify the three signed token properties as well. It is your responsibility to URI-encode the authUsername, authAuthorizerName, and auth_tokenKeyName parameters.
 
 ```swift
-    // other builder configurations can be added using external parameter names in the builder
+    // Use the authAuthorizerSignature external parameter name to also set the authorizer signature
+    let mqttCustomAuthOptions: MqttCustomAuthOptions = MqttCustomAuthOptions(
+            authAuthorizerName: "<Name of your custom authorizer>",
+            authUsername: "<Value of the username field that should be passed to the authorizer's lambda>",
+            authPassword: <Binary data value of the password field to be passed to the authorizer lambda>,
+            authAuthorizerSignature: "<The signature of the custom authorizer>")
 
-    client: MqttClient = mqttClientBuilder.directWithCustomAuthorizer(
-        endpoint: "<account-specific endpoint>",
-        authAuthorizerName: "<Name of your custom authorizer>",
-        authUsername: "<Value of the username field that should be passed to the authorizer's lambda>",
-        authPassword: <Binary data value of the password field to be passed to the authorizer lambda>,
-        authAuthorizerSignature: "<The signature of the custom authorizer>")
+    // Create an MQTT Client using mqttClientBuilder
+    // other builder configurations can be added using external parameter names in the builder
+    let client: MqttClient = mqttClientBuilder.directWithCustomAuthorizer(
+            endpoint: "<account-specific endpoint>",
+            mqttCustomAuthoOptions: mqttCustomAuthOptions)
 ```
 
 In both cases, the builder will construct a final CONNECT packet username field value for you based on the values configured.  Do not add the token-signing fields to the value of the username that you assign within the custom authentication config structure.  Similarly, do not add any custom authentication related values to the username in the CONNECT configuration optionally attached to the client configuration. The builder will do everything for you.
@@ -113,20 +119,24 @@ In both cases, the builder will construct a final CONNECT packet username field 
 An MQTT direct connection can be made using a PKCS11 device rather than using a PEM encoded private key, the private key for mutual TLS is stored on a PKCS#11 compatible smart card or Hardware Security Module (HSM). To create an MQTT builder configured for this connection, see the following code:
 
 ```swift
-    // other builder configurations can be added using external parameter names in the builder
 
     let pkcs11Lib: Pkcs11Lib = io.Pkcs11Lib(
-        file="<Path to PKCS11 library>",
-        behavior=io.Pkcs11Lib.InitializeFinalizeBehavior.STRICT)
+            file="<Path to PKCS11 library>",
+            behavior=io.Pkcs11Lib.InitializeFinalizeBehavior.STRICT)
 
-    client: MqttClient = mqttClientBuilder.mtlsWithPkcs11(
-        pkcs11Lib: pkcs11Lib,
-        userPin: userPin,
-        slotId: pkcs11SlotId,
-        tokenLabel: pkcs11TokenLabel,
-        priaveKeyLabel: pkcs11PrivateKeyLabel,
-        certFilepath: pkcs11CertFilepath,
-        endpoint: "<account-specific endpoint>")
+    let mqttPkcs11Options = MqttPkcs11Options(
+            pkcs11Lib: pkcs11Lib,
+            userPin: userPin,
+            slotId: pkcs11SlotId,
+            tokenLabel: pkcs11TokenLabel,
+            priaveKeyLabel: pkcs11PrivateKeyLabel,
+            certFilepath: pkcs11CertFilepath)
+
+    // Create an MQTT Client using mqttClientBuilder
+    // other builder configurations can be added using external parameter names in the builder
+    let client: MqttClient = mqttClientBuilder.mtlsWithPkcs11(
+            endpoint: "<account-specific endpoint>",
+            MqttPkcs11Options: mqttPkcs11Options)
 ```
 
 **Note**: Currently, TLS integration with PKCS#11 is only available on Unix devices.
@@ -136,12 +146,12 @@ An MQTT direct connection can be made using a PKCS11 device rather than using a 
 An MQTT direct connection can be made using a PKCS12 file rather than using a PEM encoded private key. To create an MQTT builder configured for this connection, see the following code:
 
 ```swift
+    // Create an MQTT Client using mqttClientBuilder
     // other builder configurations can be added using external parameter names in the builder
-
-    client: MqttClient = mqttClientBuilder.mtlsWithPkcs12(
-        pkcs12Filepath: "<PKCS12 file path>",
-        pkcs12Password: "<PKCS12 password>",
-        endpoint: "<account-specific endpoint>")
+    let client: MqttClient = mqttClientBuilder.mtlsWithPkcs12(
+            endpoint: "<account-specific endpoint>",
+            pkcs12Filepath: "<PKCS12 file path>",
+            pkcs12Password: "<PKCS12 password>")
 ```
 
 **Note**: Currently, TLS integration with PKCS#12 is only available on MacOS devices.
@@ -161,13 +171,12 @@ any additional configuration:
     let signingRegion: String = "<signing region>"
     let credentialsProvider: CredentialsProvider = auth.AwsCredentialsProvider.newDefaultChain()
 
-    // other builder configurations can be added using external parameter names in the builder
-
     // Create an MQTT Client using mqttClientBuilder
-    client: MqttClient = mqttClientBuilder.websocketsWithDefaultAwsSigning(
-        endpoint: "<account-specific endpoint>",
-        region: signingRegion,
-        credentialsProvider: credentialsProvider))
+    // other builder configurations can be added using external parameter names in the builder
+    let client: MqttClient = mqttClientBuilder.websocketsWithDefaultAwsSigning(
+            endpoint: "<account-specific endpoint>",
+            region: signingRegion,
+            credentialsProvider: credentialsProvider))
 ```
 
 #### **MQTT over Websockets with Cognito authentication**
@@ -184,17 +193,16 @@ To create an MQTT builder configured for this connection, see the following code
     let cognitoEndpoint:String = "cognito-identity." + signing_region + ".amazonaws.com"
     let cognitoIdentityId: String = "<Cognito identity ID>"
     let credentialsProvider: CredentialsProvider = auth.AwsCredentialsProvider.newCognito(
-        endpoint: cognitoEndpoint,
-        identity: cognitoIdentityId,
-        tlsCtx=io.ClientTlsContext(TlsContextOptions()))
-
-    // other builder configurations can be added using external parameter names in the builder
+            endpoint: cognitoEndpoint,
+            identity: cognitoIdentityId,
+            tlsCtx=io.ClientTlsContext(TlsContextOptions()))
 
     // Create an MQTT Client using mqttClientBuilder
-    client: MqttClient = mqttClientBuilder.websocketsWithDefaultAwsSigning(
-        endpoint: "<account-specific endpoint>",
-        region: signingRegion,
-        credentialsProvider: credentialsProvider))
+    // other builder configurations can be added using external parameter names in the builder
+    let client: MqttClient = mqttClientBuilder.websocketsWithDefaultAwsSigning(
+            endpoint: "<account-specific endpoint>",
+            region: signingRegion,
+            credentialsProvider: credentialsProvider))
 ```
 
 **Note**: A Cognito identity ID is different from a Cognito identity pool ID and trying to connect with a Cognito identity pool ID will not work. If you are unable to connect, make sure you are passing a Cognito identity ID rather than a Cognito identity pool ID.
@@ -224,19 +232,27 @@ Once created, an MQTT client's configuration is immutable.  Invoking start() on 
 recurrently establishes a connection to the configured remote endpoint.  Reconnecting continues until you invoke stop().
 
 ```swift
-    // Create an MQTT Client
-    clientOptions: MqttClientOptions = MqttClientOptions(
-        hostName: "<endpoint to connect to>",
-        port: <port to use>,
-        bootstrap: bootstrap,
-        socketOptions: socketOptions,
-        tlsCtx: tlsCtx)
+    // Create an MqttCallbacks Object with callbacks you would like to set.
+    let mqttCallbacks: MqttCallbacks = MqttCallbacks(
+            onPublish: onPublishFn,
+            onAttemptingConnect: onAttemptingConnectFn,
+            onConnectionSuccess: onConnectionSuccessFn,
+            onConnectionFailure: onConnectionFailureFn,
+            onDisconnect: onDisconnectFn,
+            onStopped: onStoppedFn
+    )
 
-    // Other options in client options can be set but once Client is initialized configuration is immutable
-    // e.g. setting the onPublishCallbackFn to be set
-    // clientOptions.onPublishCallbackFn = onPublishReceived
+    // Create an MQTT Client using the MqttCallbacks
+    // Other options in client options can be set using external parameter names.
+    let clientOptions: MqttClientOptions = MqttClientOptions(
+            hostName: "<endpoint to connect to>",
+            port: <port to use>,
+            bootstrap: bootstrap,
+            socketOptions: socketOptions,
+            tlsCtx: tlsCtx,
+            callbacks: mqttCallbacks)
 
-    client: MqttClient = MqttClient(clientOptions)
+    let client: MqttClient = MqttClient(clientOptions)
 
     # Use the client
     client.start();
@@ -275,39 +291,30 @@ There are four basic MQTT operations you can perform with the MQTT client.
 The Subscribe operation takes a description of the SUBSCRIBE packet you wish to send and returns a future that resolves successfully with the corresponding SUBACK returned by the broker; the future result raises an exception if anything goes wrong before the SUBACK is received.
 
 ```swift
-
-    // TO IMPLEMENT
-    // This is the client's subscribe func
-    func subscribe(subscribePacket: SubscribePacket) -> Future<SubackPacket, MQTTError> {
-        return Future { promise in
-            DispatchQueue.global().asyncAfter(deadline: .now() + 2) {
-                // Asynchronous operation
-
-            }
-
-            promise(.success(suback))
-            promise(.failure(error))
-        }
-    }
-
-    // Create a Subscribe Packet with a topic filter and qos
-    let subscribePacket = SubscribePacket(
-        topicFilter: "hello/world/qos1",
+    // Create the SubscribePacket to be used
+    let subscribePacket: SubscribePacket = SubscribePacket(
+        topicFilter: "hello/world",
         qos: QoS.atLeastOnce)
 
-    // Subscribe using the MQTT client and process the Future
-    let subscribeFuture = client.subscribe(subscribePacket: subscribePacket)
-        .sink { completion in
+    // The subscribe function takes a SubscribePacket and returns a Future that will complete
+    // once it either receives a SubackPacket or encounters an error
+    let subscribeFuture: Future<SubackPacket, CommonRunTimeError> =
+            client.subscribe(subscribePacket: subscribePacket)
+
+    // Subscribe to the future using sink() and keep the subscription alive in the AnyCancellable
+    let subscribeCancellable: AnyCancellable = subscribeFuture
+        .sink(receiveCompletion: { completion: in
             switch completion {
-            case .finished:
-                // completion block for success
-                break
-            case .failure(let error):
-                print("Error: \(error)")
+                case .finished:
+                    print("Finished without error")
+                case .failure(let error):
+                    print("Finished with Error: \(error)")
             }
-        } receiveValue: { subackPacket in
-            print("Suback Packet received")
-        }
+        },
+        // On a successful completion a SubackPacket is returned by the Future
+        receiveValue: { subackPacket: in
+            print("subackPacket reason code: \(subackPacket.reasonCodes[0])")
+        })
 ```
 
 ### Unsubscribe
@@ -340,8 +347,8 @@ The `stop()` API supports a DISCONNECT packet as an optional parameter.  If supp
 
 ```swift
     client.stop(DisconnectPacket(
-        reasonCode: DisconnectReasonCode.normalDisconnection,
-        sessionExpiryIntervalSec: 3600))
+            reasonCode: DisconnectReasonCode.normalDisconnection,
+            sessionExpiryIntervalSec: 3600))
 ```
 
 ## **MQTT5 Best Practices**

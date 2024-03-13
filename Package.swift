@@ -300,7 +300,7 @@ packageTargets.append(contentsOf: [
     ),
     .executableTarget(
         name: "Test_Sample",
-        dependencies: ["AwsCommonRuntimeKit"],
+        dependencies: ["AwsCommonRuntimeKit", "AwsCMqtt"],
         path: "Sample")
 ] )
 package.targets = packageTargets
