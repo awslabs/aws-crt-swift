@@ -309,13 +309,28 @@ The Subscribe operation takes a description of the SUBSCRIBE packet you wish to 
             let subackPacket: SubackPacket = try await client.subscribe(
                 subscribePacket: subscribePacket)
             // The subackPacket may result in both failed or successful subscriptions. It will need to
-            // be inspected to determine the result of the subscription or subscritions requested.
+            // be inspected to determine the result of the subscription or subscriptions requested.
             print("Suback Packet received with result: \(subackPacket.reasonCodes[0])")
         } catch {
             print("Error encountered: \(error)")
         }
     }
 
+    //////////////////////////////////////////////////////
+    ////////////// ASYNC BASED TASK HANDLED //////////////
+    //////////////////////////////////////////////////////
+
+    // A callback function that processes the suback packet returned from a subscribe operation.
+    func processSuback(subackPacket: SubackPacket) {
+        print("Suback Packet received with result: \(subackPacket.reasonCodes[0])")
+    }
+
+    // A subscribe operation can be set with or without a completion function that processes the
+    // suback packet the IoT broker returns on a subscribe request. The suback needs to be inspected
+    // to determine the result of the subscription or subscriptions requested.
+    client.subscribe(subscribePacket: subscribePacket)
+    // or with suback packet handling
+    client.subscribe(subscribePacket: subscribePacket, completion: processSuback)
 
     //////////////////////////////////////////////////////
     //////////////////// FUTURE BASED ////////////////////

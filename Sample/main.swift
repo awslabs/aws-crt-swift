@@ -85,6 +85,19 @@ func subscribeAsync(subscribePacket: SubscribePacket) async throws -> SubackPack
     }
 }
 
+func subscribeAsyncHandled(subscribePacket: SubscribePacket, completion: ((SubackPacket) -> Void)? = nil) {
+    print("client.subscribeAsyncHandled() entered")
+    Task{
+        do {
+            let subackPacket: SubackPacket = try await subscribeAsync(
+                subscribePacket: subscribePacket)
+            completion?(subackPacket)
+        } catch {
+            print("     Error encountered: \(error)")
+        }
+    }
+}
+
 func processSuback(subackPacket: SubackPacket) {
     print("     Processing suback")
     print("     Suback reasonCode: \(subackPacket.reasonCodes[0])")
@@ -157,9 +170,25 @@ func runSubscribeAsync() {
     }
 }
 
-// let cancellable: AnyCancellable = runSubscribeFuture()
+func runSubscribeAsyncHandled() {
+    let subscribePacket: SubscribePacket = SubscribePacket(
+        topicFilter: "hello/world",
+        qos: QoS.atLeastOnce)
 
-runSubscribeAsync()
+    subscribeAsyncHandled(subscribePacket: subscribePacket)
+
+    waitNoCountdown(seconds: 1)
+
+    subscribeAsyncHandled(subscribePacket: subscribePacket)
+
+    waitNoCountdown(seconds: 1)
+
+    subscribeAsyncHandled(subscribePacket: subscribePacket, completion: processSuback)
+}
+
+// let cancellable: AnyCancellable = runSubscribeFuture()
+// runSubscribeAsync()
+runSubscribeAsyncHandled()
 
 // Wait for the future to complete or until a timeout (e.g., 5 seconds)
 wait(seconds: 10)
