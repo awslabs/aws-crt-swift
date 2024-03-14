@@ -135,6 +135,8 @@ func runSubscribeAsync() {
         topicFilter: "hello/world",
         qos: QoS.atLeastOnce)
 
+
+
     Task {
         do {
             let subackPacket: SubackPacket = try await subscribeAsync(
@@ -187,8 +189,8 @@ func runSubscribeAsyncHandled() {
 }
 
 // let cancellable: AnyCancellable = runSubscribeFuture()
-// runSubscribeAsync()
-runSubscribeAsyncHandled()
+runSubscribeAsync()
+// runSubscribeAsyncHandled()
 
 // Wait for the future to complete or until a timeout (e.g., 5 seconds)
 wait(seconds: 10)

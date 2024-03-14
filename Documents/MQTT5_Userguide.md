@@ -296,10 +296,6 @@ The Subscribe operation takes a description of the SUBSCRIBE packet you wish to 
         topicFilter: "hello/world",
         qos: QoS.atLeastOnce)
 
-    //////////////////////////////////////////////////////
-    //////////////////// ASYNC BASED  ////////////////////
-    //////////////////////////////////////////////////////
-
     // Wrap the subscribe() within a Task block to not block the current execution context
     Task {
         // The async subscribe function takes a SubscribePacket that is sent to the IoT Broker.
@@ -315,71 +311,46 @@ The Subscribe operation takes a description of the SUBSCRIBE packet you wish to 
             print("Error encountered: \(error)")
         }
     }
-
-    //////////////////////////////////////////////////////
-    ////////////// ASYNC BASED TASK HANDLED //////////////
-    //////////////////////////////////////////////////////
-
-    // A callback function that processes the suback packet returned from a subscribe operation.
-    func processSuback(subackPacket: SubackPacket) {
-        print("Suback Packet received with result: \(subackPacket.reasonCodes[0])")
-    }
-
-    // A subscribe operation can be set with or without a completion function that processes the
-    // suback packet the IoT broker returns on a subscribe request. The suback needs to be inspected
-    // to determine the result of the subscription or subscriptions requested.
-    client.subscribe(subscribePacket: subscribePacket)
-    // or with suback packet handling
-    client.subscribe(subscribePacket: subscribePacket, completion: processSuback)
-
-    //////////////////////////////////////////////////////
-    //////////////////// FUTURE BASED ////////////////////
-    //////////////////////////////////////////////////////
-
-    // The subscribe function takes a SubscribePacket and returns a Future that will complete
-    // once it either receives a SubackPacket or encounters an error
-    let subscribeFuture: Future<SubackPacket, CommonRunTimeError> =
-            client.subscribe(subscribePacket: subscribePacket)
-
-    // Subscribe to the future using sink() and keep the subscription alive in the AnyCancellable
-    let subscribeCancellable: AnyCancellable = subscribeFuture
-        .sink(receiveCompletion: { completion: in
-            switch completion {
-                case .finished:
-                    print("Finished without error")
-                case .failure(let error):
-                    print("Finished with Error: \(error)")
-            }
-        },
-        // On a successful completion a SubackPacket is returned by the Future
-        receiveValue: { subackPacket: in
-            print("subackPacket reason code: \(subackPacket.reasonCodes[0])")
-        })
 ```
 
 ### Unsubscribe
 The Unsubscribe operation takes a description of the UNSUBSCRIBE packet you wish to send and returns a future that resolves successfully with the corresponding UNSUBACK returned by the broker; the future result raises an exception if anything goes wrong before the UNSUBACK is received.
 
 ```swift
-// TODO. Unsure what we return yet.
-    unsubscribe_future = client.unsubscribe(unsubscribe_packet = mqtt5.UnsubscribePacket(
-        topic_filters=["hello/world/qos1"]))
+    // Create the UnbsubscribePacket to be used
+    let unsubscribePacket: UnsubscribePacket = UnsubscribePacket(
+        topicFilter: "hello/world")
 
-    unsuback = unsubscribe_future.result()
+    Task {
+        do{
+            let unsubackPacket: UnsubackPacket = try await client.unsubscribe(
+                unsubscribePacket: unsubscribePacket)
+
+            print("Unsuback Packet received with result: \(unsubackPacket.reasonCodes[0])")
+        } catch {
+            print("Error encountered: \(error)")
+        }
+    }
 ```
 
 ### Publish
 The Publish operation takes a description of the PUBLISH packet you wish to send and returns a future of polymorphic value.  If the PUBLISH was a QoS 0 publish, then the future result is an empty PUBACK packet with all members set to None and is completed as soon as the packet has been written to the socket.  If the PUBLISH was a QoS 1 publish, then the future result is a PUBACK packet value and is completed as soon as the PUBACK is received from the broker.  If the operation fails for any reason before these respective completion events, the future result raises an exception.
 
 ```swift
-// TODO. Unsure what we return yet.
-    publish_future = client.publish(mqtt5.PublishPacket(
-        topic = "hello/world/qos1",
-        payload = "This is the payload of a QoS 1 publish",
-        qos = mqtt5.QoS.AT_LEAST_ONCE))
+    let publishPacket: publishPacket = PublishPacket(
+        qos: QoS.atLeastOnce,
+        topic: "hello/world")
 
-    # on success, the result of publish_future will be a PubackPacket
-    puback = publish_future.result()
+    Task {
+        do {
+            let pubackPacket: PubackPacket = try await client.publish(
+                publishPacket: publishPacket)
+
+            print("Puback Packet received with reasoncode: \(pubackPacket.reasonCode)")
+        } catch {
+            print("Error encountered: \(error)")
+        }
+    }
 ```
 
 ### Disconnect
