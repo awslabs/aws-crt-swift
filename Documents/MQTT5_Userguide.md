@@ -296,6 +296,31 @@ The Subscribe operation takes a description of the SUBSCRIBE packet you wish to 
         topicFilter: "hello/world",
         qos: QoS.atLeastOnce)
 
+    //////////////////////////////////////////////////////
+    //////////////////// ASYNC BASED  ////////////////////
+    //////////////////////////////////////////////////////
+
+    // Wrap the subscribe() within a Task block to not block the current execution context
+    Task {
+        // The async subscribe function takes a SubscribePacket that is sent to the IoT Broker.
+        // The function waits for the IoT Broker to send back a SubackPacket and completes by
+        // returning the SubackPacket.
+        do {
+            let subackPacket: SubackPacket = try await client.subscribe(
+                subscribePacket: subscribePacket)
+            // The subackPacket may result in both failed or successful subscriptions. It will need to
+            // be inspected to determine the result of the subscription or subscritions requested.
+            print("Suback Packet received with result: \(subackPacket.reasonCodes[0])")
+        } catch {
+            print("Error encountered: \(error)")
+        }
+    }
+
+
+    //////////////////////////////////////////////////////
+    //////////////////// FUTURE BASED ////////////////////
+    //////////////////////////////////////////////////////
+
     // The subscribe function takes a SubscribePacket and returns a Future that will complete
     // once it either receives a SubackPacket or encounters an error
     let subscribeFuture: Future<SubackPacket, CommonRunTimeError> =

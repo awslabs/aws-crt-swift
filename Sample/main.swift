@@ -17,8 +17,14 @@ func wait (seconds: Int) {
     }
 }
 
+func waitNoCountdown(seconds: Int) {
+    print("wait for \(seconds) seconds")
+    _ = semaphore.wait(timeout: .now() + 1)
+}
+
 func nativeSubscribe(subscribePacket: SubscribePacket, completion: @escaping (Int, SubackPacket) -> Void) {
     print("native client simulating Subscribe packet received")
+
     // Simulate an asynchronous task.
     // This block is occuring in a background thread relative to the main thread.
     DispatchQueue.global().async {
@@ -40,12 +46,13 @@ func nativeSubscribe(subscribePacket: SubscribePacket, completion: @escaping (In
 }
 
 func subscribeFuture(subscribePacket: SubscribePacket) -> Future<SubackPacket, CommonRunTimeError> {
-    print("client.subscribe() entered")
+    print("client.subscribeFuture() entered")
 
     // Return the future that will be completed upon callback completion by native client
     return Future { promise in
 
         // Convert swift->native and call the native subscribe along with swift callback
+        // native subscribe can fail and return AWS_OP_ERR. In this case, the future should complete with error
         nativeSubscribe(
             subscribePacket: subscribePacket,
             completion: { errorCode, subackPacket in
@@ -59,12 +66,31 @@ func subscribeFuture(subscribePacket: SubscribePacket) -> Future<SubackPacket, C
     }
 }
 
-func ProcessSuback(subackPacket: SubackPacket) {
-    print("Processing suback")
-    print("Suback reasonCode: \(subackPacket.reasonCodes[0])")
+func subscribeAsync(subscribePacket: SubscribePacket) async throws -> SubackPacket {
+    print("client.subscribeAsync() entered")
+
+    return try await withCheckedThrowingContinuation { continuation in
+        func subscribeCompletionCallback(errorCode: Int, subackPacket: SubackPacket) {
+            print("   subscribeCompletionCallback called")
+            if errorCode == 0 {
+                continuation.resume(returning: subackPacket)
+            } else {
+                continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+            }
+        }
+
+        nativeSubscribe(
+        subscribePacket: subscribePacket,
+        completion: subscribeCompletionCallback)
+    }
 }
 
-func runSubscribe() -> AnyCancellable {
+func processSuback(subackPacket: SubackPacket) {
+    print("     Processing suback")
+    print("     Suback reasonCode: \(subackPacket.reasonCodes[0])")
+}
+
+func runSubscribeFuture() -> AnyCancellable {
     print("runPublish called")
     let subscribePacket: SubscribePacket = SubscribePacket(
         topicFilter: "hello/world",
@@ -75,23 +101,67 @@ func runSubscribe() -> AnyCancellable {
     print("subscribe to future with sink")
 
     let cancellable = subscribeFuture
-        .sink(receiveCompletion: {completion in
-            switch completion {
-                case .finished:
-                    print("Finished without error")
-                case .failure(let error):
-                    print("Finished with Error: \(error)")
-            }
-        }, receiveValue: { value in
-            ProcessSuback(subackPacket: value)
+        .sink(
+            receiveCompletion: { completion in
+                switch completion {
+                    case .finished:
+                        print("Finished without error")
+                    case .failure(let error):
+                        print("Finished with Error: \(error)")
+                }
+        },
+            receiveValue: { value in
+                processSuback(subackPacket: value)
         })
 
     return cancellable
 }
 
-let cancellable: AnyCancellable = runSubscribe()
+func runSubscribeAsync() {
+    let subscribePacket: SubscribePacket = SubscribePacket(
+        topicFilter: "hello/world",
+        qos: QoS.atLeastOnce)
+
+    Task {
+        do {
+            let subackPacket: SubackPacket = try await subscribeAsync(
+                subscribePacket: subscribePacket)
+            processSuback(subackPacket: subackPacket)
+        } catch {
+            print("     Error encountered: \(error)")
+        }
+    }
+
+    waitNoCountdown(seconds: 1)
+
+    Task {
+        do {
+            let subackPacket: SubackPacket = try await subscribeAsync(
+                subscribePacket: subscribePacket)
+            processSuback(subackPacket: subackPacket)
+        } catch {
+            print("     Error encountered: \(error)")
+        }
+    }
+
+    waitNoCountdown(seconds: 1)
+
+    Task {
+        do {
+            let subackPacket: SubackPacket = try await subscribeAsync(
+                subscribePacket: subscribePacket)
+            processSuback(subackPacket: subackPacket)
+        } catch {
+            print("     Error encountered: \(error)")
+        }
+    }
+}
+
+// let cancellable: AnyCancellable = runSubscribeFuture()
+
+runSubscribeAsync()
 
 // Wait for the future to complete or until a timeout (e.g., 5 seconds)
-wait(seconds: 5)
+wait(seconds: 10)
 
 print("Sample Ending")
