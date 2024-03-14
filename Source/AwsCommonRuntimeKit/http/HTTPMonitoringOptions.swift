@@ -10,8 +10,10 @@ public struct HTTPMonitoringOptions: CStruct {
     /// Must be at least two
     public var allowableThroughputFailureInterval: UInt32
 
-    init(minThroughputBytesPerSecond: UInt64 = 0,
-         allowableThroughputFailureInterval: UInt32 = 2) {
+    public init(
+        minThroughputBytesPerSecond: UInt64 = 1,
+        allowableThroughputFailureInterval: UInt32 = 2
+    ) {
         self.minThroughputBytesPerSecond = minThroughputBytesPerSecond
         self.allowableThroughputFailureInterval = allowableThroughputFailureInterval
     }
