@@ -29,7 +29,7 @@ class HTTPClientConnectionOptionsTests: XCBaseTestCase {
                 proxyEnvSettings: HTTPProxyEnvSettings(envVarType: HTTPProxyEnvType.disable),
                 socketOptions: SocketOptions(socketType: .stream),
                 tlsOptions: tlsOptions,
-                monitoringOptions: HTTPMonitoringOptions(minThroughputBytesPerSecond: 10),
+                monitoringOptions: HTTPMonitoringOptions(minThroughputBytesPerSecond: 10, allowableThroughputFailureInterval: 3),
                 maxConnections: 10,
                 enableManualWindowManagement: true,
                 maxConnectionIdleMs: 100,
