@@ -4,6 +4,54 @@ import AwsCommonRuntimeKit
 import Combine
 import Foundation
 
+public class MqttClient {
+    public func start(){
+        // cals into native aws_mqtt5_client_start() which return success/failure
+    }
+
+    public func stop(disconnectPacket: DisconnectPacket? = nil) {
+        // cals into native aws_mqtt5_client_stop() with optional disconnect packet. returns success/failure
+    }
+
+    public func publish(publishPacket: PublishPacket) {
+        // calls into native aws_mqtt5_client_publish(). returns success/failure
+    }
+
+    public func subscribe(subscribePacket: SubscribePacket?) {
+        // calls into native aws_mqtt5_client_subscribe(). returns success/failure
+    }
+
+    public func unsubscribe(unsubscribePacket: UnsubscribePacket) {
+        // calls into native aws_mqtt5_client_unsubscribe(). returns success/failure
+    }
+
+    public func getStats() -> ClientOperationStatistics {
+        // cals into native aws_mqtt5_client_get_stats
+        return ClientOperationStatistics(
+            incompleteOperationCount: 0,
+            incompleteOperationSize: 0,
+            unackedOperationCount: 0,
+            unackedOperationSize: 0)
+    }
+
+    // This should be unecessary in Swift as all request response clients and service clients will be mqtt5 in swift.
+    // public func newConnection() {
+    // }
+
+    public
+
+    public init (clientOptions: MqttClientOptions) {
+        // calls into native aws_mqtt5_client_new() which returns a pointer to the native client or nil
+    }
+    /*
+
+    Native mqtt functions not exposed directly in swift client
+    aws_mqtt5_client_acquire()
+    aws_mqtt5_client_release()
+
+    */
+}
+
 // for waiting/sleep
 let semaphore: DispatchSemaphore = DispatchSemaphore(value: 0)
 

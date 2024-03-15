@@ -12,6 +12,7 @@
         * [MQTT over Websockets with Sigv4 authentication](#mqtt-over-websockets-with-sigv4-authentication)
         * [MQTT over Websockets with Cognito authentication](#mqtt-over-websockets-with-cognito-authentication)
     * [Adding an HTTP Proxy](#adding-an-http-proxy)
+    * [Callbacks](#callbacks)
     * [Client Lifecycle Management](#client-lifecycle-management)
         * [Lifecycle Events](#lifecycle-events)
     * [Client Operations](#client-operations)
@@ -74,7 +75,7 @@ For X509 based mutual TLS, you can create a client where the certificate and pri
     let client = MqttClientBuilder.mtlsFromPath(
             endpoint: "<account-specific endpoint>",
             certFilepath: certFilepath,
-            priKeyFilepath: priKeyFilepath))
+            priKeyFilepath: priKeyFilepath)
 ```
 
 #### **Direct MQTT with Custom Authentication**
@@ -227,6 +228,42 @@ by adding the http_proxy_options keyword argument to the builder:
 SDK Proxy support also includes support for basic authentication and TLS-to-proxy.  SDK proxy support does not include any additional
 proxy authentication methods (kerberos, NTLM, etc...) nor does it include non-HTTP proxies (SOCKS5, for example).
 
+## **Callbacks**
+Create an MqttCallbacks with the callbacks you would like to use. This can then be added to the MqttClientOptions you are using to create an Mqtt client manually or added to any of the various MqttClientBuilder functions.
+```swift
+    let mqttCallbacks: MqttCallbacks = MqttCallbacks(
+        onPublish: onPublishFn,
+        onAttemptingConnect: onAttemptingConnectFn,
+        onConnectionSuccess: onConnectionSuccessFn,
+        onConnectionFailure: onConnectionFailureFn,
+        onDisconnect: onDisconnectFn,
+        onStopped: onStoppedFn
+    )
+
+    // Manually build a client using MqttClientOptions
+
+    // Add the mqttCallbacks to the MqttClientOptions as an external parameter name
+    let clientOptions: MqttClientOptions = MqttClientOptions(
+            hostName: "<endpoint to connect to>",
+            port: <port to use>,
+            bootstrap: bootstrap,
+            socketOptions: socketOptions,
+            tlsCtx: tlsCtx,
+            callbacks: mqttCallbacks)
+
+    let client: MqttClient = MqttClient(clientOptions)
+
+    // Use the MqttClientBuilder
+
+    // Add the mqttCallbacks to the MqttClientBuilder as an external parameter name
+
+    let client = MqttClientBuilder.mtlsFromPath(
+            endpoint: "<account-specific endpoint>",
+            certFilepath: certFilepath,
+            priKeyFilepath: priKeyFilepath,
+            callbacks: mqttCallbacks)
+
+```
 ## **Client lifecycle management**
 Once created, an MQTT client's configuration is immutable.  Invoking start() on the client will put it into an active state where it
 recurrently establishes a connection to the configured remote endpoint.  Reconnecting continues until you invoke stop().
