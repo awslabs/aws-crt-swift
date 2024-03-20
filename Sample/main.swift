@@ -98,6 +98,9 @@ func nativeSubscribe(subscribePacket: SubscribePacket, completion: @escaping (In
 func subscribeAsync(subscribePacket: SubscribePacket) async throws -> SubackPacket {
     print("client.subscribeAsync() entered for `\(subscribePacket.subscriptions[0].topicFilter)`")
 
+    // withCheckedThrowingContinuation is used as a bridge between native's callback asynchrnous code and Swift's async/await model
+    // This func will pause until continuation.resume() is called
+
     return try await withCheckedThrowingContinuation { continuation in
         print("subscribeAsync try await withCheckedThrowingContinuation for '\(subscribePacket.subscriptions[0].topicFilter)` starting")
         // The completion callback to invoke when an ack is received in native
@@ -121,6 +124,12 @@ func subscribeAsync(subscribePacket: SubscribePacket) async throws -> SubackPack
     }
 }
 
+func subscribe(subscribePacket: SubscribePacket) -> Task<SubackPacket, Error> {
+    return Task {
+        print("Subscribe Task for `\(subscribePacket.subscriptions[0].topicFilter)` executing")
+        return try await subscribeAsync(subscribePacket: subscribePacket)
+    }
+}
 
 /// Explicitly request a Task on an operation
 func subscribeOptionalTask(subscribePacket: SubscribePacket, getAck: Bool = false) -> Task<SubackPacket, Error>? {
@@ -138,13 +147,6 @@ func subscribeOptionalTask(subscribePacket: SubscribePacket, getAck: Bool = fals
     }
 }
 
-func subscribe(subscribePacket: SubscribePacket) -> Task<SubackPacket, Error> {
-    return Task {
-        print("Subscribe Task for `\(subscribePacket.subscriptions[0].topicFilter)` executing")
-        return try await subscribeAsync(subscribePacket: subscribePacket)
-    }
-}
-
 func processSuback(subackPacket: SubackPacket) {
     print("     =======SUBACK PACKET=======")
     print("     Processing suback")
@@ -157,9 +159,9 @@ func processSuback(subackPacket: SubackPacket) {
     print("     =====SUBACK PACKET END=====")
 }
 
-// let subscribePacket: SubscribePacket = SubscribePacket(
-//     topicFilter: "hello/world",
-//     qos: QoS.atLeastOnce)
+let subscribePacket: SubscribePacket = SubscribePacket(
+    topicFilter: "hello/world",
+    qos: QoS.atLeastOnce)
 
 // Ignore the returned Task
 _ = subscribe(subscribePacket: SubscribePacket(
@@ -167,6 +169,10 @@ _ = subscribe(subscribePacket: SubscribePacket(
     qos: QoS.atLeastOnce))
 
 waitNoCountdown(seconds: 1)
+
+let taskUnused = subscribe(subscribePacket: SubscribePacket(
+    topicFilter: "Task Unused",
+    qos: QoS.atLeastOnce))
 
 // Execute the operation from within a task block
 Task.detached {
