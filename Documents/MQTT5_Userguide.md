@@ -325,7 +325,7 @@ Emitted once the client has shutdown any associated network connection and enter
 There are four basic MQTT operations you can perform with the MQTT client.
 
 ### Subscribe
-The Subscribe operation takes a description of the SUBSCRIBE packet you wish to send and returns a future that resolves successfully with the corresponding SUBACK returned by the broker; the future result raises an exception if anything goes wrong before the SUBACK is received.
+The Subscribe operation takes a description of the SUBSCRIBE packet you wish to send and returns an optional Task that resolves with the corresponding SUBACK returned by the broker or an error is thrown. By default, the returned Task is nil unless `getAck` is set to true.
 
 ```swift
     // Create the SubscribePacket to be used
@@ -333,21 +333,23 @@ The Subscribe operation takes a description of the SUBSCRIBE packet you wish to 
         topicFilter: "hello/world",
         qos: QoS.atLeastOnce)
 
-    // Wrap the subscribe() within a Task block to not block the current execution context
-    Task {
-        // The async subscribe function takes a SubscribePacket that is sent to the IoT Broker.
-        // The function waits for the IoT Broker to send back a SubackPacket and completes by
-        // returning the SubackPacket.
-        do {
-            let subackPacket: SubackPacket = try await client.subscribe(
-                subscribePacket: subscribePacket)
-            // The subackPacket may result in both failed or successful subscriptions. It will need to
-            // be inspected to determine the result of the subscription or subscriptions requested.
-            print("Suback Packet received with result: \(subackPacket.reasonCodes[0])")
-        } catch {
-            print("Error encountered: \(error)")
+    // If you would like to process the SubackPacket returned by the IoT broker, set getAck to true.
+    // If subscribe() is called from a synchronous part of your program, the Task returned from subscribe() should be within a detached task block.
+    Task.detached {
+        if let task client.subscribe(subscribePacket: subscribePacket, getAck: true) {
+            do {
+                let subackPacket = try await task.value
+                // The subackPacket may result in both failed or successful subscriptions. It will need to
+                // be inspected to determine the result of the subscription or subscriptions requested.
+                print("Suback Packet received with result: \(subackPacket.reasonCodes[0])")
+            } catch {
+                print("Error encountered: \(error)")
+            }
         }
     }
+
+    // If you do not require the subackPacket, you may omit getAck and it will default to false
+    _ = client.subscribe(subscribePacket: subscribePacket)
 ```
 
 ### Unsubscribe
