@@ -527,7 +527,7 @@ public class PublishReceivedData {
 }
 
 /// Defines signature of the Publish callback
-public typealias OnPublishCallback = (PublishReceivedData) -> Void
+public typealias OnPublishReceived = (PublishReceivedData) -> Void
 
 /// Class containing results of an Stopped Lifecycle Event. Currently unused.
 public class LifecycleStoppedData { }
@@ -804,7 +804,7 @@ public class MqttClientOptions {
     public let topicAliasingOptions: TopicAliasingOptions?
 
     /// Callback for all publish packets received by client.
-    public let onPublishCallbackFn: OnPublishCallback?
+    public let onPublishReceivedFn: OnPublishReceived?
 
     /// Callback for Lifecycle Event Stopped.
     public let onLifecycleEventStoppedFn: OnLifecycleEventStopped?
@@ -840,7 +840,7 @@ public class MqttClientOptions {
         connackTimeoutMs: UInt32? = nil,
         ackTimeoutSec: UInt32? = nil,
         topicAliasingOptions: TopicAliasingOptions? = nil,
-        onPublishCallbackFn: OnPublishCallback? = nil,
+        onPublishReceivedFn: OnPublishReceived? = nil,
         onLifecycleEventStoppedFn: OnLifecycleEventStopped? = nil,
         onLifecycleEventAttemptingConnectFn: OnLifecycleEventAttemptingConnect? = nil,
         onLifecycleEventConnectionSuccessFn: OnLifecycleEventConnectionSuccess? = nil,
