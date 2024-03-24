@@ -1,6 +1,9 @@
 ///  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ///  SPDX-License-Identifier: Apache-2.0.
 
+import AwsCMqtt
+
+
 /// MQTT message delivery quality of service.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901234>`__ encoding values.
 public enum QoS: Int {
@@ -676,8 +679,7 @@ public class NegotiatedSettings {
 }
 
 /// Data model of an `MQTT5 CONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901033>`_ packet.
-public class MqttConnectOptions {
-
+public class MqttConnectOptions : CStructWithUserData{
     /// The maximum time interval, in seconds, that is permitted to elapse between the point at which the client finishes transmitting one MQTT packet and the point it starts sending the next.  The client will use PINGREQ packets to maintain this property. If the responding CONNACK contains a keep alive property value, then that is the negotiated keep alive value. Otherwise, the keep alive sent by the client is the negotiated value.
     public let keepAliveIntervalSec: UInt16?
 
@@ -741,6 +743,34 @@ public class MqttConnectOptions {
         self.will = will
         self.userProperties = userProperties
     }
+
+
+    typealias RawType = aws_mqtt5_packet_connect_view;
+    func withCStruct<Result>(userData: UnsafeMutableRawPointer?, _ body: (aws_mqtt5_packet_connect_view) -> Result) -> Result {
+
+        var raw_connect_options = aws_mqtt5_packet_connect_view();
+        if self.keepAliveIntervalSec != nil {
+            raw_connect_options.keep_alive_interval_seconds = self.keepAliveIntervalSec!
+        }else{
+            raw_connect_options.keep_alive_interval_seconds = 0
+        }
+        //raw_connect_options.session_expiry_interval_seconds = self.sessionExpiryIntervalSec?? ;
+
+        return withByteCursorFromStrings(self.clientId) { cClientId in
+            raw_connect_options.client_id = cClientId
+            return withOptionalByteCursorPointerFromString(self.username) { cUsernamePointer in
+                raw_connect_options.username = cUsernamePointer;
+                return withOptionalByteCursorPointerFromString(self.password) { cPasswordPointer in
+                    raw_connect_options.password = cPasswordPointer;
+
+                    return body(raw_connect_options)
+                }
+            }
+        }
+
+    }
+
+
 }
 
 /// Configuration for the creation of MQTT5 clients
@@ -871,5 +901,69 @@ public class MqttClientOptions {
         self.onLifecycleEventConnectionSuccessFn = onLifecycleEventConnectionSuccessFn
         self.onLifecycleEventConnectionFailureFn = onLifecycleEventConnectionFailureFn
         self.onLifecycleEventDisconnectionFn = onLifecycleEventDisconnectionFn
+    }
+
+
+
+}
+
+
+/// Internal Classes
+/// Callback core for event loop callbacks
+class MqttShutdownCallbackCore {
+    let onPublishReceivedCallback: OnPublishCallback?
+    let onLifecycleEventStoppedCallback : OnLifecycleEventStopped?
+    let onLifecycleEventAttemptingConnect : OnLifecycleEventAttemptingConnect?
+    let onLifecycleEventConnectionSuccess : OnLifecycleEventConnectionSuccess?
+    let onLifecycleEventConnectionFailure : OnLifecycleEventConnectionFailure?
+
+    init(onPublishReceivedCallback: OnPublishCallback?,
+         onLifecycleEventStoppedCallback : OnLifecycleEventStopped?,
+         onLifecycleEventAttemptingConnect : OnLifecycleEventAttemptingConnect?,
+         onLifecycleEventConnectionSuccess : OnLifecycleEventConnectionSuccess?,
+         onLifecycleEventConnectionFailure : OnLifecycleEventConnectionFailure?,
+         data: AnyObject? = nil) {
+        if let onPublishReceivedCallback = onPublishReceivedCallback {
+            self.onPublishReceivedCallback = onPublishReceivedCallback
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onPublishReceivedCallback = { (PublishReceivedData) -> Void in return }
+        }
+
+        if let onLifecycleEventStoppedCallback = onLifecycleEventStoppedCallback {
+            self.onLifecycleEventStoppedCallback = onLifecycleEventStoppedCallback
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onLifecycleEventStoppedCallback = { (LifecycleStoppedData) -> Void in return}
+        }
+
+        if let onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect {
+            self.onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onLifecycleEventAttemptingConnect = { (LifecycleAttemptingConnectData) -> Void in return}
+        }
+
+        if let onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess {
+            self.onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onLifecycleEventConnectionSuccess = { (LifecycleConnectSuccessData) -> Void in return}
+        }
+
+        if let onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure {
+            self.onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onLifecycleEventConnectionFailure = { (LifecycleConnectFailureData) -> Void in return}
+        }
+    }
+
+    func getMqtt5TerminationCallbackOptions() {
+
+    }
+
+    func release() {
+        Unmanaged<MqttShutdownCallbackCore>.passUnretained(self).release()
     }
 }
