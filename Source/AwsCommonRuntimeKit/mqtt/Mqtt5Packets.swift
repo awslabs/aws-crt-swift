@@ -130,25 +130,25 @@ public class PublishPacket: CStruct {
             raw_publish_view.topic =  topicCustor
             return withOptionalAWSByteCursorFromData(to: payload) { cByteCursor in
                 raw_publish_view.payload = cByteCursor
-                
+
                 let _payloadFormatIndicatorInt = payloadFormatIndicator?.rawValue ?? nil
                 let _messageExpiryInterval: UInt32? = try? messageExpiryInterval?.secondUInt32() ?? nil
-                
+
                 return withOptionalUnsafePointer(_payloadFormatIndicatorInt,
                                                  topicAlias,
                                                  _messageExpiryInterval) { payloadPointer, topicAliasPointer, messageExpiryIntervalPointer in
                     if let _payloadPointer = payloadPointer {
                         raw_publish_view.payload_format = _payloadPointer
                     }
-                    
+
                     if let _messageExpiryIntervalPointer = messageExpiryIntervalPointer {
-                        raw_publish_view.message_expiry_interval_seconds = messageExpiryIntervalPointer
+                        raw_publish_view.message_expiry_interval_seconds = _messageExpiryIntervalPointer
                     }
-                    
+
                     if let _topicAliasPointer = topicAliasPointer {
                         raw_publish_view.topic_alias = _topicAliasPointer
                     }
-                    
+
                     // TODO subscriptionIdentifiers LIST
                     // TODO [UserProperties]
 
@@ -156,12 +156,12 @@ public class PublishPacket: CStruct {
                         raw_publish_view.content_type = cContentType
                         raw_publish_view.correlation_data = cCorrelationData
                         raw_publish_view.response_topic = cResponseTopic
-                        
+
                         return body(raw_publish_view)
                     }
-                    
+
                 }
-                
+
             }
         }
 
