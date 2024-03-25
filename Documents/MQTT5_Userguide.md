@@ -93,14 +93,14 @@ If your custom authenticator does not use signing, you don't specify anything re
     // other builder configurations can be added using external parameter names in the builder
     let client: MqttClient = mqttClientBuilder.directWithCustomAuthorizer(
             endpoint: "<account-specific endpoint>",
-            mqttCustomAuthoOptions: mqttCustomAuthOptions)
+            mqttCustomAuthOptions: mqttCustomAuthOptions)
 ```
 
 If your custom authorizer uses signing, you must specify the three signed token properties as well. It is your responsibility to URI-encode the authUsername, authAuthorizerName, and auth_tokenKeyName parameters.
 
 ```swift
     // Use the authAuthorizerSignature external parameter name to also set the authorizer signature
-    let mqttCustomAuthOptions: MqttCustomAuthOptions = MqttCustomAuthOptions(
+    let mqttCustomSignedAuthOptions: MqttCustomSignedAuthOptions = MqttCustomSignedAuthOptions(
             authAuthorizerName: "<Name of your custom authorizer>",
             authUsername: "<Value of the username field that should be passed to the authorizer's lambda>",
             authPassword: <Binary data value of the password field to be passed to the authorizer lambda>,
@@ -108,9 +108,9 @@ If your custom authorizer uses signing, you must specify the three signed token 
 
     // Create an MQTT Client using mqttClientBuilder
     // other builder configurations can be added using external parameter names in the builder
-    let client: MqttClient = mqttClientBuilder.directWithCustomAuthorizer(
+    let client: MqttClient = mqttClientBuilder.directWithSignedCustomAuthorizer(
             endpoint: "<account-specific endpoint>",
-            mqttCustomAuthoOptions: mqttCustomAuthOptions)
+            mqttCustomSignedAuthOptions: mqttCustomSignedAuthOptions)
 ```
 
 In both cases, the builder will construct a final CONNECT packet username field value for you based on the values configured.  Do not add the token-signing fields to the value of the username that you assign within the custom authentication config structure.  Similarly, do not add any custom authentication related values to the username in the CONNECT configuration optionally attached to the client configuration. The builder will do everything for you.

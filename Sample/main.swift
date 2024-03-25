@@ -112,6 +112,12 @@ func subscribeAsync(subscribePacket: SubscribePacket) async throws -> SubackPack
                 continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
             }
         }
+
+        // Translate swift packet to native packet
+        // We have a native callback for the operation
+        // We have a pointer to the swift callback
+        //aws_mqtt5_subscribe(nativePacket, nativeCallback)
+
         print("subscribeAsync nativeSubscribe within withCheckedThrowingContinuation for '\(subscribePacket.subscriptions[0].topicFilter)` starting")
         // represents the call to the native client
         let result = nativeSubscribe(
@@ -163,62 +169,111 @@ let subscribePacket: SubscribePacket = SubscribePacket(
     topicFilter: "hello/world",
     qos: QoS.atLeastOnce)
 
-// Ignore the returned Task
-_ = subscribe(subscribePacket: SubscribePacket(
-    topicFilter: "Ignore",
-    qos: QoS.atLeastOnce))
+// // Ignore the returned Task
+// _ = subscribe(subscribePacket: SubscribePacket(
+//     topicFilter: "Ignore",
+//     qos: QoS.atLeastOnce))
 
-waitNoCountdown(seconds: 1)
+// waitNoCountdown(seconds: 1)
 
-let taskUnused = subscribe(subscribePacket: SubscribePacket(
-    topicFilter: "Task Unused",
-    qos: QoS.atLeastOnce))
+// let taskUnused = subscribe(subscribePacket: SubscribePacket(
+//     topicFilter: "Task Unused",
+//     qos: QoS.atLeastOnce))
+
+// let task1 = subscribe(subscribePacket: SubscribePacket(
+//     topicFilter: "Within",
+//     qos: QoS.atLeastOnce))
+// do {
+//     let subackPacket = try await task1.value
+//     processSuback(subackPacket: subackPacket)
+// } catch {
+//     print("An error was thrown \(error)")
+// }
+
+// This passes to Native the operation, we don't care about result but the async function runs to completion
+// async let _ = subscribeAsync(subscribePacket: subscribePacket)
+
+let suback = try await subscribeAsync(subscribePacket: subscribePacket)
+
+// results in "'async' call in a function that does not support concurrency"
+// needs to be contained in an async function to be used this way
+// subscribeAsync(subscribePacket: subscribePacket)
+
+
+// Drops out of scope immediately without passing op to native
+// Task {
+//     try await subscribeAsync(subscribePacket: subscribePacket)
+// }
+
+// func TestFunk() {
+//     Task {
+//         let result = try await subscribeAsync(subscribePacket: subscribePacket)
+//         print("RESULT \(result.reasonCodes[0])")
+//     }
+// }
+// TestFunk()
+
+
+
+
+
+// _ = subscribe(subscribePacket: subscribePacket)
+
+
+// _ = subscribe(subscribePacket: subscribePacket)
+
+// let taskF = client.subscribe(subscribePacket: subscribePacket)
+// let task =  Task { try await client.subscribeAsync(subscribePacket: subscribePacket) }
+
+// async let ack = try subscribe(subscribePacket: subscribePacket).value
+// try await client.subscribeAsync(subscribePacket: subscribePacket)
+
 
 // Execute the operation from within a task block
-Task.detached {
-    let task1 = subscribe(subscribePacket: SubscribePacket(
-    topicFilter: "Within",
-    qos: QoS.atLeastOnce))
-    do {
-        let subackPacket = try await task1.value
-        processSuback(subackPacket: subackPacket)
-    } catch {
-        print("An error was thrown \(error)")
-    }
-}
+// Task.detached {
+//     let task1 = subscribe(subscribePacket: SubscribePacket(
+//     topicFilter: "Within",
+//     qos: QoS.atLeastOnce))
+//     do {
+//         let subackPacket = try await task1.value
+//         processSuback(subackPacket: subackPacket)
+//     } catch {
+//         print("An error was thrown \(error)")
+//     }
+// }
 
-waitNoCountdown(seconds: 1)
+// waitNoCountdown(seconds: 1)
 
-// Execute the operation and store the task and then complete it in a task block.
-let task2 = subscribe(subscribePacket: SubscribePacket(
-    topicFilter: "Store and task block",
-    qos: QoS.atLeastOnce))
-Task.detached {
-    do {
-        let subackPacket = try await task2.value
-        processSuback(subackPacket: subackPacket)
-    } catch {
-        print("An error was thrown \(error)")
-    }
-}
+// // Execute the operation and store the task and then complete it in a task block.
+// let task2 = subscribe(subscribePacket: SubscribePacket(
+//     topicFilter: "Store and task block",
+//     qos: QoS.atLeastOnce))
+// Task.detached {
+//     do {
+//         let subackPacket = try await task2.value
+//         processSuback(subackPacket: subackPacket)
+//     } catch {
+//         print("An error was thrown \(error)")
+//     }
+// }
 
-waitNoCountdown(seconds: 1)
-let task3 = subscribe(subscribePacket: SubscribePacket(
-    topicFilter: "Store and nothing else",
-    qos: QoS.atLeastOnce))
+// waitNoCountdown(seconds: 1)
+// let task3 = subscribe(subscribePacket: SubscribePacket(
+//     topicFilter: "Store and nothing else",
+//     qos: QoS.atLeastOnce))
 
 
-// Wait for the future to complete or until a timeout (e.g., 5 seconds)
-wait(seconds: 5)
-Task.detached {
-    do {
-        let subackTask3 = try await task3.value
-        processSuback(subackPacket: subackTask3)
-    } catch {
-        print("An error was thrown \(error)")
-    }
-}
+// // Wait for the future to complete or until a timeout (e.g., 5 seconds)
+// wait(seconds: 5)
+// Task.detached {
+//     do {
+//         let subackTask3 = try await task3.value
+//         processSuback(subackPacket: subackTask3)
+//     } catch {
+//         print("An error was thrown \(error)")
+//     }
+// }
 
-wait(seconds: 3)
+// wait(seconds: 3)
 
 print("Sample Ending")

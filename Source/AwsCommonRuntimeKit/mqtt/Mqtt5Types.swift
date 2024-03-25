@@ -865,7 +865,7 @@ public class MqttClientOptions {
         self.connackTimeoutMs = connackTimeoutMs
         self.ackTimeoutSec = ackTimeoutSec
         self.topicAliasingOptions = topicAliasingOptions
-        self.onPublishCallbackFn = onPublishCallbackFn
+        self.onPublishReceivedFn = onPublishReceivedFn
         self.onLifecycleEventStoppedFn = onLifecycleEventStoppedFn
         self.onLifecycleEventAttemptingConnectFn = onLifecycleEventAttemptingConnectFn
         self.onLifecycleEventConnectionSuccessFn = onLifecycleEventConnectionSuccessFn
