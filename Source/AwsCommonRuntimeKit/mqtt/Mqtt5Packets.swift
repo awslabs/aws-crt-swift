@@ -58,17 +58,17 @@ public class PublishPacket {
     public let userProperties: [UserProperty]?
 
     public init(qos: QoS,
-         topic: String,
-         payload: Data? = nil,
-         retain: Bool = false,
-         payloadFormatIndicator: PayloadFormatIndicator? = nil,
-         messageExpiryInterval: TimeInterval? = nil,
-         topicAlias: UInt16? = nil,
-         responseTopic: String? = nil,
-         correlationData: String? = nil,
-         subscriptionIdentifiers: [UInt32]? = nil,
-         contentType: String? = nil,
-         userProperties: [UserProperty]? = nil) {
+                topic: String,
+                payload: Data? = nil,
+                retain: Bool = false,
+                payloadFormatIndicator: PayloadFormatIndicator? = nil,
+                messageExpiryInterval: TimeInterval? = nil,
+                topicAlias: UInt16? = nil,
+                responseTopic: String? = nil,
+                correlationData: String? = nil,
+                subscriptionIdentifiers: [UInt32]? = nil,
+                contentType: String? = nil,
+                userProperties: [UserProperty]? = nil) {
 
         self.qos = qos
         self.topic = topic

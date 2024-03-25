@@ -508,8 +508,10 @@ public class ClientOperationStatistics {
     /// Total packet size of operations that have been sent to the server and are waiting for a corresponding ACK before they can be completed.
     public let unackedOperationSize: UInt64
 
-    public init (incompleteOperationCount: UInt64, incompleteOperationSize: UInt64,
-        unackedOperationCount: UInt64, unackedOperationSize: UInt64) {
+    public init (incompleteOperationCount: UInt64,
+                 incompleteOperationSize: UInt64,
+                 unackedOperationCount: UInt64,
+                 unackedOperationSize: UInt64) {
             self.incompleteOperationCount = incompleteOperationCount
             self.incompleteOperationSize = incompleteOperationSize
             self.unackedOperationCount = unackedOperationCount
