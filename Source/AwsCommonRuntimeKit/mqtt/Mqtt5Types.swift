@@ -1,8 +1,7 @@
 ///  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ///  SPDX-License-Identifier: Apache-2.0.
 
-import AwsCMqtt
-
+import Foundation
 
 /// MQTT message delivery quality of service.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901234>`__ encoding values.
@@ -478,7 +477,7 @@ public enum InboundTopicAliasBehaviorType: Int {
 }
 
 /// Configuration for all client topic aliasing behavior.
-public class TopicAliasingOptions: CStruct {
+public class TopicAliasingOptions {
 
     /// Controls what kind of outbound topic aliasing behavior the client should attempt to use.  If topic aliasing is not supported by the server, this setting has no effect and any attempts to directly manipulate the topic alias id in outbound publishes will be ignored.  If left undefined, then outbound topic aliasing is disabled.
     public var outboundBehavior: OutboundTopicAliasBehaviorType?
@@ -491,30 +490,6 @@ public class TopicAliasingOptions: CStruct {
 
     /// If inbound topic aliasing is enabled, this will control the size of the inbound alias cache.  If inbound aliases are enabled and this is zero or undefined, then a sensible default will be used (25).  If inbound aliases are disabled, this setting has no effect.  Behaviorally, this value overrides anything present in the topic_alias_maximum field of the CONNECT packet options.
     public var inboundCacheMaxSize: UInt16?
-
-    typealias RawType = aws_mqtt5_client_topic_alias_options
-    func withCStruct<Result>(_ body: (aws_mqtt5_client_topic_alias_options) -> Result) -> Result {
-        var raw_topic_alias_options = aws_mqtt5_client_topic_alias_options()
-        if let _outboundBehavior = outboundBehavior {
-            raw_topic_alias_options.outbound_topic_alias_behavior =
-                aws_mqtt5_client_outbound_topic_alias_behavior_type(UInt32(_outboundBehavior.rawValue))
-        }
-
-        if let _outboundCacheMaxSize = outboundCacheMaxSize {
-            raw_topic_alias_options.outbound_alias_cache_max_size = _outboundCacheMaxSize
-        }
-
-        if let _inboundBehavior = inboundBehavior {
-            raw_topic_alias_options.inbound_topic_alias_behavior =
-                aws_mqtt5_client_inbound_topic_alias_behavior_type(UInt32(_inboundBehavior.rawValue))
-        }
-
-        if let _inboundCacheMaxSize = inboundCacheMaxSize {
-            raw_topic_alias_options.inbound_alias_cache_size = _inboundCacheMaxSize
-        }
-
-        return body(raw_topic_alias_options)
-    }
 
 }
 
@@ -533,8 +508,10 @@ public class ClientOperationStatistics {
     /// Total packet size of operations that have been sent to the server and are waiting for a corresponding ACK before they can be completed.
     public let unackedOperationSize: UInt64
 
-    public init (incompleteOperationCount: UInt64, incompleteOperationSize: UInt64,
-        unackedOperationCount: UInt64, unackedOperationSize: UInt64) {
+    public init (incompleteOperationCount: UInt64,
+                 incompleteOperationSize: UInt64,
+                 unackedOperationCount: UInt64,
+                 unackedOperationSize: UInt64) {
             self.incompleteOperationCount = incompleteOperationCount
             self.incompleteOperationSize = incompleteOperationSize
             self.unackedOperationCount = unackedOperationCount
@@ -635,8 +612,8 @@ public class NegotiatedSettings {
     /// The maximum QoS allowed for publishes on this connection instance
     public let maximumQos: QoS
 
-    /// The amount of time in seconds the server will retain the MQTT session after a disconnect.
-    public let sessionExpiryIntervalSec: UInt32
+    /// The amount of time in whole seconds the server will retain the MQTT session after a disconnect.
+    public let sessionExpiryInterval: TimeInterval
 
     /// The number of in-flight QoS 1 and QoS 2 publications the server is willing to process concurrently.
     public let receiveMaximumFromServer: UInt16
@@ -650,8 +627,8 @@ public class NegotiatedSettings {
     /// The maximum allowed topic alias value on publishes sent from server to client
     public let topicAliasMaximumToClient: UInt16
 
-    /// The maximum amount of time in seconds between client packets. The client will use PINGREQs to ensure this limit is not breached.  The server will disconnect the client for inactivity if no MQTT packet is received in a time interval equal to 1.5 x this value.
-    public let serverKeepAliveSec: UInt16
+    /// The maximum amount of time in whole seconds between client packets. The client will use PINGREQs to ensure this limit is not breached.  The server will disconnect the client for inactivity if no MQTT packet is received in a time interval equal to 1.5 x this value.
+    public let serverKeepAlive: TimeInterval
 
     /// Whether the server supports retained messages.
     public let retainAvailable: Bool
@@ -673,12 +650,12 @@ public class NegotiatedSettings {
 
     public init (
         maximumQos: QoS,
-        sessionExpiryIntervalSec: UInt32,
+        sessionExpiryInterval: TimeInterval,
         receiveMaximumFromServer: UInt16,
         maximumPacketSizeToServer: UInt32,
         topicAliasMaximumToServer: UInt16,
         topicAliasMaximumToClient: UInt16,
-        serverKeepAliveSec: UInt16,
+        serverKeepAlive: TimeInterval,
         retainAvailable: Bool,
         wildcardSubscriptionsAvailable: Bool,
         subscriptionIdentifiersAvailable: Bool,
@@ -687,12 +664,12 @@ public class NegotiatedSettings {
         clientId: String) {
 
         self.maximumQos = maximumQos
-        self.sessionExpiryIntervalSec = sessionExpiryIntervalSec
+        self.sessionExpiryInterval = sessionExpiryInterval
         self.receiveMaximumFromServer = receiveMaximumFromServer
         self.maximumPacketSizeToServer = maximumPacketSizeToServer
         self.topicAliasMaximumToServer = topicAliasMaximumToServer
         self.topicAliasMaximumToClient = topicAliasMaximumToClient
-        self.serverKeepAliveSec = serverKeepAliveSec
+        self.serverKeepAlive = serverKeepAlive
         self.retainAvailable = retainAvailable
         self.wildcardSubscriptionsAvailable = wildcardSubscriptionsAvailable
         self.subscriptionIdentifiersAvailable = subscriptionIdentifiersAvailable
@@ -703,9 +680,10 @@ public class NegotiatedSettings {
 }
 
 /// Data model of an `MQTT5 CONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901033>`_ packet.
-public class MqttConnectOptions: CStruct {
-    /// The maximum time interval, in seconds, that is permitted to elapse between the point at which the client finishes transmitting one MQTT packet and the point it starts sending the next.  The client will use PINGREQ packets to maintain this property. If the responding CONNACK contains a keep alive property value, then that is the negotiated keep alive value. Otherwise, the keep alive sent by the client is the negotiated value.
-    public let keepAliveIntervalSec: UInt16?
+public class MqttConnectOptions {
+
+    /// The maximum time interval, in whole seconds, that is permitted to elapse between the point at which the client finishes transmitting one MQTT packet and the point it starts sending the next.  The client will use PINGREQ packets to maintain this property. If the responding CONNACK contains a keep alive property value, then that is the negotiated keep alive value. Otherwise, the keep alive sent by the client is the negotiated value.
+    public let keepAliveInterval: TimeInterval?
 
     /// A unique string identifying the client to the server.  Used to restore session state between connections. If left empty, the broker will auto-assign a unique client id.  When reconnecting, the mqtt5 client will always use the auto-assigned client id.
     public let clientId: String?
@@ -716,8 +694,8 @@ public class MqttConnectOptions: CStruct {
     /// Opaque binary data that the server may use for client authentication and authorization.
     public let password: String?
 
-    /// A time interval, in seconds, that the client requests the server to persist this connection's MQTT session state for.  Has no meaning if the client has not been configured to rejoin sessions.  Must be non-zero in order to successfully rejoin a session. If the responding CONNACK contains a session expiry property value, then that is the negotiated session expiry value.  Otherwise, the session expiry sent by the client is the negotiated value.
-    public let sessionExpiryIntervalSec: UInt32?
+    /// A time interval, in whole seconds, that the client requests the server to persist this connection's MQTT session state for.  Has no meaning if the client has not been configured to rejoin sessions.  Must be non-zero in order to successfully rejoin a session. If the responding CONNACK contains a session expiry property value, then that is the negotiated session expiry value.  Otherwise, the session expiry sent by the client is the negotiated value.
+    public let sessionExpiryInterval: TimeInterval?
 
     /// If true, requests that the server send response information in the subsequent CONNACK.  This response information may be used to set up request-response implementations over MQTT, but doing so is outside the scope of the MQTT5 spec and client.
     public let requestResponseInformation: Bool?
@@ -731,8 +709,8 @@ public class MqttConnectOptions: CStruct {
     /// Notifies the server of the maximum packet size the client is willing to handle.  If omitted or None, then no limit beyond the natural limits of MQTT packet size is requested.
     public let maximumPacketSize: UInt32?
 
-    /// A time interval, in seconds, that the server should wait (for a session reconnection) before sending the will message associated with the connection's session.  If omitted or None, the server will send the will when the associated session is destroyed.  If the session is destroyed before a will delay interval has elapsed, then the will must be sent at the time of session declassion.
-    public let willDelayIntervalSec: UInt32?
+    /// A time interval, in whole seconds, that the server should wait (for a session reconnection) before sending the will message associated with the connection's session.  If omitted or None, the server will send the will when the associated session is destroyed.  If the session is destroyed before a will delay interval has elapsed, then the will must be sent at the time of session declassion.
+    public let willDelayInterval: TimeInterval?
 
     /// The definition of a message to be published when the connection's session is destroyed by the server or when the will delay interval has elapsed, whichever comes first.  If None, then nothing will be sent.
     public let will: PublishPacket?
@@ -741,103 +719,31 @@ public class MqttConnectOptions: CStruct {
     public let userProperties: [UserProperty]?
 
     public init (
-        keepAliveIntervalSec: UInt16? = nil,
+        keepAliveInterval: TimeInterval? = nil,
         clientId: String? = nil,
         username: String? = nil,
         password: String? = nil,
-        sessionExpiryIntervalSec: UInt32? = nil,
+        sessionExpiryInterval: TimeInterval? = nil,
         requestResponseInformation: Bool? = nil,
         requestProblemInformation: Bool? = nil,
         receiveMaximum: UInt16? = nil,
         maximumPacketSize: UInt32? = nil,
-        willDelayIntervalSec: UInt32? = nil,
+        willDelayInterval: TimeInterval? = nil,
         will: PublishPacket? = nil,
         userProperties: [UserProperty]? = nil) {
 
-        self.keepAliveIntervalSec = keepAliveIntervalSec
+        self.keepAliveInterval = keepAliveInterval
         self.clientId = clientId
         self.username = username
         self.password = password
-        self.sessionExpiryIntervalSec = sessionExpiryIntervalSec
+        self.sessionExpiryInterval = sessionExpiryInterval
         self.requestResponseInformation = requestResponseInformation
         self.requestProblemInformation = requestProblemInformation
         self.receiveMaximum = receiveMaximum
         self.maximumPacketSize = maximumPacketSize
-        self.willDelayIntervalSec = willDelayIntervalSec
+        self.willDelayInterval = willDelayInterval
         self.will = will
         self.userProperties = userProperties
-    }
-
-    typealias RawType = aws_mqtt5_packet_connect_view
-    func withCStruct<Result>( _ body: (RawType) -> Result) -> Result {
-
-        var raw_connect_options = aws_mqtt5_packet_connect_view()
-        if let _keepAlive = self.keepAliveIntervalSec {
-            raw_connect_options.keep_alive_interval_seconds = _keepAlive
-        }
-
-        if let _sessionExpiryIntervalSec = self.sessionExpiryIntervalSec {
-            // convert UInt32 to UnsafePointer<UInt32>
-            raw_connect_options.session_expiry_interval_seconds = withUnsafePointer(
-                to: _sessionExpiryIntervalSec) { _sessionExpiryIntervalSecPointer in
-                return _sessionExpiryIntervalSecPointer
-            }
-        }
-
-        if let _requestResponseInformation = self.requestResponseInformation?.uint8Value {
-            raw_connect_options.request_response_information = withUnsafePointer(to: _requestResponseInformation) { _requestResponseInformationPointer in
-                return _requestResponseInformationPointer
-            }
-        }
-
-        if let _requestProblemInformation = self.requestProblemInformation?.uint8Value {
-            raw_connect_options.request_problem_information = withUnsafePointer(to: _requestProblemInformation) { _requestProblemInformationPointer in
-                return _requestProblemInformationPointer
-            }
-        }
-
-        if let _receiveMaximum = self.receiveMaximum {
-            raw_connect_options.receive_maximum = withUnsafePointer(to: _receiveMaximum) { _receiveMaximumPointer in
-                return _receiveMaximumPointer
-            }
-        }
-
-        if let _maximumPacketSize = self.maximumPacketSize {
-            raw_connect_options.maximum_packet_size_bytes = withUnsafePointer(to: _maximumPacketSize) { _maximumPacketSizePointer in
-                return _maximumPacketSizePointer
-            }
-        }
-
-        if let _willDelayIntervalSec = self.willDelayIntervalSec {
-            raw_connect_options.will_delay_interval_seconds = withUnsafePointer(to: _willDelayIntervalSec) { _willDelayIntervalSecPointer in
-                return _willDelayIntervalSecPointer
-            }
-        }
-
-        if let _will = self.will {
-            raw_connect_options.will = _will.withCPointer { willPointer in return willPointer }
-        }
-
-        // User Properties
-        if let _userProperties = userProperties {
-            raw_connect_options.user_property_count = _userProperties.count
-            raw_connect_options.user_properties = _userProperties.withCMqttUserProperties { cUserProperties in
-                return UnsafePointer<aws_mqtt5_user_property>(cUserProperties)
-            }
-        }
-
-        // TODO: CALLBACKS, THE CALLBACKS WILL COME WITH THE NEXT PR
-
-        return withByteCursorFromStrings(clientId) { cClientId in
-            raw_connect_options.client_id = cClientId
-
-            return withOptionalByteCursorPointerFromString(self.username,
-                                                           self.password) { cUsernamePointer, cPasswordPointer in
-                raw_connect_options.username = cUsernamePointer
-                raw_connect_options.password = cPasswordPointer
-                return body(raw_connect_options)
-            }
-        }
     }
 }
 
@@ -881,22 +787,22 @@ public class MqttClientOptions {
     public let retryJitterMode: ExponentialBackoffJitterMode?
 
     /// The minimum amount of time to wait to reconnect after a disconnect. Exponential backoff is performed with jitter after each connection failure.
-    public let minReconnectDelayMs: UInt64?
+    public let minReconnectDelay: TimeInterval?
 
     /// The maximum amount of time to wait to reconnect after a disconnect.  Exponential backoff is performed with jitter after each connection failure.
-    public let maxReconnectDelayMs: UInt64?
+    public let maxReconnectDelay: TimeInterval?
 
     /// The amount of time that must elapse with an established connection before the reconnect delay is reset to the minimum. This helps alleviate bandwidth-waste in fast reconnect cycles due to permission failures on operations.
-    public let minConnectedTimeToResetReconnectDelayMs: UInt64?
+    public let minConnectedTimeToResetReconnectDelay: TimeInterval?
 
     /// The time interval to wait after sending a PINGREQ for a PINGRESP to arrive. If one does not arrive, the client will close the current connection.
-    public let pingTimeoutMs: UInt32?
+    public let pingTimeout: TimeInterval?
 
     /// The time interval to wait after sending a CONNECT request for a CONNACK to arrive.  If one does not arrive, the connection will be shut down.
-    public let connackTimeoutMs: UInt32?
+    public let connackTimeout: TimeInterval?
 
-    /// The time interval to wait for an ack after sending a QoS 1+ PUBLISH, SUBSCRIBE, or UNSUBSCRIBE before failing the operation.
-    public let ackTimeoutSec: UInt32?
+    /// The time interval to wait in whole seconds for an ack after sending a QoS 1+ PUBLISH, SUBSCRIBE, or UNSUBSCRIBE before failing the operation.
+    public let ackTimeout: TimeInterval?
 
     /// All configurable options with respect to client topic aliasing behavior.
     public let topicAliasingOptions: TopicAliasingOptions?
@@ -931,12 +837,12 @@ public class MqttClientOptions {
         extendedValidationAndFlowControlOptions: ExtendedValidationAndFlowControlOptions? = nil,
         offlineQueueBehavior: ClientOperationQueueBehaviorType? = nil,
         retryJitterMode: ExponentialBackoffJitterMode? = nil,
-        minReconnectDelayMs: UInt64? = nil,
-        maxReconnectDelayMs: UInt64? = nil,
-        minConnectedTimeToResetReconnectDelayMs: UInt64? = nil,
-        pingTimeoutMs: UInt32? = nil,
-        connackTimeoutMs: UInt32? = nil,
-        ackTimeoutSec: UInt32? = nil,
+        minReconnectDelay: TimeInterval? = nil,
+        maxReconnectDelay: TimeInterval? = nil,
+        minConnectedTimeToResetReconnectDelay: TimeInterval? = nil,
+        pingTimeout: TimeInterval? = nil,
+        connackTimeout: TimeInterval? = nil,
+        ackTimeout: TimeInterval? = nil,
         topicAliasingOptions: TopicAliasingOptions? = nil,
         onPublishReceivedFn: OnPublishReceived? = nil,
         onLifecycleEventStoppedFn: OnLifecycleEventStopped? = nil,
@@ -956,12 +862,12 @@ public class MqttClientOptions {
         self.extendedValidationAndFlowControlOptions = extendedValidationAndFlowControlOptions
         self.offlineQueueBehavior = offlineQueueBehavior
         self.retryJitterMode = retryJitterMode
-        self.minReconnectDelayMs = minReconnectDelayMs
-        self.maxReconnectDelayMs = maxReconnectDelayMs
-        self.minConnectedTimeToResetReconnectDelayMs = minConnectedTimeToResetReconnectDelayMs
-        self.pingTimeoutMs = pingTimeoutMs
-        self.connackTimeoutMs = connackTimeoutMs
-        self.ackTimeoutSec = ackTimeoutSec
+        self.minReconnectDelay = minReconnectDelay
+        self.maxReconnectDelay = maxReconnectDelay
+        self.minConnectedTimeToResetReconnectDelay = minConnectedTimeToResetReconnectDelay
+        self.pingTimeout = pingTimeout
+        self.connackTimeout = connackTimeout
+        self.ackTimeout = ackTimeout
         self.topicAliasingOptions = topicAliasingOptions
         self.onPublishReceivedFn = onPublishReceivedFn
         self.onLifecycleEventStoppedFn = onLifecycleEventStoppedFn
@@ -969,65 +875,5 @@ public class MqttClientOptions {
         self.onLifecycleEventConnectionSuccessFn = onLifecycleEventConnectionSuccessFn
         self.onLifecycleEventConnectionFailureFn = onLifecycleEventConnectionFailureFn
         self.onLifecycleEventDisconnectionFn = onLifecycleEventDisconnectionFn
-    }
-}
-
-/// Internal Classes
-/// Callback core for event loop callbacks
-class MqttShutdownCallbackCore {
-    let onPublishReceivedCallback: OnPublishReceived?
-    let onLifecycleEventStoppedCallback: OnLifecycleEventStopped?
-    let onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect?
-    let onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess?
-    let onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
-
-    init(onPublishReceivedCallback: OnPublishReceived?,
-         onLifecycleEventStoppedCallback: OnLifecycleEventStopped?,
-         onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect?,
-         onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess?,
-         onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?,
-         data: AnyObject? = nil) {
-        if let onPublishReceivedCallback = onPublishReceivedCallback {
-            self.onPublishReceivedCallback = onPublishReceivedCallback
-        } else {
-            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
-            self.onPublishReceivedCallback = { (_) -> Void in return }
-        }
-
-        if let onLifecycleEventStoppedCallback = onLifecycleEventStoppedCallback {
-            self.onLifecycleEventStoppedCallback = onLifecycleEventStoppedCallback
-        } else {
-            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
-            self.onLifecycleEventStoppedCallback = { (_) -> Void in return}
-        }
-
-        if let onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect {
-            self.onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect
-        } else {
-            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
-            self.onLifecycleEventAttemptingConnect = { (_) -> Void in return}
-        }
-
-        if let onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess {
-            self.onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess
-        } else {
-            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
-            self.onLifecycleEventConnectionSuccess = { (_) -> Void in return}
-        }
-
-        if let onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure {
-            self.onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure
-        } else {
-            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
-            self.onLifecycleEventConnectionFailure = { (_) -> Void in return}
-        }
-    }
-
-    func getMqtt5TerminationCallbackOptions() {
-
-    }
-
-    func release() {
-        Unmanaged<MqttShutdownCallbackCore>.passUnretained(self).release()
     }
 }

@@ -6,8 +6,10 @@
     "swift --version",
     "swift build -c release"
   ],
+  "run_tests": true,
   "test_steps": [
-    "swift test"
+    "crt-ci-prep",
+    "xcode-tests"
   ],
   "hosts": {
     "al2012": {
@@ -38,7 +40,13 @@
     },
     "macos": {
       "+test_steps": [
-       "./integ_test.sh"
+        "./integ_test.sh"
+      ]
+    },
+    "linux":{
+      "!test_steps":[
+        "crt-ci-prep",
+        "swift test"
       ]
     }
   }

@@ -47,3 +47,4 @@ statement_position:
   severity: error
 todo: warning
 trailing_semicolon: error
+vertical_parameter_alignment: error
