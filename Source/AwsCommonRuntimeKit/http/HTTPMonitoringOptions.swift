@@ -3,15 +3,19 @@
 import AwsCHttp
 
 public struct HTTPMonitoringOptions: CStruct {
-    /// Minimum amount of throughput, in bytes per second, for a connection to be considered healthy
+    
+    /// Minimum amount of throughput, in bytes per second, for a connection to be considered healthy. 
+    /// Must be at least one.
     public var minThroughputBytesPerSecond: UInt64
 
     /// How long, in seconds, a connection is allowed to be unhealthy before getting shut down.
-    /// Must be at least two
+    /// Must be at least one.
     public var allowableThroughputFailureInterval: UInt32
 
-    init(minThroughputBytesPerSecond: UInt64 = 0,
-         allowableThroughputFailureInterval: UInt32 = 2) {
+    public init(
+        minThroughputBytesPerSecond: UInt64,
+        allowableThroughputFailureInterval: UInt32
+    ) {
         self.minThroughputBytesPerSecond = minThroughputBytesPerSecond
         self.allowableThroughputFailureInterval = allowableThroughputFailureInterval
     }
