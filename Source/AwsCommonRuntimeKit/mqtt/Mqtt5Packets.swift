@@ -2,9 +2,10 @@
 ///  SPDX-License-Identifier: Apache-2.0.
 
 import Foundation
+import AwsCMqtt
 
 /// Mqtt5 User Property
-public class UserProperty {
+public class UserProperty: CStruct {
 
     /// Property name
     public let name: String
@@ -15,6 +16,33 @@ public class UserProperty {
     public init (name: String, value: String) {
         self.name = name
         self.value = value
+    }
+
+    typealias RawType = aws_mqtt5_user_property
+    func withCStruct<Result>(_ body: (aws_mqtt5_user_property) -> Result) -> Result {
+        var rawUserProperty = aws_mqtt5_user_property()
+        return withByteCursorFromStrings(name, value) { cNameCursor, cValueCursor in
+            rawUserProperty.name = cNameCursor
+            rawUserProperty.value = cValueCursor
+            return body(rawUserProperty)
+        }
+    }
+}
+
+extension Array where Element == UserProperty {
+    func withCMqttUserProperties<Result>(_ body: (OpaquePointer) -> Result) -> Result {
+        var array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
+        guard aws_array_list_init_dynamic(array_list, allocator.rawValue, count, MemoryLayout<aws_mqtt5_user_property>.size) == AWS_OP_SUCCESS else {
+            fatalError("Unable to initialize array of user properties")
+        }
+        forEach {
+            $0.withCPointer {
+                guard aws_array_list_push_back(array_list, $0) == AWS_OP_SUCCESS else {
+                    fatalError("Unable to add user property")
+                }
+            }
+        }
+        return body(OpaquePointer(array_list.pointee.data))
     }
 }
 
@@ -58,17 +86,17 @@ public class PublishPacket {
     public let userProperties: [UserProperty]?
 
     public init(qos: QoS,
-                topic: String,
-                payload: Data? = nil,
-                retain: Bool = false,
-                payloadFormatIndicator: PayloadFormatIndicator? = nil,
-                messageExpiryInterval: TimeInterval? = nil,
-                topicAlias: UInt16? = nil,
-                responseTopic: String? = nil,
-                correlationData: String? = nil,
-                subscriptionIdentifiers: [UInt32]? = nil,
-                contentType: String? = nil,
-                userProperties: [UserProperty]? = nil) {
+         topic: String,
+         payload: Data? = nil,
+         retain: Bool = false,
+         payloadFormatIndicator: PayloadFormatIndicator? = nil,
+         messageExpiryInterval: TimeInterval? = nil,
+         topicAlias: UInt16? = nil,
+         responseTopic: String? = nil,
+         correlationData: String? = nil,
+         subscriptionIdentifiers: [UInt32]? = nil,
+         contentType: String? = nil,
+         userProperties: [UserProperty]? = nil) {
 
         self.qos = qos
         self.topic = topic
@@ -91,6 +119,55 @@ public class PublishPacket {
         }
         return ""
     }
+
+    typealias RawType = aws_mqtt5_packet_publish_view
+    func withCStruct<Result>(_ body: (aws_mqtt5_packet_publish_view) -> Result) -> Result {
+        var raw_publish_view = aws_mqtt5_packet_publish_view()
+
+        raw_publish_view.qos = aws_mqtt5_qos(UInt32(qos.rawValue))
+        raw_publish_view.topic = topic.withByteCursor { topicCustor in return topicCustor}
+        raw_publish_view.retain = retain
+
+        if let _payload = payload {
+            raw_publish_view.payload = _payload.withAWSByteCursor { cByteCursor in
+                return cByteCursor
+            }
+        }
+
+        if let _payloadFormatIndicatorInt = payloadFormatIndicator?.rawValue {
+            let cValue = aws_mqtt5_payload_format_indicator(UInt32(_payloadFormatIndicatorInt))
+            raw_publish_view.payload_format = withUnsafePointer(to: cValue) { cvalue in return cvalue }
+        }
+
+        if let _messageExpiryIntervalSec = messageExpiryIntervalSec {
+            raw_publish_view.message_expiry_interval_seconds = withUnsafePointer(to: _messageExpiryIntervalSec) { _messageExpiryIntervalSecPointer in
+                    return _messageExpiryIntervalSecPointer }
+        }
+
+        if let _topicAlias = topicAlias {
+            raw_publish_view.topic_alias = withUnsafePointer(to: _topicAlias) { _topicAliasPointer in
+                    return _topicAliasPointer }
+        }
+
+        // TODO subscriptionIdentifiers LIST
+
+        if let _userProperties = userProperties {
+            raw_publish_view.user_property_count = _userProperties.count
+            raw_publish_view.user_properties = _userProperties.withCMqttUserProperties { cUserProperties in
+                return UnsafePointer<aws_mqtt5_user_property>(cUserProperties)
+            }
+        }
+
+        return withOptionalByteCursorPointerFromString(responseTopic, correlationData, contentType) { cResponseTopic, cCorrelationData, cContentType in
+            raw_publish_view.content_type = cContentType
+            raw_publish_view.correlation_data = cCorrelationData
+            raw_publish_view.response_topic = cResponseTopic
+
+            return body(raw_publish_view)
+        }
+
+    }
+
 }
 
 /// "Data model of an `MQTT5 PUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901121>`_ packet
@@ -106,8 +183,8 @@ public class PubackPacket {
     public let userProperties: [UserProperty]?
 
     public init (reasonCode: PubackReasonCode,
-                 reasonString: String? = nil,
-                 userProperties: [UserProperty]? = nil) {
+          reasonString: String? = nil,
+          userProperties: [UserProperty]? = nil) {
         self.reasonCode = reasonCode
         self.reasonString = reasonString
         self.userProperties = userProperties
@@ -133,10 +210,10 @@ public class Subscription {
     public let retainHandlingType: RetainHandlingType?
 
     public init (topicFilter: String,
-                 qos: QoS,
-                 noLocal: Bool? = nil,
-                 retainAsPublished: Bool? = nil,
-                 retainHandlingType: RetainHandlingType? = nil) {
+          qos: QoS,
+          noLocal: Bool? = nil,
+          retainAsPublished: Bool? = nil,
+          retainHandlingType: RetainHandlingType? = nil) {
         self.topicFilter = topicFilter
         self.qos = qos
         self.noLocal = noLocal
@@ -158,8 +235,8 @@ public class SubscribePacket {
     public let userProperties: [UserProperty]?
 
     public init (subscriptions: [Subscription],
-                 subscriptionIdentifier: UInt32? = nil,
-                 userProperties: [UserProperty]? = nil) {
+          subscriptionIdentifier: UInt32? = nil,
+          userProperties: [UserProperty]? = nil) {
           self.subscriptions = subscriptions
           self.subscriptionIdentifier = subscriptionIdentifier
           self.userProperties = userProperties
@@ -167,9 +244,9 @@ public class SubscribePacket {
 
     // Allow a SubscribePacket to be created directly using a topic filter and QoS
     public convenience init (topicFilter: String,
-                             qos: QoS,
-                             subscriptionIdentifier: UInt32? = nil,
-                             userProperties: [UserProperty]? = nil) {
+                      qos: QoS,
+                      subscriptionIdentifier: UInt32? = nil,
+                      userProperties: [UserProperty]? = nil) {
         self.init(subscriptions: [Subscription(topicFilter: topicFilter, qos: qos)],
             subscriptionIdentifier: subscriptionIdentifier,
             userProperties: userProperties)
@@ -177,8 +254,8 @@ public class SubscribePacket {
 
     // Allow a SubscribePacket to be created directly using a single Subscription
     public convenience init (subscription: Subscription,
-                             subscriptionIdentifier: UInt32? = nil,
-                             userProperties: [UserProperty]? = nil) {
+                      subscriptionIdentifier: UInt32? = nil,
+                      userProperties: [UserProperty]? = nil) {
         self.init(subscriptions: [subscription],
             subscriptionIdentifier: subscriptionIdentifier,
             userProperties: userProperties)
@@ -198,8 +275,8 @@ public class SubackPacket {
     public let userProperties: [UserProperty]?
 
     public init (reasonCodes: [SubackReasonCode],
-                 reasonString: String? = nil,
-                 userProperties: [UserProperty]? = nil) {
+          reasonString: String? = nil,
+          userProperties: [UserProperty]? = nil) {
         self.reasonCodes = reasonCodes
         self.reasonString = reasonString
         self.userProperties = userProperties
@@ -216,14 +293,14 @@ public class UnsubscribePacket {
     public let userProperties: [UserProperty]?
 
     public init (topicFilters: [String],
-                 userProperties: [UserProperty]? = nil) {
+          userProperties: [UserProperty]? = nil) {
         self.topicFilters = topicFilters
         self.userProperties = userProperties
     }
 
     // Allow an UnsubscribePacket to be created directly using a single topic filter
     public convenience init (topicFilter: String,
-                             userProperties: [UserProperty]? = nil) {
+                      userProperties: [UserProperty]? = nil) {
             self.init(topicFilters: [topicFilter],
                 userProperties: userProperties)
         }
@@ -242,8 +319,8 @@ public class UnsubackPacket {
     public let userProperties: [UserProperty]?
 
     public init (reasonCodes: [DisconnectReasonCode],
-                 reasonString: String? = nil,
-                 userProperties: [UserProperty]? = nil) {
+          reasonString: String? = nil,
+          userProperties: [UserProperty]? = nil) {
         self.reasonCodes = reasonCodes
         self.reasonString = reasonString
         self.userProperties = userProperties
@@ -269,10 +346,10 @@ public class DisconnectPacket {
     public let userProperties: [UserProperty]?
 
     public init (reasonCode: DisconnectReasonCode = DisconnectReasonCode.normalDisconnection,
-                 sessionExpiryInterval: TimeInterval? = nil,
-                 reasonString: String? = nil,
-                 serverReference: String? = nil,
-                 userProperties: [UserProperty]? = nil) {
+          sessionExpiryInterval: TimeInterval? = nil,
+          reasonString: String? = nil,
+          serverReference: String? = nil,
+          userProperties: [UserProperty]? = nil) {
             self.reasonCode = reasonCode
             self.sessionExpiryInterval = sessionExpiryInterval
             self.reasonString = reasonString
@@ -336,22 +413,22 @@ public class ConnackPacket {
     public let serverReference: String?
 
     public init (sessionPresent: Bool,
-                 reasonCode: ConnectReasonCode,
-                 sessionExpiryInterval: TimeInterval? = nil,
-                 receiveMaximum: UInt16? = nil,
-                 maximumQos: QoS? = nil,
-                 retainAvailable: Bool? = nil,
-                 maximumPacketSize: UInt32? = nil,
-                 assignedClientIdentifier: String? = nil,
-                 topicAliasMaximum: UInt16? = nil,
-                 reasonString: String? = nil,
-                 userProperties: [UserProperty]? = nil,
-                 wildcardSubscriptionsAvailable: Bool? = nil,
-                 subscriptionIdentifiersAvailable: Bool? = nil,
-                 sharedSubscriptionAvailable: Bool? = nil,
-                 serverKeepAlive: TimeInterval? = nil,
-                 responseInformation: String? = nil,
-                 serverReference: String? = nil) {
+          reasonCode: ConnectReasonCode,
+          sessionExpiryInterval: TimeInterval? = nil,
+          receiveMaximum: UInt16? = nil,
+          maximumQos: QoS? = nil,
+          retainAvailable: Bool? = nil,
+          maximumPacketSize: UInt32? = nil,
+          assignedClientIdentifier: String? = nil,
+          topicAliasMaximum: UInt16? = nil,
+          reasonString: String? = nil,
+          userProperties: [UserProperty]? = nil,
+          wildcardSubscriptionsAvailable: Bool? = nil,
+          subscriptionIdentifiersAvailable: Bool? = nil,
+          sharedSubscriptionAvailable: Bool? = nil,
+          serverKeepAlive: TimeInterval? = nil,
+          responseInformation: String? = nil,
+          serverReference: String? = nil) {
         self.sessionPresent = sessionPresent
         self.reasonCode = reasonCode
 
