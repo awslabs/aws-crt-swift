@@ -36,8 +36,8 @@ public class PublishPacket {
     /// Property specifying the format of the payload data. The mqtt5 client does not enforce or use this value in a meaningful way.
     public let payloadFormatIndicator: PayloadFormatIndicator?
 
-    /// Sent publishes - indicates the maximum amount of time allowed to elapse for message delivery before the server should instead delete the message (relative to a recipient). Received publishes - indicates the remaining amount of time (from the server's perspective) before the message would have been deleted relative to the subscribing client. If left None, indicates no expiration timeout.
-    public let messageExpiryIntervalSec: UInt32?
+    /// Sent publishes - indicates the maximum amount of time in whole seconds allowed to elapse for message delivery before the server should instead delete the message (relative to a recipient). Received publishes - indicates the remaining amount of time (from the server's perspective) before the message would have been deleted relative to the subscribing client. If left None, indicates no expiration timeout.
+    public let messageExpiryInterval: TimeInterval?
 
     /// An integer value that is used to identify the Topic instead of using the Topic Name.  On outbound publishes, this will only be used if the outbound topic aliasing behavior has been set to Manual.
     public let topicAlias: UInt16?
@@ -62,7 +62,7 @@ public class PublishPacket {
          payload: Data? = nil,
          retain: Bool = false,
          payloadFormatIndicator: PayloadFormatIndicator? = nil,
-         messageExpiryIntervalSec: UInt32? = nil,
+         messageExpiryInterval: TimeInterval? = nil,
          topicAlias: UInt16? = nil,
          responseTopic: String? = nil,
          correlationData: String? = nil,
@@ -75,7 +75,7 @@ public class PublishPacket {
         self.payload = payload
         self.retain = retain
         self.payloadFormatIndicator = payloadFormatIndicator
-        self.messageExpiryIntervalSec = messageExpiryIntervalSec
+        self.messageExpiryInterval = messageExpiryInterval
         self.topicAlias = topicAlias
         self.responseTopic = responseTopic
         self.correlationData = correlationData
@@ -256,8 +256,8 @@ public class DisconnectPacket {
     /// Value indicating the reason that the sender is closing the connection
     public let reasonCode: DisconnectReasonCode
 
-    /// A change to the session expiry interval negotiated at connection time as part of the disconnect.  Only valid for DISCONNECT packets sent from client to server.  It is not valid to attempt to change session expiry from zero to a non-zero value.
-    public let sessionExpiryIntervalSec: UInt32?
+    /// A change to the session expiry interval in whole seconds negotiated at connection time as part of the disconnect.  Only valid for DISCONNECT packets sent from client to server.  It is not valid to attempt to change session expiry from zero to a non-zero value.
+    public let sessionExpiryInterval: TimeInterval?
 
     /// Additional diagnostic information about the reason that the sender is closing the connection
     public let reasonString: String?
@@ -269,12 +269,12 @@ public class DisconnectPacket {
     public let userProperties: [UserProperty]?
 
     public init (reasonCode: DisconnectReasonCode = DisconnectReasonCode.normalDisconnection,
-          sessionExpiryIntervalSec: UInt32? = nil,
+          sessionExpiryInterval: TimeInterval? = nil,
           reasonString: String? = nil,
           serverReference: String? = nil,
           userProperties: [UserProperty]? = nil) {
             self.reasonCode = reasonCode
-            self.sessionExpiryIntervalSec = sessionExpiryIntervalSec
+            self.sessionExpiryInterval = sessionExpiryInterval
             self.reasonString = reasonString
             self.serverReference = serverReference
             self.userProperties = userProperties
@@ -290,8 +290,8 @@ public class ConnackPacket {
     /// Indicates either success or the reason for failure for the connection attempt.
     public let reasonCode: ConnectReasonCode
 
-    /// A time interval, in seconds, that the server will persist this connection's MQTT session state for.  If present, this value overrides any session expiry specified in the preceding CONNECT packet.
-    public let sessionExpiryIntervalSec: UInt32?
+    /// A time interval, in whole seconds, that the server will persist this connection's MQTT session state for.  If present, this value overrides any session expiry specified in the preceding CONNECT packet.
+    public let sessionExpiryInterval: TimeInterval?
 
     /// The maximum amount of in-flight QoS 1 or 2 messages that the server is willing to handle at once. If omitted or None, the limit is based on the valid MQTT packet id space (65535).
     public let receiveMaximum: UInt16?
@@ -326,8 +326,8 @@ public class ConnackPacket {
     /// Indicates whether the server supports shared subscription topic filters.  If None, shared subscriptions are supported.
     public let sharedSubscriptionAvailable: Bool?
 
-    /// Server-requested override of the keep alive interval, in seconds.  If None, the keep alive value sent by the client should be used.
-    public let serverKeepAliveSec: UInt16?
+    /// Server-requested override of the keep alive interval, in whole seconds.  If None, the keep alive value sent by the client should be used.
+    public let serverKeepAlive: TimeInterval?
 
     /// A value that can be used in the creation of a response topic associated with this connection. MQTT5-based request/response is outside the purview of the MQTT5 spec and this client.
     public let responseInformation: String?
@@ -337,7 +337,7 @@ public class ConnackPacket {
 
     public init (sessionPresent: Bool,
           reasonCode: ConnectReasonCode,
-          sessionExpiryIntervalSec: UInt32? = nil,
+          sessionExpiryInterval: TimeInterval? = nil,
           receiveMaximum: UInt16? = nil,
           maximumQos: QoS? = nil,
           retainAvailable: Bool? = nil,
@@ -349,13 +349,13 @@ public class ConnackPacket {
           wildcardSubscriptionsAvailable: Bool? = nil,
           subscriptionIdentifiersAvailable: Bool? = nil,
           sharedSubscriptionAvailable: Bool? = nil,
-          serverKeepAliveSec: UInt16? = nil,
+          serverKeepAlive: TimeInterval? = nil,
           responseInformation: String? = nil,
           serverReference: String? = nil) {
         self.sessionPresent = sessionPresent
         self.reasonCode = reasonCode
 
-        self.sessionExpiryIntervalSec = sessionExpiryIntervalSec
+        self.sessionExpiryInterval = sessionExpiryInterval
         self.receiveMaximum = receiveMaximum
         self.maximumQos = maximumQos
         self.retainAvailable = retainAvailable
@@ -367,7 +367,7 @@ public class ConnackPacket {
         self.wildcardSubscriptionsAvailable = wildcardSubscriptionsAvailable
         self.subscriptionIdentifiersAvailable = subscriptionIdentifiersAvailable
         self.sharedSubscriptionAvailable = sharedSubscriptionAvailable
-        self.serverKeepAliveSec = serverKeepAliveSec
+        self.serverKeepAlive = serverKeepAlive
         self.responseInformation = responseInformation
         self.serverReference = serverReference
     }
