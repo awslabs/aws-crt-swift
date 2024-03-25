@@ -39,9 +39,21 @@ jobs:
           aws s3 cp --debug s3://aws-crt-test-stuff/ci/${{ env.BUILDER_VERSION }}/linux-container-ci.sh ./linux-container-ci.sh && chmod a+x ./linux-container-ci.sh
           ./linux-container-ci.sh ${{ env.BUILDER_VERSION }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
   osx:
-    runs-on: macos-12
+    runs-on: ${{ matrix.runner }}
     env:
       DEVELOPER_DIR: /Applications/Xcode.app
+      XCODE_DESTINATION: 'OS X'
+      NSUnbufferedIO: YES
+    strategy:
+      fail-fast: false
+      matrix:
+        # This matrix runs tests on Mac, on oldest & newest supported Xcodes
+        runner:
+          - macos-12
+          - macos-13
+          - macos-14
+          - macos-13-xlarge
+          - macos-14-xlarge
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
@@ -49,24 +61,65 @@ jobs:
           chmod a+x builder
           ./builder build -p ${{ env.PACKAGE_NAME }}
 
-  # TODO: Run tests for devices
   devices:
-    runs-on: macos-12
+    runs-on: ${{ matrix.runner }}
     env:
-      DEVELOPER_DIR: /Applications/Xcode.app
+      DEVELOPER_DIR: /Applications/${{ matrix.xcode }}.app/Contents/Developer
+      XCODE_DESTINATION: ${{matrix.target.destination}}
+      NSUnbufferedIO: YES
     strategy:
       fail-fast: false
       matrix:
+        # This matrix runs tests on iOS, tvOS & watchOS, on oldest & newest supported Xcodes
+        runner:
+          - macos-12
+          - macos-13
+          - macos-14
+          - macos-13-xlarge
+          - macos-14-xlarge
         target:
-          - ios
-          - tvos
-          - watchos
+          [{ os: ios, destination: 'iOS Simulator,OS=16.1,name=iPhone 14'},
+           { os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15'},
+           { os: tvos, destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'},
+           { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'},
+           { os: watchos, destination: 'watchOS Simulator,OS=10.2,name=Apple Watch SE (40mm) (2nd generation)'},
+           { os: watchos, destination: 'watchOS Simulator,OS=9.1,name=Apple Watch Series 5 (40mm)'}]
+        xcode:
+          - Xcode_14.1
+          - Xcode_15.2
+        exclude:
+          # Don't run old macOS with new Xcode
+          - runner: macos-13-xlarge
+            xcode: Xcode_15.2
+          - runner: macos-12
+            xcode: Xcode_15.2
+          - runner: macos-13
+            xcode: Xcode_15.2
+          # Don't run new macOS with old Xcode
+          - runner: macos-14-xlarge
+            xcode: Xcode_14.1
+          - runner: macos-14
+            xcode: Xcode_14.1
+          # Don't run old simulators with new Xcode
+          - target: { os: tvos, destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'}
+            xcode: Xcode_15.2
+          - target: { os: ios, destination: 'iOS Simulator,OS=16.1,name=iPhone 14'}
+            xcode: Xcode_15.2
+          # Don't run new simulators with old Xcode
+          - target: { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'}
+            xcode: Xcode_14.1
+          - target: { os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15'}
+            xcode: Xcode_14.1
+          - target: { os: watchos, destination: 'watchOS Simulator,OS=10.2,name=Apple Watch SE (40mm) (2nd generation)'}
+            xcode: Xcode_14.1
+          - target: { os: watchos, destination: 'watchOS Simulator,OS=9.1,name=Apple Watch Series 5 (40mm)'}
+            xcode: Xcode_15.2
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
           chmod a+x builder
-          ./builder build -p ${{ env.PACKAGE_NAME }} --target=${{ matrix.target }}-armv8
+          ./builder build -p ${{ env.PACKAGE_NAME }} --target=${{ matrix.target.os }}-armv8
 
   check-submodules:
     runs-on: ubuntu-22.04 # latest
