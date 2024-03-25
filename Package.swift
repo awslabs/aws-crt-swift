@@ -192,7 +192,7 @@ let awsCEventStreamExcludes = [
 
 let awsCMqttExcludes = [
     "bin",
-    "CODE_OF_CONDUCT.md",
+    "CODE_OF_CONDUCT.md"
 ] + excludesFromAll
 
 packageTargets.append(contentsOf: [
