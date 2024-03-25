@@ -68,13 +68,6 @@ extension Data {
         }
     }
 
-    func withAWSByteCursor<Result>(_ body: (aws_byte_cursor) -> Result) -> Result {
-        return self.withUnsafeBytes { rawBufferPointer -> Result in
-            var cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, count)
-            return body(cursor)
-        }
-    }
-
     public func encodeToHexString() -> String {
         map { String(format: "%02x", $0) }.joined()
     }
@@ -83,6 +76,16 @@ extension Data {
         return stride(from: 0, to: count, by: size).map {
             self[$0 ..< Swift.min($0 + size, count)]
         }
+    }
+}
+
+func withOptionalAWSByteCursorFromData<Result>(to data: Data?, _ body: (aws_byte_cursor) throws -> Result) rethrows -> Result {
+    guard let _data = data else {
+        return try body(aws_byte_cursor())
+    }
+    return try _data.withUnsafeBytes { rawBufferPointer -> Result in
+        var cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, _data.count)
+        return try body(cursor)
     }
 }
 
@@ -127,6 +130,20 @@ extension Date {
 extension TimeInterval {
     var millisecond: UInt64 {
         UInt64((self*1000).rounded())
+    }
+    
+    func secondUInt16() throws -> UInt16 {
+        guard self >= 0 && self <= Double(UInt16.max) else {
+            throw CommonRunTimeError.commonError( CommonError("TimeInterval out of boundary: require value in range [0, UInt16.max]"))
+        }
+        return UInt16(self)
+    }
+    
+    func secondUInt32() throws -> UInt32 {
+        guard self >= 0 && self <= Double(UInt32.max) else {
+            throw CommonRunTimeError.commonError( CommonError("TimeInterval out of boundary: require value in range [0, UInt32.max]"))
+        }
+        return UInt32(self)
     }
 }
 
@@ -296,6 +313,25 @@ func withByteCursorFromStrings<Result>(
                         aws_byte_cursor_from_c_str(arg3c),
                         aws_byte_cursor_from_c_str(arg4c))
                 }
+            }
+        }
+    }
+}
+
+func withOptionalUnsafePointer<T, Result>(to arg1: T?, _ body: (UnsafePointer<T>?) -> Result) -> Result {
+    guard let _arg1 = arg1 else {
+        return body(nil)
+    }
+    return withUnsafePointer(to: _arg1) { _valuePointer in
+        return body(_valuePointer)
+    }
+}
+
+func withOptionalUnsafePointer<T1, T2, T3, Result>(_ arg1: T1?, _ arg2: T2?, _ arg3: T3?, _ body: (UnsafePointer<T1>?, UnsafePointer<T2>?, UnsafePointer<T3>?) -> Result) -> Result {
+    return withOptionalUnsafePointer(to: arg1) { _arg1Pointer in
+        return withOptionalUnsafePointer(to: arg2) { _arg2Pointer in
+            return withOptionalUnsafePointer(to: arg3) { _arg33Pointer in
+                return body(_arg1Pointer, _arg2Pointer, _arg33Pointer)
             }
         }
     }

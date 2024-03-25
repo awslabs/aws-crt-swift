@@ -413,13 +413,22 @@ public enum ClientOperationQueueBehaviorType: Int {
 
 /// Optional property describing a PUBLISH payload's format.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901111>`__ encoding values.
-public enum PayloadFormatIndicator: Int {
+public enum PayloadFormatIndicator {
 
     /// The payload is arbitrary binary data
-    case bytes = 0
+    case bytes
 
     /// The payload is a well-formed utf-8 string value.
-    case utf8 = 1
+    case utf8
+}
+
+extension PayloadFormatIndicator {
+    var rawValue: aws_mqtt5_payload_format_indicator {
+        switch self {
+        case .bytes:  return aws_mqtt5_payload_format_indicator(rawValue: 0)
+        case .utf8:  return aws_mqtt5_payload_format_indicator(rawValue: 1)
+        }
+    }
 }
 
 /// Configures how retained messages should be handled when subscribing with a topic filter that matches topics with
@@ -774,10 +783,10 @@ public class MqttConnectOptions: CStruct {
 
         var raw_connect_options = aws_mqtt5_packet_connect_view()
         if let _keepAlive = self.keepAliveInterval {
-            raw_connect_options.keep_alive_interval_seconds = _keepAlive
+            raw_connect_options.keep_alive_interval_seconds = UInt16(_keepAlive)
         }
 
-        if let _sessionExpiryIntervalSec = self.sessionExpiryInterval {
+        if let _sessionExpiryIntervalSec = try? self.sessionExpiryInterval?.secondUInt32() {
             // convert UInt32 to UnsafePointer<UInt32>
             raw_connect_options.session_expiry_interval_seconds = withUnsafePointer(
                 to: _sessionExpiryIntervalSec) { _sessionExpiryIntervalSecPointer in
@@ -809,7 +818,7 @@ public class MqttConnectOptions: CStruct {
             }
         }
 
-        if let _willDelayIntervalSec = self.willDelayInterval {
+        if let _willDelayIntervalSec = try? self.willDelayInterval?.secondUInt32() {
             raw_connect_options.will_delay_interval_seconds = withUnsafePointer(to: _willDelayIntervalSec) { _willDelayIntervalSecPointer in
                 return _willDelayIntervalSecPointer
             }
