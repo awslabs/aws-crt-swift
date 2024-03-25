@@ -2,9 +2,10 @@
 ///  SPDX-License-Identifier: Apache-2.0.
 
 import Foundation
+import AwsCMqtt
 
 /// Mqtt5 User Property
-public class UserProperty {
+public class UserProperty: CStruct {
 
     /// Property name
     public let name: String
@@ -16,10 +17,37 @@ public class UserProperty {
         self.name = name
         self.value = value
     }
+
+    typealias RawType = aws_mqtt5_user_property
+    func withCStruct<Result>(_ body: (aws_mqtt5_user_property) -> Result) -> Result {
+        var rawUserProperty = aws_mqtt5_user_property()
+        return withByteCursorFromStrings(name, value) { cNameCursor, cValueCursor in
+            rawUserProperty.name = cNameCursor
+            rawUserProperty.value = cValueCursor
+            return body(rawUserProperty)
+        }
+    }
+}
+
+extension Array where Element == UserProperty {
+    func withCMqttUserProperties<Result>(_ body: (OpaquePointer) -> Result) -> Result {
+        var array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
+        guard aws_array_list_init_dynamic(array_list, allocator.rawValue, count, MemoryLayout<aws_mqtt5_user_property>.size) == AWS_OP_SUCCESS else {
+            fatalError("Unable to initialize array of user properties")
+        }
+        forEach {
+            $0.withCPointer {
+                guard aws_array_list_push_back(array_list, $0) == AWS_OP_SUCCESS else {
+                    fatalError("Unable to add user property")
+                }
+            }
+        }
+        return body(OpaquePointer(array_list.pointee.data))
+    }
 }
 
 /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet
-public class PublishPacket {
+public class PublishPacket: CStruct {
 
     /// The payload of the publish message in a byte buffer format
     public let payload: Data?
@@ -91,6 +119,55 @@ public class PublishPacket {
         }
         return ""
     }
+
+    typealias RawType = aws_mqtt5_packet_publish_view
+    func withCStruct<Result>(_ body: (aws_mqtt5_packet_publish_view) -> Result) -> Result {
+        var raw_publish_view = aws_mqtt5_packet_publish_view()
+
+        raw_publish_view.qos = aws_mqtt5_qos(UInt32(qos.rawValue))
+        raw_publish_view.topic = topic.withByteCursor { topicCustor in return topicCustor}
+        raw_publish_view.retain = retain
+
+        if let _payload = payload {
+            raw_publish_view.payload = _payload.withAWSByteCursor { cByteCursor in
+                return cByteCursor
+            }
+        }
+
+        if let _payloadFormatIndicatorInt = payloadFormatIndicator?.rawValue {
+            let cValue = aws_mqtt5_payload_format_indicator(UInt32(_payloadFormatIndicatorInt))
+            raw_publish_view.payload_format = withUnsafePointer(to: cValue) { cvalue in return cvalue }
+        }
+
+        if let _messageExpiryIntervalSec = messageExpiryIntervalSec {
+            raw_publish_view.message_expiry_interval_seconds = withUnsafePointer(to: _messageExpiryIntervalSec) { _messageExpiryIntervalSecPointer in
+                    return _messageExpiryIntervalSecPointer }
+        }
+
+        if let _topicAlias = topicAlias {
+            raw_publish_view.topic_alias = withUnsafePointer(to: _topicAlias) { _topicAliasPointer in
+                    return _topicAliasPointer }
+        }
+
+        // TODO subscriptionIdentifiers LIST
+
+        if let _userProperties = userProperties {
+            raw_publish_view.user_property_count = _userProperties.count
+            raw_publish_view.user_properties = _userProperties.withCMqttUserProperties { cUserProperties in
+                return UnsafePointer<aws_mqtt5_user_property>(cUserProperties)
+            }
+        }
+
+        return withOptionalByteCursorPointerFromString(responseTopic, correlationData, contentType) { cResponseTopic, cCorrelationData, cContentType in
+            raw_publish_view.content_type = cContentType
+            raw_publish_view.correlation_data = cCorrelationData
+            raw_publish_view.response_topic = cResponseTopic
+
+            return body(raw_publish_view)
+        }
+
+    }
+
 }
 
 /// "Data model of an `MQTT5 PUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901121>`_ packet
@@ -371,4 +448,5 @@ public class ConnackPacket {
         self.responseInformation = responseInformation
         self.serverReference = serverReference
     }
+
 }

@@ -68,6 +68,13 @@ extension Data {
         }
     }
 
+    func withAWSByteCursor<Result>(_ body: (aws_byte_cursor) -> Result) -> Result {
+        return self.withUnsafeBytes { rawBufferPointer -> Result in
+            var cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, count)
+            return body(cursor)
+        }
+    }
+
     public func encodeToHexString() -> String {
         map { String(format: "%02x", $0) }.joined()
     }
@@ -172,6 +179,10 @@ extension Bool {
     var uintValue: UInt32 {
         return self ? 1 : 0
     }
+
+    var uint8Value: UInt8 {
+        return self ? 1 : 0
+    }
 }
 
 func withOptionalCString<Result>(
@@ -196,6 +207,35 @@ func withOptionalByteCursorPointerFromString<Result>(
             body(byteCursorPointer)
         }
     }
+}
+
+func withOptionalByteCursorPointerFromString<Result>(
+    _ arg1: String?,
+    _ arg2: String?,
+    _ body: (UnsafePointer<aws_byte_cursor>?, UnsafePointer<aws_byte_cursor>?) -> Result
+) -> Result {
+    return withOptionalByteCursorPointerFromString(arg1) { arg1C in
+        return withOptionalByteCursorPointerFromString(arg2) { arg2C in
+            return body(arg1C, arg2C)
+        }
+    }
+
+}
+
+func withOptionalByteCursorPointerFromString<Result>(
+    _ arg1: String?,
+    _ arg2: String?,
+    _ arg3: String?,
+    _ body: (UnsafePointer<aws_byte_cursor>?, UnsafePointer<aws_byte_cursor>?, UnsafePointer<aws_byte_cursor>?) -> Result
+) -> Result {
+    return withOptionalByteCursorPointerFromString(arg1) { arg1C in
+        return withOptionalByteCursorPointerFromString(arg2) { arg2C in
+            return withOptionalByteCursorPointerFromString(arg3) { arg3C in
+                return body(arg1C, arg2C, arg3C)
+            }
+        }
+    }
+
 }
 
 func withByteCursorFromStrings<Result>(
