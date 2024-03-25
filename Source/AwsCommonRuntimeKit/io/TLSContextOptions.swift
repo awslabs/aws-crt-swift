@@ -18,7 +18,7 @@ public class TLSContextOptions: CStruct {
     public static func makeMtlsFromRawData(
         certificateData: String,
         privateKeyData: String) throws -> TLSContextOptions {
-        try TLSContextOptions(certificateData: privateKeyData, privateKeyData: privateKeyData)
+        try TLSContextOptions(certificateData: certificateData, privateKeyData: privateKeyData)
     }
 
     public static func makeMtlsFromFilePath(
