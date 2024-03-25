@@ -198,6 +198,19 @@ func withOptionalByteCursorPointerFromString<Result>(
     }
 }
 
+func withOptionalByteCursorPointerFromStrings<Result>(
+    _ arg1: String?,
+    _ arg2: String?,
+    _ body: (UnsafePointer<aws_byte_cursor>?, UnsafePointer<aws_byte_cursor>?) -> Result
+) -> Result {
+    return withOptionalByteCursorPointerFromString(arg1) { arg1C in
+        return withOptionalByteCursorPointerFromString(arg2) { arg2C in
+            return body(arg1C, arg2C)
+        }
+    }
+
+}
+
 func withByteCursorFromStrings<Result>(
     _ arg1: String?,
     _ body: (aws_byte_cursor) -> Result
