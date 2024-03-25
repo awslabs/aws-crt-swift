@@ -10,6 +10,9 @@ class XCBaseTestCase: XCTestCase {
 
     override func setUp() {
         super.setUp()
+        // XCode currently lacks a way to enable logs exclusively for failed tests only.
+        // To prevent log spamming, we use `error` log level to only print error message.
+        // We should update this once a more efficient log processing method becomes available.
         Logger.initialize(pipe: stdout, level: .error)
 
         // Override the allocator with tracing allocator
@@ -63,15 +66,11 @@ extension XCTestCase {
             throw XCTSkip("Skipping test on tvOS")
         #endif
     }
-}
 
-extension XCTestCase {
     /// Return the environment variable value, or Skip the test if env var is not set.
-    func GetEnvironmentVarOrSkip(environmentVarName name: String) throws -> String? {
-        let result = ProcessInfo.processInfo.environment[name]
-        guard result != nil else {
-            try skipTest(message: "Skipping test because environment is not configured properly.")
-            return nil
+    func getEnvironmentVarOrSkipTest(environmentVarName name: String) throws -> String {
+        guard let result = ProcessInfo.processInfo.environment[name] else {
+            throw XCTSkip("Skipping test because environment is not configured properly.")
         }
         return result
     }
