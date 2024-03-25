@@ -1,8 +1,7 @@
 ///  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ///  SPDX-License-Identifier: Apache-2.0.
-
+import Foundation
 import AwsCMqtt
-
 
 /// MQTT message delivery quality of service.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901234>`__ encoding values.
@@ -774,11 +773,11 @@ public class MqttConnectOptions: CStruct {
     func withCStruct<Result>( _ body: (RawType) -> Result) -> Result {
 
         var raw_connect_options = aws_mqtt5_packet_connect_view()
-        if let _keepAlive = self.keepAliveIntervalSec {
+        if let _keepAlive = self.keepAliveInterval {
             raw_connect_options.keep_alive_interval_seconds = _keepAlive
         }
 
-        if let _sessionExpiryIntervalSec = self.sessionExpiryIntervalSec {
+        if let _sessionExpiryIntervalSec = self.sessionExpiryInterval {
             // convert UInt32 to UnsafePointer<UInt32>
             raw_connect_options.session_expiry_interval_seconds = withUnsafePointer(
                 to: _sessionExpiryIntervalSec) { _sessionExpiryIntervalSecPointer in
@@ -810,7 +809,7 @@ public class MqttConnectOptions: CStruct {
             }
         }
 
-        if let _willDelayIntervalSec = self.willDelayIntervalSec {
+        if let _willDelayIntervalSec = self.willDelayInterval {
             raw_connect_options.will_delay_interval_seconds = withUnsafePointer(to: _willDelayIntervalSec) { _willDelayIntervalSecPointer in
                 return _willDelayIntervalSecPointer
             }

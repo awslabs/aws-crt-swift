@@ -47,7 +47,7 @@ extension Array where Element == UserProperty {
 }
 
 /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet
-public class PublishPacket {
+public class PublishPacket: CStruct {
 
     /// The payload of the publish message in a byte buffer format
     public let payload: Data?
@@ -139,7 +139,8 @@ public class PublishPacket {
             raw_publish_view.payload_format = withUnsafePointer(to: cValue) { cvalue in return cvalue }
         }
 
-        if let _messageExpiryIntervalSec = messageExpiryIntervalSec {
+        if let _messageExpiryInterval = messageExpiryInterval {
+            var _messageExpiryIntervalSec: UInt32 = UInt32(_messageExpiryInterval)
             raw_publish_view.message_expiry_interval_seconds = withUnsafePointer(to: _messageExpiryIntervalSec) { _messageExpiryIntervalSecPointer in
                     return _messageExpiryIntervalSecPointer }
         }

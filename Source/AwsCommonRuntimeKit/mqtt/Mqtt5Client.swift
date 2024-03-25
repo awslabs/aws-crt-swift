@@ -73,28 +73,28 @@ public class Mqtt5Client {
             raw_options.retry_jitter_mode = _jitterMode.rawValue
         }
 
-        if let _minReconnectDelayMs = options.minReconnectDelayMs {
-            raw_options.min_reconnect_delay_ms = _minReconnectDelayMs
+        if let _minReconnectDelay = options.minReconnectDelay {
+            raw_options.min_reconnect_delay_ms = _minReconnectDelay.millisecond
         }
 
-        if let _maxReconnectDelayMs = options.minReconnectDelayMs {
-            raw_options.max_reconnect_delay_ms = _maxReconnectDelayMs
+        if let _maxReconnectDelay = options.minReconnectDelay {
+            raw_options.max_reconnect_delay_ms = _maxReconnectDelay.millisecond
         }
 
-        if let _minConnectedTimeToResetReconnectDelayMs = options.minConnectedTimeToResetReconnectDelayMs {
-            raw_options.min_connected_time_to_reset_reconnect_delay_ms = _minConnectedTimeToResetReconnectDelayMs
+        if let _minConnectedTimeToResetReconnectDelay = options.minConnectedTimeToResetReconnectDelay {
+            raw_options.min_connected_time_to_reset_reconnect_delay_ms = _minConnectedTimeToResetReconnectDelay.millisecond
         }
 
-        if let _pingTimeoutMs = options.pingTimeoutMs {
-            raw_options.ping_timeout_ms = _pingTimeoutMs
+        if let _pingTimeout = options.pingTimeout {
+            raw_options.ping_timeout_ms = UInt32(_pingTimeout.millisecond)
         }
 
-        if let _connackTimeoutMs = options.connackTimeoutMs {
-            raw_options.connack_timeout_ms = _connackTimeoutMs
+        if let _connackTimeout = options.connackTimeout {
+            raw_options.connack_timeout_ms = UInt32(_connackTimeout.millisecond)
         }
 
-        if let _ackTimeoutSec = options.ackTimeoutSec {
-            raw_options.ack_timeout_seconds = _ackTimeoutSec
+        if let _ackTimeout = options.ackTimeout {
+            raw_options.ack_timeout_seconds = UInt32(_ackTimeout)
         }
 
         if let _topicAliasingOptions = options.topicAliasingOptions {
