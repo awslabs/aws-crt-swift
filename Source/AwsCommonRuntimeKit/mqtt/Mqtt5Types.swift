@@ -913,7 +913,7 @@ public class MqttClientOptions: CStruct {
     public let socketOptions: SocketOptions
 
     /// The TLS context for secure socket connections. If None, then a plaintext connection will be used.
-    public let tlsCtx: TLSContext
+    public let tlsCtx: TLSContext?
 
     /// The (tunneling) HTTP proxy usage when establishing MQTT connections
     public let httpProxyOptions: HTTPProxyOptions?
@@ -981,7 +981,7 @@ public class MqttClientOptions: CStruct {
         port: UInt32,
         bootstrap: ClientBootstrap,
         socketOptions: SocketOptions,
-        tlsCtx: TLSContext,
+        tlsCtx: TLSContext? = nil,
         httpProxyOptions: HTTPProxyOptions? = nil,
         connectOptions: MqttConnectOptions? = nil,
         sessionBehavior: ClientSessionBehaviorType? = nil,
@@ -1035,7 +1035,10 @@ public class MqttClientOptions: CStruct {
         raw_options.port = self.port
         raw_options.bootstrap = self.bootstrap.rawValue
 
-        let tls_options: TLSConnectionOptions = TLSConnectionOptions(context: self.tlsCtx)
+        var tls_options: TLSConnectionOptions?
+        if self.tlsCtx != nil {
+            tls_options = TLSConnectionOptions(context: self.tlsCtx!)
+        }
 
         // TODO: CALLBACKS, callback related changes will be brought in next PR. This is a temp callback
         raw_options.lifecycle_event_handler = MqttClientLifeycyleEvents
