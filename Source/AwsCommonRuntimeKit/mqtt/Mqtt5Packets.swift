@@ -131,10 +131,10 @@ public class PublishPacket: CStruct {
             return withOptionalAWSByteCursorFromData(to: payload) { cByteCursor in
                 raw_publish_view.payload = cByteCursor
 
-                let _payloadFormatIndicatorInt = payloadFormatIndicator?.rawValue ?? nil
+                let _payloadFormatIndicatorInt: aws_mqtt5_payload_format_indicator? = payloadFormatIndicator?.rawValue ?? nil
                 let _messageExpiryInterval: UInt32? = try? messageExpiryInterval?.secondUInt32() ?? nil
 
-                return withOptionalUnsafePointer(_payloadFormatIndicatorInt,
+                return withOptionalUnsafePointers(_payloadFormatIndicatorInt,
                                                  topicAlias,
                                                  _messageExpiryInterval) { payloadPointer, topicAliasPointer, messageExpiryIntervalPointer in
                     if let _payloadPointer = payloadPointer {
@@ -159,14 +159,10 @@ public class PublishPacket: CStruct {
 
                         return body(raw_publish_view)
                     }
-
                 }
-
             }
         }
-
     }
-
 }
 
 /// "Data model of an `MQTT5 PUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901121>`_ packet
