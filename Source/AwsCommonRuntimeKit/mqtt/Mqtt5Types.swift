@@ -879,22 +879,31 @@ public class MqttConnectOptions: CStruct {
     }
 }
 
-/** Temporary CALLBACKS */
+/** Temporary CALLBACKS place holder */
 private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
+    // TODO: Finish MqttClientLifeycyleEvents
     print("[Mqtt5 Client Swift] LIFE CYCLE EVENTS")
 }
 
 private func MqttClientPublishRecievedEvents(_ publishPacketView: UnsafePointer<aws_mqtt5_packet_publish_view>?, _ userData: UnsafeMutableRawPointer?) {
     print("[Mqtt5 Client Swift] PUBLISH RECIEVED EVENTS")
+    // TODO: Finish onPublishRecievedEvents, this is only a quick demo for publish callback
+    // grab the callbackCore, unretainedValue() would not change reference counting
+    let callbackCore = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userData!).takeUnretainedValue()
+    let puback_packet = PublishPacket(qos: QoS.atLeastOnce, topic: "test")
+    let puback = PublishReceivedData(publishPacket: puback_packet)
+    callbackCore.onPublishReceivedCallback?(puback)
 }
 
 private func MqttClientTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
     // termination callback
     print("[Mqtt5 Client Swift] TERMINATION CALLBACK")
+    // takeRetainedValue would release the reference. ONLY DO IT AFTER YOU DO NOT NEED THE CALLBACK CORE
+    _ = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userData!).takeRetainedValue()
 }
 
 /// Configuration for the creation of MQTT5 clients
-public class MqttClientOptions: CStruct {
+public class MqttClientOptions: CStructWithUserData {
     /// Host name of the MQTT server to connect to.
     public let hostName: String
 
@@ -1024,17 +1033,13 @@ public class MqttClientOptions: CStruct {
     }
 
     typealias RawType = aws_mqtt5_client_options
-    func withCStruct<Result>( _ body: (aws_mqtt5_client_options) -> Result) -> Result {
+    func withCStruct<Result>(userData: UnsafeMutableRawPointer?, _ body: (aws_mqtt5_client_options) -> Result) -> Result {
         var raw_options = aws_mqtt5_client_options()
 
         raw_options.port = self.port
         raw_options.bootstrap = self.bootstrap.rawValue
 
-        var tls_options: TLSConnectionOptions = TLSConnectionOptions(context: self.tlsCtx)
-
-        // TODO: CALLBACKS, callback related changes will be brought in next PR. This is a temp callback
-        raw_options.lifecycle_event_handler = MqttClientLifeycyleEvents
-        raw_options.publish_received_handler = MqttClientPublishRecievedEvents
+        let tls_options: TLSConnectionOptions = TLSConnectionOptions(context: self.tlsCtx)
 
         if let _sessionBehavior = self.sessionBehavior {
             raw_options.session_behavior = _sessionBehavior.rawValue
@@ -1091,6 +1096,21 @@ public class MqttClientOptions: CStruct {
             raw_options.topic_aliasing_options = topicAliasingOptionsCPointer
             raw_options.connect_options = connectOptionsCPointer
 
+            guard let _userData = userData else {
+                // directly return
+                return hostName.withByteCursor { hostNameByteCursor in
+                    raw_options.host_name = hostNameByteCursor
+                    return body(raw_options)
+                }
+            }
+
+            // TODO: SETUP lifecycle_event_handler and publish_received_handler
+            raw_options.lifecycle_event_handler = MqttClientLifeycyleEvents
+            raw_options.lifecycle_event_handler_user_data = userData
+            raw_options.publish_received_handler = MqttClientPublishRecievedEvents
+            raw_options.publish_received_handler_user_data = userData
+            raw_options.client_termination_handler = MqttClientTerminationCallback
+            raw_options.client_termination_handler_user_data = userData
             return hostName.withByteCursor { hostNameByteCursor in
                 raw_options.host_name = hostNameByteCursor
                 return body(raw_options)
@@ -1151,18 +1171,13 @@ class MqttShutdownCallbackCore {
     }
 
     /// Calling this function performs a manual retain on the MqttShutdownCallbackCore.
-    /// When the shutdown finally fires,
-    /// it will manually release MqttShutdownCallbackCore.
-    func shutdownCallback(_ userdata: UnsafeMutableRawPointer? ){
-        // take ownership of the self retained pointer to release the callback core
-        let callbackCore = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userdata!).takeRetainedValue()
-        print("TEST LOG: SHUTDOWN CALLBACK CALLED")
-    }
-    
+    /// and returns the UnsafeMutableRawPointer hold the object itself.
+    ///
+    /// You should always release the retained pointer to avoid memory leak
     func shutdownCallbackUserData() -> UnsafeMutableRawPointer {
         return Unmanaged<MqttShutdownCallbackCore>.passRetained(self).toOpaque()
     }
-    
+
     func release() {
         Unmanaged<MqttShutdownCallbackCore>.passUnretained(self).release()
     }
