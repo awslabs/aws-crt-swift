@@ -822,14 +822,17 @@ public class MqttConnectOptions: CStruct {
         let _requestProblemInformation: UInt8? = self.requestProblemInformation?.uint8Value ?? nil
         let _willDelayIntervalSec: UInt32? = try? self.willDelayInterval?.secondUInt32() ?? nil
 
-        return withOptionalUnsafePointers(_sessionExpiryIntervalSec,
-                                          _requestResponseInformation,
-                                          _requestProblemInformation,
-                                          _willDelayIntervalSec,
-                                          self.receiveMaximum,
-                                          self.maximumPacketSize) { sessionExpiryIntervalSecPointer, requestResponseInformationPointer, requestProblemInformationPointer, willDelayIntervalSecPointer, receiveMaximumPointer, maximumPacketSizePointer in
+        return withOptionalUnsafePointers(
+            _sessionExpiryIntervalSec,
+            _requestResponseInformation,
+            _requestProblemInformation,
+            _willDelayIntervalSec,
+            self.receiveMaximum,
+            self.maximumPacketSize) { sessionExpiryIntervalSecPointer, requestResponseInformationPointer,
+                                      requestProblemInformationPointer, willDelayIntervalSecPointer,
+                                      receiveMaximumPointer, maximumPacketSizePointer in
 
-            if let _sessionExpiryIntervalSecPointer: UnsafePointer<UInt32> = sessionExpiryIntervalSecPointer {
+            if let _sessionExpiryIntervalSecPointer = sessionExpiryIntervalSecPointer {
                 raw_connect_options.session_expiry_interval_seconds = _sessionExpiryIntervalSecPointer
             }
 
@@ -884,7 +887,9 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
     print("[Mqtt5 Client Swift] LIFE CYCLE EVENTS")
 }
 
-private func MqttClientPublishRecievedEvents(_ publishPacketView: UnsafePointer<aws_mqtt5_packet_publish_view>?, _ userData: UnsafeMutableRawPointer?) {
+private func MqttClientPublishRecievedEvents(
+    _ publishPacketView: UnsafePointer<aws_mqtt5_packet_publish_view>?,
+    _ userData: UnsafeMutableRawPointer?) {
     print("[Mqtt5 Client Swift] PUBLISH RECIEVED EVENTS")
 }
 
@@ -915,7 +920,7 @@ public class MqttClientOptions: CStruct {
 
     // TODO WebSocket implementation
     /// This callback allows a custom transformation of the HTTP request that acts as the websocket handshake. Websockets will be used if this is set to a valid transformation callback.  To use websockets but not perform a transformation, just set this as a trivial completion callback.  If None, the connection will be made with direct MQTT.
-    // public let websocketHandshakeTransform: Callable[[WebsocketHandshakeTransformArgs], None] = None
+    /// public let websocketHandshakeTransform: Callable[[WebsocketHandshakeTransformArgs], None] = None
 
     /// All configurable options with respect to the CONNECT packet sent by the client, including the will. These connect properties will be used for every connection attempt made by the client.
     public let connectOptions: MqttConnectOptions?
@@ -1061,7 +1066,8 @@ public class MqttClientOptions: CStruct {
         }
 
         if let _minConnectedTimeToResetReconnectDelay = self.minConnectedTimeToResetReconnectDelay {
-            raw_options.min_connected_time_to_reset_reconnect_delay_ms = _minConnectedTimeToResetReconnectDelay.millisecond
+            raw_options.min_connected_time_to_reset_reconnect_delay_ms =
+                                            _minConnectedTimeToResetReconnectDelay.millisecond
         }
 
         if let _pingTimeout = self.pingTimeout {
@@ -1082,8 +1088,12 @@ public class MqttClientOptions: CStruct {
             _connnectOptions =  MqttConnectOptions()
         }
 
-        return withOptionalCStructPointer(self.socketOptions, tls_options, self.httpProxyOptions, self.topicAliasingOptions, _connnectOptions) {
-            socketOptionsCPointer, tlsOptionsCPointer, httpProxyOptionsCPointer, topicAliasingOptionsCPointer, connectOptionsCPointer in
+        return withOptionalCStructPointer(
+            self.socketOptions,
+            tls_options,
+            self.httpProxyOptions,
+            self.topicAliasingOptions,
+            _connnectOptions) { socketOptionsCPointer, tlsOptionsCPointer, httpProxyOptionsCPointer, topicAliasingOptionsCPointer, connectOptionsCPointer in
 
             raw_options.socket_options = socketOptionsCPointer
             raw_options.tls_options = tlsOptionsCPointer
