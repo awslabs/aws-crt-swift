@@ -922,7 +922,7 @@ public class MqttClientOptions: CStructWithUserData {
     public let socketOptions: SocketOptions
 
     /// The TLS context for secure socket connections. If None, then a plaintext connection will be used.
-    public let tlsCtx: TLSContext
+    public let tlsCtx: TLSContext?
 
     /// The (tunneling) HTTP proxy usage when establishing MQTT connections
     public let httpProxyOptions: HTTPProxyOptions?
@@ -990,7 +990,7 @@ public class MqttClientOptions: CStructWithUserData {
         port: UInt32,
         bootstrap: ClientBootstrap,
         socketOptions: SocketOptions,
-        tlsCtx: TLSContext,
+        tlsCtx: TLSContext? = nil,
         httpProxyOptions: HTTPProxyOptions? = nil,
         connectOptions: MqttConnectOptions? = nil,
         sessionBehavior: ClientSessionBehaviorType? = nil,
@@ -1044,7 +1044,10 @@ public class MqttClientOptions: CStructWithUserData {
         raw_options.port = self.port
         raw_options.bootstrap = self.bootstrap.rawValue
 
-        let tls_options: TLSConnectionOptions = TLSConnectionOptions(context: self.tlsCtx)
+        var tls_options: TLSConnectionOptions?
+        if self.tlsCtx != nil {
+            tls_options = TLSConnectionOptions(context: self.tlsCtx!)
+        }
 
         if let _sessionBehavior = self.sessionBehavior {
             raw_options.session_behavior = _sessionBehavior.rawValue
