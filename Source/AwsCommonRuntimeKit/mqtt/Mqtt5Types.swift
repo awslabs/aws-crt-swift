@@ -981,3 +981,72 @@ public class MqttClientOptions {
         self.onLifecycleEventDisconnectionFn = onLifecycleEventDisconnectionFn
     }
 }
+
+/// Internal Classes
+/// Callback core for event loop callbacks
+class MqttShutdownCallbackCore {
+    let onPublishReceivedCallback: OnPublishReceived?
+    let onLifecycleEventStoppedCallback: OnLifecycleEventStopped?
+    let onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect?
+    let onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess?
+    let onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
+
+    init(onPublishReceivedCallback: OnPublishReceived? = nil,
+         onLifecycleEventStoppedCallback: OnLifecycleEventStopped? = nil,
+         onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect? = nil,
+         onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess? = nil,
+         onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure? = nil,
+         data: AnyObject? = nil) {
+        if let onPublishReceivedCallback = onPublishReceivedCallback {
+            self.onPublishReceivedCallback = onPublishReceivedCallback
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onPublishReceivedCallback = { (_) -> Void in return }
+        }
+
+        if let onLifecycleEventStoppedCallback = onLifecycleEventStoppedCallback {
+            self.onLifecycleEventStoppedCallback = onLifecycleEventStoppedCallback
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onLifecycleEventStoppedCallback = { (_) -> Void in return}
+        }
+
+        if let onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect {
+            self.onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onLifecycleEventAttemptingConnect = { (_) -> Void in return}
+        }
+
+        if let onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess {
+            self.onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onLifecycleEventConnectionSuccess = { (_) -> Void in return}
+        }
+
+        if let onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure {
+            self.onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onLifecycleEventConnectionFailure = { (_) -> Void in return}
+        }
+    }
+
+    /// Calling this function performs a manual retain on the MqttShutdownCallbackCore.
+    /// When the shutdown finally fires,
+    /// it will manually release MqttShutdownCallbackCore.
+    func shutdownCallback(_ userdata: UnsafeMutableRawPointer? ){
+        // take ownership of the self retained pointer to release the callback core
+        let callbackCore = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userdata!).takeRetainedValue()
+        print("TEST LOG: SHUTDOWN CALLBACK CALLED")
+    }
+    
+    func shutdownCallbackUserData() -> UnsafeMutableRawPointer {
+        return Unmanaged<MqttShutdownCallbackCore>.passRetained(self).toOpaque()
+    }
+    
+    func release() {
+        Unmanaged<MqttShutdownCallbackCore>.passUnretained(self).release()
+    }
+}
