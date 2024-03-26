@@ -131,7 +131,7 @@ extension TimeInterval {
     var millisecond: UInt64 {
         UInt64((self*1000).rounded())
     }
-    
+
     var millisecondUInt32: UInt32 {
         UInt32((self*1000).rounded())
     }
@@ -331,7 +331,12 @@ func withOptionalUnsafePointer<T, Result>(to arg1: T?, _ body: (UnsafePointer<T>
     }
 }
 
-func withOptionalUnsafePointers<T1, T2, T3, Result>(_ arg1: T1?, _ arg2: T2?, _ arg3: T3?, _ body: (UnsafePointer<T1>?, UnsafePointer<T2>?, UnsafePointer<T3>?) -> Result) -> Result {
+func withOptionalUnsafePointers<T1, T2, T3, Result>(_ arg1: T1?,
+                                                    _ arg2: T2?,
+                                                    _ arg3: T3?,
+                                                    _ body: (UnsafePointer<T1>?,
+                                                    UnsafePointer<T2>?,
+                                                    UnsafePointer<T3>?) -> Result) -> Result {
     return withOptionalUnsafePointer(to: arg1) { _arg1Pointer in
         return withOptionalUnsafePointer(to: arg2) { _arg2Pointer in
             return withOptionalUnsafePointer(to: arg3) { _arg3Pointer in
@@ -341,7 +346,18 @@ func withOptionalUnsafePointers<T1, T2, T3, Result>(_ arg1: T1?, _ arg2: T2?, _ 
     }
 }
 
-func withOptionalUnsafePointers<T1, T2, T3, T4, T5, T6, Result>(_ arg1: T1?, _ arg2: T2?, _ arg3: T3?, _ arg4: T4?, _ arg5: T5?, _ arg6: T6?, _ body: (UnsafePointer<T1>?, UnsafePointer<T2>?, UnsafePointer<T3>?, UnsafePointer<T4>?, UnsafePointer<T5>?, UnsafePointer<T6>?) -> Result) -> Result {
+func withOptionalUnsafePointers<T1, T2, T3, T4, T5, T6, Result>(_ arg1: T1?,
+                                                                _ arg2: T2?,
+                                                                _ arg3: T3?,
+                                                                _ arg4: T4?,
+                                                                _ arg5: T5?,
+                                                                _ arg6: T6?,
+                                                                _ body: (UnsafePointer<T1>?,
+                                                                UnsafePointer<T2>?,
+                                                                UnsafePointer<T3>?,
+                                                                UnsafePointer<T4>?,
+                                                                UnsafePointer<T5>?,
+                                                                UnsafePointer<T6>?) -> Result) -> Result {
     return withOptionalUnsafePointer(to: arg1) { _arg1Pointer in
         return withOptionalUnsafePointer(to: arg2) { _arg2Pointer in
             return withOptionalUnsafePointer(to: arg3) { _arg3Pointer in

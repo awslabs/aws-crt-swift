@@ -827,7 +827,13 @@ public class MqttConnectOptions: CStruct {
                                           _requestProblemInformation,
                                           _willDelayIntervalSec,
                                           self.receiveMaximum,
-                                          self.maximumPacketSize) { sessionExpiryIntervalSecPointer, requestResponseInformationPointer, requestProblemInformationPointer, willDelayIntervalSecPointer, receiveMaximumPointer, maximumPacketSizePointer in
+                                          self.maximumPacketSize) {
+                                            sessionExpiryIntervalSecPointer,
+                                            requestResponseInformationPointer,
+                                            requestProblemInformationPointer,
+                                            willDelayIntervalSecPointer,
+                                            receiveMaximumPointer,
+                                            maximumPacketSizePointer in
 
             if let _sessionExpiryIntervalSecPointer: UnsafePointer<UInt32> = sessionExpiryIntervalSecPointer {
                 raw_connect_options.session_expiry_interval_seconds = _sessionExpiryIntervalSecPointer
@@ -884,7 +890,8 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
     print("[Mqtt5 Client Swift] LIFE CYCLE EVENTS")
 }
 
-private func MqttClientPublishRecievedEvents(_ publishPacketView: UnsafePointer<aws_mqtt5_packet_publish_view>?, _ userData: UnsafeMutableRawPointer?) {
+private func MqttClientPublishRecievedEvents(_ publishPacketView: UnsafePointer<aws_mqtt5_packet_publish_view>?,
+                                             _ userData: UnsafeMutableRawPointer?) {
     print("[Mqtt5 Client Swift] PUBLISH RECIEVED EVENTS")
 }
 
@@ -1061,7 +1068,8 @@ public class MqttClientOptions: CStruct {
         }
 
         if let _minConnectedTimeToResetReconnectDelay = self.minConnectedTimeToResetReconnectDelay {
-            raw_options.min_connected_time_to_reset_reconnect_delay_ms = _minConnectedTimeToResetReconnectDelay.millisecond
+            raw_options.min_connected_time_to_reset_reconnect_delay_ms =
+                _minConnectedTimeToResetReconnectDelay.millisecond
         }
 
         if let _pingTimeout = self.pingTimeout {
