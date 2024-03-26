@@ -2,6 +2,9 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import XCTest
+import Foundation
+import Combine
+import AwsCMqtt
 @testable import AwsCommonRuntimeKit
 
 class Mqtt5ClientTests: XCBaseTestCase {
@@ -16,16 +19,15 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg,
                 hostResolver: resolver)
         XCTAssertNotNil(clientBootstrap)
-        let socketOptions = SocketOptions(socketType: SocketType.datagram)
+        let socketOptions = SocketOptions()
         XCTAssertNotNil(socketOptions)
         let tlsOptions = TLSContextOptions()
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-        let clientOptions = ClientOptions(hostName: "localhost", port: 443, bootstrap: clientBootstrap,
+        let clientOptions = MqttClientOptions(hostName: "localhost", port: 443, bootstrap: clientBootstrap,
                                    socketOptions: socketOptions,
                                    tlsCtx: tlsContext);
         XCTAssertNotNil(clientOptions)
-        let mqtt5client = Mqtt5Client(mqtt5ClientOptions: clientOptions);
+        let mqtt5client = try Mqtt5Client(clientOptions: clientOptions);
         XCTAssertNotNil(mqtt5client)
 
     }
