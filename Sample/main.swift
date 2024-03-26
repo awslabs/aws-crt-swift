@@ -111,22 +111,6 @@ func subscribe(subscribePacket: SubscribePacket) -> Task<SubackPacket, Error> {
     }
 }
 
-/// Explicitly request a Task on an operation
-func subscribeOptionalTask(subscribePacket: SubscribePacket, getAck: Bool = false) -> Task<SubackPacket, Error>? {
-
-    // If getAck is false, submit the operation to native with no callback
-    guard getAck else {
-        // Calls native subscribe() without a completion callback.
-        // Immediately returns nil
-        return nil
-    }
-
-    // If an ack is requested, return the Task that will
-    return Task {
-        return try await subscribeAsync(subscribePacket: subscribePacket)
-    }
-}
-
 func processSuback(subackPacket: SubackPacket) {
     print("     =======SUBACK PACKET=======")
     print("     Processing suback")
@@ -167,7 +151,7 @@ let subscribePacket: SubscribePacket = SubscribePacket(
 // This passes to Native the operation, we don't care about result but the async function runs to completion
 // async let _ = subscribeAsync(subscribePacket: subscribePacket)
 
-let suback = try await subscribeAsync(subscribePacket: subscribePacket)
+// let suback = try await subscribeAsync(subscribePacket: subscribePacket)
 
 // results in "'async' call in a function that does not support concurrency"
 // needs to be contained in an async function to be used this way
