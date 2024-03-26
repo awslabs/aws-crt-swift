@@ -20,11 +20,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
         XCTAssertNotNil(clientBootstrap)
         let socketOptions = SocketOptions()
         XCTAssertNotNil(socketOptions)
-        let tlsOptions = TLSContextOptions()
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
         let clientOptions = MqttClientOptions(hostName: "localhost", port: 443, bootstrap: clientBootstrap,
-                                   socketOptions: socketOptions,
-                                   tlsCtx: tlsContext);
+                                   socketOptions: socketOptions);
         XCTAssertNotNil(clientOptions)
         let mqtt5client = try Mqtt5Client(clientOptions: clientOptions);
         XCTAssertNotNil(mqtt5client)
