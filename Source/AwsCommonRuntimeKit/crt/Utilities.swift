@@ -79,7 +79,8 @@ extension Data {
     }
 }
 
-func withOptionalAWSByteCursorFromData<Result>(to data: Data?, _ body: (aws_byte_cursor) throws -> Result) rethrows -> Result {
+func withOptionalAWSByteCursorFromData<Result>(
+    to data: Data?, _ body: (aws_byte_cursor) throws -> Result) rethrows -> Result {
     guard let _data = data else {
         return try body(aws_byte_cursor())
     }
@@ -131,21 +132,23 @@ extension TimeInterval {
     var millisecond: UInt64 {
         UInt64((self*1000).rounded())
     }
-    
+
     var millisecondUInt32: UInt32 {
         UInt32((self*1000).rounded())
     }
 
     func secondUInt16() throws -> UInt16 {
         guard self >= 0 && self <= Double(UInt16.max) else {
-            throw CommonRunTimeError.commonError( CommonError("TimeInterval out of boundary: require value in range [0, UInt16.max]"))
+            throw CommonRunTimeError.commonError(
+                CommonError("TimeInterval out of boundary: require value in range [0, UInt16.max]"))
         }
         return UInt16(self)
     }
 
     func secondUInt32() throws -> UInt32 {
         guard self >= 0 && self <= Double(UInt32.max) else {
-            throw CommonRunTimeError.commonError( CommonError("TimeInterval out of boundary: require value in range [0, UInt32.max]"))
+            throw CommonRunTimeError.commonError(
+                CommonError("TimeInterval out of boundary: require value in range [0, UInt32.max]"))
         }
         return UInt32(self)
     }
@@ -230,7 +233,7 @@ func withOptionalByteCursorPointerFromString<Result>(
     }
 }
 
-func withOptionalByteCursorPointerFromString<Result>(
+func withOptionalByteCursorPointerFromStrings<Result>(
     _ arg1: String?,
     _ arg2: String?,
     _ body: (UnsafePointer<aws_byte_cursor>?, UnsafePointer<aws_byte_cursor>?) -> Result
@@ -331,7 +334,11 @@ func withOptionalUnsafePointer<T, Result>(to arg1: T?, _ body: (UnsafePointer<T>
     }
 }
 
-func withOptionalUnsafePointers<T1, T2, T3, Result>(_ arg1: T1?, _ arg2: T2?, _ arg3: T3?, _ body: (UnsafePointer<T1>?, UnsafePointer<T2>?, UnsafePointer<T3>?) -> Result) -> Result {
+func withOptionalUnsafePointers<T1, T2, T3, Result>(
+    _ arg1: T1?,
+    _ arg2: T2?,
+    _ arg3: T3?,
+    _ body: (UnsafePointer<T1>?, UnsafePointer<T2>?, UnsafePointer<T3>?) -> Result) -> Result {
     return withOptionalUnsafePointer(to: arg1) { _arg1Pointer in
         return withOptionalUnsafePointer(to: arg2) { _arg2Pointer in
             return withOptionalUnsafePointer(to: arg3) { _arg3Pointer in
@@ -341,14 +348,31 @@ func withOptionalUnsafePointers<T1, T2, T3, Result>(_ arg1: T1?, _ arg2: T2?, _ 
     }
 }
 
-func withOptionalUnsafePointers<T1, T2, T3, T4, T5, T6, Result>(_ arg1: T1?, _ arg2: T2?, _ arg3: T3?, _ arg4: T4?, _ arg5: T5?, _ arg6: T6?, _ body: (UnsafePointer<T1>?, UnsafePointer<T2>?, UnsafePointer<T3>?, UnsafePointer<T4>?, UnsafePointer<T5>?, UnsafePointer<T6>?) -> Result) -> Result {
+func withOptionalUnsafePointers<T1, T2, T3, T4, T5, T6, Result>(
+    _ arg1: T1?,
+    _ arg2: T2?,
+    _ arg3: T3?,
+    _ arg4: T4?,
+    _ arg5: T5?,
+    _ arg6: T6?,
+    _ body: (UnsafePointer<T1>?,
+             UnsafePointer<T2>?,
+             UnsafePointer<T3>?,
+             UnsafePointer<T4>?,
+             UnsafePointer<T5>?,
+             UnsafePointer<T6>?) -> Result) -> Result {
     return withOptionalUnsafePointer(to: arg1) { _arg1Pointer in
         return withOptionalUnsafePointer(to: arg2) { _arg2Pointer in
             return withOptionalUnsafePointer(to: arg3) { _arg3Pointer in
                 return withOptionalUnsafePointer(to: arg4) { _arg4Pointer in
                     return withOptionalUnsafePointer(to: arg5) { _arg5Pointer in
                         return withOptionalUnsafePointer(to: arg6) { _arg6Pointer in
-                            return body(_arg1Pointer, _arg2Pointer, _arg3Pointer, _arg4Pointer, _arg5Pointer, _arg6Pointer)
+                            return body( _arg1Pointer,
+                                         _arg2Pointer,
+                                         _arg3Pointer,
+                                         _arg4Pointer,
+                                         _arg5Pointer,
+                                         _arg6Pointer)
                         }
                     }
                 }

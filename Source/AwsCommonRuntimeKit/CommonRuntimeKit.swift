@@ -25,8 +25,7 @@ public struct CommonRuntimeKit {
         aws_mqtt_library_clean_up()
         aws_event_stream_library_clean_up()
         aws_auth_library_clean_up()
-        
-        
+
     }
 
     private init() {}

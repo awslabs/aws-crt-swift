@@ -3,7 +3,6 @@
 
 import XCTest
 import Foundation
-import Combine
 import AwsCMqtt
 @testable import AwsCommonRuntimeKit
 
