@@ -6,6 +6,7 @@ import Foundation
 
 public enum CommonRunTimeError: Error {
     case crtError(CRTError)
+    case commonError(CommonError)
 }
 
 public struct CRTError: Equatable {
@@ -25,5 +26,13 @@ public struct CRTError: Equatable {
 
     public static func makeFromLastError() -> CRTError {
         return CRTError(code: aws_last_error())
+    }
+}
+
+public struct CommonError: Equatable {
+    public let message: String
+    
+    public init(_ message: String) {
+        self.message = message
     }
 }
