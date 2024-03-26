@@ -28,6 +28,10 @@ public class Mqtt5Client {
         aws_mqtt5_client_release(rawValue)
     }
 
+    public func start() {
+        aws_mqtt5_client_start(rawValue)
+    }
+
     /// TODO: Discard all client operations and force releasing the client. The client could not perform any operation after calling this function.
     public func close() {
         // TODO

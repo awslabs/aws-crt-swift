@@ -4,6 +4,10 @@ import AwsCommonRuntimeKit
 import AwsCMqtt
 import Foundation
 
+Logger.initialize(pipe: stdout, level: LogLevel.debug)
+print("Initializing CommonRutimeKit")
+CommonRuntimeKit.initialize()
+
 func buildClient() throws -> Mqtt5Client {
     print("Building Mqtt Client")
     let elg = try EventLoopGroup()
@@ -11,21 +15,34 @@ func buildClient() throws -> Mqtt5Client {
     let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
     let socketOptions = SocketOptions()
     let tlsOptions = TLSContextOptions.makeDefault()
+    // let tlsOptions = try TLSContextOptions.makeMtlsFromFilePath(
+    //                             certificatePath: "/Volumes/workplace/swift-mqtt/aws-crt-swift/.vscode/bare_bones_thing_cert.pem.crt",
+    //                             privateKeyPath: "/Volumes/workplace/swift-mqtt/aws-crt-swift/.vscode/bare_bones_thing_priv_key.pem.key")
     let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-    let clientOptions = MqttClientOptions(hostName: "localhost",
-                                          port: 443,
-                                          bootstrap: clientBootstrap,
-                                          socketOptions: socketOptions,
-                                          tlsCtx: tlsContext)
+
+    let connectOptions = MqttConnectOptions(keepAliveInterval: 120)
+    let clientOptions = MqttClientOptions(
+                                        // hostName: "a3504fkqciaov6-ats.iot.us-east-1.amazonaws.com",
+                                        hostName: "localhost",
+                                        // port: 443,
+                                        port: 1883,
+                                        bootstrap: clientBootstrap,
+                                        socketOptions: socketOptions,
+                                        tlsCtx: tlsContext,
+                                        connectOptions: connectOptions)
 
     print("Returning Mqtt Client")
     return try Mqtt5Client(clientOptions: clientOptions)
 }
 
 let client = try buildClient()
+print("\nCalling start()\n")
+client.start()
 
 // for waiting/sleep
 let semaphore: DispatchSemaphore = DispatchSemaphore(value: 0)
+
+// wait(seconds: 5)
 
 // Wait x seconds with logging
 func wait (seconds: Int) {
@@ -224,6 +241,10 @@ let subscribePacket: SubscribePacket = SubscribePacket(
 //     }
 // }
 
-// wait(seconds: 3)
+// wait(seconds: 1)
+waitNoCountdown(seconds: 30)
 
-print("Sample Ending")
+// print("cleanUp CommonRuntimeKit")
+// CommonRuntimeKit.cleanUp()
+
+// print("Sample Ending")
