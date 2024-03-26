@@ -12,9 +12,13 @@ public class Mqtt5Client {
     public init(clientOptions options: MqttClientOptions) throws {
         self.clientOptions = options
 
-        guard let rawValue = (options.withCPointer { optionsPointer in
+        let mqttShutdownCallbackCore = MqttShutdownCallbackCore()
+
+        guard let rawValue = (options.withCPointer( userData: mqttShutdownCallbackCore.shutdownCallbackUserData()) { optionsPointer in
                 return aws_mqtt5_client_new(allocator.rawValue, optionsPointer)
         })  else {
+            // failed to create client, release the callback core
+            mqttShutdownCallbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue
@@ -28,4 +32,13 @@ public class Mqtt5Client {
     public func close() {
         // TODO
     }
+}
+
+/** Temporary CALLBACKS  Paceholders*/
+private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
+    print("[Mqtt5 Client Swift] LIFE CYCLE EVENTS")
+}
+
+private func MqttClientPublishRecievedEvents(_ publishPacketView: UnsafePointer<aws_mqtt5_packet_publish_view>?, _ userData: UnsafeMutableRawPointer?) {
+    print("[Mqtt5 Client Swift] PUBLISH RECIEVED EVENTS")
 }

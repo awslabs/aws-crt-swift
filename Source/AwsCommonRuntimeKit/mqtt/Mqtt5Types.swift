@@ -822,20 +822,17 @@ public class MqttConnectOptions: CStruct {
         let _requestProblemInformation: UInt8? = self.requestProblemInformation?.uint8Value ?? nil
         let _willDelayIntervalSec: UInt32? = try? self.willDelayInterval?.secondUInt32() ?? nil
 
-        return withOptionalUnsafePointers(_sessionExpiryIntervalSec,
-                                          _requestResponseInformation,
-                                          _requestProblemInformation,
-                                          _willDelayIntervalSec,
-                                          self.receiveMaximum,
-                                          self.maximumPacketSize) {
-                                            sessionExpiryIntervalSecPointer,
-                                            requestResponseInformationPointer,
-                                            requestProblemInformationPointer,
-                                            willDelayIntervalSecPointer,
-                                            receiveMaximumPointer,
-                                            maximumPacketSizePointer in
+        return withOptionalUnsafePointers(
+            _sessionExpiryIntervalSec,
+            _requestResponseInformation,
+            _requestProblemInformation,
+            _willDelayIntervalSec,
+            self.receiveMaximum,
+            self.maximumPacketSize) { sessionExpiryIntervalSecPointer, requestResponseInformationPointer,
+                                      requestProblemInformationPointer, willDelayIntervalSecPointer,
+                                      receiveMaximumPointer, maximumPacketSizePointer in
 
-            if let _sessionExpiryIntervalSecPointer: UnsafePointer<UInt32> = sessionExpiryIntervalSecPointer {
+            if let _sessionExpiryIntervalSecPointer = sessionExpiryIntervalSecPointer {
                 raw_connect_options.session_expiry_interval_seconds = _sessionExpiryIntervalSecPointer
             }
 
@@ -873,7 +870,7 @@ public class MqttConnectOptions: CStruct {
                     //     }
                     // }
 
-                    return withOptionalByteCursorPointerFromString(username,
+                    return withOptionalByteCursorPointerFromStrings(username,
                                                                    password) { cUsernamePointer, cPasswordPointer in
                         raw_connect_options.username = cUsernamePointer
                         raw_connect_options.password = cPasswordPointer
@@ -885,23 +882,33 @@ public class MqttConnectOptions: CStruct {
     }
 }
 
-/** Temporary CALLBACKS */
+/** Temporary CALLBACKS place holder */
 private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
+    // TODO: Finish MqttClientLifeycyleEvents
     print("[Mqtt5 Client Swift] LIFE CYCLE EVENTS")
 }
 
-private func MqttClientPublishRecievedEvents(_ publishPacketView: UnsafePointer<aws_mqtt5_packet_publish_view>?,
-                                             _ userData: UnsafeMutableRawPointer?) {
+private func MqttClientPublishRecievedEvents(
+    _ publishPacketView: UnsafePointer<aws_mqtt5_packet_publish_view>?,
+    _ userData: UnsafeMutableRawPointer?) {
     print("[Mqtt5 Client Swift] PUBLISH RECIEVED EVENTS")
+    // TODO: Finish onPublishRecievedEvents, this is only a quick demo for publish callback
+    // grab the callbackCore, unretainedValue() would not change reference counting
+    let callbackCore = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userData!).takeUnretainedValue()
+    let puback_packet = PublishPacket(qos: QoS.atLeastOnce, topic: "test")
+    let puback = PublishReceivedData(publishPacket: puback_packet)
+    callbackCore.onPublishReceivedCallback?(puback)
 }
 
 private func MqttClientTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
     // termination callback
     print("[Mqtt5 Client Swift] TERMINATION CALLBACK")
+    // takeRetainedValue would release the reference. ONLY DO IT AFTER YOU DO NOT NEED THE CALLBACK CORE
+    _ = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userData!).takeRetainedValue()
 }
 
 /// Configuration for the creation of MQTT5 clients
-public class MqttClientOptions: CStruct {
+public class MqttClientOptions: CStructWithUserData {
     /// Host name of the MQTT server to connect to.
     public let hostName: String
 
@@ -922,7 +929,7 @@ public class MqttClientOptions: CStruct {
 
     // TODO WebSocket implementation
     /// This callback allows a custom transformation of the HTTP request that acts as the websocket handshake. Websockets will be used if this is set to a valid transformation callback.  To use websockets but not perform a transformation, just set this as a trivial completion callback.  If None, the connection will be made with direct MQTT.
-    // public let websocketHandshakeTransform: Callable[[WebsocketHandshakeTransformArgs], None] = None
+    /// public let websocketHandshakeTransform: Callable[[WebsocketHandshakeTransformArgs], None] = None
 
     /// All configurable options with respect to the CONNECT packet sent by the client, including the will. These connect properties will be used for every connection attempt made by the client.
     public let connectOptions: MqttConnectOptions?
@@ -1031,17 +1038,13 @@ public class MqttClientOptions: CStruct {
     }
 
     typealias RawType = aws_mqtt5_client_options
-    func withCStruct<Result>( _ body: (aws_mqtt5_client_options) -> Result) -> Result {
+    func withCStruct<Result>(userData: UnsafeMutableRawPointer?, _ body: (aws_mqtt5_client_options) -> Result) -> Result {
         var raw_options = aws_mqtt5_client_options()
 
         raw_options.port = self.port
         raw_options.bootstrap = self.bootstrap.rawValue
 
         let tls_options: TLSConnectionOptions = TLSConnectionOptions(context: self.tlsCtx)
-
-        // TODO: CALLBACKS, callback related changes will be brought in next PR. This is a temp callback
-        raw_options.lifecycle_event_handler = MqttClientLifeycyleEvents
-        raw_options.publish_received_handler = MqttClientPublishRecievedEvents
 
         if let _sessionBehavior = self.sessionBehavior {
             raw_options.session_behavior = _sessionBehavior.rawValue
@@ -1069,7 +1072,7 @@ public class MqttClientOptions: CStruct {
 
         if let _minConnectedTimeToResetReconnectDelay = self.minConnectedTimeToResetReconnectDelay {
             raw_options.min_connected_time_to_reset_reconnect_delay_ms =
-                _minConnectedTimeToResetReconnectDelay.millisecond
+                                            _minConnectedTimeToResetReconnectDelay.millisecond
         }
 
         if let _pingTimeout = self.pingTimeout {
@@ -1090,8 +1093,12 @@ public class MqttClientOptions: CStruct {
             _connnectOptions =  MqttConnectOptions()
         }
 
-        return withOptionalCStructPointer(self.socketOptions, tls_options, self.httpProxyOptions, self.topicAliasingOptions, _connnectOptions) {
-            socketOptionsCPointer, tlsOptionsCPointer, httpProxyOptionsCPointer, topicAliasingOptionsCPointer, connectOptionsCPointer in
+        return withOptionalCStructPointer(
+            self.socketOptions,
+            tls_options,
+            self.httpProxyOptions,
+            self.topicAliasingOptions,
+            _connnectOptions) { socketOptionsCPointer, tlsOptionsCPointer, httpProxyOptionsCPointer, topicAliasingOptionsCPointer, connectOptionsCPointer in
 
             raw_options.socket_options = socketOptionsCPointer
             raw_options.tls_options = tlsOptionsCPointer
@@ -1099,10 +1106,89 @@ public class MqttClientOptions: CStruct {
             raw_options.topic_aliasing_options = topicAliasingOptionsCPointer
             raw_options.connect_options = connectOptionsCPointer
 
+            guard let _userData = userData else {
+                // directly return
+                return hostName.withByteCursor { hostNameByteCursor in
+                    raw_options.host_name = hostNameByteCursor
+                    return body(raw_options)
+                }
+            }
+
+            // TODO: SETUP lifecycle_event_handler and publish_received_handler
+            raw_options.lifecycle_event_handler = MqttClientLifeycyleEvents
+            raw_options.lifecycle_event_handler_user_data = userData
+            raw_options.publish_received_handler = MqttClientPublishRecievedEvents
+            raw_options.publish_received_handler_user_data = userData
+            raw_options.client_termination_handler = MqttClientTerminationCallback
+            raw_options.client_termination_handler_user_data = userData
             return hostName.withByteCursor { hostNameByteCursor in
                 raw_options.host_name = hostNameByteCursor
                 return body(raw_options)
             }
         }
+    }
+}
+
+/// Internal Classes
+/// Callback core for event loop callbacks
+class MqttShutdownCallbackCore {
+    let onPublishReceivedCallback: OnPublishReceived?
+    let onLifecycleEventStoppedCallback: OnLifecycleEventStopped?
+    let onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect?
+    let onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess?
+    let onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
+
+    init(onPublishReceivedCallback: OnPublishReceived? = nil,
+         onLifecycleEventStoppedCallback: OnLifecycleEventStopped? = nil,
+         onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect? = nil,
+         onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess? = nil,
+         onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure? = nil,
+         data: AnyObject? = nil) {
+        if let onPublishReceivedCallback = onPublishReceivedCallback {
+            self.onPublishReceivedCallback = onPublishReceivedCallback
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onPublishReceivedCallback = { (_) -> Void in return }
+        }
+
+        if let onLifecycleEventStoppedCallback = onLifecycleEventStoppedCallback {
+            self.onLifecycleEventStoppedCallback = onLifecycleEventStoppedCallback
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onLifecycleEventStoppedCallback = { (_) -> Void in return}
+        }
+
+        if let onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect {
+            self.onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onLifecycleEventAttemptingConnect = { (_) -> Void in return}
+        }
+
+        if let onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess {
+            self.onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onLifecycleEventConnectionSuccess = { (_) -> Void in return}
+        }
+
+        if let onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure {
+            self.onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onLifecycleEventConnectionFailure = { (_) -> Void in return}
+        }
+    }
+
+    /// Calling this function performs a manual retain on the MqttShutdownCallbackCore.
+    /// and returns the UnsafeMutableRawPointer hold the object itself.
+    ///
+    /// You should always release the retained pointer to avoid memory leak
+    func shutdownCallbackUserData() -> UnsafeMutableRawPointer {
+        return Unmanaged<MqttShutdownCallbackCore>.passRetained(self).toOpaque()
+    }
+
+    func release() {
+        Unmanaged<MqttShutdownCallbackCore>.passUnretained(self).release()
     }
 }

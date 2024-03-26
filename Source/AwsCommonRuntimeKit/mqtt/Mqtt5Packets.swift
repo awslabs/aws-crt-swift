@@ -32,7 +32,8 @@ public class UserProperty: CStruct {
 extension Array where Element == UserProperty {
     func withCMqttUserProperties<Result>(_ body: (OpaquePointer) -> Result) -> Result {
         var array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
-        guard aws_array_list_init_dynamic(array_list, allocator.rawValue, count, MemoryLayout<aws_mqtt5_user_property>.size) == AWS_OP_SUCCESS else {
+        guard aws_array_list_init_dynamic(array_list, allocator.rawValue,
+        count, MemoryLayout<aws_mqtt5_user_property>.size) == AWS_OP_SUCCESS else {
             fatalError("Unable to initialize array of user properties")
         }
         forEach {
@@ -132,15 +133,13 @@ public class PublishPacket: CStruct {
                 raw_publish_view.payload = cByteCursor
 
                 let _payloadFormatIndicatorInt: aws_mqtt5_payload_format_indicator? =
-                    payloadFormatIndicator?.rawValue ?? nil
+                                                                    payloadFormatIndicator?.rawValue ?? nil
                 let _messageExpiryInterval: UInt32? = try? messageExpiryInterval?.secondUInt32() ?? nil
 
-                return withOptionalUnsafePointers(_payloadFormatIndicatorInt,
-                                                  topicAlias,
-                                                  _messageExpiryInterval) {
-                                                    payloadPointer,
-                                                    topicAliasPointer,
-                                                    messageExpiryIntervalPointer in
+                return withOptionalUnsafePointers(
+                    _payloadFormatIndicatorInt,
+                    topicAlias,
+                    _messageExpiryInterval) { payloadPointer, topicAliasPointer, messageExpiryIntervalPointer in
                     if let _payloadPointer = payloadPointer {
                         raw_publish_view.payload_format = _payloadPointer
                     }
@@ -156,12 +155,10 @@ public class PublishPacket: CStruct {
                     // TODO subscriptionIdentifiers LIST
                     // TODO [UserProperties]
 
-                    return withOptionalByteCursorPointerFromString(responseTopic,
-                                                                   correlationData,
-                                                                   contentType) {
-                                                                    cResponseTopic,
-                                                                    cCorrelationData,
-                                                                    cContentType in
+                    return withOptionalByteCursorPointerFromString(
+                        responseTopic,
+                        correlationData,
+                        contentType) { cResponseTopic, cCorrelationData, cContentType in
                         raw_publish_view.content_type = cContentType
                         raw_publish_view.correlation_data = cCorrelationData
                         raw_publish_view.response_topic = cResponseTopic
