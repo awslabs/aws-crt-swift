@@ -349,32 +349,43 @@ public enum UnsubackReasonCode: Int {
 }
 
 /// Controls how the mqtt client should behave with respect to MQTT sessions.
-public enum ClientSessionBehaviorType: Int {
+public enum ClientSessionBehaviorType {
 
     /// Default client session behavior. Maps to CLEAN.
-    case `default` = 0
+    case `default`
 
     /// Always ask for a clean session when connecting
-    case clean = 1
+    case clean
 
     /// Always attempt to rejoin an existing session after an initial connection success.
     /// Session rejoin requires an appropriate non-zero session expiry interval in the client's CONNECT options.
-    case rejoinPostSuccess = 2
+    case rejoinPostSuccess
 
     /// Always attempt to rejoin an existing session.  Since the client does not support durable session persistence,
     /// this option is not guaranteed to be spec compliant because any unacknowledged qos1 publishes (which are
     /// part of the client session state) will not be present on the initial connection.  Until we support
     /// durable session resumption, this option is technically spec-breaking, but useful.
     /// Always rejoin requires an appropriate non-zero session expiry interval in the client's CONNECT options.
-    case rejoinAlways = 3
+    case rejoinAlways
+}
+
+extension ClientSessionBehaviorType {
+    var rawValue: aws_mqtt5_client_session_behavior_type {
+        switch self {
+        case .default:  return aws_mqtt5_client_session_behavior_type(rawValue: 0)
+        case .clean:  return aws_mqtt5_client_session_behavior_type(rawValue: 1)
+        case .rejoinPostSuccess:  return aws_mqtt5_client_session_behavior_type(rawValue: 2)
+        case .rejoinAlways:  return aws_mqtt5_client_session_behavior_type(rawValue: 3)
+        }
+    }
 }
 
 /// Additional controls for client behavior with respect to operation validation and flow control; these checks
 /// go beyond the MQTT5 spec to respect limits of specific MQTT brokers.
-public enum ExtendedValidationAndFlowControlOptions: Int {
+public enum ExtendedValidationAndFlowControlOptions {
 
     /// Do not do any additional validation or flow control
-    case none = 0
+    case none
 
     /// Apply additional client-side validation and operational flow control that respects the
     /// default AWS IoT Core limits.
@@ -386,29 +397,49 @@ public enum ExtendedValidationAndFlowControlOptions: Int {
     /// Also applies the following flow control:
     /// * Outbound throughput throttled to 512KB/s
     /// * Outbound publish TPS throttled to 100
-    case awsIotCoreDefaults = 1
+    case awsIotCoreDefaults
+}
+
+extension ExtendedValidationAndFlowControlOptions {
+    var rawValue: aws_mqtt5_extended_validation_and_flow_control_options {
+        switch self {
+        case .none:  return aws_mqtt5_extended_validation_and_flow_control_options(rawValue: 0)
+        case .awsIotCoreDefaults:  return aws_mqtt5_extended_validation_and_flow_control_options(rawValue: 1)
+        }
+    }
 }
 
 /// Controls how disconnects affect the queued and in-progress operations tracked by the client.  Also controls
 /// how operations are handled while the client is not connected.  In particular, if the client is not connected,
 /// then any operation that would be failed on disconnect (according to these rules) will be rejected.
-public enum ClientOperationQueueBehaviorType: Int {
+public enum ClientOperationQueueBehaviorType {
 
     /// Default client operation queue behavior. Maps to FAIL_QOS0_PUBLISH_ON_DISCONNECT.
-    case `default` = 0
+    case `default`
 
     /// Re-queues QoS 1+ publishes on disconnect; un-acked publishes go to the front while unprocessed publishes stay
     /// in place.  All other operations (QoS 0 publishes, subscribe, unsubscribe) are failed.
-    case failNonQos1PublishOnDisconnect = 1
+    case failNonQos1PublishOnDisconnect
 
     /// QoS 0 publishes that are not complete at the time of disconnection are failed.  Un-acked QoS 1+ publishes are
     /// re-queued at the head of the line for immediate retransmission on a session resumption.  All other operations
     /// are requeued in original order behind any retransmissions.
-    case failQos0PublishOnDisconnect = 2
+    case failQos0PublishOnDisconnect
 
     /// All operations that are not complete at the time of disconnection are failed, except operations that
     /// the MQTT5 spec requires to be retransmitted (un-acked QoS1+ publishes).
-    case failAllOnDisconnect = 3
+    case failAllOnDisconnect
+}
+
+extension ClientOperationQueueBehaviorType {
+    var rawValue: aws_mqtt5_client_operation_queue_behavior_type {
+        switch self {
+        case .default:  return aws_mqtt5_client_operation_queue_behavior_type(rawValue: 0)
+        case .failNonQos1PublishOnDisconnect:  return aws_mqtt5_client_operation_queue_behavior_type(rawValue: 1)
+        case .failQos0PublishOnDisconnect:  return aws_mqtt5_client_operation_queue_behavior_type(rawValue: 2)
+        case .failAllOnDisconnect:  return aws_mqtt5_client_operation_queue_behavior_type(rawValue: 3)
+        }
+    }
 }
 
 /// Optional property describing a PUBLISH payload's format.
@@ -786,73 +817,84 @@ public class MqttConnectOptions: CStruct {
             raw_connect_options.keep_alive_interval_seconds = UInt16(_keepAlive)
         }
 
-        if let _sessionExpiryIntervalSec = try? self.sessionExpiryInterval?.secondUInt32() {
-            // convert UInt32 to UnsafePointer<UInt32>
-            raw_connect_options.session_expiry_interval_seconds = withUnsafePointer(
-                to: _sessionExpiryIntervalSec) { _sessionExpiryIntervalSecPointer in
-                return _sessionExpiryIntervalSecPointer
+        let _sessionExpiryIntervalSec: UInt32?  = try? self.sessionExpiryInterval?.secondUInt32() ?? nil
+        let _requestResponseInformation: UInt8? = self.requestResponseInformation?.uint8Value  ?? nil
+        let _requestProblemInformation: UInt8? = self.requestProblemInformation?.uint8Value ?? nil
+        let _willDelayIntervalSec: UInt32? = try? self.willDelayInterval?.secondUInt32() ?? nil
+
+        return withOptionalUnsafePointers(_sessionExpiryIntervalSec,
+                                          _requestResponseInformation,
+                                          _requestProblemInformation,
+                                          _willDelayIntervalSec,
+                                          self.receiveMaximum,
+                                          self.maximumPacketSize) { sessionExpiryIntervalSecPointer, requestResponseInformationPointer, requestProblemInformationPointer, willDelayIntervalSecPointer, receiveMaximumPointer, maximumPacketSizePointer in
+
+            if let _sessionExpiryIntervalSecPointer: UnsafePointer<UInt32> = sessionExpiryIntervalSecPointer {
+                raw_connect_options.session_expiry_interval_seconds = _sessionExpiryIntervalSecPointer
             }
-        }
 
-        if let _requestResponseInformation = self.requestResponseInformation?.uint8Value {
-            raw_connect_options.request_response_information = withUnsafePointer(to: _requestResponseInformation) { _requestResponseInformationPointer in
-                return _requestResponseInformationPointer
+            if let _requestResponseInformationPointer: UnsafePointer<UInt8> = requestResponseInformationPointer {
+                raw_connect_options.request_response_information = _requestResponseInformationPointer
             }
-        }
 
-        if let _requestProblemInformation = self.requestProblemInformation?.uint8Value {
-            raw_connect_options.request_problem_information = withUnsafePointer(to: _requestProblemInformation) { _requestProblemInformationPointer in
-                return _requestProblemInformationPointer
+            if let _requestProblemInformationPointer: UnsafePointer<UInt8> = requestProblemInformationPointer {
+                raw_connect_options.request_problem_information = _requestProblemInformationPointer
             }
-        }
 
-        if let _receiveMaximum = self.receiveMaximum {
-            raw_connect_options.receive_maximum = withUnsafePointer(to: _receiveMaximum) { _receiveMaximumPointer in
-                return _receiveMaximumPointer
+            if let _willDelayIntervalSecPointer: UnsafePointer<UInt32> = willDelayIntervalSecPointer {
+                raw_connect_options.will_delay_interval_seconds = _willDelayIntervalSecPointer
             }
-        }
 
-        if let _maximumPacketSize = self.maximumPacketSize {
-            raw_connect_options.maximum_packet_size_bytes = withUnsafePointer(to: _maximumPacketSize) { _maximumPacketSizePointer in
-                return _maximumPacketSizePointer
+            if let _receiveMaximumPointer: UnsafePointer<UInt16> = receiveMaximumPointer {
+                raw_connect_options.receive_maximum = _receiveMaximumPointer
             }
-        }
 
-        if let _willDelayIntervalSec = try? self.willDelayInterval?.secondUInt32() {
-            raw_connect_options.will_delay_interval_seconds = withUnsafePointer(to: _willDelayIntervalSec) { _willDelayIntervalSecPointer in
-                return _willDelayIntervalSecPointer
+            if let _maximumPacketSizePointer: UnsafePointer<UInt32> = maximumPacketSizePointer {
+                raw_connect_options.maximum_packet_size_bytes = _maximumPacketSizePointer
             }
-        }
 
-        if let _will = self.will {
-            raw_connect_options.will = _will.withCPointer { willPointer in return willPointer }
-        }
+            return withOptionalCStructPointer(to: self.will) { willCPointer in
+                raw_connect_options.will = willCPointer
 
-        // User Properties
-        if let _userProperties = userProperties {
-            raw_connect_options.user_property_count = _userProperties.count
-            raw_connect_options.user_properties = _userProperties.withCMqttUserProperties { cUserProperties in
-                return UnsafePointer<aws_mqtt5_user_property>(cUserProperties)
-            }
-        }
+                return withByteCursorFromStrings(clientId) { cClientId in
+                    raw_connect_options.client_id = cClientId
 
-        // TODO: CALLBACKS, THE CALLBACKS WILL COME WITH THE NEXT PR
+                    // TODO: USER PROPERTIES
+                    // if let _userProperties = userProperties {
+                    //     raw_connect_options.user_property_count = _userProperties.count
+                    //     raw_connect_options.user_properties = _userProperties.withCMqttUserProperties { cUserProperties in
+                    //         return UnsafePointer<aws_mqtt5_user_property>(cUserProperties)
+                    //     }
+                    // }
 
-        return withByteCursorFromStrings(clientId) { cClientId in
-            raw_connect_options.client_id = cClientId
-
-            return withOptionalByteCursorPointerFromString(self.username,
-                                                           self.password) { cUsernamePointer, cPasswordPointer in
-                raw_connect_options.username = cUsernamePointer
-                raw_connect_options.password = cPasswordPointer
-                return body(raw_connect_options)
+                    return withOptionalByteCursorPointerFromString(username,
+                                                                   password) { cUsernamePointer, cPasswordPointer in
+                        raw_connect_options.username = cUsernamePointer
+                        raw_connect_options.password = cPasswordPointer
+                        return body(raw_connect_options)
+                    }
+                }
             }
         }
     }
 }
 
+/** Temporary CALLBACKS */
+private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
+    print("[Mqtt5 Client Swift] LIFE CYCLE EVENTS")
+}
+
+private func MqttClientPublishRecievedEvents(_ publishPacketView: UnsafePointer<aws_mqtt5_packet_publish_view>?, _ userData: UnsafeMutableRawPointer?) {
+    print("[Mqtt5 Client Swift] PUBLISH RECIEVED EVENTS")
+}
+
+private func MqttClientTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
+    // termination callback
+    print("[Mqtt5 Client Swift] TERMINATION CALLBACK")
+}
+
 /// Configuration for the creation of MQTT5 clients
-public class MqttClientOptions {
+public class MqttClientOptions: CStruct {
     /// Host name of the MQTT server to connect to.
     public let hostName: String
 
@@ -979,6 +1021,81 @@ public class MqttClientOptions {
         self.onLifecycleEventConnectionSuccessFn = onLifecycleEventConnectionSuccessFn
         self.onLifecycleEventConnectionFailureFn = onLifecycleEventConnectionFailureFn
         self.onLifecycleEventDisconnectionFn = onLifecycleEventDisconnectionFn
+    }
+
+    typealias RawType = aws_mqtt5_client_options
+    func withCStruct<Result>( _ body: (aws_mqtt5_client_options) -> Result) -> Result {
+        var raw_options = aws_mqtt5_client_options()
+
+        raw_options.port = self.port
+        raw_options.bootstrap = self.bootstrap.rawValue
+
+        var tls_options: TLSConnectionOptions = TLSConnectionOptions(context: self.tlsCtx)
+
+        // TODO: CALLBACKS, callback related changes will be brought in next PR. This is a temp callback
+        raw_options.lifecycle_event_handler = MqttClientLifeycyleEvents
+        raw_options.publish_received_handler = MqttClientPublishRecievedEvents
+
+        if let _sessionBehavior = self.sessionBehavior {
+            raw_options.session_behavior = _sessionBehavior.rawValue
+        }
+
+        if let _extendedValidationAndFlowControlOptions = self.extendedValidationAndFlowControlOptions {
+            raw_options.extended_validation_and_flow_control_options = _extendedValidationAndFlowControlOptions.rawValue
+        }
+
+        if let _offlineQueueBehavior = self.offlineQueueBehavior {
+            raw_options.offline_queue_behavior = _offlineQueueBehavior.rawValue
+        }
+
+        if let _jitterMode = self.retryJitterMode {
+            raw_options.retry_jitter_mode = _jitterMode.rawValue
+        }
+
+        if let _minReconnectDelay = self.minReconnectDelay {
+            raw_options.min_reconnect_delay_ms = _minReconnectDelay.millisecond
+        }
+
+        if let _maxReconnectDelay = self.minReconnectDelay {
+            raw_options.max_reconnect_delay_ms = _maxReconnectDelay.millisecond
+        }
+
+        if let _minConnectedTimeToResetReconnectDelay = self.minConnectedTimeToResetReconnectDelay {
+            raw_options.min_connected_time_to_reset_reconnect_delay_ms = _minConnectedTimeToResetReconnectDelay.millisecond
+        }
+
+        if let _pingTimeout = self.pingTimeout {
+            raw_options.ping_timeout_ms = _pingTimeout.millisecondUInt32
+        }
+
+        if let _connackTimeout = self.connackTimeout {
+            raw_options.connack_timeout_ms = _connackTimeout.millisecondUInt32
+        }
+
+        if let _ackTimeout = self.ackTimeout {
+            raw_options.ack_timeout_seconds = _ackTimeout.millisecondUInt32
+        }
+
+        // We assign a default connection option if options is not set
+        var _connnectOptions = self.connectOptions
+        if _connnectOptions == nil {
+            _connnectOptions =  MqttConnectOptions()
+        }
+
+        return withOptionalCStructPointer(self.socketOptions, tls_options, self.httpProxyOptions, self.topicAliasingOptions, _connnectOptions) {
+            socketOptionsCPointer, tlsOptionsCPointer, httpProxyOptionsCPointer, topicAliasingOptionsCPointer, connectOptionsCPointer in
+
+            raw_options.socket_options = socketOptionsCPointer
+            raw_options.tls_options = tlsOptionsCPointer
+            raw_options.http_proxy_options = httpProxyOptionsCPointer
+            raw_options.topic_aliasing_options = topicAliasingOptionsCPointer
+            raw_options.connect_options = connectOptionsCPointer
+
+            return hostName.withByteCursor { hostNameByteCursor in
+                raw_options.host_name = hostNameByteCursor
+                return body(raw_options)
+            }
+        }
     }
 }
 
