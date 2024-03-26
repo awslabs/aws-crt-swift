@@ -233,7 +233,7 @@ func withOptionalByteCursorPointerFromString<Result>(
     }
 }
 
-func withOptionalByteCursorPointerFromString<Result>(
+func withOptionalByteCursorPointerFromStrings<Result>(
     _ arg1: String?,
     _ arg2: String?,
     _ body: (UnsafePointer<aws_byte_cursor>?, UnsafePointer<aws_byte_cursor>?) -> Result

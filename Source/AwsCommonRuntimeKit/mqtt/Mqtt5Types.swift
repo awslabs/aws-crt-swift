@@ -870,7 +870,7 @@ public class MqttConnectOptions: CStruct {
                     //     }
                     // }
 
-                    return withOptionalByteCursorPointerFromString(username,
+                    return withOptionalByteCursorPointerFromStrings(username,
                                                                    password) { cUsernamePointer, cPasswordPointer in
                         raw_connect_options.username = cUsernamePointer
                         raw_connect_options.password = cPasswordPointer
