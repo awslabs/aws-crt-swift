@@ -1030,7 +1030,7 @@ public class MqttClientOptions: CStruct {
         raw_options.port = self.port
         raw_options.bootstrap = self.bootstrap.rawValue
 
-        var tls_options: TLSConnectionOptions = TLSConnectionOptions(context: self.tlsCtx)
+        let tls_options: TLSConnectionOptions = TLSConnectionOptions(context: self.tlsCtx)
 
         // TODO: CALLBACKS, callback related changes will be brought in next PR. This is a temp callback
         raw_options.lifecycle_event_handler = MqttClientLifeycyleEvents
