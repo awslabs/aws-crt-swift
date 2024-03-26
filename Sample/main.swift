@@ -1,54 +1,28 @@
 print("Sample Starting")
 
 import AwsCommonRuntimeKit
-import Combine
+import AwsCMqtt
 import Foundation
 
-public class MqttClient {
-    public func start(){
-        // cals into native aws_mqtt5_client_start() which return success/failure
-    }
+func buildClient() throws -> Mqtt5Client {
+    print("Building Mqtt Client")
+    let elg = try EventLoopGroup()
+    let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
+    let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
+    let socketOptions = SocketOptions()
+    let tlsOptions = TLSContextOptions.makeDefault()
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+    let clientOptions = MqttClientOptions(hostName: "localhost",
+                                          port: 443,
+                                          bootstrap: clientBootstrap,
+                                          socketOptions: socketOptions,
+                                          tlsCtx: tlsContext)
 
-    public func stop(disconnectPacket: DisconnectPacket? = nil) {
-        // cals into native aws_mqtt5_client_stop() with optional disconnect packet. returns success/failure
-    }
-
-    public func publish(publishPacket: PublishPacket) {
-        // calls into native aws_mqtt5_client_publish(). returns success/failure
-    }
-
-    public func subscribe(subscribePacket: SubscribePacket?) {
-        // calls into native aws_mqtt5_client_subscribe(). returns success/failure
-    }
-
-    public func unsubscribe(unsubscribePacket: UnsubscribePacket) {
-        // calls into native aws_mqtt5_client_unsubscribe(). returns success/failure
-    }
-
-    public func getStats() -> ClientOperationStatistics {
-        // cals into native aws_mqtt5_client_get_stats
-        return ClientOperationStatistics(
-            incompleteOperationCount: 0,
-            incompleteOperationSize: 0,
-            unackedOperationCount: 0,
-            unackedOperationSize: 0)
-    }
-
-    // This should be unecessary in Swift as all request response clients and service clients will be mqtt5 in swift.
-    // public func newConnection() {
-    // }
-
-    public init (clientOptions: MqttClientOptions) {
-        // calls into native aws_mqtt5_client_new() which returns a pointer to the native client or nil
-    }
-    /*
-
-    Native mqtt functions not exposed directly in swift client
-    aws_mqtt5_client_acquire()
-    aws_mqtt5_client_release()
-
-    */
+    print("Returning Mqtt Client")
+    return try Mqtt5Client(clientOptions: clientOptions)
 }
+
+let client = try buildClient()
 
 // for waiting/sleep
 let semaphore: DispatchSemaphore = DispatchSemaphore(value: 0)
@@ -116,7 +90,7 @@ func subscribeAsync(subscribePacket: SubscribePacket) async throws -> SubackPack
         // Translate swift packet to native packet
         // We have a native callback for the operation
         // We have a pointer to the swift callback
-        //aws_mqtt5_subscribe(nativePacket, nativeCallback)
+        // aws_mqtt5_subscribe(nativePacket, nativeCallback)
 
         print("subscribeAsync nativeSubscribe within withCheckedThrowingContinuation for '\(subscribePacket.subscriptions[0].topicFilter)` starting")
         // represents the call to the native client
@@ -199,7 +173,6 @@ let suback = try await subscribeAsync(subscribePacket: subscribePacket)
 // needs to be contained in an async function to be used this way
 // subscribeAsync(subscribePacket: subscribePacket)
 
-
 // Drops out of scope immediately without passing op to native
 // Task {
 //     try await subscribeAsync(subscribePacket: subscribePacket)
@@ -213,12 +186,7 @@ let suback = try await subscribeAsync(subscribePacket: subscribePacket)
 // }
 // TestFunk()
 
-
-
-
-
 // _ = subscribe(subscribePacket: subscribePacket)
-
 
 // _ = subscribe(subscribePacket: subscribePacket)
 
@@ -227,7 +195,6 @@ let suback = try await subscribeAsync(subscribePacket: subscribePacket)
 
 // async let ack = try subscribe(subscribePacket: subscribePacket).value
 // try await client.subscribeAsync(subscribePacket: subscribePacket)
-
 
 // Execute the operation from within a task block
 // Task.detached {
@@ -261,7 +228,6 @@ let suback = try await subscribeAsync(subscribePacket: subscribePacket)
 // let task3 = subscribe(subscribePacket: SubscribePacket(
 //     topicFilter: "Store and nothing else",
 //     qos: QoS.atLeastOnce))
-
 
 // // Wait for the future to complete or until a timeout (e.g., 5 seconds)
 // wait(seconds: 5)
