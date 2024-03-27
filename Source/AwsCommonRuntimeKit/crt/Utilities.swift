@@ -380,3 +380,16 @@ func withOptionalUnsafePointers<T1, T2, T3, T4, T5, T6, Result>(
         }
     }
 }
+
+/// With Optional Array<Element> into c pointer UnsafePointer<T>
+func withOptionalArrayRawPointer<T, Result>(
+    of array: Array<T>?, _ body: (UnsafePointer<T>?) throws -> Result) rethrows -> Result {
+    guard let _array = array else {
+        return try body(nil)
+    }
+    return try _array.withUnsafeBufferPointer { arrayBufferPointer in
+        let ptr = UnsafeRawPointer(arrayBufferPointer.baseAddress!).bindMemory(
+              to: T.self, capacity: arrayBufferPointer.count)
+        return try body(ptr)
+    }
+}

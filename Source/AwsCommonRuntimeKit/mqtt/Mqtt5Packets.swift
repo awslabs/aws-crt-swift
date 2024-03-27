@@ -22,28 +22,61 @@ public class UserProperty: CStruct {
     func withCStruct<Result>(_ body: (aws_mqtt5_user_property) -> Result) -> Result {
         var rawUserProperty = aws_mqtt5_user_property()
         return withByteCursorFromStrings(name, value) { cNameCursor, cValueCursor in
-            rawUserProperty.name = cNameCursor
-            rawUserProperty.value = cValueCursor
+            aws_byte_buf_clean_up(&name_buffer)
+            aws_byte_buf_clean_up(&value_buffer)
+            aws_byte_buf_init_copy_from_cursor(&name_buffer, allocator, cNameCursor)
+            aws_byte_buf_init_copy_from_cursor(&value_buffer, allocator, cValueCursor)
+            rawUserProperty.name = aws_byte_cursor_from_buf(&name_buffer)
+            rawUserProperty.value = aws_byte_cursor_from_buf(&value_buffer)
             return body(rawUserProperty)
         }
+    }
+
+    // We keep a memory of the buffer storage in the class, and release it on
+    // destruction
+    private var name_buffer: aws_byte_buf = aws_byte_buf()
+    private var value_buffer: aws_byte_buf = aws_byte_buf()
+    deinit {
+        aws_byte_buf_clean_up(&name_buffer)
+        aws_byte_buf_clean_up(&value_buffer)
     }
 }
 
 extension Array where Element == UserProperty {
-    func withCMqttUserProperties<Result>(_ body: (OpaquePointer) -> Result) -> Result {
+    func withCMqttUserProperties<Result>(_ body: (OpaquePointer) throws -> Result) rethrows -> Result {
         var array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
-        guard aws_array_list_init_dynamic(array_list, allocator.rawValue,
-        count, MemoryLayout<aws_mqtt5_user_property>.size) == AWS_OP_SUCCESS else {
+        defer {
+            aws_array_list_clean_up(array_list)
+            allocator.release(array_list)
+        }
+        guard aws_array_list_init_dynamic(
+            array_list,
+            allocator.rawValue,
+            count,
+            MemoryLayout<aws_mqtt5_user_property>.size) == AWS_OP_SUCCESS else {
             fatalError("Unable to initialize array of user properties")
         }
         forEach {
             $0.withCPointer {
+                // `aws_array_list_push_back` will do a memory copy of $0 into array_list
                 guard aws_array_list_push_back(array_list, $0) == AWS_OP_SUCCESS else {
                     fatalError("Unable to add user property")
                 }
             }
         }
-        return body(OpaquePointer(array_list.pointee.data))
+        return try body(OpaquePointer(array_list.pointee.data))
+    }
+}
+
+/// Help function to handle Optional UserProperty Array into c pointer
+func withOptionalUserPropertyArray<Result>(
+    of array: Array<UserProperty>?,
+    _ body: (OpaquePointer?) throws -> Result) rethrows -> Result {
+    guard let _array = array else {
+        return try body(nil)
+    }
+    return try _array.withCMqttUserProperties { opaquePointer in
+        return try body(opaquePointer)
     }
 }
 
@@ -152,18 +185,31 @@ public class PublishPacket: CStruct {
                         raw_publish_view.topic_alias = _topicAliasPointer
                     }
 
-                    // TODO subscriptionIdentifiers LIST
-                    // TODO [UserProperties]
+                    return withOptionalArrayRawPointer(of: subscriptionIdentifiers) { subscriptionPointer in
 
-                    return withOptionalByteCursorPointerFromString(
-                        responseTopic,
-                        correlationData,
-                        contentType) { cResponseTopic, cCorrelationData, cContentType in
-                        raw_publish_view.content_type = cContentType
-                        raw_publish_view.correlation_data = cCorrelationData
-                        raw_publish_view.response_topic = cResponseTopic
+                        if let _subscriptionPointer = subscriptionPointer {
+                            raw_publish_view.subscription_identifiers = _subscriptionPointer
+                            raw_publish_view.subscription_identifier_count = subscriptionIdentifiers!.count
+                        }
 
-                        return body(raw_publish_view)
+                        return withOptionalUserPropertyArray(
+                            of: userProperties) { userPropertyPointer in
+                            if let _userPropertyPointer = userPropertyPointer {
+                                raw_publish_view.user_property_count = userProperties!.count
+                                raw_publish_view.user_properties =
+                                    UnsafePointer<aws_mqtt5_user_property>(_userPropertyPointer)
+                            }
+                            return withOptionalByteCursorPointerFromString(
+                            responseTopic,
+                            correlationData,
+                            contentType) { cResponseTopic, cCorrelationData, cContentType in
+                                raw_publish_view.content_type = cContentType
+                                raw_publish_view.correlation_data = cCorrelationData
+                                raw_publish_view.response_topic = cResponseTopic
+
+                                return body(raw_publish_view)
+                            }
+                        }
                     }
                 }
             }
