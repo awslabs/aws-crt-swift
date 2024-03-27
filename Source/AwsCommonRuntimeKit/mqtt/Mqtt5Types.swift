@@ -536,7 +536,7 @@ public class TopicAliasingOptions: CStruct {
         var raw_topic_alias_options = aws_mqtt5_client_topic_alias_options()
         if let _outboundBehavior = outboundBehavior {
             raw_topic_alias_options.outbound_topic_alias_behavior =
-                aws_mqtt5_client_outbound_topic_alias_behavior_type(UInt32(_outboundBehavior.rawValue))
+            aws_mqtt5_client_outbound_topic_alias_behavior_type(UInt32(_outboundBehavior.rawValue))
         }
 
         if let _outboundCacheMaxSize = outboundCacheMaxSize {
@@ -545,7 +545,7 @@ public class TopicAliasingOptions: CStruct {
 
         if let _inboundBehavior = inboundBehavior {
             raw_topic_alias_options.inbound_topic_alias_behavior =
-                aws_mqtt5_client_inbound_topic_alias_behavior_type(UInt32(_inboundBehavior.rawValue))
+            aws_mqtt5_client_inbound_topic_alias_behavior_type(UInt32(_inboundBehavior.rawValue))
         }
 
         if let _inboundCacheMaxSize = inboundCacheMaxSize {
@@ -576,11 +576,11 @@ public class ClientOperationStatistics {
                  incompleteOperationSize: UInt64,
                  unackedOperationCount: UInt64,
                  unackedOperationSize: UInt64) {
-            self.incompleteOperationCount = incompleteOperationCount
-            self.incompleteOperationSize = incompleteOperationSize
-            self.unackedOperationCount = unackedOperationCount
-            self.unackedOperationSize = unackedOperationSize
-        }
+        self.incompleteOperationCount = incompleteOperationCount
+        self.incompleteOperationSize = incompleteOperationSize
+        self.unackedOperationCount = unackedOperationCount
+        self.unackedOperationSize = unackedOperationSize
+    }
 }
 
 /// Class containing data related to a Publish Received Callback
@@ -727,20 +727,20 @@ public class NegotiatedSettings {
         rejoinedSession: Bool,
         clientId: String) {
 
-        self.maximumQos = maximumQos
-        self.sessionExpiryInterval = sessionExpiryInterval
-        self.receiveMaximumFromServer = receiveMaximumFromServer
-        self.maximumPacketSizeToServer = maximumPacketSizeToServer
-        self.topicAliasMaximumToServer = topicAliasMaximumToServer
-        self.topicAliasMaximumToClient = topicAliasMaximumToClient
-        self.serverKeepAlive = serverKeepAlive
-        self.retainAvailable = retainAvailable
-        self.wildcardSubscriptionsAvailable = wildcardSubscriptionsAvailable
-        self.subscriptionIdentifiersAvailable = subscriptionIdentifiersAvailable
-        self.sharedSubscriptionsAvailable = sharedSubscriptionsAvailable
-        self.rejoinedSession = rejoinedSession
-        self.clientId = clientId
-    }
+            self.maximumQos = maximumQos
+            self.sessionExpiryInterval = sessionExpiryInterval
+            self.receiveMaximumFromServer = receiveMaximumFromServer
+            self.maximumPacketSizeToServer = maximumPacketSizeToServer
+            self.topicAliasMaximumToServer = topicAliasMaximumToServer
+            self.topicAliasMaximumToClient = topicAliasMaximumToClient
+            self.serverKeepAlive = serverKeepAlive
+            self.retainAvailable = retainAvailable
+            self.wildcardSubscriptionsAvailable = wildcardSubscriptionsAvailable
+            self.subscriptionIdentifiersAvailable = subscriptionIdentifiersAvailable
+            self.sharedSubscriptionsAvailable = sharedSubscriptionsAvailable
+            self.rejoinedSession = rejoinedSession
+            self.clientId = clientId
+        }
 }
 
 /// Data model of an `MQTT5 CONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901033>`_ packet.
@@ -795,19 +795,19 @@ public class MqttConnectOptions: CStruct {
         will: PublishPacket? = nil,
         userProperties: [UserProperty]? = nil) {
 
-        self.keepAliveInterval = keepAliveInterval
-        self.clientId = clientId
-        self.username = username
-        self.password = password
-        self.sessionExpiryInterval = sessionExpiryInterval
-        self.requestResponseInformation = requestResponseInformation
-        self.requestProblemInformation = requestProblemInformation
-        self.receiveMaximum = receiveMaximum
-        self.maximumPacketSize = maximumPacketSize
-        self.willDelayInterval = willDelayInterval
-        self.will = will
-        self.userProperties = userProperties
-    }
+            self.keepAliveInterval = keepAliveInterval
+            self.clientId = clientId
+            self.username = username
+            self.password = password
+            self.sessionExpiryInterval = sessionExpiryInterval
+            self.requestResponseInformation = requestResponseInformation
+            self.requestProblemInformation = requestProblemInformation
+            self.receiveMaximum = receiveMaximum
+            self.maximumPacketSize = maximumPacketSize
+            self.willDelayInterval = willDelayInterval
+            self.will = will
+            self.userProperties = userProperties
+        }
 
     typealias RawType = aws_mqtt5_packet_connect_view
     func withCStruct<Result>( _ body: (RawType) -> Result) -> Result {
@@ -829,8 +829,8 @@ public class MqttConnectOptions: CStruct {
             _willDelayIntervalSec,
             self.receiveMaximum,
             self.maximumPacketSize) { sessionExpiryIntervalSecPointer, requestResponseInformationPointer,
-                                      requestProblemInformationPointer, willDelayIntervalSecPointer,
-                                      receiveMaximumPointer, maximumPacketSizePointer in
+            requestProblemInformationPointer, willDelayIntervalSecPointer,
+            receiveMaximumPointer, maximumPacketSizePointer in
 
             if let _sessionExpiryIntervalSecPointer = sessionExpiryIntervalSecPointer {
                 raw_connect_options.session_expiry_interval_seconds = _sessionExpiryIntervalSecPointer
@@ -862,19 +862,19 @@ public class MqttConnectOptions: CStruct {
                 return withByteCursorFromStrings(clientId) { cClientId in
                     raw_connect_options.client_id = cClientId
 
-                    // TODO: USER PROPERTIES
-                    // if let _userProperties = userProperties {
-                    //     raw_connect_options.user_property_count = _userProperties.count
-                    //     raw_connect_options.user_properties = _userProperties.withCMqttUserProperties { cUserProperties in
-                    //         return UnsafePointer<aws_mqtt5_user_property>(cUserProperties)
-                    //     }
-                    // }
+                    // handle user property
+                    return withOptionalUserPropertyArray(of: userProperties) { cUserProperties in
+                        if let _cUserProperties = cUserProperties {
+                            raw_connect_options.user_property_count = userProperties!.count
+                            raw_connect_options.user_properties = UnsafePointer<aws_mqtt5_user_property>(_cUserProperties)
+                        }
+                        return withOptionalByteCursorPointerFromStrings(
+                            username, password) { cUsernamePointer, cPasswordPointer in
+                                raw_connect_options.username = cUsernamePointer
+                                raw_connect_options.password = cPasswordPointer
+                                return body(raw_connect_options)
+                        }
 
-                    return withOptionalByteCursorPointerFromStrings(username,
-                                                                   password) { cUsernamePointer, cPasswordPointer in
-                        raw_connect_options.username = cUsernamePointer
-                        raw_connect_options.password = cPasswordPointer
-                        return body(raw_connect_options)
                     }
                 }
             }
@@ -1002,31 +1002,31 @@ public class MqttClientOptions: CStruct {
         onLifecycleEventConnectionFailureFn: OnLifecycleEventConnectionFailure? = nil,
         onLifecycleEventDisconnectionFn: OnLifecycleEventDisconnection? = nil) {
 
-        self.hostName = hostName
-        self.port = port
-        self.bootstrap = bootstrap
-        self.socketOptions = socketOptions
-        self.tlsCtx = tlsCtx
-        self.httpProxyOptions = httpProxyOptions
-        self.connectOptions = connectOptions
-        self.sessionBehavior = sessionBehavior
-        self.extendedValidationAndFlowControlOptions = extendedValidationAndFlowControlOptions
-        self.offlineQueueBehavior = offlineQueueBehavior
-        self.retryJitterMode = retryJitterMode
-        self.minReconnectDelay = minReconnectDelay
-        self.maxReconnectDelay = maxReconnectDelay
-        self.minConnectedTimeToResetReconnectDelay = minConnectedTimeToResetReconnectDelay
-        self.pingTimeout = pingTimeout
-        self.connackTimeout = connackTimeout
-        self.ackTimeout = ackTimeout
-        self.topicAliasingOptions = topicAliasingOptions
-        self.onPublishReceivedFn = onPublishReceivedFn
-        self.onLifecycleEventStoppedFn = onLifecycleEventStoppedFn
-        self.onLifecycleEventAttemptingConnectFn = onLifecycleEventAttemptingConnectFn
-        self.onLifecycleEventConnectionSuccessFn = onLifecycleEventConnectionSuccessFn
-        self.onLifecycleEventConnectionFailureFn = onLifecycleEventConnectionFailureFn
-        self.onLifecycleEventDisconnectionFn = onLifecycleEventDisconnectionFn
-    }
+            self.hostName = hostName
+            self.port = port
+            self.bootstrap = bootstrap
+            self.socketOptions = socketOptions
+            self.tlsCtx = tlsCtx
+            self.httpProxyOptions = httpProxyOptions
+            self.connectOptions = connectOptions
+            self.sessionBehavior = sessionBehavior
+            self.extendedValidationAndFlowControlOptions = extendedValidationAndFlowControlOptions
+            self.offlineQueueBehavior = offlineQueueBehavior
+            self.retryJitterMode = retryJitterMode
+            self.minReconnectDelay = minReconnectDelay
+            self.maxReconnectDelay = maxReconnectDelay
+            self.minConnectedTimeToResetReconnectDelay = minConnectedTimeToResetReconnectDelay
+            self.pingTimeout = pingTimeout
+            self.connackTimeout = connackTimeout
+            self.ackTimeout = ackTimeout
+            self.topicAliasingOptions = topicAliasingOptions
+            self.onPublishReceivedFn = onPublishReceivedFn
+            self.onLifecycleEventStoppedFn = onLifecycleEventStoppedFn
+            self.onLifecycleEventAttemptingConnectFn = onLifecycleEventAttemptingConnectFn
+            self.onLifecycleEventConnectionSuccessFn = onLifecycleEventConnectionSuccessFn
+            self.onLifecycleEventConnectionFailureFn = onLifecycleEventConnectionFailureFn
+            self.onLifecycleEventDisconnectionFn = onLifecycleEventDisconnectionFn
+        }
 
     typealias RawType = aws_mqtt5_client_options
     func withCStruct<Result>( _ body: (aws_mqtt5_client_options) -> Result) -> Result {
@@ -1070,7 +1070,7 @@ public class MqttClientOptions: CStruct {
 
         if let _minConnectedTimeToResetReconnectDelay = self.minConnectedTimeToResetReconnectDelay {
             raw_options.min_connected_time_to_reset_reconnect_delay_ms =
-                                            _minConnectedTimeToResetReconnectDelay.millisecond
+            _minConnectedTimeToResetReconnectDelay.millisecond
         }
 
         if let _pingTimeout = self.pingTimeout {
@@ -1098,11 +1098,11 @@ public class MqttClientOptions: CStruct {
             self.topicAliasingOptions,
             _connnectOptions) { socketOptionsCPointer, tlsOptionsCPointer, httpProxyOptionsCPointer, topicAliasingOptionsCPointer, connectOptionsCPointer in
 
-            raw_options.socket_options = socketOptionsCPointer
-            raw_options.tls_options = tlsOptionsCPointer
-            raw_options.http_proxy_options = httpProxyOptionsCPointer
-            raw_options.topic_aliasing_options = topicAliasingOptionsCPointer
-            raw_options.connect_options = connectOptionsCPointer
+                raw_options.socket_options = socketOptionsCPointer
+                raw_options.tls_options = tlsOptionsCPointer
+                raw_options.http_proxy_options = httpProxyOptionsCPointer
+                raw_options.topic_aliasing_options = topicAliasingOptionsCPointer
+                raw_options.connect_options = connectOptionsCPointer
 
             return hostName.withByteCursor { hostNameByteCursor in
                 raw_options.host_name = hostNameByteCursor

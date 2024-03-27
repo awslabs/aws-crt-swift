@@ -49,12 +49,12 @@ public class TLSContextOptions: CStruct {
          privateKeyData private_key_data: String) throws {
         var rawValue: UnsafeMutablePointer<aws_tls_ctx_options>  = allocator.allocate(capacity: 1)
         guard withOptionalByteCursorPointerFromStrings(
-            cert_data, private_key_data) { certificateByteCursor, privatekeyByteCursor in
+            cert_data, private_key_data, { certificateByteCursor, privatekeyByteCursor in
                 return aws_tls_ctx_options_init_client_mtls(rawValue,
                                                             allocator.rawValue,
                                                             certificateByteCursor,
                                                             privatekeyByteCursor)
-            }  == AWS_OP_SUCCESS else {
+            })  == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
         self.rawValue = rawValue
