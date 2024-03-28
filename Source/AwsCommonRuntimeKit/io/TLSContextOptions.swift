@@ -59,12 +59,12 @@ public class TLSContextOptions: CStruct {
     init(mtlsPkcs12FromPath path: String,
          password: String) throws {
         self.rawValue = allocator.allocate(capacity: 1)
-        if (password.withByteCursorPointer { passwordCursorPointer in
-            aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,
+        guard password.withByteCursorPointer({ passwordCursorPointer in
+            return aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,
                                                                   allocator.rawValue,
                                                                   path,
                                                                   passwordCursorPointer)
-        }) != AWS_OP_SUCCESS {
+        }) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
@@ -86,10 +86,10 @@ public class TLSContextOptions: CStruct {
     init(certificatePath cert_path: String,
          privateKeyPath private_path: String) throws {
             self.rawValue = allocator.allocate(capacity: 1)
-            guard aws_tls_ctx_options_init_client_mtls_from_path(rawValue,
-                                                              allocator.rawValue,
-                                                              cert_path,
-                                                              private_path) == AWS_OP_SUCCESS else {
+            guard aws_tls_ctx_options_init_client_mtls_from_path(self.rawValue,
+                                                                 allocator.rawValue,
+                                                                 cert_path,
+                                                                 private_path) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
