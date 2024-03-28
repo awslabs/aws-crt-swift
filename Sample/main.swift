@@ -14,11 +14,16 @@ func buildClient() throws -> Mqtt5Client {
     let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
     let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
     let socketOptions = SocketOptions()
-    let tlsOptions = TLSContextOptions.makeDefault()
+    // let tlsOptions = TLSContextOptions.makeDefault()
+    // Custom Auth Options
+    // endpoint
+    // CustomAuthName
+    // Custom Auth Password
+
     // let tlsOptions = try TLSContextOptions.makeMtlsFromFilePath(
     //                             certificatePath: "/Volumes/workplace/swift-mqtt/aws-crt-swift/.vscode/bare_bones_thing_cert.pem.crt",
     //                             privateKeyPath: "/Volumes/workplace/swift-mqtt/aws-crt-swift/.vscode/bare_bones_thing_priv_key.pem.key")
-    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+    // let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
 
     let connectOptions = MqttConnectOptions(keepAliveInterval: 120)
     let clientOptions = MqttClientOptions(
@@ -28,6 +33,33 @@ func buildClient() throws -> Mqtt5Client {
                                         port: 1883,
                                         bootstrap: clientBootstrap,
                                         socketOptions: socketOptions,
+                                        // tlsCtx: tlsContext,
+                                        connectOptions: connectOptions)
+
+    print("Returning Mqtt Client")
+    return try Mqtt5Client(clientOptions: clientOptions)
+}
+
+func buildCustomAuthClient() throws -> Mqtt5Client {
+    let elg = try EventLoopGroup()
+    let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
+    let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
+    let socketOptions = SocketOptions()
+
+    let tlsOptions = TLSContextOptions.makeDefault()
+    tlsOptions.setAlpnList(["mqtt"])
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let connectOptions = MqttConnectOptions(
+        keepAliveInterval: 120,
+        clientId: "test-fdef3f71-78b5-4055-98b2-bf5ca7b2f50b",
+        username: "x-amz-customauthorizer-name=CI_V2_SDK_CustomAuthorizer",
+        password: "AWS_Custom_Auth_Password_a03lzx0w")
+    let clientOptions = MqttClientOptions(
+                                        hostName: "a2yvr5l8sc9814-ats.iot.us-east-1.amazonaws.com",
+                                        port: 443,
+                                        bootstrap: clientBootstrap,
+                                        socketOptions: socketOptions,
                                         tlsCtx: tlsContext,
                                         connectOptions: connectOptions)
 
@@ -35,7 +67,8 @@ func buildClient() throws -> Mqtt5Client {
     return try Mqtt5Client(clientOptions: clientOptions)
 }
 
-let client = try buildClient()
+// let client = try buildClient()
+let client = try buildCustomAuthClient()
 print("\nCalling start()\n")
 client.start()
 
@@ -241,8 +274,7 @@ let subscribePacket: SubscribePacket = SubscribePacket(
 //     }
 // }
 
-// wait(seconds: 1)
-waitNoCountdown(seconds: 30)
+wait(seconds: 3)
 
 // print("cleanUp CommonRuntimeKit")
 // CommonRuntimeKit.cleanUp()
