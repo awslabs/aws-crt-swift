@@ -1119,11 +1119,11 @@ public class MqttClientOptions: CStructWithUserData {
 
             // TODO: SETUP lifecycle_event_handler and publish_received_handler
             raw_options.lifecycle_event_handler = MqttClientLifeycyleEvents
-            raw_options.lifecycle_event_handler_user_data = userData
+            raw_options.lifecycle_event_handler_user_data = _userData
             raw_options.publish_received_handler = MqttClientPublishRecievedEvents
-            raw_options.publish_received_handler_user_data = userData
+            raw_options.publish_received_handler_user_data = _userData
             raw_options.client_termination_handler = MqttClientTerminationCallback
-            raw_options.client_termination_handler_user_data = userData
+            raw_options.client_termination_handler_user_data = _userData
             return hostName.withByteCursor { hostNameByteCursor in
                 raw_options.host_name = hostNameByteCursor
                 return body(raw_options)
@@ -1140,12 +1140,14 @@ class MqttShutdownCallbackCore {
     let onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect?
     let onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess?
     let onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
+    let onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
 
     init(onPublishReceivedCallback: OnPublishReceived? = nil,
          onLifecycleEventStoppedCallback: OnLifecycleEventStopped? = nil,
          onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect? = nil,
          onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess? = nil,
          onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure? = nil,
+         onLifecycleEventDisconnection: OnLifecycleEventDisconnection? = nil,
          data: AnyObject? = nil) {
         if let onPublishReceivedCallback = onPublishReceivedCallback {
             self.onPublishReceivedCallback = onPublishReceivedCallback
@@ -1180,6 +1182,13 @@ class MqttShutdownCallbackCore {
         } else {
             /// Pass an empty callback to make manual reference counting easier and avoid null checks.
             self.onLifecycleEventConnectionFailure = { (_) -> Void in return}
+        }
+        
+        if let onLifecycleEventDisconnection = onLifecycleEventDisconnection {
+            self.onLifecycleEventDisconnection = onLifecycleEventDisconnection
+        } else {
+            /// Pass an empty callback to make manual reference counting easier and avoid null checks.
+            self.onLifecycleEventDisconnection = { (_) -> Void in return}
         }
     }
 
