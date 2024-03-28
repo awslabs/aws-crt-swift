@@ -9,7 +9,7 @@ public class Mqtt5Client {
      private var rawValue: UnsafeMutablePointer<aws_mqtt5_client>
      private let clientOptions: MqttClientOptions
 
-    init(clientOptions options: MqttClientOptions) throws {
+    public init(clientOptions options: MqttClientOptions) throws {
         self.clientOptions = options
 
         let mqttShutdownCallbackCore = MqttShutdownCallbackCore(
@@ -32,6 +32,10 @@ public class Mqtt5Client {
 
     deinit {
         aws_mqtt5_client_release(rawValue)
+    }
+
+    public func start() {
+        aws_mqtt5_client_start(rawValue)
     }
 
     /// TODO: Discard all client operations and force releasing the client. The client could not perform any operation after calling this function.
