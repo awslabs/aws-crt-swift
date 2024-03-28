@@ -186,14 +186,14 @@ func withOptionalCString<Result>(
 
 func withOptionalByteCursorPointerFromString<Result>(
     _ arg1: String?,
-    _ body: (UnsafePointer<aws_byte_cursor>?) -> Result
-) -> Result {
+    _ body: (UnsafePointer<aws_byte_cursor>?) throws -> Result
+) rethrows -> Result {
     guard let arg1 = arg1 else {
-        return body(nil)
+        return try body(nil)
     }
-    return arg1.withCString { arg1C in
-        withUnsafePointer(to: aws_byte_cursor_from_c_str(arg1C)) { byteCursorPointer in
-            body(byteCursorPointer)
+    return try arg1.withCString { arg1C in
+        try withUnsafePointer(to: aws_byte_cursor_from_c_str(arg1C)) { byteCursorPointer in
+            try body(byteCursorPointer)
         }
     }
 }
@@ -201,11 +201,11 @@ func withOptionalByteCursorPointerFromString<Result>(
 func withOptionalByteCursorPointerFromStrings<Result>(
     _ arg1: String?,
     _ arg2: String?,
-    _ body: (UnsafePointer<aws_byte_cursor>?, UnsafePointer<aws_byte_cursor>?) -> Result
-) -> Result {
-    return withOptionalByteCursorPointerFromString(arg1) { arg1C in
-        return withOptionalByteCursorPointerFromString(arg2) { arg2C in
-            return body(arg1C, arg2C)
+    _ body: (UnsafePointer<aws_byte_cursor>?, UnsafePointer<aws_byte_cursor>?) throws -> Result
+) rethrows -> Result {
+    return try withOptionalByteCursorPointerFromString(arg1) { arg1C in
+        return try withOptionalByteCursorPointerFromString(arg2) { arg2C in
+            return try body(arg1C, arg2C)
         }
     }
 

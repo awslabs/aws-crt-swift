@@ -9,19 +9,43 @@ public class TLSContextOptions: CStruct {
         TLSContextOptions()
     }
 
-    public static func makeMtlsPkcs12FromPath(
-        path: String,
+    /// Initializes TlsContextOptions for mutual TLS (mTLS), with client certificate and private key in the PKCS#12 format.
+    ///
+    /// NOTE: This only works on Apple devices.
+    ///
+    /// - Parameters:
+    ///     - pkcs12Path: Path to PKCS #12 file. The file is loaded from disk and stored internally. It must remain in
+    ///     memory for the lifetime of the returned object.
+    ///     - password: Password to PKCS #12 file. It must remain in memory for the lifetime of the returned object.
+    public static func makeMtls(
+        pkcs12Path: String,
         password: String) throws -> TLSContextOptions {
-        try TLSContextOptions(mtlsPkcs12FromPath: path, password: password)
+        try TLSContextOptions(mtlsPkcs12FromPath: pkcs12Path, password: password)
     }
 
-    public static func makeMtlsFromRawData(
+    /// Initializes TlsContextOptions for mutual TLS (mTLS), with client certificate and private key. These are in memory
+    /// buffers. These buffers must be in the PEM format.
+    ///
+    /// NOTE: This is unsupported on iOS.
+    ///
+    /// - Parameters:
+    ///     - certificateData: Certificate contents in memory.
+    ///     - privateKeyData: Private key contents in memory.
+    public static func makeMtls(
         certificateData: String,
         privateKeyData: String) throws -> TLSContextOptions {
         try TLSContextOptions(certificateData: certificateData, privateKeyData: privateKeyData)
     }
 
-    public static func makeMtlsFromFilePath(
+    /// Initializes TlsContextOptions for mutual TLS (mTLS), with client certificate and private key. These are paths to a
+    /// file on disk. These files must be in the PEM format.
+    ///
+    /// NOTE: This is unsupported on iOS.
+    ///
+    /// - Parameters:
+    ///     - certificatePath: Path to certificate file.
+    ///     - privateKeyPath: Path to private key file.
+    public static func makeMtls(
         certificatePath: String,
         privateKeyPath: String) throws -> TLSContextOptions {
         try TLSContextOptions(certificatePath: certificatePath, privateKeyPath: privateKeyPath)
@@ -47,26 +71,25 @@ public class TLSContextOptions: CStruct {
 
     init(certificateData cert_data: String,
          privateKeyData private_key_data: String) throws {
-        var rawValue: UnsafeMutablePointer<aws_tls_ctx_options>  = allocator.allocate(capacity: 1)
+        self.rawValue = allocator.allocate(capacity: 1)
         guard withOptionalByteCursorPointerFromStrings(
-            cert_data, private_key_data) { certificateByteCursor, privatekeyByteCursor in
-                return aws_tls_ctx_options_init_client_mtls(rawValue,
+            cert_data, private_key_data, {certificateByteCursor, privatekeyByteCursor in
+                return aws_tls_ctx_options_init_client_mtls(self.rawValue,
                                                             allocator.rawValue,
                                                             certificateByteCursor,
                                                             privatekeyByteCursor)
-            }  == AWS_OP_SUCCESS else {
+            })  == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
-        self.rawValue = rawValue
     }
 
     init(certificatePath cert_path: String,
          privateKeyPath private_path: String) throws {
-        self.rawValue = allocator.allocate(capacity: 1)
-        if aws_tls_ctx_options_init_client_mtls_from_path(rawValue,
-                                                           allocator.rawValue,
-                                                           cert_path,
-                                                           private_path) != AWS_OP_SUCCESS {
+            self.rawValue = allocator.allocate(capacity: 1)
+            guard aws_tls_ctx_options_init_client_mtls_from_path(rawValue,
+                                                              allocator.rawValue,
+                                                              cert_path,
+                                                              private_path) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
