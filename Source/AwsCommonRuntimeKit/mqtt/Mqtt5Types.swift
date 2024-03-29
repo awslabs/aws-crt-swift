@@ -907,32 +907,63 @@ public class MqttConnectOptions: CStruct {
 
 /** Temporary CALLBACKS place holder */
 private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
-    // TODO: Finish MqttClientLifeycyleEvents
-    print("[Mqtt5 Client Swift] LIFE CYCLE EVENTS")
-
     // lifecycleEvent can be nil due to it being optional here. Need to guard against it.
     guard let lifecycleEvent = lifecycleEvent else {
         print("Throw or report an error here?")
         return
     }
 
-    if let eventType = Mqtt5LifecycleEventType(rawValue: Int(lifecycleEvent.pointee.event_type.rawValue)){
-        switch eventType {
-            case .AttemptingConnect:
-                print("[Mqtt5 Client Swift] AttemptingConnect lifecycle event")
-            case .ConnectionSuccess:
-                print("[Mqtt5 Client Swift] ConnectionSuccess lifecycle event")
-            case .ConnectionFailure:
-                print("[Mqtt5 Client Swift] ConnectionFailure lifecycle event")
-            case .Disconnection:
-                print("[Mqtt5 Client Swift] Disconnection lifecycle event")
-            case .Stopped:
-                print("[Mqtt5 Client Swift] Stopped lifecycle event")
+    if let userData = lifecycleEvent.pointee.user_data {
+        let callbackCore: MqttShutdownCallbackCore = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userData).takeUnretainedValue()
+        if let eventType = Mqtt5LifecycleEventType(rawValue: Int(lifecycleEvent.pointee.event_type.rawValue)){
+            switch eventType {
+                case .AttemptingConnect:
+                    print("[Mqtt5 Client Swift] AttemptingConnect lifecycle event")
+                case .ConnectionSuccess:
+                    print("[Mqtt5 Client Swift] ConnectionSuccess lifecycle event")
+
+                    let connackPacket = ConnackPacket(
+                            sessionPresent: false,
+                            reasonCode: .success)
+
+                    let negotiatedSettings = NegotiatedSettings(
+                            maximumQos: .atLeastOnce,
+                            sessionExpiryInterval: 30,
+                            receiveMaximumFromServer: 900,
+                            maximumPacketSizeToServer: 900,
+                            topicAliasMaximumToServer: 900,
+                            topicAliasMaximumToClient: 900,
+                            serverKeepAlive: 900,
+                            retainAvailable: true,
+                            wildcardSubscriptionsAvailable: true,
+                            subscriptionIdentifiersAvailable: true,
+                            sharedSubscriptionsAvailable: true,
+                            rejoinedSession: false,
+                            clientId: "Nothing")
+
+                    let lifecycleConnectionSuccessData = LifecycleConnectSuccessData(
+                        connackPacket: connackPacket,
+                        negotiatedSettings: negotiatedSettings)
+
+                    callbackCore.onLifecycleEventConnectionSuccess?(lifecycleConnectionSuccessData)
+                case .ConnectionFailure:
+                    print("[Mqtt5 Client Swift] ConnectionFailure lifecycle event")
+                case .Disconnection:
+                    print("[Mqtt5 Client Swift] Disconnection lifecycle event")
+                case .Stopped:
+                    print("[Mqtt5 Client Swift] Stopped lifecycle event")
+            }
+        } else {
+            // TODO throw/report an error?
+            print("Lifecycle event type undefined")
         }
     } else {
-        // TODO throw/report an error?
-        print("Lifecycle event type undefined")
+        // callbackCore is missing or can't be cast properly from the userData in the lifecycle event
+        print("Throw or report an error here?")
+        return
     }
+
+
 }
 
 private func MqttClientPublishRecievedEvents(

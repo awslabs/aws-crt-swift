@@ -22,10 +22,15 @@ func buildDirectClient() throws -> Mqtt5Client {
                                         port: 1883,
                                         bootstrap: clientBootstrap,
                                         socketOptions: socketOptions,
-                                        connectOptions: connectOptions)
+                                        connectOptions: connectOptions,
+                                        onLifecycleEventConnectionSuccessFn: onLifecycleEventConnectionSuccess)
 
     print("Returning Mqtt Client")
     return try Mqtt5Client(clientOptions: clientOptions)
+}
+
+func onLifecycleEventConnectionSuccess(lifecycleConnectSuccessData: LifecycleConnectSuccessData) -> Void {
+    print("\nClient Set Lifecycle Event Connect Success Function Called \n")
 }
 
 func buildMtlsClient() throws -> Mqtt5Client {
@@ -52,7 +57,8 @@ func buildMtlsClient() throws -> Mqtt5Client {
                                         bootstrap: clientBootstrap,
                                         socketOptions: socketOptions,
                                         tlsCtx: tlsContext,
-                                        connectOptions: connectOptions)
+                                        connectOptions: connectOptions,
+                                        onLifecycleEventConnectionSuccessFn: onLifecycleEventConnectionSuccess)
 
     print("Returning Mqtt Client")
     return try Mqtt5Client(clientOptions: clientOptions)
