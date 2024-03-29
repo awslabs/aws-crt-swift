@@ -597,6 +597,29 @@ public class PublishReceivedData {
 /// Defines signature of the Publish callback
 public typealias OnPublishReceived = (PublishReceivedData) -> Void
 
+/// Type of a client lifecycle event
+private enum Mqtt5LifecycleEventType: Int {
+
+    /// Emitted when the client begins an attempt to connect to the remote endpoint.
+    case AttemptingConnect = 0
+
+    /// Emitted after the client connects to the remote endpoint and receives a successful CONNACK.
+    /// Every AttemptingConnect will be followed by exactly one ConnectionSuccess or one ConnectionFailure.
+    case ConnectionSuccess = 1
+
+    /// Emitted at any point during the connection process when it has conclusively failed.
+    /// Every AttemptingConnect will be followed by exactly one ConnectionSuccess or one ConnectionFailure.
+    case ConnectionFailure = 2
+
+    /// Lifecycle event containing information about a disconnect.  Every ConnectionSuccess will eventually be
+    /// followed by one and only one Disconnection.
+    case Disconnection = 3
+
+    /// Lifecycle event notifying the user that the client has entered the STOPPED state.  Entering this state will
+    /// cause the client to wipe all MQTT session state.
+    case Stopped = 4
+}
+
 /// Class containing results of an Stopped Lifecycle Event. Currently unused.
 public class LifecycleStoppedData { }
 
@@ -886,6 +909,30 @@ public class MqttConnectOptions: CStruct {
 private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
     // TODO: Finish MqttClientLifeycyleEvents
     print("[Mqtt5 Client Swift] LIFE CYCLE EVENTS")
+
+    // lifecycleEvent can be nil due to it being optional here. Need to guard against it.
+    guard let lifecycleEvent = lifecycleEvent else {
+        print("Throw or report an error here?")
+        return
+    }
+
+    if let eventType = Mqtt5LifecycleEventType(rawValue: Int(lifecycleEvent.pointee.event_type.rawValue)){
+        switch eventType {
+            case .AttemptingConnect:
+                print("[Mqtt5 Client Swift] AttemptingConnect lifecycle event")
+            case .ConnectionSuccess:
+                print("[Mqtt5 Client Swift] ConnectionSuccess lifecycle event")
+            case .ConnectionFailure:
+                print("[Mqtt5 Client Swift] ConnectionFailure lifecycle event")
+            case .Disconnection:
+                print("[Mqtt5 Client Swift] Disconnection lifecycle event")
+            case .Stopped:
+                print("[Mqtt5 Client Swift] Stopped lifecycle event")
+        }
+    } else {
+        // TODO throw/report an error?
+        print("Lifecycle event type undefined")
+    }
 }
 
 private func MqttClientPublishRecievedEvents(
@@ -1183,7 +1230,7 @@ class MqttShutdownCallbackCore {
             /// Pass an empty callback to make manual reference counting easier and avoid null checks.
             self.onLifecycleEventConnectionFailure = { (_) -> Void in return}
         }
-        
+
         if let onLifecycleEventDisconnection = onLifecycleEventDisconnection {
             self.onLifecycleEventDisconnection = onLifecycleEventDisconnection
         } else {

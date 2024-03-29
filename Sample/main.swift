@@ -4,7 +4,7 @@ import AwsCommonRuntimeKit
 import AwsCMqtt
 import Foundation
 
-Logger.initialize(pipe: stdout, level: LogLevel.trace)
+Logger.initialize(pipe: stdout, level: LogLevel.debug)
 print("Initializing CommonRutimeKit")
 CommonRuntimeKit.initialize()
 
@@ -276,7 +276,12 @@ func processSuback(subackPacket: SubackPacket) {
 //     }
 // }
 
-wait(seconds: 10)
+wait(seconds: 5)
+
+print("Stopping Client")
+client.stop()
+
+wait(seconds: 5)
 
 // print("cleanUp CommonRuntimeKit")
 // CommonRuntimeKit.cleanUp()

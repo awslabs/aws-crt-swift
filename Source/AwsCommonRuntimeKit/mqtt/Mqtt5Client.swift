@@ -39,6 +39,11 @@ public class Mqtt5Client {
         aws_mqtt5_client_start(rawValue)
     }
 
+    public func stop() {
+        // TODO this needs to be able to take a disconnect packet
+        aws_mqtt5_client_stop(rawValue, nil, nil)
+    }
+
     /// TODO: Discard all client operations and force releasing the client. The client could not perform any operation after calling this function.
     public func close() {
         // TODO
