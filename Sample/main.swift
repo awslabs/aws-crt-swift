@@ -4,33 +4,51 @@ import AwsCommonRuntimeKit
 import AwsCMqtt
 import Foundation
 
-Logger.initialize(pipe: stdout, level: LogLevel.debug)
+Logger.initialize(pipe: stdout, level: LogLevel.trace)
 print("Initializing CommonRutimeKit")
 CommonRuntimeKit.initialize()
 
-func buildClient() throws -> Mqtt5Client {
-    print("Building Mqtt Client")
+// Direct connect to mosquitto succeeds
+func buildDirectClient() throws -> Mqtt5Client {
+    print("Building Direct Mqtt Client")
     let elg = try EventLoopGroup()
     let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
     let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
     let socketOptions = SocketOptions()
-    // let tlsOptions = TLSContextOptions.makeDefault()
-    // Custom Auth Options
-    // endpoint
-    // CustomAuthName
-    // Custom Auth Password
-
-    let tlsOptions = try TLSContextOptions.makeMtlsFromFilePath(
-                                certificatePath: "/Volumes/workplace/swift-mqtt/aws-crt-swift/.vscode/bare_bones_thing_cert.pem.crt",
-                                privateKeyPath: "/Volumes/workplace/swift-mqtt/aws-crt-swift/.vscode/bare_bones_thing_priv_key.pem.key")
-    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
 
     let connectOptions = MqttConnectOptions(keepAliveInterval: 120)
     let clientOptions = MqttClientOptions(
-                                        hostName: "a3504fkqciaov6-ats.iot.us-east-1.amazonaws.com",
-                                        // hostName: "localhost",
-                                        // port: 443,
+                                        hostName: "localhost",
                                         port: 1883,
+                                        bootstrap: clientBootstrap,
+                                        socketOptions: socketOptions,
+                                        connectOptions: connectOptions)
+
+    print("Returning Mqtt Client")
+    return try Mqtt5Client(clientOptions: clientOptions)
+}
+
+func buildMtlsClient() throws -> Mqtt5Client {
+    print("Building Mtls Mqtt Client")
+    let elg = try EventLoopGroup()
+    let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
+    let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
+    let socketOptions = SocketOptions()
+
+    let tlsOptions = try TLSContextOptions.makeMtlsFromFilePath(
+        certificatePath:
+            "/Volumes/workplace/swift-mqtt/aws-crt-swift/.vscode/aws-sdk-cert.pem",
+        privateKeyPath:
+            "/Volumes/workplace/swift-mqtt/aws-crt-swift/.vscode/aws-sdk-key.pem")
+    // tlsOptions.setAlpnList(["x-amzn-mqtt-ca"])
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+
+    let connectOptions = MqttConnectOptions(keepAliveInterval: 120)
+    let clientOptions = MqttClientOptions(
+                                        hostName: "a2yvr5l8sc9814-ats.iot.us-east-1.amazonaws.com",
+                                        // port: 443, // to connect to 443 we need to set alpn
+                                        port: 8883, // connect to 8883 which expects mqtt
                                         bootstrap: clientBootstrap,
                                         socketOptions: socketOptions,
                                         tlsCtx: tlsContext,
@@ -40,8 +58,8 @@ func buildClient() throws -> Mqtt5Client {
     return try Mqtt5Client(clientOptions: clientOptions)
 }
 
-let client = try buildClient()
-// let client = try buildCustomAuthClient()
+// let client = try buildDirectClient()
+let client = try buildMtlsClient()
 print("\nCalling start()\n")
 client.start()
 
@@ -146,9 +164,9 @@ func processSuback(subackPacket: SubackPacket) {
     print("     =====SUBACK PACKET END=====")
 }
 
-let subscribePacket: SubscribePacket = SubscribePacket(
-    topicFilter: "hello/world",
-    qos: QoS.atLeastOnce)
+// let subscribePacket: SubscribePacket = SubscribePacket(
+//     topicFilter: "hello/world",
+//     qos: QoS.atLeastOnce)
 
 // // Ignore the returned Task
 // _ = subscribe(subscribePacket: SubscribePacket(
@@ -174,7 +192,18 @@ let subscribePacket: SubscribePacket = SubscribePacket(
 // This passes to Native the operation, we don't care about result but the async function runs to completion
 // async let _ = subscribeAsync(subscribePacket: subscribePacket)
 
+// Syncronously wait for the subscribe to complete and return a suback
 // let suback = try await subscribeAsync(subscribePacket: subscribePacket)
+
+// Put subscribe into a Task to complete
+// Task {
+//     do {
+//         let suback = try await subscribeAsync(subscribePacket: subscribePacket)
+//         processSuback(subackPacket: suback)
+//     } catch {
+//         print("An error was thrown \(error)")
+//     }
+// }
 
 // results in "'async' call in a function that does not support concurrency"
 // needs to be contained in an async function to be used this way
@@ -247,7 +276,7 @@ let subscribePacket: SubscribePacket = SubscribePacket(
 //     }
 // }
 
-wait(seconds: 3)
+wait(seconds: 10)
 
 // print("cleanUp CommonRuntimeKit")
 // CommonRuntimeKit.cleanUp()
