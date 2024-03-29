@@ -10,9 +10,8 @@ class TLSContextTests: XCBaseTestCase {
     let context = try TLSContext(options: options, mode: .client)
     _ = TLSConnectionOptions(context: context)
   }
-}
 
-// TODO: The test is disabled as the github CI failed on it.
+  // TODO: The test is disabled as the github CI failed on it.
   // TODO: Add test for testCreateTlsContextWithRawData()
   // func testCreateTlsContextWithFilePath() throws{
   //   try skipIfiOS()
@@ -25,3 +24,4 @@ class TLSContextTests: XCBaseTestCase {
   //   let context = try TLSContext(options: options, mode: .client)
   //   _ = TLSConnectionOptions(context: context)
   // }
+}
