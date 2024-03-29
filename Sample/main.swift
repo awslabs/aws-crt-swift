@@ -58,8 +58,8 @@ func buildMtlsClient() throws -> Mqtt5Client {
     return try Mqtt5Client(clientOptions: clientOptions)
 }
 
-// let client = try buildDirectClient()
-let client = try buildMtlsClient()
+let client = try buildDirectClient()
+// let client = try buildMtlsClient()
 print("\nCalling start()\n")
 client.start()
 

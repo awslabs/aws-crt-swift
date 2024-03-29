@@ -35,6 +35,7 @@ public class Mqtt5Client {
     }
 
     public func start() {
+        // TODO this needs to be checked for whether it returns an error
         aws_mqtt5_client_start(rawValue)
     }
 
