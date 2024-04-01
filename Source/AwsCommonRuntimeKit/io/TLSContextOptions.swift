@@ -9,10 +9,55 @@ public class TLSContextOptions: CStruct {
         TLSContextOptions()
     }
 
-    public static func makeMtlsPkcs12FromPath(
-        path: String,
+    /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key in the PKCS#12 format.
+    ///
+    /// NOTE: This only works on Apple devices.
+    ///
+    /// - Parameters:
+    ///     - pkcs12Path: Path to PKCS #12 file. The file is loaded from disk and stored internally. It must remain in
+    ///     memory for the lifetime of the returned object.
+    ///     - password: Password to PKCS #12 file. It must remain in memory for the lifetime of the returned object.
+    /// - Throws: CommonRuntimeError.crtError
+    public static func makeMTLS(
+        pkcs12Path: String,
         password: String) throws -> TLSContextOptions {
-        try TLSContextOptions(mtlsPkcs12FromPath: path, password: password)
+        try TLSContextOptions(mtlsPkcs12FromPath: pkcs12Path, password: password)
+    }
+
+    /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key. These are in memory
+    /// buffers. These buffers must be in the PEM format.
+    ///
+    /// NOTE: This is unsupported on iOS, tvOS, watchOS.
+    ///
+    /// - Parameters:
+    ///     - certificateData: Certificate contents in memory.
+    ///     - privateKeyData: Private key contents in memory.
+    /// - Throws: CommonRuntimeError.crtError
+    @available(iOS, unavailable)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public static func makeMTLS(
+        certificateData: String,
+        privateKeyData: String) throws -> TLSContextOptions {
+        try TLSContextOptions(certificateData: certificateData, privateKeyData: privateKeyData)
+    }
+
+    /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key. These are paths to a
+    /// file on disk. These files must be in the PEM format.
+    ///
+    /// NOTE: This is unsupported on iOS, tvOS, watchOS.
+    ///
+    /// - Parameters:
+    ///     - certificatePath: Path to certificate file.
+    ///     - privateKeyPath: Path to private key file.
+    /// - Throws: CommonRuntimeError.crtError
+    @available(iOS, unavailable)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public static func makeMTLS(
+        certificatePath: String,
+        privateKeyPath: String) throws -> TLSContextOptions {
+        try TLSContextOptions(certificatePath: certificatePath, privateKeyPath: privateKeyPath)
     }
 
     init() {
@@ -23,12 +68,37 @@ public class TLSContextOptions: CStruct {
     init(mtlsPkcs12FromPath path: String,
          password: String) throws {
         self.rawValue = allocator.allocate(capacity: 1)
-        if (password.withByteCursorPointer { passwordCursorPointer in
-            aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,
-                                                                  allocator.rawValue,
-                                                                  path,
-                                                                  passwordCursorPointer)
-        }) != AWS_OP_SUCCESS {
+        guard password.withByteCursorPointer({ passwordCursorPointer in
+            return aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(rawValue,
+                                                                         allocator.rawValue,
+                                                                         path,
+                                                                         passwordCursorPointer)
+        }) == AWS_OP_SUCCESS else {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+    }
+
+    init(certificateData cert_data: String,
+         privateKeyData private_key_data: String) throws {
+        self.rawValue = allocator.allocate(capacity: 1)
+        guard withOptionalByteCursorPointerFromStrings(
+            cert_data, private_key_data, {certificateByteCursor, privatekeyByteCursor in
+                return aws_tls_ctx_options_init_client_mtls(self.rawValue,
+                                                            allocator.rawValue,
+                                                            certificateByteCursor,
+                                                            privatekeyByteCursor)
+            })  == AWS_OP_SUCCESS else {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+    }
+
+    init(certificatePath cert_path: String,
+         privateKeyPath private_path: String) throws {
+            self.rawValue = allocator.allocate(capacity: 1)
+            guard aws_tls_ctx_options_init_client_mtls_from_path(self.rawValue,
+                                                                 allocator.rawValue,
+                                                                 cert_path,
+                                                                 private_path) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
