@@ -9,7 +9,7 @@ public class TLSContextOptions: CStruct {
         TLSContextOptions()
     }
 
-    /// Initializes TlsContextOptions for mutual TLS (mTLS), with client certificate and private key in the PKCS#12 format.
+    /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key in the PKCS#12 format.
     ///
     /// NOTE: This only works on Apple devices.
     ///
@@ -17,35 +17,44 @@ public class TLSContextOptions: CStruct {
     ///     - pkcs12Path: Path to PKCS #12 file. The file is loaded from disk and stored internally. It must remain in
     ///     memory for the lifetime of the returned object.
     ///     - password: Password to PKCS #12 file. It must remain in memory for the lifetime of the returned object.
-    public static func makeMtls(
+    /// - Throws: CommonRuntimeError.crtError
+    public static func makeMTLS(
         pkcs12Path: String,
         password: String) throws -> TLSContextOptions {
         try TLSContextOptions(mtlsPkcs12FromPath: pkcs12Path, password: password)
     }
 
-    /// Initializes TlsContextOptions for mutual TLS (mTLS), with client certificate and private key. These are in memory
+    /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key. These are in memory
     /// buffers. These buffers must be in the PEM format.
     ///
-    /// NOTE: This is unsupported on iOS.
+    /// NOTE: This is unsupported on iOS, tvOS, watchOS.
     ///
     /// - Parameters:
     ///     - certificateData: Certificate contents in memory.
     ///     - privateKeyData: Private key contents in memory.
-    public static func makeMtls(
+    /// - Throws: CommonRuntimeError.crtError
+    @available(iOS, unavailable)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public static func makeMTLS(
         certificateData: String,
         privateKeyData: String) throws -> TLSContextOptions {
         try TLSContextOptions(certificateData: certificateData, privateKeyData: privateKeyData)
     }
 
-    /// Initializes TlsContextOptions for mutual TLS (mTLS), with client certificate and private key. These are paths to a
+    /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key. These are paths to a
     /// file on disk. These files must be in the PEM format.
     ///
-    /// NOTE: This is unsupported on iOS.
+    /// NOTE: This is unsupported on iOS, tvOS, watchOS.
     ///
     /// - Parameters:
     ///     - certificatePath: Path to certificate file.
     ///     - privateKeyPath: Path to private key file.
-    public static func makeMtls(
+    /// - Throws: CommonRuntimeError.crtError
+    @available(iOS, unavailable)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public static func makeMTLS(
         certificatePath: String,
         privateKeyPath: String) throws -> TLSContextOptions {
         try TLSContextOptions(certificatePath: certificatePath, privateKeyPath: privateKeyPath)
