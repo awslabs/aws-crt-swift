@@ -597,29 +597,6 @@ public class PublishReceivedData {
 /// Defines signature of the Publish callback
 public typealias OnPublishReceived = (PublishReceivedData) -> Void
 
-/// Type of a client lifecycle event
-private enum Mqtt5LifecycleEventType: Int {
-
-    /// Emitted when the client begins an attempt to connect to the remote endpoint.
-    case AttemptingConnect = 0
-
-    /// Emitted after the client connects to the remote endpoint and receives a successful CONNACK.
-    /// Every AttemptingConnect will be followed by exactly one ConnectionSuccess or one ConnectionFailure.
-    case ConnectionSuccess = 1
-
-    /// Emitted at any point during the connection process when it has conclusively failed.
-    /// Every AttemptingConnect will be followed by exactly one ConnectionSuccess or one ConnectionFailure.
-    case ConnectionFailure = 2
-
-    /// Lifecycle event containing information about a disconnect.  Every ConnectionSuccess will eventually be
-    /// followed by one and only one Disconnection.
-    case Disconnection = 3
-
-    /// Lifecycle event notifying the user that the client has entered the STOPPED state.  Entering this state will
-    /// cause the client to wipe all MQTT session state.
-    case Stopped = 4
-}
-
 /// Class containing results of an Stopped Lifecycle Event. Currently unused.
 public class LifecycleStoppedData { }
 
@@ -907,63 +884,70 @@ public class MqttConnectOptions: CStruct {
 
 /** Temporary CALLBACKS place holder */
 private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
-    // lifecycleEvent can be nil due to it being optional here. Need to guard against it.
-    guard let lifecycleEvent = lifecycleEvent else {
-        print("Throw or report an error here?")
-        return
-    }
+
+    guard let lifecycleEvent = lifecycleEvent else { return }
 
     if let userData = lifecycleEvent.pointee.user_data {
         let callbackCore: MqttShutdownCallbackCore = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userData).takeUnretainedValue()
-        if let eventType = Mqtt5LifecycleEventType(rawValue: Int(lifecycleEvent.pointee.event_type.rawValue)){
-            switch eventType {
-                case .AttemptingConnect:
-                    print("[Mqtt5 Client Swift] AttemptingConnect lifecycle event")
-                case .ConnectionSuccess:
-                    print("[Mqtt5 Client Swift] ConnectionSuccess lifecycle event")
+        let eventType = lifecycleEvent.pointee.event_type
+        //Mqtt5LifecycleEventType(rawValue: Int(lifecycleEvent.pointee.event_type.rawValue)){
+        switch eventType {
+            case AWS_MQTT5_CLET_ATTEMPTING_CONNECT:
+                print("[Mqtt5 Client Swift] AttemptingConnect lifecycle event")
+                let lifecycleAttemptingConnectData = LifecycleAttemptingConnectData()
+                callbackCore.onLifecycleEventAttemptingConnect(lifecycleAttemptingConnectData)
 
+            case AWS_MQTT5_CLET_CONNECTION_SUCCESS:
+                print("[Mqtt5 Client Swift] ConnectionSuccess lifecycle event")
+                if let connackData = lifecycleEvent.pointee.connack_data{
+                    let sessionPresent = connackData.pointee.session_present
+                    let reasonCode = ConnectReasonCode(rawValue: Int(connackData.pointee.reason_code.rawValue)) ?? .unspecifiedError
+                    let sessionExpiryInterval = connackData.pointee.session_expiry_interval?.pointee
+                    let expiryIntervalInSeconds: TimeInterval? = sessionExpiryInterval.map { TimeInterval($0) }
+                    let receiveMaximum = convertOptionalUInt16(connackData.pointee.receive_maximum)
+                    // let maximumQos = QoS(rawValue: Int(connackData.pointee.maximum_qos.rawValue))
+                    let assignedClientIdentifier = convertAwsByteCursorToOptionalString(connackData.pointee.assigned_client_identifier)
                     let connackPacket = ConnackPacket(
-                            sessionPresent: false,
-                            reasonCode: .success)
-
+                        sessionPresent: sessionPresent,
+                        reasonCode: reasonCode,
+                        sessionExpiryInterval: expiryIntervalInSeconds,
+                        receiveMaximum: receiveMaximum,
+                        assignedClientIdentifier: assignedClientIdentifier
+                        )
                     let negotiatedSettings = NegotiatedSettings(
-                            maximumQos: .atLeastOnce,
-                            sessionExpiryInterval: 30,
-                            receiveMaximumFromServer: 900,
-                            maximumPacketSizeToServer: 900,
-                            topicAliasMaximumToServer: 900,
-                            topicAliasMaximumToClient: 900,
-                            serverKeepAlive: 900,
-                            retainAvailable: true,
-                            wildcardSubscriptionsAvailable: true,
-                            subscriptionIdentifiersAvailable: true,
-                            sharedSubscriptionsAvailable: true,
-                            rejoinedSession: false,
-                            clientId: "Nothing")
-
+                        maximumQos: .atLeastOnce,
+                        sessionExpiryInterval: 30,
+                        receiveMaximumFromServer: 900,
+                        maximumPacketSizeToServer: 900,
+                        topicAliasMaximumToServer: 900,
+                        topicAliasMaximumToClient: 900,
+                        serverKeepAlive: 900,
+                        retainAvailable: true,
+                        wildcardSubscriptionsAvailable: true,
+                        subscriptionIdentifiersAvailable: true,
+                        sharedSubscriptionsAvailable: true,
+                        rejoinedSession: false,
+                        clientId: "Nothing")
                     let lifecycleConnectionSuccessData = LifecycleConnectSuccessData(
                         connackPacket: connackPacket,
                         negotiatedSettings: negotiatedSettings)
+                    callbackCore.onLifecycleEventConnectionSuccess(lifecycleConnectionSuccessData)
+                }
 
-                    callbackCore.onLifecycleEventConnectionSuccess?(lifecycleConnectionSuccessData)
-                case .ConnectionFailure:
-                    print("[Mqtt5 Client Swift] ConnectionFailure lifecycle event")
-                case .Disconnection:
-                    print("[Mqtt5 Client Swift] Disconnection lifecycle event")
-                case .Stopped:
-                    print("[Mqtt5 Client Swift] Stopped lifecycle event")
-            }
-        } else {
-            // TODO throw/report an error?
-            print("Lifecycle event type undefined")
+            case AWS_MQTT5_CLET_CONNECTION_FAILURE:
+                print("[Mqtt5 Client Swift] ConnectionFailure lifecycle event")
+
+            case AWS_MQTT5_CLET_DISCONNECTION:
+                print("[Mqtt5 Client Swift] Disconnection lifecycle event")
+
+            case AWS_MQTT5_CLET_STOPPED:
+                print("[Mqtt5 Client Swift] Stopped lifecycle event")
+
+            default:
+                // TODO Should we throw an error here or just log that a lifecycle event was missing a valid type?
+                return
         }
-    } else {
-        // callbackCore is missing or can't be cast properly from the userData in the lifecycle event
-        print("Throw or report an error here?")
-        return
-    }
-
-
+    } else { return }
 }
 
 private func MqttClientPublishRecievedEvents(
@@ -975,7 +959,7 @@ private func MqttClientPublishRecievedEvents(
     let callbackCore = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userData!).takeUnretainedValue()
     let puback_packet = PublishPacket(qos: QoS.atLeastOnce, topic: "test")
     let puback = PublishReceivedData(publishPacket: puback_packet)
-    callbackCore.onPublishReceivedCallback?(puback)
+    callbackCore.onPublishReceivedCallback(puback)
 }
 
 private func MqttClientTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
@@ -1213,12 +1197,12 @@ public class MqttClientOptions: CStructWithUserData {
 /// Internal Classes
 /// Callback core for event loop callbacks
 class MqttShutdownCallbackCore {
-    let onPublishReceivedCallback: OnPublishReceived?
-    let onLifecycleEventStoppedCallback: OnLifecycleEventStopped?
-    let onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect?
-    let onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess?
-    let onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
-    let onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
+    let onPublishReceivedCallback: OnPublishReceived
+    let onLifecycleEventStoppedCallback: OnLifecycleEventStopped
+    let onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect
+    let onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess
+    let onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure
+    let onLifecycleEventDisconnection: OnLifecycleEventDisconnection
 
     init(onPublishReceivedCallback: OnPublishReceived? = nil,
          onLifecycleEventStoppedCallback: OnLifecycleEventStopped? = nil,

@@ -199,6 +199,27 @@ extension aws_array_list {
     }
 }
 
+// Convert an aws_byte_cursor pointer to an optional String
+func convertAwsByteCursorToOptionalString(_ awsByteCursor: UnsafePointer<aws_byte_cursor>?) -> String? {
+    guard let cursor = awsByteCursor?.pointee,
+          let validBytes = cursor.ptr else {
+            return nil
+          }
+
+    let data = Data(bytes: validBytes, count: Int(cursor.len))
+
+    return String(data: data, encoding: .utf8)
+}
+
+// Convert an optional UnsafePointer<UInt16>? into a UInt16?
+func convertOptionalUInt16(_ pointer: UnsafePointer<UInt16>?) -> UInt16? {
+    guard let validPointer = pointer else {
+        return nil
+    }
+
+    return validPointer.pointee
+}
+
 extension Bool {
     var uintValue: UInt32 {
         return self ? 1 : 0
