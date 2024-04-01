@@ -20,6 +20,7 @@ disabled_rules:
 
 opt_in_rules:
   - empty_count
+  - vertical_parameter_alignment_on_call
 
 # configurable rules can be customized from this configuration file
 force_cast: warning
@@ -47,3 +48,4 @@ statement_position:
   severity: error
 todo: warning
 trailing_semicolon: error
+vertical_parameter_alignment_on_call: true
