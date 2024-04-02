@@ -11,19 +11,39 @@ class TLSContextTests: XCBaseTestCase {
     _ = TLSConnectionOptions(context: context)
   }
 
-// TODO: The test is disabled as the github CI failed on access default keychain.
-// TODO: Add test for testCreateTlsContextWithRawData()
-//    func testCreateTlsContextWithFilePath() throws{
-//       try skipIfiOS()
-//       try skipIftvOS()
-//       try skipIfwatchOS()
-//       
-//       let cert_path = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT311_IOT_CORE_X509_CERT")
-//       let private_key_path = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT311_IOT_CORE_X509_KEY")
-//       
-//       let options = try TLSContextOptions.makeMTLS(certificatePath: cert_path, privateKeyPath: private_key_path)
-//
-//       let context = try TLSContext(options: options, mode: .client)
-//       _ = TLSConnectionOptions(context: context)
-//    }
+  static func run_shell(_ command: String) -> String {
+    let task = Process()
+    let pipe = Pipe()
+
+    task.standardOutput = pipe
+    task.standardError = pipe
+    task.arguments = ["-c", command]
+    task.launchPath = "/bin/bash"
+    task.standardInput = nil
+    task.launch()
+
+    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+    let output = String(data: data, encoding: .utf8)!
+
+    return output
+  }
+
+  func testSecurityDefaultKeychain() throws
+  {
+    print(TLSContextTests.run_shell("security default-keychain"));
+  }
+
+  // TODO: The test is disabled as the github CI failed on it.
+  // TODO: Add test for testCreateTlsContextWithRawData()
+  func testCreateTlsContextWithFilePath() throws{
+    try skipIfiOS()
+    try skipIftvOS()
+    try skipIfwatchOS()
+
+    let cert_path = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT311_IOT_CORE_X509_CERT")
+    let private_key_path = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT311_IOT_CORE_X509_KEY")
+    let options = try TLSContextOptions.makeMTLS(certificatePath: cert_path, privateKeyPath: private_key_path)
+    let context = try TLSContext(options: options, mode: .client)
+    _ = TLSConnectionOptions(context: context)
+  }
 }
