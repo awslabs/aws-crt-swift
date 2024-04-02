@@ -57,6 +57,10 @@ jobs:
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
+          pwd
+          cd ${{PACKAGE_NAME}}
+          pwd
+          ls
           security default-keychain
           swift --version
           swift build -c release
