@@ -18,11 +18,13 @@ public class TLSContextOptions: CStruct {
     ///     memory for the lifetime of the returned object.
     ///     - password: Password to PKCS #12 file. It must remain in memory for the lifetime of the returned object.
     /// - Throws: CommonRuntimeError.crtError
+#if os(macOS)
     public static func makeMTLS(
         pkcs12Path: String,
         password: String) throws -> TLSContextOptions {
         try TLSContextOptions(mtlsPkcs12FromPath: pkcs12Path, password: password)
     }
+#endif
 
     /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key. These are in memory
     /// buffers. These buffers must be in the PEM format.
@@ -33,11 +35,13 @@ public class TLSContextOptions: CStruct {
     ///     - certificateData: Certificate contents in memory.
     ///     - privateKeyData: Private key contents in memory.
     /// - Throws: CommonRuntimeError.crtError
+#if os(macOS)
     public static func makeMTLS(
         certificateData: String,
         privateKeyData: String) throws -> TLSContextOptions {
         try TLSContextOptions(certificateData: certificateData, privateKeyData: privateKeyData)
     }
+#endif
 
     /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key. These are paths to a
     /// file on disk. These files must be in the PEM format.
@@ -47,12 +51,14 @@ public class TLSContextOptions: CStruct {
     /// - Parameters:
     ///     - certificatePath: Path to certificate file.
     ///     - privateKeyPath: Path to private key file.
+#if os(macOS)
     public static func makeMTLS(
         certificatePath: String,
         privateKeyPath: String) throws -> TLSContextOptions {
         try TLSContextOptions(certificatePath: certificatePath, privateKeyPath: privateKeyPath)
     }
-
+#endif
+    
     init() {
         self.rawValue = allocator.allocate(capacity: 1)
         aws_tls_ctx_options_init_default_client(rawValue, allocator.rawValue)
@@ -71,11 +77,11 @@ public class TLSContextOptions: CStruct {
         }
     }
 
-    init(certificateData cert_data: String,
-         privateKeyData private_key_data: String) throws {
+    init(certificateData: String,
+         privateKeyData: String) throws {
         self.rawValue = allocator.allocate(capacity: 1)
         guard withOptionalByteCursorPointerFromStrings(
-            cert_data, private_key_data, {certificateByteCursor, privatekeyByteCursor in
+            certificateData, privateKeyData, {certificateByteCursor, privatekeyByteCursor in
                 return aws_tls_ctx_options_init_client_mtls(self.rawValue,
                                                             allocator.rawValue,
                                                             certificateByteCursor,
@@ -85,13 +91,12 @@ public class TLSContextOptions: CStruct {
         }
     }
 
-    init(certificatePath cert_path: String,
-         privateKeyPath private_path: String) throws {
+    init(certificatePath: String, privateKeyPath: String) throws {
             self.rawValue = allocator.allocate(capacity: 1)
             guard aws_tls_ctx_options_init_client_mtls_from_path(self.rawValue,
                                                                  allocator.rawValue,
-                                                                 cert_path,
-                                                                 private_path) == AWS_OP_SUCCESS else {
+                                                                 certificatePath,
+                                                                 privateKeyPath) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
