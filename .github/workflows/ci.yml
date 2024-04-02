@@ -58,9 +58,9 @@ jobs:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
           security default-keychain
-          python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
-          chmod a+x builder
-          ./builder build -p ${{ env.PACKAGE_NAME }}
+          swift --version
+          swift build -c
+          xcodebuild -scheme aws-crt-swift-Package test -destination "platform=OSX"
 
   devices:
     runs-on: ${{ matrix.runner }}
