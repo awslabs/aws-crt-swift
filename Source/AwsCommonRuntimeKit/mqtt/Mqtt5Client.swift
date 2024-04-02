@@ -6,7 +6,7 @@ import AwsCMqtt
 import AwsCIo
 
 public class Mqtt5Client {
-     private var rawValue: UnsafeMutablePointer<aws_mqtt5_client>
+     private var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
      private let clientOptions: MqttClientOptions
 
     init(clientOptions options: MqttClientOptions) throws {
@@ -34,8 +34,8 @@ public class Mqtt5Client {
         aws_mqtt5_client_release(rawValue)
     }
 
-    /// TODO: Discard all client operations and force releasing the client. The client could not perform any operation after calling this function.
     public func close() {
-        // TODO
+        aws_mqtt5_client_release(rawValue)
+        rawValue = nil
     }
 }
