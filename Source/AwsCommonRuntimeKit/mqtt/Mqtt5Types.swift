@@ -5,18 +5,19 @@ import AwsCMqtt
 
 /// MQTT message delivery quality of service.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901234>`__ encoding values.
-public enum QoS: Int {
+public enum QoS: Int32, ConvertibleFromNativeEnum {
 
     /// The message is delivered according to the capabilities of the underlying network. No response is sent by the
     /// receiver and no retry is performed by the sender. The message arrives at the receiver either once or not at all.
-    case atMostOnce = 0
+    case atMostOnce = 0x0
 
     /// A level of service that ensures that the message arrives at the receiver at least once.
-    case atLeastOnce = 1
+    case atLeastOnce = 0x1
 
     /// A level of service that ensures that the message arrives at the receiver exactly once.
     /// Note that this client does not currently support QoS 2 as of (March 2024)
-    case exactlyOnce = 2
+    case exactlyOnce = 0x2
+
 }
 
 /// Server return code for connect attempts.
@@ -95,6 +96,14 @@ public enum ConnectReasonCode: Int {
 
     /// Returned when the server connection rate limit has been exceeded.
     case connectionRateExceeded = 159
+
+}
+
+internal extension ConnectReasonCode {
+    /// Returns the native representation of the Swift enum
+    var nativeValue: aws_mqtt5_connect_reason_code {
+        return aws_mqtt5_connect_reason_code(rawValue: UInt32(self.rawValue))
+    }
 }
 
 /// Reason code inside DISCONNECT packets.  Helps determine why a connection was terminated.
@@ -349,34 +358,30 @@ public enum UnsubackReasonCode: Int {
 }
 
 /// Controls how the mqtt client should behave with respect to MQTT sessions.
-public enum ClientSessionBehaviorType {
+public enum ClientSessionBehaviorType: Int {
 
     /// Default client session behavior. Maps to CLEAN.
-    case `default`
+    case `default` = 0
 
     /// Always ask for a clean session when connecting
-    case clean
+    case clean = 1
 
     /// Always attempt to rejoin an existing session after an initial connection success.
     /// Session rejoin requires an appropriate non-zero session expiry interval in the client's CONNECT options.
-    case rejoinPostSuccess
+    case rejoinPostSuccess = 2
 
     /// Always attempt to rejoin an existing session.  Since the client does not support durable session persistence,
     /// this option is not guaranteed to be spec compliant because any unacknowledged qos1 publishes (which are
     /// part of the client session state) will not be present on the initial connection.  Until we support
     /// durable session resumption, this option is technically spec-breaking, but useful.
     /// Always rejoin requires an appropriate non-zero session expiry interval in the client's CONNECT options.
-    case rejoinAlways
+    case rejoinAlways = 3
 }
 
-extension ClientSessionBehaviorType {
-    var rawValue: aws_mqtt5_client_session_behavior_type {
-        switch self {
-        case .default:  return aws_mqtt5_client_session_behavior_type(rawValue: 0)
-        case .clean:  return aws_mqtt5_client_session_behavior_type(rawValue: 1)
-        case .rejoinPostSuccess:  return aws_mqtt5_client_session_behavior_type(rawValue: 2)
-        case .rejoinAlways:  return aws_mqtt5_client_session_behavior_type(rawValue: 3)
-        }
+internal extension ClientSessionBehaviorType {
+    /// Returns the native representation of the Swift enum
+    var nativeValue: aws_mqtt5_client_session_behavior_type {
+        return aws_mqtt5_client_session_behavior_type(rawValue: UInt32(self.rawValue))
     }
 }
 
@@ -890,7 +895,7 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
     if let userData = lifecycleEvent.pointee.user_data {
         let callbackCore: MqttShutdownCallbackCore = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userData).takeUnretainedValue()
         let eventType = lifecycleEvent.pointee.event_type
-        //Mqtt5LifecycleEventType(rawValue: Int(lifecycleEvent.pointee.event_type.rawValue)){
+
         switch eventType {
             case AWS_MQTT5_CLET_ATTEMPTING_CONNECT:
                 print("[Mqtt5 Client Swift] AttemptingConnect lifecycle event")
@@ -899,21 +904,45 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
 
             case AWS_MQTT5_CLET_CONNECTION_SUCCESS:
                 print("[Mqtt5 Client Swift] ConnectionSuccess lifecycle event")
-                if let connackData = lifecycleEvent.pointee.connack_data{
+                if let connackData: UnsafePointer<aws_mqtt5_packet_connack_view> = lifecycleEvent.pointee.connack_data{
+
                     let sessionPresent = connackData.pointee.session_present
                     let reasonCode = ConnectReasonCode(rawValue: Int(connackData.pointee.reason_code.rawValue)) ?? .unspecifiedError
                     let sessionExpiryInterval = connackData.pointee.session_expiry_interval?.pointee
                     let expiryIntervalInSeconds: TimeInterval? = sessionExpiryInterval.map { TimeInterval($0) }
                     let receiveMaximum = convertOptionalUInt16(connackData.pointee.receive_maximum)
-                    // let maximumQos = QoS(rawValue: Int(connackData.pointee.maximum_qos.rawValue))
+
+                    let maximumQosPointer = connackData.pointee.maximum_qos
+                    let rawPointer = UnsafeRawPointer(maximumQosPointer)
+                    let maximumQosPointer = UnsafePointer<Int32>(connackData.pointee.maximum_qos)
+                    let maximumQos: QoS? = convertCEnumToSwiftEnum(connackData.pointee.maximum_qos)
+                    // let qosPointer: UnsafePointer<Int32>? = connackData.pointee.maximum_qos
+                    // let maximumQos: QoS? = convertCEnumToSwiftEnum(
+                    //                                     from: connackData.pointee.maximum_qos,
+                    //                                     to: QoS)
+                    //QoS(rawValue: Int(connackData.pointee.maximum_qos.rawValue))
+
                     let assignedClientIdentifier = convertAwsByteCursorToOptionalString(connackData.pointee.assigned_client_identifier)
                     let connackPacket = ConnackPacket(
                         sessionPresent: sessionPresent,
                         reasonCode: reasonCode,
                         sessionExpiryInterval: expiryIntervalInSeconds,
                         receiveMaximum: receiveMaximum,
-                        assignedClientIdentifier: assignedClientIdentifier
-                        )
+                        maximumQos: nil,
+                        retainAvailable: nil,
+                        maximumPacketSize: nil,
+                        assignedClientIdentifier: assignedClientIdentifier,
+                        topicAliasMaximum: nil,
+                        reasonString: nil,
+                        userProperties: nil,
+                        wildcardSubscriptionsAvailable: nil,
+                        subscriptionIdentifiersAvailable: nil,
+                        sharedSubscriptionAvailable: nil,
+                        serverKeepAlive: nil,
+                        responseInformation: nil,
+                        serverReference: nil)
+
+                    // TODO Binding of negotiated Settings is placeholder. Needs to be implemented.
                     let negotiatedSettings = NegotiatedSettings(
                         maximumQos: .atLeastOnce,
                         sessionExpiryInterval: 30,
@@ -1112,7 +1141,7 @@ public class MqttClientOptions: CStructWithUserData {
         }
 
         if let _sessionBehavior = self.sessionBehavior {
-            raw_options.session_behavior = _sessionBehavior.rawValue
+            raw_options.session_behavior = _sessionBehavior.nativeValue
         }
 
         if let _extendedValidationAndFlowControlOptions = self.extendedValidationAndFlowControlOptions {

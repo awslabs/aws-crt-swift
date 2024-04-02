@@ -23,14 +23,20 @@ func buildDirectClient() throws -> Mqtt5Client {
                                         bootstrap: clientBootstrap,
                                         socketOptions: socketOptions,
                                         connectOptions: connectOptions,
+                                        onLifecycleEventAttemptingConnectFn: onLifecycleEventAttemptingConnect,
                                         onLifecycleEventConnectionSuccessFn: onLifecycleEventConnectionSuccess)
 
     print("Returning Mqtt Client")
     return try Mqtt5Client(clientOptions: clientOptions)
 }
 
+func onLifecycleEventAttemptingConnect(lifecycleAttemptingConnectData: LifecycleAttemptingConnectData) -> Void {
+    print("\nClient Set Lifecycle Event Attempting Connect Function Called \n")
+}
+
 func onLifecycleEventConnectionSuccess(lifecycleConnectSuccessData: LifecycleConnectSuccessData) -> Void {
     print("\nClient Set Lifecycle Event Connect Success Function Called \n")
+    processConnack(connackPacket: lifecycleConnectSuccessData.connackPacket)
 }
 
 func buildMtlsClient() throws -> Mqtt5Client {
@@ -168,6 +174,22 @@ func processSuback(subackPacket: SubackPacket) {
         }
     }
     print("     =====SUBACK PACKET END=====")
+}
+
+func processConnack(connackPacket: ConnackPacket) {
+    print("     =======CONNACK PACKET=======")
+    print("     Processing connack")
+    print("     Connack reasonCode: \(connackPacket.reasonCode)")
+    print("     sessionPresent: \(connackPacket.sessionPresent)")
+    if let sessionExpiryInterval = connackPacket.sessionExpiryInterval {
+        print("     sessionExpiryInterval: \(sessionExpiryInterval)")
+    } else { print("     sessionExpirtyInterval: NONE") }
+    if let receiveMaximum = connackPacket.receiveMaximum {
+        print("     receiveMaximum: \(receiveMaximum)")
+    } else { print("     receiveMaximum: NONE")}
+    if let assignedClientIdentifier = connackPacket.assignedClientIdentifier {
+        print("     assignedClientIdentifier: \(assignedClientIdentifier)")
+    } else {print("     assignedClientIdentifier: NONE")}
 }
 
 // let subscribePacket: SubscribePacket = SubscribePacket(
