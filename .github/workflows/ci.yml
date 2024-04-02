@@ -59,7 +59,7 @@ jobs:
         run: |
           security default-keychain
           swift --version
-          swift build -c
+          swift build -c release
           xcodebuild -scheme aws-crt-swift-Package test -destination "platform=OSX"
 
   devices:
