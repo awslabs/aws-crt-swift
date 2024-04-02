@@ -35,7 +35,7 @@ public class TLSContextOptions: CStruct {
     ///     - certificateData: Certificate contents in memory.
     ///     - privateKeyData: Private key contents in memory.
     /// - Throws: CommonRuntimeError.crtError
-#if os(macOS)
+#if !(os(tvOS) || os(iOS) || os(tvOS))
     public static func makeMTLS(
         certificateData: String,
         privateKeyData: String) throws -> TLSContextOptions {
@@ -51,14 +51,14 @@ public class TLSContextOptions: CStruct {
     /// - Parameters:
     ///     - certificatePath: Path to certificate file.
     ///     - privateKeyPath: Path to private key file.
-#if os(macOS)
+#if !(os(tvOS) || os(iOS) || os(tvOS))
     public static func makeMTLS(
         certificatePath: String,
         privateKeyPath: String) throws -> TLSContextOptions {
         try TLSContextOptions(certificatePath: certificatePath, privateKeyPath: privateKeyPath)
     }
 #endif
-    
+
     init() {
         self.rawValue = allocator.allocate(capacity: 1)
         aws_tls_ctx_options_init_default_client(rawValue, allocator.rawValue)
