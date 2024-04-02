@@ -35,7 +35,7 @@ public class TLSContextOptions: CStruct {
     ///     - certificateData: Certificate contents in memory.
     ///     - privateKeyData: Private key contents in memory.
     /// - Throws: CommonRuntimeError.crtError
-#if !(os(tvOS) || os(iOS) || os(tvOS))
+#if !(os(tvOS) || os(iOS) || os(watchOS))
     public static func makeMTLS(
         certificateData: String,
         privateKeyData: String) throws -> TLSContextOptions {
@@ -51,7 +51,8 @@ public class TLSContextOptions: CStruct {
     /// - Parameters:
     ///     - certificatePath: Path to certificate file.
     ///     - privateKeyPath: Path to private key file.
-#if !(os(tvOS) || os(iOS) || os(tvOS))
+    /// - Throws: CommonRuntimeError.crtError
+#if !(os(tvOS) || os(iOS) || os(watchOS))
     public static func makeMTLS(
         certificatePath: String,
         privateKeyPath: String) throws -> TLSContextOptions {
