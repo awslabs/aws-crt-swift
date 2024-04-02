@@ -37,6 +37,7 @@ func onLifecycleEventAttemptingConnect(lifecycleAttemptingConnectData: Lifecycle
 func onLifecycleEventConnectionSuccess(lifecycleConnectSuccessData: LifecycleConnectSuccessData) -> Void {
     print("\nClient Set Lifecycle Event Connect Success Function Called \n")
     processConnack(connackPacket: lifecycleConnectSuccessData.connackPacket)
+    processNegotiatedSettings(negotiatedSettings: lifecycleConnectSuccessData.negotiatedSettings)
 }
 
 func buildMtlsClient() throws -> Mqtt5Client {
@@ -70,8 +71,8 @@ func buildMtlsClient() throws -> Mqtt5Client {
     return try Mqtt5Client(clientOptions: clientOptions)
 }
 
-let client = try buildDirectClient()
-// let client = try buildMtlsClient()
+// let client = try buildDirectClient()
+let client = try buildMtlsClient()
 print("\nCalling start()\n")
 client.start()
 
@@ -176,20 +177,100 @@ func processSuback(subackPacket: SubackPacket) {
     print("     =====SUBACK PACKET END=====")
 }
 
+func processNegotiatedSettings(negotiatedSettings: NegotiatedSettings) {
+    print("     =======NEGOTIATED SETTINGS=======")
+
+    print("     maximumQos: \(negotiatedSettings.maximumQos)")
+
+    print("     sessionExpiryInterval: \(negotiatedSettings.sessionExpiryInterval)")
+
+    print("     receiveMaximumFromServer: \(negotiatedSettings.receiveMaximumFromServer)")
+
+    print("     maximumPacketSizeToServer: \(negotiatedSettings.maximumPacketSizeToServer)")
+
+    print("     topicAliasMaximumToServer: \(negotiatedSettings.topicAliasMaximumToServer)")
+
+    print("     topicAliasMaximumToClient: \(negotiatedSettings.topicAliasMaximumToClient)")
+
+    print("     serverKeepAlive: \(negotiatedSettings.serverKeepAlive)")
+
+    print("     retainAvailable: \(negotiatedSettings.retainAvailable)")
+
+    print("     wildcardSubscriptionsAvailable: \(negotiatedSettings.wildcardSubscriptionsAvailable)")
+
+    print("     subscriptionIdentifiersAvailable: \(negotiatedSettings.subscriptionIdentifiersAvailable)")
+
+    print("     sharedSubscriptionsAvailable: \(negotiatedSettings.sharedSubscriptionsAvailable)")
+
+    print("     rejoinedSession: \(negotiatedSettings.rejoinedSession)")
+
+    print("     clientId: \(negotiatedSettings.clientId)")
+
+    print("=============================================")
+}
+
 func processConnack(connackPacket: ConnackPacket) {
     print("     =======CONNACK PACKET=======")
-    print("     Processing connack")
-    print("     Connack reasonCode: \(connackPacket.reasonCode)")
     print("     sessionPresent: \(connackPacket.sessionPresent)")
+    print("     Connack reasonCode: \(connackPacket.reasonCode)")
     if let sessionExpiryInterval = connackPacket.sessionExpiryInterval {
         print("     sessionExpiryInterval: \(sessionExpiryInterval)")
     } else { print("     sessionExpirtyInterval: NONE") }
+
     if let receiveMaximum = connackPacket.receiveMaximum {
         print("     receiveMaximum: \(receiveMaximum)")
     } else { print("     receiveMaximum: NONE")}
+
+    if let maximumQos = connackPacket.maximumQos {
+        print("     maximumQos: \(maximumQos)")
+    } else { print("    maximumQos: NONE") }
+
+    if let retainAvailable = connackPacket.retainAvailable {
+        print("     retainAvailable: \(retainAvailable)")
+    } else {print("     retainAvailable: NONE")}
+
+    if let maximumPacketSize = connackPacket.maximumPacketSize {
+        print("     maximumPacketSize: \(maximumPacketSize)")
+    } else {print("     maximumPacketSize: NONE")}
+
     if let assignedClientIdentifier = connackPacket.assignedClientIdentifier {
         print("     assignedClientIdentifier: \(assignedClientIdentifier)")
     } else {print("     assignedClientIdentifier: NONE")}
+
+    if let topicAliasMaximum = connackPacket.topicAliasMaximum {
+        print("     topicAliasMaximum: \(topicAliasMaximum)")
+    } else {print("     topicAliasMaximum: NONE")}
+
+    if let reasonString = connackPacket.reasonString {
+        print("     reasonString: \(reasonString)")
+    } else {print("     reasonString: NONE")}
+
+    if let wildcardSubscriptionsAvailable = connackPacket.wildcardSubscriptionsAvailable {
+        print("     wildcardSubscriptionsAvailable: \(wildcardSubscriptionsAvailable)")
+    } else {print("     wildcardSubscriptionsAvailable: NONE")}
+
+    if let subscriptionIdentifiersAvailable = connackPacket.subscriptionIdentifiersAvailable {
+        print("     subscriptionIdentifiersAvailable: \(subscriptionIdentifiersAvailable)")
+    } else {print("     subscriptionIdentifiersAvailable: NONE")}
+
+    if let sharedSubscriptionAvailable = connackPacket.sharedSubscriptionAvailable {
+        print("     sharedSubscriptionAvailable: \(sharedSubscriptionAvailable)")
+    } else {print("     sharedSubscriptionAvailable: NONE")}
+
+    if let serverKeepAlive = connackPacket.serverKeepAlive {
+        print("     serverKeepAlive: \(serverKeepAlive)")
+    } else {print("     serverKeepAlive: NONE")}
+
+    if let responseInformation = connackPacket.responseInformation {
+        print("     responseInformation: \(responseInformation)")
+    } else {print("     responseInformation: NONE")}
+
+    if let serverReference = connackPacket.serverReference {
+        print("     serverReference: \(serverReference)")
+    } else {print("     serverReference: NONE")}
+
+    print("=============================================")
+
 }
 
 // let subscribePacket: SubscribePacket = SubscribePacket(

@@ -211,8 +211,24 @@ func convertAwsByteCursorToOptionalString(_ awsByteCursor: UnsafePointer<aws_byt
     return String(data: data, encoding: .utf8)
 }
 
-// Convert an optional UnsafePointer<UInt16>? into a UInt16?
+// Convert a native uint16_t pointer into a Swift UInt16?
 func convertOptionalUInt16(_ pointer: UnsafePointer<UInt16>?) -> UInt16? {
+    guard let validPointer = pointer else {
+        return nil
+    }
+    return validPointer.pointee
+}
+
+/// Convert a native uint32_t pointer into a Swift UInt32?
+func convertOptionalUInt32(_ pointer: UnsafePointer<UInt32>?) -> UInt32? {
+    guard let validPointer = pointer else {
+        return nil
+    }
+    return validPointer.pointee
+}
+
+/// Convert a native bool pointer to an optional Swift Bool
+func convertOptionalBool(_ pointer: UnsafePointer<Bool>?) -> Bool? {
     guard let validPointer = pointer else {
         return nil
     }
