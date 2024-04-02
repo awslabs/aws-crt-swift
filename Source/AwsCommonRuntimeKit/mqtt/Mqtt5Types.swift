@@ -961,15 +961,15 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
                     serverReference: serverReference)
 
 
+                // TODO this should not default to .atMostOnce. It should fail if something unexpected is the maximum_qos.rawValue
                 let negotiatedMaximumQos = QoS(rawValue: Int(negotiatedSettingsData.pointee.maximum_qos.rawValue)) ?? .atMostOnce
-                let negotiatedSessionExpiryInterval: UInt32 = negotiatedSettingsData.pointee.session_expiry_interval
-                let negotiatedSessionExpiryIntervalSeconds: TimeInterval = TimeInterval(negotiatedSessionExpiryInterval)// negotiatedSessionExpiryInterval.map { TimeInterval($0) }
+
+                let negotiatedSessionExpiryInterval: TimeInterval = TimeInterval(negotiatedSettingsData.pointee.session_expiry_interval)
                 let negotiatedReceiveMaximumFromServer = negotiatedSettingsData.pointee.receive_maximum_from_server
                 let negotiatedMaximumPacketSizeToServer = negotiatedSettingsData.pointee.maximum_packet_size_to_server
                 let negotiatedTopicAliasMaximumToServer = negotiatedSettingsData.pointee.topic_alias_maximum_to_server
                 let negotiatedTopicAliasMaximumToClient = negotiatedSettingsData.pointee.topic_alias_maximum_to_client
-                let negotiatedServerKeepAlive = negotiatedSettingsData.pointee.server_keep_alive
-                let negotiatedServerKeepAliveSeconds: TimeInterval = TimeInterval(negotiatedServerKeepAlive)// negotiatedServerKeepAlive.map { TimeInterval($0) }
+                let negotiatedServerKeepAlive: TimeInterval = TimeInterval(negotiatedSettingsData.pointee.server_keep_alive)
                 let negotiatedRetainAvailable = negotiatedSettingsData.pointee.retain_available
                 let negotiatedWildcardSubscriptionsAvailable = negotiatedSettingsData.pointee.wildcard_subscriptions_available
                 let negotiatedSubscriptionIdentifiersAvailable = negotiatedSettingsData.pointee.subscription_identifiers_available
@@ -977,15 +977,14 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
                 let negotiatedRejoinedSession = negotiatedSettingsData.pointee.rejoined_session
                 let negotiatedClientId = negotiatedSettingsData.pointee.client_id_storage.toString()
 
-                // TODO Binding of negotiated Settings is placeholder. Needs to be implemented.
                 let negotiatedSettings = NegotiatedSettings(
                     maximumQos: negotiatedMaximumQos,
-                    sessionExpiryInterval: negotiatedSessionExpiryIntervalSeconds,
+                    sessionExpiryInterval: negotiatedSessionExpiryInterval,
                     receiveMaximumFromServer: negotiatedReceiveMaximumFromServer,
                     maximumPacketSizeToServer: negotiatedMaximumPacketSizeToServer,
                     topicAliasMaximumToServer: negotiatedTopicAliasMaximumToServer,
                     topicAliasMaximumToClient: negotiatedTopicAliasMaximumToClient,
-                    serverKeepAlive: negotiatedServerKeepAliveSeconds,
+                    serverKeepAlive: negotiatedServerKeepAlive,
                     retainAvailable: negotiatedRetainAvailable,
                     wildcardSubscriptionsAvailable: negotiatedWildcardSubscriptionsAvailable,
                     subscriptionIdentifiersAvailable: negotiatedSubscriptionIdentifiersAvailable,
