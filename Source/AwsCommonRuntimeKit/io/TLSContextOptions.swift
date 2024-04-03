@@ -1,6 +1,7 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
+import Foundation
 import AwsCIo
 public class TLSContextOptions: CStruct {
     private var rawValue: UnsafeMutablePointer<aws_tls_ctx_options>
@@ -37,8 +38,8 @@ public class TLSContextOptions: CStruct {
     /// - Throws: CommonRuntimeError.crtError
 #if !(os(tvOS) || os(iOS) || os(watchOS))
     public static func makeMTLS(
-        certificateData: String,
-        privateKeyData: String) throws -> TLSContextOptions {
+        certificateData: Data,
+        privateKeyData: Data) throws -> TLSContextOptions {
         try TLSContextOptions(certificateData: certificateData, privateKeyData: privateKeyData)
     }
 #endif
@@ -78,16 +79,16 @@ public class TLSContextOptions: CStruct {
         }
     }
 
-    init(certificateData: String,
-         privateKeyData: String) throws {
+    init(certificateData: Data,
+         privateKeyData: Data) throws {
         self.rawValue = allocator.allocate(capacity: 1)
-        guard withOptionalByteCursorPointerFromStrings(
-            certificateData, privateKeyData, {certificateByteCursor, privatekeyByteCursor in
+        guard certificateData.withAWSByteCursorPointer({ certificateByteCursor in
+            return privateKeyData.withAWSByteCursorPointer{ privatekeyByteCursor in
                 return aws_tls_ctx_options_init_client_mtls(self.rawValue,
                                                             allocator.rawValue,
                                                             certificateByteCursor,
                                                             privatekeyByteCursor)
-            })  == AWS_OP_SUCCESS else {
+            }})  == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
