@@ -18,7 +18,7 @@ class TLSContextTests: XCBaseTestCase {
     task.standardOutput = pipe
     task.standardError = pipe
     task.arguments = ["-c", command]
-    task.launchPath = "/bin/bash"
+    task.launchPath = "/bin/zsh"
     task.standardInput = nil
     task.launch()
 
@@ -31,6 +31,7 @@ class TLSContextTests: XCBaseTestCase {
   func testSecurityDefaultKeychain() throws
   {
       print(TLSContextTests.run_shell("security default-keychain"));
+      // We always fail the test here so that we can quickly locate the result.
       XCTAssert(false, "Always fail the test.")
   }
 
