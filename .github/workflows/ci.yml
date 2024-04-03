@@ -67,7 +67,7 @@ jobs:
           security default-keychain
           swift --version
           swift build -c release
-          xcodebuild -scheme aws-crt-swift-Package test -destination "platform=OSX"
+          xcodebuild -scheme aws-crt-swift-Package test -destination "platform=OS X"
 
   devices:
     runs-on: ${{ matrix.runner }}
