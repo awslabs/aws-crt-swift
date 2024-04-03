@@ -638,7 +638,6 @@ public class LifecycleConnectionFailureData {
         self.crtError = crtError
         self.connackPacket = connackPacket
     }
-
 }
 
 /// Defines signature of the Lifecycle Event Connection Failure callback
@@ -739,6 +738,48 @@ public class NegotiatedSettings {
             self.rejoinedSession = rejoinedSession
             self.clientId = clientId
         }
+
+    static func convertFromRaw(negotiatedSettingsData: UnsafePointer<aws_mqtt5_negotiated_settings>?) -> NegotiatedSettings?{
+
+        if let negotiatedSettingsData = negotiatedSettingsData {
+
+            guard let negotiatedMaximumQos = QoS(rawValue: Int(negotiatedSettingsData.pointee.maximum_qos.rawValue)) else {
+                // TODO log an error. This should always be valid
+                return nil
+            }
+
+            let negotiatedSessionExpiryInterval: TimeInterval = TimeInterval(negotiatedSettingsData.pointee.session_expiry_interval)
+            let negotiatedReceiveMaximumFromServer = negotiatedSettingsData.pointee.receive_maximum_from_server
+            let negotiatedMaximumPacketSizeToServer = negotiatedSettingsData.pointee.maximum_packet_size_to_server
+            let negotiatedTopicAliasMaximumToServer = negotiatedSettingsData.pointee.topic_alias_maximum_to_server
+            let negotiatedTopicAliasMaximumToClient = negotiatedSettingsData.pointee.topic_alias_maximum_to_client
+            let negotiatedServerKeepAlive: TimeInterval = TimeInterval(negotiatedSettingsData.pointee.server_keep_alive)
+            let negotiatedRetainAvailable = negotiatedSettingsData.pointee.retain_available
+            let negotiatedWildcardSubscriptionsAvailable = negotiatedSettingsData.pointee.wildcard_subscriptions_available
+            let negotiatedSubscriptionIdentifiersAvailable = negotiatedSettingsData.pointee.subscription_identifiers_available
+            let negotiatedSharedSubscriptionsAvailable = negotiatedSettingsData.pointee.shared_subscriptions_available
+            let negotiatedRejoinedSession = negotiatedSettingsData.pointee.rejoined_session
+            let negotiatedClientId = negotiatedSettingsData.pointee.client_id_storage.toString()
+
+            let negotiatedSettings = NegotiatedSettings(
+                maximumQos: negotiatedMaximumQos,
+                sessionExpiryInterval: negotiatedSessionExpiryInterval,
+                receiveMaximumFromServer: negotiatedReceiveMaximumFromServer,
+                maximumPacketSizeToServer: negotiatedMaximumPacketSizeToServer,
+                topicAliasMaximumToServer: negotiatedTopicAliasMaximumToServer,
+                topicAliasMaximumToClient: negotiatedTopicAliasMaximumToClient,
+                serverKeepAlive: negotiatedServerKeepAlive,
+                retainAvailable: negotiatedRetainAvailable,
+                wildcardSubscriptionsAvailable: negotiatedWildcardSubscriptionsAvailable,
+                subscriptionIdentifiersAvailable: negotiatedSubscriptionIdentifiersAvailable,
+                sharedSubscriptionsAvailable: negotiatedSharedSubscriptionsAvailable,
+                rejoinedSession: negotiatedRejoinedSession,
+                clientId: negotiatedClientId)
+
+            return negotiatedSettings
+        }
+        return nil
+    }
 }
 
 /// Data model of an `MQTT5 CONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901033>`_ packet.
@@ -883,65 +924,16 @@ public class MqttConnectOptions: CStruct {
     }
 }
 
-/** Temporary CALLBACKS place holder */
+/// Handles lifecycle events from native Mqtt Client
 private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
 
-    guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent else {
-        // TODO log an error. This should always be valid
+    guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent else
+    {
+        // TODO Log at debug level
         return
-        }
+    }
 
     let crtError = CRTError(code: lifecycleEvent.pointee.error_code)
-
-    let connackPacket: ConnackPacket?
-    if let connackData: UnsafePointer<aws_mqtt5_packet_connack_view> = lifecycleEvent.pointee.connack_data {
-        let sessionPresent = connackData.pointee.session_present
-        let reasonCode = ConnectReasonCode(rawValue: Int(connackData.pointee.reason_code.rawValue)) ?? .unspecifiedError
-        let sessionExpiryInterval = (connackData.pointee.session_expiry_interval?.pointee).map { TimeInterval($0) }
-        let receiveMaximum = convertOptionalUInt16(connackData.pointee.receive_maximum)
-
-        var maximumQos: QoS? = nil
-        if let maximumQosValue = connackData.pointee.maximum_qos {
-            let maximumQoSNativeValue = maximumQosValue.pointee.rawValue
-            maximumQos = QoS(rawValue: Int(maximumQoSNativeValue))
-        }
-
-        let retainAvailable = convertOptionalBool(connackData.pointee.retain_available)
-        let maximumPacketSize = convertOptionalUInt32(connackData.pointee.maximum_packet_size)
-        let assignedClientIdentifier = convertAwsByteCursorToOptionalString(connackData.pointee.assigned_client_identifier)
-        let topicAliasMaximum = convertOptionalUInt16(connackData.pointee.topic_alias_maximum)
-        let reasonString = convertAwsByteCursorToOptionalString(connackData.pointee.reason_string)
-        let wildcardSubscriptionsAvailable = convertOptionalBool(connackData.pointee.wildcard_subscriptions_available)
-        let subscriptionIdentifiersAvailable = convertOptionalBool(connackData.pointee.subscription_identifiers_available)
-        let sharedSubscriptionAvailable = convertOptionalBool(connackData.pointee.shared_subscriptions_available)
-        let serverKeepAlive = convertOptionalUInt16(connackData.pointee.server_keep_alive)
-        let serverKeepAliveInSeconds: TimeInterval? = serverKeepAlive.map { TimeInterval($0) }
-        let responseInformation = convertAwsByteCursorToOptionalString(connackData.pointee.response_information)
-        let serverReference = convertAwsByteCursorToOptionalString(connackData.pointee.server_reference)
-
-        // TODO USER PROPERTIES MUST BE BOUND
-
-        connackPacket = ConnackPacket(
-            sessionPresent: sessionPresent,
-            reasonCode: reasonCode,
-            sessionExpiryInterval: sessionExpiryInterval,
-            receiveMaximum: receiveMaximum,
-            maximumQos: maximumQos,
-            retainAvailable: retainAvailable,
-            maximumPacketSize: maximumPacketSize,
-            assignedClientIdentifier: assignedClientIdentifier,
-            topicAliasMaximum: topicAliasMaximum,
-            reasonString: reasonString,
-            userProperties: nil,
-            wildcardSubscriptionsAvailable: wildcardSubscriptionsAvailable,
-            subscriptionIdentifiersAvailable: subscriptionIdentifiersAvailable,
-            sharedSubscriptionAvailable: sharedSubscriptionAvailable,
-            serverKeepAlive: serverKeepAliveInSeconds,
-            responseInformation: responseInformation,
-            serverReference: serverReference)
-    } else {
-        connackPacket = nil
-    }
 
     if let userData = lifecycleEvent.pointee.user_data {
         let callbackCore: MqttShutdownCallbackCore = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userData).takeUnretainedValue()
@@ -955,91 +947,41 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
 
             case AWS_MQTT5_CLET_CONNECTION_SUCCESS:
 
-                if connackPacket == nil {
-                    // TODO connackPacket should not be nil for a connection success lifecycle event
+                guard let connackPacket = ConnackPacket.convertFromRaw(connackData: lifecycleEvent.pointee.connack_data) else {
+                    // TODO log that connack packet was nil in debug
                     return
                 }
 
-                guard let negotiatedSettingsData: UnsafePointer<aws_mqtt5_negotiated_settings> = lifecycleEvent.pointee.settings else {
-                    // TODO log an error. This should always be valid
+                guard let negotiatedSettings = NegotiatedSettings.convertFromRaw(negotiatedSettingsData: lifecycleEvent.pointee.settings) else {
+                    // TODO log at debug level. This should always be valid
                     return
                 }
-
-                guard let negotiatedMaximumQos = QoS(rawValue: Int(negotiatedSettingsData.pointee.maximum_qos.rawValue)) else {
-                    // TODO log an error. This should always be valid
-                    return
-                }
-                let negotiatedSessionExpiryInterval: TimeInterval = TimeInterval(negotiatedSettingsData.pointee.session_expiry_interval)
-                let negotiatedReceiveMaximumFromServer = negotiatedSettingsData.pointee.receive_maximum_from_server
-                let negotiatedMaximumPacketSizeToServer = negotiatedSettingsData.pointee.maximum_packet_size_to_server
-                let negotiatedTopicAliasMaximumToServer = negotiatedSettingsData.pointee.topic_alias_maximum_to_server
-                let negotiatedTopicAliasMaximumToClient = negotiatedSettingsData.pointee.topic_alias_maximum_to_client
-                let negotiatedServerKeepAlive: TimeInterval = TimeInterval(negotiatedSettingsData.pointee.server_keep_alive)
-                let negotiatedRetainAvailable = negotiatedSettingsData.pointee.retain_available
-                let negotiatedWildcardSubscriptionsAvailable = negotiatedSettingsData.pointee.wildcard_subscriptions_available
-                let negotiatedSubscriptionIdentifiersAvailable = negotiatedSettingsData.pointee.subscription_identifiers_available
-                let negotiatedSharedSubscriptionsAvailable = negotiatedSettingsData.pointee.shared_subscriptions_available
-                let negotiatedRejoinedSession = negotiatedSettingsData.pointee.rejoined_session
-                let negotiatedClientId = negotiatedSettingsData.pointee.client_id_storage.toString()
-
-                let negotiatedSettings = NegotiatedSettings(
-                    maximumQos: negotiatedMaximumQos,
-                    sessionExpiryInterval: negotiatedSessionExpiryInterval,
-                    receiveMaximumFromServer: negotiatedReceiveMaximumFromServer,
-                    maximumPacketSizeToServer: negotiatedMaximumPacketSizeToServer,
-                    topicAliasMaximumToServer: negotiatedTopicAliasMaximumToServer,
-                    topicAliasMaximumToClient: negotiatedTopicAliasMaximumToClient,
-                    serverKeepAlive: negotiatedServerKeepAlive,
-                    retainAvailable: negotiatedRetainAvailable,
-                    wildcardSubscriptionsAvailable: negotiatedWildcardSubscriptionsAvailable,
-                    subscriptionIdentifiersAvailable: negotiatedSubscriptionIdentifiersAvailable,
-                    sharedSubscriptionsAvailable: negotiatedSharedSubscriptionsAvailable,
-                    rejoinedSession: negotiatedRejoinedSession,
-                    clientId: negotiatedClientId)
 
                 let lifecycleConnectionSuccessData = LifecycleConnectionSuccessData(
-                    connackPacket: connackPacket!,
+                    connackPacket: connackPacket,
                     negotiatedSettings: negotiatedSettings)
-
                 callbackCore.onLifecycleEventConnectionSuccess(lifecycleConnectionSuccessData)
 
             case AWS_MQTT5_CLET_CONNECTION_FAILURE:
 
+                let connackPacket = ConnackPacket.convertFromRaw(connackData: lifecycleEvent.pointee.connack_data)
+
                 let lifecycleConnectionFailureData = LifecycleConnectionFailureData(
                     crtError: crtError,
                     connackPacket: connackPacket)
-                    callbackCore.onLifecycleEventConnectionFailure(lifecycleConnectionFailureData)
+                callbackCore.onLifecycleEventConnectionFailure(lifecycleConnectionFailureData)
 
             case AWS_MQTT5_CLET_DISCONNECTION:
 
-                guard let disconnectPacketData: UnsafePointer<aws_mqtt5_packet_disconnect_view> = lifecycleEvent.pointee.disconnect_data else {
+                guard let disconnectPacket = DisconnectPacket.convertFromRaw(disconnectPacketData: lifecycleEvent.pointee.disconnect_data) else {
                     let lifecycleDisconnectData = LifecycleDisconnectData(crtError: crtError)
                     callbackCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
                     return
                 }
 
-                guard let reasonCode = DisconnectReasonCode(rawValue: Int(disconnectPacketData.pointee.reason_code.rawValue)) else {
-                    // TODO this should always be a valid reason code. Log an error?
-                    return
-                }
-                let sessionExpiryInterval = convertOptionalUInt32(disconnectPacketData.pointee.session_expiry_interval_seconds)
-                let sessionExpiryIntervalSeconds: TimeInterval? = sessionExpiryInterval.map { TimeInterval($0) }
-                let reasonString = convertAwsByteCursorToOptionalString(disconnectPacketData.pointee.reason_string)
-                let serverReference = convertAwsByteCursorToOptionalString(disconnectPacketData.pointee.reason_string)
-                // TODO user properties need to be converted to Swift
-
-                let disconnectPacket = DisconnectPacket(
-                    reasonCode: reasonCode,
-                    sessionExpiryInterval: sessionExpiryIntervalSeconds,
-                    reasonString: reasonString,
-                    serverReference: serverReference,
-                    userProperties: nil
-                )
-
                 let lifecycleDisconnectData = LifecycleDisconnectData(
                         crtError: crtError,
                         disconnectPacket: disconnectPacket)
-
                 callbackCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
 
             case AWS_MQTT5_CLET_STOPPED:

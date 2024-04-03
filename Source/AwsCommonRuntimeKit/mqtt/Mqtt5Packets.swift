@@ -403,6 +403,30 @@ public class DisconnectPacket {
             self.serverReference = serverReference
             self.userProperties = userProperties
         }
+
+    static func convertFromRaw(disconnectPacketData: UnsafePointer<aws_mqtt5_packet_disconnect_view>?) -> DisconnectPacket? {
+        if let disconnectPacketData = disconnectPacketData {
+            guard let reasonCode = DisconnectReasonCode(rawValue: Int(disconnectPacketData.pointee.reason_code.rawValue)) else {
+                    // TODO this should always be a valid reason code. Log an error
+                    return nil
+                }
+            let sessionExpiryInterval = convertOptionalUInt32(disconnectPacketData.pointee.session_expiry_interval_seconds)
+            let sessionExpiryIntervalSeconds: TimeInterval? = sessionExpiryInterval.map { TimeInterval($0) }
+            let reasonString = convertAwsByteCursorToOptionalString(disconnectPacketData.pointee.reason_string)
+            let serverReference = convertAwsByteCursorToOptionalString(disconnectPacketData.pointee.reason_string)
+            // TODO user properties need to be converted to Swift
+
+            let disconnectPacket = DisconnectPacket(
+                reasonCode: reasonCode,
+                sessionExpiryInterval: sessionExpiryIntervalSeconds,
+                reasonString: reasonString,
+                serverReference: serverReference,
+                userProperties: nil
+            )
+            return disconnectPacket
+        }
+        return nil
+    }
 }
 
 /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
@@ -494,5 +518,59 @@ public class ConnackPacket {
         self.serverKeepAlive = serverKeepAlive
         self.responseInformation = responseInformation
         self.serverReference = serverReference
+    }
+
+    static func convertFromRaw(connackData: UnsafePointer<aws_mqtt5_packet_connack_view>?) -> ConnackPacket? {
+
+        if let connackData = connackData {
+
+            let sessionPresent = connackData.pointee.session_present
+            let reasonCode = ConnectReasonCode(rawValue: Int(connackData.pointee.reason_code.rawValue)) ?? .unspecifiedError
+            let sessionExpiryInterval = (connackData.pointee.session_expiry_interval?.pointee).map { TimeInterval($0) }
+            let receiveMaximum = convertOptionalUInt16(connackData.pointee.receive_maximum)
+
+            var maximumQos: QoS? = nil
+            if let maximumQosValue = connackData.pointee.maximum_qos {
+                let maximumQoSNativeValue = maximumQosValue.pointee.rawValue
+                maximumQos = QoS(rawValue: Int(maximumQoSNativeValue))
+            }
+
+            let retainAvailable = convertOptionalBool(connackData.pointee.retain_available)
+            let maximumPacketSize = convertOptionalUInt32(connackData.pointee.maximum_packet_size)
+            let assignedClientIdentifier = convertAwsByteCursorToOptionalString(connackData.pointee.assigned_client_identifier)
+            let topicAliasMaximum = convertOptionalUInt16(connackData.pointee.topic_alias_maximum)
+            let reasonString = convertAwsByteCursorToOptionalString(connackData.pointee.reason_string)
+            let wildcardSubscriptionsAvailable = convertOptionalBool(connackData.pointee.wildcard_subscriptions_available)
+            let subscriptionIdentifiersAvailable = convertOptionalBool(connackData.pointee.subscription_identifiers_available)
+            let sharedSubscriptionAvailable = convertOptionalBool(connackData.pointee.shared_subscriptions_available)
+            let serverKeepAlive = convertOptionalUInt16(connackData.pointee.server_keep_alive)
+            let serverKeepAliveInSeconds: TimeInterval? = serverKeepAlive.map { TimeInterval($0) }
+            let responseInformation = convertAwsByteCursorToOptionalString(connackData.pointee.response_information)
+            let serverReference = convertAwsByteCursorToOptionalString(connackData.pointee.server_reference)
+
+        // TODO USER PROPERTIES MUST BE BOUND
+
+            let connackPacket = ConnackPacket(
+                sessionPresent: sessionPresent,
+                reasonCode: reasonCode,
+                sessionExpiryInterval: sessionExpiryInterval,
+                receiveMaximum: receiveMaximum,
+                maximumQos: maximumQos,
+                retainAvailable: retainAvailable,
+                maximumPacketSize: maximumPacketSize,
+                assignedClientIdentifier: assignedClientIdentifier,
+                topicAliasMaximum: topicAliasMaximum,
+                reasonString: reasonString,
+                userProperties: nil,
+                wildcardSubscriptionsAvailable: wildcardSubscriptionsAvailable,
+                subscriptionIdentifiersAvailable: subscriptionIdentifiersAvailable,
+                sharedSubscriptionAvailable: sharedSubscriptionAvailable,
+                serverKeepAlive: serverKeepAliveInSeconds,
+                responseInformation: responseInformation,
+                serverReference: serverReference)
+
+            return connackPacket
+        }
+        return nil
     }
 }
