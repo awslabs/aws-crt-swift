@@ -23,21 +23,50 @@ func buildDirectClient() throws -> Mqtt5Client {
                                         bootstrap: clientBootstrap,
                                         socketOptions: socketOptions,
                                         connectOptions: connectOptions,
+                                        onLifecycleEventStoppedFn: onLifecycleEventStopped,
                                         onLifecycleEventAttemptingConnectFn: onLifecycleEventAttemptingConnect,
-                                        onLifecycleEventConnectionSuccessFn: onLifecycleEventConnectionSuccess)
+                                        onLifecycleEventConnectionSuccessFn: onLifecycleEventConnectionSuccess,
+                                        onLifecycleEventConnectionFailureFn: onLifecycleEventConnectionFailure,
+                                        onLifecycleEventDisconnectionFn: onLifecycleEventDisconnect)
 
     print("Returning Mqtt Client")
     return try Mqtt5Client(clientOptions: clientOptions)
+}
+
+func onLifecycleEventStopped(lifecycleStoppedData: LifecycleStoppedData) -> Void {
+    print("\nClient Set Lifecycle Event Stopped Function Called \n")
 }
 
 func onLifecycleEventAttemptingConnect(lifecycleAttemptingConnectData: LifecycleAttemptingConnectData) -> Void {
     print("\nClient Set Lifecycle Event Attempting Connect Function Called \n")
 }
 
-func onLifecycleEventConnectionSuccess(lifecycleConnectSuccessData: LifecycleConnectSuccessData) -> Void {
-    print("\nClient Set Lifecycle Event Connect Success Function Called \n")
-    processConnack(connackPacket: lifecycleConnectSuccessData.connackPacket)
-    processNegotiatedSettings(negotiatedSettings: lifecycleConnectSuccessData.negotiatedSettings)
+func onLifecycleEventConnectionSuccess(lifecycleConnectionSuccessData: LifecycleConnectionSuccessData) -> Void {
+    print("\nClient Set Lifecycle Event Connection Success Function Called \n")
+    processConnack(connackPacket: lifecycleConnectionSuccessData.connackPacket)
+    processNegotiatedSettings(negotiatedSettings: lifecycleConnectionSuccessData.negotiatedSettings)
+}
+
+func onLifecycleEventConnectionFailure(lifecycleConnectionFailureData: LifecycleConnectionFailureData){
+    print("\nClient Set Lifecycle Event Connection Failure Function Called \n")
+    print("     =======ERROR CODE=======")
+    print("     crtError: \(lifecycleConnectionFailureData.crtError)\n")
+    if let connackPacket = lifecycleConnectionFailureData.connackPacket {
+        processConnack(connackPacket: connackPacket)
+    } else {
+        print("     =======NO CONNACK PACKET=======\n")
+    }
+}
+
+func onLifecycleEventDisconnect(lifecycleDisconnectData: LifecycleDisconnectData) -> Void {
+    print("\nClient Set Lifecycle Event Disconnect Function Called \n")
+    print("     =======ERROR CODE=======")
+    print("     crtError: \(lifecycleDisconnectData.crtError)\n")
+    if let disconnectPacket = lifecycleDisconnectData.disconnectPacket {
+        processDisconnectPacket(disconnectPacket: disconnectPacket)
+    } else {
+        print("     =======NO DISCONNECT PACKET=======\n")
+    }
 }
 
 func buildMtlsClient() throws -> Mqtt5Client {
@@ -65,7 +94,11 @@ func buildMtlsClient() throws -> Mqtt5Client {
                                         socketOptions: socketOptions,
                                         tlsCtx: tlsContext,
                                         connectOptions: connectOptions,
-                                        onLifecycleEventConnectionSuccessFn: onLifecycleEventConnectionSuccess)
+                                        onLifecycleEventStoppedFn: onLifecycleEventStopped,
+                                        onLifecycleEventAttemptingConnectFn: onLifecycleEventAttemptingConnect,
+                                        onLifecycleEventConnectionSuccessFn: onLifecycleEventConnectionSuccess,
+                                        onLifecycleEventConnectionFailureFn: onLifecycleEventConnectionFailure,
+                                        onLifecycleEventDisconnectionFn: onLifecycleEventDisconnect)
 
     print("Returning Mqtt Client")
     return try Mqtt5Client(clientOptions: clientOptions)
@@ -211,8 +244,11 @@ func processNegotiatedSettings(negotiatedSettings: NegotiatedSettings) {
 
 func processConnack(connackPacket: ConnackPacket) {
     print("     =======CONNACK PACKET=======")
+
     print("     sessionPresent: \(connackPacket.sessionPresent)")
+
     print("     Connack reasonCode: \(connackPacket.reasonCode)")
+
     if let sessionExpiryInterval = connackPacket.sessionExpiryInterval {
         print("     sessionExpiryInterval: \(sessionExpiryInterval)")
     } else { print("     sessionExpirtyInterval: NONE") }
@@ -266,6 +302,26 @@ func processConnack(connackPacket: ConnackPacket) {
     } else {print("     responseInformation: NONE")}
 
     if let serverReference = connackPacket.serverReference {
+        print("     serverReference: \(serverReference)")
+    } else {print("     serverReference: NONE")}
+
+    print("=============================================")
+
+}
+
+func processDisconnectPacket(disconnectPacket: DisconnectPacket) {
+    print("     =======DISCONNECT PACKET=======")
+    print("     Connack reasonCode: \(disconnectPacket.reasonCode)")
+
+    if let sessionExpiryInterval = disconnectPacket.sessionExpiryInterval {
+        print("     sessionExpiryInterval: \(sessionExpiryInterval)")
+    } else {print("     sessionExpiryInterval: NONE")}
+
+    if let reasonString = disconnectPacket.reasonString {
+        print("     reasonString: \(reasonString)")
+    } else {print("     reasonString: NONE")}
+
+    if let serverReference = disconnectPacket.serverReference {
         print("     serverReference: \(serverReference)")
     } else {print("     serverReference: NONE")}
 
@@ -385,7 +441,7 @@ func processConnack(connackPacket: ConnackPacket) {
 //     }
 // }
 
-wait(seconds: 5)
+wait(seconds: 10)
 
 print("Stopping Client")
 client.stop()
