@@ -199,7 +199,7 @@ extension aws_array_list {
     }
 }
 
-// Convert an aws_byte_cursor pointer to an optional String
+/// Convert a native aws_byte_cursor pointer into a String?
 func convertAwsByteCursorToOptionalString(_ awsByteCursor: UnsafePointer<aws_byte_cursor>?) -> String? {
     guard let cursor = awsByteCursor?.pointee,
           let validBytes = cursor.ptr else {
@@ -234,44 +234,6 @@ func convertOptionalBool(_ pointer: UnsafePointer<Bool>?) -> Bool? {
     }
     return validPointer.pointee
 }
-
-// TODO Remove unused?
-extension RawRepresentable where RawValue: FixedWidthInteger {
-    static func from(intValue: Int32) -> Self? {
-        return Self(rawValue: RawValue(intValue))
-    }
-}
-public protocol ConvertibleFromNativeEnum : RawRepresentable where RawValue: FixedWidthInteger {
-    init?(rawValue: RawValue)
-}
-
-public protocol CEnumRepresentable {
-    var rawValue: Int32 { get }
-}
-
-func convertCEnumToSwiftEnum<T: ConvertibleFromNativeEnum>
-                (_ pointer: UnsafePointer<T.RawValue>?) -> T? {
-    guard let valuePointer = pointer else { return nil }
-    if let convertedEnum = T(rawValue: valuePointer.pointee){
-        return convertedEnum
-    } else {
-        // TODO Log an error that the conversion was unsuccessful due to the rawValue of the
-        // C enum not having a Swift enum match.
-        return nil
-    }
-}
-
-// func convertCEnumToSwiftEnum<T: CEnumRepresentable, U: ConvertibleFromNativeEnum>
-//                 (_ pointer: UnsafePointer<T>?) -> U? {
-//     guard let valuePointer = pointer else { return nil }
-//     if let convertedEnum = U.from(intValue: valuePointer.pointee.rawValue){
-//         return convertedEnum
-//     } else {
-//         // TODO Log an error that the conversion was unsuccessful due to the rawValue of the
-//         // C enum not having a Swift enum match.
-//         return nil
-//     }
-// }
 
 extension Bool {
     var uintValue: UInt32 {
