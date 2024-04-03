@@ -67,9 +67,11 @@ class FileBasedConfigurationTests: XCBaseTestCase {
     func testResolveConfigPath() throws {
         // from $HOME
         let home = "/test/home"
+        let old_home = getenv("HOME")
         setenv("HOME", home, 1)
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .config), "\(home)/.aws/config")
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .credentials), "\(home)/.aws/credentials")
+        setenv("HOME", old_home, 1)
 
         // from environment
         setenv("AWS_CONFIG_FILE", "/environment/.aws/config", 1)
