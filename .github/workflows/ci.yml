@@ -55,10 +55,13 @@ jobs:
           - macos-13-xlarge
           - macos-14-xlarge
     steps:
+      - name: Checkout Source
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
-          pwd
-          cd ${{env.PACKAGE_NAME}}
           pwd
           ls
           security default-keychain
