@@ -71,7 +71,6 @@ class FileBasedConfigurationTests: XCBaseTestCase {
         setenv("HOME", home, 1)
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .config), "\(home)/.aws/config")
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .credentials), "\(home)/.aws/credentials")
-        setenv("HOME", old_home, 1)
 
         // from environment
         setenv("AWS_CONFIG_FILE", "/environment/.aws/config", 1)
@@ -86,5 +85,7 @@ class FileBasedConfigurationTests: XCBaseTestCase {
         // from relative path
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .config, overridePath: "~/.aws/config"), "\(home)/.aws/config")
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .credentials, overridePath: "~/.aws/credentials"), "\(home)/.aws/credentials")
+        
+        setenv("HOME", old_home, 1)
     }
 }
