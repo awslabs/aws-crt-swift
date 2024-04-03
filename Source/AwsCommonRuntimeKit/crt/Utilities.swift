@@ -205,9 +205,7 @@ func convertAwsByteCursorToOptionalString(_ awsByteCursor: UnsafePointer<aws_byt
           let validBytes = cursor.ptr else {
             return nil
           }
-
     let data = Data(bytes: validBytes, count: Int(cursor.len))
-
     return String(data: data, encoding: .utf8)
 }
 

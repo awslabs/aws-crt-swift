@@ -38,7 +38,7 @@ identifier_name:
     - of
     - or
 line_length:
-  warning: 120
+  warning: 140
   error: 160
   ignores_comments: true
 opening_brace: error
