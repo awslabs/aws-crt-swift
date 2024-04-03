@@ -44,7 +44,6 @@ public class Mqtt5Client {
         aws_mqtt5_client_stop(rawValue, nil, nil)
     }
 
-    /// TODO: Discard all client operations and force releasing the client. The client could not perform any operation after calling this function.
     public func close() {
         aws_mqtt5_client_release(rawValue)
         rawValue = nil

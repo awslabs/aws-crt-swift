@@ -99,13 +99,6 @@ public enum ConnectReasonCode: Int {
 
 }
 
-internal extension ConnectReasonCode {
-    /// Returns the native representation of the Swift enum
-    var nativeValue: aws_mqtt5_connect_reason_code {
-        return aws_mqtt5_connect_reason_code(rawValue: UInt32(self.rawValue))
-    }
-}
-
 /// Reason code inside DISCONNECT packets.  Helps determine why a connection was terminated.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901208>`__ encoding values.
 public enum DisconnectReasonCode: Int {
