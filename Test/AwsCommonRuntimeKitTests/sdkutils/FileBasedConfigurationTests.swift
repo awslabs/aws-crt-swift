@@ -88,6 +88,6 @@ class FileBasedConfigurationTests: XCBaseTestCase {
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .credentials, overridePath: "~/.aws/credentials"), "\(home)/.aws/credentials")
         
         // reset home env
-        setenv("HOME", old_home, 1)
+        setenv("HOME", old_home!, 1)
     }
 }

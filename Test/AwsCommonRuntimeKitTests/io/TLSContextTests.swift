@@ -11,6 +11,7 @@ class TLSContextTests: XCBaseTestCase {
         _ = TLSConnectionOptions(context: context)
     }
     
+#if os(macOS) || os(Linux)
     func testCreateTlsContextWithFilePath() throws{
         try skipIfiOS()
         try skipIftvOS()
@@ -24,7 +25,9 @@ class TLSContextTests: XCBaseTestCase {
         let context = try TLSContext(options: options, mode: .client)
         _ = TLSConnectionOptions(context: context)
     }
+#endif
     
+#if os(macOS) || os(Linux)
     func testCreateTlsContextWithData() throws{
         try skipIfiOS()
         try skipIftvOS()
@@ -41,4 +44,5 @@ class TLSContextTests: XCBaseTestCase {
         let context = try TLSContext(options: options, mode: .client)
         _ = TLSConnectionOptions(context: context)
     }
+#endif
 }
