@@ -12,14 +12,14 @@ public class TLSContextOptions: CStruct {
 
     /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key in the PKCS#12 format.
     ///
-    /// NOTE: This only works on Apple devices.
+    /// NOTE: This only works on Apple devices. The library is currently only tested on macOS.
     ///
     /// - Parameters:
     ///     - pkcs12Path: Path to PKCS #12 file. The file is loaded from disk and stored internally. It must remain in
     ///     memory for the lifetime of the returned object.
     ///     - password: Password to PKCS #12 file. It must remain in memory for the lifetime of the returned object.
     /// - Throws: CommonRuntimeError.crtError
-#if os(macOS)
+#if os(tvOS) || os(iOS) || os(watchOS) || os(macOS)
     public static func makeMTLS(
         pkcs12Path: String,
         password: String) throws -> TLSContextOptions {
@@ -83,7 +83,7 @@ public class TLSContextOptions: CStruct {
          privateKeyData: Data) throws {
         self.rawValue = allocator.allocate(capacity: 1)
         guard certificateData.withAWSByteCursorPointer({ certificateByteCursor in
-            return privateKeyData.withAWSByteCursorPointer{ privatekeyByteCursor in
+            return privateKeyData.withAWSByteCursorPointer { privatekeyByteCursor in
                 return aws_tls_ctx_options_init_client_mtls(self.rawValue,
                                                             allocator.rawValue,
                                                             certificateByteCursor,
