@@ -709,57 +709,52 @@ public class NegotiatedSettings {
     /// The final client id in use by the newly-established connection.  This will be the configured client id if one was given in the configuration, otherwise, if no client id was specified, this will be the client id assigned by the server.  Reconnection attempts will always use the auto-assigned client id, allowing for auto-assigned session resumption.
     public let clientId: String
 
-    public init (
-        maximumQos: QoS,
-        sessionExpiryInterval: TimeInterval,
-        receiveMaximumFromServer: UInt16,
-        maximumPacketSizeToServer: UInt32,
-        topicAliasMaximumToServer: UInt16,
-        topicAliasMaximumToClient: UInt16,
-        serverKeepAlive: TimeInterval,
-        retainAvailable: Bool,
-        wildcardSubscriptionsAvailable: Bool,
-        subscriptionIdentifiersAvailable: Bool,
-        sharedSubscriptionsAvailable: Bool,
-        rejoinedSession: Bool,
-        clientId: String) {
+    public init (maximumQos: QoS,
+                 sessionExpiryInterval: TimeInterval,
+                 receiveMaximumFromServer: UInt16,
+                 maximumPacketSizeToServer: UInt32,
+                 topicAliasMaximumToServer: UInt16,
+                 topicAliasMaximumToClient: UInt16,
+                 serverKeepAlive: TimeInterval,
+                 retainAvailable: Bool,
+                 wildcardSubscriptionsAvailable: Bool,
+                 subscriptionIdentifiersAvailable: Bool,
+                 sharedSubscriptionsAvailable: Bool,
+                 rejoinedSession: Bool,
+                 clientId: String) {
+        self.maximumQos = maximumQos
+        self.sessionExpiryInterval = sessionExpiryInterval
+        self.receiveMaximumFromServer = receiveMaximumFromServer
+        self.maximumPacketSizeToServer = maximumPacketSizeToServer
+        self.topicAliasMaximumToServer = topicAliasMaximumToServer
+        self.topicAliasMaximumToClient = topicAliasMaximumToClient
+        self.serverKeepAlive = serverKeepAlive
+        self.retainAvailable = retainAvailable
+        self.wildcardSubscriptionsAvailable = wildcardSubscriptionsAvailable
+        self.subscriptionIdentifiersAvailable = subscriptionIdentifiersAvailable
+        self.sharedSubscriptionsAvailable = sharedSubscriptionsAvailable
+        self.rejoinedSession = rejoinedSession
+        self.clientId = clientId
+    }
 
-            self.maximumQos = maximumQos
-            self.sessionExpiryInterval = sessionExpiryInterval
-            self.receiveMaximumFromServer = receiveMaximumFromServer
-            self.maximumPacketSizeToServer = maximumPacketSizeToServer
-            self.topicAliasMaximumToServer = topicAliasMaximumToServer
-            self.topicAliasMaximumToClient = topicAliasMaximumToClient
-            self.serverKeepAlive = serverKeepAlive
-            self.retainAvailable = retainAvailable
-            self.wildcardSubscriptionsAvailable = wildcardSubscriptionsAvailable
-            self.subscriptionIdentifiersAvailable = subscriptionIdentifiersAvailable
-            self.sharedSubscriptionsAvailable = sharedSubscriptionsAvailable
-            self.rejoinedSession = rejoinedSession
-            self.clientId = clientId
-        }
+    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_negotiated_settings>?) -> NegotiatedSettings?{
 
-    static func convertFromRaw(negotiatedSettingsData: UnsafePointer<aws_mqtt5_negotiated_settings>?) -> NegotiatedSettings?{
+        if let from = from {
+            guard let negotiatedMaximumQos = QoS(rawValue: Int(from.pointee.maximum_qos.rawValue))
+            else { fatalError("NegotiatedSettings from native missing a maximum qos value.") }
 
-        if let negotiatedSettingsData = negotiatedSettingsData {
-
-            guard let negotiatedMaximumQos = QoS(rawValue: Int(negotiatedSettingsData.pointee.maximum_qos.rawValue)) else {
-                // TODO log an error. This should always be valid
-                return nil
-            }
-
-            let negotiatedSessionExpiryInterval: TimeInterval = TimeInterval(negotiatedSettingsData.pointee.session_expiry_interval)
-            let negotiatedReceiveMaximumFromServer = negotiatedSettingsData.pointee.receive_maximum_from_server
-            let negotiatedMaximumPacketSizeToServer = negotiatedSettingsData.pointee.maximum_packet_size_to_server
-            let negotiatedTopicAliasMaximumToServer = negotiatedSettingsData.pointee.topic_alias_maximum_to_server
-            let negotiatedTopicAliasMaximumToClient = negotiatedSettingsData.pointee.topic_alias_maximum_to_client
-            let negotiatedServerKeepAlive: TimeInterval = TimeInterval(negotiatedSettingsData.pointee.server_keep_alive)
-            let negotiatedRetainAvailable = negotiatedSettingsData.pointee.retain_available
-            let negotiatedWildcardSubscriptionsAvailable = negotiatedSettingsData.pointee.wildcard_subscriptions_available
-            let negotiatedSubscriptionIdentifiersAvailable = negotiatedSettingsData.pointee.subscription_identifiers_available
-            let negotiatedSharedSubscriptionsAvailable = negotiatedSettingsData.pointee.shared_subscriptions_available
-            let negotiatedRejoinedSession = negotiatedSettingsData.pointee.rejoined_session
-            let negotiatedClientId = negotiatedSettingsData.pointee.client_id_storage.toString()
+            let negotiatedSessionExpiryInterval: TimeInterval = TimeInterval(from.pointee.session_expiry_interval)
+            let negotiatedReceiveMaximumFromServer = from.pointee.receive_maximum_from_server
+            let negotiatedMaximumPacketSizeToServer = from.pointee.maximum_packet_size_to_server
+            let negotiatedTopicAliasMaximumToServer = from.pointee.topic_alias_maximum_to_server
+            let negotiatedTopicAliasMaximumToClient = from.pointee.topic_alias_maximum_to_client
+            let negotiatedServerKeepAlive: TimeInterval = TimeInterval(from.pointee.server_keep_alive)
+            let negotiatedRetainAvailable = from.pointee.retain_available
+            let negotiatedWildcardSubscriptionsAvailable = from.pointee.wildcard_subscriptions_available
+            let negotiatedSubscriptionIdentifiersAvailable = from.pointee.subscription_identifiers_available
+            let negotiatedSharedSubscriptionsAvailable = from.pointee.shared_subscriptions_available
+            let negotiatedRejoinedSession = from.pointee.rejoined_session
+            let negotiatedClientId = from.pointee.client_id_storage.toString()
 
             let negotiatedSettings = NegotiatedSettings(
                 maximumQos: negotiatedMaximumQos,
@@ -927,11 +922,8 @@ public class MqttConnectOptions: CStruct {
 /// Handles lifecycle events from native Mqtt Client
 private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
 
-    guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent else
-    {
-        // TODO Log at debug level
-        return
-    }
+    guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent
+    else { fatalError("MqttClientLifecycleEvents was called from native without an aws_mqtt5_client_lifecycle_event.") }
 
     let crtError = CRTError(code: lifecycleEvent.pointee.error_code)
 
@@ -947,15 +939,11 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
 
             case AWS_MQTT5_CLET_CONNECTION_SUCCESS:
 
-                guard let connackPacket = ConnackPacket.convertFromRaw(connackData: lifecycleEvent.pointee.connack_data) else {
-                    // TODO log that connack packet was nil in debug
-                    return
-                }
+                guard let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data)
+                else { fatalError("ConnackPacket missing in a Connection Success lifecycle event.") }
 
-                guard let negotiatedSettings = NegotiatedSettings.convertFromRaw(negotiatedSettingsData: lifecycleEvent.pointee.settings) else {
-                    // TODO log at debug level. This should always be valid
-                    return
-                }
+                guard let negotiatedSettings = NegotiatedSettings.convertFromNative(lifecycleEvent.pointee.settings)
+                else { fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.") }
 
                 let lifecycleConnectionSuccessData = LifecycleConnectionSuccessData(
                     connackPacket: connackPacket,
@@ -964,7 +952,7 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
 
             case AWS_MQTT5_CLET_CONNECTION_FAILURE:
 
-                let connackPacket = ConnackPacket.convertFromRaw(connackData: lifecycleEvent.pointee.connack_data)
+                let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data)
 
                 let lifecycleConnectionFailureData = LifecycleConnectionFailureData(
                     crtError: crtError,
@@ -973,7 +961,7 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
 
             case AWS_MQTT5_CLET_DISCONNECTION:
 
-                guard let disconnectPacket = DisconnectPacket.convertFromRaw(disconnectPacketData: lifecycleEvent.pointee.disconnect_data) else {
+                guard let disconnectPacket = DisconnectPacket.convertFromNative(lifecycleEvent.pointee.disconnect_data) else {
                     let lifecycleDisconnectData = LifecycleDisconnectData(crtError: crtError)
                     callbackCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
                     return
@@ -989,10 +977,9 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
                 callbackCore.onLifecycleEventStoppedCallback(LifecycleStoppedData())
 
             default:
-                // A Lifecycle event without a proper event_type should not be possible.
-                return
+                fatalError("A lifecycle event with an invalid event type was encountered.")
         }
-    } else { return }
+    }
 }
 
 private func MqttClientPublishRecievedEvents(
