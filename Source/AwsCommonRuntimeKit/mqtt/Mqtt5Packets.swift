@@ -395,7 +395,7 @@ public class UnsubackPacket {
 }
 
 /// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
-public class DisconnectPacket {
+public class DisconnectPacket: CStruct {
 
     /// Value indicating the reason that the sender is closing the connection
     public let reasonCode: DisconnectReasonCode
@@ -423,6 +423,40 @@ public class DisconnectPacket {
             self.serverReference = serverReference
             self.userProperties = userProperties
         }
+
+    typealias RawType = aws_mqtt5_packet_disconnect_view
+    func withCStruct<Result>(_ body: (aws_mqtt5_packet_disconnect_view) -> Result) -> Result {
+        var raw_disconnect_view = aws_mqtt5_packet_disconnect_view()
+
+        raw_disconnect_view.reason_code = aws_mqtt5_disconnect_reason_code(UInt32(reasonCode.rawValue))
+
+        let _sessionExpiryInterval = try? sessionExpiryInterval?.secondUInt32() ?? nil
+
+        return withOptionalUnsafePointer(to: _sessionExpiryInterval) { sessionExpiryIntervalPointer in
+
+            if let _sessionExpiryIntervalPointer = sessionExpiryIntervalPointer {
+                raw_disconnect_view.session_expiry_interval_seconds = _sessionExpiryIntervalPointer
+            }
+
+            return withOptionalUserPropertyArray(
+                of: userProperties) { userPropertyPointer in
+
+                if let _userPropertyPointer = userPropertyPointer {
+                    raw_disconnect_view.user_property_count = userProperties!.count
+                    raw_disconnect_view.user_properties =
+                        UnsafePointer<aws_mqtt5_user_property>(_userPropertyPointer)
+                }
+
+                return withOptionalByteCursorPointerFromStrings(
+                    reasonString,
+                    serverReference) { cReasonString, cServerReference in
+                        raw_disconnect_view.reason_string = cReasonString
+                        raw_disconnect_view.server_reference = cServerReference
+                        return body(raw_disconnect_view)
+                    }
+            }
+        }
+    }
 
     static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_disconnect_view>?) -> DisconnectPacket? {
         if let from = from {
