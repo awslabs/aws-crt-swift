@@ -201,9 +201,9 @@ extension aws_array_list {
 
 /// Convert a native aws_byte_cursor pointer into a String?
 func convertAwsByteCursorToOptionalString(_ awsByteCursor: UnsafePointer<aws_byte_cursor>?) -> String? {
-    guard let cursor = awsByteCursor?.pointee
-    else { return nil }
-
+    guard let cursor = awsByteCursor?.pointee else {
+        return nil
+    }
     return cursor.toString()
 }
 
