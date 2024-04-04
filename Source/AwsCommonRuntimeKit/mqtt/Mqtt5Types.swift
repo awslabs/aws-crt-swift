@@ -737,7 +737,7 @@ public class NegotiatedSettings {
         self.clientId = clientId
     }
 
-    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_negotiated_settings>?) -> NegotiatedSettings?{
+    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_negotiated_settings>?) -> NegotiatedSettings? {
 
         if let from = from {
             guard let negotiatedMaximumQos = QoS(rawValue: Int(from.pointee.maximum_qos.rawValue))
@@ -862,12 +862,12 @@ public class MqttConnectOptions: CStruct {
             _requestProblemInformation,
             _willDelayIntervalSec,
             self.receiveMaximum,
-            self.maximumPacketSize) { sessionExpiryIntervalSecPointer,
+            self.maximumPacketSize) { (sessionExpiryIntervalSecPointer,
                                       requestResponseInformationPointer,
                                       requestProblemInformationPointer,
                                       willDelayIntervalSecPointer,
                                       receiveMaximumPointer,
-                                      maximumPacketSizePointer in
+                                      maximumPacketSizePointer) in
 
             if let _sessionExpiryIntervalSecPointer = sessionExpiryIntervalSecPointer {
                 raw_connect_options.session_expiry_interval_seconds = _sessionExpiryIntervalSecPointer
