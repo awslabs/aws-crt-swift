@@ -41,10 +41,12 @@ public class Mqtt5Client {
     }
 
     public func stop(disconnectPacket: DisconnectPacket? = nil) throws {
-        let errorCode: Int32
+        var errorCode: Int32 = 0
+
         if let disconnectPacket = disconnectPacket {
-            // TODO disconnect packet needs to be converted to native and passed down.
-            errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
+            disconnectPacket.withCPointer { disconnectPointer in
+                errorCode = aws_mqtt5_client_stop(rawValue, disconnectPointer, nil)
+            }
         } else {
             errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
         }
