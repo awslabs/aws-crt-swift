@@ -33,7 +33,9 @@ func onLifecycleEventDisconnectionMinimal(_ : LifecycleDisconnectData){
 
 class Mqtt5ClientTests: XCBaseTestCase {
 
-    // [New-UC1] Happy path. Minimal creation and cleanup
+    /*
+     * [New-UC1] Happy path. Minimal creation and cleanup
+     */
     func testMqtt5ClientNewMinimal() throws {
         let elg = try EventLoopGroup()
         let resolver = try HostResolver(eventLoopGroup: elg,
