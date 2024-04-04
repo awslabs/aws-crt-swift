@@ -85,7 +85,7 @@ func withOptionalAWSByteCursorFromData<Result>(
         return try body(aws_byte_cursor())
     }
     return try _data.withUnsafeBytes { rawBufferPointer -> Result in
-        var cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, _data.count)
+        let cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, _data.count)
         return try body(cursor)
     }
 }
@@ -201,12 +201,10 @@ extension aws_array_list {
 
 /// Convert a native aws_byte_cursor pointer into a String?
 func convertAwsByteCursorToOptionalString(_ awsByteCursor: UnsafePointer<aws_byte_cursor>?) -> String? {
-    guard let cursor = awsByteCursor?.pointee,
-          let validBytes = cursor.ptr else {
-            return nil
-          }
-    let data = Data(bytes: validBytes, count: Int(cursor.len))
-    return String(data: data, encoding: .utf8)
+    guard let cursor = awsByteCursor?.pointee
+    else { return nil }
+
+    return cursor.toString()
 }
 
 /// Convert a native uint16_t pointer into a Swift UInt16?
