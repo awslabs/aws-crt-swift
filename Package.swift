@@ -297,10 +297,6 @@ packageTargets.append(contentsOf: [
         name: "Elasticurl",
         dependencies: ["AwsCommonRuntimeKit"],
         path: "Source/Elasticurl"
-    ),
-    .executableTarget(
-        name: "Test_Sample",
-        dependencies: ["AwsCommonRuntimeKit", "AwsCMqtt"],
-        path: "Sample")
+    )
 ] )
 package.targets = packageTargets
