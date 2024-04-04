@@ -80,6 +80,26 @@ func withOptionalUserPropertyArray<Result>(
     }
 }
 
+/// Convert a native pointer to a UserProperty array with a count into a Swift [UserProperty]?
+func convertOptionalUserProperties(count: size_t, userPropertiesPointer: UnsafePointer<aws_mqtt5_user_property>?) -> [UserProperty]? {
+
+    guard let validPointer = userPropertiesPointer, count > 0
+    else { return nil }
+
+    var userProperties: [UserProperty] = []
+
+    for i in 0..<count {
+        let property = validPointer.advanced(by: Int(i)).pointee
+        let name = property.name.toString()
+        let value = property.value.toString()
+
+        let userProperty = UserProperty(name: name, value: value)
+        userProperties.append(userProperty)
+    }
+
+    return userProperties
+}
+
 /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet
 public class PublishPacket: CStruct {
 
@@ -413,14 +433,16 @@ public class DisconnectPacket {
             let sessionExpiryIntervalSeconds: TimeInterval? = sessionExpiryInterval.map { TimeInterval($0) }
             let reasonString = convertAwsByteCursorToOptionalString(from.pointee.reason_string)
             let serverReference = convertAwsByteCursorToOptionalString(from.pointee.reason_string)
-            // TODO user properties need to be converted to Swift
+            let userProperties = convertOptionalUserProperties(
+                count: from.pointee.user_property_count,
+                userPropertiesPointer: from.pointee.user_properties)
 
             let disconnectPacket = DisconnectPacket(
                 reasonCode: reasonCode,
                 sessionExpiryInterval: sessionExpiryIntervalSeconds,
                 reasonString: reasonString,
                 serverReference: serverReference,
-                userProperties: nil
+                userProperties: userProperties
             )
             return disconnectPacket
         }
@@ -546,8 +568,9 @@ public class ConnackPacket {
             let serverKeepAliveInSeconds: TimeInterval? = serverKeepAlive.map { TimeInterval($0) }
             let responseInformation = convertAwsByteCursorToOptionalString(from.pointee.response_information)
             let serverReference = convertAwsByteCursorToOptionalString(from.pointee.server_reference)
-
-        // TODO USER PROPERTIES MUST BE BOUND
+            let userProperties = convertOptionalUserProperties(
+                count: from.pointee.user_property_count,
+                userPropertiesPointer: from.pointee.user_properties)
 
             let connackPacket = ConnackPacket(
                 sessionPresent: sessionPresent,
@@ -560,7 +583,7 @@ public class ConnackPacket {
                 assignedClientIdentifier: assignedClientIdentifier,
                 topicAliasMaximum: topicAliasMaximum,
                 reasonString: reasonString,
-                userProperties: nil,
+                userProperties: userProperties,
                 wildcardSubscriptionsAvailable: wildcardSubscriptionsAvailable,
                 subscriptionIdentifiersAvailable: subscriptionIdentifiersAvailable,
                 sharedSubscriptionAvailable: sharedSubscriptionAvailable,
