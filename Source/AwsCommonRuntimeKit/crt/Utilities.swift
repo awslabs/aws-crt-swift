@@ -209,7 +209,7 @@ func convertAwsByteCursorToOptionalString(_ awsByteCursor: UnsafePointer<aws_byt
     return String(data: data, encoding: .utf8)
 }
 
-// Convert a native uint16_t pointer into a Swift UInt16?
+/// Convert a native uint16_t pointer into a Swift UInt16?
 func convertOptionalUInt16(_ pointer: UnsafePointer<UInt16>?) -> UInt16? {
     guard let validPointer = pointer else {
         return nil
@@ -277,7 +277,6 @@ func withOptionalByteCursorPointerFromStrings<Result>(
             return body(arg1C, arg2C)
         }
     }
-
 }
 
 func withOptionalByteCursorPointerFromString<Result>(
@@ -293,7 +292,6 @@ func withOptionalByteCursorPointerFromString<Result>(
             }
         }
     }
-
 }
 
 func withByteCursorFromStrings<Result>(

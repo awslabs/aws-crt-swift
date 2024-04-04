@@ -34,14 +34,23 @@ public class Mqtt5Client {
         aws_mqtt5_client_release(rawValue)
     }
 
-    public func start() {
-        // TODO this needs to be checked for whether it returns an error
-        aws_mqtt5_client_start(rawValue)
+    public func start() throws {
+        let errorCode = aws_mqtt5_client_start(rawValue)
+        if errorCode != 0
+        { throw CommonRunTimeError.crtError(CRTError(code: errorCode)) }
     }
 
-    public func stop() {
-        // TODO this needs to be able to take a disconnect packet
-        aws_mqtt5_client_stop(rawValue, nil, nil)
+    public func stop(disconnectPacket: DisconnectPacket? = nil) throws {
+        let errorCode: Int32
+        if let disconnectPacket = disconnectPacket {
+            // TODO disconnect packet needs to be converted to native and passed down.
+            errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
+        } else {
+            errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
+        }
+
+        if errorCode != 0
+        { throw CommonRunTimeError.crtError(CRTError(code: errorCode)) }
     }
 
     public func close() {
