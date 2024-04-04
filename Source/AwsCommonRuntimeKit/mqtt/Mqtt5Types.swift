@@ -929,9 +929,8 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
 
     if let userData = lifecycleEvent.pointee.user_data {
         let callbackCore: MqttShutdownCallbackCore = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userData).takeUnretainedValue()
-        let eventType = lifecycleEvent.pointee.event_type
 
-        switch eventType {
+        switch lifecycleEvent.pointee.event_type {
             case AWS_MQTT5_CLET_ATTEMPTING_CONNECT:
 
                 let lifecycleAttemptingConnectData = LifecycleAttemptingConnectData()
