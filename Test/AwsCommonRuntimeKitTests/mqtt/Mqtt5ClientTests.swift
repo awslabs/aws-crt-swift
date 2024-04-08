@@ -343,7 +343,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let socketOptions = SocketOptions()
 
         let tlsOptions = try TLSContextOptions()
-        tlsOptions.setVerifyPeer(verifyPeer: false)
+        tlsOptions.setVerifyPeer(false)
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
 
 
@@ -381,8 +381,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
     func testMqtt5DirectConnectWithMutualTLS() throws {
 
         let directHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let inputCert = getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-        let inputKey = getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
 
         let elg = try EventLoopGroup()
         let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
@@ -397,7 +397,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let clientOptions = MqttClientOptions(
             hostName: directHost,
-            port: UInt32(8883)!,
+            port: UInt32(8883),
             bootstrap: clientBootstrap,
             socketOptions: socketOptions,
             tlsCtx: tlsContext)
