@@ -67,7 +67,9 @@ class FileBasedConfigurationTests: XCBaseTestCase {
     func testResolveConfigPath() throws {
         // from $HOME
         let home = "/test/home"
+        let oldHome = getenv("HOME")
         setenv("HOME", home, 1)
+
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .config), "\(home)/.aws/config")
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .credentials), "\(home)/.aws/credentials")
 
@@ -84,5 +86,8 @@ class FileBasedConfigurationTests: XCBaseTestCase {
         // from relative path
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .config, overridePath: "~/.aws/config"), "\(home)/.aws/config")
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .credentials, overridePath: "~/.aws/credentials"), "\(home)/.aws/credentials")
+
+        // reset home env
+        setenv("HOME", oldHome!, 1)
     }
 }
