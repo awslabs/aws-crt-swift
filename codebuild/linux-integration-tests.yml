@@ -1,13 +1,19 @@
 version: 0.1
 env:
   shell: bash
+  variables:
+  BUILDER_VERSION: v0.9.56
+  BUILDER_SOURCE: releases
+  BUILDER_HOST: https://d19elf31gohf1l.cloudfront.net
+  PACKAGE_NAME: aws-crt-swift
+
 phases:
   build:
     commands:
       - echo Build started on `date`
-      - aws s3 cp s3://aws-crt-test-stuff/setup_proxy_test_env.sh /tmp/setup_proxy_test_env.sh
-      - chmod a+xr /tmp/setup_proxy_test_env.sh
-      - $CODEBUILD_SRC_DIR/codebuild/linux-integration-tests.sh
+      - python3 -c "from urllib.request import urlretrieve; urlretrieve('$BUILDER_HOST/$BUILDER_SOURCE/$BUILDER_VERSION/builder.pyz?run=$CODEBUILD_BUILD_ID', 'builder.pyz')"
+      - python3 builder.pyz build --project aws-crt-cpp downstream --cmake-extra=-DUSE_OPENSSL=ON
+
   post_build:
     commands:
       - echo Build completed on `date`
