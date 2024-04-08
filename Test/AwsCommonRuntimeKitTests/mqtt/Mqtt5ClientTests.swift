@@ -332,7 +332,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
      * [ConnDC-UC3] Direct Connection with TLS
      */
 
-    func testMqtt5DirectConnectWithBasicAuth() throws {
+    func testMqtt5DirectConnectWithTLS() throws {
 
         let directHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
         let directPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
