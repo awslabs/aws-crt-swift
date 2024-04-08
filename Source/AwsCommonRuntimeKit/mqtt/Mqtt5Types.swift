@@ -1081,8 +1081,8 @@ public class MqttClientOptions: CStructWithUserData {
     public init (
         hostName: String,
         port: UInt32,
-        bootstrap: ClientBootstrap,
-        socketOptions: SocketOptions,
+        bootstrap: ClientBootstrap? = nil,
+        socketOptions: SocketOptions? = nil,
         tlsCtx: TLSContext? = nil,
         httpProxyOptions: HTTPProxyOptions? = nil,
         connectOptions: MqttConnectOptions? = nil,
@@ -1106,8 +1106,22 @@ public class MqttClientOptions: CStructWithUserData {
 
             self.hostName = hostName
             self.port = port
-            self.bootstrap = bootstrap
-            self.socketOptions = socketOptions
+            // TODO currently Swift SDK creates its own static bootstrap at the SDK level.
+            // TODO We probably want to create a static bootstrap at the CRT level. This will require
+            // TODO some coordination with the existing Swift SDK. We need to not break them and insure
+            // TODO we are cleaning up all static bootstrap related resources. This will be done at the point
+            // TODO we are implementing the IoT Device SDK.
+            if bootstrap == nil {
+                do {
+                    let elg = try EventLoopGroup()
+                    let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
+                    self.bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
+                } catch {
+                    fatalError("Bootstrap creation failure")
+                }
+            } else { self.bootstrap = bootstrap! }
+
+            self.socketOptions = socketOptions ?? SocketOptions()
             self.tlsCtx = tlsCtx
             self.httpProxyOptions = httpProxyOptions
             self.connectOptions = connectOptions

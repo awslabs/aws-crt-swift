@@ -250,15 +250,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
 
-        let elg = try EventLoopGroup()
-        let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
-        let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
-        let socketOptions = SocketOptions()
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(inputPort)!,
-            bootstrap: clientBootstrap,
-            socketOptions: socketOptions)
+            port: UInt32(inputPort)!)
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
@@ -291,10 +285,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
 
-        let elg = try EventLoopGroup()
-        let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
-        let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
-        let socketOptions = SocketOptions()
         let connectOptions = MqttConnectOptions(
             clientId: createClientId(),
             username: inputUsername,
@@ -304,8 +294,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
             port: UInt32(inputPort)!,
-            bootstrap: clientBootstrap,
-            socketOptions: socketOptions,
             connectOptions: connectOptions)
 
         let testContext = MqttTestContext()
@@ -337,11 +325,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
 
-        let elg = try EventLoopGroup()
-        let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
-        let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
-        let socketOptions = SocketOptions()
-
         let tlsOptions = try TLSContextOptions()
         tlsOptions.setVerifyPeer(false)
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
@@ -349,8 +332,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
             port: UInt32(inputPort)!,
-            bootstrap: clientBootstrap,
-            socketOptions: socketOptions,
             tlsCtx: tlsContext)
 
         let testContext = MqttTestContext()
@@ -383,11 +364,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
 
-        let elg = try EventLoopGroup()
-        let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
-        let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
-        let socketOptions = SocketOptions()
-
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
             privateKeyPath: inputKey
@@ -397,8 +373,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
             port: UInt32(8883),
-            bootstrap: clientBootstrap,
-            socketOptions: socketOptions,
             tlsCtx: tlsContext)
 
         let testContext = MqttTestContext()
@@ -432,11 +406,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputProxyHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_PROXY_HOST")
         let inputProxyPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_PROXY_PORT")
 
-        let elg = try EventLoopGroup()
-        let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
-        let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
-        let socketOptions = SocketOptions()
-
         let tlsOptions = try TLSContextOptions()
         tlsOptions.setVerifyPeer(false)
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
@@ -449,8 +418,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
             port: UInt32(inputPort)!,
-            bootstrap: clientBootstrap,
-            socketOptions: socketOptions,
             tlsCtx: tlsContext,
             httpProxyOptions: httpProxyOptions)
 
