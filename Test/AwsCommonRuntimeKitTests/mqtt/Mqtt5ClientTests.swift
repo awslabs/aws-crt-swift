@@ -119,6 +119,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
         XCTAssertNotNil(mqtt5client)
     }
 
+    func createClientId() -> String {
+        return "aws-crt-swift-unit-test-" + UUID().uuidString
+    }
+
     /*===============================================================
                      DIRECT CONNECT TEST CASES
     =================================================================*/
@@ -245,20 +249,17 @@ class Mqtt5ClientTests: XCBaseTestCase {
     func testMqtt5DirectConnectMinimum() throws {
         let directHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
         let directPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
-        print("directHost:\(directHost)")
-        print("directPort:\(directPort)")
-        
+
         let elg = try EventLoopGroup()
         let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
         let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
         let socketOptions = SocketOptions()
-        let connectOptions = MqttConnectOptions()
         let clientOptions = MqttClientOptions(
             hostName: directHost,
             port: UInt32(directPort)!,
             bootstrap: clientBootstrap,
             socketOptions: socketOptions)
-    
+
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
         try client.start()
@@ -266,16 +267,168 @@ class Mqtt5ClientTests: XCBaseTestCase {
             print("Connection Success Timed out after 5 seconds")
             XCTFail("Connection Timed Out")
         }
-        
+
         try client.stop()
         if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
             print("Disconnection timed out after 5 seconds")
             XCTFail("Disconnection timed out")
         }
-        
+
         if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
             print("Stop timed out after 5 seconds")
             XCTFail("Stop timed out")
         }
     }
+
+    /*
+     * [ConnDC-UC2] Direct Connection with Basic Authentication
+     */
+
+    func testMqtt5DirectConnectWithBasicAuth() throws {
+
+        let username = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_USERNAME")
+        let password = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_PASSWORD")
+        let directHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        let directPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+        let elg = try EventLoopGroup()
+        let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
+        let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
+        let socketOptions = SocketOptions()
+        let connectOptions = MqttConnectOptions(
+            clientId: createClientId(),
+            username: username,
+            password: password
+        )
+
+        let clientOptions = MqttClientOptions(
+            hostName: directHost,
+            port: UInt32(directPort)!,
+            bootstrap: clientBootstrap,
+            socketOptions: socketOptions,
+            connectOptions: connectOptions)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Success Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        try client.stop()
+        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
+            print("Disconnection timed out after 5 seconds")
+            XCTFail("Disconnection timed out")
+        }
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
+
+    /*
+     * [ConnDC-UC3] Direct Connection with TLS
+     */
+
+    func testMqtt5DirectConnectWithBasicAuth() throws {
+
+        let directHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
+        let directPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+
+        let elg = try EventLoopGroup()
+        let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
+        let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
+        let socketOptions = SocketOptions()
+
+        let tlsOptions = try TLSContextOptions()
+        tlsOptions.setVerifyPeer(verifyPeer: false)
+        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+
+        let clientOptions = MqttClientOptions(
+            hostName: directHost,
+            port: UInt32(directPort)!,
+            bootstrap: clientBootstrap,
+            socketOptions: socketOptions,
+            tlsCtx: tlsContext)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Success Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        try client.stop()
+        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
+            print("Disconnection timed out after 5 seconds")
+            XCTFail("Disconnection timed out")
+        }
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
+
+    /*
+     * [ConnDC-UC4] Direct Connection with mutual TLS
+     */
+
+    func testMqtt5DirectConnectWithBasicAuth() throws {
+
+        let directHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+        let inputCert = getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+        let inputKey = getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+        let elg = try EventLoopGroup()
+        let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
+        let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
+        let socketOptions = SocketOptions()
+
+        let tlsOptions = try TLSContextOptions.makeMtlsFromFilePath(
+            certificatePath: inputCert,
+            privateKeyPath: inputKey
+        )
+        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+        let clientOptions = MqttClientOptions(
+            hostName: directHost,
+            port: UInt32(8883)!,
+            bootstrap: clientBootstrap,
+            socketOptions: socketOptions,
+            tlsCtx: tlsContext)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Success Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        try client.stop()
+        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
+            print("Disconnection timed out after 5 seconds")
+            XCTFail("Disconnection timed out")
+        }
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
+
+    /*
+     * [ConnDC-UC5] Direct Connection with HttpProxy options and TLS
+     */
+
+    /*
+     * [ConnDC-UC6] Direct Connection with all options set
+     */
+
+
 }
