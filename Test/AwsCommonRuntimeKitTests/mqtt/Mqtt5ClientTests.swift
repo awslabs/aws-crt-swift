@@ -389,7 +389,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
         let socketOptions = SocketOptions()
 
-        let tlsOptions = try TLSContextOptions.makeMtlsFromFilePath(
+        let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
             privateKeyPath: inputKey
         )
