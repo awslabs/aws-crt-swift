@@ -247,16 +247,16 @@ class Mqtt5ClientTests: XCBaseTestCase {
      */
 
     func testMqtt5DirectConnectMinimum() throws {
-        let directHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-        let directPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
 
         let elg = try EventLoopGroup()
         let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
         let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
         let socketOptions = SocketOptions()
         let clientOptions = MqttClientOptions(
-            hostName: directHost,
-            port: UInt32(directPort)!,
+            hostName: inputHost,
+            port: UInt32(inputPort)!,
             bootstrap: clientBootstrap,
             socketOptions: socketOptions)
 
@@ -286,10 +286,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
     func testMqtt5DirectConnectWithBasicAuth() throws {
 
-        let username = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_USERNAME")
-        let password = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_PASSWORD")
-        let directHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-        let directPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+        let inputUsername = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_USERNAME")
+        let inputPassword = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_PASSWORD")
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
 
         let elg = try EventLoopGroup()
         let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
@@ -297,13 +297,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let socketOptions = SocketOptions()
         let connectOptions = MqttConnectOptions(
             clientId: createClientId(),
-            username: username,
-            password: password
+            username: inputUsername,
+            password: inputPassword
         )
 
         let clientOptions = MqttClientOptions(
-            hostName: directHost,
-            port: UInt32(directPort)!,
+            hostName: inputHost,
+            port: UInt32(inputPort)!,
             bootstrap: clientBootstrap,
             socketOptions: socketOptions,
             connectOptions: connectOptions)
@@ -334,8 +334,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
     func testMqtt5DirectConnectWithTLS() throws {
 
-        let directHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
-        let directPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
 
         let elg = try EventLoopGroup()
         let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
@@ -346,10 +346,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
         tlsOptions.setVerifyPeer(false)
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
 
-
         let clientOptions = MqttClientOptions(
-            hostName: directHost,
-            port: UInt32(directPort)!,
+            hostName: inputHost,
+            port: UInt32(inputPort)!,
             bootstrap: clientBootstrap,
             socketOptions: socketOptions,
             tlsCtx: tlsContext)
@@ -380,7 +379,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
     func testMqtt5DirectConnectWithMutualTLS() throws {
 
-        let directHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
 
@@ -396,7 +395,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
 
         let clientOptions = MqttClientOptions(
-            hostName: directHost,
+            hostName: inputHost,
             port: UInt32(8883),
             bootstrap: clientBootstrap,
             socketOptions: socketOptions,
@@ -425,6 +424,55 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnDC-UC5] Direct Connection with HttpProxy options and TLS
      */
+
+    func testMqtt5DirectConnectWithHttpProxy() throws {
+
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+        let inputProxyHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_PROXY_HOST")
+        let inputProxyPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_PROXY_PORT")
+
+        let elg = try EventLoopGroup()
+        let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
+        let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
+        let socketOptions = SocketOptions()
+
+        let tlsOptions = try TLSContextOptions()
+        tlsOptions.setVerifyPeer(false)
+        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+        let httpProxyOptions = HTTPProxyOptions(
+            hostName: inputProxyHost,
+            port: UInt32(inputProxyPort)!,
+            connectionType: HTTPProxyConnectionType.tunnel)
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!,
+            bootstrap: clientBootstrap,
+            socketOptions: socketOptions,
+            tlsCtx: tlsContext,
+            httpProxyOptions: httpProxyOptions)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Success Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        try client.stop()
+        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
+            print("Disconnection timed out after 5 seconds")
+            XCTFail("Disconnection timed out")
+        }
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
 
     /*
      * [ConnDC-UC6] Direct Connection with all options set
