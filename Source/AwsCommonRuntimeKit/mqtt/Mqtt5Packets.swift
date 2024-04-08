@@ -295,8 +295,8 @@ public class SubscribePacket {
                              subscriptionIdentifier: UInt32? = nil,
                              userProperties: [UserProperty]? = nil) {
         self.init(subscriptions: [Subscription(topicFilter: topicFilter, qos: qos)],
-            subscriptionIdentifier: subscriptionIdentifier,
-            userProperties: userProperties)
+                  subscriptionIdentifier: subscriptionIdentifier,
+                  userProperties: userProperties)
     }
 
     // Allow a SubscribePacket to be created directly using a single Subscription
@@ -304,8 +304,8 @@ public class SubscribePacket {
                              subscriptionIdentifier: UInt32? = nil,
                              userProperties: [UserProperty]? = nil) {
         self.init(subscriptions: [subscription],
-            subscriptionIdentifier: subscriptionIdentifier,
-            userProperties: userProperties)
+                  subscriptionIdentifier: subscriptionIdentifier,
+                  userProperties: userProperties)
     }
 }
 
@@ -349,7 +349,7 @@ public class UnsubscribePacket {
     public convenience init (topicFilter: String,
                              userProperties: [UserProperty]? = nil) {
             self.init(topicFilters: [topicFilter],
-                userProperties: userProperties)
+                      userProperties: userProperties)
         }
 }
 
