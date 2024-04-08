@@ -2,10 +2,10 @@ version: 0.1
 env:
   shell: bash
   variables:
-  BUILDER_VERSION: v0.9.56
-  BUILDER_SOURCE: releases
-  BUILDER_HOST: https://d19elf31gohf1l.cloudfront.net
-  PACKAGE_NAME: aws-crt-swift
+    BUILDER_VERSION: v0.9.56
+    BUILDER_SOURCE: releases
+    BUILDER_HOST: https://d19elf31gohf1l.cloudfront.net
+    PACKAGE_NAME: aws-crt-swift
 
 phases:
   build:
