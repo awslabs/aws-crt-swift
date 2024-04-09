@@ -2,9 +2,10 @@
 ///  SPDX-License-Identifier: Apache-2.0.
 
 import Foundation
+import AwsCMqtt
 
 /// Mqtt5 User Property
-public class UserProperty {
+public class UserProperty: CStruct {
 
     /// Property name
     public let name: String
@@ -16,10 +17,71 @@ public class UserProperty {
         self.name = name
         self.value = value
     }
+
+    typealias RawType = aws_mqtt5_user_property
+    func withCStruct<Result>(_ body: (aws_mqtt5_user_property) -> Result) -> Result {
+        var rawUserProperty = aws_mqtt5_user_property()
+        return withByteCursorFromStrings(name, value) { cNameCursor, cValueCursor in
+            aws_byte_buf_clean_up(&name_buffer)
+            aws_byte_buf_clean_up(&value_buffer)
+            aws_byte_buf_init_copy_from_cursor(&name_buffer, allocator, cNameCursor)
+            aws_byte_buf_init_copy_from_cursor(&value_buffer, allocator, cValueCursor)
+            rawUserProperty.name = aws_byte_cursor_from_buf(&name_buffer)
+            rawUserProperty.value = aws_byte_cursor_from_buf(&value_buffer)
+            return body(rawUserProperty)
+        }
+    }
+
+    // We keep a memory of the buffer storage in the class, and release it on
+    // destruction
+    private var name_buffer: aws_byte_buf = aws_byte_buf()
+    private var value_buffer: aws_byte_buf = aws_byte_buf()
+    deinit {
+        aws_byte_buf_clean_up(&name_buffer)
+        aws_byte_buf_clean_up(&value_buffer)
+    }
+}
+
+extension Array where Element == UserProperty {
+    func withCMqttUserProperties<Result>(_ body: (OpaquePointer) throws -> Result) rethrows -> Result {
+        var array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
+        defer {
+            aws_array_list_clean_up(array_list)
+            allocator.release(array_list)
+        }
+        guard aws_array_list_init_dynamic(
+            array_list,
+            allocator.rawValue,
+            count,
+            MemoryLayout<aws_mqtt5_user_property>.size) == AWS_OP_SUCCESS else {
+            fatalError("Unable to initialize array of user properties")
+        }
+        forEach {
+            $0.withCPointer {
+                // `aws_array_list_push_back` will do a memory copy of $0 into array_list
+                guard aws_array_list_push_back(array_list, $0) == AWS_OP_SUCCESS else {
+                    fatalError("Unable to add user property")
+                }
+            }
+        }
+        return try body(OpaquePointer(array_list.pointee.data))
+    }
+}
+
+/// Help function to handle Optional UserProperty Array into c pointer
+func withOptionalUserPropertyArray<Result>(
+    of array: Array<UserProperty>?,
+    _ body: (OpaquePointer?) throws -> Result) rethrows -> Result {
+    guard let _array = array else {
+        return try body(nil)
+    }
+    return try _array.withCMqttUserProperties { opaquePointer in
+        return try body(opaquePointer)
+    }
 }
 
 /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet
-public class PublishPacket {
+public class PublishPacket: CStruct {
 
     /// The payload of the publish message in a byte buffer format
     public let payload: Data?
@@ -90,6 +152,68 @@ public class PublishPacket {
             return String(data: data, encoding: .utf8) ?? ""
         }
         return ""
+    }
+
+    typealias RawType = aws_mqtt5_packet_publish_view
+    func withCStruct<Result>(_ body: (aws_mqtt5_packet_publish_view) -> Result) -> Result {
+        var raw_publish_view = aws_mqtt5_packet_publish_view()
+
+        raw_publish_view.qos = aws_mqtt5_qos(UInt32(qos.rawValue))
+        raw_publish_view.retain = retain
+        return topic.withByteCursor { topicCustor in
+            raw_publish_view.topic =  topicCustor
+            return withOptionalAWSByteCursorFromData(to: payload) { cByteCursor in
+                raw_publish_view.payload = cByteCursor
+
+                let _payloadFormatIndicatorInt: aws_mqtt5_payload_format_indicator? =
+                                                                    payloadFormatIndicator?.rawValue ?? nil
+                let _messageExpiryInterval: UInt32? = try? messageExpiryInterval?.secondUInt32() ?? nil
+
+                return withOptionalUnsafePointers(
+                    _payloadFormatIndicatorInt,
+                    topicAlias,
+                    _messageExpiryInterval) { payloadPointer, topicAliasPointer, messageExpiryIntervalPointer in
+                    if let _payloadPointer = payloadPointer {
+                        raw_publish_view.payload_format = _payloadPointer
+                    }
+
+                    if let _messageExpiryIntervalPointer = messageExpiryIntervalPointer {
+                        raw_publish_view.message_expiry_interval_seconds = _messageExpiryIntervalPointer
+                    }
+
+                    if let _topicAliasPointer = topicAliasPointer {
+                        raw_publish_view.topic_alias = _topicAliasPointer
+                    }
+
+                    return withOptionalArrayRawPointer(of: subscriptionIdentifiers) { subscriptionPointer in
+
+                        if let _subscriptionPointer = subscriptionPointer {
+                            raw_publish_view.subscription_identifiers = _subscriptionPointer
+                            raw_publish_view.subscription_identifier_count = subscriptionIdentifiers!.count
+                        }
+
+                        return withOptionalUserPropertyArray(
+                            of: userProperties) { userPropertyPointer in
+                            if let _userPropertyPointer = userPropertyPointer {
+                                raw_publish_view.user_property_count = userProperties!.count
+                                raw_publish_view.user_properties =
+                                    UnsafePointer<aws_mqtt5_user_property>(_userPropertyPointer)
+                            }
+                            return withOptionalByteCursorPointerFromString(
+                            responseTopic,
+                            correlationData,
+                            contentType) { cResponseTopic, cCorrelationData, cContentType in
+                                raw_publish_view.content_type = cContentType
+                                raw_publish_view.correlation_data = cCorrelationData
+                                raw_publish_view.response_topic = cResponseTopic
+
+                                return body(raw_publish_view)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -171,8 +295,8 @@ public class SubscribePacket {
                              subscriptionIdentifier: UInt32? = nil,
                              userProperties: [UserProperty]? = nil) {
         self.init(subscriptions: [Subscription(topicFilter: topicFilter, qos: qos)],
-            subscriptionIdentifier: subscriptionIdentifier,
-            userProperties: userProperties)
+                  subscriptionIdentifier: subscriptionIdentifier,
+                  userProperties: userProperties)
     }
 
     // Allow a SubscribePacket to be created directly using a single Subscription
@@ -180,8 +304,8 @@ public class SubscribePacket {
                              subscriptionIdentifier: UInt32? = nil,
                              userProperties: [UserProperty]? = nil) {
         self.init(subscriptions: [subscription],
-            subscriptionIdentifier: subscriptionIdentifier,
-            userProperties: userProperties)
+                  subscriptionIdentifier: subscriptionIdentifier,
+                  userProperties: userProperties)
     }
 }
 
@@ -225,7 +349,7 @@ public class UnsubscribePacket {
     public convenience init (topicFilter: String,
                              userProperties: [UserProperty]? = nil) {
             self.init(topicFilters: [topicFilter],
-                userProperties: userProperties)
+                      userProperties: userProperties)
         }
 }
 
