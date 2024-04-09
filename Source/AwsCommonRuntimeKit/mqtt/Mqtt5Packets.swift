@@ -179,7 +179,7 @@ public class PublishPacket: CStruct {
     func withCStruct<Result>(_ body: (aws_mqtt5_packet_publish_view) -> Result) -> Result {
         var raw_publish_view = aws_mqtt5_packet_publish_view()
 
-        raw_publish_view.qos = aws_mqtt5_qos(UInt32(qos.rawValue))
+        raw_publish_view.qos = self.qos.nativeValue
         raw_publish_view.retain = retain
         return topic.withByteCursor { topicCustor in
             raw_publish_view.topic =  topicCustor
@@ -260,7 +260,7 @@ public class PubackPacket {
 }
 
 /// Configures a single subscription within a Subscribe operation
-public class Subscription {
+public class Subscription: CStruct {
 
     /// The topic filter to subscribe to
     public let topicFilter: String
@@ -287,7 +287,37 @@ public class Subscription {
         self.noLocal = noLocal
         self.retainAsPublished = retainAsPublished
         self.retainHandlingType = retainHandlingType
+
+        aws_byte_buf_clean_up(&topicFilterBuffer)
+        self.topicFilter.withByteCursor { topicFilterCursor in
+            aws_byte_buf_init_copy_from_cursor(&topicFilterBuffer, allocator, topicFilterCursor)
+        }
     }
+
+    private var topicFilterBuffer = aws_byte_buf()
+
+    typealias RawType = aws_mqtt5_subscription_view
+    func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
+        var view = aws_mqtt5_subscription_view()
+        view.qos = self.qos.nativeValue
+        view.no_local = self.noLocal ?? false
+        view.retain_as_published = self.retainAsPublished ?? false
+        if var _retainType = self.retainHandlingType {
+            view.retain_handling_type = _retainType.natvieValue
+        } else {
+            view.retain_handling_type = aws_mqtt5_retain_handling_type(0)
+        }
+
+        return withByteCursorFromStrings(self.topicFilter) { topicCursor in
+            view.topic_filter = aws_byte_cursor_from_buf(&topicFilterBuffer)
+            return body(view)
+        }
+    }
+
+    deinit {
+        aws_byte_buf_clean_up(&topicFilterBuffer)
+    }
+
 }
 
 /// Data model of an `MQTT5 SUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901161>`_ packet.
@@ -585,7 +615,7 @@ public class ConnackPacket {
             let sessionExpiryInterval = (from.pointee.session_expiry_interval?.pointee).map { TimeInterval($0) }
             let receiveMaximum = convertOptionalUInt16(from.pointee.receive_maximum)
 
-            var maximumQos: QoS? = nil
+            var maximumQos: QoS?
             if let maximumQosValue = from.pointee.maximum_qos {
                 let maximumQoSNativeValue = maximumQosValue.pointee.rawValue
                 maximumQos = QoS(rawValue: Int(maximumQoSNativeValue))

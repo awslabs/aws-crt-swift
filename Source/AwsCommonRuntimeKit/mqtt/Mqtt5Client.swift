@@ -57,6 +57,13 @@ public class Mqtt5Client {
             throw CommonRunTimeError.crtError(CRTError(code: errorCode))
         }
     }
+    
+    public func subscribe(_ subscribePacket: SubscribePacket) async throws {
+//        var errorCode: Int32 = 0
+//        subscribePacket.withCPointer { subscribePacketPointer in
+//            errorCode = aws_mqtt5_client_publish(rawValue, subscribePacketPointer, {})
+//        }
+    }
 
     public func close() {
         self.callbackCore.close()

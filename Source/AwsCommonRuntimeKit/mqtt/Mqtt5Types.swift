@@ -20,6 +20,13 @@ public enum QoS: Int {
 
 }
 
+internal extension QoS {
+    /// Returns the native representation of the Swift enum
+    var nativeValue: aws_mqtt5_qos {
+        return aws_mqtt5_qos(rawValue: UInt32(self.rawValue))
+    }
+}
+
 /// Server return code for connect attempts.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901079>`__ encoding values.
 public enum ConnectReasonCode: Int {
@@ -474,6 +481,12 @@ public enum RetainHandlingType: Int {
 
     /// Subscriptions must not trigger any retained message publishes from the server.
     case dontSend = 2
+}
+
+extension RetainHandlingType {
+    var natvieValue: aws_mqtt5_retain_handling_type {
+        return aws_mqtt5_retain_handling_type(rawValue: UInt32(self.rawValue))
+    }
 }
 
 /// An enumeration that controls how the client applies topic aliasing to outbound publish packets.
