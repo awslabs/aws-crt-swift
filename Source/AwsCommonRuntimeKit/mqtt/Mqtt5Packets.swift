@@ -83,7 +83,7 @@ func withOptionalUserPropertyArray<Result>(
 /// Convert a native UserProperty pointer into a Swift [UserProperty]?
 func convertOptionalUserProperties(count: size_t, userPropertiesPointer: UnsafePointer<aws_mqtt5_user_property>?) -> [UserProperty]? {
 
-    guard let validPointer = userPropertiesPointer, count > 0
+    guard let validPointer = userPropertiesPointer, count > 0 // swiftlint:disable:this empty_count
     else { return nil }
 
     var userProperties: [UserProperty] = []
