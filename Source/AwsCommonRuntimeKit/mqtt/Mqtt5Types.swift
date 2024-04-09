@@ -1287,7 +1287,7 @@ class MqttCallbackCore {
     /// and returns the UnsafeMutableRawPointer hold the object itself.
     ///
     /// You should always release the retained pointer to avoid memory leak
-    func shutdownCallbackUserData() -> UnsafeMutableRawPointer {
+    func callbackUserData() -> UnsafeMutableRawPointer {
         return Unmanaged<MqttCallbackCore>.passRetained(self).toOpaque()
     }
 

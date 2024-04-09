@@ -6,7 +6,8 @@ import AwsCMqtt
 import AwsCIo
 
 public class Mqtt5Client {
-     private var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
+    private var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
+    private var callbackCore: MqttCallbackCore
 
     init(clientOptions options: MqttClientOptions) throws {
 
@@ -19,7 +20,7 @@ public class Mqtt5Client {
             onLifecycleEventDisconnection: options.onLifecycleEventDisconnectionFn)
 
         guard let rawValue = (options.withCPointer(
-            userData: mqttCallbackCore.shutdownCallbackUserData()) { optionsPointer in
+            userData: self.callbackCore.callbackUserData()) { optionsPointer in
                 return aws_mqtt5_client_new(allocator.rawValue, optionsPointer)
         }) else {
             // failed to create client, release the callback core
