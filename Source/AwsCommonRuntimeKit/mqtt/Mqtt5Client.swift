@@ -7,9 +7,8 @@ import AwsCIo
 
 public class Mqtt5Client {
      private var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
-     private var callbackCore: MqttCallbackCore
 
-    public init(clientOptions options: MqttClientOptions) throws {
+    init(clientOptions options: MqttClientOptions) throws {
 
         self.callbackCore = MqttCallbackCore(
             onPublishReceivedCallback: options.onPublishReceivedFn,
@@ -19,9 +18,10 @@ public class Mqtt5Client {
             onLifecycleEventConnectionFailure: options.onLifecycleEventConnectionFailureFn,
             onLifecycleEventDisconnection: options.onLifecycleEventDisconnectionFn)
 
-        guard let rawValue = (options.withCPointer( userData: self.callbackCore.shutdownCallbackUserData()) { optionsPointer in
+        guard let rawValue = (options.withCPointer(
+            userData: mqttCallbackCore.shutdownCallbackUserData()) { optionsPointer in
                 return aws_mqtt5_client_new(allocator.rawValue, optionsPointer)
-        })  else {
+        }) else {
             // failed to create client, release the callback core
             self.callbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -36,8 +36,9 @@ public class Mqtt5Client {
 
     public func start() throws {
         let errorCode = aws_mqtt5_client_start(rawValue)
-        if errorCode != 0
-        { throw CommonRunTimeError.crtError(CRTError(code: errorCode)) }
+        if errorCode != 0 {
+            throw CommonRunTimeError.crtError(CRTError(code: errorCode))
+        }
     }
 
     public func stop(disconnectPacket: DisconnectPacket? = nil) throws {
@@ -51,8 +52,9 @@ public class Mqtt5Client {
             errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
         }
 
-        if errorCode != 0
-        { throw CommonRunTimeError.crtError(CRTError(code: errorCode)) }
+        if errorCode != 0 {
+            throw CommonRunTimeError.crtError(CRTError(code: errorCode))
+        }
     }
 
     public func close() {

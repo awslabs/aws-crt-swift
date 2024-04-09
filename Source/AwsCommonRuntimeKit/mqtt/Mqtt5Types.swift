@@ -911,7 +911,6 @@ public class MqttConnectOptions: CStruct {
                                     raw_connect_options.password = cPasswordPointer
                                     return body(raw_connect_options)
                                 }
-
                         }
                     }
                 }
@@ -1220,7 +1219,11 @@ public class MqttClientOptions: CStructWithUserData {
             tls_options,
             self.httpProxyOptions,
             self.topicAliasingOptions,
-            _connnectOptions) { socketOptionsCPointer, tlsOptionsCPointer, httpProxyOptionsCPointer, topicAliasingOptionsCPointer, connectOptionsCPointer in
+            _connnectOptions) { (socketOptionsCPointer,
+                                 tlsOptionsCPointer,
+                                 httpProxyOptionsCPointer,
+                                 topicAliasingOptionsCPointer,
+                                 connectOptionsCPointer) in
 
                 raw_options.socket_options = socketOptionsCPointer
                 raw_options.tls_options = tlsOptionsCPointer

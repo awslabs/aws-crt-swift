@@ -16,20 +16,21 @@ public class UserProperty: CStruct {
     public init (name: String, value: String) {
         self.name = name
         self.value = value
+
+        withByteCursorFromStrings(self.name, self.value) { cNameCursor, cValueCursor in
+            aws_byte_buf_clean_up(&name_buffer)
+            aws_byte_buf_clean_up(&value_buffer)
+            aws_byte_buf_init_copy_from_cursor(&name_buffer, allocator, cNameCursor)
+            aws_byte_buf_init_copy_from_cursor(&value_buffer, allocator, cValueCursor)
+        }
     }
 
     typealias RawType = aws_mqtt5_user_property
     func withCStruct<Result>(_ body: (aws_mqtt5_user_property) -> Result) -> Result {
         var rawUserProperty = aws_mqtt5_user_property()
-        return withByteCursorFromStrings(name, value) { cNameCursor, cValueCursor in
-            aws_byte_buf_clean_up(&name_buffer)
-            aws_byte_buf_clean_up(&value_buffer)
-            aws_byte_buf_init_copy_from_cursor(&name_buffer, allocator, cNameCursor)
-            aws_byte_buf_init_copy_from_cursor(&value_buffer, allocator, cValueCursor)
-            rawUserProperty.name = aws_byte_cursor_from_buf(&name_buffer)
-            rawUserProperty.value = aws_byte_cursor_from_buf(&value_buffer)
-            return body(rawUserProperty)
-        }
+        rawUserProperty.name = aws_byte_cursor_from_buf(&name_buffer)
+        rawUserProperty.value = aws_byte_cursor_from_buf(&value_buffer)
+        return body(rawUserProperty)
     }
 
     // We keep a memory of the buffer storage in the class, and release it on
@@ -83,7 +84,7 @@ func withOptionalUserPropertyArray<Result>(
 /// Convert a native UserProperty pointer into a Swift [UserProperty]?
 func convertOptionalUserProperties(count: size_t, userPropertiesPointer: UnsafePointer<aws_mqtt5_user_property>?) -> [UserProperty]? {
 
-    guard let validPointer = userPropertiesPointer, count > 0
+    guard let validPointer = userPropertiesPointer, count > 0 // swiftlint:disable:this empty_count
     else { return nil }
 
     var userProperties: [UserProperty] = []
@@ -315,8 +316,8 @@ public class SubscribePacket {
                              subscriptionIdentifier: UInt32? = nil,
                              userProperties: [UserProperty]? = nil) {
         self.init(subscriptions: [Subscription(topicFilter: topicFilter, qos: qos)],
-            subscriptionIdentifier: subscriptionIdentifier,
-            userProperties: userProperties)
+                  subscriptionIdentifier: subscriptionIdentifier,
+                  userProperties: userProperties)
     }
 
     // Allow a SubscribePacket to be created directly using a single Subscription
@@ -324,8 +325,8 @@ public class SubscribePacket {
                              subscriptionIdentifier: UInt32? = nil,
                              userProperties: [UserProperty]? = nil) {
         self.init(subscriptions: [subscription],
-            subscriptionIdentifier: subscriptionIdentifier,
-            userProperties: userProperties)
+                  subscriptionIdentifier: subscriptionIdentifier,
+                  userProperties: userProperties)
     }
 }
 
@@ -369,7 +370,7 @@ public class UnsubscribePacket {
     public convenience init (topicFilter: String,
                              userProperties: [UserProperty]? = nil) {
             self.init(topicFilters: [topicFilter],
-                userProperties: userProperties)
+                      userProperties: userProperties)
         }
 }
 
