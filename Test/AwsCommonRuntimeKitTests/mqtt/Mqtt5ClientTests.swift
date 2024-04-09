@@ -88,8 +88,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
                             willDelayInterval: 1000,
                             will: will,
                             userProperties:   [UserProperty(name: "name1",value: "value1"),
-                                             UserProperty(name: "name2",value: "value2"),
-                                             UserProperty(name: "name3",value: "value3")])
+                                               UserProperty(name: "name2",value: "value2"),
+                                               UserProperty(name: "name3",value: "value3")])
 
 
         let clientOptions = MqttClientOptions( hostName: "localhost",
