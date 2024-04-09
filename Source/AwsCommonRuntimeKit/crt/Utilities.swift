@@ -139,16 +139,14 @@ extension TimeInterval {
 
     func secondUInt16() throws -> UInt16 {
         guard self >= 0 && self <= Double(UInt16.max) else {
-            throw CommonRunTimeError.commonError(
-                CommonError("TimeInterval out of boundary: require value in range [0, UInt16.max]"))
+            throw CommonRunTimeError.crtError( CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue))
         }
         return UInt16(self)
     }
 
     func secondUInt32() throws -> UInt32 {
         guard self >= 0 && self <= Double(UInt32.max) else {
-            throw CommonRunTimeError.commonError(
-                CommonError("TimeInterval out of boundary: require value in range [0, UInt32.max]"))
+            throw CommonRunTimeError.crtError( CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue))
         }
         return UInt32(self)
     }
