@@ -445,5 +445,77 @@ class Mqtt5ClientTests: XCBaseTestCase {
      * [ConnDC-UC6] Direct Connection with all options set
      */
 
+    func testMqtt5DirectConnectMaximum() throws {
+
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+        let userProperties = [UserProperty("name1", "value1"),
+                              UserProperty("name2", "value2")]
+
+        let willPacket = PublishPacket(
+            qos: QoS.atLeastOnce,
+            topic: "TEST_TOPIC",
+            payload: "TEST_PAYLOAD".data(using: .utf8),
+            retain: false,
+            payloadFormatIndicator: PayloadFormatIndicator.utf8,
+            messageExpiryInterval: TimeInterval(10),
+            topicAlias: UInt16(1),
+            responseTopic: "TEST_RESPONSE_TOPIC",
+            correlationData: "TEST_CORRELATION_DATA",
+            contentType: "TEST_CONTENT_TYPE",
+            userProperties: userProperties)
+
+        let connectOptions = MqttConnectOptions(
+            keepAliveInterval: TimeInterval(10),
+            clientId: createClientId(),
+            sessionExpiryInterval: TimeInterval(100),
+            requestResponseInformation: true,
+            requestProblemInformation: true,
+            receiveMaximum: 1000,
+            maximumPacketSize: 10000,
+            willDelayInterval: TimeInterval(1000),
+            will: willPacket,
+            userProperties: userProperties)
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: inputPort,
+            connectOptions: connectOptions,
+            sessionBehavior: ClientSessionBehaviorType.clean,
+            extendedValidationAndFlowControlOptions: ExtendedValidationAndFlowControlOptions.awsIotCoreDefaults,
+            offlineQueueBehavior: ClientOperationQueueBehaviorType.failAllOnDisconnect,
+            retryJitterMode: ExponentialBackoffJitterMode.decorrelated,
+            minReconnectDelay: TimeInterval(0.1),
+            maxReconnectDelay: TimeInterval(50),
+            minConnectedTimeToResetReconnectDelay: TimeInterval(1),
+            pingTimeout: TimeInterval(1),
+            connackTimeout: TimeInterval(1),
+            ackTimeout: TimeInterval(100))
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort),
+            tlsCtx: tlsContext)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Success Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        try client.stop()
+        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
+            print("Disconnection timed out after 5 seconds")
+            XCTFail("Disconnection timed out")
+        }
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
 
 }
