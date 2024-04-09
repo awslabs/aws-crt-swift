@@ -862,12 +862,12 @@ public class MqttConnectOptions: CStruct {
             _requestProblemInformation,
             _willDelayIntervalSec,
             self.receiveMaximum,
-            self.maximumPacketSize) { sessionExpiryIntervalSecPointer,
-                                      requestResponseInformationPointer,
-                                      requestProblemInformationPointer,
-                                      willDelayIntervalSecPointer,
-                                      receiveMaximumPointer,
-                                      maximumPacketSizePointer in
+            self.maximumPacketSize) { (sessionExpiryIntervalSecPointer,
+                                       requestResponseInformationPointer,
+                                       requestProblemInformationPointer,
+                                       willDelayIntervalSecPointer,
+                                       receiveMaximumPointer,
+                                       maximumPacketSizePointer) in
 
             if let _sessionExpiryIntervalSecPointer = sessionExpiryIntervalSecPointer {
                 raw_connect_options.session_expiry_interval_seconds = _sessionExpiryIntervalSecPointer
@@ -1209,11 +1209,11 @@ public class MqttClientOptions: CStructWithUserData {
             tls_options,
             self.httpProxyOptions,
             self.topicAliasingOptions,
-            _connnectOptions) { socketOptionsCPointer,
-                                tlsOptionsCPointer,
-                                httpProxyOptionsCPointer,
-                                topicAliasingOptionsCPointer,
-                                connectOptionsCPointer in
+            _connnectOptions) { (socketOptionsCPointer,
+                                 tlsOptionsCPointer,
+                                 httpProxyOptionsCPointer,
+                                 topicAliasingOptionsCPointer,
+                                 connectOptionsCPointer) in
 
                 raw_options.socket_options = socketOptionsCPointer
                 raw_options.tls_options = tlsOptionsCPointer
