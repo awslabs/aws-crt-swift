@@ -450,8 +450,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
 
-        let userProperties = [UserProperty("name1", "value1"),
-                              UserProperty("name2", "value2")]
+        let userProperties = [UserProperty(name: "name1", value: "value1"),
+                              UserProperty(name: "name2", value: "value2")]
 
         let willPacket = PublishPacket(
             qos: QoS.atLeastOnce,
@@ -480,7 +480,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: inputPort,
+            port: UInt32(inputPort)!,
             connectOptions: connectOptions,
             sessionBehavior: ClientSessionBehaviorType.clean,
             extendedValidationAndFlowControlOptions: ExtendedValidationAndFlowControlOptions.awsIotCoreDefaults,
@@ -492,11 +492,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
             pingTimeout: TimeInterval(1),
             connackTimeout: TimeInterval(1),
             ackTimeout: TimeInterval(100))
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort),
-            tlsCtx: tlsContext)
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
