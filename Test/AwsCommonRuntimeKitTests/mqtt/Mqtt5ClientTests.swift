@@ -71,7 +71,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
         let will = PublishPacket(qos: QoS.atLeastOnce, topic: "test/Mqtt5_Binding_SWIFT/testMqtt5ClientNewFull",
                                  payload: "will test".data(using: .utf8))
-        
+
         let uuid = UUID().uuidString
         let connectOptions = MqttConnectOptions(
                             keepAliveInterval: 30,
@@ -87,7 +87,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                              UserProperty(name: "name2",value: "value2"),
                                              UserProperty(name: "name3",value: "value3")])
 
-       
+
         let clientOptions = MqttClientOptions( hostName: "localhost",
                                             port: 1883,
                                             bootstrap: clientBootstrap,
