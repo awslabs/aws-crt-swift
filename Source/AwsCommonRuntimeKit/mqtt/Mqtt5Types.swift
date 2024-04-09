@@ -862,12 +862,12 @@ public class MqttConnectOptions: CStruct {
             _requestProblemInformation,
             _willDelayIntervalSec,
             self.receiveMaximum,
-            self.maximumPacketSize) { (sessionExpiryIntervalSecPointer,
+            self.maximumPacketSize) { sessionExpiryIntervalSecPointer,
                                       requestResponseInformationPointer,
                                       requestProblemInformationPointer,
                                       willDelayIntervalSecPointer,
                                       receiveMaximumPointer,
-                                      maximumPacketSizePointer) in
+                                      maximumPacketSizePointer in
 
             if let _sessionExpiryIntervalSecPointer = sessionExpiryIntervalSecPointer {
                 raw_connect_options.session_expiry_interval_seconds = _sessionExpiryIntervalSecPointer
@@ -903,7 +903,8 @@ public class MqttConnectOptions: CStruct {
                     return withOptionalUserPropertyArray(of: userProperties) { cUserProperties in
                         if let _cUserProperties = cUserProperties {
                             raw_connect_options.user_property_count = userProperties!.count
-                            raw_connect_options.user_properties = UnsafePointer<aws_mqtt5_user_property>(_cUserProperties)
+                            raw_connect_options.user_properties =
+                                UnsafePointer<aws_mqtt5_user_property>(_cUserProperties)
                         }
                         return withOptionalByteCursorPointerFromStrings(
                             username, password) { cUsernamePointer, cPasswordPointer in
@@ -1208,7 +1209,11 @@ public class MqttClientOptions: CStructWithUserData {
             tls_options,
             self.httpProxyOptions,
             self.topicAliasingOptions,
-            _connnectOptions) { socketOptionsCPointer, tlsOptionsCPointer, httpProxyOptionsCPointer, topicAliasingOptionsCPointer, connectOptionsCPointer in
+            _connnectOptions) { socketOptionsCPointer,
+                                tlsOptionsCPointer,
+                                httpProxyOptionsCPointer,
+                                topicAliasingOptionsCPointer,
+                                connectOptionsCPointer in
 
                 raw_options.socket_options = socketOptionsCPointer
                 raw_options.tls_options = tlsOptionsCPointer
