@@ -129,7 +129,7 @@ public class PublishPacket: CStruct {
     public let responseTopic: String?
 
     /// Opaque binary data used to correlate between publish messages, as a potential method for request-response implementation.  Not internally meaningful to MQTT5.
-    public let correlationData: String? // Unicode objects are converted to C Strings using 'utf-8' encoding
+    public let correlationData: Data? // Unicode objects are converted to C Strings using 'utf-8' encoding
 
     /// The subscription identifiers of all the subscriptions this message matched.
     public let subscriptionIdentifiers: [UInt32]? // ignore attempts to set but provide in received packets
@@ -148,7 +148,7 @@ public class PublishPacket: CStruct {
                 messageExpiryInterval: TimeInterval? = nil,
                 topicAlias: UInt16? = nil,
                 responseTopic: String? = nil,
-                correlationData: String? = nil,
+                correlationData: Data? = nil,
                 subscriptionIdentifiers: [UInt32]? = nil,
                 contentType: String? = nil,
                 userProperties: [UserProperty]? = nil) {
@@ -187,7 +187,7 @@ public class PublishPacket: CStruct {
                 raw_publish_view.payload = cByteCursor
 
                 let _payloadFormatIndicatorInt: aws_mqtt5_payload_format_indicator? =
-                                                                    payloadFormatIndicator?.rawValue ?? nil
+                                                                    payloadFormatIndicator?.nativeValue ?? nil
                 let _messageExpiryInterval: UInt32? = try? messageExpiryInterval?.secondUInt32() ?? nil
 
                 return withOptionalUnsafePointers(
@@ -220,14 +220,16 @@ public class PublishPacket: CStruct {
                                 raw_publish_view.user_properties =
                                     UnsafePointer<aws_mqtt5_user_property>(_userPropertyPointer)
                             }
-                            return withOptionalByteCursorPointerFromString(
+                            return withOptionalByteCursorPointerFromStrings(
                             responseTopic,
-                            correlationData,
-                            contentType) { cResponseTopic, cCorrelationData, cContentType in
+                            contentType) { cResponseTopic, cContentType in
                                 raw_publish_view.content_type = cContentType
-                                raw_publish_view.correlation_data = cCorrelationData
                                 raw_publish_view.response_topic = cResponseTopic
 
+                                self.correlationData?.withAWSByteCursorPointer { cCorrelationData in
+                                    raw_publish_view.correlation_data = UnsafePointer(cCorrelationData)
+                                    return body(raw_publish_view)
+                                }
                                 return body(raw_publish_view)
                             }
                         }
@@ -236,6 +238,54 @@ public class PublishPacket: CStruct {
             }
         }
     }
+
+    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_publish_view>?) -> PublishPacket? {
+        if let _from = from {
+            let publishView = _from.pointee
+
+            let payload: Data = Data(bytes: publishView.payload.ptr, count: publishView.payload.len)
+
+            let payloadFormatIndicator: PayloadFormatIndicator? = publishView.payload_format != nil ?
+            PayloadFormatIndicator(rawValue: Int(publishView.payload_format.pointee.rawValue)) : nil
+
+            let messageExpiryInterval = convertOptionalUInt32(publishView.message_expiry_interval_seconds)
+            let messageExpiryIntervalTimeInterval: TimeInterval? = messageExpiryInterval.map { TimeInterval($0) }
+
+            let correlationDataPointer: Data? = publishView.correlation_data != nil ?
+                    Data(bytes: publishView.correlation_data!.pointee.ptr, count: publishView.correlation_data!.pointee.len) : nil
+
+            var identifier: [UInt32]? = []
+            for i in 0..<publishView.subscription_identifier_count {
+                let subscription_identifier: UInt32 = UInt32(publishView.subscription_identifiers.advanced(by: Int(i)).pointee)
+                identifier?.append(subscription_identifier)
+            }
+
+            let userProperties = convertOptionalUserProperties(
+                count: publishView.user_property_count,
+                userPropertiesPointer: publishView.user_properties)
+
+            guard let qos = QoS(rawValue: Int(publishView.qos.rawValue)) else {
+                fatalError("PublishPacket Received has an invalid qos")
+            }
+
+            let publishPacket = PublishPacket(qos: qos,
+                                            topic: publishView.topic.toString(),
+                                            payload: payload,
+                                            retain: publishView.retain,
+                                            payloadFormatIndicator: payloadFormatIndicator,
+                                            messageExpiryInterval: messageExpiryIntervalTimeInterval,
+                                            topicAlias: convertOptionalUInt16(publishView.topic_alias),
+                                            responseTopic: convertAwsByteCursorToOptionalString(publishView.response_topic),
+                                            correlationData: correlationDataPointer,
+                                            subscriptionIdentifiers: identifier,
+                                            contentType: convertAwsByteCursorToOptionalString(publishView.content_type),
+                                            userProperties: userProperties)
+
+            return publishPacket
+        }
+        return nil
+    }
+
 }
 
 /// "Data model of an `MQTT5 PUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901121>`_ packet
@@ -435,9 +485,9 @@ public class SubackPacket {
     static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_suback_view>?) -> SubackPacket? {
         if let _from = from {
             let subackPointer = _from.pointee
-            let reasoncodebount = subackPointer.reason_code_count
+
             var subackReasonCodes: [SubackReasonCode] = []
-            for i in 0..<reasoncodebount {
+            for i in 0..<subackPointer.reason_code_count {
                 let reasonCodePointer = subackPointer.reason_codes.advanced(by: Int(i)).pointee
                 guard let reasonCode = SubackReasonCode(rawValue: Int(reasonCodePointer.rawValue))
                 else {fatalError("SubackPacket from native has an invalid reason code.")}

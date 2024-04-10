@@ -449,21 +449,18 @@ extension ClientOperationQueueBehaviorType {
 
 /// Optional property describing a PUBLISH payload's format.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901111>`__ encoding values.
-public enum PayloadFormatIndicator {
+public enum PayloadFormatIndicator: Int {
 
     /// The payload is arbitrary binary data
-    case bytes
+    case bytes = 0
 
     /// The payload is a well-formed utf-8 string value.
-    case utf8
+    case utf8 = 1
 }
 
 extension PayloadFormatIndicator {
-    var rawValue: aws_mqtt5_payload_format_indicator {
-        switch self {
-        case .bytes:  return aws_mqtt5_payload_format_indicator(rawValue: 0)
-        case .utf8:  return aws_mqtt5_payload_format_indicator(rawValue: 1)
-        }
+    var nativeValue: aws_mqtt5_payload_format_indicator {
+        return aws_mqtt5_payload_format_indicator(rawValue: UInt32(self.rawValue))
     }
 }
 
@@ -1002,8 +999,6 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
 private func MqttClientPublishRecievedEvents(
     _ publishPacketView: UnsafePointer<aws_mqtt5_packet_publish_view>?,
     _ userData: UnsafeMutableRawPointer?) {
-        print("[Mqtt5 Client Swift] PUBLISH RECIEVED EVENTS")
-        // TODO: Finish onPublishRecievedEvents, this is only a quick demo for publish callback
         // grab the callbackCore, unretainedValue() would not change reference counting
         let callbackCore = Unmanaged<MqttCallbackCore>.fromOpaque(userData!).takeUnretainedValue()
 
@@ -1011,7 +1006,9 @@ private func MqttClientPublishRecievedEvents(
         callbackCore.rwlock.read {
             if callbackCore.callbackFlag == false { return }
 
-            let puback_packet = PublishPacket(qos: QoS.atLeastOnce, topic: "test")
+            guard let puback_packet = PublishPacket.convertFromNative(publishPacketView)
+            else { fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.") }
+
             let puback = PublishReceivedData(publishPacket: puback_packet)
             callbackCore.onPublishReceivedCallback(puback)
         }
