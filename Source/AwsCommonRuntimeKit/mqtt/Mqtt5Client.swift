@@ -57,12 +57,35 @@ public class Mqtt5Client {
             throw CommonRunTimeError.crtError(CRTError(code: errorCode))
         }
     }
-    
-    public func subscribe(_ subscribePacket: SubscribePacket) async throws {
-//        var errorCode: Int32 = 0
-//        subscribePacket.withCPointer { subscribePacketPointer in
-//            errorCode = aws_mqtt5_client_publish(rawValue, subscribePacketPointer, {})
-//        }
+
+    public func subscribe(subscribePacket: SubscribePacket) async throws -> SubackPacket {
+
+        return try await withCheckedThrowingContinuation { continuation in
+
+            // The completion callback to invoke when an ack is received in native
+            func subscribeCompletionCallback(subackPacket: UnsafePointer<aws_mqtt5_packet_suback_view>?, errorCode: Int32, userData: UnsafeMutableRawPointer?) {
+                let continuationCore = Unmanaged<ContinuationCore<SubackPacket>>.fromOpaque(userData!).takeRetainedValue()
+                if errorCode == 0 {
+                    guard let suback = SubackPacket.convertFromNative(subackPacket)
+                    else { fatalError("Suback missing in the subscription completion callback.") }
+
+                    continuationCore.continuation.resume(returning: suback)
+                } else {
+                    continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+                }
+            }
+
+            subscribePacket.withCPointer { subscribePacketPointer in
+                var callbackOptions = aws_mqtt5_subscribe_completion_options()
+                callbackOptions.completion_callback = subscribeCompletionCallback
+                callbackOptions.completion_user_data = ContinuationCore(continuation: continuation).passRetained()
+                let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
+                if result != 0 {
+                    continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: -1)))
+                }
+            }
+
+        }
     }
 
     public func close() {

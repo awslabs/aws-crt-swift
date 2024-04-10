@@ -308,7 +308,7 @@ public class Subscription: CStruct {
             view.retain_handling_type = aws_mqtt5_retain_handling_type(0)
         }
 
-        return withByteCursorFromStrings(self.topicFilter) { topicCursor in
+        return withByteCursorFromStrings(self.topicFilter) { _ in
             view.topic_filter = aws_byte_cursor_from_buf(&topicFilterBuffer)
             return body(view)
         }
@@ -320,8 +320,34 @@ public class Subscription: CStruct {
 
 }
 
+extension Array where Element == Subscription {
+    func withCSubscriptions<Result>(_ body: (OpaquePointer) throws -> Result) rethrows -> Result {
+        var array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
+        defer {
+            aws_array_list_clean_up(array_list)
+            allocator.release(array_list)
+        }
+        guard aws_array_list_init_dynamic(
+            array_list,
+            allocator.rawValue,
+            count,
+            MemoryLayout<Element.RawType>.size) == AWS_OP_SUCCESS else {
+            fatalError("Unable to initialize array of user properties")
+        }
+        forEach {
+            $0.withCPointer {
+                // `aws_array_list_push_back` will do a memory copy of $0 into array_list
+                guard aws_array_list_push_back(array_list, $0) == AWS_OP_SUCCESS else {
+                    fatalError("Unable to add user property")
+                }
+            }
+        }
+        return try body(OpaquePointer(array_list.pointee.data))
+    }
+}
+
 /// Data model of an `MQTT5 SUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901161>`_ packet.
-public class SubscribePacket {
+public class SubscribePacket: CStruct {
 
     /// Array of topic filters that the client wishes to listen to
     public let subscriptions: [Subscription]
@@ -358,6 +384,32 @@ public class SubscribePacket {
                   subscriptionIdentifier: subscriptionIdentifier,
                   userProperties: userProperties)
     }
+
+    typealias RawType = aws_mqtt5_packet_subscribe_view
+    func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
+        var raw_subscrbe_view = aws_mqtt5_packet_subscribe_view()
+        return self.subscriptions.withCSubscriptions { subscriptionPointer in
+            raw_subscrbe_view.subscriptions =
+            UnsafePointer<aws_mqtt5_subscription_view>(subscriptionPointer)
+            raw_subscrbe_view.subscription_count = self.subscriptions.count
+
+            return withOptionalUserPropertyArray(
+                of: userProperties) { userPropertyPointer in
+
+                    if let _userPropertyPointer = userPropertyPointer {
+                        raw_subscrbe_view.user_property_count = userProperties!.count
+                        raw_subscrbe_view.user_properties =
+                        UnsafePointer<aws_mqtt5_user_property>(_userPropertyPointer)
+                    }
+
+                    return withOptionalUnsafePointer(
+                        to: self.subscriptionIdentifier) { identiferPointer in
+                            raw_subscrbe_view.subscription_identifier = identiferPointer
+                            return body(raw_subscrbe_view)
+                        }
+                }
+        }
+    }
 }
 
 /// Data model of an `MQTT5 SUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901171>`_ packet.
@@ -379,6 +431,34 @@ public class SubackPacket {
         self.reasonString = reasonString
         self.userProperties = userProperties
     }
+
+    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_suback_view>?) -> SubackPacket? {
+        if let _from = from {
+            let subackPointer = _from.pointee
+            let reasoncodebount = subackPointer.reason_code_count
+            var subackReasonCodes: [SubackReasonCode] = []
+            for i in 0..<reasoncodebount {
+                let reasonCodePointer = subackPointer.reason_codes.advanced(by: Int(i)).pointee
+                guard let reasonCode = SubackReasonCode(rawValue: Int(reasonCodePointer.rawValue))
+                else {fatalError("SubackPacket from native has an invalid reason code.")}
+                subackReasonCodes.append(reasonCode)
+            }
+
+            let reasonString = subackPointer.reason_string?.pointee.toString()
+
+            let userProperties = convertOptionalUserProperties(
+                count: subackPointer.user_property_count,
+                userPropertiesPointer: subackPointer.user_properties)
+
+            let suback = SubackPacket(reasonCodes: subackReasonCodes,
+                                      reasonString: reasonString,
+                                      userProperties: userProperties)
+            return suback
+        }
+
+        return nil
+    }
+
 }
 
 /// Data model of an `MQTT5 UNSUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc384800445>`_ packet.
