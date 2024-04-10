@@ -268,7 +268,8 @@ public class PublishPacket: CStruct {
                 fatalError("PublishPacket Received has an invalid qos")
             }
 
-            let publishPacket = PublishPacket(qos: qos,
+            let publishPacket = PublishPacket(
+                                            qos: qos,
                                             topic: publishView.topic.toString(),
                                             payload: payload,
                                             retain: publishView.retain,
