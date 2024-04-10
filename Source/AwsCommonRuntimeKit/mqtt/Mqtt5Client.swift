@@ -58,6 +58,14 @@ public class Mqtt5Client {
         }
     }
 
+    /// Tells the client to attempt to subscribe to one or more topic filters.
+    ///
+    /// - Parameters:
+    ///     - subscribePacket: SUBSCRIBE packet to send to the server
+    /// - Returns:
+    ///     - @return Suback packet if the subscription operation succeed otherwise errorCode
+    ///
+    /// - Throws: CommonRuntimeError.crtError
     public func subscribe(subscribePacket: SubscribePacket) async throws -> SubackPacket {
 
         return try await withCheckedThrowingContinuation { continuation in
