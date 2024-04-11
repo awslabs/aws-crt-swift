@@ -163,7 +163,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
             self.onPublishReceived = onPublishReceived ?? { publishData in
                 print("Mqtt5ClientTests: onPublishReceived. Publish Recieved on topic \'\(publishData.publishPacket.topic)\', with QoS \(publishData.publishPacket.qos): \'\(publishData.publishPacket.payloadAsString())\'")
-                self.semaphoreStopped.signal()
+                self.semaphorePublishReceived.signal()
             }
             self.onLifecycleEventStopped = onLifecycleEventStopped ?? { _ in
                 print("Mqtt5ClientTests: onLifecycleEventStopped")
