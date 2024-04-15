@@ -45,7 +45,7 @@ public class UserProperty: CStruct {
 
 extension Array where Element == UserProperty {
     func withCMqttUserProperties<Result>(_ body: (OpaquePointer) throws -> Result) rethrows -> Result {
-        var array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
+        let array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
         defer {
             aws_array_list_clean_up(array_list)
             allocator.release(array_list)
@@ -375,7 +375,7 @@ public class Subscription: CStruct {
         self.retainHandlingType = retainHandlingType
 
         aws_byte_buf_clean_up(&topicFilterBuffer)
-        self.topicFilter.withByteCursor { topicFilterCursor in
+        _ = self.topicFilter.withByteCursor { topicFilterCursor in
             aws_byte_buf_init_copy_from_cursor(&topicFilterBuffer, allocator, topicFilterCursor)
         }
     }
@@ -388,7 +388,7 @@ public class Subscription: CStruct {
         view.qos = self.qos.nativeValue
         view.no_local = self.noLocal ?? false
         view.retain_as_published = self.retainAsPublished ?? false
-        if var _retainType = self.retainHandlingType {
+        if let _retainType = self.retainHandlingType {
             view.retain_handling_type = _retainType.natvieValue
         } else {
             view.retain_handling_type = aws_mqtt5_retain_handling_type(0)
@@ -408,7 +408,7 @@ public class Subscription: CStruct {
 
 extension Array where Element == Subscription {
     func withCSubscriptions<Result>(_ body: (OpaquePointer) throws -> Result) rethrows -> Result {
-        var array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
+        let array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
         defer {
             aws_array_list_clean_up(array_list)
             allocator.release(array_list)
