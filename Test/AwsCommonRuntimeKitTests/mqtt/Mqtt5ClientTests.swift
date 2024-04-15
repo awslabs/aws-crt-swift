@@ -520,6 +520,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
     // Sub Happy Path
     func testSubscription() async throws {
+        let uuid = UUID()
+        let testTopic = "testSubscription_" + uuid.uuidString
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
 
@@ -535,10 +537,11 @@ class Mqtt5ClientTests: XCBaseTestCase {
             XCTFail("Connection Timed Out")
         }
 
-        let subscribe = SubscribePacket(topicFilter: "test/topic", qos: QoS.atLeastOnce)
-        let suback = try await client.subscribe(subscribePacket: subscribe)
-
-        print(suback)
+        let subscribe = SubscribePacket(topicFilter: testTopic, qos: QoS.atLeastOnce)
+        async let _ = client.subscribe(subscribePacket: subscribe)
+        async let _ =  client.publish(publishPacket: PublishPacket(qos: QoS.atLeastOnce,
+                                                                           topic: testTopic,
+                                                                           payload: "testSubscription".data(using: .utf8)))
 
         testContext.semaphorePublishReceived.wait()
 
