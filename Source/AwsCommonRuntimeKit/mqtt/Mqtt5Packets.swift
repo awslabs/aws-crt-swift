@@ -226,13 +226,12 @@ public class PublishPacket: CStruct {
                                 raw_publish_view.content_type = cContentType
                                 raw_publish_view.response_topic = cResponseTopic
 
-                                if let _correlationData = self.correlationData {
-                                    return _correlationData.withAWSByteCursorPointer { cCorrelationData in
-                                        raw_publish_view.correlation_data = UnsafePointer(cCorrelationData)
-                                        return body(raw_publish_view)
+                                return withOptionalByteCursorPointerFromData(to: self.correlationData) {  cCorrelationData in
+                                    if let _cCorrelationData = cCorrelationData {
+                                        raw_publish_view.correlation_data = _cCorrelationData
                                     }
+                                    return body(raw_publish_view)
                                 }
-                                return body(raw_publish_view)
                             }
                         }
                     }
@@ -485,7 +484,7 @@ public class SubackPacket {
         self.userProperties = userProperties
     }
 
-    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_suback_view>?) -> SubackPacket? {
+    public static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_suback_view>?) -> SubackPacket? {
         if let _from = from {
             let subackPointer = _from.pointee
 

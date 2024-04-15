@@ -76,14 +76,16 @@ public class Mqtt5Client {
                 errorCode: Int32,
                 userData: UnsafeMutableRawPointer?) {
                 let continuationCore = Unmanaged<ContinuationCore<SubackPacket>>.fromOpaque(userData!).takeRetainedValue()
-                if errorCode == 0 {
-                    guard let suback = SubackPacket.convertFromNative(subackPacket)
-                    else { fatalError("Suback missing in the subscription completion callback.") }
-
-                    continuationCore.continuation.resume(returning: suback)
-                } else {
-                    continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+                
+                guard errorCode == AWS_OP_SUCCESS else {
+                    return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
                 }
+                                        
+                guard let suback = SubackPacket.convertFromNative(subackPacket)
+                else { fatalError("Suback missing in the subscription completion callback.") }
+
+                continuationCore.continuation.resume(returning: suback)
+
             }
 
             subscribePacket.withCPointer { subscribePacketPointer in
@@ -91,8 +93,8 @@ public class Mqtt5Client {
                 callbackOptions.completion_callback = subscribeCompletionCallback
                 callbackOptions.completion_user_data = ContinuationCore(continuation: continuation).passRetained()
                 let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
-                if result != 0 {
-                    continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: -1)))
+                guard result == 0 else {
+                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
             }
 
