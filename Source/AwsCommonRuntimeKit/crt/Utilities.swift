@@ -58,12 +58,12 @@ extension Data {
         }
     }
 
-    func withAWSByteCursorPointer<Result>(_ body: (UnsafeMutablePointer<aws_byte_cursor>) -> Result) -> Result {
+    func withAWSByteCursorPointer<Result>(_ body: (UnsafeMutablePointer<aws_byte_cursor>) throws -> Result) rethrows ->  Result {
         let count = self.count
-        return self.withUnsafeBytes { rawBufferPointer -> Result in
+        return try self.withUnsafeBytes { rawBufferPointer -> Result in
             var cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, count)
-            return withUnsafeMutablePointer(to: &cursor) {
-                body($0)
+            return try withUnsafeMutablePointer(to: &cursor) {
+                return try body($0)
             }
         }
     }
@@ -87,6 +87,16 @@ func withOptionalAWSByteCursorFromData<Result>(
     return try _data.withUnsafeBytes { rawBufferPointer -> Result in
         let cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, _data.count)
         return try body(cursor)
+    }
+}
+
+func withOptionalByteCursorPointerFromData<Result>(
+    to data: Data?, _ body: (UnsafePointer<aws_byte_cursor>?) throws -> Result) rethrows -> Result {
+    guard let _data = data else {
+        return try body(nil)
+    }
+    return try _data.withAWSByteCursorPointer { dataByteCusorPointer in
+        return try body(dataByteCusorPointer)
     }
 }
 
