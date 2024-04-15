@@ -538,7 +538,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
         }
 
         let subscribe = SubscribePacket(topicFilter: testTopic, qos: QoS.atLeastOnce)
-        async let _ = client.subscribe(subscribePacket: subscribe)
+        // Wait on subscribe to make sure we subscribed to the topic before publish
+        async let _ = try await client.subscribe(subscribePacket: subscribe)
         async let _ =  client.publish(publishPacket: PublishPacket(qos: QoS.atLeastOnce,
                                                                            topic: testTopic,
                                                                            payload: "testSubscription".data(using: .utf8)))
