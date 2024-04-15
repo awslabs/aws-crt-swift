@@ -226,9 +226,11 @@ public class PublishPacket: CStruct {
                                 raw_publish_view.content_type = cContentType
                                 raw_publish_view.response_topic = cResponseTopic
 
-                                self.correlationData?.withAWSByteCursorPointer { cCorrelationData in
-                                    raw_publish_view.correlation_data = UnsafePointer(cCorrelationData)
-                                    return body(raw_publish_view)
+                                if let _correlationData = self.correlationData {
+                                    return _correlationData.withAWSByteCursorPointer { cCorrelationData in
+                                        raw_publish_view.correlation_data = UnsafePointer(cCorrelationData)
+                                        return body(raw_publish_view)
+                                    }
                                 }
                                 return body(raw_publish_view)
                             }
