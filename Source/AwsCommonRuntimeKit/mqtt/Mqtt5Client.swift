@@ -22,7 +22,7 @@ public class Mqtt5Client {
         guard let rawValue = (options.withCPointer(
             userData: self.callbackCore.callbackUserData()) { optionsPointer in
                 return aws_mqtt5_client_new(allocator.rawValue, optionsPointer)
-        }) else {
+            }) else {
             // failed to create client, release the callback core
             self.callbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -63,7 +63,7 @@ public class Mqtt5Client {
     /// - Parameters:
     ///     - subscribePacket: SUBSCRIBE packet to send to the server
     /// - Returns:
-    ///     - @return Suback packet if the subscription operation succeed otherwise errorCode
+    ///     - `SubackPacket`: return Suback packet if the subscription operation succeed otherwise errorCode
     ///
     /// - Throws: CommonRuntimeError.crtError
     public func subscribe(subscribePacket: SubscribePacket) async throws -> SubackPacket {
@@ -92,6 +92,63 @@ public class Mqtt5Client {
                 if result != 0 {
                     continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: -1)))
                 }
+            }
+
+        }
+    }
+
+    /// Tells the client to attempt to subscribe to one or more topic filters.
+    ///
+    /// - Parameters:
+    ///     - publishPacket: SUBSCRIBE packet to send to the server
+    /// - Returns:
+    ///     - qos 0 : return error code
+    ///     - qos 1 : PublishResult packet if the subscription operation succeed otherwise error code
+    ///
+    /// - Throws: CommonRuntimeError.crtError
+    public func publish(publishPacket: PublishPacket) async throws -> PubackPacket{
+
+        return try await withCheckedThrowingContinuation { continuation in
+
+            // The completion callback to invoke when an ack is received in native
+            func publishCompletionCallback(
+                packet_type : aws_mqtt5_packet_type ,
+                publishResult: UnsafeRawPointer?,
+                errorCode: Int32,
+                userData: UnsafeMutableRawPointer?) {
+
+//                    guard let continuationCore = Unmanaged<ContinuationCore<SubackPacket>>.fromOpaque(userData!).takeRetainedValue()
+//                    else { fatalError("On Published Complete: Invalid user data") }
+//
+//
+//                    if(errorCode != 0 )
+//                    {
+//                        continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+//                        return
+//                    }
+//
+//                    switch(packet_type){
+//                        case aws_mqtt5_packet_type.AWS_MQTT5_PT_PUBACK:
+//                        {
+//                            continuationCore.continuation.resume(errorCode)
+//                            return
+//                        }
+//                        case aws_mqtt5_packet_type.AWS_MQTT5_PT_NONE:
+//                        {
+//                            continuationCore.continuation.resume(errorCode)
+//                            return
+//                        }
+//                    }
+//                }
+
+//            publishPacket.withCPointer { subscribePacketPointer in
+//                var callbackOptions = aws_mqtt5_publish_completion_options()
+//                callbackOptions.completion_callback = publishCompletionCallback
+//                callbackOptions.completion_user_data = ContinuationCore(continuation: continuation).passRetained()
+//                let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
+//                if result != 0 {
+//                    continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: -1)))
+//                }
             }
 
         }
