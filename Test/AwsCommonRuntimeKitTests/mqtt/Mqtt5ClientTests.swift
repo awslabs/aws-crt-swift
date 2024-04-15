@@ -135,7 +135,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         public var onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
         public var onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
 
-        public let semaphorePublishReceived:DispatchSemaphore
+        //public let semaphorePublishReceived:DispatchSemaphore
         public let semaphoreConnectionSuccess: DispatchSemaphore
         public let semaphoreConnectionFailure: DispatchSemaphore
         public let semaphoreDisconnection: DispatchSemaphore
@@ -148,7 +148,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
              onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure? = nil,
              onLifecycleEventDisconnection: OnLifecycleEventDisconnection? = nil) {
 
-            self.semaphorePublishReceived = DispatchSemaphore(value: 0)
+            // self.semaphorePublishReceived = DispatchSemaphore(value: 0)
             self.semaphoreConnectionSuccess = DispatchSemaphore(value: 0)
             self.semaphoreConnectionFailure = DispatchSemaphore(value: 0)
             self.semaphoreDisconnection = DispatchSemaphore(value: 0)
@@ -163,7 +163,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
             self.onPublishReceived = onPublishReceived ?? { publishData in
                 print("Mqtt5ClientTests: onPublishReceived. Publish Recieved on topic \'\(publishData.publishPacket.topic)\', with QoS \(publishData.publishPacket.qos): \'\(publishData.publishPacket.payloadAsString())\'")
-                self.semaphorePublishReceived.signal()
+                // self.semaphorePublishReceived.signal()
             }
             self.onLifecycleEventStopped = onLifecycleEventStopped ?? { _ in
                 print("Mqtt5ClientTests: onLifecycleEventStopped")
