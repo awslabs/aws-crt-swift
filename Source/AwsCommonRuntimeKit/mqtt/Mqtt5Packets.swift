@@ -45,7 +45,7 @@ public class UserProperty: CStruct {
 
 extension Array where Element == UserProperty {
     func withCMqttUserProperties<Result>(_ body: (OpaquePointer) throws -> Result) rethrows -> Result {
-        var array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
+        let array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
         defer {
             aws_array_list_clean_up(array_list)
             allocator.release(array_list)
@@ -374,7 +374,7 @@ public class Subscription: CStruct {
 
 extension Array where Element == Subscription {
     func withCSubscriptions<Result>(_ body: (OpaquePointer) throws -> Result) rethrows -> Result {
-        var array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
+        let array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
         defer {
             aws_array_list_clean_up(array_list)
             allocator.release(array_list)
