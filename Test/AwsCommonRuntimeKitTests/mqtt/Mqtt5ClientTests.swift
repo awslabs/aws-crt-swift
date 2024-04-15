@@ -163,7 +163,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
             self.onPublishReceived = onPublishReceived ?? { publishData in
                 print("Mqtt5ClientTests: onPublishReceived. Publish Recieved on topic \'\(publishData.publishPacket.topic)\', with QoS \(publishData.publishPacket.qos): \'\(publishData.publishPacket.payloadAsString())\'")
-                self.semaphoreStopped.signal()
+                self.semaphorePublishReceived.signal()
             }
             self.onLifecycleEventStopped = onLifecycleEventStopped ?? { _ in
                 print("Mqtt5ClientTests: onLifecycleEventStopped")
@@ -516,4 +516,41 @@ class Mqtt5ClientTests: XCBaseTestCase {
         }
     }
 
+    /** Operation Tests [OP-UC] */
+
+    // Sub Happy Path
+    func testSubscription() async throws {
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Success Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        let subscribe = SubscribePacket(topicFilter: "test/topic", qos: QoS.atLeastOnce)
+        let suback = try await client.subscribe(subscribePacket: subscribe)
+
+        print(suback)
+
+        testContext.semaphorePublishReceived.wait()
+
+        try client.stop()
+        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
+            print("Disconnection timed out after 5 seconds")
+            XCTFail("Disconnection timed out")
+        }
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
 }
