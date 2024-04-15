@@ -287,7 +287,7 @@ func withOptionalByteCursorPointerFromStrings<Result>(
     }
 }
 
-func withOptionalByteCursorPointerFromString<Result>(
+func withOptionalByteCursorPointerFromStrings<Result>(
     _ arg1: String?,
     _ arg2: String?,
     _ arg3: String?,

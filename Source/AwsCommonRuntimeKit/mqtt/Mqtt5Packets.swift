@@ -242,45 +242,45 @@ public class PublishPacket: CStruct {
     static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_publish_view>?) -> PublishPacket? {
         if let _from = from {
             let publishView = _from.pointee
-
-            let payload: Data = Data(bytes: publishView.payload.ptr, count: publishView.payload.len)
-
-            let payloadFormatIndicator: PayloadFormatIndicator? = publishView.payload_format != nil ?
-            PayloadFormatIndicator(rawValue: Int(publishView.payload_format.pointee.rawValue)) : nil
-
-            let messageExpiryInterval = convertOptionalUInt32(publishView.message_expiry_interval_seconds)
-            let messageExpiryIntervalTimeInterval: TimeInterval? = messageExpiryInterval.map { TimeInterval($0) }
-
-            let correlationDataPointer: Data? = publishView.correlation_data != nil ?
-                    Data(bytes: publishView.correlation_data!.pointee.ptr, count: publishView.correlation_data!.pointee.len) : nil
-
-            var identifier: [UInt32]? = []
-            for i in 0..<publishView.subscription_identifier_count {
-                let subscription_identifier: UInt32 = UInt32(publishView.subscription_identifiers.advanced(by: Int(i)).pointee)
-                identifier?.append(subscription_identifier)
-            }
-
-            let userProperties = convertOptionalUserProperties(
-                count: publishView.user_property_count,
-                userPropertiesPointer: publishView.user_properties)
-
+//
+//            let payload: Data = Data(bytes: publishView.payload.ptr, count: publishView.payload.len)
+//
+//            let payloadFormatIndicator: PayloadFormatIndicator? = publishView.payload_format != nil ?
+//            PayloadFormatIndicator(rawValue: Int(publishView.payload_format.pointee.rawValue)) : nil
+//
+//            let messageExpiryInterval = convertOptionalUInt32(publishView.message_expiry_interval_seconds)
+//            let messageExpiryIntervalTimeInterval: TimeInterval? = messageExpiryInterval.map { TimeInterval($0) }
+//
+//            let correlationDataPointer: Data? = publishView.correlation_data != nil ?
+//                    Data(bytes: publishView.correlation_data!.pointee.ptr, count: publishView.correlation_data!.pointee.len) : nil
+//
+//            var identifier: [UInt32]? = []
+//            for i in 0..<publishView.subscription_identifier_count {
+//                let subscription_identifier: UInt32 = UInt32(publishView.subscription_identifiers.advanced(by: Int(i)).pointee)
+//                identifier?.append(subscription_identifier)
+//            }
+//
+//            let userProperties = convertOptionalUserProperties(
+//                count: publishView.user_property_count,
+//                userPropertiesPointer: publishView.user_properties)
+//
             guard let qos = QoS(rawValue: Int(publishView.qos.rawValue)) else {
                 fatalError("PublishPacket Received has an invalid qos")
             }
 
             let publishPacket = PublishPacket(
                                             qos: qos,
-                                            topic: publishView.topic.toString(),
-                                            payload: payload,
-                                            retain: publishView.retain,
-                                            payloadFormatIndicator: payloadFormatIndicator,
-                                            messageExpiryInterval: messageExpiryIntervalTimeInterval,
-                                            topicAlias: convertOptionalUInt16(publishView.topic_alias),
-                                            responseTopic: convertAwsByteCursorToOptionalString(publishView.response_topic),
-                                            correlationData: correlationDataPointer,
-                                            subscriptionIdentifiers: identifier,
-                                            contentType: convertAwsByteCursorToOptionalString(publishView.content_type),
-                                            userProperties: userProperties)
+                                            topic: publishView.topic.toString())
+//                                            payload: payload,
+//                                            retain: publishView.retain,
+//                                            payloadFormatIndicator: payloadFormatIndicator,
+//                                            messageExpiryInterval: messageExpiryIntervalTimeInterval,
+//                                            topicAlias: convertOptionalUInt16(publishView.topic_alias),
+//                                            responseTopic: convertAwsByteCursorToOptionalString(publishView.response_topic),
+//                                            correlationData: correlationDataPointer,
+//                                            subscriptionIdentifiers: identifier,
+//                                            contentType: convertAwsByteCursorToOptionalString(publishView.content_type),
+//                                            userProperties: userProperties)
 
             return publishPacket
         }

@@ -72,7 +72,9 @@ public class Mqtt5Client {
 
             // The completion callback to invoke when an ack is received in native
             func subscribeCompletionCallback(
-                subackPacket: UnsafePointer<aws_mqtt5_packet_suback_view>?, errorCode: Int32, userData: UnsafeMutableRawPointer?) {
+                subackPacket: UnsafePointer<aws_mqtt5_packet_suback_view>?,
+                errorCode: Int32,
+                userData: UnsafeMutableRawPointer?) {
                 let continuationCore = Unmanaged<ContinuationCore<SubackPacket>>.fromOpaque(userData!).takeRetainedValue()
                 if errorCode == 0 {
                     guard let suback = SubackPacket.convertFromNative(subackPacket)
