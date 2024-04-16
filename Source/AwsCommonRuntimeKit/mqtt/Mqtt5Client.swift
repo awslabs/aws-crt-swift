@@ -82,7 +82,7 @@ public class Mqtt5Client {
                     return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
                 }
 
-                guard let suback = try? SubackPacket(subackPacket)
+                guard let suback = SubackPacket.convertFromNative(subackPacket)
                 else { return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode))) }
 
                 continuationCore.continuation.resume(returning: suback)
