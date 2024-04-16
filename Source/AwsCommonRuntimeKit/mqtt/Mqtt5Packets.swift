@@ -294,9 +294,9 @@ public class PublishPacket: CStruct {
 /// - Members
 ///   - puback: returned PublishPacket for qos 1 publish; nil for qos 0 packet.
 public class PublishResult {
-    public let puback : PubackPacket?
+    public let puback: PubackPacket?
 
-    public init (puback: PubackPacket? = nil){
+    public init (puback: PubackPacket? = nil) {
         self.puback = puback
     }
 }
@@ -328,17 +328,13 @@ public class PubackPacket {
             guard let reasonCode = PubackReasonCode(rawValue: Int(pubackPointer.reason_code.rawValue))
             else {fatalError("SubackPacket from native has an invalid reason code.")}
 
-
             let reasonString = pubackPointer.reason_string?.pointee.toString()
 
             let userProperties = convertOptionalUserProperties(
                 count: pubackPointer.user_property_count,
                 userPropertiesPointer: pubackPointer.user_properties)
 
-            let suback = PubackPacket(reasonCode: reasonCode,
-                                    reasonString: reasonString,
-                                    userProperties: userProperties)
-            return suback
+            return PubackPacket(reasonCode: reasonCode, reasonString: reasonString, userProperties: userProperties)
         }
 
         return nil
