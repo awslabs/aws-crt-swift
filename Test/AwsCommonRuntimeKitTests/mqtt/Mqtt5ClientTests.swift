@@ -18,11 +18,11 @@ func onLifecycleEventAttemptingConnectMinimal(_ : LifecycleAttemptingConnectData
     print("Mqtt5ClientTests: onLifecycleEventAttemptingConnectMinimal")
 }
 
-func onLifecycleEventConnectionSuccessMinimal(_ : LifecycleConnectionSuccessData){
+func onLifecycleEventConnectionSuccessMinimal(_ : LifecycleConnectSuccessData){
     print("Mqtt5ClientTests: onLifecycleEventConnectionSuccessMinimal")
 }
 
-func onLifecycleEventConnectionFailureMinimal(_ : LifecycleConnectionFailureData){
+func onLifecycleEventConnectionFailureMinimal(_ : LifecycleConnectFailureData){
     print("Mqtt5ClientTests: onLifecycleEventConnectionFailureMinimal")
 }
 
