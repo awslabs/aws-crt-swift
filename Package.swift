@@ -274,7 +274,7 @@ packageTargets.append(contentsOf: [
                         "AwsCChecksums",
                         "AwsCEventStream"],
         path: "Source/AwsCommonRuntimeKit",
-        resources: [.copy(privacyManifestPath)]
+        resources: [.process(privacyManifestPath)]
     ),
     .testTarget(
         name: "AwsCommonRuntimeKitTests",
