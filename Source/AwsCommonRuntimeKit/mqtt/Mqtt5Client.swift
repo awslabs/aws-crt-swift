@@ -36,26 +36,33 @@ public class Mqtt5Client {
     }
 
     public func start() throws {
-        let errorCode = aws_mqtt5_client_start(rawValue)
-        if errorCode != 0 {
-            throw CommonRunTimeError.crtError(CRTError(code: errorCode))
+        if rawValue != nil {
+            let errorCode = aws_mqtt5_client_start(rawValue)
+
+            if errorCode != 0 {
+                throw CommonRunTimeError.crtError(CRTError(code: errorCode))
+            }
         }
+        // TODO Error should be thrown or client nil logged
     }
 
-    public func stop(disconnectPacket: DisconnectPacket? = nil) throws {
-        var errorCode: Int32 = 0
+    public func stop(_ disconnectPacket: DisconnectPacket? = nil) throws {
+        if rawValue != nil {
+            var errorCode: Int32 = 0
 
-        if let disconnectPacket = disconnectPacket {
-            disconnectPacket.withCPointer { disconnectPointer in
-                errorCode = aws_mqtt5_client_stop(rawValue, disconnectPointer, nil)
+            if let disconnectPacket = disconnectPacket {
+                disconnectPacket.withCPointer { disconnectPointer in
+                    errorCode = aws_mqtt5_client_stop(rawValue, disconnectPointer, nil)
+                }
+            } else {
+                errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
             }
-        } else {
-            errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
-        }
 
-        if errorCode != 0 {
-            throw CommonRunTimeError.crtError(CRTError(code: errorCode))
+            if errorCode != 0 {
+                throw CommonRunTimeError.crtError(CRTError(code: errorCode))
+            }
         }
+        // TODO Error should be thrown or client nil logged
     }
 
     public func close() {
