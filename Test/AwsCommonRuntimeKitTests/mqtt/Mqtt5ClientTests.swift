@@ -358,6 +358,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
      * [ConnDC-UC4] Direct Connection with mutual TLS
      */
 
+#if os(macOS) || os(Linux)
     func testMqtt5DirectConnectWithMutualTLS() throws {
 
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
@@ -394,6 +395,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             XCTFail("Stop timed out")
         }
     }
+#endif
 
     /*
      * [ConnDC-UC5] Direct Connection with HttpProxy options and TLS
