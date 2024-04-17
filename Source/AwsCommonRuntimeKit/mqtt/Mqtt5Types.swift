@@ -928,52 +928,52 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
         let callbackCore: MqttShutdownCallbackCore = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userData).takeUnretainedValue()
 
         switch lifecycleEvent.pointee.event_type {
-            case AWS_MQTT5_CLET_ATTEMPTING_CONNECT:
+        case AWS_MQTT5_CLET_ATTEMPTING_CONNECT:
 
-                let lifecycleAttemptingConnectData = LifecycleAttemptingConnectData()
-                callbackCore.onLifecycleEventAttemptingConnect(lifecycleAttemptingConnectData)
+            let lifecycleAttemptingConnectData = LifecycleAttemptingConnectData()
+            callbackCore.onLifecycleEventAttemptingConnect(lifecycleAttemptingConnectData)
 
-            case AWS_MQTT5_CLET_CONNECTION_SUCCESS:
+        case AWS_MQTT5_CLET_CONNECTION_SUCCESS:
 
-                guard let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data)
-                else { fatalError("ConnackPacket missing in a Connection Success lifecycle event.") }
+            guard let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data)
+            else { fatalError("ConnackPacket missing in a Connection Success lifecycle event.") }
 
-                guard let negotiatedSettings = NegotiatedSettings.convertFromNative(lifecycleEvent.pointee.settings)
-                else { fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.") }
+            guard let negotiatedSettings = NegotiatedSettings.convertFromNative(lifecycleEvent.pointee.settings)
+            else { fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.") }
 
-                let lifecycleConnectionSuccessData = LifecycleConnectionSuccessData(
-                    connackPacket: connackPacket,
-                    negotiatedSettings: negotiatedSettings)
-                callbackCore.onLifecycleEventConnectionSuccess(lifecycleConnectionSuccessData)
+            let lifecycleConnectionSuccessData = LifecycleConnectionSuccessData(
+                connackPacket: connackPacket,
+                negotiatedSettings: negotiatedSettings)
+            callbackCore.onLifecycleEventConnectionSuccess(lifecycleConnectionSuccessData)
 
-            case AWS_MQTT5_CLET_CONNECTION_FAILURE:
+        case AWS_MQTT5_CLET_CONNECTION_FAILURE:
 
-                let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data)
+            let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data)
 
-                let lifecycleConnectionFailureData = LifecycleConnectionFailureData(
-                    crtError: crtError,
-                    connackPacket: connackPacket)
-                callbackCore.onLifecycleEventConnectionFailure(lifecycleConnectionFailureData)
+            let lifecycleConnectionFailureData = LifecycleConnectionFailureData(
+                crtError: crtError,
+                connackPacket: connackPacket)
+            callbackCore.onLifecycleEventConnectionFailure(lifecycleConnectionFailureData)
 
-            case AWS_MQTT5_CLET_DISCONNECTION:
+        case AWS_MQTT5_CLET_DISCONNECTION:
 
-                guard let disconnectPacket = DisconnectPacket.convertFromNative(lifecycleEvent.pointee.disconnect_data) else {
-                    let lifecycleDisconnectData = LifecycleDisconnectData(crtError: crtError)
-                    callbackCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
-                    return
-                }
-
-                let lifecycleDisconnectData = LifecycleDisconnectData(
-                        crtError: crtError,
-                        disconnectPacket: disconnectPacket)
+            guard let disconnectPacket = DisconnectPacket.convertFromNative(lifecycleEvent.pointee.disconnect_data) else {
+                let lifecycleDisconnectData = LifecycleDisconnectData(crtError: crtError)
                 callbackCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
+                return
+            }
 
-            case AWS_MQTT5_CLET_STOPPED:
+            let lifecycleDisconnectData = LifecycleDisconnectData(
+                    crtError: crtError,
+                    disconnectPacket: disconnectPacket)
+            callbackCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
 
-                callbackCore.onLifecycleEventStoppedCallback(LifecycleStoppedData())
+        case AWS_MQTT5_CLET_STOPPED:
 
-            default:
-                fatalError("A lifecycle event with an invalid event type was encountered.")
+            callbackCore.onLifecycleEventStoppedCallback(LifecycleStoppedData())
+
+        default:
+            fatalError("A lifecycle event with an invalid event type was encountered.")
         }
     }
 }
