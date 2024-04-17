@@ -739,22 +739,23 @@ public class NegotiatedSettings {
 
     static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_negotiated_settings>?) -> NegotiatedSettings? {
 
-        if let from = from {
-            guard let negotiatedMaximumQos = QoS(rawValue: Int(from.pointee.maximum_qos.rawValue))
+        if let _from = from {
+            let _negotiatedSettings = _from.pointee;
+            guard let negotiatedMaximumQos = QoS(rawValue: Int(_negotiatedSettings.maximum_qos.rawValue))
             else { fatalError("NegotiatedSettings from native missing a maximum qos value.") }
 
-            let negotiatedSessionExpiryInterval: TimeInterval = TimeInterval(from.pointee.session_expiry_interval)
-            let negotiatedReceiveMaximumFromServer = from.pointee.receive_maximum_from_server
-            let negotiatedMaximumPacketSizeToServer = from.pointee.maximum_packet_size_to_server
-            let negotiatedTopicAliasMaximumToServer = from.pointee.topic_alias_maximum_to_server
-            let negotiatedTopicAliasMaximumToClient = from.pointee.topic_alias_maximum_to_client
-            let negotiatedServerKeepAlive: TimeInterval = TimeInterval(from.pointee.server_keep_alive)
-            let negotiatedRetainAvailable = from.pointee.retain_available
-            let negotiatedWildcardSubscriptionsAvailable = from.pointee.wildcard_subscriptions_available
-            let negotiatedSubscriptionIdentifiersAvailable = from.pointee.subscription_identifiers_available
-            let negotiatedSharedSubscriptionsAvailable = from.pointee.shared_subscriptions_available
-            let negotiatedRejoinedSession = from.pointee.rejoined_session
-            let negotiatedClientId = from.pointee.client_id_storage.toString()
+            let negotiatedSessionExpiryInterval: TimeInterval = TimeInterval(_negotiatedSettings.session_expiry_interval)
+            let negotiatedReceiveMaximumFromServer = _negotiatedSettings.receive_maximum_from_server
+            let negotiatedMaximumPacketSizeToServer = _negotiatedSettings.maximum_packet_size_to_server
+            let negotiatedTopicAliasMaximumToServer = _negotiatedSettings.topic_alias_maximum_to_server
+            let negotiatedTopicAliasMaximumToClient = _negotiatedSettings.topic_alias_maximum_to_client
+            let negotiatedServerKeepAlive: TimeInterval = TimeInterval(_negotiatedSettings.server_keep_alive)
+            let negotiatedRetainAvailable = _negotiatedSettings.retain_available
+            let negotiatedWildcardSubscriptionsAvailable = _negotiatedSettings.wildcard_subscriptions_available
+            let negotiatedSubscriptionIdentifiersAvailable = _negotiatedSettings.subscription_identifiers_available
+            let negotiatedSharedSubscriptionsAvailable = _negotiatedSettings.shared_subscriptions_available
+            let negotiatedRejoinedSession = _negotiatedSettings.rejoined_session
+            let negotiatedClientId = _negotiatedSettings.client_id_storage.toString()
 
             let negotiatedSettings = NegotiatedSettings(
                 maximumQos: negotiatedMaximumQos,
