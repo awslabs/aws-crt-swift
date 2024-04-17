@@ -870,9 +870,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         )
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
 
-        // let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-        // let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
-
         let sessionExpiryInterval = TimeInterval(UInt32.max)
         let keepAliveInterval = TimeInterval(UInt16.max)
         let receiveMaximum = UInt16.max
