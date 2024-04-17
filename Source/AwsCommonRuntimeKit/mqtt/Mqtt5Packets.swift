@@ -579,7 +579,7 @@ public class ConnackPacket {
     static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_connack_view>?) -> ConnackPacket? {
 
         if let _from = from {
-            let connackView = _from.pointee;
+            let connackView = _from.pointee
 
             let sessionPresent = connackView.session_present
             guard let reasonCode = ConnectReasonCode(rawValue: Int(connackView.reason_code.rawValue))
@@ -587,7 +587,7 @@ public class ConnackPacket {
             let sessionExpiryInterval = (connackView.session_expiry_interval?.pointee).map { TimeInterval($0) }
             let receiveMaximum = convertOptionalUInt16(connackView.receive_maximum)
 
-            var maximumQos: QoS? = nil
+            var maximumQos: QoS?
             if let maximumQosValue = connackView.maximum_qos {
                 let maximumQoSNativeValue = maximumQosValue.pointee.rawValue
                 maximumQos = QoS(rawValue: Int(maximumQoSNativeValue))
