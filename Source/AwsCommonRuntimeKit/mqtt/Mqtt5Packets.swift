@@ -80,6 +80,26 @@ func withOptionalUserPropertyArray<Result>(
     }
 }
 
+/// Convert a native UserProperty pointer into a Swift [UserProperty]?
+func convertOptionalUserProperties(count: size_t, userPropertiesPointer: UnsafePointer<aws_mqtt5_user_property>?) -> [UserProperty]? {
+
+    guard let validPointer = userPropertiesPointer, count > 0 // swiftlint:disable:this empty_count
+    else { return nil }
+
+    var userProperties: [UserProperty] = []
+
+    for i in 0..<count {
+        let property = validPointer.advanced(by: Int(i)).pointee
+        let name = property.name.toString()
+        let value = property.value.toString()
+
+        let userProperty = UserProperty(name: name, value: value)
+        userProperties.append(userProperty)
+    }
+
+    return userProperties
+}
+
 /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet
 public class PublishPacket: CStruct {
 
@@ -375,7 +395,7 @@ public class UnsubackPacket {
 }
 
 /// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
-public class DisconnectPacket {
+public class DisconnectPacket: CStruct {
 
     /// Value indicating the reason that the sender is closing the connection
     public let reasonCode: DisconnectReasonCode
@@ -403,6 +423,66 @@ public class DisconnectPacket {
             self.serverReference = serverReference
             self.userProperties = userProperties
         }
+
+    typealias RawType = aws_mqtt5_packet_disconnect_view
+    func withCStruct<Result>(_ body: (aws_mqtt5_packet_disconnect_view) -> Result) -> Result {
+        var raw_disconnect_view = aws_mqtt5_packet_disconnect_view()
+
+        raw_disconnect_view.reason_code = aws_mqtt5_disconnect_reason_code(UInt32(reasonCode.rawValue))
+
+        let _sessionExpiryInterval = try? sessionExpiryInterval?.secondUInt32() ?? nil
+
+        return withOptionalUnsafePointer(to: _sessionExpiryInterval) { sessionExpiryIntervalPointer in
+
+            if let _sessionExpiryIntervalPointer = sessionExpiryIntervalPointer {
+                raw_disconnect_view.session_expiry_interval_seconds = _sessionExpiryIntervalPointer
+            }
+
+            return withOptionalUserPropertyArray(
+                of: userProperties) { userPropertyPointer in
+
+                if let _userPropertyPointer = userPropertyPointer {
+                    raw_disconnect_view.user_property_count = userProperties!.count
+                    raw_disconnect_view.user_properties =
+                        UnsafePointer<aws_mqtt5_user_property>(_userPropertyPointer)
+                }
+
+                return withOptionalByteCursorPointerFromStrings(
+                    reasonString,
+                    serverReference) { cReasonString, cServerReference in
+                        raw_disconnect_view.reason_string = cReasonString
+                        raw_disconnect_view.server_reference = cServerReference
+                        return body(raw_disconnect_view)
+                    }
+            }
+        }
+    }
+
+    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_disconnect_view>?) -> DisconnectPacket? {
+        if let _from = from {
+            let disconnectView = _from.pointee
+            guard let reasonCode = DisconnectReasonCode(rawValue: Int(disconnectView.reason_code.rawValue))
+            else { fatalError("aws_mqtt5_packet_disconnect_view from native missing a reason code.") }
+
+            let sessionExpiryInterval = convertOptionalUInt32(disconnectView.session_expiry_interval_seconds)
+            let sessionExpiryIntervalSeconds: TimeInterval? = sessionExpiryInterval.map { TimeInterval($0) }
+            let reasonString = convertAwsByteCursorToOptionalString(disconnectView.reason_string)
+            let serverReference = convertAwsByteCursorToOptionalString(disconnectView.reason_string)
+            let userProperties = convertOptionalUserProperties(
+                count: disconnectView.user_property_count,
+                userPropertiesPointer: disconnectView.user_properties)
+
+            let disconnectPacket = DisconnectPacket(
+                reasonCode: reasonCode,
+                sessionExpiryInterval: sessionExpiryIntervalSeconds,
+                reasonString: reasonString,
+                serverReference: serverReference,
+                userProperties: userProperties
+            )
+            return disconnectPacket
+        }
+        return nil
+    }
 }
 
 /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
@@ -494,5 +574,62 @@ public class ConnackPacket {
         self.serverKeepAlive = serverKeepAlive
         self.responseInformation = responseInformation
         self.serverReference = serverReference
+    }
+
+    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_connack_view>?) -> ConnackPacket? {
+
+        if let _from = from {
+            let connackView = _from.pointee
+
+            let sessionPresent = connackView.session_present
+            guard let reasonCode = ConnectReasonCode(rawValue: Int(connackView.reason_code.rawValue))
+            else { fatalError("aws_mqtt5_packet_connack_view from native missing a reason code.") }
+            let sessionExpiryInterval = (connackView.session_expiry_interval?.pointee).map { TimeInterval($0) }
+            let receiveMaximum = convertOptionalUInt16(connackView.receive_maximum)
+
+            var maximumQos: QoS?
+            if let maximumQosValue = connackView.maximum_qos {
+                let maximumQoSNativeValue = maximumQosValue.pointee.rawValue
+                maximumQos = QoS(rawValue: Int(maximumQoSNativeValue))
+            }
+
+            let retainAvailable = convertOptionalBool(connackView.retain_available)
+            let maximumPacketSize = convertOptionalUInt32(connackView.maximum_packet_size)
+            let assignedClientIdentifier = convertAwsByteCursorToOptionalString(connackView.assigned_client_identifier)
+            let topicAliasMaximum = convertOptionalUInt16(connackView.topic_alias_maximum)
+            let reasonString = convertAwsByteCursorToOptionalString(connackView.reason_string)
+            let wildcardSubscriptionsAvailable = convertOptionalBool(connackView.wildcard_subscriptions_available)
+            let subscriptionIdentifiersAvailable = convertOptionalBool(connackView.subscription_identifiers_available)
+            let sharedSubscriptionAvailable = convertOptionalBool(connackView.shared_subscriptions_available)
+            let serverKeepAlive = convertOptionalUInt16(connackView.server_keep_alive)
+            let serverKeepAliveInSeconds: TimeInterval? = serverKeepAlive.map { TimeInterval($0) }
+            let responseInformation = convertAwsByteCursorToOptionalString(connackView.response_information)
+            let serverReference = convertAwsByteCursorToOptionalString(connackView.server_reference)
+            let userProperties = convertOptionalUserProperties(
+                count: connackView.user_property_count,
+                userPropertiesPointer: connackView.user_properties)
+
+            let connackPacket = ConnackPacket(
+                sessionPresent: sessionPresent,
+                reasonCode: reasonCode,
+                sessionExpiryInterval: sessionExpiryInterval,
+                receiveMaximum: receiveMaximum,
+                maximumQos: maximumQos,
+                retainAvailable: retainAvailable,
+                maximumPacketSize: maximumPacketSize,
+                assignedClientIdentifier: assignedClientIdentifier,
+                topicAliasMaximum: topicAliasMaximum,
+                reasonString: reasonString,
+                userProperties: userProperties,
+                wildcardSubscriptionsAvailable: wildcardSubscriptionsAvailable,
+                subscriptionIdentifiersAvailable: subscriptionIdentifiersAvailable,
+                sharedSubscriptionAvailable: sharedSubscriptionAvailable,
+                serverKeepAlive: serverKeepAliveInSeconds,
+                responseInformation: responseInformation,
+                serverReference: serverReference)
+
+            return connackPacket
+        }
+        return nil
     }
 }

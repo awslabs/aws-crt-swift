@@ -85,7 +85,7 @@ func withOptionalAWSByteCursorFromData<Result>(
         return try body(aws_byte_cursor())
     }
     return try _data.withUnsafeBytes { rawBufferPointer -> Result in
-        var cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, _data.count)
+        let cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, _data.count)
         return try body(cursor)
     }
 }
@@ -197,6 +197,38 @@ extension aws_array_list {
     }
 }
 
+/// Convert a native aws_byte_cursor pointer into a String?
+func convertAwsByteCursorToOptionalString(_ awsByteCursor: UnsafePointer<aws_byte_cursor>?) -> String? {
+    guard let cursor = awsByteCursor?.pointee else {
+        return nil
+    }
+    return cursor.toString()
+}
+
+/// Convert a native uint16_t pointer into a Swift UInt16?
+func convertOptionalUInt16(_ pointer: UnsafePointer<UInt16>?) -> UInt16? {
+    guard let validPointer = pointer else {
+        return nil
+    }
+    return validPointer.pointee
+}
+
+/// Convert a native uint32_t pointer into a Swift UInt32?
+func convertOptionalUInt32(_ pointer: UnsafePointer<UInt32>?) -> UInt32? {
+    guard let validPointer = pointer else {
+        return nil
+    }
+    return validPointer.pointee
+}
+
+/// Convert a native bool pointer to an optional Swift Bool
+func convertOptionalBool(_ pointer: UnsafePointer<Bool>?) -> Bool? {
+    guard let validPointer = pointer else {
+        return nil
+    }
+    return validPointer.pointee
+}
+
 extension Bool {
     var uintValue: UInt32 {
         return self ? 1 : 0
@@ -253,7 +285,6 @@ func withOptionalByteCursorPointerFromStrings<Result>(
             return body(arg1C, arg2C)
         }
     }
-
 }
 
 func withOptionalByteCursorPointerFromString<Result>(
@@ -269,7 +300,6 @@ func withOptionalByteCursorPointerFromString<Result>(
             }
         }
     }
-
 }
 
 func withByteCursorFromStrings<Result>(
