@@ -52,6 +52,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
         public let semaphoreDisconnection: DispatchSemaphore
         public let semaphoreStopped: DispatchSemaphore
 
+        public var negotiatedSettings: NegotiatedSettings?
+        public var connackPacket: ConnackPacket?
         public var lifecycleConnectionFailureData: LifecycleConnectionFailureData?
         public var lifecycleDisconnectionData: LifecycleDisconnectData?
 
@@ -87,8 +89,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
             self.onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect ?? { _ in
                 print(contextName + " Mqtt5ClientTests: onLifecycleEventAttemptingConnect")
             }
-            self.onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess ?? { _ in
+            self.onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess ?? { successData in
                 print(contextName + " Mqtt5ClientTests: onLifecycleEventConnectionSuccess")
+                self.negotiatedSettings = successData.negotiatedSettings
+                self.connackPacket = successData.connackPacket
                 self.semaphoreConnectionSuccess.signal()
             }
             self.onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure ?? { failureData in
@@ -255,7 +259,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnDC-UC1] Happy path
      */
-
     func testMqtt5DirectConnectMinimum() throws {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
@@ -287,7 +290,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnDC-UC2] Direct Connection with Basic Authentication
      */
-
     func testMqtt5DirectConnectWithBasicAuth() throws {
 
         let inputUsername = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_USERNAME")
@@ -329,7 +331,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnDC-UC3] Direct Connection with TLS
      */
-
     func testMqtt5DirectConnectWithTLS() throws {
 
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
@@ -367,7 +368,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnDC-UC4] Direct Connection with mutual TLS
      */
-
 #if os(macOS) || os(Linux)
     func testMqtt5DirectConnectWithMutualTLS() throws {
 
@@ -410,7 +410,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnDC-UC5] Direct Connection with HttpProxy options and TLS
      */
-
     func testMqtt5DirectConnectWithHttpProxy() throws {
 
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
@@ -456,7 +455,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnDC-UC6] Direct Connection with all options set
      */
-
     func testMqtt5DirectConnectMaximum() throws {
 
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
@@ -537,7 +535,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnNegativeID-UC1] Client connect with invalid host name
      */
-
     func testMqtt5DirectConnectWithInvalidHost() throws {
 
         let clientOptions = MqttClientOptions(
@@ -571,7 +568,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnNegativeID-UC2] Client connect with invalid port for direct connection
      */
-
     func testMqtt5DirectConnectWithInvalidPort() throws {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
 
@@ -611,7 +607,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnNegativeID-UC4] Client connect with socket timeout
      */
-
     func testMqtt5DirectConnectWithSocketTimeout() throws {
         let clientOptions = MqttClientOptions(
             hostName: "www.example.com",
@@ -644,7 +639,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnNegativeID-UC5] Client connect with incorrect basic authentication credentials
      */
-
     func testMqtt5DirectConnectWithIncorrectBasicAuthenticationCredentials() throws {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_PORT")
@@ -685,7 +679,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
     * [ConnNegativeID-UC7] Double Client ID Failure test
     */
-
     #if os(macOS) || os(Linux)
     func testMqtt5MTLSConnectDoubleClientIdFailure() throws {
 
@@ -766,4 +759,164 @@ class Mqtt5ClientTests: XCBaseTestCase {
         }
     }
 #endif
+
+    /*===============================================================
+                         NEGOTIATED SETTINGS TESTS
+    =================================================================*/
+    /*
+    * [Negotiated-UC1] Happy path, minimal success test
+    */
+    func testMqtt5NegotiatedSettingsMinimalSettings() throws {
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+        let sessionExpirtyInterval = TimeInterval(600000)
+
+        let mqttConnectOptions = MqttConnectOptions(sessionExpiryInterval: sessionExpirtyInterval)
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!,
+            connectOptions: mqttConnectOptions)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Success Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        if let negotiatedSettings = testContext.negotiatedSettings {
+            XCTAssertEqual(negotiatedSettings.sessionExpiryInterval, sessionExpirtyInterval)
+        } else {
+            XCTFail("Missing negotiated settings")
+        }
+
+        try client.stop()
+        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
+            print("Disconnection timed out after 5 seconds")
+            XCTFail("Disconnection timed out")
+        }
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
+
+    /*
+    * [Negotiated-UC2] maximum success test
+    */
+    func testMqtt5NegotiatedSettingsMaximumSettings() throws {
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+        let sessionExpirtyInterval = TimeInterval(600000)
+        let clientId = createClientId()
+        let keepAliveInterval = TimeInterval(1000)
+
+        let mqttConnectOptions = MqttConnectOptions(
+            keepAliveInterval: keepAliveInterval,
+            clientId: clientId,
+            sessionExpiryInterval: sessionExpirtyInterval)
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!,
+            connectOptions: mqttConnectOptions)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Success Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        if let negotiatedSettings = testContext.negotiatedSettings {
+            XCTAssertEqual(negotiatedSettings.sessionExpiryInterval, sessionExpirtyInterval)
+            XCTAssertEqual(negotiatedSettings.clientId, clientId)
+            XCTAssertEqual(negotiatedSettings.serverKeepAlive, keepAliveInterval)
+            XCTAssertEqual(negotiatedSettings.maximumQos, QoS.atLeastOnce)
+        } else {
+            XCTFail("Missing negotiated settings")
+        }
+
+        try client.stop()
+        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
+            print("Disconnection timed out after 5 seconds")
+            XCTFail("Disconnection timed out")
+        }
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
+
+    /*
+    * [Negotiated-UC3] server settings limit test
+    */
+    #if os(macOS) || os(Linux)
+    func testMqtt5NegotiatedSettingsServerLimit() throws {
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+        let tlsOptions = try TLSContextOptions.makeMTLS(
+            certificatePath: inputCert,
+            privateKeyPath: inputKey
+        )
+        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+        // let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        // let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+        let sessionExpiryInterval = TimeInterval(UInt32.max)
+        let keepAliveInterval = TimeInterval(UInt16.max)
+        let receiveMaximum = UInt16.max
+        let maximumPacketSize = UInt32.max
+
+        let mqttConnectOptions = MqttConnectOptions(
+            keepAliveInterval: keepAliveInterval,
+            sessionExpiryInterval: sessionExpiryInterval,
+            receiveMaximum: receiveMaximum,
+            maximumPacketSize: maximumPacketSize)
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(8883),
+            tlsCtx: tlsContext,
+            connectOptions: mqttConnectOptions)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Success Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        if let negotiatedSettings = testContext.negotiatedSettings {
+            XCTAssertNotEqual(sessionExpiryInterval, negotiatedSettings.sessionExpiryInterval)
+            XCTAssertNotEqual(receiveMaximum, negotiatedSettings.receiveMaximumFromServer)
+            XCTAssertNotEqual(maximumPacketSize, negotiatedSettings.maximumPacketSizeToServer)
+            XCTAssertNotEqual(keepAliveInterval, negotiatedSettings.serverKeepAlive)
+        } else {
+            XCTFail("Missing negotiated settings")
+        }
+
+        try client.stop()
+        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
+            print("Disconnection timed out after 5 seconds")
+            XCTFail("Disconnection timed out")
+        }
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
+    #endif
 }
