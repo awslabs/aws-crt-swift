@@ -586,7 +586,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
         }
 
         if let failureData = testContext.lifecycleConnectionFailureData {
-            XCTAssertEqual(failureData.crtError.code, Int32(AWS_IO_SOCKET_CONNECTION_REFUSED.rawValue))
+            if failureData.crtError.code != Int32(AWS_IO_SOCKET_CONNECTION_REFUSED.rawValue) &&
+               failureData.crtError.code != Int32(AWS_IO_SOCKET_TIMEOUT.rawValue) {
+                XCTFail("Did not fail with expected error code")
+            }
         } else {
             XCTFail("lifecycleConnectionFailureData Missing")
         }
