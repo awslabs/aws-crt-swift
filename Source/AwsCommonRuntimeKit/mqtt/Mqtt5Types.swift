@@ -749,22 +749,23 @@ public class NegotiatedSettings {
 
     static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_negotiated_settings>?) -> NegotiatedSettings? {
 
-        if let from = from {
-            guard let negotiatedMaximumQos = QoS(rawValue: Int(from.pointee.maximum_qos.rawValue))
+        if let _from = from {
+            let _negotiatedSettings = _from.pointee
+            guard let negotiatedMaximumQos = QoS(rawValue: Int(_negotiatedSettings.maximum_qos.rawValue))
             else { fatalError("NegotiatedSettings from native missing a maximum qos value.") }
 
-            let negotiatedSessionExpiryInterval: TimeInterval = TimeInterval(from.pointee.session_expiry_interval)
-            let negotiatedReceiveMaximumFromServer = from.pointee.receive_maximum_from_server
-            let negotiatedMaximumPacketSizeToServer = from.pointee.maximum_packet_size_to_server
-            let negotiatedTopicAliasMaximumToServer = from.pointee.topic_alias_maximum_to_server
-            let negotiatedTopicAliasMaximumToClient = from.pointee.topic_alias_maximum_to_client
-            let negotiatedServerKeepAlive: TimeInterval = TimeInterval(from.pointee.server_keep_alive)
-            let negotiatedRetainAvailable = from.pointee.retain_available
-            let negotiatedWildcardSubscriptionsAvailable = from.pointee.wildcard_subscriptions_available
-            let negotiatedSubscriptionIdentifiersAvailable = from.pointee.subscription_identifiers_available
-            let negotiatedSharedSubscriptionsAvailable = from.pointee.shared_subscriptions_available
-            let negotiatedRejoinedSession = from.pointee.rejoined_session
-            let negotiatedClientId = from.pointee.client_id_storage.toString()
+            let negotiatedSessionExpiryInterval: TimeInterval = TimeInterval(_negotiatedSettings.session_expiry_interval)
+            let negotiatedReceiveMaximumFromServer = _negotiatedSettings.receive_maximum_from_server
+            let negotiatedMaximumPacketSizeToServer = _negotiatedSettings.maximum_packet_size_to_server
+            let negotiatedTopicAliasMaximumToServer = _negotiatedSettings.topic_alias_maximum_to_server
+            let negotiatedTopicAliasMaximumToClient = _negotiatedSettings.topic_alias_maximum_to_client
+            let negotiatedServerKeepAlive: TimeInterval = TimeInterval(_negotiatedSettings.server_keep_alive)
+            let negotiatedRetainAvailable = _negotiatedSettings.retain_available
+            let negotiatedWildcardSubscriptionsAvailable = _negotiatedSettings.wildcard_subscriptions_available
+            let negotiatedSubscriptionIdentifiersAvailable = _negotiatedSettings.subscription_identifiers_available
+            let negotiatedSharedSubscriptionsAvailable = _negotiatedSettings.shared_subscriptions_available
+            let negotiatedRejoinedSession = _negotiatedSettings.rejoined_session
+            let negotiatedClientId = _negotiatedSettings.client_id_storage.toString()
 
             let negotiatedSettings = NegotiatedSettings(
                 maximumQos: negotiatedMaximumQos,
@@ -825,33 +826,31 @@ public class MqttConnectOptions: CStruct {
     /// Array of MQTT5 user properties included with the packet.
     public let userProperties: [UserProperty]?
 
-    public init (
-        keepAliveInterval: TimeInterval? = nil,
-        clientId: String? = nil,
-        username: String? = nil,
-        password: String? = nil,
-        sessionExpiryInterval: TimeInterval? = nil,
-        requestResponseInformation: Bool? = nil,
-        requestProblemInformation: Bool? = nil,
-        receiveMaximum: UInt16? = nil,
-        maximumPacketSize: UInt32? = nil,
-        willDelayInterval: TimeInterval? = nil,
-        will: PublishPacket? = nil,
-        userProperties: [UserProperty]? = nil) {
-
-            self.keepAliveInterval = keepAliveInterval
-            self.clientId = clientId
-            self.username = username
-            self.password = password
-            self.sessionExpiryInterval = sessionExpiryInterval
-            self.requestResponseInformation = requestResponseInformation
-            self.requestProblemInformation = requestProblemInformation
-            self.receiveMaximum = receiveMaximum
-            self.maximumPacketSize = maximumPacketSize
-            self.willDelayInterval = willDelayInterval
-            self.will = will
-            self.userProperties = userProperties
-        }
+    public init (keepAliveInterval: TimeInterval? = nil,
+                 clientId: String? = nil,
+                 username: String? = nil,
+                 password: String? = nil,
+                 sessionExpiryInterval: TimeInterval? = nil,
+                 requestResponseInformation: Bool? = nil,
+                 requestProblemInformation: Bool? = nil,
+                 receiveMaximum: UInt16? = nil,
+                 maximumPacketSize: UInt32? = nil,
+                 willDelayInterval: TimeInterval? = nil,
+                 will: PublishPacket? = nil,
+                 userProperties: [UserProperty]? = nil) {
+        self.keepAliveInterval = keepAliveInterval
+        self.clientId = clientId
+        self.username = username
+        self.password = password
+        self.sessionExpiryInterval = sessionExpiryInterval
+        self.requestResponseInformation = requestResponseInformation
+        self.requestProblemInformation = requestProblemInformation
+        self.receiveMaximum = receiveMaximum
+        self.maximumPacketSize = maximumPacketSize
+        self.willDelayInterval = willDelayInterval
+        self.will = will
+        self.userProperties = userProperties
+    }
 
     typealias RawType = aws_mqtt5_packet_connect_view
     func withCStruct<Result>( _ body: (RawType) -> Result) -> Result {
@@ -872,12 +871,9 @@ public class MqttConnectOptions: CStruct {
             _requestProblemInformation,
             _willDelayIntervalSec,
             self.receiveMaximum,
-            self.maximumPacketSize) { (sessionExpiryIntervalSecPointer,
-                                       requestResponseInformationPointer,
-                                       requestProblemInformationPointer,
-                                       willDelayIntervalSecPointer,
-                                       receiveMaximumPointer,
-                                       maximumPacketSizePointer) in
+            self.maximumPacketSize) { (sessionExpiryIntervalSecPointer, requestResponseInformationPointer,
+                                       requestProblemInformationPointer, willDelayIntervalSecPointer,
+                                       receiveMaximumPointer, maximumPacketSizePointer) in
 
                 if let _sessionExpiryIntervalSecPointer = sessionExpiryIntervalSecPointer {
                     raw_connect_options.session_expiry_interval_seconds = _sessionExpiryIntervalSecPointer
@@ -980,8 +976,8 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
                 }
 
                 let lifecycleDisconnectData = LifecycleDisconnectData(
-                    crtError: crtError,
-                    disconnectPacket: disconnectPacket)
+                        crtError: crtError,
+                        disconnectPacket: disconnectPacket)
                 callbackCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
 
             case AWS_MQTT5_CLET_STOPPED:
@@ -1229,10 +1225,8 @@ public class MqttClientOptions: CStructWithUserData {
             tls_options,
             self.httpProxyOptions,
             self.topicAliasingOptions,
-            _connnectOptions) { (socketOptionsCPointer,
-                                 tlsOptionsCPointer,
-                                 httpProxyOptionsCPointer,
-                                 topicAliasingOptionsCPointer,
+            _connnectOptions) { (socketOptionsCPointer, tlsOptionsCPointer,
+                                 httpProxyOptionsCPointer, topicAliasingOptionsCPointer,
                                  connectOptionsCPointer) in
 
                 raw_options.socket_options = socketOptionsCPointer
