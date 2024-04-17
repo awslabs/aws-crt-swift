@@ -18,6 +18,13 @@ let cSettings: [CSetting] = [
     .define("DEBUG_BUILD", .when(configuration: .debug))
 ]
 
+// Privacy manifest location
+#if os(iOS) || os(tvOS) || os(watchOS) || os(visionOS)
+    let privacyManifestPath = "./PrivacyInfo.xcprivacy"
+#else
+    let privacyManifestPath = "./Resources/PrivacyInfo.xcprivacy"
+#endif
+
 //////////////////////////////////////////////////////////////////////
 /// Configure C targets.
 /// Note: We can not use unsafe flags because SwiftPM makes the target ineligible for use by other packages.
@@ -267,7 +274,7 @@ packageTargets.append(contentsOf: [
                         "AwsCChecksums",
                         "AwsCEventStream"],
         path: "Source/AwsCommonRuntimeKit",
-        resources: [.copy("PrivacyInfo.xcprivacy")]
+        resources: [.copy(privacyManifestPath)]
     ),
     .testTarget(
         name: "AwsCommonRuntimeKitTests",
