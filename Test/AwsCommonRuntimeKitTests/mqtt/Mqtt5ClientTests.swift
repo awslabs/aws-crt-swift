@@ -128,6 +128,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
     =================================================================*/
 
     class MqttTestContext {
+        public var contextName: String
+
         public var onPublishReceived: OnPublishReceived?
         public var onLifecycleEventStopped: OnLifecycleEventStopped?
         public var onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect?
@@ -140,12 +142,18 @@ class Mqtt5ClientTests: XCBaseTestCase {
         public let semaphoreDisconnection: DispatchSemaphore
         public let semaphoreStopped: DispatchSemaphore
 
-        init(onPublishReceived: OnPublishReceived? = nil,
+        public var lifecycleConnectionFailureData: LifecycleConnectionFailureData?
+        public var lifecycleDisconnectionData: LifecycleDisconnectData?
+
+        init(contextName: String = "",
+             onPublishReceived: OnPublishReceived? = nil,
              onLifecycleEventStopped: OnLifecycleEventStopped? = nil,
              onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect? = nil,
              onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess? = nil,
              onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure? = nil,
              onLifecycleEventDisconnection: OnLifecycleEventDisconnection? = nil) {
+
+            self.contextName = contextName
 
             self.semaphoreConnectionSuccess = DispatchSemaphore(value: 0)
             self.semaphoreConnectionFailure = DispatchSemaphore(value: 0)
@@ -160,25 +168,27 @@ class Mqtt5ClientTests: XCBaseTestCase {
             self.onLifecycleEventDisconnection = onLifecycleEventDisconnection
 
             self.onPublishReceived = onPublishReceived ?? { _ in
-                print("Mqtt5ClientTests: onPublishReceived")
+                print(contextName + " Mqtt5ClientTests: onPublishReceived")
             }
             self.onLifecycleEventStopped = onLifecycleEventStopped ?? { _ in
-                print("Mqtt5ClientTests: onLifecycleEventStopped")
+                print(contextName + " Mqtt5ClientTests: onLifecycleEventStopped")
                 self.semaphoreStopped.signal()
             }
             self.onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect ?? { _ in
-                print("Mqtt5ClientTests: onLifecycleEventAttemptingConnect")
+                print(contextName + " Mqtt5ClientTests: onLifecycleEventAttemptingConnect")
             }
             self.onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess ?? { _ in
-                print("Mqtt5ClientTests: onLifecycleEventConnectionSuccess")
+                print(contextName + " Mqtt5ClientTests: onLifecycleEventConnectionSuccess")
                 self.semaphoreConnectionSuccess.signal()
             }
-            self.onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure ?? { _ in
-                print("Mqtt5ClientTests: onLifecycleEventConnectionFailure")
+            self.onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure ?? { failureData in
+                print(contextName + " Mqtt5ClientTests: onLifecycleEventConnectionFailure")
+                self.lifecycleConnectionFailureData = failureData
                 self.semaphoreConnectionFailure.signal()
             }
-            self.onLifecycleEventDisconnection = onLifecycleEventDisconnection ?? { _ in
-                print("Mqtt5ClientTests: onLifecycleEventDisconnection")
+            self.onLifecycleEventDisconnection = onLifecycleEventDisconnection ?? { disconnectionData in
+                print(contextName + " Mqtt5ClientTests: onLifecycleEventDisconnection")
+                self.lifecycleDisconnectionData = disconnectionData
                 self.semaphoreDisconnection.signal()
             }
          }
@@ -282,8 +292,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let inputUsername = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_USERNAME")
         let inputPassword = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_PASSWORD")
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_PORT")
 
         let connectOptions = MqttConnectOptions(
             clientId: createClientId(),
@@ -515,4 +525,245 @@ class Mqtt5ClientTests: XCBaseTestCase {
         }
     }
 
+    /*===============================================================
+                     WEBSOCKET CONNECT TEST CASES
+    =================================================================*/
+    // TODO implement websocket tests after websockets are implemented
+
+    /*===============================================================
+                     NEGATIVE CONNECT TEST CASES
+    =================================================================*/
+
+    /*
+     * [ConnNegativeID-UC1] Client connect with invalid host name
+     */
+
+    func testMqtt5DirectConnectWithInvalidHost() throws {
+
+        let clientOptions = MqttClientOptions(
+            hostName: "badhost",
+            port: UInt32(1883))
+
+        let testContext = MqttTestContext()
+
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+
+        if testContext.semaphoreConnectionFailure.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Failure Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        if let failureData = testContext.lifecycleConnectionFailureData {
+            XCTAssertEqual(failureData.crtError.code, Int32(AWS_IO_DNS_INVALID_NAME.rawValue))
+        } else {
+            XCTFail("lifecycleConnectionFailureData Missing")
+        }
+
+        try client.stop()
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
+
+    /*
+     * [ConnNegativeID-UC2] Client connect with invalid port for direct connection
+     */
+
+    func testMqtt5DirectConnectWithInvalidPort() throws {
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(444))
+
+        let testContext = MqttTestContext()
+
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+
+        if testContext.semaphoreConnectionFailure.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Failure Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        if let failureData = testContext.lifecycleConnectionFailureData {
+            XCTAssertEqual(failureData.crtError.code, Int32(AWS_IO_SOCKET_CONNECTION_REFUSED.rawValue))
+        } else {
+            XCTFail("lifecycleConnectionFailureData Missing")
+        }
+
+        try client.stop()
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
+
+    /*
+     * [ConnNegativeID-UC3] Client connect with invalid port for websocket connection
+     */
+     // TODO implement this test after websocket is implemented
+
+    /*
+     * [ConnNegativeID-UC4] Client connect with socket timeout
+     */
+
+    func testMqtt5DirectConnectWithSocketTimeout() throws {
+        let clientOptions = MqttClientOptions(
+            hostName: "www.example.com",
+            port: UInt32(81))
+
+        let testContext = MqttTestContext()
+
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+
+        if testContext.semaphoreConnectionFailure.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Failure Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        if let failureData = testContext.lifecycleConnectionFailureData {
+            XCTAssertEqual(failureData.crtError.code, Int32(AWS_IO_SOCKET_TIMEOUT.rawValue))
+        } else {
+            XCTFail("lifecycleConnectionFailureData Missing")
+        }
+
+        try client.stop()
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
+
+    /*
+     * [ConnNegativeID-UC5] Client connect with incorrect basic authentication credentials
+     */
+
+    func testMqtt5DirectConnectWithIncorrectBasicAuthenticationCredentials() throws {
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_PORT")
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!)
+
+        let testContext = MqttTestContext()
+
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+
+        if testContext.semaphoreConnectionFailure.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Failure Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        if let failureData = testContext.lifecycleConnectionFailureData {
+            XCTAssertEqual(failureData.crtError.code, Int32(AWS_ERROR_MQTT5_CONNACK_CONNECTION_REFUSED.rawValue))
+        } else {
+            XCTFail("lifecycleConnectionFailureData Missing")
+        }
+
+        try client.stop()
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
+
+    /*
+     * [ConnNegativeID-UC6] Client Websocket Handshake Failure test
+     */
+     // TODO Implement this test after implementation of Websockets
+
+    /*
+    * [ConnNegativeID-UC7] Double Client ID Failure test
+    */
+
+    #if os(macOS) || os(Linux)
+    func testMqtt5MTLSConnectDoubleClientIdFailure() throws {
+
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+        let tlsOptions = try TLSContextOptions.makeMTLS(
+            certificatePath: inputCert,
+            privateKeyPath: inputKey
+        )
+        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+        let clientId = createClientId()
+
+        let connectOptions = MqttConnectOptions(clientId: clientId)
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(8883),
+            tlsCtx: tlsContext,
+            connectOptions: connectOptions,
+            minReconnectDelay: TimeInterval(5))
+
+        let testContext = MqttTestContext(contextName: "client1")
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Success Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        // Create a second client with the same client id
+        let testContext2 = MqttTestContext(contextName: "client2")
+        let client2 = try createClient(clientOptions: clientOptions, testContext: testContext2)
+
+        // Connect with second client
+        try client2.start()
+
+        // Check for client2 successful connect
+        if testContext2.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Success Timed out on client2 after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
+            print("Disconnection due to duplicate client id timed out on client1")
+            XCTFail("Disconnection Timed Out")
+        }
+
+        if let disconnectionData = testContext.lifecycleDisconnectionData {
+            print(disconnectionData.crtError)
+            if let disconnectionPacket = disconnectionData.disconnectPacket {
+                XCTAssertEqual(disconnectionPacket.reasonCode, DisconnectReasonCode.sessionTakenOver)
+            } else {
+                XCTFail("DisconnectPacket missing")
+            }
+        } else {
+            XCTFail("lifecycleDisconnectionData Missing")
+        }
+
+        try client.stop()
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+
+        try client2.stop()
+        if testContext2.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
+            print("Disconnection timed out after 5 seconds")
+            XCTFail("Disconnection timed out")
+        }
+
+        if testContext2.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
+#endif
 }
