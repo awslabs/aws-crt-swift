@@ -33,13 +33,6 @@ func onLifecycleEventDisconnectionMinimal(_ : LifecycleDisconnectData){
 
 class Mqtt5ClientTests: XCBaseTestCase {
 
-    func skipIfiOS() {
-        #if os(macOS) || os(Linux)
-            return
-        #endif
-        throw XCTSkip("Skipping test because required environment variable \(name) is missing.")
-    }
-
     func createClientId() -> String {
         return "aws-crt-swift-unit-test-" + UUID().uuidString
     }
@@ -931,9 +924,37 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
     * [Op-UC1] Sub-Unsub happy path
     */
+    func withTimeout<T>(_ duration: TimeInterval, operation: @escaping() async throws -> T) async throws -> T {
+        // Assign task to the async function being tested
+        let task = Task<T, Error> {
+            return try await operation()
+        }
 
-    func testMqtt5SubUnsub() throws {
+        // Begin the counter for how long to allow the assigned task to run before cancelling it.
+        let timeoutTask = Task {
+            try await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
+            task.cancel()
+        }
 
+        do {
+            // Run the async function and as soon as it completes, cancel the timeoutTask.
+            let result = try await task.value
+            timeoutTask.cancel()
+            return result
+        } catch {
+            timeoutTask.cancel()
+            if let cancellationError = error as? CancellationError {
+                // Fail the test when timoutTask cancels the async operation.
+                XCTFail("The operation was cancelled due to a timeout.")
+            } else {
+                throw error
+            }
+        }
+        throw Error("what?")
+    }
+
+    func testMqtt5SubUnsub() async throws {
+        try skipIfPlatformDoesntSupportTLS()
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
@@ -955,6 +976,19 @@ class Mqtt5ClientTests: XCBaseTestCase {
         if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
             print("Connection Success Timed out after 5 seconds")
             XCTFail("Connection Timed Out")
+        }
+
+        let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+
+        let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+
+        do {
+            let result: SubackPacket = try await withTimeout(5.0) {
+                return try await client.subscribe(subscribePacket: subscribePacket)
+            }
+            XCTAssertEqual(result.reasonCodes[0], SubackReasonCode.grantedQos1)
+        } catch {
+            XCTFail("Test failed with error: \(error)")
         }
 
         try client.stop()
