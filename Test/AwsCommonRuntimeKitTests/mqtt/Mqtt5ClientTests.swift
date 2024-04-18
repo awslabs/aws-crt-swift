@@ -35,7 +35,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
 
     /// Skip test if current env is not macOS or Linux
-    func skipUnsupportedPlatforms() {
+    func skipUnsupportedPlatforms() throws {
         #if os(macOS) || os(Linux)
             return
         #endif
