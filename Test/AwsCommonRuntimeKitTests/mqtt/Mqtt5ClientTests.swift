@@ -39,7 +39,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         #if os(macOS) || os(Linux)
             return
         #endif
-        throw XCTSkip("Skipping test because required environment variable \(name) is missing.")
+        throw XCTSkip("Skipping test because platform is unsupported for this test.")
     }
 
     func createClientId() -> String {
