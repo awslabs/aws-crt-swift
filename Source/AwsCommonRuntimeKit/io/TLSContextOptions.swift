@@ -22,7 +22,7 @@ public class TLSContextOptions: CStruct {
     public static func makeMTLS(
         pkcs12Path: String,
         password: String) throws -> TLSContextOptions {
-        try TLSContextOptions(mtlsPkcs12FromPath: pkcs12Path, password: password)
+        return try TLSContextOptions(mtlsPkcs12FromPath: pkcs12Path, password: password)
     }
 
     /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key. These are in memory
@@ -40,7 +40,7 @@ public class TLSContextOptions: CStruct {
         #if os(tvOS) || os(iOS) || os(watchOS)
         throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
         #endif
-        try TLSContextOptions(certificateData: certificateData, privateKeyData: privateKeyData)
+        return try TLSContextOptions(certificateData: certificateData, privateKeyData: privateKeyData)
     }
 
     /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key. These are paths to a
@@ -58,7 +58,7 @@ public class TLSContextOptions: CStruct {
         #if os(tvOS) || os(iOS) || os(watchOS)
         throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
         #endif
-        try TLSContextOptions(certificatePath: certificatePath, privateKeyPath: privateKeyPath)
+        return try TLSContextOptions(certificatePath: certificatePath, privateKeyPath: privateKeyPath)
     }
 
     init() {
