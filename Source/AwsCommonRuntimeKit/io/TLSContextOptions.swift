@@ -19,13 +19,13 @@ public class TLSContextOptions: CStruct {
     ///     memory for the lifetime of the returned object.
     ///     - password: Password to PKCS #12 file. It must remain in memory for the lifetime of the returned object.
     /// - Throws: CommonRuntimeError.crtError
-#if os(tvOS) || os(iOS) || os(watchOS) || os(macOS)
+// #if os(tvOS) || os(iOS) || os(watchOS) || os(macOS)
     public static func makeMTLS(
         pkcs12Path: String,
         password: String) throws -> TLSContextOptions {
         try TLSContextOptions(mtlsPkcs12FromPath: pkcs12Path, password: password)
     }
-#endif
+// #endif
 
     /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key. These are in memory
     /// buffers. These buffers must be in the PEM format.
@@ -36,13 +36,13 @@ public class TLSContextOptions: CStruct {
     ///     - certificateData: Certificate contents in memory.
     ///     - privateKeyData: Private key contents in memory.
     /// - Throws: CommonRuntimeError.crtError
-#if !(os(tvOS) || os(iOS) || os(watchOS))
+// #if !(os(tvOS) || os(iOS) || os(watchOS))
     public static func makeMTLS(
         certificateData: Data,
         privateKeyData: Data) throws -> TLSContextOptions {
         try TLSContextOptions(certificateData: certificateData, privateKeyData: privateKeyData)
     }
-#endif
+// #endif
 
     /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key. These are paths to a
     /// file on disk. These files must be in the PEM format.
@@ -53,13 +53,13 @@ public class TLSContextOptions: CStruct {
     ///     - certificatePath: Path to certificate file.
     ///     - privateKeyPath: Path to private key file.
     /// - Throws: CommonRuntimeError.crtError
-#if !(os(tvOS) || os(iOS) || os(watchOS))
+// #if !(os(tvOS) || os(iOS) || os(watchOS))
     public static func makeMTLS(
         certificatePath: String,
         privateKeyPath: String) throws -> TLSContextOptions {
         try TLSContextOptions(certificatePath: certificatePath, privateKeyPath: privateKeyPath)
     }
-#endif
+// #endif
 
     init() {
         self.rawValue = allocator.allocate(capacity: 1)
