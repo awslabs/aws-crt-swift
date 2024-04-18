@@ -18,7 +18,7 @@ public class TLSContextOptions: CStruct {
     ///     - pkcs12Path: Path to PKCS #12 file. The file is loaded from disk and stored internally. It must remain in
     ///     memory for the lifetime of the returned object.
     ///     - password: Password to PKCS #12 file. It must remain in memory for the lifetime of the returned object.
-    /// - Throws: CommonRuntimeError.CRTError
+    /// - Throws: CommonRuntimeError.crtError
     public static func makeMTLS(
         pkcs12Path: String,
         password: String) throws -> TLSContextOptions {
@@ -33,7 +33,7 @@ public class TLSContextOptions: CStruct {
     /// - Parameters:
     ///     - certificateData: Certificate contents in memory.
     ///     - privateKeyData: Private key contents in memory.
-    /// - Throws: CommonRuntimeError.CRTError
+    /// - Throws: CommonRuntimeError.crtError
     public static func makeMTLS(
         certificateData: Data,
         privateKeyData: Data) throws -> TLSContextOptions {
@@ -51,7 +51,7 @@ public class TLSContextOptions: CStruct {
     /// - Parameters:
     ///     - certificatePath: Path to certificate file.
     ///     - privateKeyPath: Path to private key file.
-    /// - Throws: CommonRuntimeError.CRTError
+    /// - Throws: CommonRuntimeError.crtError
     public static func makeMTLS(
         certificatePath: String,
         privateKeyPath: String) throws -> TLSContextOptions {
