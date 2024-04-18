@@ -421,9 +421,16 @@ public class SubscribePacket: CStruct {
     // Allow a SubscribePacket to be created directly using a topic filter and QoS
     public convenience init (topicFilter: String,
                              qos: QoS,
+                             noLocal: Bool? = nil,
+                             retainAsPublished: Bool? = nil,
+                             retainHandlingType: RetainHandlingType? = nil,
                              subscriptionIdentifier: UInt32? = nil,
                              userProperties: [UserProperty]? = nil) {
-        self.init(subscriptions: [Subscription(topicFilter: topicFilter, qos: qos)],
+        self.init(subscriptions: [Subscription(topicFilter: topicFilter,
+                                               qos: qos,
+                                               noLocal: noLocal,
+                                               retainAsPublished: retainAsPublished,
+                                               retainHandlingType: retainHandlingType)],
                   subscriptionIdentifier: subscriptionIdentifier,
                   userProperties: userProperties)
     }
