@@ -33,15 +33,6 @@ func onLifecycleEventDisconnectionMinimal(_ : LifecycleDisconnectData){
 
 class Mqtt5ClientTests: XCBaseTestCase {
 
-
-    /// Skip test if current env is not macOS or Linux
-    func skipUnsupportedPlatforms() throws {
-        #if os(macOS) || os(Linux)
-            return
-        #endif
-        throw XCTSkip("Skipping test because platform is unsupported for this test.")
-    }
-
     func createClientId() -> String {
         return "aws-crt-swift-unit-test-" + UUID().uuidString
     }
@@ -378,7 +369,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
      * [ConnDC-UC4] Direct Connection with mutual TLS
      */
     func testMqtt5DirectConnectWithMutualTLS() throws {
-        try skipUnsupportedPlatforms()
+        try skipIfPlatformDoesntSupportTLS()
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
@@ -690,7 +681,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     * [ConnNegativeID-UC7] Double Client ID Failure test
     */
     func testMqtt5MTLSConnectDoubleClientIdFailure() throws {
-        try skipUnsupportedPlatforms()
+        try skipIfPlatformDoesntSupportTLS()
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
@@ -867,7 +858,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     * [Negotiated-UC3] server settings limit test
     */
     func testMqtt5NegotiatedSettingsServerLimit() throws {
-        try skipUnsupportedPlatforms()
+        try skipIfPlatformDoesntSupportTLS()
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
