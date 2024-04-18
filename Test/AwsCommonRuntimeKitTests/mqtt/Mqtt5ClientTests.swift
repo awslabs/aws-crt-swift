@@ -33,6 +33,13 @@ func onLifecycleEventDisconnectionMinimal(_ : LifecycleDisconnectData){
 
 class Mqtt5ClientTests: XCBaseTestCase {
 
+    func skipIfiOS() {
+        #if os(macOS) || os(Linux)
+            return
+        #endif
+        throw XCTSkip("Skipping test because required environment variable \(name) is missing.")
+    }
+
     func createClientId() -> String {
         return "aws-crt-swift-unit-test-" + UUID().uuidString
     }
@@ -922,4 +929,49 @@ class Mqtt5ClientTests: XCBaseTestCase {
         }
     }
     #endif
+
+    /*===============================================================
+                     OPERATION TESTS
+    =================================================================*/
+    /*
+    * [Op-UC1] Sub-Unsub happy path
+    */
+
+    func testMqtt5SubUnsub() throws {
+
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+        let tlsOptions = try TLSContextOptions.makeMTLS(
+            certificatePath: inputCert,
+            privateKeyPath: inputKey
+        )
+        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(8883),
+            tlsCtx: tlsContext)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Success Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        try client.stop()
+        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
+            print("Disconnection timed out after 5 seconds")
+            XCTFail("Disconnection timed out")
+        }
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
+
 }
