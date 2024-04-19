@@ -290,6 +290,17 @@ public class PublishPacket: CStruct {
 
 }
 
+/// Publish result returned by Publish operation.
+/// - Members
+///   - puback: returned PublishPacket for qos 1 publish; nil for qos 0 packet.
+public class PublishResult {
+    public let puback: PubackPacket?
+
+    public init (puback: PubackPacket? = nil) {
+        self.puback = puback
+    }
+}
+
 /// "Data model of an `MQTT5 PUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901121>`_ packet
 public class PubackPacket {
 
@@ -308,6 +319,25 @@ public class PubackPacket {
         self.reasonCode = reasonCode
         self.reasonString = reasonString
         self.userProperties = userProperties
+    }
+
+    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_puback_view>?) -> PubackPacket? {
+        if let _from = from {
+            let pubackPointer = _from.pointee
+
+            guard let reasonCode = PubackReasonCode(rawValue: Int(pubackPointer.reason_code.rawValue))
+            else {fatalError("SubackPacket from native has an invalid reason code.")}
+
+            let reasonString = pubackPointer.reason_string?.pointee.toString()
+
+            let userProperties = convertOptionalUserProperties(
+                count: pubackPointer.user_property_count,
+                userPropertiesPointer: pubackPointer.user_properties)
+
+            return PubackPacket(reasonCode: reasonCode, reasonString: reasonString, userProperties: userProperties)
+        }
+
+        return nil
     }
 }
 

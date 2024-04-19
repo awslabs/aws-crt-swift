@@ -1022,5 +1022,4 @@ class Mqtt5ClientTests: XCBaseTestCase {
             XCTFail("Stop timed out")
         }
     }
-
 }
