@@ -69,7 +69,7 @@ extension Array where Element == UserProperty {
     }
 }
 
-/// Help function to handle Optional UserProperty Array into c pointer
+/// Helper function to convert Swift [UserProperty]? into a native aws_mqtt5_user_property pointer
 func withOptionalUserPropertyArray<Result>(
     of array: Array<UserProperty>?,
     _ body: (OpaquePointer?) throws -> Result) rethrows -> Result {
@@ -81,7 +81,7 @@ func withOptionalUserPropertyArray<Result>(
     }
 }
 
-/// Convert a native UserProperty pointer into a Swift [UserProperty]?
+/// Convert a native aws_mqtt5_user_property pointer into a Swift [UserProperty]?
 func convertOptionalUserProperties(count: size_t, userPropertiesPointer: UnsafePointer<aws_mqtt5_user_property>?) -> [UserProperty]? {
 
     guard let validPointer = userPropertiesPointer, count > 0 // swiftlint:disable:this empty_count
