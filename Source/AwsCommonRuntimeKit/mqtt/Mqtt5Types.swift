@@ -865,54 +865,52 @@ public class MqttConnectOptions: CStruct {
                                        requestProblemInformationPointer, willDelayIntervalSecPointer,
                                        receiveMaximumPointer, maximumPacketSizePointer) in
 
-            if let _sessionExpiryIntervalSecPointer = sessionExpiryIntervalSecPointer {
-                raw_connect_options.session_expiry_interval_seconds = _sessionExpiryIntervalSecPointer
-            }
+                if let _sessionExpiryIntervalSecPointer = sessionExpiryIntervalSecPointer {
+                    raw_connect_options.session_expiry_interval_seconds = _sessionExpiryIntervalSecPointer
+                }
 
-            if let _requestResponseInformationPointer: UnsafePointer<UInt8> = requestResponseInformationPointer {
-                raw_connect_options.request_response_information = _requestResponseInformationPointer
-            }
+                if let _requestResponseInformationPointer: UnsafePointer<UInt8> = requestResponseInformationPointer {
+                    raw_connect_options.request_response_information = _requestResponseInformationPointer
+                }
 
-            if let _requestProblemInformationPointer: UnsafePointer<UInt8> = requestProblemInformationPointer {
-                raw_connect_options.request_problem_information = _requestProblemInformationPointer
-            }
+                if let _requestProblemInformationPointer: UnsafePointer<UInt8> = requestProblemInformationPointer {
+                    raw_connect_options.request_problem_information = _requestProblemInformationPointer
+                }
 
-            if let _willDelayIntervalSecPointer: UnsafePointer<UInt32> = willDelayIntervalSecPointer {
-                raw_connect_options.will_delay_interval_seconds = _willDelayIntervalSecPointer
-            }
+                if let _willDelayIntervalSecPointer: UnsafePointer<UInt32> = willDelayIntervalSecPointer {
+                    raw_connect_options.will_delay_interval_seconds = _willDelayIntervalSecPointer
+                }
 
-            if let _receiveMaximumPointer: UnsafePointer<UInt16> = receiveMaximumPointer {
-                raw_connect_options.receive_maximum = _receiveMaximumPointer
-            }
+                if let _receiveMaximumPointer: UnsafePointer<UInt16> = receiveMaximumPointer {
+                    raw_connect_options.receive_maximum = _receiveMaximumPointer
+                }
 
-            if let _maximumPacketSizePointer: UnsafePointer<UInt32> = maximumPacketSizePointer {
-                raw_connect_options.maximum_packet_size_bytes = _maximumPacketSizePointer
-            }
+                if let _maximumPacketSizePointer: UnsafePointer<UInt32> = maximumPacketSizePointer {
+                    raw_connect_options.maximum_packet_size_bytes = _maximumPacketSizePointer
+                }
 
-            return withOptionalCStructPointer(to: self.will) { willCPointer in
-                raw_connect_options.will = willCPointer
+                return withOptionalCStructPointer(to: self.will) { willCPointer in
+                    raw_connect_options.will = willCPointer
 
-                return withByteCursorFromStrings(clientId) { cClientId in
-                    raw_connect_options.client_id = cClientId
+                    return withByteCursorFromStrings(clientId) { cClientId in
+                        raw_connect_options.client_id = cClientId
 
-                    // handle user property
-                    return withOptionalUserPropertyArray(of: userProperties) { cUserProperties in
-                        if let _cUserProperties = cUserProperties {
-                            raw_connect_options.user_property_count = userProperties!.count
-                            raw_connect_options.user_properties =
-                                UnsafePointer<aws_mqtt5_user_property>(_cUserProperties)
+                        // handle user property
+                        return withOptionalUserPropertyArray(of: userProperties) { cUserProperties in
+                            if let _cUserProperties = cUserProperties {
+                                raw_connect_options.user_property_count = userProperties!.count
+                                raw_connect_options.user_properties = UnsafePointer<aws_mqtt5_user_property>(_cUserProperties)
+                            }
+                            return withOptionalByteCursorPointerFromStrings(
+                                username, password) { cUsernamePointer, cPasswordPointer in
+                                    raw_connect_options.username = cUsernamePointer
+                                    raw_connect_options.password = cPasswordPointer
+                                    return body(raw_connect_options)
+                                }
                         }
-                        return withOptionalByteCursorPointerFromStrings(
-                            username, password) { cUsernamePointer, cPasswordPointer in
-                                raw_connect_options.username = cUsernamePointer
-                                raw_connect_options.password = cPasswordPointer
-                                return body(raw_connect_options)
-                        }
-
                     }
                 }
             }
-        }
     }
 }
 
@@ -925,76 +923,88 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
     let crtError = CRTError(code: lifecycleEvent.pointee.error_code)
 
     if let userData = lifecycleEvent.pointee.user_data {
-        let callbackCore: MqttShutdownCallbackCore = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userData).takeUnretainedValue()
+        let callbackCore: MqttCallbackCore = Unmanaged<MqttCallbackCore>.fromOpaque(userData).takeUnretainedValue()
 
-        switch lifecycleEvent.pointee.event_type {
-        case AWS_MQTT5_CLET_ATTEMPTING_CONNECT:
+        // validate the callback flag, if flag is false, return
+        callbackCore.rwlock.read {
+            if callbackCore.callbackFlag == false { return }
 
-            let lifecycleAttemptingConnectData = LifecycleAttemptingConnectData()
-            callbackCore.onLifecycleEventAttemptingConnect(lifecycleAttemptingConnectData)
+            switch lifecycleEvent.pointee.event_type {
+            case AWS_MQTT5_CLET_ATTEMPTING_CONNECT:
 
-        case AWS_MQTT5_CLET_CONNECTION_SUCCESS:
+                let lifecycleAttemptingConnectData = LifecycleAttemptingConnectData()
+                callbackCore.onLifecycleEventAttemptingConnect(lifecycleAttemptingConnectData)
 
-            guard let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data)
-            else { fatalError("ConnackPacket missing in a Connection Success lifecycle event.") }
+            case AWS_MQTT5_CLET_CONNECTION_SUCCESS:
 
-            guard let negotiatedSettings = NegotiatedSettings.convertFromNative(lifecycleEvent.pointee.settings)
-            else { fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.") }
+                guard let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data)
+                else { fatalError("ConnackPacket missing in a Connection Success lifecycle event.") }
 
-            let lifecycleConnectionSuccessData = LifecycleConnectionSuccessData(
-                connackPacket: connackPacket,
-                negotiatedSettings: negotiatedSettings)
-            callbackCore.onLifecycleEventConnectionSuccess(lifecycleConnectionSuccessData)
+                guard let negotiatedSettings = NegotiatedSettings.convertFromNative(lifecycleEvent.pointee.settings)
+                else { fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.") }
 
-        case AWS_MQTT5_CLET_CONNECTION_FAILURE:
+                let lifecycleConnectionSuccessData = LifecycleConnectionSuccessData(
+                    connackPacket: connackPacket,
+                    negotiatedSettings: negotiatedSettings)
+                callbackCore.onLifecycleEventConnectionSuccess(lifecycleConnectionSuccessData)
 
-            let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data)
+            case AWS_MQTT5_CLET_CONNECTION_FAILURE:
 
-            let lifecycleConnectionFailureData = LifecycleConnectionFailureData(
-                crtError: crtError,
-                connackPacket: connackPacket)
-            callbackCore.onLifecycleEventConnectionFailure(lifecycleConnectionFailureData)
+                let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data)
 
-        case AWS_MQTT5_CLET_DISCONNECTION:
-
-            guard let disconnectPacket = DisconnectPacket.convertFromNative(lifecycleEvent.pointee.disconnect_data) else {
-                let lifecycleDisconnectData = LifecycleDisconnectData(crtError: crtError)
-                callbackCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
-                return
-            }
-
-            let lifecycleDisconnectData = LifecycleDisconnectData(
+                let lifecycleConnectionFailureData = LifecycleConnectionFailureData(
                     crtError: crtError,
-                    disconnectPacket: disconnectPacket)
-            callbackCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
+                    connackPacket: connackPacket)
+                callbackCore.onLifecycleEventConnectionFailure(lifecycleConnectionFailureData)
 
-        case AWS_MQTT5_CLET_STOPPED:
+            case AWS_MQTT5_CLET_DISCONNECTION:
 
-            callbackCore.onLifecycleEventStoppedCallback(LifecycleStoppedData())
+                guard let disconnectPacket = DisconnectPacket.convertFromNative(lifecycleEvent.pointee.disconnect_data) else {
+                    let lifecycleDisconnectData = LifecycleDisconnectData(crtError: crtError)
+                    callbackCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
+                    return
+                }
 
-        default:
-            fatalError("A lifecycle event with an invalid event type was encountered.")
+                let lifecycleDisconnectData = LifecycleDisconnectData(
+                        crtError: crtError,
+                        disconnectPacket: disconnectPacket)
+                callbackCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
+
+            case AWS_MQTT5_CLET_STOPPED:
+
+                callbackCore.onLifecycleEventStoppedCallback(LifecycleStoppedData())
+
+            default:
+                fatalError("A lifecycle event with an invalid event type was encountered.")
+            }
         }
+
     }
 }
 
 private func MqttClientPublishRecievedEvents(
     _ publishPacketView: UnsafePointer<aws_mqtt5_packet_publish_view>?,
     _ userData: UnsafeMutableRawPointer?) {
-    print("[Mqtt5 Client Swift] PUBLISH RECIEVED EVENTS")
-    // TODO: Finish onPublishRecievedEvents, this is only a quick demo for publish callback
-    // grab the callbackCore, unretainedValue() would not change reference counting
-    let callbackCore = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userData!).takeUnretainedValue()
-    let puback_packet = PublishPacket(qos: QoS.atLeastOnce, topic: "test")
-    let puback = PublishReceivedData(publishPacket: puback_packet)
-    callbackCore.onPublishReceivedCallback(puback)
-}
+        print("[Mqtt5 Client Swift] PUBLISH RECIEVED EVENTS")
+        // TODO: Finish onPublishRecievedEvents, this is only a quick demo for publish callback
+        // grab the callbackCore, unretainedValue() would not change reference counting
+        let callbackCore = Unmanaged<MqttCallbackCore>.fromOpaque(userData!).takeUnretainedValue()
+
+        // validate the callback flag, if flag is false, return
+        callbackCore.rwlock.read {
+            if callbackCore.callbackFlag == false { return }
+
+            let puback_packet = PublishPacket(qos: QoS.atLeastOnce, topic: "test")
+            let puback = PublishReceivedData(publishPacket: puback_packet)
+            callbackCore.onPublishReceivedCallback(puback)
+        }
+    }
 
 private func MqttClientTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
     // termination callback
     print("[Mqtt5 Client Swift] TERMINATION CALLBACK")
     // takeRetainedValue would release the reference. ONLY DO IT AFTER YOU DO NOT NEED THE CALLBACK CORE
-    _ = Unmanaged<MqttShutdownCallbackCore>.fromOpaque(userData!).takeRetainedValue()
+    _ = Unmanaged<MqttCallbackCore>.fromOpaque(userData!).takeRetainedValue()
 }
 
 /// Configuration for the creation of MQTT5 clients
@@ -1215,38 +1225,41 @@ public class MqttClientOptions: CStructWithUserData {
                 raw_options.topic_aliasing_options = topicAliasingOptionsCPointer
                 raw_options.connect_options = connectOptionsCPointer
 
-            guard let _userData = userData else {
-                // directly return
+                guard let _userData = userData else {
+                    // directly return
+                    return hostName.withByteCursor { hostNameByteCursor in
+                        raw_options.host_name = hostNameByteCursor
+                        return body(raw_options)
+                    }
+                }
+
+                // TODO: SETUP lifecycle_event_handler and publish_received_handler
+                raw_options.lifecycle_event_handler = MqttClientLifeycyleEvents
+                raw_options.lifecycle_event_handler_user_data = _userData
+                raw_options.publish_received_handler = MqttClientPublishRecievedEvents
+                raw_options.publish_received_handler_user_data = _userData
+                raw_options.client_termination_handler = MqttClientTerminationCallback
+                raw_options.client_termination_handler_user_data = _userData
                 return hostName.withByteCursor { hostNameByteCursor in
                     raw_options.host_name = hostNameByteCursor
                     return body(raw_options)
                 }
             }
-
-            // TODO: SETUP lifecycle_event_handler and publish_received_handler
-            raw_options.lifecycle_event_handler = MqttClientLifeycyleEvents
-            raw_options.lifecycle_event_handler_user_data = _userData
-            raw_options.publish_received_handler = MqttClientPublishRecievedEvents
-            raw_options.publish_received_handler_user_data = _userData
-            raw_options.client_termination_handler = MqttClientTerminationCallback
-            raw_options.client_termination_handler_user_data = _userData
-            return hostName.withByteCursor { hostNameByteCursor in
-                raw_options.host_name = hostNameByteCursor
-                return body(raw_options)
-            }
-        }
     }
 }
 
 /// Internal Classes
 /// Callback core for event loop callbacks
-class MqttShutdownCallbackCore {
+class MqttCallbackCore {
     let onPublishReceivedCallback: OnPublishReceived
     let onLifecycleEventStoppedCallback: OnLifecycleEventStopped
     let onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect
     let onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess
     let onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure
     let onLifecycleEventDisconnection: OnLifecycleEventDisconnection
+
+    let rwlock = ReadWriteLock()
+    var callbackFlag = true
 
     init(onPublishReceivedCallback: OnPublishReceived? = nil,
          onLifecycleEventStoppedCallback: OnLifecycleEventStopped? = nil,
@@ -1268,11 +1281,18 @@ class MqttShutdownCallbackCore {
     /// and returns the UnsafeMutableRawPointer hold the object itself.
     ///
     /// You should always release the retained pointer to avoid memory leak
-    func shutdownCallbackUserData() -> UnsafeMutableRawPointer {
-        return Unmanaged<MqttShutdownCallbackCore>.passRetained(self).toOpaque()
+    func callbackUserData() -> UnsafeMutableRawPointer {
+        return Unmanaged<MqttCallbackCore>.passRetained(self).toOpaque()
     }
 
     func release() {
-        Unmanaged<MqttShutdownCallbackCore>.passUnretained(self).release()
+        close()
+        Unmanaged<MqttCallbackCore>.passUnretained(self).release()
+    }
+
+    func close() {
+        rwlock.write {
+            self.callbackFlag = false
+        }
     }
 }
