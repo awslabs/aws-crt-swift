@@ -922,6 +922,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
     // Sub Happy Path
     func testSubscription() async throws {
+        try skipIfPlatformDoesntSupportTLS()
         let uuid = UUID()
         let testTopic = "testSubscription_" + uuid.uuidString
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
@@ -942,9 +943,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let subscribe = SubscribePacket(topicFilter: testTopic, qos: QoS.atLeastOnce)
         // Wait on subscribe to make sure we subscribed to the topic before publish
         async let _ = try await client.subscribe(subscribePacket: subscribe)
-        async let _ = try client.publish(publishPacket: PublishPacket(qos: QoS.atLeastOnce,
-                                                                topic: testTopic,
-                                                                payload: "testSubscription".data(using: .utf8)))
+        async let _ = try await client.publish(publishPacket: PublishPacket(qos: QoS.atLeastOnce,
+                                                                            topic: testTopic,
+                                                                            payload: "testSubscription".data(using: .utf8)))
 
         testContext.semaphorePublishReceived.wait()
 
