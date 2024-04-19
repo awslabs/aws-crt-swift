@@ -83,11 +83,11 @@ public class Mqtt5Client {
                 errorCode: Int32,
                 userData: UnsafeMutableRawPointer?) {
                 let continuationCore = Unmanaged<ContinuationCore<SubackPacket>>.fromOpaque(userData!).takeRetainedValue()
-                
+
                 guard errorCode == AWS_OP_SUCCESS else {
                     return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
                 }
-                                        
+
                 guard let suback = SubackPacket.convertFromNative(subackPacket)
                 else { fatalError("Suback missing in the subscription completion callback.") }
 
@@ -104,7 +104,37 @@ public class Mqtt5Client {
                     return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
             }
+        }
+    }
 
+    public func unsubscribe(unsubscribePacket: UnsubscribePacket) async throws -> UnsubackPacket {
+
+        return try await withCheckedThrowingContinuation{ continuation in
+
+            func unsubscribeCompletionCallback(unsubackPacket: UnsafePointer<aws_mqtt5_packet_unsuback_view>?,
+                                               errorCode: Int32,
+                                               userData: UnsafeMutableRawPointer?) {
+                let continuationCore = Unmanaged<ContinuationCore<UnsubackPacket>>.fromOpaque(userData!).takeRetainedValue()
+
+                guard errorCode == AWS_OP_SUCCESS else {
+                    return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+                }
+
+                guard let unsuback = UnsubackPacket.convertFromNative(unsubackPacket)
+                else { fatalError("Unsuback missing in the Unsubscribe completion callback.") }
+
+                continuationCore.continuation.resume(returning: unsuback)
+            }
+
+            unsubscribePacket.withCPointer { unsubscribePacketPointer in
+                var callbackOptions = aws_mqtt5_unsubscribe_completion_options()
+                callbackOptions.completion_callback = unsubscribeCompletionCallback
+                callbackOptions.completion_user_data = ContinuationCore(continuation: continuation).passRetained()
+                let result = aws_mqtt5_client_unsubscribe(rawValue, unsubscribePacketPointer, &callbackOptions)
+                guard result == 0 else {
+                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                }
+            }
         }
     }
 

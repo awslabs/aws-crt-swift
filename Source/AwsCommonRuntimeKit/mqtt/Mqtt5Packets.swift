@@ -521,7 +521,7 @@ public class SubackPacket {
 }
 
 /// Data model of an `MQTT5 UNSUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc384800445>`_ packet.
-public class UnsubscribePacket {
+public class UnsubscribePacket: CStruct {
 
     /// Array of topic filters that the client wishes to unsubscribe from.
     public let topicFilters: [String]
@@ -533,21 +533,62 @@ public class UnsubscribePacket {
                  userProperties: [UserProperty]? = nil) {
         self.topicFilters = topicFilters
         self.userProperties = userProperties
+
+        nativeTopicFilters = convertTopicFilters(self.topicFilters)
     }
 
     // Allow an UnsubscribePacket to be created directly using a single topic filter
     public convenience init (topicFilter: String,
                              userProperties: [UserProperty]? = nil) {
-            self.init(topicFilters: [topicFilter],
-                      userProperties: userProperties)
+        self.init(topicFilters: [topicFilter], userProperties: userProperties)
+    }
+
+    typealias RawType = aws_mqtt5_packet_unsubscribe_view
+    func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
+        var raw_unsubscribe_view = aws_mqtt5_packet_unsubscribe_view()
+        raw_unsubscribe_view.topic_filters = UnsafePointer(nativeTopicFilters)
+        raw_unsubscribe_view.topic_filter_count = topicFilters.count
+        return withOptionalUserPropertyArray(of: userProperties) { userPropertyPointer in
+                if let _userPropertyPointer = userPropertyPointer {
+                    raw_unsubscribe_view.user_property_count = userProperties!.count
+                    raw_unsubscribe_view.user_properties =
+                        UnsafePointer<aws_mqtt5_user_property>(_userPropertyPointer)
+            }
+            return body(raw_unsubscribe_view)
         }
+    }
+
+    func convertTopicFilters(_ topicFilters: [String]) -> UnsafeMutablePointer<aws_byte_cursor>? {
+        let cArray = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: topicFilters.count)
+
+        for (index, string) in topicFilters.enumerated() {
+            let data = string.data(using: .utf8)!
+            let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: data.count)
+            data.copyBytes(to: buffer, count: data.count)
+
+            cArray[index] = aws_byte_cursor(len: data.count, ptr: buffer)
+        }
+
+        return cArray
+    }
+
+    private var nativeTopicFilters: UnsafeMutablePointer<aws_byte_cursor>?
+
+    deinit {
+        if let filters = nativeTopicFilters {
+            for i in 0..<topicFilters.count {
+                filters[i].ptr.deallocate()
+            }
+            filters.deallocate()
+        }
+    }
 }
 
 /// Data model of an `MQTT5 UNSUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc471483687>`_ packet.
 public class UnsubackPacket {
 
     /// Array of reason codes indicating the result of unsubscribing from each individual topic filter entry in the associated UNSUBSCRIBE packet.
-    public let reasonCodes: [DisconnectReasonCode]
+    public let reasonCodes: [UnsubackReasonCode]
 
     /// Additional diagnostic information about the result of the UNSUBSCRIBE attempt.
     public let reasonString: String?
@@ -555,12 +596,42 @@ public class UnsubackPacket {
     /// Array of MQTT5 user properties included with the packet.
     public let userProperties: [UserProperty]?
 
-    public init (reasonCodes: [DisconnectReasonCode],
+    public init (reasonCodes: [UnsubackReasonCode],
                  reasonString: String? = nil,
                  userProperties: [UserProperty]? = nil) {
         self.reasonCodes = reasonCodes
         self.reasonString = reasonString
         self.userProperties = userProperties
+    }
+
+    public static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_unsuback_view>?) -> UnsubackPacket? {
+        if let _from = from {
+            let unsubackPointer = _from.pointee
+
+            var unsubackReasonCodes: [UnsubackReasonCode] = []
+            print("test unsuback reasonCode from native count: \(unsubackPointer.reason_code_count)")
+            for i in 0..<unsubackPointer.reason_code_count {
+                let reasonCodePointer = unsubackPointer.reason_codes.advanced(by: Int(i)).pointee
+                print("test rawValue: \(Int(reasonCodePointer.rawValue))")
+                guard let reasonCode = UnsubackReasonCode(rawValue: Int(reasonCodePointer.rawValue))
+                else { fatalError("UnsubackPacket from native has an invalid reason code.")}
+                print("test reasonCode: \(reasonCode)")
+                unsubackReasonCodes.append(reasonCode)
+            }
+
+            let reasonString = unsubackPointer.reason_string?.pointee.toString()
+
+            let userProperties = convertOptionalUserProperties(
+                count: unsubackPointer.user_property_count,
+                userPropertiesPointer: unsubackPointer.user_properties)
+
+            let unsuback = UnsubackPacket(reasonCodes: unsubackReasonCodes,
+                                      reasonString: reasonString,
+                                      userProperties: userProperties)
+            return unsuback
+        }
+
+        return nil
     }
 }
 

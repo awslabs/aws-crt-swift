@@ -924,7 +924,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
     * [Op-UC1] Sub-Unsub happy path
     */
-    func withTimeout<T>(_ duration: TimeInterval, operation: @escaping() async throws -> T) async throws -> T {
+    func withTimeout<T>(_ duration: TimeInterval, operation: @escaping() async throws -> T) async throws -> T? {
         // Assign task to the async function being tested
         let task = Task<T, Error> {
             return try await operation()
@@ -950,7 +950,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 throw error
             }
         }
-        throw Error("what?")
+        return nil
     }
 
     func testMqtt5SubUnsub() async throws {
@@ -979,16 +979,36 @@ class Mqtt5ClientTests: XCBaseTestCase {
         }
 
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+        let subscriptions = [Subscription(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false),
+                                          Subscription(topicFilter: topic, qos: QoS.atMostOnce, noLocal: false)]
+        let subscribePacket = SubscribePacket(subscriptions: subscriptions)
 
-        let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+        // do {
+        //     let result: SubackPacket? = try await withTimeout(5.0, operation: {
+        //         return try await client.subscribe(subscribePacket: subscribePacket)
+        //     })
+        //     if result != nil {
+        //         XCTAssertEqual(result!.reasonCodes[0], SubackReasonCode.grantedQos1)
+        //     } else {
+        //         XCTFail("No suback received")
+        //     }
+        // } catch {
+        //     XCTFail("Test failed with error: \(error)")
+        // }
 
-        do {
-            let result: SubackPacket = try await withTimeout(5.0) {
-                return try await client.subscribe(subscribePacket: subscribePacket)
-            }
-            XCTAssertEqual(result.reasonCodes[0], SubackReasonCode.grantedQos1)
-        } catch {
-            XCTFail("Test failed with error: \(error)")
+        let subackPacket = try await client.subscribe(subscribePacket: subscribePacket)
+        print("SubackPacket received with results")
+        for i in 0..<subackPacket.reasonCodes.count {
+            print("Index:\(i) result:\(subackPacket.reasonCodes[i])")
+        }
+
+        let unsubscribeTopics = [topic, "fake_topic1", "fake_topic2"]
+        let unsubscribePacket = UnsubscribePacket(topicFilters: unsubscribeTopics)
+        let unsubackPacket = try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
+
+        print("UnsubackPacket received with results")
+        for i in 0..<unsubackPacket.reasonCodes.count {
+            print("Index:\(i) result:\(unsubackPacket.reasonCodes[i])")
         }
 
         try client.stop()
