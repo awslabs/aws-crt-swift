@@ -371,9 +371,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnDC-UC4] Direct Connection with mutual TLS
      */
-#if os(macOS) || os(Linux)
     func testMqtt5DirectConnectWithMutualTLS() throws {
-
+        try skipIfPlatformDoesntSupportTLS()
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
@@ -408,7 +407,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
             XCTFail("Stop timed out")
         }
     }
-#endif
 
     /*
      * [ConnDC-UC5] Direct Connection with HttpProxy options and TLS
@@ -685,9 +683,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
     * [ConnNegativeID-UC7] Double Client ID Failure test
     */
-    #if os(macOS) || os(Linux)
     func testMqtt5MTLSConnectDoubleClientIdFailure() throws {
-
+        try skipIfPlatformDoesntSupportTLS()
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
@@ -764,7 +761,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
             XCTFail("Stop timed out")
         }
     }
-#endif
 
     /*===============================================================
                          NEGOTIATED SETTINGS TESTS
@@ -864,8 +860,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
     * [Negotiated-UC3] server settings limit test
     */
-    #if os(macOS) || os(Linux)
     func testMqtt5NegotiatedSettingsServerLimit() throws {
+        try skipIfPlatformDoesntSupportTLS()
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
@@ -963,6 +959,4 @@ class Mqtt5ClientTests: XCBaseTestCase {
             XCTFail("Stop timed out")
         }
     }
-
-    #endif
 }
