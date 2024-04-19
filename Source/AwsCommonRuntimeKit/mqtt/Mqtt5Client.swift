@@ -112,7 +112,7 @@ public class Mqtt5Client {
 
     public func unsubscribe(unsubscribePacket: UnsubscribePacket) async throws -> UnsubackPacket {
 
-        return try await withCheckedThrowingContinuation{ continuation in
+        return try await withCheckedThrowingContinuation { continuation in
 
             func unsubscribeCompletionCallback(unsubackPacket: UnsafePointer<aws_mqtt5_packet_unsuback_view>?,
                                                errorCode: Int32,

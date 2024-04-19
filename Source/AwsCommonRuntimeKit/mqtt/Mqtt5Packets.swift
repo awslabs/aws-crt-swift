@@ -652,8 +652,8 @@ public class UnsubackPacket {
                 count: unsubackPointer.user_property_count,
                 userPropertiesPointer: unsubackPointer.user_properties)
             let unsuback = UnsubackPacket(reasonCodes: unsubackReasonCodes,
-                                      reasonString: reasonString,
-                                      userProperties: userProperties)
+                                                          reasonString: reasonString,
+                                                          userProperties: userProperties)
             return unsuback
         }
 
