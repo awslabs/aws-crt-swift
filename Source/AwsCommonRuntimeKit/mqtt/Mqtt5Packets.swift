@@ -572,9 +572,11 @@ public class UnsubscribePacket: CStruct {
         return cArray
     }
 
+    /// storage of topic filter Strings converted into native c aws_byte_cursor pointer
     private var nativeTopicFilters: UnsafeMutablePointer<aws_byte_cursor>?
 
     deinit {
+        /// Clean up memory of converted topic filter Strings
         if let filters = nativeTopicFilters {
             for i in 0..<topicFilters.count {
                 filters[i].ptr.deallocate()
@@ -609,13 +611,10 @@ public class UnsubackPacket {
             let unsubackPointer = _from.pointee
 
             var unsubackReasonCodes: [UnsubackReasonCode] = []
-            print("test unsuback reasonCode from native count: \(unsubackPointer.reason_code_count)")
             for i in 0..<unsubackPointer.reason_code_count {
                 let reasonCodePointer = unsubackPointer.reason_codes.advanced(by: Int(i)).pointee
-                print("test rawValue: \(Int(reasonCodePointer.rawValue))")
                 guard let reasonCode = UnsubackReasonCode(rawValue: Int(reasonCodePointer.rawValue))
                 else { fatalError("UnsubackPacket from native has an invalid reason code.")}
-                print("test reasonCode: \(reasonCode)")
                 unsubackReasonCodes.append(reasonCode)
             }
 
