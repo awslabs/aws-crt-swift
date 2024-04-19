@@ -617,13 +617,10 @@ public class UnsubackPacket {
                 else { fatalError("UnsubackPacket from native has an invalid reason code.")}
                 unsubackReasonCodes.append(reasonCode)
             }
-
             let reasonString = unsubackPointer.reason_string?.pointee.toString()
-
             let userProperties = convertOptionalUserProperties(
                 count: unsubackPointer.user_property_count,
                 userPropertiesPointer: unsubackPointer.user_properties)
-
             let unsuback = UnsubackPacket(reasonCodes: unsubackReasonCodes,
                                       reasonString: reasonString,
                                       userProperties: userProperties)
