@@ -525,14 +525,8 @@ public class SubackPacket {
         if let _from = from {
             let subackPointer = _from.pointee
 
-            var subackReasonCodes: [SubackReasonCode] = []
-            for i in 0..<subackPointer.reason_code_count {
-                let reasonCodePointer = subackPointer.reason_codes.advanced(by: Int(i)).pointee
-                guard let reasonCode = SubackReasonCode(rawValue: Int(reasonCodePointer.rawValue))
-                else {fatalError("SubackPacket from native has an invalid reason code.")}
-                subackReasonCodes.append(reasonCode)
-            }
-
+            let reasonCodeBuffer = UnsafeBufferPointer(start: subackPointer.reason_codes, count: subackPointer.reason_code_count)
+            let subackReasonCodes = reasonCodeBuffer.compactMap { SubackReasonCode(rawValue: Int($0.rawValue)) }
             let reasonString = subackPointer.reason_string?.pointee.toString()
 
             let userProperties = convertOptionalUserProperties(
@@ -640,13 +634,8 @@ public class UnsubackPacket {
         if let _from = from {
             let unsubackPointer = _from.pointee
 
-            var unsubackReasonCodes: [UnsubackReasonCode] = []
-            for i in 0..<unsubackPointer.reason_code_count {
-                let reasonCodePointer = unsubackPointer.reason_codes.advanced(by: Int(i)).pointee
-                guard let reasonCode = UnsubackReasonCode(rawValue: Int(reasonCodePointer.rawValue))
-                else { fatalError("UnsubackPacket from native has an invalid reason code.")}
-                unsubackReasonCodes.append(reasonCode)
-            }
+            let reasonCodeBuffer = UnsafeBufferPointer(start: unsubackPointer.reason_codes, count: unsubackPointer.reason_code_count)
+            let unsubackReasonCodes = reasonCodeBuffer.compactMap { UnsubackReasonCode(rawValue: Int($0.rawValue)) }
             let reasonString = unsubackPointer.reason_string?.pointee.toString()
             let userProperties = convertOptionalUserProperties(
                 count: unsubackPointer.user_property_count,

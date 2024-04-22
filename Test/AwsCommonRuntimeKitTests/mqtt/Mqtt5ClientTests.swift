@@ -954,24 +954,40 @@ class Mqtt5ClientTests: XCBaseTestCase {
     }
 
     func testMqtt5SubUnsub() async throws {
-        try skipIfPlatformDoesntSupportTLS()
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+        // MTLS
+        // try skipIfPlatformDoesntSupportTLS()
+        // let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+        // let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+        // let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
 
-        let tlsOptions = try TLSContextOptions.makeMTLS(
-            certificatePath: inputCert,
-            privateKeyPath: inputKey
-        )
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+        // let tlsOptions = try TLSContextOptions.makeMTLS(
+        //     certificatePath: inputCert,
+        //     privateKeyPath: inputKey
+        // )
+        // let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+        // let clientOptions = MqttClientOptions(
+        //     hostName: inputHost,
+        //     port: UInt32(8883),
+        //     tlsCtx: tlsContext)
+
+        // let testContext = MqttTestContext()
+        // let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        // MTLS
+
+        // DIRECT
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
 
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext)
+            port: UInt32(inputPort)!)
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+
+        // DIRECT
+
         try client.start()
         if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
             print("Connection Success Timed out after 5 seconds")
@@ -979,8 +995,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
         }
 
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+        let topic2 = "test/MQTT5_Binding_Swift_" + UUID().uuidString
         let subscriptions = [Subscription(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false),
-                                          Subscription(topicFilter: topic, qos: QoS.atMostOnce, noLocal: false)]
+                                          Subscription(topicFilter: topic, qos: QoS.atMostOnce, noLocal: false),
+                                          Subscription(topicFilter: topic2, qos: QoS.atLeastOnce, noLocal: false)]
         let subscribePacket = SubscribePacket(subscriptions: subscriptions)
 
         // do {
@@ -1002,7 +1020,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             print("Index:\(i) result:\(subackPacket.reasonCodes[i])")
         }
 
-        let unsubscribeTopics = [topic, "fake_topic1", "fake_topic2"]
+        let unsubscribeTopics = [topic, "fake_topic1", topic2]
         let unsubscribePacket = UnsubscribePacket(topicFilters: unsubscribeTopics)
         let unsubackPacket = try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
 
