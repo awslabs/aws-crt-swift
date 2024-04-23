@@ -6,8 +6,11 @@ import Foundation
 import AwsCMqtt
 @testable import AwsCommonRuntimeKit
 
-enum TimeoutError: Error {
+enum MqttTestError: Error {
     case timeout
+    case connectionFail
+    case disconnectFail
+    case stopFail
 }
 
 func onPublishReceivedCallbackMinimal(_ : PublishReceivedData){
@@ -36,6 +39,43 @@ func onLifecycleEventDisconnectionMinimal(_ : LifecycleDisconnectData){
 
 
 class Mqtt5ClientTests: XCBaseTestCase {
+
+    /// start client and check for connection success
+    func connectClient(client: Mqtt5Client, testContext: MqttTestContext) throws -> Void {
+        try client.start()
+        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Success Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+            throw MqttTestError.connectionFail
+        }
+    }
+
+    /// stop client and check for discconnection and stopped lifecycle events
+    func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext) throws -> Void {
+        try client.stop()
+        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
+            print("Disconnection timed out after 5 seconds")
+            XCTFail("Disconnection timed out")
+            throw MqttTestError.disconnectFail
+            return
+        }
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+            throw MqttTestError.stopFail
+        }
+    }
+
+    /// stop client and check for stopped lifecycle event
+    func stopClient(client: Mqtt5Client, testContext: MqttTestContext) throws -> Void {
+        try client.stop()
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+            throw MqttTestError.stopFail
+        }
+    }
 
     func createClientId() -> String {
         return "aws-crt-swift-unit-test-" + UUID().uuidString
@@ -186,7 +226,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let timeoutTask: () async throws -> T = {
             try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
-            throw TimeoutError.timeout
+            throw MqttTestError.timeout
         }
 
         var result: T?
@@ -203,7 +243,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             } catch {
                 // Close the client to complete all operations that may be timing out
                 client.close()
-                throw error
+                throw MqttTestError.timeout
             }
         }
 
@@ -315,25 +355,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try client.start()
-        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
-
-        try client.stop()
-        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            return
-        }
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try connectClient(client: client, testContext: testContext)
+        try disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*
@@ -359,25 +382,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try client.start()
-        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
-
-        try client.stop()
-        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            return
-        }
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try connectClient(client: client, testContext: testContext)
+        try disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*
@@ -399,25 +405,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try client.start()
-        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
-
-        try client.stop()
-        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            return
-        }
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try connectClient(client: client, testContext: testContext)
+        try disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*
@@ -428,6 +417,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
 
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
@@ -437,30 +427,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(8883),
+            port: UInt32(inputPort)!,
             tlsCtx: tlsContext)
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try client.start()
-        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
-
-        try client.stop()
-        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            return
-        }
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try connectClient(client: client, testContext: testContext)
+        try disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*
@@ -490,25 +463,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try client.start()
-        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
-
-        try client.stop()
-        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            return
-        }
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try connectClient(client: client, testContext: testContext)
+        try disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*
@@ -564,25 +520,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try client.start()
-        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
-
-        try client.stop()
-        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            return
-        }
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try connectClient(client: client, testContext: testContext)
+        try disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*===============================================================
@@ -621,13 +560,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try client.stop()
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try stopClient(client: client, testContext: testContext)
     }
 
     /*
@@ -662,13 +595,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try client.stop()
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try stopClient(client: client, testContext: testContext)
     }
 
     /*
@@ -702,13 +629,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try client.stop()
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try stopClient(client: client, testContext: testContext)
     }
 
     /*
@@ -740,13 +661,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try client.stop()
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try stopClient(client: client, testContext: testContext)
     }
 
     /*
@@ -762,6 +677,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
 
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
@@ -775,33 +691,21 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(8883),
+            port: UInt32(inputPort)!,
             tlsCtx: tlsContext,
             connectOptions: connectOptions,
             minReconnectDelay: TimeInterval(5))
 
         let testContext = MqttTestContext(contextName: "client1")
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try client.start()
-        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        try connectClient(client: client, testContext: testContext)
 
         // Create a second client with the same client id
         let testContext2 = MqttTestContext(contextName: "client2")
         let client2 = try createClient(clientOptions: clientOptions, testContext: testContext2)
 
         // Connect with second client
-        try client2.start()
-
-        // Check for client2 successful connect
-        if testContext2.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out on client2 after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        try connectClient(client: client2, testContext: testContext2)
 
         if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
             print("Disconnection due to duplicate client id timed out on client1")
@@ -822,26 +726,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try client.stop()
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
-
-        try client2.stop()
-        if testContext2.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            return
-        }
-
-        if testContext2.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try stopClient(client: client, testContext: testContext)
+        try disconnectClientCleanup(client: client2, testContext: testContext2)
     }
 
     /*===============================================================
@@ -865,12 +751,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try client.start()
-        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        try connectClient(client: client, testContext: testContext)
 
         if let negotiatedSettings = testContext.negotiatedSettings {
             XCTAssertEqual(negotiatedSettings.sessionExpiryInterval, sessionExpirtyInterval)
@@ -879,18 +760,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try client.stop()
-        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            return
-        }
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try disconnectClientCleanup(client: client, testContext: testContext)
     }
 
     /*
@@ -916,12 +786,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try client.start()
-        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        try connectClient(client: client, testContext: testContext)
 
         if let negotiatedSettings = testContext.negotiatedSettings {
             XCTAssertEqual(negotiatedSettings.sessionExpiryInterval, sessionExpirtyInterval)
@@ -933,18 +798,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try client.stop()
-        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            return
-        }
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try disconnectClientCleanup(client: client, testContext: testContext)
     }
 
     /*
@@ -955,6 +809,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
 
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
@@ -975,18 +830,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(8883),
+            port: UInt32(inputPort)!,
             tlsCtx: tlsContext,
             connectOptions: mqttConnectOptions)
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try client.start()
-        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        try connectClient(client: client, testContext: testContext)
 
         if let negotiatedSettings = testContext.negotiatedSettings {
             XCTAssertNotEqual(sessionExpiryInterval, negotiatedSettings.sessionExpiryInterval)
@@ -998,18 +848,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try client.stop()
-        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            return
-        }
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try disconnectClientCleanup(client: client, testContext: testContext)
     }
 
     /*===============================================================
@@ -1023,6 +862,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
 
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
@@ -1032,18 +872,12 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(8883),
+            port: UInt32(inputPort)!,
             tlsCtx: tlsContext)
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-
-        try client.start()
-        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        try connectClient(client: client, testContext: testContext)
 
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
         let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
@@ -1080,18 +914,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             })
         print("UnsubackPacket received with result \(unsubackPacket.reasonCodes[0])")
 
-        try client.stop()
-        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            return
-        }
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try disconnectClientCleanup(client: client, testContext: testContext)
     }
 
     /*
@@ -1102,6 +925,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
 
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
@@ -1116,36 +940,25 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let connectOptionsPublisher = MqttConnectOptions(clientId: clientIDPublisher, will: willPacket)
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(8883),
+            port: UInt32(inputPort)!,
             tlsCtx: tlsContext,
             connectOptions: connectOptionsPublisher)
 
         let testContextPublisher = MqttTestContext(contextName: "Publisher")
         let clientPublisher = try createClient(clientOptions: clientOptions, testContext: testContextPublisher)
-
-        try clientPublisher.start()
-        if testContextPublisher.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        try connectClient(client: clientPublisher, testContext: testContextPublisher)
 
         let clientIDSubscriber = createClientId() + "Subscriber"
         let testContextSubscriber = MqttTestContext(contextName: "Subscriber")
         let connectOptionsSubscriber = MqttConnectOptions(clientId: clientIDSubscriber)
         let clientOptionsSubscriber = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(8883),
+            port: UInt32(inputPort)!,
             tlsCtx: tlsContext,
             connectOptions: connectOptionsSubscriber)
 
         let clientSubscriber = try createClient(clientOptions: clientOptionsSubscriber, testContext: testContextSubscriber)
-        try clientSubscriber.start()
-        if testContextSubscriber.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        try connectClient(client: clientSubscriber, testContext: testContextSubscriber)
 
         let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
         let subackPacket: SubackPacket =
@@ -1155,25 +968,14 @@ class Mqtt5ClientTests: XCBaseTestCase {
         print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
 
         let disconnectPacket = DisconnectPacket(reasonCode: .disconnectWithWillMessage)
-        try clientPublisher.stop(disconnectPacket)
-        if testContextPublisher.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            return
-        }
+        try disconnectClientCleanup(client: clientPublisher, testContext: testContextPublisher)
 
         if testContextSubscriber.semaphorePublishReceived.wait(timeout: .now() + 5) == .timedOut {
             print("Publish not received after 5 seconds")
             XCTFail("Publish packet not received on subscribed topic")
             return
         }
-
-        try clientSubscriber.stop()
-        if testContextSubscriber.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try stopClient(client: clientSubscriber, testContext: testContextSubscriber)
     }
 
     /*
@@ -1184,6 +986,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
 
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
@@ -1193,18 +996,12 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(8883),
+            port: UInt32(inputPort)!,
             tlsCtx: tlsContext)
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-
-        try client.start()
-        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        try connectClient(client: client, testContext: testContext)
 
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
         let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
@@ -1238,18 +1035,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let publishReceived = testContext.publishPacket!
         XCTAssertEqual(publishReceived.payload, payloadData, "Binary data received as publish not equal to binary data used to generate publish")
 
-        try client.stop()
-        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            return
-        }
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try disconnectClientCleanup(client: client, testContext: testContext)
     }
 
     /*
@@ -1265,13 +1051,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-
-        try client.start()
-        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        try connectClient(client: client, testContext: testContext)
 
         let topic1 = "test/MQTT5_Binding_Swift_" + UUID().uuidString
         let topic2 = "test/MQTT5_Binding_Swift_" + UUID().uuidString
@@ -1303,17 +1083,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
             print("Index:\(i) result:\(unsubackPacket.reasonCodes[i])")
         }
 
-        try client.stop()
-        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            return
-        }
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            return
-        }
+        try disconnectClientCleanup(client: client, testContext: testContext)
     }
 }
