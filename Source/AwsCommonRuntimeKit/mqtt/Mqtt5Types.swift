@@ -995,6 +995,8 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
 private func MqttClientPublishRecievedEvents(
     _ publishPacketView: UnsafePointer<aws_mqtt5_packet_publish_view>?,
     _ userData: UnsafeMutableRawPointer?) {
+        print("[Mqtt5 Client Swift] PUBLISH RECIEVED EVENTS")
+        // TODO: Finish onPublishRecievedEvents, this is only a quick demo for publish callback
         // grab the callbackCore, unretainedValue() would not change reference counting
         let callbackCore = Unmanaged<MqttCallbackCore>.fromOpaque(userData!).takeUnretainedValue()
 
@@ -1002,9 +1004,7 @@ private func MqttClientPublishRecievedEvents(
         callbackCore.rwlock.read {
             if callbackCore.callbackFlag == false { return }
 
-            guard let puback_packet = PublishPacket.convertFromNative(publishPacketView)
-            else { fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.") }
-
+            let puback_packet = PublishPacket(qos: QoS.atLeastOnce, topic: "test")
             let puback = PublishReceivedData(publishPacket: puback_packet)
             callbackCore.onPublishReceivedCallback(puback)
         }
