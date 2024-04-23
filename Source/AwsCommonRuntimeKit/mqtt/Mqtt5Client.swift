@@ -82,7 +82,6 @@ public class Mqtt5Client {
                 subackPacket: UnsafePointer<aws_mqtt5_packet_suback_view>?,
                 errorCode: Int32,
                 userData: UnsafeMutableRawPointer?) {
-                print("[MQTT5 SUBACK TEST] PUBACK RECEIVED")
                 let continuationCore = Unmanaged<ContinuationCore<SubackPacket>>.fromOpaque(userData!).takeRetainedValue()
 
                 guard errorCode == AWS_OP_SUCCESS else {
