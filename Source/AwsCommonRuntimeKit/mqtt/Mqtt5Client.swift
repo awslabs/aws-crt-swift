@@ -75,14 +75,13 @@ public class Mqtt5Client {
     /// - Throws: CommonRuntimeError.crtError
     public func subscribe(subscribePacket: SubscribePacket) async throws -> SubackPacket {
 
-        return try await withCheckedThrowingContinuation { [weak self]continuation in
+        return try await withCheckedThrowingContinuation { continuation in
 
             // The completion callback to invoke when an ack is received in native
             func subscribeCompletionCallback(
                 subackPacket: UnsafePointer<aws_mqtt5_packet_suback_view>?,
                 errorCode: Int32,
                 userData: UnsafeMutableRawPointer?) {
-                print("[MQTT5 SUBACK TEST] PUBACK RECEIVED")
                 let continuationCore = Unmanaged<ContinuationCore<SubackPacket>>.fromOpaque(userData!).takeRetainedValue()
 
                 guard errorCode == AWS_OP_SUCCESS else {
@@ -101,7 +100,7 @@ public class Mqtt5Client {
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = subscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-                let result = aws_mqtt5_client_subscribe(self!.rawValue, subscribePacketPointer, &callbackOptions)
+                let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
                 guard result == 0 else {
                     continuationCore.release()
                     return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
@@ -134,14 +133,13 @@ public class Mqtt5Client {
                 let continuationCore = Unmanaged<ContinuationCore<PublishResult>>.fromOpaque(userData!).takeRetainedValue()
 
                 if errorCode != 0 {
-                    continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
-                    return
+                    return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
                 }
 
                 switch packet_type {
-                case AWS_MQTT5_PT_NONE:
+                case AWS_MQTT5_PT_NONE:     // QoS0
                     return continuationCore.continuation.resume(returning: PublishResult())
-                case AWS_MQTT5_PT_PUBACK:
+                case AWS_MQTT5_PT_PUBACK:   // QoS1
                         guard let _publishResult = navtivePublishResult?.assumingMemoryBound(
                             to: aws_mqtt5_packet_puback_view.self) else {
                             return continuationCore.continuation.resume(
@@ -154,13 +152,17 @@ public class Mqtt5Client {
                         throwing: CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_UNKNOWN.rawValue)))
                 }
             }
+
             publishPacket.withCPointer { publishPacketPointer in
                 var callbackOptions = aws_mqtt5_publish_completion_options()
+                let continuationCore = ContinuationCore<PublishResult>(continuation: continuation)
+
                 callbackOptions.completion_callback = publishCompletionCallback
-                callbackOptions.completion_user_data = ContinuationCore<PublishResult>(continuation: continuation).passRetained()
+                callbackOptions.completion_user_data = continuationCore.passRetained()
                 let result = aws_mqtt5_client_publish(rawValue, publishPacketPointer, &callbackOptions)
                 if result != 0 {
-                    continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: -1)))
+                    continuationCore.release()
+                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: -1)))
                 }
             }
 
