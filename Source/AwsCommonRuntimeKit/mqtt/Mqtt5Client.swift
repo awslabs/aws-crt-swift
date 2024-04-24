@@ -191,9 +191,9 @@ public class Mqtt5Client {
                 callbackOptions.completion_callback = publishCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
                 let result = aws_mqtt5_client_publish(rawValue, publishPacketPointer, &callbackOptions)
-                if result != 0 {
+                if result != AWS_OP_SUCCESS {
                     continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: -1)))
+                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
             }
 

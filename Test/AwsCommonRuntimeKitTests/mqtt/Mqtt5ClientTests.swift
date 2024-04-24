@@ -1077,4 +1077,112 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         try disconnectClientCleanup(client: client, testContext: testContext)
     }
+
+    /*===============================================================
+                     ERROR OPERATION TESTS
+    =================================================================*/
+    /*
+    * [ErrorOp-UC1] Null Publish Test (Swift does not allow a nil PublishPacket)
+    */
+
+    /*
+    * [ErrorOp-UC2] Null Subscribe Test (Swift does not allow a nil SubscribePacket)
+    */
+
+    /*
+    * [ErrorOp-UC3] Null Unsubscribe Test (Swift does not allow a nil UnsubscribePacket)
+    */
+
+    /*
+    * [ErrorOp-UC4] Invalid Topic Publish
+    */
+    func testMqtt5InvalidPublishTopic() async throws {
+
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+
+        let tlsOptions = TLSContextOptions()
+        tlsOptions.setVerifyPeer(false)
+        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!,
+            tlsCtx: tlsContext)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try connectClient(client: client, testContext: testContext)
+
+        let publishPacket = PublishPacket(qos: .atLeastOnce, topic: "")
+        do {
+            let publishResult = try await client.publish(publishPacket: publishPacket)
+        } catch CommonRunTimeError.crtError(let crtError) {
+            XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_PUBLISH_OPTIONS_VALIDATION.rawValue))
+        }
+
+        try disconnectClientCleanup(client:client, testContext: testContext)
+    }
+
+    /*
+    * [ErrorOp-UC5] Invalid Topic Subscribe
+    */
+    func testMqtt5InvalidSubscribeTopic() async throws {
+
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+
+        let tlsOptions = TLSContextOptions()
+        tlsOptions.setVerifyPeer(false)
+        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!,
+            tlsCtx: tlsContext)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try connectClient(client: client, testContext: testContext)
+
+        let subscribePacket = SubscribePacket(topicFilter: "", qos: .atLeastOnce)
+        do {
+            let suback = try await client.subscribe(subscribePacket: subscribePacket)
+        } catch CommonRunTimeError.crtError(let crtError) {
+            XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_SUBSCRIBE_OPTIONS_VALIDATION.rawValue))
+        }
+
+        try disconnectClientCleanup(client:client, testContext: testContext)
+    }
+
+    /*
+    * [ErrorOp-UC6] Invalid Topic Unsubscribe
+    */
+    func testMqtt5InvalidUnsubscribeTopic() async throws {
+
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+
+        let tlsOptions = TLSContextOptions()
+        tlsOptions.setVerifyPeer(false)
+        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!,
+            tlsCtx: tlsContext)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try connectClient(client: client, testContext: testContext)
+
+        let unsubscribePacket = UnsubscribePacket(topicFilter: "")
+        do {
+            let unsuback = try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
+        } catch CommonRunTimeError.crtError(let crtError) {
+            XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_UNSUBSCRIBE_OPTIONS_VALIDATION.rawValue))
+        }
+
+        try disconnectClientCleanup(client:client, testContext: testContext)
+    }
 }
