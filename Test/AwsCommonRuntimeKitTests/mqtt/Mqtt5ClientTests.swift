@@ -91,7 +91,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
         public var onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
         public var onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
 
-        public let semaphorePublishReceived:DispatchSemaphore
+        public let semaphorePublishReceived: DispatchSemaphore
+        public let semaphorePublishTargetReached: DispatchSemaphore
         public let semaphoreConnectionSuccess: DispatchSemaphore
         public let semaphoreConnectionFailure: DispatchSemaphore
         public let semaphoreDisconnection: DispatchSemaphore
@@ -102,8 +103,11 @@ class Mqtt5ClientTests: XCBaseTestCase {
         public var publishPacket: PublishPacket?
         public var lifecycleConnectionFailureData: LifecycleConnectionFailureData?
         public var lifecycleDisconnectionData: LifecycleDisconnectData?
+        public var publishCount = 0
+        public var publishTarget = 1
 
         init(contextName: String = "",
+             publishTarget: Int = 1,
              onPublishReceived: OnPublishReceived? = nil,
              onLifecycleEventStopped: OnLifecycleEventStopped? = nil,
              onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect? = nil,
@@ -113,7 +117,11 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
             self.contextName = contextName
 
+            self.publishTarget = publishTarget
+            self.publishCount = 0
+
             self.semaphorePublishReceived = DispatchSemaphore(value: 0)
+            self.semaphorePublishTargetReached = DispatchSemaphore(value: 0)
             self.semaphoreConnectionSuccess = DispatchSemaphore(value: 0)
             self.semaphoreConnectionFailure = DispatchSemaphore(value: 0)
             self.semaphoreDisconnection = DispatchSemaphore(value: 0)
@@ -130,6 +138,11 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 print("Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos) payload:\'\(publishData.publishPacket.payloadAsString())\'")
                 self.publishPacket = publishData.publishPacket
                 self.semaphorePublishReceived.signal()
+
+                self.publishCount += 1
+                if self.publishCount == self.publishTarget {
+                    self.semaphorePublishTargetReached.signal()
+                }
             }
             self.onLifecycleEventStopped = onLifecycleEventStopped ?? { _ in
                 print(contextName + " Mqtt5ClientTests: onLifecycleEventStopped")
@@ -1083,13 +1096,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     =================================================================*/
     /*
     * [ErrorOp-UC1] Null Publish Test (Swift does not allow a nil PublishPacket)
-    */
-
-    /*
     * [ErrorOp-UC2] Null Subscribe Test (Swift does not allow a nil SubscribePacket)
-    */
-
-    /*
     * [ErrorOp-UC3] Null Unsubscribe Test (Swift does not allow a nil UnsubscribePacket)
     */
 
@@ -1184,5 +1191,75 @@ class Mqtt5ClientTests: XCBaseTestCase {
         }
 
         try disconnectClientCleanup(client:client, testContext: testContext)
+    }
+
+    /*===============================================================
+                     QOS1 TESTS
+    =================================================================*/
+    /*
+    * [QoS1-UC1] Happy Path
+    */
+    func testMqtt5QoS1HappyPath() async throws {
+        try skipIfPlatformDoesntSupportTLS()
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+        // Create and connect client1
+        let tlsOptions = try TLSContextOptions.makeMTLS(
+            certificatePath: inputCert,
+            privateKeyPath: inputKey
+        )
+        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+        tlsOptions.setVerifyPeer(false)
+        let connectOptions1 = MqttConnectOptions(clientId: createClientId())
+        let clientOptions1 = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(8883),
+            tlsCtx: tlsContext,
+            connectOptions: connectOptions1)
+        let testContext1 = MqttTestContext()
+        let client1 = try createClient(clientOptions: clientOptions1, testContext: testContext1)
+        try connectClient(client: client1, testContext: testContext1)
+
+        // Create and connect client2
+        let connectOptions2 = MqttConnectOptions(clientId: createClientId())
+        let clientOptions2 = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(8883),
+            tlsCtx: tlsContext,
+            connectOptions: connectOptions2)
+        let testContext2 = MqttTestContext(publishTarget: 10)
+        let client2 = try createClient(clientOptions: clientOptions2, testContext: testContext2)
+        try connectClient(client: client2, testContext: testContext2)
+
+        let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+        let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+
+        let subackPacket: SubackPacket =
+            try await withTimeout(client: client2, seconds: 2, operation: {
+                try await client2.subscribe(subscribePacket: subscribePacket)
+            })
+
+        // Send 10 publishes from client1
+        var i = 1
+        for _ in 1...10 {
+            let publishPacket = PublishPacket(qos: .atLeastOnce,
+                                              topic: topic,
+                                              payload: "Test Publish: \(i)".data(using: .utf8))
+            print("sending publish \(i)")
+            async let _ = try client1.publish(publishPacket: publishPacket)
+            i += 1
+        }
+
+        // Wait for client2 to receive 10 publishes
+        if testContext2.semaphorePublishTargetReached.wait(timeout: .now() + 10) == .timedOut {
+            print("Expected Publish receive target not hit after 10 seconds")
+            XCTFail("Missing Publishes")
+            return
+        }
+
+        try disconnectClientCleanup(client:client1, testContext: testContext1)
+        try disconnectClientCleanup(client:client2, testContext: testContext2)
     }
 }
