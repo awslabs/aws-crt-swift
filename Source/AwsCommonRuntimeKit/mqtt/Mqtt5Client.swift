@@ -131,10 +131,12 @@ public class Mqtt5Client {
 
             unsubscribePacket.withCPointer { unsubscribePacketPointer in
                 var callbackOptions = aws_mqtt5_unsubscribe_completion_options()
+                let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = unsubscribeCompletionCallback
-                callbackOptions.completion_user_data = ContinuationCore(continuation: continuation).passRetained()
+                callbackOptions.completion_user_data = continuationCore.passRetained()
                 let result = aws_mqtt5_client_unsubscribe(rawValue, unsubscribePacketPointer, &callbackOptions)
                 guard result == AWS_OP_SUCCESS else {
+                    continuationCore.release()
                     return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
             }
