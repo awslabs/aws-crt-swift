@@ -17,8 +17,9 @@ disabled_rules:
   - blanket_disable_command
 
 opt_in_rules:
-  - empty_count
   - vertical_parameter_alignment_on_call
+  - opening_brace
+  - empty_count
 
 # configurable rules can be customized from this configuration file
 force_cast: warning
@@ -26,7 +27,6 @@ closing_brace: error
 colon:
   severity: error
 comma: error
-empty_count: warning
 empty_enum_arguments: error
 function_body_length:
   warning: 100
@@ -40,7 +40,6 @@ line_length:
   warning: 140
   error: 160
   ignores_comments: true
-opening_brace: error
 return_arrow_whitespace: error
 statement_position:
   severity: error

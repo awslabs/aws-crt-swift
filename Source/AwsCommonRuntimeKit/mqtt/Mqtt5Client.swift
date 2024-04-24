@@ -122,8 +122,9 @@ public class Mqtt5Client {
                     return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
                 }
 
-                guard let unsuback = UnsubackPacket.convertFromNative(unsubackPacket)
-                else { fatalError("Unsuback missing in the Unsubscribe completion callback.") }
+                guard let unsuback = UnsubackPacket.convertFromNative(unsubackPacket) else {
+                    fatalError("Unsuback missing in the Unsubscribe completion callback.")
+                }
 
                 continuationCore.continuation.resume(returning: unsuback)
             }
@@ -133,7 +134,7 @@ public class Mqtt5Client {
                 callbackOptions.completion_callback = unsubscribeCompletionCallback
                 callbackOptions.completion_user_data = ContinuationCore(continuation: continuation).passRetained()
                 let result = aws_mqtt5_client_unsubscribe(rawValue, unsubscribePacketPointer, &callbackOptions)
-                guard result == 0 else {
+                guard result == AWS_OP_SUCCESS else {
                     return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
             }
