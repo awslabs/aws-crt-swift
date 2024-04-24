@@ -168,11 +168,11 @@ public class PublishPacket: CStruct {
     }
 
     /// Get payload converted to a utf8 String
-    public func payloadAsString() -> String {
+    public func payloadAsString() -> String? {
         if let data = payload {
-            return String(data: data, encoding: .utf8) ?? ""
+            return String(data: data, encoding: .utf8) ?? nil
         }
-        return ""
+        return nil
     }
 
     typealias RawType = aws_mqtt5_packet_publish_view
