@@ -417,7 +417,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+        // let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
 
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
@@ -427,7 +427,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(inputPort)!,
+            port: UInt32(8883),
             tlsCtx: tlsContext)
 
         let testContext = MqttTestContext()
@@ -677,7 +677,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+        // let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
 
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
@@ -691,7 +691,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(inputPort)!,
+            port: UInt32(8883),
             tlsCtx: tlsContext,
             connectOptions: connectOptions,
             minReconnectDelay: TimeInterval(5))
@@ -809,7 +809,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+        // let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
 
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
@@ -830,7 +830,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(inputPort)!,
+            port: UInt32(8883),
             tlsCtx: tlsContext,
             connectOptions: mqttConnectOptions)
 
@@ -862,7 +862,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+        // let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
 
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
@@ -872,7 +872,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(inputPort)!,
+            port: UInt32(8883),
             tlsCtx: tlsContext)
 
         let testContext = MqttTestContext()
@@ -925,7 +925,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+        // let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
 
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
@@ -940,7 +940,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let connectOptionsPublisher = MqttConnectOptions(clientId: clientIDPublisher, will: willPacket)
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(inputPort)!,
+            port: UInt32(8883),
             tlsCtx: tlsContext,
             connectOptions: connectOptionsPublisher)
 
@@ -953,7 +953,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let connectOptionsSubscriber = MqttConnectOptions(clientId: clientIDSubscriber)
         let clientOptionsSubscriber = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(inputPort)!,
+            port: UInt32(8883),
             tlsCtx: tlsContext,
             connectOptions: connectOptionsSubscriber)
 
@@ -986,7 +986,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+        // let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
 
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
@@ -996,7 +996,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(inputPort)!,
+            port: UInt32(8883),
             tlsCtx: tlsContext)
 
         let testContext = MqttTestContext()
@@ -1010,18 +1010,16 @@ class Mqtt5ClientTests: XCBaseTestCase {
             try await withTimeout(client: client, seconds: 2, operation: {
                 try await client.subscribe(subscribePacket: subscribePacket)
             })
-        print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
 
         let payloadData = Data((0..<256).map { _ in UInt8.random(in: 0...255) })
         let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
-        print(payloadData)
+
         let publishResult: PublishResult =
             try await withTimeout(client: client, seconds: 2, operation: {
                 try await client.publish(publishPacket: publishPacket)
             })
-        if let puback = publishResult.puback {
-            print("PubackPacket received with result \(puback.reasonCode)")
-        } else {
+
+        guard let puback = publishResult.puback else {
             XCTFail("PublishResult missing.")
             return
         }
@@ -1033,6 +1031,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
         }
 
         let publishReceived = testContext.publishPacket!
+        print("Publish received")
+        print(publishReceived)
+        print(publishReceived.payload)
         XCTAssertEqual(publishReceived.payload, payloadData, "Binary data received as publish not equal to binary data used to generate publish")
 
         try disconnectClientCleanup(client: client, testContext: testContext)
