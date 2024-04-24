@@ -39,11 +39,10 @@ public class Mqtt5Client {
         if rawValue != nil {
             let errorCode = aws_mqtt5_client_start(rawValue)
 
-            if errorCode != 0 {
+            if errorCode != AWS_OP_SUCCESS {
                 throw CommonRunTimeError.crtError(CRTError(code: errorCode))
             }
         }
-        // TODO Error should be thrown or client nil logged
     }
 
     public func stop(_ disconnectPacket: DisconnectPacket? = nil) throws {
@@ -58,11 +57,10 @@ public class Mqtt5Client {
                 errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
             }
 
-            if errorCode != 0 {
+            if errorCode != AWS_OP_SUCCESS {
                 throw CommonRunTimeError.crtError(CRTError(code: errorCode))
             }
         }
-        // TODO Error should be thrown or client nil logged
     }
 
     /// Tells the client to attempt to subscribe to one or more topic filters.

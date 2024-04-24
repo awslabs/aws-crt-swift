@@ -558,7 +558,7 @@ public class UnsubscribePacket: CStruct {
         self.topicFilters = topicFilters
         self.userProperties = userProperties
 
-        nativeTopicFilters = convertTopicFilters(self.topicFilters)
+        rawTopicFilters = convertTopicFilters(self.topicFilters)
     }
 
     // Allow an UnsubscribePacket to be created directly using a single topic filter
@@ -570,7 +570,7 @@ public class UnsubscribePacket: CStruct {
     typealias RawType = aws_mqtt5_packet_unsubscribe_view
     func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
         var raw_unsubscribe_view = aws_mqtt5_packet_unsubscribe_view()
-        raw_unsubscribe_view.topic_filters = UnsafePointer(nativeTopicFilters)
+        raw_unsubscribe_view.topic_filters = UnsafePointer(rawTopicFilters)
         raw_unsubscribe_view.topic_filter_count = topicFilters.count
         return withOptionalUserPropertyArray(of: userProperties) { userPropertyPointer in
                 if let _userPropertyPointer = userPropertyPointer {
@@ -597,11 +597,11 @@ public class UnsubscribePacket: CStruct {
     }
 
     /// storage of topic filter Strings converted into native c aws_byte_cursor pointer
-    private var nativeTopicFilters: UnsafeMutablePointer<aws_byte_cursor>?
+    private var rawTopicFilters: UnsafeMutablePointer<aws_byte_cursor>?
 
     deinit {
         /// Clean up memory of converted topic filter Strings
-        if let filters = nativeTopicFilters {
+        if let filters = rawTopicFilters {
             for i in 0..<topicFilters.count {
                 filters[i].ptr.deallocate()
             }
