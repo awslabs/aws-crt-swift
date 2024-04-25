@@ -32,7 +32,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
             print("Disconnection timed out after 5 seconds")
             XCTFail("Disconnection timed out")
             throw MqttTestError.disconnectFail
-            return
         }
 
         if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
@@ -989,7 +988,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
         let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
 
-        try await withTimeout(client: client, seconds: 2, operation: {
+        _ = try await withTimeout(client: client, seconds: 2, operation: {
                 try await client.subscribe(subscribePacket: subscribePacket)
             })
 
@@ -1098,7 +1097,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let publishPacket = PublishPacket(qos: .atLeastOnce, topic: "")
         do {
-            try await client.publish(publishPacket: publishPacket)
+            _ = try await client.publish(publishPacket: publishPacket)
         } catch CommonRunTimeError.crtError(let crtError) {
             XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_PUBLISH_OPTIONS_VALIDATION.rawValue))
         }
@@ -1129,7 +1128,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let subscribePacket = SubscribePacket(topicFilter: "", qos: .atLeastOnce)
         do {
-            try await client.subscribe(subscribePacket: subscribePacket)
+            _ = try await client.subscribe(subscribePacket: subscribePacket)
         } catch CommonRunTimeError.crtError(let crtError) {
             XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_SUBSCRIBE_OPTIONS_VALIDATION.rawValue))
         }
@@ -1160,7 +1159,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let unsubscribePacket = UnsubscribePacket(topicFilter: "")
         do {
-            try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
+            _ = try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
         } catch CommonRunTimeError.crtError(let crtError) {
             XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_UNSUBSCRIBE_OPTIONS_VALIDATION.rawValue))
         }
@@ -1211,7 +1210,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
         let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
 
-        try await withTimeout(client: client2, seconds: 2, operation: {
+        _ = try await withTimeout(client: client2, seconds: 2, operation: {
                 try await client2.subscribe(subscribePacket: subscribePacket)
             })
 
@@ -1222,7 +1221,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                               topic: topic,
                                               payload: "Test Publish: \(i)".data(using: .utf8))
             print("sending publish \(i)")
-            try await client1.publish(publishPacket: publishPacket)
+            _ = try await client1.publish(publishPacket: publishPacket)
             i += 1
         }
 
@@ -1312,7 +1311,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         // connect client2 and subscribe to topic with retained client1 publish
         try connectClient(client: client2, testContext: testContext2)
-        try await withTimeout(client: client2, seconds: 2, operation: {
+        _ = try await withTimeout(client: client2, seconds: 2, operation: {
                 try await client2.subscribe(subscribePacket: subscribePacket)
             })
 
@@ -1340,7 +1339,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         // connect client3 and subscribe to topic to insure there is no client1 retained publish
         try connectClient(client: client3, testContext: testContext3)
 
-        try await withTimeout(client: client3, seconds: 2, operation: {
+        _ = try await withTimeout(client: client3, seconds: 2, operation: {
                 try await client3.subscribe(subscribePacket: subscribePacket)
             })
 
