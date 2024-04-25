@@ -13,31 +13,6 @@ enum MqttTestError: Error {
     case stopFail
 }
 
-func onPublishReceivedCallbackMinimal(_ : PublishReceivedData){
-    print("Mqtt5ClientTests: onPublishReceivedCallbackMinimal")
-}
-
-func onLifecycleEventStoppedMinimal(_ : LifecycleStoppedData){
-    print("Mqtt5ClientTests: onLifecycleEventStoppedMinimal")
-}
-
-func onLifecycleEventAttemptingConnectMinimal(_ : LifecycleAttemptingConnectData){
-    print("Mqtt5ClientTests: onLifecycleEventAttemptingConnectMinimal")
-}
-
-func onLifecycleEventConnectionSuccessMinimal(_ : LifecycleConnectionSuccessData){
-    print("Mqtt5ClientTests: onLifecycleEventConnectionSuccessMinimal")
-}
-
-func onLifecycleEventConnectionFailureMinimal(_ : LifecycleConnectionFailureData){
-    print("Mqtt5ClientTests: onLifecycleEventConnectionFailureMinimal")
-}
-
-func onLifecycleEventDisconnectionMinimal(_ : LifecycleDisconnectData){
-    print("Mqtt5ClientTests: onLifecycleEventDisconnectionMinimal")
-}
-
-
 class Mqtt5ClientTests: XCBaseTestCase {
 
     /// start client and check for connection success
@@ -346,14 +321,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                             pingTimeout: 10,
                                             connackTimeout: 10,
                                             ackTimeout: 60,
-                                            topicAliasingOptions: TopicAliasingOptions(),
-                                            onPublishReceivedFn: onPublishReceivedCallbackMinimal,
-                                            onLifecycleEventStoppedFn: onLifecycleEventStoppedMinimal,
-                                            onLifecycleEventAttemptingConnectFn: onLifecycleEventAttemptingConnectMinimal,
-                                            onLifecycleEventConnectionFailureFn: onLifecycleEventConnectionFailureMinimal,
-                                            onLifecycleEventDisconnectionFn: onLifecycleEventDisconnectionMinimal)
+                                            topicAliasingOptions: TopicAliasingOptions())
         XCTAssertNotNil(clientOptions)
-        let mqtt5client = try Mqtt5Client(clientOptions: clientOptions);
+        let context = MqttTestContext()
+        let mqtt5client = try createClient(clientOptions: clientOptions, testContext: context)
         XCTAssertNotNil(mqtt5client)
     }
 
