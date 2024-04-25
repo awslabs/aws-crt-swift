@@ -1001,8 +1001,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 try await client.publish(publishPacket: publishPacket)
             })
 
-        guard let puback = publishResult.puback else {
-            XCTFail("PublishResult missing.")
+        if publishResult.puback == nil {
+            XCTFail("Puback missing.")
             return
         }
 
@@ -1098,7 +1098,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let publishPacket = PublishPacket(qos: .atLeastOnce, topic: "")
         do {
-            let publishResult = try await client.publish(publishPacket: publishPacket)
+            try await client.publish(publishPacket: publishPacket)
         } catch CommonRunTimeError.crtError(let crtError) {
             XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_PUBLISH_OPTIONS_VALIDATION.rawValue))
         }
@@ -1129,7 +1129,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let subscribePacket = SubscribePacket(topicFilter: "", qos: .atLeastOnce)
         do {
-            let suback = try await client.subscribe(subscribePacket: subscribePacket)
+            try await client.subscribe(subscribePacket: subscribePacket)
         } catch CommonRunTimeError.crtError(let crtError) {
             XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_SUBSCRIBE_OPTIONS_VALIDATION.rawValue))
         }
@@ -1160,7 +1160,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let unsubscribePacket = UnsubscribePacket(topicFilter: "")
         do {
-            let unsuback = try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
+            try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
         } catch CommonRunTimeError.crtError(let crtError) {
             XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_UNSUBSCRIBE_OPTIONS_VALIDATION.rawValue))
         }
@@ -1211,8 +1211,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
         let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
 
-        let subackPacket: SubackPacket =
-            try await withTimeout(client: client2, seconds: 2, operation: {
+        try await withTimeout(client: client2, seconds: 2, operation: {
                 try await client2.subscribe(subscribePacket: subscribePacket)
             })
 
@@ -1223,7 +1222,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                               topic: topic,
                                               payload: "Test Publish: \(i)".data(using: .utf8))
             print("sending publish \(i)")
-            async let _ = try client1.publish(publishPacket: publishPacket)
+            try await client1.publish(publishPacket: publishPacket)
             i += 1
         }
 
@@ -1313,8 +1312,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         // connect client2 and subscribe to topic with retained client1 publish
         try connectClient(client: client2, testContext: testContext2)
-        let subackPacket: SubackPacket =
-            try await withTimeout(client: client2, seconds: 2, operation: {
+        try await withTimeout(client: client2, seconds: 2, operation: {
                 try await client2.subscribe(subscribePacket: subscribePacket)
             })
 
@@ -1342,8 +1340,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         // connect client3 and subscribe to topic to insure there is no client1 retained publish
         try connectClient(client: client3, testContext: testContext3)
 
-        let subackPacket3: SubackPacket =
-            try await withTimeout(client: client3, seconds: 2, operation: {
+        try await withTimeout(client: client3, seconds: 2, operation: {
                 try await client3.subscribe(subscribePacket: subscribePacket)
             })
 
