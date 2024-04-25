@@ -135,7 +135,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             self.onLifecycleEventDisconnection = onLifecycleEventDisconnection
 
             self.onPublishReceived = onPublishReceived ?? { publishData in
-                print("Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos) payload:\'\(publishData.publishPacket.payloadAsString())\'")
+                print(contextName + " Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos) payload:\'\(publishData.publishPacket.payloadAsString())\'")
                 self.publishPacket = publishData.publishPacket
                 self.semaphorePublishReceived.signal()
 
@@ -1261,5 +1261,126 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         try disconnectClientCleanup(client:client1, testContext: testContext1)
         try disconnectClientCleanup(client:client2, testContext: testContext2)
+
+    }
+
+    /*===============================================================
+                     RETAIN TESTS
+    =================================================================*/
+    /*
+    * [Retain-UC1] Set and Clear
+    */
+
+    func testMqtt5Retain() async throws {
+        try skipIfPlatformDoesntSupportTLS()
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+        // Create and connect client1
+        let tlsOptions = try TLSContextOptions.makeMTLS(
+            certificatePath: inputCert,
+            privateKeyPath: inputKey
+        )
+        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+        tlsOptions.setVerifyPeer(false)
+        let connectOptions1 = MqttConnectOptions(clientId: createClientId())
+        let clientOptions1 = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(8883),
+            tlsCtx: tlsContext,
+            connectOptions: connectOptions1)
+        let testContext1 = MqttTestContext(contextName: "Client1")
+        let client1 = try createClient(clientOptions: clientOptions1, testContext: testContext1)
+        try connectClient(client: client1, testContext: testContext1)
+
+        // Create client2
+        let connectOptions2 = MqttConnectOptions(clientId: createClientId())
+        let clientOptions2 = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(8883),
+            tlsCtx: tlsContext,
+            connectOptions: connectOptions2)
+        let testContext2 = MqttTestContext(contextName: "Client2")
+        let client2 = try createClient(clientOptions: clientOptions2, testContext: testContext2)
+
+        // Create client3
+        let connectOptions3 = MqttConnectOptions(clientId: createClientId())
+        let clientOptions3 = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(8883),
+            tlsCtx: tlsContext,
+            connectOptions: connectOptions3)
+        let testContext3 = MqttTestContext(contextName: "Client3")
+        let client3 = try createClient(clientOptions: clientOptions3, testContext: testContext3)
+
+        let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+        let publishPacket = PublishPacket(qos: .atLeastOnce,
+                                          topic: topic,
+                                          payload: "Retained publish from client 1".data(using: .utf8),
+                                          retain: true)
+        let subscribePacket = SubscribePacket(topicFilter: topic,
+                                              qos: QoS.atLeastOnce,
+                                              noLocal: false)
+
+        // publish retained message from client1
+        let publishResult: PublishResult =
+            try await withTimeout(client: client1, seconds: 2, operation: {
+                try await client1.publish(publishPacket: publishPacket)
+            })
+
+        if let puback = publishResult.puback {
+            print("PubackPacket received with result \(puback.reasonCode)")
+        } else {
+            XCTFail("PublishResult missing.")
+            return
+        }
+
+        // connect client2 and subscribe to topic with retained client1 publish
+        try connectClient(client: client2, testContext: testContext2)
+        let subackPacket: SubackPacket =
+            try await withTimeout(client: client2, seconds: 2, operation: {
+                try await client2.subscribe(subscribePacket: subscribePacket)
+            })
+
+        if testContext2.semaphorePublishReceived.wait(timeout: .now() + 10) == .timedOut {
+            XCTFail("Expected retained Publish not received")
+            return
+        }
+
+        XCTAssertEqual(testContext2.publishPacket?.payloadAsString(), publishPacket.payloadAsString())
+
+        // Send an empty publish from client1 to clear the retained publish on the topic
+        let publishPacketEmpty = PublishPacket(qos: .atLeastOnce, topic: topic, retain: true)
+        // publish retained message from client1
+        let publishResult2: PublishResult =
+            try await withTimeout(client: client1, seconds: 2, operation: {
+                try await client1.publish(publishPacket: publishPacketEmpty)
+            })
+        if let puback2 = publishResult2.puback {
+            print("PubackPacket received with result \(puback2.reasonCode)")
+        } else {
+            XCTFail("PublishResult missing.")
+            return
+        }
+
+        // connect client3 and subscribe to topic to insure there is no client1 retained publish
+        try connectClient(client: client3, testContext: testContext3)
+
+        let subackPacket3: SubackPacket =
+            try await withTimeout(client: client3, seconds: 2, operation: {
+                try await client3.subscribe(subscribePacket: subscribePacket)
+            })
+
+        if testContext3.semaphorePublishReceived.wait(timeout: .now() + 1) == .timedOut {
+            print("no retained publish from client1")
+        } else {
+            XCTFail("Retained publish from client1 received when it should be cleared")
+            return
+        }
+
+        try disconnectClientCleanup(client:client1, testContext: testContext1)
+        try disconnectClientCleanup(client:client2, testContext: testContext2)
+        try disconnectClientCleanup(client:client3, testContext: testContext3)
     }
 }
