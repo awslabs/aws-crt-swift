@@ -44,6 +44,11 @@ extension String {
             }
         }
     }
+
+    /// Check whether String can be converted to data using utf8 encoding
+    func canConvertToUtf8Data() -> Bool {
+        return self.data(using: .utf8) != nil
+    }
 }
 
 extension Data {

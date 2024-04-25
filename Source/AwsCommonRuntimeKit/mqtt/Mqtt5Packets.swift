@@ -16,12 +16,28 @@ public class UserProperty: CStruct {
     public init (name: String, value: String) {
         self.name = name
         self.value = value
+    }
 
-        withByteCursorFromStrings(self.name, self.value) { cNameCursor, cValueCursor in
-            aws_byte_buf_clean_up(&name_buffer)
-            aws_byte_buf_clean_up(&value_buffer)
-            aws_byte_buf_init_copy_from_cursor(&name_buffer, allocator, cNameCursor)
-            aws_byte_buf_init_copy_from_cursor(&value_buffer, allocator, cValueCursor)
+    private var isValidated: Bool = false
+    fileprivate func cStructValidation() throws {
+
+        guard isValidated else {
+            guard name.canConvertToUtf8Data() else {
+                throw MqttError.cannotConvertToUtf8
+            }
+            guard value.canConvertToUtf8Data() else {
+                throw MqttError.cannotConvertToUtf8
+            }
+
+            withByteCursorFromStrings(self.name, self.value) { cNameCursor, cValueCursor in
+                aws_byte_buf_clean_up(&name_buffer)
+                aws_byte_buf_clean_up(&value_buffer)
+                aws_byte_buf_init_copy_from_cursor(&name_buffer, allocator, cNameCursor)
+                aws_byte_buf_init_copy_from_cursor(&value_buffer, allocator, cValueCursor)
+            }
+
+            isValidated = true
+            return
         }
     }
 
@@ -173,6 +189,38 @@ public class PublishPacket: CStruct {
             return String(data: data, encoding: .utf8) ?? nil
         }
         return nil
+    }
+
+    private var isValidated: Bool = false
+    func cStructValidation() throws {
+
+        guard isValidated else {
+
+            guard topic.canConvertToUtf8Data() else {
+                throw MqttError.cannotConvertToUtf8
+            }
+
+            if let _responseTopic = responseTopic {
+                guard _responseTopic.canConvertToUtf8Data() else {
+                    throw MqttError.cannotConvertToUtf8
+                }
+            }
+
+            if let _contentType = contentType {
+                guard _contentType.canConvertToUtf8Data() else {
+                    throw MqttError.cannotConvertToUtf8
+                }
+            }
+
+            if let _userProperties = userProperties {
+                for property in _userProperties {
+                    try property.cStructValidation()
+                }
+            }
+
+            isValidated = true
+            return
+        }
     }
 
     typealias RawType = aws_mqtt5_packet_publish_view
@@ -369,14 +417,27 @@ public class Subscription: CStruct {
         self.noLocal = noLocal
         self.retainAsPublished = retainAsPublished
         self.retainHandlingType = retainHandlingType
-
-        aws_byte_buf_clean_up(&topicFilterBuffer)
-        _ = self.topicFilter.withByteCursor { topicFilterCursor in
-            aws_byte_buf_init_copy_from_cursor(&topicFilterBuffer, allocator, topicFilterCursor)
-        }
     }
 
+    private var isValidated: Bool = false
     private var topicFilterBuffer = aws_byte_buf()
+
+    fileprivate func cStructValidation() throws {
+
+        guard isValidated else {
+            guard topicFilter.canConvertToUtf8Data() else {
+                throw MqttError.cannotConvertToUtf8
+            }
+
+            aws_byte_buf_clean_up(&topicFilterBuffer)
+            _ = self.topicFilter.withByteCursor { topicFilterCursor in
+                aws_byte_buf_init_copy_from_cursor(&topicFilterBuffer, allocator, topicFilterCursor)
+            }
+
+            isValidated = true
+            return
+        }
+    }
 
     typealias RawType = aws_mqtt5_subscription_view
     func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
@@ -474,6 +535,25 @@ public class SubscribePacket: CStruct {
                   userProperties: userProperties)
     }
 
+    private var isValidated: Bool = false
+    func cStructValidation() throws {
+
+        guard isValidated else {
+            for subsciption in subscriptions {
+                try subsciption.cStructValidation()
+            }
+
+            if let _userProperties = userProperties {
+                for property in _userProperties {
+                    try property.cStructValidation()
+                }
+            }
+
+            isValidated = true
+            return
+        }
+    }
+
     typealias RawType = aws_mqtt5_packet_subscribe_view
     func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
         var raw_subscrbe_view = aws_mqtt5_packet_subscribe_view()
@@ -557,14 +637,35 @@ public class UnsubscribePacket: CStruct {
                  userProperties: [UserProperty]? = nil) {
         self.topicFilters = topicFilters
         self.userProperties = userProperties
-
-        rawTopicFilters = convertTopicFilters(self.topicFilters)
     }
 
     // Allow an UnsubscribePacket to be created directly using a single topic filter
     public convenience init (topicFilter: String,
                              userProperties: [UserProperty]? = nil) {
         self.init(topicFilters: [topicFilter], userProperties: userProperties)
+    }
+
+    private var isValidated: Bool = false
+    func cStructValidation() throws {
+
+        guard isValidated else {
+            for topic in topicFilters {
+                guard topic.canConvertToUtf8Data() else {
+                    throw MqttError.cannotConvertToUtf8
+                }
+            }
+
+            if let _userProperties = userProperties {
+                for property in _userProperties {
+                    try property.cStructValidation()
+                }
+            }
+
+            rawTopicFilters = convertTopicFilters(self.topicFilters)
+
+            isValidated = true
+            return
+        }
     }
 
     typealias RawType = aws_mqtt5_packet_unsubscribe_view
@@ -679,6 +780,33 @@ public class DisconnectPacket: CStruct {
             self.serverReference = serverReference
             self.userProperties = userProperties
         }
+
+    private var isValidated: Bool = false
+    func cStructValidation() throws {
+
+        guard isValidated else {
+            if let _reasonString = reasonString {
+                guard _reasonString.canConvertToUtf8Data() else {
+                    throw MqttError.cannotConvertToUtf8
+                }
+            }
+
+            if let _serverReference = serverReference {
+                guard _serverReference.canConvertToUtf8Data() else {
+                    throw MqttError.cannotConvertToUtf8
+                }
+            }
+
+            if let _userProperties = userProperties {
+                for property in _userProperties {
+                    try property.cStructValidation()
+                }
+            }
+
+            isValidated = true
+            return
+        }
+    }
 
     typealias RawType = aws_mqtt5_packet_disconnect_view
     func withCStruct<Result>(_ body: (aws_mqtt5_packet_disconnect_view) -> Result) -> Result {

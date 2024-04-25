@@ -36,30 +36,34 @@ public class Mqtt5Client {
     }
 
     public func start() throws {
-        if rawValue != nil {
-            let errorCode = aws_mqtt5_client_start(rawValue)
+        guard rawValue != nil else {
+            throw MqttError.clientClosed
+        }
 
-            if errorCode != AWS_OP_SUCCESS {
-                throw CommonRunTimeError.crtError(CRTError(code: errorCode))
-            }
+        let errorCode = aws_mqtt5_client_start(rawValue)
+        if errorCode != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
 
     public func stop(_ disconnectPacket: DisconnectPacket? = nil) throws {
-        if rawValue != nil {
-            var errorCode: Int32 = 0
+        guard rawValue != nil else {
+            throw MqttError.clientClosed
+        }
 
-            if let disconnectPacket = disconnectPacket {
-                disconnectPacket.withCPointer { disconnectPointer in
-                    errorCode = aws_mqtt5_client_stop(rawValue, disconnectPointer, nil)
-                }
-            } else {
-                errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
-            }
+        var errorCode: Int32 = 0
+        if let disconnectPacket = disconnectPacket {
+            try disconnectPacket.cStructValidation()
 
-            if errorCode != AWS_OP_SUCCESS {
-                throw CommonRunTimeError.crtError(CRTError(code: errorCode))
+            disconnectPacket.withCPointer { disconnectPointer in
+                errorCode = aws_mqtt5_client_stop(rawValue, disconnectPointer, nil)
             }
+        } else {
+            errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
+        }
+
+        if errorCode != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(CRTError(code: errorCode))
         }
     }
 
@@ -72,6 +76,11 @@ public class Mqtt5Client {
     ///
     /// - Throws: CommonRuntimeError.crtError
     public func subscribe(subscribePacket: SubscribePacket) async throws -> SubackPacket {
+        guard rawValue != nil else {
+            throw MqttError.clientClosed
+        }
+
+        try subscribePacket.cStructValidation()
 
         return try await withCheckedThrowingContinuation { continuation in
 
@@ -90,7 +99,6 @@ public class Mqtt5Client {
                 else { return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode))) }
 
                 continuationCore.continuation.resume(returning: suback)
-
             }
 
             subscribePacket.withCPointer { subscribePacketPointer in
@@ -99,7 +107,7 @@ public class Mqtt5Client {
                 callbackOptions.completion_callback = subscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
                 let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
-                guard result == 0 else {
+                guard result == AWS_OP_SUCCESS else {
                     continuationCore.release()
                     return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
@@ -108,6 +116,11 @@ public class Mqtt5Client {
     }
 
     public func unsubscribe(unsubscribePacket: UnsubscribePacket) async throws -> UnsubackPacket {
+        guard rawValue != nil else {
+            throw MqttError.clientClosed
+        }
+
+        try unsubscribePacket.cStructValidation()
 
         return try await withCheckedThrowingContinuation { continuation in
 
@@ -151,6 +164,11 @@ public class Mqtt5Client {
     ///
     /// - Throws: CommonRuntimeError.crtError
     public func publish(publishPacket: PublishPacket) async throws -> PublishResult {
+        guard rawValue != nil else {
+            throw MqttError.clientClosed
+        }
+
+        try publishPacket.cStructValidation()
 
         return try await withCheckedThrowingContinuation { continuation in
 
@@ -196,13 +214,14 @@ public class Mqtt5Client {
                     return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
             }
-
         }
     }
 
     public func close() {
-        self.callbackCore.close()
-        aws_mqtt5_client_release(rawValue)
-        rawValue = nil
+        if rawValue != nil {
+            self.callbackCore.close()
+            aws_mqtt5_client_release(rawValue)
+            rawValue = nil
+        }
     }
 }
