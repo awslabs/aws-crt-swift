@@ -135,7 +135,12 @@ class Mqtt5ClientTests: XCBaseTestCase {
             self.onLifecycleEventDisconnection = onLifecycleEventDisconnection
 
             self.onPublishReceived = onPublishReceived ?? { publishData in
-                print(contextName + " Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos) payload:\'\(publishData.publishPacket.payloadAsString())\'")
+                if let payloadString = publishData.publishPacket.payloadAsString() {
+                    print(contextName + " Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos) payload:\'\(payloadString)\'")
+                } else {
+                    print(contextName + " Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos)")
+                }
+
                 self.publishPacket = publishData.publishPacket
                 self.semaphorePublishReceived.signal()
 
@@ -975,7 +980,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             })
         print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
 
-        let disconnectPacket = DisconnectPacket(reasonCode: .disconnectWithWillMessage)
+        let _ = DisconnectPacket(reasonCode: .disconnectWithWillMessage)
         try disconnectClientCleanup(client: clientPublisher, testContext: testContextPublisher)
 
         if testContextSubscriber.semaphorePublishReceived.wait(timeout: .now() + 5) == .timedOut {
@@ -1013,8 +1018,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
         let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
 
-        let subackPacket: SubackPacket =
-            try await withTimeout(client: client, seconds: 2, operation: {
+        try await withTimeout(client: client, seconds: 2, operation: {
                 try await client.subscribe(subscribePacket: subscribePacket)
             })
 
