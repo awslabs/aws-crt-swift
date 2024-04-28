@@ -39,7 +39,7 @@ public class Mqtt5Client {
         if rawValue != nil {
             let errorCode = aws_mqtt5_client_start(rawValue)
 
-            if errorCode != 0 {
+            if errorCode != AWS_OP_SUCCESS {
                 throw CommonRunTimeError.crtError(CRTError(code: errorCode))
             }
         }
@@ -58,7 +58,7 @@ public class Mqtt5Client {
                 errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
             }
 
-            if errorCode != 0 {
+            if errorCode != AWS_OP_SUCCESS {
                 throw CommonRunTimeError.crtError(CRTError(code: errorCode))
             }
         }
@@ -159,7 +159,7 @@ public class Mqtt5Client {
                 callbackOptions.completion_callback = publishCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
                 let result = aws_mqtt5_client_publish(rawValue, publishPacketPointer, &callbackOptions)
-                if result != 0 {
+                if result != AWS_OP_SUCCESS {
                     continuationCore.release()
                     return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: -1)))
                 }
