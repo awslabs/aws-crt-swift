@@ -997,16 +997,16 @@ private func MqttClientPublishRecievedEvents(
     _ userData: UnsafeMutableRawPointer?) {
     let callbackCore = Unmanaged<MqttCallbackCore>.fromOpaque(userData!).takeUnretainedValue()
 
-    // validate the callback flag, if flag is false, return
-    callbackCore.rwlock.read {
-        if callbackCore.callbackFlag == false { return }
-
-        guard let publish_packet = PublishPacket.convertFromNative(publishPacketView) else {
-            fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.")
+//        // validate the callback flag, if flag is false, return
+        callbackCore.rwlock.read {
+            if callbackCore.callbackFlag == false { return }
+            guard let publish_packet = PublishPacket.convertFromNative(publishPacketView) else {
+                fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.")
+            }
+            
+            let puback = PublishReceivedData(publishPacket: publish_packet)
+            callbackCore.onPublishReceivedCallback(puback)
         }
-        let puback = PublishReceivedData(publishPacket: publish_packet)
-        callbackCore.onPublishReceivedCallback(puback)
-    }
 }
 
 private func MqttClientTerminationCallback(_ userData: UnsafeMutableRawPointer?) {

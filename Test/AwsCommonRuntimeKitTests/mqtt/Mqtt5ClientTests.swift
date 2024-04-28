@@ -105,6 +105,12 @@ class Mqtt5ClientTests: XCBaseTestCase {
         public var lifecycleDisconnectionData: LifecycleDisconnectData?
         public var publishCount = 0
         public var publishTarget = 1
+        public var test_client : Mqtt5Client?
+
+        func withClient(testClient: Mqtt5Client? = nil)
+        {
+            self.test_client = testClient
+        }
 
         init(contextName: String = "",
              publishTarget: Int = 1,
@@ -114,6 +120,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
              onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess? = nil,
              onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure? = nil,
              onLifecycleEventDisconnection: OnLifecycleEventDisconnection? = nil) {
+
 
             self.contextName = contextName
 
@@ -138,7 +145,15 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 print("Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos) payload:\'\(publishData.publishPacket.payloadAsString())\'")
                 self.publishPacket = publishData.publishPacket
                 self.semaphorePublishReceived.signal()
+                if let _testclient = self.test_client
+                {
+                    async let _ = _testclient.publish(publishPacket: PublishPacket(qos: QoS.atLeastOnce, topic: "test"))
+                    print("after publish")
+                    try? _testclient.stop()
+                    print("after stop")
 
+                }
+                print("after close")
                 self.publishCount += 1
                 if self.publishCount == self.publishTarget {
                     self.semaphorePublishTargetReached.signal()
@@ -886,6 +901,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        testContext.withClient(testClient: client)
         try connectClient(client: client, testContext: testContext)
 
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
@@ -915,15 +931,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             XCTFail("Publish packet not received on subscribed topic")
             return
         }
-
-        let unsubscribePacket = UnsubscribePacket(topicFilter: topic)
-        let unsubackPacket: UnsubackPacket =
-            try await withTimeout(client: client, seconds: 2, operation: {
-                try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
-            })
-        print("UnsubackPacket received with result \(unsubackPacket.reasonCodes[0])")
-
-        try disconnectClientCleanup(client: client, testContext: testContext)
+        client.close()
     }
 
     /*
@@ -1261,5 +1269,47 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         try disconnectClientCleanup(client:client1, testContext: testContext1)
         try disconnectClientCleanup(client:client2, testContext: testContext2)
+    }
+
+    /*===============================================================
+                     BINDING CLEANUP TESTS
+    =================================================================*/
+    /*
+    * [BCT-UC1] Start Without Stop
+    */
+    func testStartWithoutStop() async throws {
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try connectClient(client: client, testContext: testContext)
+    }
+
+    /*
+    * [BCT-UC2] Offline Operations
+    */
+    func testOfflineOperations() async throws {
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try connectClient(client: client, testContext: testContext)
+        try stopClient(client: client, testContext: testContext)
+
+        let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+        let subscribePacket = SubscribePacket(subscription: Subscription(topicFilter: topic, qos: QoS.atLeastOnce))
+
+        async let _ = client.subscribe(subscribePacket: subscribePacket)
+        print("Done")
     }
 }
