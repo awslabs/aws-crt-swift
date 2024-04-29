@@ -175,6 +175,14 @@ public class PublishPacket: CStruct {
         return nil
     }
 
+    func validateConversionToNative() throws {
+        if let _messageExpiryInterval = messageExpiryInterval {
+            if _messageExpiryInterval < 0 || _messageExpiryInterval > Double(UInt32.max) {
+                throw MqttError.validation(message: "Invalid sessionExpiryInterval value")
+            }
+        }
+    }
+
     typealias RawType = aws_mqtt5_packet_publish_view
     func withCStruct<Result>(_ body: (aws_mqtt5_packet_publish_view) -> Result) -> Result {
         var raw_publish_view = aws_mqtt5_packet_publish_view()
@@ -586,7 +594,7 @@ public class UnsubscribePacket: CStruct {
         let cArray = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: topicFilters.count)
 
         for (index, string) in topicFilters.enumerated() {
-            let data = string.data(using: .utf8)!
+            let data = Data(string.utf8)
             let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: data.count)
             data.copyBytes(to: buffer, count: data.count)
 
@@ -679,6 +687,13 @@ public class DisconnectPacket: CStruct {
             self.serverReference = serverReference
             self.userProperties = userProperties
         }
+    func validateConversionToNative() throws {
+        if let _sessionExpiryInterval = sessionExpiryInterval {
+            if _sessionExpiryInterval < 0 || _sessionExpiryInterval > Double(UInt32.max) {
+                throw MqttError.validation(message: "Invalid sessionExpiryInterval value")
+            }
+        }
+    }
 
     typealias RawType = aws_mqtt5_packet_disconnect_view
     func withCStruct<Result>(_ body: (aws_mqtt5_packet_disconnect_view) -> Result) -> Result {
