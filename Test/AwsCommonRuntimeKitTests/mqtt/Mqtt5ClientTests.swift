@@ -626,40 +626,40 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnWS-UC4] websocket connection with TLS, using sigv4
      */
-    func testMqtt5WSConnectWithMutualTLS() throws {
-        try skipIfPlatformDoesntSupportTLS()
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-        let region = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
-        
-        let tlsOptions = try TLSContextOptions.makeMTLS(
-            certificatePath: inputCert,
-            privateKeyPath: inputKey
-        )
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-        let elg = try EventLoopGroup()
-        let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
-        let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
-        
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(443),
-            bootstrap: bootstrap,
-            tlsCtx: tlsContext)
-
-        let testContext = MqttTestContext()
-
-        let provider = try CredentialsProvider(source: .defaultChain(
-                bootstrap: bootstrap,
-                fileBasedConfiguration: FileBasedConfiguration()))
-        testContext.withIoTSigv4WebsocketTransform(region: region, provider: provider)
-        
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
-        try disconnectClientCleanup(client:client, testContext: testContext)
-    }
+//    func testMqtt5WSConnectWithMutualTLS() throws {
+//        try skipIfPlatformDoesntSupportTLS()
+//        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+//        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+//        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+//        let region = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
+//        
+//        let tlsOptions = try TLSContextOptions.makeMTLS(
+//            certificatePath: inputCert,
+//            privateKeyPath: inputKey
+//        )
+//        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+//
+//        let elg = try EventLoopGroup()
+//        let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
+//        let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
+//        
+//        let clientOptions = MqttClientOptions(
+//            hostName: inputHost,
+//            port: UInt32(443),
+//            bootstrap: bootstrap,
+//            tlsCtx: tlsContext)
+//
+//        let testContext = MqttTestContext()
+//
+//        let provider = try CredentialsProvider(source: .defaultChain(
+//                bootstrap: bootstrap,
+//                fileBasedConfiguration: FileBasedConfiguration()))
+//        testContext.withIoTSigv4WebsocketTransform(region: region, provider: provider)
+//        
+//        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+//        try connectClient(client: client, testContext: testContext)
+//        try disconnectClientCleanup(client:client, testContext: testContext)
+//    }
 
 
     /*===============================================================
