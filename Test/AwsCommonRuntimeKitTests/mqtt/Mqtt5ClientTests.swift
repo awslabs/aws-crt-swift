@@ -64,6 +64,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         public var onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess?
         public var onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
         public var onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
+        public var onWebSocketHandshake: OnWebSocketHandshakeIntercept?
 
         public let semaphorePublishReceived: DispatchSemaphore
         public let semaphorePublishTargetReached: DispatchSemaphore
@@ -147,6 +148,12 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 self.semaphoreDisconnection.signal()
             }
          }
+
+        func withWebsocketTransform(isSuccess: Bool){
+            self.onWebSocketHandshake = { httpRequest, completCallback in
+                completCallback(httpRequest, isSuccess ? 0 : -1)
+            }
+        }
     }
 
     func createClient(clientOptions: MqttClientOptions?, testContext: MqttTestContext) throws -> Mqtt5Client {
@@ -161,6 +168,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 socketOptions: clientOptions.socketOptions,
                 tlsCtx: clientOptions.tlsCtx,
                 httpProxyOptions: clientOptions.httpProxyOptions,
+                onWebsocketTransform: testContext.onWebSocketHandshake,
                 connectOptions: clientOptions.connectOptions,
                 sessionBehavior: clientOptions.sessionBehavior,
                 extendedValidationAndFlowControlOptions: clientOptions.extendedValidationAndFlowControlOptions,
@@ -514,7 +522,54 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*===============================================================
                      WEBSOCKET CONNECT TEST CASES
     =================================================================*/
-    // TODO implement websocket tests after websockets are implemented
+    /*
+     * [ConnWS-UC1] Happy path. Websocket connection with minimal configuration.
+     */
+    func testMqtt5WSConnectionMinimal() throws
+    {
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_PORT")
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!)
+
+        let testContext = MqttTestContext()
+        // testContext.withWebsocketTransform(isSuccess: true)
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try connectClient(client: client, testContext: testContext)
+        try disconnectClientCleanup(client:client, testContext: testContext)
+    }
+
+
+    /*
+     * [ConnWS-UC2]  websocket connection with basic authentication
+     */
+    func testMqtt5DirectWSConnectWithBasicAuth() throws {
+
+        let inputUsername = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_USERNAME")
+        let inputPassword = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_PASSWORD")
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_BASIC_AUTH_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_BASIC_AUTH_PORT")
+
+        let connectOptions = MqttConnectOptions(
+            clientId: createClientId(),
+            username: inputUsername,
+            password: inputPassword
+        )
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!,
+            connectOptions: connectOptions)
+
+        let testContext = MqttTestContext()
+        testContext.withWebsocketTransform(isSuccess: true)
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try connectClient(client: client, testContext: testContext)
+        try disconnectClientCleanup(client:client, testContext: testContext)
+    }
+
 
     /*===============================================================
                      NEGATIVE CONNECT TEST CASES

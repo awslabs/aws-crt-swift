@@ -2,6 +2,7 @@
 ///  SPDX-License-Identifier: Apache-2.0.
 import Foundation
 import AwsCMqtt
+import AwsCHttp
 
 enum MqttError: Error {
     case clientClosed
@@ -623,6 +624,16 @@ public class LifecycleAttemptingConnectData { }
 /// Defines signature of the Lifecycle Event Attempting Connect callback
 public typealias OnLifecycleEventAttemptingConnect = (LifecycleAttemptingConnectData) -> Void
 
+/// Callback for users to invoke upon completion of, presumably asynchronous, OnWebSocketHandshakeIntercept callback's initiated process.
+public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequest, Int32) -> Void
+
+/// Invoked during websocket handshake to give users opportunity to transform an http request for purposes
+/// such as signing/authorization etc... Returning from this function does not continue the websocket
+/// handshake since some work flows may be asynchronous. To accommodate that, onComplete must be invoked upon
+/// completion of the signing process.
+public typealias OnWebSocketHandshakeIntercept = (HTTPRequest, OnWebSocketHandshakeInterceptComplete) -> Void;
+
+
 /// Class containing results of a Connect Success Lifecycle Event.
 public class LifecycleConnectionSuccessData {
 
@@ -1015,6 +1026,34 @@ private func MqttClientPublishRecievedEvents(
     }
 }
 
+
+
+private func MqttClientWebsocketTransform(
+    _ rawHttpMessage: OpaquePointer?,
+    _ userData: UnsafeMutableRawPointer?,
+    _ completeFn :  (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
+    _ completeCtx: UnsafeMutableRawPointer?) {
+
+    let callbackCore = Unmanaged<MqttCallbackCore>.fromOpaque(userData!).takeUnretainedValue()
+
+    // validate the callback flag, if flag is false, return
+    callbackCore.rwlock.read {
+        if callbackCore.callbackFlag == false { return }
+
+        guard let _rawHttpMessage = rawHttpMessage else {
+            fatalError("Null HttpRequeset in websocket transform function.")
+        }
+        let httpRequest = HTTPRequest(nativeHttpMessage: _rawHttpMessage)
+        func signerTransform(request: HTTPRequest, errorCode: Int32) {
+            completeFn?(request.rawValue, errorCode, completeCtx)
+        }
+
+        if callbackCore.onWebsocketInterceptor != nil{
+            callbackCore.onWebsocketInterceptor!(httpRequest, signerTransform)
+        }
+    }
+}
+
 private func MqttClientTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
     // termination callback
     print("[Mqtt5 Client Swift] TERMINATION CALLBACK")
@@ -1045,6 +1084,7 @@ public class MqttClientOptions: CStructWithUserData {
     // TODO WebSocket implementation
     /// This callback allows a custom transformation of the HTTP request that acts as the websocket handshake. Websockets will be used if this is set to a valid transformation callback.  To use websockets but not perform a transformation, just set this as a trivial completion callback.  If None, the connection will be made with direct MQTT.
     /// public let websocketHandshakeTransform: Callable[[WebsocketHandshakeTransformArgs], None] = None
+    public let onWebsocketTransform: OnWebSocketHandshakeIntercept?
 
     /// All configurable options with respect to the CONNECT packet sent by the client, including the will. These connect properties will be used for every connection attempt made by the client.
     public let connectOptions: MqttConnectOptions?
@@ -1107,6 +1147,7 @@ public class MqttClientOptions: CStructWithUserData {
         socketOptions: SocketOptions? = nil,
         tlsCtx: TLSContext? = nil,
         httpProxyOptions: HTTPProxyOptions? = nil,
+        onWebsocketTransform: OnWebSocketHandshakeIntercept? = nil,
         connectOptions: MqttConnectOptions? = nil,
         sessionBehavior: ClientSessionBehaviorType? = nil,
         extendedValidationAndFlowControlOptions: ExtendedValidationAndFlowControlOptions? = nil,
@@ -1146,6 +1187,7 @@ public class MqttClientOptions: CStructWithUserData {
             self.socketOptions = socketOptions ?? SocketOptions()
             self.tlsCtx = tlsCtx
             self.httpProxyOptions = httpProxyOptions
+            self.onWebsocketTransform = onWebsocketTransform
             self.connectOptions = connectOptions
             self.sessionBehavior = sessionBehavior
             self.extendedValidationAndFlowControlOptions = extendedValidationAndFlowControlOptions
@@ -1240,12 +1282,18 @@ public class MqttClientOptions: CStructWithUserData {
                 raw_options.topic_aliasing_options = topicAliasingOptionsCPointer
                 raw_options.connect_options = connectOptionsCPointer
 
+                // The consumer should pass in a callbackCore as userData to handle client callbacks
                 guard let _userData = userData else {
                     // directly return
                     return hostName.withByteCursor { hostNameByteCursor in
                         raw_options.host_name = hostNameByteCursor
                         return body(raw_options)
                     }
+                }
+
+                if self.onWebsocketTransform != nil {
+                    raw_options.websocket_handshake_transform = MqttClientWebsocketTransform
+                    raw_options.websocket_handshake_transform_user_data = _userData
                 }
 
                 // TODO: SETUP lifecycle_event_handler and publish_received_handler
@@ -1272,6 +1320,8 @@ class MqttCallbackCore {
     let onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess
     let onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure
     let onLifecycleEventDisconnection: OnLifecycleEventDisconnection
+    // The websocket interceptor could be nil if the websocket is not in use
+    let onWebsocketInterceptor : OnWebSocketHandshakeIntercept?
 
     let rwlock = ReadWriteLock()
     var callbackFlag = true
@@ -1282,6 +1332,7 @@ class MqttCallbackCore {
          onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess? = nil,
          onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure? = nil,
          onLifecycleEventDisconnection: OnLifecycleEventDisconnection? = nil,
+         onWebsocketInterceptor: OnWebSocketHandshakeIntercept? = nil,
          data: AnyObject? = nil) {
 
         self.onPublishReceivedCallback = onPublishReceivedCallback ?? { (_) in return }
@@ -1290,6 +1341,7 @@ class MqttCallbackCore {
         self.onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess ?? { (_) in return}
         self.onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure ?? { (_) in return}
         self.onLifecycleEventDisconnection = onLifecycleEventDisconnection ?? { (_) in return}
+        self.onWebsocketInterceptor = onWebsocketInterceptor
     }
 
     /// Calling this function performs a manual retain on the MqttShutdownCallbackCore.

@@ -17,7 +17,8 @@ public class Mqtt5Client {
             onLifecycleEventAttemptingConnect: options.onLifecycleEventAttemptingConnectFn,
             onLifecycleEventConnectionSuccess: options.onLifecycleEventConnectionSuccessFn,
             onLifecycleEventConnectionFailure: options.onLifecycleEventConnectionFailureFn,
-            onLifecycleEventDisconnection: options.onLifecycleEventDisconnectionFn)
+            onLifecycleEventDisconnection: options.onLifecycleEventDisconnectionFn,
+            onWebsocketInterceptor: options.onWebsocketTransform)
 
         guard let rawValue = (options.withCPointer(
             userData: self.callbackCore.callbackUserData()) { optionsPointer in
