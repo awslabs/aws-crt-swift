@@ -625,13 +625,13 @@ public class LifecycleAttemptingConnectData { }
 public typealias OnLifecycleEventAttemptingConnect = (LifecycleAttemptingConnectData) -> Void
 
 /// Callback for users to invoke upon completion of, presumably asynchronous, OnWebSocketHandshakeIntercept callback's initiated process.
-public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequest, Int32) -> Void
+public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32) -> Void
 
 /// Invoked during websocket handshake to give users opportunity to transform an http request for purposes
 /// such as signing/authorization etc... Returning from this function does not continue the websocket
 /// handshake since some work flows may be asynchronous. To accommodate that, onComplete must be invoked upon
 /// completion of the signing process.
-public typealias OnWebSocketHandshakeIntercept = (HTTPRequest, OnWebSocketHandshakeInterceptComplete) -> Void;
+public typealias OnWebSocketHandshakeIntercept = (HTTPRequest, OnWebSocketHandshakeInterceptComplete) async -> Void;
 
 
 /// Class containing results of a Connect Success Lifecycle Event.
@@ -1032,7 +1032,7 @@ private func MqttClientWebsocketTransform(
     _ rawHttpMessage: OpaquePointer?,
     _ userData: UnsafeMutableRawPointer?,
     _ completeFn :  (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
-    _ completeCtx: UnsafeMutableRawPointer?) {
+    _ completeCtx: UnsafeMutableRawPointer?){
 
     let callbackCore = Unmanaged<MqttCallbackCore>.fromOpaque(userData!).takeUnretainedValue()
 
@@ -1044,13 +1044,16 @@ private func MqttClientWebsocketTransform(
             fatalError("Null HttpRequeset in websocket transform function.")
         }
         let httpRequest = HTTPRequest(nativeHttpMessage: _rawHttpMessage)
-        func signerTransform(request: HTTPRequest, errorCode: Int32) {
+        @Sendable func signerTransform(request: HTTPRequestBase, errorCode: Int32) {
             completeFn?(request.rawValue, errorCode, completeCtx)
         }
-
+        
         if callbackCore.onWebsocketInterceptor != nil{
-            callbackCore.onWebsocketInterceptor!(httpRequest, signerTransform)
+            Task{
+                await callbackCore.onWebsocketInterceptor!(httpRequest, signerTransform)
+            }
         }
+
     }
 }
 
