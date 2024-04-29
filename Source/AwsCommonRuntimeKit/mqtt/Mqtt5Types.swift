@@ -631,8 +631,7 @@ public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32
 /// such as signing/authorization etc... Returning from this function does not continue the websocket
 /// handshake since some work flows may be asynchronous. To accommodate that, onComplete must be invoked upon
 /// completion of the signing process.
-public typealias OnWebSocketHandshakeIntercept = (HTTPRequest, OnWebSocketHandshakeInterceptComplete) async -> Void;
-
+public typealias OnWebSocketHandshakeIntercept = (HTTPRequest, OnWebSocketHandshakeInterceptComplete) async -> Void
 
 /// Class containing results of a Connect Success Lifecycle Event.
 public class LifecycleConnectionSuccessData {
@@ -1026,13 +1025,11 @@ private func MqttClientPublishRecievedEvents(
     }
 }
 
-
-
 private func MqttClientWebsocketTransform(
     _ rawHttpMessage: OpaquePointer?,
     _ userData: UnsafeMutableRawPointer?,
-    _ completeFn :  (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
-    _ completeCtx: UnsafeMutableRawPointer?){
+    _ completeFn:  (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
+    _ completeCtx: UnsafeMutableRawPointer?) {
 
     let callbackCore = Unmanaged<MqttCallbackCore>.fromOpaque(userData!).takeUnretainedValue()
 
@@ -1047,9 +1044,9 @@ private func MqttClientWebsocketTransform(
         @Sendable func signerTransform(request: HTTPRequestBase, errorCode: Int32) {
             completeFn?(request.rawValue, errorCode, completeCtx)
         }
-        
-        if callbackCore.onWebsocketInterceptor != nil{
-            Task{
+
+        if callbackCore.onWebsocketInterceptor != nil {
+            Task {
                 await callbackCore.onWebsocketInterceptor!(httpRequest, signerTransform)
             }
         }
@@ -1278,7 +1275,6 @@ public class MqttClientOptions: CStructWithUserData {
             _connnectOptions) { (socketOptionsCPointer, tlsOptionsCPointer,
                                  httpProxyOptionsCPointer, topicAliasingOptionsCPointer,
                                  connectOptionsCPointer) in
-
                 raw_options.socket_options = socketOptionsCPointer
                 raw_options.tls_options = tlsOptionsCPointer
                 raw_options.http_proxy_options = httpProxyOptionsCPointer
@@ -1299,7 +1295,6 @@ public class MqttClientOptions: CStructWithUserData {
                     raw_options.websocket_handshake_transform_user_data = _userData
                 }
 
-                // TODO: SETUP lifecycle_event_handler and publish_received_handler
                 raw_options.lifecycle_event_handler = MqttClientLifeycyleEvents
                 raw_options.lifecycle_event_handler_user_data = _userData
                 raw_options.publish_received_handler = MqttClientPublishRecievedEvents
@@ -1324,7 +1319,7 @@ class MqttCallbackCore {
     let onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure
     let onLifecycleEventDisconnection: OnLifecycleEventDisconnection
     // The websocket interceptor could be nil if the websocket is not in use
-    let onWebsocketInterceptor : OnWebSocketHandshakeIntercept?
+    let onWebsocketInterceptor: OnWebSocketHandshakeIntercept?
 
     let rwlock = ReadWriteLock()
     var callbackFlag = true

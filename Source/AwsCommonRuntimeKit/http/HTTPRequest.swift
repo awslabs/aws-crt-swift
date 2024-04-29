@@ -48,8 +48,6 @@ public class HTTPRequest: HTTPRequestBase {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         super.init(rawValue: rawValue)
-        // Releas the refcount as it created, since HttpMessage is taking the ownership
-        aws_http_message_release(self.rawValue);
 
         self.method = method
         self.path = path
@@ -57,9 +55,10 @@ public class HTTPRequest: HTTPRequestBase {
         addHeaders(headers: headers)
     }
 
-    init (nativeHttpMessage: OpaquePointer)
-    {
+    init (nativeHttpMessage: OpaquePointer){
         super.init(rawValue: nativeHttpMessage)
+        // Acquire a refcount to keep the message alive until this object dies.
+        aws_http_message_acquire(self.rawValue)
     }
 }
 

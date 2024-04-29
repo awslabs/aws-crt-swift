@@ -22,8 +22,6 @@ public class HTTPRequestBase {
     // not interact with this class directly.
     init(rawValue: OpaquePointer) {
         self.rawValue = rawValue
-        // Acquire a refcount to keep the message alive until this object dies.
-        aws_http_message_acquire(self.rawValue);
     }
 
     deinit {
