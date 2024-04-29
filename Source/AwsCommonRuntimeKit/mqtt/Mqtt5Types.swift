@@ -631,7 +631,7 @@ public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32
 /// such as signing/authorization etc... Returning from this function does not continue the websocket
 /// handshake since some work flows may be asynchronous. To accommodate that, onComplete must be invoked upon
 /// completion of the signing process.
-public typealias OnWebSocketHandshakeIntercept = (HTTPRequest, OnWebSocketHandshakeInterceptComplete) async -> Void
+public typealias OnWebSocketHandshakeIntercept = (HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete) -> Void
 
 /// Class containing results of a Connect Success Lifecycle Event.
 public class LifecycleConnectionSuccessData {
@@ -1046,9 +1046,7 @@ private func MqttClientWebsocketTransform(
         }
 
         if callbackCore.onWebsocketInterceptor != nil {
-            Task {
-                await callbackCore.onWebsocketInterceptor!(httpRequest, signerTransform)
-            }
+            callbackCore.onWebsocketInterceptor!(httpRequest, signerTransform)
         }
 
     }
