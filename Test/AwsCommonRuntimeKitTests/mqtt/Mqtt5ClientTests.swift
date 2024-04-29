@@ -568,7 +568,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnWS-UC2]  websocket connection with basic authentication
      */
-    func testMqtt5DirectWSConnectWithBasicAuth() throws {
+    func testMqtt5WSConnectWithBasicAuth() throws {
 
         let inputUsername = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_USERNAME")
         let inputPassword = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_PASSWORD")
@@ -597,7 +597,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnWS-UC3] websocket connection with TLS
      */
-    func testMqtt5DirectWSConnectWithTLS() throws {
+    func testMqtt5WSConnectWithTLS() throws {
         try skipIfPlatformDoesntSupportTLS()
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_TLS_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_TLS_PORT")
@@ -626,7 +626,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnWS-UC4] websocket connection with TLS, using sigv4
      */
-    func testMqtt5DirectWSConnectWithMutualTLS() throws {
+    func testMqtt5WSConnectWithMutualTLS() throws {
         try skipIfPlatformDoesntSupportTLS()
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")

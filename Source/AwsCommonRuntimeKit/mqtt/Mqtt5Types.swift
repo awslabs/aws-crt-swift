@@ -1028,7 +1028,7 @@ private func MqttClientPublishRecievedEvents(
 private func MqttClientWebsocketTransform(
     _ rawHttpMessage: OpaquePointer?,
     _ userData: UnsafeMutableRawPointer?,
-    _ completeFn:  (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
+    _ completeFn: (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
     _ completeCtx: UnsafeMutableRawPointer?) {
 
     let callbackCore = Unmanaged<MqttCallbackCore>.fromOpaque(userData!).takeUnretainedValue()
