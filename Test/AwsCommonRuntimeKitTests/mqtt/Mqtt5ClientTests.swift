@@ -655,9 +655,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let testContext = MqttTestContext()
 
 
-        let provider = try CredentialsProvider(source: .static(accessKey: getEnvironmentVarOrSkipTest(environmentVarName: "TEST_RUNNER_AWS_ACCESS_KEY_ID"), secret: getEnvironmentVarOrSkipTest(environmentVarName: "TEST_RUNNER_AWS_SECRET_ACCESS_KEY")))
+        //        let provider = try CredentialsProvider(source: .static(accessKey: getEnvironmentVarOrSkipTest(environmentVarName: "TEST_RUNNER_AWS_ACCESS_KEY_ID"), secret: getEnvironmentVarOrSkipTest(environmentVarName: "TEST_RUNNER_AWS_SECRET_ACCESS_KEY")))
+        
+        let provider = try CredentialsProvider(source: .environment())
         testContext.withIoTSigv4WebsocketTransform(region: region, provider: provider)
 
+        
+        
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
         testContext.onWebSocketHandshake = nil
         try connectClient(client: client, testContext: testContext)
