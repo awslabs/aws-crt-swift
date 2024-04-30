@@ -74,6 +74,8 @@ class FileBasedConfigurationTests: XCBaseTestCase {
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .credentials), "\(home)/.aws/credentials")
 
         // from environment
+        let oldConfig = getenv("AWS_CONFIG_FILE")
+        let oldCredFile = getenv("AWS_SHARED_CREDENTIALS_FILE")
         setenv("AWS_CONFIG_FILE", "/environment/.aws/config", 1)
         setenv("AWS_SHARED_CREDENTIALS_FILE", "/environment/.aws/credentials", 1)
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .config), "/environment/.aws/config")
@@ -89,5 +91,8 @@ class FileBasedConfigurationTests: XCBaseTestCase {
 
         // reset home env
         setenv("HOME", oldHome!, 1)
+        setenv("AWS_CONFIG_FILE", oldConfig!, 1)
+        setenv("AWS_SHARED_CREDENTIALS_FILE", oldCredFile!, 1)
+
     }
 }
