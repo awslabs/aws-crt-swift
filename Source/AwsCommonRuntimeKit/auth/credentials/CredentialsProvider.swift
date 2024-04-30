@@ -292,7 +292,7 @@ extension CredentialsProvider.Source {
 
             var chainDefaultOptions = aws_credentials_provider_chain_default_options()
             chainDefaultOptions.bootstrap = bootstrap.rawValue
-            chainDefaultOptions.profile_collection_cached = fileBasedConfiguration.rawValue
+            // chainDefaultOptions.profile_collection_cached = fileBasedConfiguration.rawValue
             chainDefaultOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
             guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue,
