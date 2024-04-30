@@ -90,9 +90,8 @@ class FileBasedConfigurationTests: XCBaseTestCase {
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .credentials, overridePath: "~/.aws/credentials"), "\(home)/.aws/credentials")
 
         // reset home env
-        setenv("HOME", oldHome ?? "", 1)
-        setenv("AWS_CONFIG_FILE", oldConfig ?? "", 1)
-        setenv("AWS_SHARED_CREDENTIALS_FILE", oldCredFile ?? "", 1)
-
+        if oldHome = oldHome { setenv("HOME", oldHome ?? "", 1) }
+        if oldConfig = oldConfig { setenv("AWS_CONFIG_FILE", oldConfig ?? "", 1) }
+        if oldCredFile = oldCredFile { setenv("AWS_SHARED_CREDENTIALS_FILE", oldCredFile ?? "", 1) }
     }
 }
