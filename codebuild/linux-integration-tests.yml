@@ -6,6 +6,8 @@ env:
     BUILDER_SOURCE: releases
     BUILDER_HOST: https://d19elf31gohf1l.cloudfront.net
     PACKAGE_NAME: aws-crt-swift
+    TEST_RUNNER_AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+    TEST_RUNNER_AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
 
 phases:
   build:
