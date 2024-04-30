@@ -26,8 +26,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
     }
 
     /// stop client and check for discconnection and stopped lifecycle events
-    func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext) throws -> Void {
-        try client.stop()
+    func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) throws -> Void {
+        if let _disconnectPacket = disconnectPacket {
+            try client.stop(disconnectPacket: _disconnectPacket)
+        } else {
+            try client.stop()
+        }
+
         if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
             print("Disconnection timed out after 5 seconds")
             XCTFail("Disconnection timed out")
@@ -44,6 +49,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /// stop client and check for stopped lifecycle event
     func stopClient(client: Mqtt5Client, testContext: MqttTestContext) throws -> Void {
         try client.stop()
+
         if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
             print("Stop timed out after 5 seconds")
             XCTFail("Stop timed out")
@@ -877,8 +883,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         )
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
 
-        let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
-
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
             port: UInt32(8883),
@@ -1140,18 +1144,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
 
         let disconnectPacket = DisconnectPacket(reasonCode: .disconnectWithWillMessage)
-        try clientPublisher.stop(disconnectPacket: disconnectPacket)
-        if testContextPublisher.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            throw MqttTestError.disconnectFail
-        }
-
-        if testContextPublisher.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            throw MqttTestError.stopFail
-        }
+        try disconnectClientCleanup(client: clientPublisher, testContext: testContextPublisher, disconnectPacket: disconnectPacket)
 
         if testContextSubscriber.semaphorePublishReceived.wait(timeout: .now() + 5) == .timedOut {
             print("Publish not received after 5 seconds")
