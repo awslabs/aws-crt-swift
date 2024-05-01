@@ -234,7 +234,7 @@ public class PublishPacket: CStruct {
         guard let from = from else {
             return nil
         }
-        let publishView = _from.pointee
+        let publishView = from.pointee
 
         let payload: Data = Data(bytes: publishView.payload.ptr, count: publishView.payload.len)
 
@@ -350,10 +350,8 @@ public class Subscription: CStruct {
             view.retain_handling_type = aws_mqtt5_retain_handling_type(0)
         }
 
-        return withByteCursorFromStrings(self.topicFilter) { _ in
-            view.topic_filter = aws_byte_cursor_from_buf(&topicFilterBuffer)
-            return body(view)
-        }
+        view.topic_filter = aws_byte_cursor_from_buf(&topicFilterBuffer)
+        return body(view)
     }
 
     deinit {
