@@ -13,6 +13,7 @@ enum MqttTestError: Error {
     case stopFail
 }
 
+
 class Mqtt5ClientTests: XCBaseTestCase {
 
     /// start client and check for connection success
@@ -164,7 +165,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                               omitSessionToken: true)
 
 
-            self.onWebSocketHandshake = { httpRequest, completCallback in
+            self.onWebSocketHandshake = { [weak self] httpRequest, completCallback in
                 Task{
                     do
                     {
@@ -655,10 +656,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let testContext = MqttTestContext()
 
 
-        let provider = try CredentialsProvider(source: .static(
-                accessKey: getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_ACCESS_KEY"), 
-                secret: getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SECRET_ACCESS_KEY"),
-                sessionToken: getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SESSION_TOKEN")))
+//        let provider = try CredentialsProvider(source: .static(
+//                accessKey: getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_ACCESS_KEY"),
+//                secret: getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SECRET_ACCESS_KEY"),
+//                sessionToken: getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SESSION_TOKEN")))
+
+        let provider = try CredentialsProvider(source: .defaultChain(bootstrap: bootstrap, fileBasedConfiguration: FileBasedConfiguration(configFilePath:"~/.aws/config")))
+
 
         testContext.withIoTSigv4WebsocketTransform(region: region, provider: provider)
 
