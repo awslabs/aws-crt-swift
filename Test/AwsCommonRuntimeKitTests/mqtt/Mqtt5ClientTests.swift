@@ -47,7 +47,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         public var onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
         public var onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
 
-        public let semaphorePublishReceived:DispatchSemaphore
+        public let semaphorePublishReceived: DispatchSemaphore
         public let semaphoreConnectionSuccess: DispatchSemaphore
         public let semaphoreConnectionFailure: DispatchSemaphore
         public let semaphoreDisconnection: DispatchSemaphore
