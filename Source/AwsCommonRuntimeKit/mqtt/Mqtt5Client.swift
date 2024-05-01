@@ -145,10 +145,9 @@ public class Mqtt5Client {
                 let result = aws_mqtt5_client_publish(rawValue, publishPacketPointer, &callbackOptions)
                 if result != AWS_OP_SUCCESS {
                     continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: -1)))
+                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
             }
-
         }
     }
 
