@@ -50,7 +50,7 @@ public class Mqtt5Client {
         if rawValue != nil {
             var errorCode: Int32 = 0
 
-            if let disconnectPacket = disconnectPacket {
+            if let disconnectPacket {
                 disconnectPacket.withCPointer { disconnectPointer in
                     errorCode = aws_mqtt5_client_stop(rawValue, disconnectPointer, nil)
                 }

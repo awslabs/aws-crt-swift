@@ -199,7 +199,7 @@ public class PublishPacket: CStruct {
                         
                     return withOptionalArrayRawPointer(of: subscriptionIdentifiers) { subscriptionPointer in
 
-                        if let subscriptionPointer = subscriptionPointer,
+                        if let subscriptionPointer,
                             let subscriptionCount = subscriptionIdentifiers?.count {
                             raw_publish_view.subscription_identifiers = subscriptionPointer
                             raw_publish_view.subscription_identifier_count = subscriptionCount
