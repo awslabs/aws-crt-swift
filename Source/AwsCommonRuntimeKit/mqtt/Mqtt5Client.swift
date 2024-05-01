@@ -103,7 +103,7 @@ public class Mqtt5Client {
     public func publish(publishPacket: PublishPacket) async throws -> PublishResult {
 
         return try await withCheckedThrowingContinuation { continuation in
-            
+
             publishPacket.withCPointer { publishPacketPointer in
                 var callbackOptions = aws_mqtt5_publish_completion_options()
                 let continuationCore = ContinuationCore<PublishResult>(continuation: continuation)

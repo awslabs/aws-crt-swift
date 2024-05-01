@@ -196,7 +196,7 @@ public class PublishPacket: CStruct {
                     raw_publish_view.payload_format = payloadPointer
                     raw_publish_view.message_expiry_interval_seconds = messageExpiryIntervalPointer
                     raw_publish_view.topic_alias = topicAliasPointer
-                        
+
                     return withOptionalArrayRawPointer(of: subscriptionIdentifiers) { subscriptionPointer in
 
                         if let subscriptionPointer,
@@ -504,11 +504,11 @@ public class SubackPacket {
     }
 
     public static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_suback_view>?) -> SubackPacket? {
-        
+
         guard let from else {
             return nil
         }
-        
+
         let subackPointer = from.pointee
 
         var subackReasonCodes: [SubackReasonCode] = []
@@ -619,7 +619,7 @@ public class DisconnectPacket: CStruct {
         return withOptionalUnsafePointer(to: _sessionExpiryInterval) { sessionExpiryIntervalPointer in
 
             raw_disconnect_view.session_expiry_interval_seconds = sessionExpiryIntervalPointer
-            
+
             return withOptionalUserPropertyArray(
                 of: userProperties) { userPropertyPointer in
 
