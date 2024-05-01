@@ -154,6 +154,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let clientOptionsWithCallbacks: MqttClientOptions
 
         if let clientOptions {
+        if let clientOptions {
             clientOptionsWithCallbacks = MqttClientOptions(
                 hostName: clientOptions.hostName,
                 port: clientOptions.port,
@@ -474,6 +475,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             messageExpiryInterval: TimeInterval(10),
             topicAlias: UInt16(1),
             responseTopic: "TEST_RESPONSE_TOPIC",
+            correlationData: "TEST_CORRELATION_DATA".data(using: .utf8),
             correlationData: "TEST_CORRELATION_DATA".data(using: .utf8),
             contentType: "TEST_CONTENT_TYPE",
             userProperties: userProperties)
