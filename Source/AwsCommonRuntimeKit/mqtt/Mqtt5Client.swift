@@ -63,31 +63,6 @@ public class Mqtt5Client {
         }
     }
 
-    /// Tells the client to attempt to subscribe to one or more topic filters.
-    ///
-    /// - Parameters:
-    ///     - subscribePacket: SUBSCRIBE packet to send to the server
-    /// - Returns:
-    ///     - `SubackPacket`: return Suback packet if the subscription operation succeed otherwise errorCode
-    ///
-    /// - Throws: CommonRuntimeError.crtError
-    public func subscribe(subscribePacket: SubscribePacket) async throws -> SubackPacket {
-
-        return try await withCheckedThrowingContinuation { continuation in
-            subscribePacket.withCPointer { subscribePacketPointer in
-                var callbackOptions = aws_mqtt5_subscribe_completion_options()
-                let continuationCore = ContinuationCore(continuation: continuation)
-                callbackOptions.completion_callback = subscribeCompletionCallback
-                callbackOptions.completion_user_data = continuationCore.passRetained()
-                let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
-                guard result == AWS_OP_SUCCESS else {
-                    continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
-                }
-            }
-        }
-    }
-
     public func unsubscribe(unsubscribePacket: UnsubscribePacket) async throws -> UnsubackPacket {
 
         return try await withCheckedThrowingContinuation { continuation in
@@ -119,35 +94,6 @@ public class Mqtt5Client {
                     return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
             }
-        }
-    }
-
-    /// Tells the client to attempt to subscribe to one or more topic filters.
-    ///
-    /// - Parameters:
-    ///     - publishPacket: PUBLISH packet to send to the server
-    /// - Returns:
-    ///     - For qos 0 packet: return `None` if publish succeed, otherwise return error code
-    ///     - For qos 1 packet: return `PublishResult` packet if the publish succeed, otherwise return error code
-    ///
-    /// - Throws: CommonRuntimeError.crtError
-    public func publish(publishPacket: PublishPacket) async throws -> PublishResult {
-
-        return try await withCheckedThrowingContinuation { continuation in
-            
-            publishPacket.withCPointer { publishPacketPointer in
-                var callbackOptions = aws_mqtt5_publish_completion_options()
-                let continuationCore = ContinuationCore<PublishResult>(continuation: continuation)
-
-                callbackOptions.completion_callback = publishCompletionCallback
-                callbackOptions.completion_user_data = continuationCore.passRetained()
-                let result = aws_mqtt5_client_publish(rawValue, publishPacketPointer, &callbackOptions)
-                if result != AWS_OP_SUCCESS {
-                    continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
-                }
-            }
-
         }
     }
 
