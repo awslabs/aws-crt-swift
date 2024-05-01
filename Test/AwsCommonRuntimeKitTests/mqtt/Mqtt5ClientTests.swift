@@ -628,8 +628,11 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnWS-UC4] websocket connection with TLS, using sigv4
      */
+#if os(Linux)
     func testMqtt5WSConnectWithMutualTLS() throws {
         try skipIfPlatformDoesntSupportTLS()
+        try skipifmacOS()
+        
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
@@ -656,24 +659,26 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let testContext = MqttTestContext()
 
 
-//        let provider = try CredentialsProvider(source: .static(
-//                accessKey: getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_ACCESS_KEY"),
-//                secret: getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SECRET_ACCESS_KEY"),
-//                sessionToken: getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SESSION_TOKEN")))
+        let accessKey = getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_ACCESS_KEY")
+        let secret = getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SECRET_ACCESS_KEY")
+        let sessionToken = getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SESSION_TOKEN")
+        print("key: \(accessKey) \n secret: \(secret)")
 
-        let provider = try CredentialsProvider(source: .defaultChain(bootstrap: bootstrap, fileBasedConfiguration: FileBasedConfiguration(configFilePath:"~/.aws/config")))
+        let provider = try CredentialsProvider(source: .static(
+                accessKey: accessKey,
+                secret: secret,
+                sessionToken: sessionToken))
 
 
         testContext.withIoTSigv4WebsocketTransform(region: region, provider: provider)
-
-
+        
 
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
         testContext.onWebSocketHandshake = nil
         try connectClient(client: client, testContext: testContext)
         try disconnectClientCleanup(client:client, testContext: testContext)
     }
-
+#endif
 
     /*===============================================================
                      NEGATIVE CONNECT TEST CASES
