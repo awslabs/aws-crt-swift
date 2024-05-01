@@ -50,6 +50,7 @@ public class Signer {
             if config.shouldSignHeader != nil {
                 shouldSignHeaderUserData = signRequestCore.passUnretained()
             }
+            print("[MQTT5 TEST ] SIGNING...")
             config.withCPointer(userData: shouldSignHeaderUserData) { configPointer in
                 configPointer.withMemoryRebound(
                     to: aws_signing_config_base.self,
@@ -64,6 +65,7 @@ public class Signer {
                         != AWS_OP_SUCCESS {
 
                         signRequestCore.release()
+                        print("[MQTT5 TEST ] SIGNING COMPLTE...Operation Failed")
                         continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
                     }
                 }
@@ -194,6 +196,7 @@ private func onRequestSigningComplete(signingResult: UnsafeMutablePointer<aws_si
                                       userData: UnsafeMutableRawPointer!) {
     let signRequestCore = Unmanaged<SignRequestCore>.fromOpaque(userData).takeRetainedValue()
     if errorCode != AWS_OP_SUCCESS {
+        print("[MQTT5 TEST ] SIGNING COMPLTE...CALLBACK FAILED WITH ERROR CODE")
         signRequestCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
         return
     }
@@ -203,8 +206,10 @@ private func onRequestSigningComplete(signingResult: UnsafeMutablePointer<aws_si
                                                                  allocator.rawValue,
                                                                  signingResult!)
     if signedRequest == AWS_OP_SUCCESS {
+        print("[MQTT5 TEST ] SIGNING COMPLTE...SUCCESS")
         signRequestCore.continuation.resume(returning: signRequestCore.request)
     } else {
+        print("[MQTT5 TEST ] SIGNING COMPLTE...FAILED TO APPLY TO REQUEST")
         signRequestCore.continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
     }
 }
