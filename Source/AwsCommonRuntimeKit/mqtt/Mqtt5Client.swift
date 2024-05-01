@@ -76,31 +76,14 @@ public class Mqtt5Client {
     public func subscribe(subscribePacket: SubscribePacket) async throws -> SubackPacket {
 
         return try await withCheckedThrowingContinuation { continuation in
-
-            // The completion callback to invoke when an ack is received in native
-            func subscribeCompletionCallback(
-                subackPacket: UnsafePointer<aws_mqtt5_packet_suback_view>?,
-                errorCode: Int32,
-                userData: UnsafeMutableRawPointer?) {
-                let continuationCore = Unmanaged<ContinuationCore<SubackPacket>>.fromOpaque(userData!).takeRetainedValue()
-
-                guard errorCode == AWS_OP_SUCCESS else {
-                    return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
-                }
-
-                guard let suback = SubackPacket.convertFromNative(subackPacket)
-                else { fatalError("Suback missing in the subscription completion callback.") }
-
-                continuationCore.continuation.resume(returning: suback)
-
-            }
-
             subscribePacket.withCPointer { subscribePacketPointer in
                 var callbackOptions = aws_mqtt5_subscribe_completion_options()
+                let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = subscribeCompletionCallback
-                callbackOptions.completion_user_data = ContinuationCore(continuation: continuation).passRetained()
+                callbackOptions.completion_user_data = continuationCore.passRetained()
                 let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
                 guard result == AWS_OP_SUCCESS else {
+                    continuationCore.release()
                     return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
             }
@@ -114,3 +97,21 @@ public class Mqtt5Client {
         rawValue = nil
     }
 }
+
+// The completion callback to invoke when an ack is received in native
+private func subscribeCompletionCallback(
+    subackPacket: UnsafePointer<aws_mqtt5_packet_suback_view>?,
+    errorCode: Int32,
+    userData: UnsafeMutableRawPointer?) {
+        let continuationCore = Unmanaged<ContinuationCore<SubackPacket>>.fromOpaque(userData!).takeRetainedValue()
+
+        guard errorCode == AWS_OP_SUCCESS else {
+            return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+        }
+
+        guard let suback = SubackPacket.convertFromNative(subackPacket) else {
+            fatalError("Suback missing in the subscription completion callback.")
+        }
+
+        continuationCore.continuation.resume(returning: suback)
+    }
