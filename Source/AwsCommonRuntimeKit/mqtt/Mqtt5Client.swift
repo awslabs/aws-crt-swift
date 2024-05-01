@@ -9,10 +9,10 @@ public class Mqtt5Client {
     private var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
     private var callbackCore: MqttCallbackCore
     let rwlock = ReadWriteLock()
-    
+
     init(clientOptions options: MqttClientOptions) throws {
 
-        
+        try options.validateConversionToNative()
 
         self.callbackCore = MqttCallbackCore(
             onPublishReceivedCallback: options.onPublishReceivedFn,
@@ -43,7 +43,7 @@ public class Mqtt5Client {
         try self.rwlock.read {
             if rawValue != nil {
                 let errorCode = aws_mqtt5_client_start(rawValue)
-                
+
                 if errorCode != AWS_OP_SUCCESS {
                     throw CommonRunTimeError.crtError(CRTError(code: errorCode))
                 }
@@ -51,22 +51,19 @@ public class Mqtt5Client {
         }
     }
 
-    public func stop(_ disconnectPacket: DisconnectPacket? = nil) throws {
-        try self.rwlock.read {
-            if rawValue != nil {
-                var errorCode: Int32 = 0
-                
-                if let disconnectPacket = disconnectPacket {
-                    disconnectPacket.withCPointer { disconnectPointer in
-                        errorCode = aws_mqtt5_client_stop(rawValue, disconnectPointer, nil)
-                    }
-                } else {
-                    errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
+    public func stop(disconnectPacket: DisconnectPacket? = nil) throws {
+        if rawValue != nil {
+            var errorCode: Int32 = 0
+
+            if let disconnectPacket = disconnectPacket {
+                try disconnectPacket.validateConversionToNative()
+
+                disconnectPacket.withCPointer { disconnectPointer in
+                    errorCode = aws_mqtt5_client_stop(rawValue, disconnectPointer, nil)
                 }
-                
-                if errorCode != AWS_OP_SUCCESS {
-                    throw CommonRunTimeError.crtError(CRTError(code: errorCode))
-                }
+            }
+            if errorCode != AWS_OP_SUCCESS {
+                throw CommonRunTimeError.crtError(CRTError(code: errorCode))
             }
         }
     }
@@ -80,7 +77,7 @@ public class Mqtt5Client {
     ///
     /// - Throws: CommonRuntimeError.crtError
     public func subscribe(subscribePacket: SubscribePacket) async throws -> SubackPacket {
-         return withCheckedThrowingContinuation { continuation in
+         return try await withCheckedThrowingContinuation { continuation in
 
             // The completion callback to invoke when an ack is received in native
             func subscribeCompletionCallback(
@@ -159,10 +156,8 @@ public class Mqtt5Client {
     /// - Throws: CommonRuntimeError.crtError
     public func publish(publishPacket: PublishPacket) async throws -> PublishResult {
 
-        guard rawValue != nil else
-        {
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
-        }
+        try publishPacket.validateConversionToNative()
+
         return try await withCheckedThrowingContinuation { continuation in
 
             // The completion callback to invoke when an ack is received in native
