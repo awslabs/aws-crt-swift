@@ -115,7 +115,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let clientOptionsWithCallbacks: MqttClientOptions
 
-        if let clientOptions = clientOptions {
+        if let clientOptions {
             clientOptionsWithCallbacks = MqttClientOptions(
                 hostName: clientOptions.hostName,
                 port: clientOptions.port,
@@ -904,6 +904,52 @@ class Mqtt5ClientTests: XCBaseTestCase {
             XCTAssertNotEqual(keepAliveInterval, negotiatedSettings.serverKeepAlive)
         } else {
             XCTFail("Missing negotiated settings")
+        }
+
+        try client.stop()
+        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
+            print("Disconnection timed out after 5 seconds")
+            XCTFail("Disconnection timed out")
+        }
+
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+        }
+    }
+
+    /** Operation Tests [OP-UC] */
+
+    // Sub Happy Path
+    func testSubscription() async throws {
+        try skipIfPlatformDoesntSupportTLS()
+        let uuid = UUID()
+        let testTopic = "testSubscription_" + uuid.uuidString
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try client.start()
+        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Success Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+        }
+
+        let subscribe = SubscribePacket(topicFilter: testTopic, qos: QoS.atLeastOnce)
+        // Wait on subscribe to make sure we subscribed to the topic before publish
+        let _ = try await client.subscribe(subscribePacket: subscribe)
+        let _ = try await client.publish(publishPacket: PublishPacket(qos: QoS.atLeastOnce,
+                                                                            topic: testTopic,
+                                                                            payload: "testSubscription".data(using: .utf8)))
+
+        if testContext.semaphorePublishReceived.wait(timeout: .now() + 5) == .timedOut {
+            print("Publish timed out after 5 seconds")
+            XCTFail("Publish timed out")
         }
 
         try client.stop()
