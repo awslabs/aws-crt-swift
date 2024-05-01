@@ -175,11 +175,19 @@ public class PublishPacket: CStruct {
         return nil
     }
 
+    func validateConversionToNative() throws {
+        if let _messageExpiryInterval = messageExpiryInterval {
+            if _messageExpiryInterval < 0 || _messageExpiryInterval > Double(UInt32.max) {
+                throw MqttError.validation(message: "Invalid sessionExpiryInterval value")
+            }
+        }
+    }
+
     typealias RawType = aws_mqtt5_packet_publish_view
     func withCStruct<Result>(_ body: (aws_mqtt5_packet_publish_view) -> Result) -> Result {
         var raw_publish_view = aws_mqtt5_packet_publish_view()
 
-        raw_publish_view.qos = self.qos.nativeValue
+        raw_publish_view.qos = self.qos.rawValue
         raw_publish_view.retain = retain
         return topic.withByteCursor { topicCustor in
             raw_publish_view.topic =  topicCustor
@@ -265,9 +273,7 @@ public class PublishPacket: CStruct {
                 count: publishView.user_property_count,
                 userPropertiesPointer: publishView.user_properties)
 
-            guard let qos = QoS(rawValue: Int(publishView.qos.rawValue)) else {
-                fatalError("PublishPacket Received has an invalid qos")
-            }
+            let qos = QoS(publishView.qos)
 
             let publishPacket = PublishPacket(
                                             qos: qos,
@@ -381,11 +387,11 @@ public class Subscription: CStruct {
     typealias RawType = aws_mqtt5_subscription_view
     func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
         var view = aws_mqtt5_subscription_view()
-        view.qos = self.qos.nativeValue
+        view.qos = self.qos.rawValue
         view.no_local = self.noLocal ?? false
         view.retain_as_published = self.retainAsPublished ?? false
         if let _retainType = self.retainHandlingType {
-            view.retain_handling_type = _retainType.natvieValue
+            view.retain_handling_type = _retainType.rawValue
         } else {
             view.retain_handling_type = aws_mqtt5_retain_handling_type(0)
         }
@@ -586,7 +592,7 @@ public class UnsubscribePacket: CStruct {
         let cArray = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: topicFilters.count)
 
         for (index, string) in topicFilters.enumerated() {
-            let data = string.data(using: .utf8)!
+            let data = Data(string.utf8)
             let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: data.count)
             data.copyBytes(to: buffer, count: data.count)
 
@@ -679,6 +685,13 @@ public class DisconnectPacket: CStruct {
             self.serverReference = serverReference
             self.userProperties = userProperties
         }
+    func validateConversionToNative() throws {
+        if let _sessionExpiryInterval = sessionExpiryInterval {
+            if _sessionExpiryInterval < 0 || _sessionExpiryInterval > Double(UInt32.max) {
+                throw MqttError.validation(message: "Invalid sessionExpiryInterval value")
+            }
+        }
+    }
 
     typealias RawType = aws_mqtt5_packet_disconnect_view
     func withCStruct<Result>(_ body: (aws_mqtt5_packet_disconnect_view) -> Result) -> Result {
@@ -845,8 +858,7 @@ public class ConnackPacket {
 
             var maximumQos: QoS?
             if let maximumQosValue = connackView.maximum_qos {
-                let maximumQoSNativeValue = maximumQosValue.pointee.rawValue
-                maximumQos = QoS(rawValue: Int(maximumQoSNativeValue))
+                maximumQos = QoS(maximumQosValue.pointee)
             }
 
             let retainAvailable = convertOptionalBool(connackView.retain_available)
