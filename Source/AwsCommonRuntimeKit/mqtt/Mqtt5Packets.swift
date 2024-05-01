@@ -312,22 +312,21 @@ public class PubackPacket {
     }
 
     static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_puback_view>?) -> PubackPacket? {
-        if let _from = from {
-            let pubackPointer = _from.pointee
-
-            guard let reasonCode = PubackReasonCode(rawValue: Int(pubackPointer.reason_code.rawValue))
-            else {fatalError("SubackPacket from native has an invalid reason code.")}
-
-            let reasonString = pubackPointer.reason_string?.pointee.toString()
-
-            let userProperties = convertOptionalUserProperties(
-                count: pubackPointer.user_property_count,
-                userPropertiesPointer: pubackPointer.user_properties)
-
-            return PubackPacket(reasonCode: reasonCode, reasonString: reasonString, userProperties: userProperties)
+        guard let from = from else {
+            return nil
         }
+        let pubackPointer = from.pointee
 
-        return nil
+        guard let reasonCode = PubackReasonCode(rawValue: Int(pubackPointer.reason_code.rawValue))
+        else {fatalError("SubackPacket from native has an invalid reason code.")}
+
+        let reasonString = pubackPointer.reason_string?.pointee.toString()
+
+        let userProperties = convertOptionalUserProperties(
+            count: pubackPointer.user_property_count,
+            userPropertiesPointer: pubackPointer.user_properties)
+
+        return PubackPacket(reasonCode: reasonCode, reasonString: reasonString, userProperties: userProperties)
     }
 }
 
