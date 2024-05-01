@@ -58,12 +58,12 @@ extension Data {
         }
     }
 
-    func withAWSByteCursorPointer<Result>(_ body: (UnsafeMutablePointer<aws_byte_cursor>) -> Result) -> Result {
+    func withAWSByteCursorPointer<Result>(_ body: (UnsafeMutablePointer<aws_byte_cursor>) throws -> Result) rethrows -> Result {
         let count = self.count
-        return self.withUnsafeBytes { rawBufferPointer -> Result in
+        return try self.withUnsafeBytes { rawBufferPointer -> Result in
             var cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, count)
-            return withUnsafeMutablePointer(to: &cursor) {
-                body($0)
+            return try withUnsafeMutablePointer(to: &cursor) {
+                return try body($0)
             }
         }
     }
@@ -79,14 +79,24 @@ extension Data {
     }
 }
 
-func withOptionalAWSByteCursorFromData<Result>(
+func withAWSByteCursorFromOptionalData<Result>(
     to data: Data?, _ body: (aws_byte_cursor) throws -> Result) rethrows -> Result {
-    guard let _data = data else {
+    guard let data else {
         return try body(aws_byte_cursor())
     }
-    return try _data.withUnsafeBytes { rawBufferPointer -> Result in
-        let cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, _data.count)
+    return try data.withUnsafeBytes { rawBufferPointer -> Result in
+        let cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, data.count)
         return try body(cursor)
+    }
+}
+
+func withAWSByteCursorPointerFromOptionalData<Result>(
+    to data: Data?, _ body: (UnsafePointer<aws_byte_cursor>?) throws -> Result) rethrows -> Result {
+    guard let data else {
+        return try body(nil)
+    }
+    return try data.withAWSByteCursorPointer { dataByteCusorPointer in
+        return try body(dataByteCusorPointer)
     }
 }
 
@@ -287,7 +297,7 @@ func withOptionalByteCursorPointerFromStrings<Result>(
     }
 }
 
-func withOptionalByteCursorPointerFromString<Result>(
+func withOptionalByteCursorPointerFromStrings<Result>(
     _ arg1: String?,
     _ arg2: String?,
     _ arg3: String?,

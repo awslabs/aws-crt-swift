@@ -47,6 +47,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         public var onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
         public var onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
 
+        public let semaphorePublishReceived: DispatchSemaphore
         public let semaphoreConnectionSuccess: DispatchSemaphore
         public let semaphoreConnectionFailure: DispatchSemaphore
         public let semaphoreDisconnection: DispatchSemaphore
@@ -67,6 +68,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
             self.contextName = contextName
 
+            self.semaphorePublishReceived = DispatchSemaphore(value: 0)
             self.semaphoreConnectionSuccess = DispatchSemaphore(value: 0)
             self.semaphoreConnectionFailure = DispatchSemaphore(value: 0)
             self.semaphoreDisconnection = DispatchSemaphore(value: 0)
@@ -79,8 +81,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
             self.onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure
             self.onLifecycleEventDisconnection = onLifecycleEventDisconnection
 
-            self.onPublishReceived = onPublishReceived ?? { _ in
-                print(contextName + " Mqtt5ClientTests: onPublishReceived")
+            self.onPublishReceived = onPublishReceived ?? { publishData in
+                print("Mqtt5ClientTests: onPublishReceived. Publish Recieved on topic \'\(publishData.publishPacket.topic)\', with QoS \(publishData.publishPacket.qos): \'\(publishData.publishPacket.payloadAsString())\'")
+                self.semaphorePublishReceived.signal()
             }
             self.onLifecycleEventStopped = onLifecycleEventStopped ?? { _ in
                 print(contextName + " Mqtt5ClientTests: onLifecycleEventStopped")
@@ -470,7 +473,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             messageExpiryInterval: TimeInterval(10),
             topicAlias: UInt16(1),
             responseTopic: "TEST_RESPONSE_TOPIC",
-            correlationData: "TEST_CORRELATION_DATA",
+            correlationData: "TEST_CORRELATION_DATA".data(using: .utf8),
             contentType: "TEST_CONTENT_TYPE",
             userProperties: userProperties)
 
