@@ -200,8 +200,8 @@ public class PublishPacket: CStruct {
                         
                     return withOptionalArrayRawPointer(of: subscriptionIdentifiers) { subscriptionPointer in
 
-                        if let _subscriptionPointer = subscriptionPointer {
-                            raw_publish_view.subscription_identifiers = _subscriptionPointer
+                        if let subscriptionPointer = subscriptionPointer {
+                            raw_publish_view.subscription_identifiers = subscriptionPointer
                             raw_publish_view.subscription_identifier_count = subscriptionIdentifiers!.count
                         }
 
@@ -587,10 +587,8 @@ public class DisconnectPacket: CStruct {
 
         return withOptionalUnsafePointer(to: _sessionExpiryInterval) { sessionExpiryIntervalPointer in
 
-            if let _sessionExpiryIntervalPointer = sessionExpiryIntervalPointer {
-                raw_disconnect_view.session_expiry_interval_seconds = _sessionExpiryIntervalPointer
-            }
-
+            raw_disconnect_view.session_expiry_interval_seconds = sessionExpiryIntervalPointer
+            
             return withOptionalUserPropertyArray(
                 of: userProperties) { userPropertyPointer in
 
