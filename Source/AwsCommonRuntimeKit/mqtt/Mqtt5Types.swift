@@ -749,13 +749,14 @@ public class NegotiatedSettings {
 
     static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_negotiated_settings>?) -> NegotiatedSettings? {
 
-        guard let from = from else {
+        guard let from else {
             return nil
         }
 
         let _negotiatedSettings = from.pointee
-        guard let negotiatedMaximumQos = QoS(rawValue: Int(_negotiatedSettings.maximum_qos.rawValue))
-        else { fatalError("NegotiatedSettings from native missing a maximum qos value.") }
+        guard let negotiatedMaximumQos = QoS(rawValue: Int(_negotiatedSettings.maximum_qos.rawValue)) else {
+            fatalError("NegotiatedSettings from native missing a maximum qos value.")
+        }
 
         let negotiatedSessionExpiryInterval: TimeInterval = TimeInterval(_negotiatedSettings.session_expiry_interval)
         let negotiatedReceiveMaximumFromServer = _negotiatedSettings.receive_maximum_from_server
@@ -862,10 +863,10 @@ public class MqttConnectOptions: CStruct {
             raw_connect_options.keep_alive_interval_seconds = UInt16(keepAlive)
         }
 
-        let _sessionExpiryIntervalSec: UInt32?  = try? self.sessionExpiryInterval?.secondUInt32() ?? nil
-        let _requestResponseInformation: UInt8? = self.requestResponseInformation?.uint8Value  ?? nil
-        let _requestProblemInformation: UInt8? = self.requestProblemInformation?.uint8Value ?? nil
-        let _willDelayIntervalSec: UInt32? = try? self.willDelayInterval?.secondUInt32() ?? nil
+        let _sessionExpiryIntervalSec: UInt32?  = try? self.sessionExpiryInterval?.secondUInt32()
+        let _requestResponseInformation: UInt8? = self.requestResponseInformation?.uint8Value
+        let _requestProblemInformation: UInt8? = self.requestProblemInformation?.uint8Value
+        let _willDelayIntervalSec: UInt32? = try? self.willDelayInterval?.secondUInt32()
 
         return withOptionalUnsafePointers(
             _sessionExpiryIntervalSec,
@@ -912,8 +913,9 @@ public class MqttConnectOptions: CStruct {
 /// Handles lifecycle events from native Mqtt Client
 private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
 
-    guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent
-    else { fatalError("MqttClientLifecycleEvents was called from native without an aws_mqtt5_client_lifecycle_event.") }
+    guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent else {
+        fatalError("MqttClientLifecycleEvents was called from native without an aws_mqtt5_client_lifecycle_event.")
+    }
 
     let crtError = CRTError(code: lifecycleEvent.pointee.error_code)
 
@@ -932,11 +934,13 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
 
             case AWS_MQTT5_CLET_CONNECTION_SUCCESS:
 
-                guard let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data)
-                else { fatalError("ConnackPacket missing in a Connection Success lifecycle event.") }
+                guard let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data) else {
+                    fatalError("ConnackPacket missing in a Connection Success lifecycle event.")
+                }
 
-                guard let negotiatedSettings = NegotiatedSettings.convertFromNative(lifecycleEvent.pointee.settings)
-                else { fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.") }
+                guard let negotiatedSettings = NegotiatedSettings.convertFromNative(lifecycleEvent.pointee.settings) else {
+                    fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.")
+                }
 
                 let lifecycleConnectionSuccessData = LifecycleConnectionSuccessData(
                     connackPacket: connackPacket,

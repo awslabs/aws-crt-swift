@@ -183,12 +183,11 @@ public class PublishPacket: CStruct {
         raw_publish_view.retain = retain
         return topic.withByteCursor { topicCustor in
             raw_publish_view.topic =  topicCustor
-            return withOptionalAWSByteCursorFromData(to: payload) { cByteCursor in
+            return withAWSByteCursorFromOptionalData(to: payload) { cByteCursor in
                 raw_publish_view.payload = cByteCursor
 
-                let _payloadFormatIndicatorInt: aws_mqtt5_payload_format_indicator? =
-                                                                    payloadFormatIndicator?.nativeValue ?? nil
-                let _messageExpiryInterval: UInt32? = try? messageExpiryInterval?.secondUInt32() ?? nil
+                let _payloadFormatIndicatorInt: aws_mqtt5_payload_format_indicator? = payloadFormatIndicator?.nativeValue
+                let _messageExpiryInterval: UInt32? = try? messageExpiryInterval?.secondUInt32()
 
                 return withOptionalUnsafePointers(
                     _payloadFormatIndicatorInt,
@@ -200,25 +199,27 @@ public class PublishPacket: CStruct {
                         
                     return withOptionalArrayRawPointer(of: subscriptionIdentifiers) { subscriptionPointer in
 
-                        if let subscriptionPointer = subscriptionPointer {
+                        if let subscriptionPointer = subscriptionPointer,
+                            let subscriptionCount = subscriptionIdentifiers?.count {
                             raw_publish_view.subscription_identifiers = subscriptionPointer
-                            raw_publish_view.subscription_identifier_count = subscriptionIdentifiers!.count
+                            raw_publish_view.subscription_identifier_count = subscriptionCount
                         }
 
                         return withOptionalUserPropertyArray(
                             of: userProperties) { userPropertyPointer in
-                            if let userPropertyPointer = userPropertyPointer {
-                                raw_publish_view.user_property_count = userProperties!.count
+                            if let userPropertyPointer,
+                               let userPropertyCount = self.userProperties?.count {
+                                raw_publish_view.user_property_count = userPropertyCount
                                 raw_publish_view.user_properties =
                                     UnsafePointer<aws_mqtt5_user_property>(userPropertyPointer)
                             }
                             return withOptionalByteCursorPointerFromStrings(
-                            responseTopic,
-                            contentType) { cResponseTopic, cContentType in
+                                    responseTopic,
+                                    contentType) { cResponseTopic, cContentType in
                                 raw_publish_view.content_type = cContentType
                                 raw_publish_view.response_topic = cResponseTopic
 
-                                return withOptionalByteCursorPointerFromData(to: self.correlationData) {  cCorrelationData in
+                                return withAWSByteCursorPointerFromOptionalData(to: self.correlationData) {  cCorrelationData in
                                     raw_publish_view.correlation_data = cCorrelationData
                                     return body(raw_publish_view)
                                 }
@@ -231,12 +232,12 @@ public class PublishPacket: CStruct {
     }
 
     static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_publish_view>?) -> PublishPacket? {
-        guard let from = from else {
+        guard let from else {
             return nil
         }
         let publishView = from.pointee
 
-        let payload: Data = Data(bytes: publishView.payload.ptr, count: publishView.payload.len)
+        let payload = Data(bytes: publishView.payload.ptr, count: publishView.payload.len)
 
         let payloadFormatIndicator: PayloadFormatIndicator? = publishView.payload_format != nil ?
         PayloadFormatIndicator(rawValue: Int(publishView.payload_format.pointee.rawValue)) : nil
@@ -436,8 +437,9 @@ public class SubscribePacket: CStruct {
             return withOptionalUserPropertyArray(
                 of: userProperties) { userPropertyPointer in
 
-                    if let userPropertyPointer = userPropertyPointer {
-                        raw_subscrbe_view.user_property_count = userProperties!.count
+                    if let userPropertyPointer,
+                       let userPropertyCount = userProperties?.count {
+                        raw_subscrbe_view.user_property_count = userPropertyCount
                         raw_subscrbe_view.user_properties =
                             UnsafePointer<aws_mqtt5_user_property>(userPropertyPointer)
                     }
@@ -474,7 +476,7 @@ public class SubackPacket {
 
     public static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_suback_view>?) -> SubackPacket? {
         
-        guard let from = from else {
+        guard let from else {
             return nil
         }
         
@@ -583,7 +585,7 @@ public class DisconnectPacket: CStruct {
 
         raw_disconnect_view.reason_code = aws_mqtt5_disconnect_reason_code(UInt32(reasonCode.rawValue))
 
-        let _sessionExpiryInterval = try? sessionExpiryInterval?.secondUInt32() ?? nil
+        let _sessionExpiryInterval = try? sessionExpiryInterval?.secondUInt32()
 
         return withOptionalUnsafePointer(to: _sessionExpiryInterval) { sessionExpiryIntervalPointer in
 
@@ -592,8 +594,9 @@ public class DisconnectPacket: CStruct {
             return withOptionalUserPropertyArray(
                 of: userProperties) { userPropertyPointer in
 
-                if let userPropertyPointer = userPropertyPointer {
-                    raw_disconnect_view.user_property_count = userProperties!.count
+                if let userPropertyPointer,
+                    let userPropertyCount = userProperties?.count {
+                    raw_disconnect_view.user_property_count = userPropertyCount
                     raw_disconnect_view.user_properties =
                         UnsafePointer<aws_mqtt5_user_property>(userPropertyPointer)
                 }
@@ -610,12 +613,13 @@ public class DisconnectPacket: CStruct {
     }
 
     static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_disconnect_view>?) -> DisconnectPacket? {
-        guard let from = from else {
+        guard let from else {
             return nil
         }
         let disconnectView = from.pointee
-        guard let reasonCode = DisconnectReasonCode(rawValue: Int(disconnectView.reason_code.rawValue))
-        else { fatalError("aws_mqtt5_packet_disconnect_view from native missing a reason code.") }
+        guard let reasonCode = DisconnectReasonCode(rawValue: Int(disconnectView.reason_code.rawValue)) else {
+            fatalError("aws_mqtt5_packet_disconnect_view from native missing a reason code.")
+        }
 
         let sessionExpiryInterval = convertOptionalUInt32(disconnectView.session_expiry_interval_seconds)
         let sessionExpiryIntervalSeconds: TimeInterval? = sessionExpiryInterval.map { TimeInterval($0) }
@@ -729,14 +733,15 @@ public class ConnackPacket {
     }
 
     static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_connack_view>?) -> ConnackPacket? {
-        guard let from = from else {
+        guard let from else {
             return nil
         }
         let connackView = from.pointee
 
         let sessionPresent = connackView.session_present
-        guard let reasonCode = ConnectReasonCode(rawValue: Int(connackView.reason_code.rawValue))
-        else { fatalError("aws_mqtt5_packet_connack_view from native missing a reason code.") }
+        guard let reasonCode = ConnectReasonCode(rawValue: Int(connackView.reason_code.rawValue)) else {
+            fatalError("aws_mqtt5_packet_connack_view from native missing a reason code.")
+        }
         let sessionExpiryInterval = (connackView.session_expiry_interval?.pointee).map { TimeInterval($0) }
         let receiveMaximum = convertOptionalUInt16(connackView.receive_maximum)
 
