@@ -153,7 +153,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let clientOptionsWithCallbacks: MqttClientOptions
 
-        if let clientOptions = clientOptions {
+        if let clientOptions {
             clientOptionsWithCallbacks = MqttClientOptions(
                 hostName: clientOptions.hostName,
                 port: clientOptions.port,
