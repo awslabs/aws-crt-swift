@@ -79,23 +79,23 @@ extension Data {
     }
 }
 
-func withOptionalAWSByteCursorFromData<Result>(
+func withAWSByteCursorFromOptionalData<Result>(
     to data: Data?, _ body: (aws_byte_cursor) throws -> Result) rethrows -> Result {
-    guard let _data = data else {
+    guard let data else {
         return try body(aws_byte_cursor())
     }
-    return try _data.withUnsafeBytes { rawBufferPointer -> Result in
-        let cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, _data.count)
+    return try data.withUnsafeBytes { rawBufferPointer -> Result in
+        let cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, data.count)
         return try body(cursor)
     }
 }
 
-func withOptionalByteCursorPointerFromData<Result>(
+func withAWSByteCursorPointerFromOptionalData<Result>(
     to data: Data?, _ body: (UnsafePointer<aws_byte_cursor>?) throws -> Result) rethrows -> Result {
-    guard let _data = data else {
+    guard let data else {
         return try body(nil)
     }
-    return try _data.withAWSByteCursorPointer { dataByteCusorPointer in
+    return try data.withAWSByteCursorPointer { dataByteCusorPointer in
         return try body(dataByteCusorPointer)
     }
 }
