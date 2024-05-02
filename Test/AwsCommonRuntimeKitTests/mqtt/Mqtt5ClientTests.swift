@@ -302,7 +302,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let mqtt5client = try Mqtt5Client(clientOptions: clientOptions);
         XCTAssertNotNil(mqtt5client)
 
-    }
+            }
 
     /*
      * [New-UC2] Maximum creation and cleanup
@@ -644,8 +644,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
             privateKeyPath: inputKey
         )
 
-        try tlsOptions.overrideDefaultTrustStore(caPath: "", caFile: ca)
-        
+        try tlsOptions.overrideDefaultTrustStore(caPath: nil, caFile: ca)
+
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
 
 
