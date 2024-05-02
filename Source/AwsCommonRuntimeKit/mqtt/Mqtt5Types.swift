@@ -698,7 +698,6 @@ public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32
 /// completion of the signing process.
 public typealias OnWebSocketHandshakeIntercept = (HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete) -> Void
 
-
 /// Class containing results of a Connect Success Lifecycle Event.
 public class LifecycleConnectionSuccessData {
 
@@ -1404,7 +1403,7 @@ public class MqttClientOptions: CStructWithUserData {
                     raw_options.websocket_handshake_transform = MqttClientWebsocketTransform
                     raw_options.websocket_handshake_transform_user_data = _userData
                 }
-                
+
                 raw_options.lifecycle_event_handler = MqttClientLifeycyleEvents
                 raw_options.lifecycle_event_handler_user_data = _userData
                 raw_options.publish_received_handler = MqttClientPublishRecievedEvents

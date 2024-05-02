@@ -606,7 +606,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_TLS_PORT")
         
         // XCode could only take terminal environment variable
-        let tlsOptions = try TLSContextOptions.makeDefault()
+        let tlsOptions = TLSContextOptions.makeDefault()
         tlsOptions.setVerifyPeer(false)
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
         
@@ -633,7 +633,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let region = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
         
-        let tlsOptions = try TLSContextOptions.makeDefault()
+        let tlsOptions = TLSContextOptions.makeDefault()
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
         
         let elg = try EventLoopGroup()
@@ -647,18 +647,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
             port: UInt32(443),
             bootstrap: bootstrap,
             tlsCtx: tlsContext)
-        
-        // setup role credential
-        let accessKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_ACCESS_KEY")
-        let secret = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SECRET_ACCESS_KEY")
-        let sessionToken = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SESSION_TOKEN")
-        
-        let provider = try CredentialsProvider(source: .static(
-            accessKey: accessKey,
-            secret: secret,
-            sessionToken: sessionToken))
-        
-        
+
+        let provider = try CredentialsProvider(source: .defaultChain(bootstrap: bootstrap,
+                                                                     fileBasedConfiguration: FileBasedConfiguration(),
+                                                                     tlsContext: tlsContext))
         
         let testContext = MqttTestContext()
         testContext.withIoTSigv4WebsocketTransform(region: region, provider: provider)
@@ -682,7 +674,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let httpHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_PROXY_HOST")
         let httpPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_PROXY_PORT")
 
-        let tlsOptions = try TLSContextOptions.makeDefault()
+        let tlsOptions = TLSContextOptions.makeDefault()
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
         
         
@@ -700,16 +692,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
             tlsCtx: tlsContext,
             httpProxyOptions: httpProxy)
         
-        // setup role credential
-//        let accessKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_ACCESS_KEY")
-//        let secret = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SECRET_ACCESS_KEY")
-//        let sessionToken = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SESSION_TOKEN")
-//        
-        
         let provider = try CredentialsProvider(source: .defaultChain(bootstrap: bootstrap,
                                                                      fileBasedConfiguration: FileBasedConfiguration(),
                                                                      tlsContext: tlsContext))
-        
         let testContext = MqttTestContext()
         testContext.withIoTSigv4WebsocketTransform(region: region, provider: provider)
         
@@ -725,8 +710,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
      * [ConnWS-UC5] Websocket connection with HttpProxy options
      */
     func testMqtt5WSConnectFull() throws {
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_PORT")
 
         let userProperties = [UserProperty(name: "name1", value: "value1"),
                               UserProperty(name: "name2", value: "value2")]
@@ -777,7 +762,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         try connectClient(client: client, testContext: testContext)
         try disconnectClientCleanup(client:client, testContext: testContext)
     }
-    
     
 
     /*===============================================================
