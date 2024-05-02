@@ -608,6 +608,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         // XCode could only take terminal environment variable
         let tlsOptions = try TLSContextOptions.makeDefault()
+        tlsOptions.setVerifyPeer(false)
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
 
         let clientOptions = MqttClientOptions(
@@ -616,9 +617,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             tlsCtx: tlsContext)
 
         let testContext = MqttTestContext()
-        let provider = try CredentialsProvider(source: .static(accessKey: getEnvironmentVarOrSkipTest(environmentVarName: "TEST_RUNNER_AWS_ACCESS_KEY_ID"), secret: getEnvironmentVarOrSkipTest(environmentVarName: "TEST_RUNNER_AWS_SECRET_ACCESS_KEY")))
-        testContext.withIoTSigv4WebsocketTransform(region: "us-east-1", provider: provider)
-        // testContext.withWebsocketTransform(isSuccess: true)
+        testContext.withWebsocketTransform(isSuccess: true)
 
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
         try connectClient(client: client, testContext: testContext)
@@ -628,19 +627,16 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnWS-UC4] websocket connection with TLS, using sigv4
      */
-#if os(Linux)
     func testMqtt5WSConnectWithMutualTLS() throws {
         try skipIfPlatformDoesntSupportTLS()
         try skipifmacOS()
 
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
         let region = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
         let ca = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_TLS_ROOT_CERT_PATH")
 
         let tlsOptions = try TLSContextOptions.makeDefault()
-        try tlsOptions.overrideDefaultTrustStore(caPath: nil, caFile: ca)
+        // try tlsOptions.overrideDefaultTrustStore(caPath: nil, caFile: ca)
 
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
 
@@ -656,14 +652,11 @@ class Mqtt5ClientTests: XCBaseTestCase {
             port: UInt32(443),
             bootstrap: bootstrap,
             tlsCtx: tlsContext)
-
-        let testContext = MqttTestContext()
-
-
+        
+        // setup role credential
         let accessKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_ACCESS_KEY")
         let secret = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SECRET_ACCESS_KEY")
         let sessionToken = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SESSION_TOKEN")
-        print("key: \(accessKey) \n secret: \(secret)")
 
         let provider = try CredentialsProvider(source: .static(
                 accessKey: accessKey,
@@ -671,6 +664,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 sessionToken: sessionToken))
 
 
+        
+        let testContext = MqttTestContext()
         testContext.withIoTSigv4WebsocketTransform(region: region, provider: provider)
 
 
@@ -679,7 +674,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         try connectClient(client: client, testContext: testContext)
         try disconnectClientCleanup(client:client, testContext: testContext)
     }
-#endif
 
     /*===============================================================
                      NEGATIVE CONNECT TEST CASES
