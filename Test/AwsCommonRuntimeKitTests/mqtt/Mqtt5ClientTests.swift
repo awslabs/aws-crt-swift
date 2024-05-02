@@ -639,11 +639,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let region = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
         let ca = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_TLS_ROOT_CERT_PATH")
 
-        let tlsOptions = try TLSContextOptions.makeMTLS(
-            certificatePath: inputCert,
-            privateKeyPath: inputKey
-        )
-
+        let tlsOptions = try TLSContextOptions.makeDefault()
         try tlsOptions.overrideDefaultTrustStore(caPath: nil, caFile: ca)
 
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
