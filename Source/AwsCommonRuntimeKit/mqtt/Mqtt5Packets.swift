@@ -262,23 +262,21 @@ public class PublishPacket: CStruct {
             fatalError("PublishPacket Received has an invalid qos")
         }
 
-        let publishPacket = PublishPacket(
-                                        qos: qos,
-                                        topic: publishView.topic.toString(),
-                                        payload: payload,
-                                        retain: publishView.retain,
-                                        payloadFormatIndicator: payloadFormatIndicator,
-                                        messageExpiryInterval: messageExpiryIntervalTimeInterval,
-                                        topicAlias: convertOptionalUInt16(publishView.topic_alias),
-                                        responseTopic: convertAwsByteCursorToOptionalString(publishView.response_topic),
-                                        correlationData: correlationDataPointer,
-                                        subscriptionIdentifiers: identifier,
-                                        contentType: convertAwsByteCursorToOptionalString(publishView.content_type),
-                                        userProperties: userProperties)
+        let publishPacket = PublishPacket(qos: qos,
+                                          topic: publishView.topic.toString(),
+                                          payload: payload,
+                                          retain: publishView.retain,
+                                          payloadFormatIndicator: payloadFormatIndicator,
+                                          messageExpiryInterval: messageExpiryIntervalTimeInterval,
+                                          topicAlias: convertOptionalUInt16(publishView.topic_alias),
+                                          responseTopic: convertAwsByteCursorToOptionalString(publishView.response_topic),
+                                          correlationData: correlationDataPointer,
+                                          subscriptionIdentifiers: identifier,
+                                          contentType: convertAwsByteCursorToOptionalString(publishView.content_type),
+                                          userProperties: userProperties)
 
         return publishPacket
     }
-
 }
 
 /// Publish result returned by Publish operation.
@@ -445,10 +443,10 @@ public class SubscribePacket: CStruct {
                              subscriptionIdentifier: UInt32? = nil,
                              userProperties: [UserProperty]? = nil) {
         self.init(subscriptions: [Subscription(topicFilter: topicFilter,
-                                               qos: qos,
-                                               noLocal: noLocal,
-                                               retainAsPublished: retainAsPublished,
-                                               retainHandlingType: retainHandlingType)],
+                  qos: qos,
+                  noLocal: noLocal,
+                  retainAsPublished: retainAsPublished,
+                  retainHandlingType: retainHandlingType)],
                   subscriptionIdentifier: subscriptionIdentifier,
                   userProperties: userProperties)
     }
@@ -485,7 +483,7 @@ public class SubscribePacket: CStruct {
                             raw_subscrbe_view.subscription_identifier = identiferPointer
                             return body(raw_subscrbe_view)
                         }
-                }
+            }
         }
     }
 }
@@ -554,7 +552,6 @@ public class UnsubscribePacket: CStruct {
                  userProperties: [UserProperty]? = nil) {
         self.topicFilters = topicFilters
         self.userProperties = userProperties
-
         rawTopicFilters = convertTopicFilters(self.topicFilters)
     }
 
