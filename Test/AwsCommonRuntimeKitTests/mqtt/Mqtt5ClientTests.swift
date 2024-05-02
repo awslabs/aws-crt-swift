@@ -637,7 +637,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
         let region = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
-        let ca = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT311_IOT_CORE_X509_CA")
+        let ca = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_TLS_ROOT_CERT_PATH")
 
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
