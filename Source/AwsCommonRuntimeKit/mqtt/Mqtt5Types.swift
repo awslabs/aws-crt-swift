@@ -3,6 +3,11 @@
 import Foundation
 import AwsCMqtt
 
+// TODO this is temporary. We will replace this with aws-crt-swift error codes.
+enum MqttError: Error {
+    case validation(message: String)
+}
+
 /// MQTT message delivery quality of service.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901234>`__ encoding values.
 public enum QoS: Int {
@@ -855,10 +860,31 @@ public class MqttConnectOptions: CStruct {
         self.userProperties = userProperties
     }
 
+    func validateConversionToNative() throws {
+        if let keepAliveInterval {
+            if keepAliveInterval < 0 || keepAliveInterval > Double(UInt16.max) {
+                throw MqttError.validation(message: "Invalid keepAliveInterval value")
+            }
+        }
+
+        do {
+            _ = try sessionExpiryInterval?.secondUInt32()
+        } catch {
+            throw MqttError.validation(message: "Invalid sessionExpiryInterval value")
+        }
+
+        do {
+            _ = try willDelayInterval?.secondUInt32()
+        } catch {
+            throw MqttError.validation(message: "Invalid willDelayInterval value")
+        }
+    }
+
     typealias RawType = aws_mqtt5_packet_connect_view
     func withCStruct<Result>( _ body: (RawType) -> Result) -> Result {
 
         var raw_connect_options = aws_mqtt5_packet_connect_view()
+
         if let keepAlive = self.keepAliveInterval {
             raw_connect_options.keep_alive_interval_seconds = UInt16(keepAlive)
         }
@@ -1149,6 +1175,48 @@ public class MqttClientOptions: CStructWithUserData {
             self.onLifecycleEventDisconnectionFn = onLifecycleEventDisconnectionFn
         }
 
+    func validateConversionToNative() throws {
+        if let connectOptions {
+            try connectOptions.validateConversionToNative()
+        }
+
+        do {
+            _ = try minReconnectDelay?.millisecondUInt64()
+        } catch {
+            throw MqttError.validation(message: "Invalid minReconnectDelay value")
+        }
+
+        do {
+            _ = try maxReconnectDelay?.millisecondUInt64()
+        } catch {
+            throw MqttError.validation(message: "Invalid maxReconnectDelay value")
+        }
+
+        do {
+            _ = try minConnectedTimeToResetReconnectDelay?.millisecondUInt64()
+        } catch {
+            throw MqttError.validation(message: "Invalid minConnectedTimeToResetReconnectDelay value")
+        }
+
+        do {
+            _ = try pingTimeout?.millisecondUInt32()
+        } catch {
+            throw MqttError.validation(message: "Invalid pingTimeout value")
+        }
+
+        do {
+            _ = try connackTimeout?.millisecondUInt32()
+        } catch {
+            throw MqttError.validation(message: "Invalid connackTimeout value")
+        }
+
+        if let ackTimeout {
+            if ackTimeout < 0 || ackTimeout > Double(UInt32.max) {
+                throw MqttError.validation(message: "Invalid ackTimeout value")
+            }
+        }
+    }
+
     typealias RawType = aws_mqtt5_client_options
     func withCStruct<Result>(userData: UnsafeMutableRawPointer?, _ body: (aws_mqtt5_client_options) -> Result) -> Result {
         var raw_options = aws_mqtt5_client_options()
@@ -1191,15 +1259,15 @@ public class MqttClientOptions: CStructWithUserData {
         }
 
         if let pingTimeout = self.pingTimeout {
-            raw_options.ping_timeout_ms = pingTimeout.millisecondUInt32
+            raw_options.ping_timeout_ms = UInt32((pingTimeout*1_000).rounded())
         }
 
         if let connackTimeout = self.connackTimeout {
-            raw_options.connack_timeout_ms = connackTimeout.millisecondUInt32
+            raw_options.connack_timeout_ms = UInt32((connackTimeout*1_000).rounded())
         }
 
         if let ackTimeout = self.ackTimeout {
-            raw_options.ack_timeout_seconds = ackTimeout.millisecondUInt32
+            raw_options.ack_timeout_seconds = UInt32(ackTimeout)
         }
 
         // We assign a default connection option if options is not set

@@ -11,6 +11,8 @@ public class Mqtt5Client {
 
     init(clientOptions options: MqttClientOptions) throws {
 
+        try options.validateConversionToNative()
+
         self.callbackCore = MqttCallbackCore(
             onPublishReceivedCallback: options.onPublishReceivedFn,
             onLifecycleEventStoppedCallback: options.onLifecycleEventStoppedFn,
@@ -45,11 +47,13 @@ public class Mqtt5Client {
         }
     }
 
-    public func stop(_ disconnectPacket: DisconnectPacket? = nil) throws {
+    public func stop(disconnectPacket: DisconnectPacket? = nil) throws {
         if rawValue != nil {
             var errorCode: Int32 = 0
 
             if let disconnectPacket {
+                try disconnectPacket.validateConversionToNative()
+
                 disconnectPacket.withCPointer { disconnectPointer in
                     errorCode = aws_mqtt5_client_stop(rawValue, disconnectPointer, nil)
                 }
@@ -99,6 +103,8 @@ public class Mqtt5Client {
     ///
     /// - Throws: CommonRuntimeError.crtError
     public func publish(publishPacket: PublishPacket) async throws -> PublishResult {
+
+        try publishPacket.validateConversionToNative()
 
         return try await withCheckedThrowingContinuation { continuation in
 

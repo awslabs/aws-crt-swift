@@ -26,8 +26,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
     }
 
     /// stop client and check for discconnection and stopped lifecycle events
-    func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext) throws -> Void {
-        try client.stop()
+    func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) throws -> Void {
+        try client.stop(disconnectPacket: disconnectPacket)
+
         if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
             print("Disconnection timed out after 5 seconds")
             XCTFail("Disconnection timed out")
@@ -717,6 +718,193 @@ class Mqtt5ClientTests: XCBaseTestCase {
     }
 
     /*===============================================================
+                     NEGATIVE DATA INPUT TESTS
+    =================================================================*/
+    /*
+    * [NewNegative-UC1] Negative Connect Packet Properties
+    */
+    func testMqtt5NegativeConnectPacket() throws {
+        do {
+            let connectOptions = MqttConnectOptions(keepAliveInterval: TimeInterval(-1))
+            let clientOptions = MqttClientOptions(hostName: "localhost",
+                                              port: UInt32(8883),
+                                              connectOptions: connectOptions)
+
+            let _ = try Mqtt5Client(clientOptions: clientOptions)
+            XCTFail("Negative keepAliveInterval didn't throw an error.")
+            return
+        }
+        catch {
+            print("expected keepAliveInterval error: \(error)")
+        }
+
+        do {
+            let connectOptions = MqttConnectOptions(sessionExpiryInterval: TimeInterval(-1))
+            let clientOptions = MqttClientOptions(hostName: "localhost",
+                                              port: UInt32(8883),
+                                              connectOptions: connectOptions)
+            let _ = try Mqtt5Client(clientOptions: clientOptions)
+            XCTFail("Negative sessionExpiryInterval didn't throw an error.")
+            return
+        } catch {
+            print("expected sessionExpirtyInterval error: \(error)")
+        }
+
+        do {
+            let connectOptions = MqttConnectOptions(willDelayInterval: -1)
+            let clientOptions = MqttClientOptions(hostName: "localhost",
+                                              port: UInt32(8883),
+                                              connectOptions: connectOptions)
+            let _ = try Mqtt5Client(clientOptions: clientOptions)
+            XCTFail("Negative willDelayInterval didn't throw an error.")
+            return
+        } catch {
+            print("expected willDelayInterval error: \(error)")
+        }
+
+        do {
+            let clientOptions = MqttClientOptions(hostName: "localhost",
+                                              port: UInt32(8883),
+                                              minReconnectDelay: -1)
+            let _ = try Mqtt5Client(clientOptions: clientOptions)
+            XCTFail("Negative minReconnectDelay didn't throw an error.")
+            return
+        } catch {
+            print("expected minReconnectDelay error: \(error)")
+        }
+
+        do {
+            let clientOptions = MqttClientOptions(hostName: "localhost",
+                                              port: UInt32(8883),
+                                              maxReconnectDelay: -1)
+            let _ = try Mqtt5Client(clientOptions: clientOptions)
+            XCTFail("Negative maxReconnectDelay didn't throw an error.")
+            return
+        } catch {
+            print("expected minReconnectDelay error: \(error)")
+        }
+
+        do {
+            let clientOptions = MqttClientOptions(hostName: "localhost",
+                                              port: UInt32(8883),
+                                              minConnectedTimeToResetReconnectDelay: -1)
+            let _ = try Mqtt5Client(clientOptions: clientOptions)
+            XCTFail("Negative minConnectedTimeToResetReconnectDelay didn't throw an error.")
+            return
+        } catch {
+            print("expected minConnectedTimeToResetReconnectDelay error: \(error)")
+        }
+
+        do {
+            let clientOptions = MqttClientOptions(hostName: "localhost",
+                                              port: UInt32(8883),
+                                              pingTimeout: -1)
+            let _ = try Mqtt5Client(clientOptions: clientOptions)
+            XCTFail("Negative pingTimeout didn't throw an error.")
+            return
+        } catch {
+            print("expected pingTimeout error: \(error)")
+        }
+
+        do {
+            let clientOptions = MqttClientOptions(hostName: "localhost",
+                                              port: UInt32(8883),
+                                              connackTimeout: -1)
+            let _ = try Mqtt5Client(clientOptions: clientOptions)
+            XCTFail("Negative connackTimeout didn't throw an error.")
+            return
+        } catch {
+            print("expected connackTimeout error: \(error)")
+        }
+
+        do {
+            let clientOptions = MqttClientOptions(hostName: "localhost",
+                                              port: UInt32(8883),
+                                              ackTimeout: -1)
+            let _ = try Mqtt5Client(clientOptions: clientOptions)
+            XCTFail("Negative ackTimeout didn't throw an error.")
+            return
+        } catch {
+            print("expected ackTimeout error: \(error)")
+        }
+    }
+
+    /*
+    * [NewNegative-UC2] Negative Disconnect Packet Properties
+    */
+    func testMqtt5NegativeDisconnectPacket() async throws {
+        try skipIfPlatformDoesntSupportTLS()
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+        let tlsOptions = try TLSContextOptions.makeMTLS(
+            certificatePath: inputCert,
+            privateKeyPath: inputKey
+        )
+        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(8883),
+            tlsCtx: tlsContext)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try connectClient(client: client, testContext: testContext)
+
+        let disconnectPacket = DisconnectPacket(sessionExpiryInterval: -1)
+        do {
+            try client.stop(disconnectPacket: disconnectPacket)
+            XCTFail("Negative sessionExpiryInterval didn't throw an error.")
+            return
+        } catch {
+            print("expected sessionExpiryInterval error: \(error)")
+        }
+    }
+
+    /*
+    * [NewNegative-UC3] Negative Publish Packet Properties
+    */
+    func testMqtt5NegativePublishPacket() async throws {
+        try skipIfPlatformDoesntSupportTLS()
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+        let tlsOptions = try TLSContextOptions.makeMTLS(
+            certificatePath: inputCert,
+            privateKeyPath: inputKey
+        )
+        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(8883),
+            tlsCtx: tlsContext)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try connectClient(client: client, testContext: testContext)
+
+        let publishPacket = PublishPacket(qos: .atMostOnce,
+                                          topic: "Test/Topic",
+                                          messageExpiryInterval: -1)
+
+        do {
+            let _ = try await client.publish(publishPacket: publishPacket)
+            XCTFail("Negative messageExpiryInterval didn't throw an error.")
+            return
+        } catch {
+            print("expected messageExpiryInterval error: \(error)")
+        }
+    }
+
+    /*
+    * [NewNegative-UC4] Negative Subscribe Packet Properties (Swift does not allow a negative subscriptionIdentifier)
+    */
+
+    /*===============================================================
                          NEGOTIATED SETTINGS TESTS
     =================================================================*/
     /*
@@ -950,15 +1138,16 @@ class Mqtt5ClientTests: XCBaseTestCase {
             })
         print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
 
-        let _ = DisconnectPacket(reasonCode: .disconnectWithWillMessage)
-        try disconnectClientCleanup(client: clientPublisher, testContext: testContextPublisher)
+        let disconnectPacket = DisconnectPacket(reasonCode: .disconnectWithWillMessage)
+        try disconnectClientCleanup(client: clientPublisher, testContext: testContextPublisher, disconnectPacket: disconnectPacket)
 
         if testContextSubscriber.semaphorePublishReceived.wait(timeout: .now() + 5) == .timedOut {
             print("Publish not received after 5 seconds")
             XCTFail("Publish packet not received on subscribed topic")
             return
         }
-        try stopClient(client: clientSubscriber, testContext: testContextSubscriber)
+
+        try disconnectClientCleanup(client:clientSubscriber, testContext: testContextSubscriber)
     }
 
     /*
