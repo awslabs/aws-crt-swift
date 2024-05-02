@@ -286,6 +286,7 @@ extension CredentialsProvider.Source {
     /// - Throws: CommonRuntimeError.crtError
     public static func `defaultChain`(bootstrap: ClientBootstrap,
                                       fileBasedConfiguration: FileBasedConfiguration,
+                                      tlsContext: TLSContext? = nil,
                                       shutdownCallback: ShutdownCallback? = nil) -> Self {
         Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
@@ -294,6 +295,9 @@ extension CredentialsProvider.Source {
             chainDefaultOptions.bootstrap = bootstrap.rawValue
             chainDefaultOptions.profile_collection_cached = fileBasedConfiguration.rawValue
             chainDefaultOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
+            if let tlsContext {
+                chainDefaultOptions.tls_ctx = tlsContext.rawValue
+            }
 
             guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue,
                                                                             &chainDefaultOptions)

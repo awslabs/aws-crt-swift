@@ -150,9 +150,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
             }
          }
         
+        // manually fail the handshake with error AWS_ERROR_UNSUPPORTED_OPERATION
         func withWebsocketTransform(isSuccess: Bool){
             self.onWebSocketHandshake = { httpRequest, completCallback in
-                completCallback(httpRequest, isSuccess ? 0 : -1)
+                completCallback(httpRequest, isSuccess ? 0 : Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
             }
         }
         
@@ -174,7 +175,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
                     }
                     catch
                     {
-                        completCallback(httpRequest, -1)
+                        completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
                     }
                 }
             }
@@ -631,13 +632,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
         
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let region = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
-        let ca = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_TLS_ROOT_CERT_PATH")
         
         let tlsOptions = try TLSContextOptions.makeDefault()
-        // try tlsOptions.overrideDefaultTrustStore(caPath: nil, caFile: ca)
-        
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-        
         
         let elg = try EventLoopGroup()
         let resolver = try HostResolver(eventLoopGroup: elg,
@@ -672,6 +669,116 @@ class Mqtt5ClientTests: XCBaseTestCase {
         try connectClient(client: client, testContext: testContext)
         try disconnectClientCleanup(client:client, testContext: testContext)
     }
+    
+    /*
+     * [ConnWS-UC5] Websocket connection with HttpProxy options
+     */
+    func testMqtt5WSConnectWithHttpProxy() throws {
+        try skipIfPlatformDoesntSupportTLS()
+        try skipifmacOS()
+        
+        let iotHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+        let region = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
+        let httpHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_PROXY_HOST")
+        let httpPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_PROXY_PORT")
+
+        let tlsOptions = try TLSContextOptions.makeDefault()
+        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+        
+        
+        let elg = try EventLoopGroup()
+        let resolver = try HostResolver(eventLoopGroup: elg,
+                                        maxHosts: 8,
+                                        maxTTL: 30)
+        let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
+        let httpProxy = HTTPProxyOptions(hostName: httpHost, port: UInt32(httpPort)!, authType: .none, connectionType: HTTPProxyConnectionType.tunnel)
+        
+        let clientOptions = MqttClientOptions(
+            hostName: iotHost,
+            port: UInt32(443),
+            bootstrap: bootstrap,
+            tlsCtx: tlsContext,
+            httpProxyOptions: httpProxy)
+        
+        // setup role credential
+//        let accessKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_ACCESS_KEY")
+//        let secret = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SECRET_ACCESS_KEY")
+//        let sessionToken = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SESSION_TOKEN")
+//        
+        
+        let provider = try CredentialsProvider(source: .defaultChain(bootstrap: bootstrap,
+                                                                     fileBasedConfiguration: FileBasedConfiguration(),
+                                                                     tlsContext: tlsContext))
+        
+        let testContext = MqttTestContext()
+        testContext.withIoTSigv4WebsocketTransform(region: region, provider: provider)
+        
+        
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        testContext.onWebSocketHandshake = nil
+        try connectClient(client: client, testContext: testContext)
+        try disconnectClientCleanup(client:client, testContext: testContext)
+    }
+    
+    
+    /*
+     * [ConnWS-UC5] Websocket connection with HttpProxy options
+     */
+    func testMqtt5WSConnectFull() throws {
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+        let userProperties = [UserProperty(name: "name1", value: "value1"),
+                              UserProperty(name: "name2", value: "value2")]
+
+        let willPacket = PublishPacket(
+            qos: QoS.atLeastOnce,
+            topic: "TEST_TOPIC",
+            payload: "TEST_PAYLOAD".data(using: .utf8),
+            retain: false,
+            payloadFormatIndicator: PayloadFormatIndicator.utf8,
+            messageExpiryInterval: TimeInterval(10),
+            topicAlias: UInt16(1),
+            responseTopic: "TEST_RESPONSE_TOPIC",
+            correlationData: "TEST_CORRELATION_DATA".data(using: .utf8),
+            contentType: "TEST_CONTENT_TYPE",
+            userProperties: userProperties)
+
+        let connectOptions = MqttConnectOptions(
+            keepAliveInterval: TimeInterval(10),
+            clientId: createClientId(),
+            sessionExpiryInterval: TimeInterval(100),
+            requestResponseInformation: true,
+            requestProblemInformation: true,
+            receiveMaximum: 1000,
+            maximumPacketSize: 10000,
+            willDelayInterval: TimeInterval(1000),
+            will: willPacket,
+            userProperties: userProperties)
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!,
+            connectOptions: connectOptions,
+            sessionBehavior: ClientSessionBehaviorType.clean,
+            extendedValidationAndFlowControlOptions: ExtendedValidationAndFlowControlOptions.awsIotCoreDefaults,
+            offlineQueueBehavior: ClientOperationQueueBehaviorType.failAllOnDisconnect,
+            retryJitterMode: ExponentialBackoffJitterMode.decorrelated,
+            minReconnectDelay: TimeInterval(0.1),
+            maxReconnectDelay: TimeInterval(50),
+            minConnectedTimeToResetReconnectDelay: TimeInterval(1),
+            pingTimeout: TimeInterval(1),
+            connackTimeout: TimeInterval(1),
+            ackTimeout: TimeInterval(100))
+
+        let testContext = MqttTestContext()
+        testContext.withWebsocketTransform(isSuccess: true)
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try connectClient(client: client, testContext: testContext)
+        try disconnectClientCleanup(client:client, testContext: testContext)
+    }
+    
+    
 
     /*===============================================================
                      NEGATIVE CONNECT TEST CASES
@@ -745,7 +852,38 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnNegativeID-UC3] Client connect with invalid port for websocket connection
      */
-     // TODO implement this test after websocket is implemented
+    func testMqtt5WSInvalidPort() throws {
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: 443)
+
+        let testContext = MqttTestContext()
+        testContext.withWebsocketTransform(isSuccess: true)
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        
+        try client.start()
+
+        if testContext.semaphoreConnectionFailure.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Failure Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+            return
+        }
+
+        if let failureData = testContext.lifecycleConnectionFailureData {
+            if failureData.crtError.code != Int32(AWS_IO_SOCKET_CONNECTION_REFUSED.rawValue) &&
+               failureData.crtError.code != Int32(AWS_IO_SOCKET_TIMEOUT.rawValue) {
+                XCTFail("Did not fail with expected error code")
+                return
+            }
+        } else {
+            XCTFail("lifecycleConnectionFailureData Missing")
+            return
+        }
+
+        try stopClient(client: client, testContext: testContext)
+    }
 
     /*
      * [ConnNegativeID-UC4] Client connect with socket timeout
@@ -811,7 +949,40 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnNegativeID-UC6] Client Websocket Handshake Failure test
      */
-     // TODO Implement this test after implementation of Websockets
+    func testMqtt5WSHandshakeFailure() throws {
+        
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_PORT")
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!)
+
+        let testContext = MqttTestContext()
+        testContext.withWebsocketTransform(isSuccess: false)
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        
+        try client.start()
+
+        if testContext.semaphoreConnectionFailure.wait(timeout: .now() + 5) == .timedOut {
+            print("Connection Failure Timed out after 5 seconds")
+            XCTFail("Connection Timed Out")
+            return
+        }
+
+        if let failureData = testContext.lifecycleConnectionFailureData {
+            if failureData.crtError.code != Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue) {
+                XCTFail("Did not fail with expected error code")
+                return
+            }
+        } else {
+            XCTFail("lifecycleConnectionFailureData Missing")
+            return
+        }
+
+        try stopClient(client: client, testContext: testContext)
+    }
+
 
     /*
     * [ConnNegativeID-UC7] Double Client ID Failure test
