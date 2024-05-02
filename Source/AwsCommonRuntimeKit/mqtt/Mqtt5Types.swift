@@ -861,26 +861,22 @@ public class MqttConnectOptions: CStruct {
     }
 
     func validateConversionToNative() throws {
-        if let _keepAliveInterval = self.keepAliveInterval {
-            if _keepAliveInterval < 0 || _keepAliveInterval > Double(UInt16.max) {
+        if let keepAliveInterval {
+            if keepAliveInterval < 0 || keepAliveInterval > Double(UInt16.max) {
                 throw MqttError.validation(message: "Invalid keepAliveInterval value")
             }
         }
 
-        if let _sessionExpiryInterval = self.sessionExpiryInterval {
-            do {
-                _ = try _sessionExpiryInterval.secondUInt32()
-            } catch {
-                throw MqttError.validation(message: "Invalid sessionExpiryInterval value")
-            }
+        do {
+            _ = try sessionExpiryInterval?.secondUInt32()
+        } catch {
+            throw MqttError.validation(message: "Invalid sessionExpiryInterval value")
         }
 
-        if let _willDelayInterval = self.willDelayInterval {
-            do {
-                _ = try _willDelayInterval.secondUInt32()
-            } catch {
-                throw MqttError.validation(message: "Invalid willDelayInterval value")
-            }
+        do {
+            _ = try willDelayInterval?.secondUInt32()
+        } catch {
+            throw MqttError.validation(message: "Invalid willDelayInterval value")
         }
     }
 
@@ -1180,52 +1176,42 @@ public class MqttClientOptions: CStructWithUserData {
         }
 
     func validateConversionToNative() throws {
-        if let _connectOptions = self.connectOptions {
-            try _connectOptions.validateConversionToNative()
+        if let connectOptions {
+            try connectOptions.validateConversionToNative()
         }
 
-        if let _minReconnectDelay = self.minReconnectDelay {
-            do {
-                _ = try _minReconnectDelay.millisecondUInt64()
-            } catch {
-                throw MqttError.validation(message: "Invalid minReconnectDelay value")
-            }
+        do {
+            _ = try minReconnectDelay?.millisecondUInt64()
+        } catch {
+            throw MqttError.validation(message: "Invalid minReconnectDelay value")
         }
 
-        if let _maxReconnectDelay = self.maxReconnectDelay {
-            do {
-                _ = try _maxReconnectDelay.millisecondUInt64()
-            } catch {
-                throw MqttError.validation(message: "Invalid maxReconnectDelay value")
-            }
+        do {
+            _ = try maxReconnectDelay?.millisecondUInt64()
+        } catch {
+            throw MqttError.validation(message: "Invalid maxReconnectDelay value")
         }
 
-        if let _minConnectedTimeToResetReconnectDelay = self.minConnectedTimeToResetReconnectDelay {
-            do {
-                _ = try _minConnectedTimeToResetReconnectDelay.millisecondUInt64()
-            } catch {
-                throw MqttError.validation(message: "Invalid minConnectedTimeToResetReconnectDelay value")
-            }
+        do {
+            _ = try minConnectedTimeToResetReconnectDelay?.millisecondUInt64()
+        } catch {
+            throw MqttError.validation(message: "Invalid minConnectedTimeToResetReconnectDelay value")
         }
 
-        if let _pingTimeout = self.pingTimeout {
-            do {
-                _ = try _pingTimeout.millisecondUInt32()
-            } catch {
-                throw MqttError.validation(message: "Invalid pingTimeout value")
-            }
+        do {
+            _ = try pingTimeout?.millisecondUInt32()
+        } catch {
+            throw MqttError.validation(message: "Invalid pingTimeout value")
         }
 
-        if let _connackTimeout = self.connackTimeout {
-            do {
-                _ = try _connackTimeout.millisecondUInt32()
-            } catch {
-                throw MqttError.validation(message: "Invalid connackTimeout value")
-            }
+        do {
+            _ = try connackTimeout?.millisecondUInt32()
+        } catch {
+            throw MqttError.validation(message: "Invalid connackTimeout value")
         }
 
-        if let _ackTimeout = self.ackTimeout {
-            if _ackTimeout < 0 || _ackTimeout > Double(UInt32.max) {
+        if let ackTimeout {
+            if ackTimeout < 0 || ackTimeout > Double(UInt32.max) {
                 throw MqttError.validation(message: "Invalid ackTimeout value")
             }
         }

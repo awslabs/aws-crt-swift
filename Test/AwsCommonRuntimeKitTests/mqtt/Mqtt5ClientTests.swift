@@ -27,11 +27,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
     /// stop client and check for discconnection and stopped lifecycle events
     func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) throws -> Void {
-        if let _disconnectPacket = disconnectPacket {
-            try client.stop(disconnectPacket: _disconnectPacket)
-        } else {
-            try client.stop()
-        }
+        try client.stop(disconnectPacket: disconnectPacket)
 
         if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
             print("Disconnection timed out after 5 seconds")
