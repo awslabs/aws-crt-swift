@@ -51,7 +51,7 @@ public class Mqtt5Client {
         if rawValue != nil {
             var errorCode: Int32 = 0
 
-            if let disconnectPacket = disconnectPacket {
+            if let disconnectPacket {
                 try disconnectPacket.validateConversionToNative()
 
                 disconnectPacket.withCPointer { disconnectPointer in

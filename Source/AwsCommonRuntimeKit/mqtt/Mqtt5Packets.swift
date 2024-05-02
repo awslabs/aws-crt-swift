@@ -176,8 +176,8 @@ public class PublishPacket: CStruct {
     }
 
     func validateConversionToNative() throws {
-        if let _messageExpiryInterval = messageExpiryInterval {
-            if _messageExpiryInterval < 0 || _messageExpiryInterval > Double(UInt32.max) {
+        if let messageExpiryInterval {
+            if messageExpiryInterval < 0 || messageExpiryInterval > Double(UInt32.max) {
                 throw MqttError.validation(message: "Invalid sessionExpiryInterval value")
             }
         }
@@ -680,8 +680,8 @@ public class DisconnectPacket: CStruct {
             self.userProperties = userProperties
         }
     func validateConversionToNative() throws {
-        if let _sessionExpiryInterval = sessionExpiryInterval {
-            if _sessionExpiryInterval < 0 || _sessionExpiryInterval > Double(UInt32.max) {
+        if let sessionExpiryInterval {
+            if sessionExpiryInterval < 0 || sessionExpiryInterval > Double(UInt32.max) {
                 throw MqttError.validation(message: "Invalid sessionExpiryInterval value")
             }
         }
