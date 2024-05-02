@@ -49,7 +49,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /// stop client and check for stopped lifecycle event
     func stopClient(client: Mqtt5Client, testContext: MqttTestContext) throws -> Void {
         try client.stop()
-
         if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
             print("Stop timed out after 5 seconds")
             XCTFail("Stop timed out")
