@@ -637,12 +637,17 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
         let region = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
+        let ca = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_TLS_ROOT_CERT_PATH")
 
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
             privateKeyPath: inputKey
         )
+
+        try tlsOptions.overrideDefaultTrustStore(caPath: "", caFile: ca)
+        
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
 
         let elg = try EventLoopGroup()
         let resolver = try HostResolver(eventLoopGroup: elg,
@@ -678,7 +683,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         try connectClient(client: client, testContext: testContext)
         try disconnectClientCleanup(client:client, testContext: testContext)
     }
-    #endif
+#endif
 
     /*===============================================================
                      NEGATIVE CONNECT TEST CASES
