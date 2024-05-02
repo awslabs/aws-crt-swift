@@ -547,22 +547,22 @@ public class TopicAliasingOptions: CStruct {
     typealias RawType = aws_mqtt5_client_topic_alias_options
     func withCStruct<Result>(_ body: (aws_mqtt5_client_topic_alias_options) -> Result) -> Result {
         var raw_topic_alias_options = aws_mqtt5_client_topic_alias_options()
-        if let _outboundBehavior = outboundBehavior {
+        if let outboundBehavior = outboundBehavior {
             raw_topic_alias_options.outbound_topic_alias_behavior =
-            aws_mqtt5_client_outbound_topic_alias_behavior_type(UInt32(_outboundBehavior.rawValue))
+            aws_mqtt5_client_outbound_topic_alias_behavior_type(UInt32(outboundBehavior.rawValue))
         }
 
-        if let _outboundCacheMaxSize = outboundCacheMaxSize {
-            raw_topic_alias_options.outbound_alias_cache_max_size = _outboundCacheMaxSize
+        if let outboundCacheMaxSize = outboundCacheMaxSize {
+            raw_topic_alias_options.outbound_alias_cache_max_size = outboundCacheMaxSize
         }
 
-        if let _inboundBehavior = inboundBehavior {
+        if let inboundBehavior = inboundBehavior {
             raw_topic_alias_options.inbound_topic_alias_behavior =
-            aws_mqtt5_client_inbound_topic_alias_behavior_type(UInt32(_inboundBehavior.rawValue))
+            aws_mqtt5_client_inbound_topic_alias_behavior_type(UInt32(inboundBehavior.rawValue))
         }
 
-        if let _inboundCacheMaxSize = inboundCacheMaxSize {
-            raw_topic_alias_options.inbound_alias_cache_size = _inboundCacheMaxSize
+        if let inboundCacheMaxSize = inboundCacheMaxSize {
+            raw_topic_alias_options.inbound_alias_cache_size = inboundCacheMaxSize
         }
 
         return body(raw_topic_alias_options)
@@ -754,42 +754,45 @@ public class NegotiatedSettings {
 
     static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_negotiated_settings>?) -> NegotiatedSettings? {
 
-        if let _from = from {
-            let _negotiatedSettings = _from.pointee
-            guard let negotiatedMaximumQos = QoS(rawValue: Int(_negotiatedSettings.maximum_qos.rawValue))
-            else { fatalError("NegotiatedSettings from native missing a maximum qos value.") }
-
-            let negotiatedSessionExpiryInterval: TimeInterval = TimeInterval(_negotiatedSettings.session_expiry_interval)
-            let negotiatedReceiveMaximumFromServer = _negotiatedSettings.receive_maximum_from_server
-            let negotiatedMaximumPacketSizeToServer = _negotiatedSettings.maximum_packet_size_to_server
-            let negotiatedTopicAliasMaximumToServer = _negotiatedSettings.topic_alias_maximum_to_server
-            let negotiatedTopicAliasMaximumToClient = _negotiatedSettings.topic_alias_maximum_to_client
-            let negotiatedServerKeepAlive: TimeInterval = TimeInterval(_negotiatedSettings.server_keep_alive)
-            let negotiatedRetainAvailable = _negotiatedSettings.retain_available
-            let negotiatedWildcardSubscriptionsAvailable = _negotiatedSettings.wildcard_subscriptions_available
-            let negotiatedSubscriptionIdentifiersAvailable = _negotiatedSettings.subscription_identifiers_available
-            let negotiatedSharedSubscriptionsAvailable = _negotiatedSettings.shared_subscriptions_available
-            let negotiatedRejoinedSession = _negotiatedSettings.rejoined_session
-            let negotiatedClientId = _negotiatedSettings.client_id_storage.toString()
-
-            let negotiatedSettings = NegotiatedSettings(
-                maximumQos: negotiatedMaximumQos,
-                sessionExpiryInterval: negotiatedSessionExpiryInterval,
-                receiveMaximumFromServer: negotiatedReceiveMaximumFromServer,
-                maximumPacketSizeToServer: negotiatedMaximumPacketSizeToServer,
-                topicAliasMaximumToServer: negotiatedTopicAliasMaximumToServer,
-                topicAliasMaximumToClient: negotiatedTopicAliasMaximumToClient,
-                serverKeepAlive: negotiatedServerKeepAlive,
-                retainAvailable: negotiatedRetainAvailable,
-                wildcardSubscriptionsAvailable: negotiatedWildcardSubscriptionsAvailable,
-                subscriptionIdentifiersAvailable: negotiatedSubscriptionIdentifiersAvailable,
-                sharedSubscriptionsAvailable: negotiatedSharedSubscriptionsAvailable,
-                rejoinedSession: negotiatedRejoinedSession,
-                clientId: negotiatedClientId)
-
-            return negotiatedSettings
+        guard let from else {
+            return nil
         }
-        return nil
+
+        let _negotiatedSettings = from.pointee
+        guard let negotiatedMaximumQos = QoS(rawValue: Int(_negotiatedSettings.maximum_qos.rawValue)) else {
+            fatalError("NegotiatedSettings from native missing a maximum qos value.")
+        }
+
+        let negotiatedSessionExpiryInterval: TimeInterval = TimeInterval(_negotiatedSettings.session_expiry_interval)
+        let negotiatedReceiveMaximumFromServer = _negotiatedSettings.receive_maximum_from_server
+        let negotiatedMaximumPacketSizeToServer = _negotiatedSettings.maximum_packet_size_to_server
+        let negotiatedTopicAliasMaximumToServer = _negotiatedSettings.topic_alias_maximum_to_server
+        let negotiatedTopicAliasMaximumToClient = _negotiatedSettings.topic_alias_maximum_to_client
+        let negotiatedServerKeepAlive: TimeInterval = TimeInterval(_negotiatedSettings.server_keep_alive)
+        let negotiatedRetainAvailable = _negotiatedSettings.retain_available
+        let negotiatedWildcardSubscriptionsAvailable = _negotiatedSettings.wildcard_subscriptions_available
+        let negotiatedSubscriptionIdentifiersAvailable = _negotiatedSettings.subscription_identifiers_available
+        let negotiatedSharedSubscriptionsAvailable = _negotiatedSettings.shared_subscriptions_available
+        let negotiatedRejoinedSession = _negotiatedSettings.rejoined_session
+        let negotiatedClientId = _negotiatedSettings.client_id_storage.toString()
+
+        let negotiatedSettings = NegotiatedSettings(
+            maximumQos: negotiatedMaximumQos,
+            sessionExpiryInterval: negotiatedSessionExpiryInterval,
+            receiveMaximumFromServer: negotiatedReceiveMaximumFromServer,
+            maximumPacketSizeToServer: negotiatedMaximumPacketSizeToServer,
+            topicAliasMaximumToServer: negotiatedTopicAliasMaximumToServer,
+            topicAliasMaximumToClient: negotiatedTopicAliasMaximumToClient,
+            serverKeepAlive: negotiatedServerKeepAlive,
+            retainAvailable: negotiatedRetainAvailable,
+            wildcardSubscriptionsAvailable: negotiatedWildcardSubscriptionsAvailable,
+            subscriptionIdentifiersAvailable: negotiatedSubscriptionIdentifiersAvailable,
+            sharedSubscriptionsAvailable: negotiatedSharedSubscriptionsAvailable,
+            rejoinedSession: negotiatedRejoinedSession,
+            clientId: negotiatedClientId)
+
+        return negotiatedSettings
+
     }
 }
 
@@ -886,16 +889,14 @@ public class MqttConnectOptions: CStruct {
 
         var raw_connect_options = aws_mqtt5_packet_connect_view()
 
-        if let _keepAlive = self.keepAliveInterval {
-            raw_connect_options.keep_alive_interval_seconds = UInt16(_keepAlive)
-        } else {
-            raw_connect_options.keep_alive_interval_seconds = 0
+        if let keepAlive = self.keepAliveInterval {
+            raw_connect_options.keep_alive_interval_seconds = UInt16(keepAlive)
         }
 
-        let _sessionExpiryIntervalSec: UInt32?  = try? self.sessionExpiryInterval?.secondUInt32() ?? nil
-        let _requestResponseInformation: UInt8? = self.requestResponseInformation?.uint8Value  ?? nil
-        let _requestProblemInformation: UInt8? = self.requestProblemInformation?.uint8Value ?? nil
-        let _willDelayIntervalSec: UInt32? = try? self.willDelayInterval?.secondUInt32() ?? nil
+        let _sessionExpiryIntervalSec: UInt32?  = try? self.sessionExpiryInterval?.secondUInt32()
+        let _requestResponseInformation: UInt8? = self.requestResponseInformation?.uint8Value
+        let _requestProblemInformation: UInt8? = self.requestProblemInformation?.uint8Value
+        let _willDelayIntervalSec: UInt32? = try? self.willDelayInterval?.secondUInt32()
 
         return withOptionalUnsafePointers(
             _sessionExpiryIntervalSec,
@@ -907,29 +908,12 @@ public class MqttConnectOptions: CStruct {
                                        requestProblemInformationPointer, willDelayIntervalSecPointer,
                                        receiveMaximumPointer, maximumPacketSizePointer) in
 
-                if let _sessionExpiryIntervalSecPointer = sessionExpiryIntervalSecPointer {
-                    raw_connect_options.session_expiry_interval_seconds = _sessionExpiryIntervalSecPointer
-                }
-
-                if let _requestResponseInformationPointer: UnsafePointer<UInt8> = requestResponseInformationPointer {
-                    raw_connect_options.request_response_information = _requestResponseInformationPointer
-                }
-
-                if let _requestProblemInformationPointer: UnsafePointer<UInt8> = requestProblemInformationPointer {
-                    raw_connect_options.request_problem_information = _requestProblemInformationPointer
-                }
-
-                if let _willDelayIntervalSecPointer: UnsafePointer<UInt32> = willDelayIntervalSecPointer {
-                    raw_connect_options.will_delay_interval_seconds = _willDelayIntervalSecPointer
-                }
-
-                if let _receiveMaximumPointer: UnsafePointer<UInt16> = receiveMaximumPointer {
-                    raw_connect_options.receive_maximum = _receiveMaximumPointer
-                }
-
-                if let _maximumPacketSizePointer: UnsafePointer<UInt32> = maximumPacketSizePointer {
-                    raw_connect_options.maximum_packet_size_bytes = _maximumPacketSizePointer
-                }
+                raw_connect_options.session_expiry_interval_seconds = sessionExpiryIntervalSecPointer
+                raw_connect_options.request_response_information = requestResponseInformationPointer
+                raw_connect_options.request_problem_information = requestProblemInformationPointer
+                raw_connect_options.will_delay_interval_seconds = willDelayIntervalSecPointer
+                raw_connect_options.receive_maximum = receiveMaximumPointer
+                raw_connect_options.maximum_packet_size_bytes = maximumPacketSizePointer
 
                 return withOptionalCStructPointer(to: self.will) { willCPointer in
                     raw_connect_options.will = willCPointer
@@ -939,9 +923,9 @@ public class MqttConnectOptions: CStruct {
 
                         // handle user property
                         return withOptionalUserPropertyArray(of: userProperties) { cUserProperties in
-                            if let _cUserProperties = cUserProperties {
+                            if let cUserProperties = cUserProperties {
                                 raw_connect_options.user_property_count = userProperties!.count
-                                raw_connect_options.user_properties = UnsafePointer<aws_mqtt5_user_property>(_cUserProperties)
+                                raw_connect_options.user_properties = UnsafePointer<aws_mqtt5_user_property>(cUserProperties)
                             }
                             return withOptionalByteCursorPointerFromStrings(
                                 username, password) { cUsernamePointer, cPasswordPointer in
@@ -959,8 +943,9 @@ public class MqttConnectOptions: CStruct {
 /// Handles lifecycle events from native Mqtt Client
 private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
 
-    guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent
-    else { fatalError("MqttClientLifecycleEvents was called from native without an aws_mqtt5_client_lifecycle_event.") }
+    guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent else {
+        fatalError("MqttClientLifecycleEvents was called from native without an aws_mqtt5_client_lifecycle_event.")
+    }
 
     let crtError = CRTError(code: lifecycleEvent.pointee.error_code)
 
@@ -979,11 +964,13 @@ private func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5
 
             case AWS_MQTT5_CLET_CONNECTION_SUCCESS:
 
-                guard let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data)
-                else { fatalError("ConnackPacket missing in a Connection Success lifecycle event.") }
+                guard let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data) else {
+                    fatalError("ConnackPacket missing in a Connection Success lifecycle event.")
+                }
 
-                guard let negotiatedSettings = NegotiatedSettings.convertFromNative(lifecycleEvent.pointee.settings)
-                else { fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.") }
+                guard let negotiatedSettings = NegotiatedSettings.convertFromNative(lifecycleEvent.pointee.settings) else {
+                    fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.")
+                }
 
                 let lifecycleConnectionSuccessData = LifecycleConnectionSuccessData(
                     connackPacket: connackPacket,
@@ -1256,57 +1243,51 @@ public class MqttClientOptions: CStructWithUserData {
             tls_options = TLSConnectionOptions(context: self.tlsCtx!)
         }
 
-        if let _sessionBehavior = self.sessionBehavior {
-            raw_options.session_behavior = _sessionBehavior.nativeValue
+        if let sessionBehavior = self.sessionBehavior {
+            raw_options.session_behavior = sessionBehavior.nativeValue
         }
 
-        if let _extendedValidationAndFlowControlOptions = self.extendedValidationAndFlowControlOptions {
-            raw_options.extended_validation_and_flow_control_options = _extendedValidationAndFlowControlOptions.rawValue
+        if let extendedValidationAndFlowControlOptions = self.extendedValidationAndFlowControlOptions {
+            raw_options.extended_validation_and_flow_control_options = extendedValidationAndFlowControlOptions.rawValue
         }
 
-        if let _offlineQueueBehavior = self.offlineQueueBehavior {
-            raw_options.offline_queue_behavior = _offlineQueueBehavior.rawValue
+        if let offlineQueueBehavior = self.offlineQueueBehavior {
+            raw_options.offline_queue_behavior = offlineQueueBehavior.rawValue
         }
 
-        if let _jitterMode = self.retryJitterMode {
-            raw_options.retry_jitter_mode = _jitterMode.rawValue
+        if let retryJitterMode = self.retryJitterMode {
+            raw_options.retry_jitter_mode = retryJitterMode.rawValue
         }
 
-        if let _minReconnectDelay = self.minReconnectDelay {
-            raw_options.min_reconnect_delay_ms = _minReconnectDelay.millisecond
+        if let minReconnectDelay = self.minReconnectDelay {
+            raw_options.min_reconnect_delay_ms = minReconnectDelay.millisecond
         }
 
-        if let _maxReconnectDelay = self.minReconnectDelay {
-            raw_options.max_reconnect_delay_ms = _maxReconnectDelay.millisecond
+        if let maxReconnectDelay = self.maxReconnectDelay {
+            raw_options.max_reconnect_delay_ms = maxReconnectDelay.millisecond
         }
 
-        if let _minConnectedTimeToResetReconnectDelay = self.minConnectedTimeToResetReconnectDelay {
+        if let minConnectedTimeToResetReconnectDelay = self.minConnectedTimeToResetReconnectDelay {
             raw_options.min_connected_time_to_reset_reconnect_delay_ms =
-            _minConnectedTimeToResetReconnectDelay.millisecond
+            minConnectedTimeToResetReconnectDelay.millisecond
         }
 
-        if let _pingTimeout = self.pingTimeout {
-            raw_options.ping_timeout_ms = UInt32((_pingTimeout*1_000).rounded())
-        } else {
-            raw_options.ping_timeout_ms = 0
+        if let pingTimeout = self.pingTimeout {
+            raw_options.ping_timeout_ms = UInt32((pingTimeout*1_000).rounded())
         }
 
-        if let _connackTimeout = self.connackTimeout {
-            raw_options.connack_timeout_ms = UInt32((_connackTimeout*1_000).rounded())
-        } else {
-            raw_options.connack_timeout_ms = 0
+        if let connackTimeout = self.connackTimeout {
+            raw_options.connack_timeout_ms = UInt32((connackTimeout*1_000).rounded())
         }
 
-        if let _ackTimeout = self.ackTimeout {
-            raw_options.ack_timeout_seconds = UInt32(_ackTimeout)
-        } else {
-            raw_options.ack_timeout_seconds = 0
+        if let ackTimeout = self.ackTimeout {
+            raw_options.ack_timeout_seconds = UInt32(ackTimeout)
         }
 
         // We assign a default connection option if options is not set
-        var _connnectOptions = self.connectOptions
-        if _connnectOptions == nil {
-            _connnectOptions =  MqttConnectOptions()
+        var connnectOptions = self.connectOptions
+        if connnectOptions == nil {
+            connnectOptions =  MqttConnectOptions()
         }
 
         return withOptionalCStructPointer(
@@ -1314,7 +1295,7 @@ public class MqttClientOptions: CStructWithUserData {
             tls_options,
             self.httpProxyOptions,
             self.topicAliasingOptions,
-            _connnectOptions) { (socketOptionsCPointer, tlsOptionsCPointer,
+            connnectOptions) { (socketOptionsCPointer, tlsOptionsCPointer,
                                  httpProxyOptionsCPointer, topicAliasingOptionsCPointer,
                                  connectOptionsCPointer) in
 
