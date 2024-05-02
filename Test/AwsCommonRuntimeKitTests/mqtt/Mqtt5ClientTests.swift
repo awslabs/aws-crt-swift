@@ -132,10 +132,11 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 self.semaphorePublishReceived.signal()
                 if let _testclient = self.test_client
                 {
-                    async let _ = _testclient.publish(publishPacket: PublishPacket(qos: QoS.atLeastOnce, topic: "test"))
-                    print("after publish")
                     try? _testclient.stop()
-                    print("after stop")
+//                    async let _ = _testclient.publish(publishPacket: PublishPacket(qos: QoS.atLeastOnce, topic: "test"))
+//                    print("after publish")
+//                    try? _testclient.stop()
+//                    print("after stop")
 
                 }
                 print("after close")
@@ -144,6 +145,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
                     self.semaphorePublishTargetReached.signal()
                 }
             }
+
             self.onLifecycleEventStopped = onLifecycleEventStopped ?? { _ in
                 print(contextName + " Mqtt5ClientTests: onLifecycleEventStopped")
                 self.semaphoreStopped.signal()
