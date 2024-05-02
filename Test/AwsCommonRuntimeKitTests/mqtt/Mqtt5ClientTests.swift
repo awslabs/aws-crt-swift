@@ -150,10 +150,12 @@ class Mqtt5ClientTests: XCBaseTestCase {
             }
          }
         
-        // manually fail the handshake with error AWS_ERROR_UNSUPPORTED_OPERATION
+        /// Setup a simple websocket transform function
+        /// - `isSuccess`: True, complete the handshake with success
+        ///             False, fail the handshake with error AWS_ERROR_UNSUPPORTED_OPERATION
         func withWebsocketTransform(isSuccess: Bool){
             self.onWebSocketHandshake = { httpRequest, completCallback in
-                completCallback(httpRequest, isSuccess ? 0 : Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
+                completCallback(httpRequest, isSuccess ? AWS_OP_SUCCESS : Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
             }
         }
         
@@ -166,12 +168,12 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                               omitSessionToken: true)
             
             
-            self.onWebSocketHandshake = { [weak self] httpRequest, completCallback in
+            self.onWebSocketHandshake = { httpRequest, completCallback in
                 Task{
                     do
                     {
                         let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
-                        completCallback(returnedHttpRequest, 0)
+                        completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
                     }
                     catch
                     {
@@ -628,8 +630,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
      */
     func testMqtt5WSConnectWithMutualTLS() throws {
         try skipIfPlatformDoesntSupportTLS()
-        try skipifmacOS()
-        
+
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let region = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
         
@@ -649,8 +650,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
             tlsCtx: tlsContext)
 
         let provider = try CredentialsProvider(source: .defaultChain(bootstrap: bootstrap,
-                                                                     fileBasedConfiguration: FileBasedConfiguration(),
-                                                                     tlsContext: tlsContext))
+                                                                    fileBasedConfiguration: FileBasedConfiguration(),
+                                                                    tlsContext: tlsContext))
         
         let testContext = MqttTestContext()
         testContext.withIoTSigv4WebsocketTransform(region: region, provider: provider)
