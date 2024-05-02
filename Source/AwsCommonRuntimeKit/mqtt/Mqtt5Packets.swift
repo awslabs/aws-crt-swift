@@ -449,10 +449,10 @@ public class SubscribePacket: CStruct {
                              subscriptionIdentifier: UInt32? = nil,
                              userProperties: [UserProperty]? = nil) {
         self.init(subscriptions: [Subscription(topicFilter: topicFilter,
-                  qos: qos,
-                  noLocal: noLocal,
-                  retainAsPublished: retainAsPublished,
-                  retainHandlingType: retainHandlingType)],
+                                               qos: qos,
+                                               noLocal: noLocal,
+                                               retainAsPublished: retainAsPublished,
+                                               retainHandlingType: retainHandlingType)],
                   subscriptionIdentifier: subscriptionIdentifier,
                   userProperties: userProperties)
     }
