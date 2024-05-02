@@ -69,7 +69,7 @@ extension Array where Element == UserProperty {
     }
 }
 
-/// Help function to handle Optional UserProperty Array into c pointer
+/// Helper function to convert Swift [UserProperty]? into a native aws_mqtt5_user_property pointer
 func withOptionalUserPropertyArray<Result>(
     of array: Array<UserProperty>?,
     _ body: (OpaquePointer?) throws -> Result) rethrows -> Result {
@@ -81,7 +81,7 @@ func withOptionalUserPropertyArray<Result>(
     }
 }
 
-/// Convert a native UserProperty pointer into a Swift [UserProperty]?
+/// Convert a native aws_mqtt5_user_property pointer into a Swift [UserProperty]?
 func convertOptionalUserProperties(count: size_t, userPropertiesPointer: UnsafePointer<aws_mqtt5_user_property>?) -> [UserProperty]? {
 
     guard let validPointer = userPropertiesPointer, count > 0 // swiftlint:disable:this empty_count
@@ -168,11 +168,11 @@ public class PublishPacket: CStruct {
     }
 
     /// Get payload converted to a utf8 String
-    public func payloadAsString() -> String {
+    public func payloadAsString() -> String? {
         if let data = payload {
-            return String(data: data, encoding: .utf8) ?? ""
+            return String(data: data, encoding: .utf8) ?? nil
         }
-        return ""
+        return nil
     }
 
     typealias RawType = aws_mqtt5_packet_publish_view
@@ -262,23 +262,21 @@ public class PublishPacket: CStruct {
             fatalError("PublishPacket Received has an invalid qos")
         }
 
-        let publishPacket = PublishPacket(
-                                        qos: qos,
-                                        topic: publishView.topic.toString(),
-                                        payload: payload,
-                                        retain: publishView.retain,
-                                        payloadFormatIndicator: payloadFormatIndicator,
-                                        messageExpiryInterval: messageExpiryIntervalTimeInterval,
-                                        topicAlias: convertOptionalUInt16(publishView.topic_alias),
-                                        responseTopic: convertAwsByteCursorToOptionalString(publishView.response_topic),
-                                        correlationData: correlationDataPointer,
-                                        subscriptionIdentifiers: identifier,
-                                        contentType: convertAwsByteCursorToOptionalString(publishView.content_type),
-                                        userProperties: userProperties)
+        let publishPacket = PublishPacket(qos: qos,
+                                          topic: publishView.topic.toString(),
+                                          payload: payload,
+                                          retain: publishView.retain,
+                                          payloadFormatIndicator: payloadFormatIndicator,
+                                          messageExpiryInterval: messageExpiryIntervalTimeInterval,
+                                          topicAlias: convertOptionalUInt16(publishView.topic_alias),
+                                          responseTopic: convertAwsByteCursorToOptionalString(publishView.response_topic),
+                                          correlationData: correlationDataPointer,
+                                          subscriptionIdentifiers: identifier,
+                                          contentType: convertAwsByteCursorToOptionalString(publishView.content_type),
+                                          userProperties: userProperties)
 
         return publishPacket
     }
-
 }
 
 /// Publish result returned by Publish operation.
@@ -439,9 +437,16 @@ public class SubscribePacket: CStruct {
     // Allow a SubscribePacket to be created directly using a topic filter and QoS
     public convenience init (topicFilter: String,
                              qos: QoS,
+                             noLocal: Bool? = nil,
+                             retainAsPublished: Bool? = nil,
+                             retainHandlingType: RetainHandlingType? = nil,
                              subscriptionIdentifier: UInt32? = nil,
                              userProperties: [UserProperty]? = nil) {
-        self.init(subscriptions: [Subscription(topicFilter: topicFilter, qos: qos)],
+        self.init(subscriptions: [Subscription(topicFilter: topicFilter,
+                                               qos: qos,
+                                               noLocal: noLocal,
+                                               retainAsPublished: retainAsPublished,
+                                               retainHandlingType: retainHandlingType)],
                   subscriptionIdentifier: subscriptionIdentifier,
                   userProperties: userProperties)
     }
@@ -478,7 +483,7 @@ public class SubscribePacket: CStruct {
                             raw_subscrbe_view.subscription_identifier = identiferPointer
                             return body(raw_subscrbe_view)
                         }
-                }
+            }
         }
     }
 }
@@ -535,7 +540,7 @@ public class SubackPacket {
 }
 
 /// Data model of an `MQTT5 UNSUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc384800445>`_ packet.
-public class UnsubscribePacket {
+public class UnsubscribePacket: CStruct {
 
     /// Array of topic filters that the client wishes to unsubscribe from.
     public let topicFilters: [String]
@@ -547,21 +552,63 @@ public class UnsubscribePacket {
                  userProperties: [UserProperty]? = nil) {
         self.topicFilters = topicFilters
         self.userProperties = userProperties
+        rawTopicFilters = convertTopicFilters(self.topicFilters)
     }
 
     // Allow an UnsubscribePacket to be created directly using a single topic filter
     public convenience init (topicFilter: String,
                              userProperties: [UserProperty]? = nil) {
-            self.init(topicFilters: [topicFilter],
-                      userProperties: userProperties)
+        self.init(topicFilters: [topicFilter], userProperties: userProperties)
+    }
+
+    typealias RawType = aws_mqtt5_packet_unsubscribe_view
+    func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
+        var raw_unsubscribe_view = aws_mqtt5_packet_unsubscribe_view()
+        raw_unsubscribe_view.topic_filters = UnsafePointer(rawTopicFilters)
+        raw_unsubscribe_view.topic_filter_count = topicFilters.count
+        return withOptionalUserPropertyArray(of: userProperties) { userPropertyPointer in
+                if let _userPropertyPointer = userPropertyPointer {
+                    raw_unsubscribe_view.user_property_count = userProperties!.count
+                    raw_unsubscribe_view.user_properties =
+                        UnsafePointer<aws_mqtt5_user_property>(_userPropertyPointer)
+            }
+            return body(raw_unsubscribe_view)
         }
+    }
+
+    func convertTopicFilters(_ topicFilters: [String]) -> UnsafeMutablePointer<aws_byte_cursor>? {
+        let cArray = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: topicFilters.count)
+
+        for (index, string) in topicFilters.enumerated() {
+            let data = string.data(using: .utf8)!
+            let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: data.count)
+            data.copyBytes(to: buffer, count: data.count)
+
+            cArray[index] = aws_byte_cursor(len: data.count, ptr: buffer)
+        }
+
+        return cArray
+    }
+
+    /// storage of topic filter Strings converted into native c aws_byte_cursor pointer
+    private var rawTopicFilters: UnsafeMutablePointer<aws_byte_cursor>?
+
+    deinit {
+        /// Clean up memory of converted topic filter Strings
+        if let filters = rawTopicFilters {
+            for i in 0..<topicFilters.count {
+                filters[i].ptr.deallocate()
+            }
+            filters.deallocate()
+        }
+    }
 }
 
 /// Data model of an `MQTT5 UNSUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc471483687>`_ packet.
 public class UnsubackPacket {
 
     /// Array of reason codes indicating the result of unsubscribing from each individual topic filter entry in the associated UNSUBSCRIBE packet.
-    public let reasonCodes: [DisconnectReasonCode]
+    public let reasonCodes: [UnsubackReasonCode]
 
     /// Additional diagnostic information about the result of the UNSUBSCRIBE attempt.
     public let reasonString: String?
@@ -569,12 +616,31 @@ public class UnsubackPacket {
     /// Array of MQTT5 user properties included with the packet.
     public let userProperties: [UserProperty]?
 
-    public init (reasonCodes: [DisconnectReasonCode],
+    public init (reasonCodes: [UnsubackReasonCode],
                  reasonString: String? = nil,
                  userProperties: [UserProperty]? = nil) {
         self.reasonCodes = reasonCodes
         self.reasonString = reasonString
         self.userProperties = userProperties
+    }
+
+    public static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_unsuback_view>?) -> UnsubackPacket? {
+        if let _from = from {
+            let unsubackPointer = _from.pointee
+
+            let reasonCodeBuffer = UnsafeBufferPointer(start: unsubackPointer.reason_codes, count: unsubackPointer.reason_code_count)
+            let unsubackReasonCodes = reasonCodeBuffer.compactMap { UnsubackReasonCode(rawValue: Int($0.rawValue)) }
+            let reasonString = unsubackPointer.reason_string?.pointee.toString()
+            let userProperties = convertOptionalUserProperties(
+                count: unsubackPointer.user_property_count,
+                userPropertiesPointer: unsubackPointer.user_properties)
+            let unsuback = UnsubackPacket(reasonCodes: unsubackReasonCodes,
+                                          reasonString: reasonString,
+                                          userProperties: userProperties)
+            return unsuback
+        }
+
+        return nil
     }
 }
 
