@@ -63,8 +63,6 @@ public class Mqtt5Client {
         }
     }
 
-
-
     /// Tells the client to attempt to subscribe to one or more topic filters.
     ///
     /// - Parameters:
@@ -198,8 +196,8 @@ private func publishCompletionCallback(packet_type: aws_mqtt5_packet_type,
 }
 
 private func unsubscribeCompletionCallback(unsubackPacket: UnsafePointer<aws_mqtt5_packet_unsuback_view>?,
-                                   errorCode: Int32,
-                                   userData: UnsafeMutableRawPointer?) {
+                                           errorCode: Int32,
+                                           userData: UnsafeMutableRawPointer?) {
     let continuationCore = Unmanaged<ContinuationCore<UnsubackPacket>>.fromOpaque(userData!).takeRetainedValue()
 
     guard errorCode == AWS_OP_SUCCESS else {
