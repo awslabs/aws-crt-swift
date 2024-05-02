@@ -479,18 +479,33 @@ extension ClientOperationQueueBehaviorType {
 
 /// Optional property describing a PUBLISH payload's format.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901111>`__ encoding values.
-public enum PayloadFormatIndicator: Int {
+public enum PayloadFormatIndicator {
 
     /// The payload is arbitrary binary data
-    case bytes = 0
+    case bytes
 
     /// The payload is a well-formed utf-8 string value.
-    case utf8 = 1
+    case utf8
 }
 
 extension PayloadFormatIndicator {
-    var nativeValue: aws_mqtt5_payload_format_indicator {
-        return aws_mqtt5_payload_format_indicator(rawValue: UInt32(self.rawValue))
+    var rawValue: aws_mqtt5_payload_format_indicator {
+        switch self {
+        case .bytes: return AWS_MQTT5_PFI_BYTES
+        case .utf8: return AWS_MQTT5_PFI_UTF8
+        }
+    }
+
+    /// Initializes Swift enum from native representation
+    init(_ cEnum: aws_mqtt5_payload_format_indicator) {
+        switch cEnum {
+        case AWS_MQTT5_PFI_BYTES:
+            self = .bytes
+        case AWS_MQTT5_PFI_UTF8:
+            self = .utf8
+        default:
+            fatalError("Unknown QoS Value")
+        }
     }
 }
 

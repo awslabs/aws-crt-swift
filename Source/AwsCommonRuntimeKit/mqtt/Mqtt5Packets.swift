@@ -194,7 +194,7 @@ public class PublishPacket: CStruct {
             return withAWSByteCursorFromOptionalData(to: payload) { cByteCursor in
                 raw_publish_view.payload = cByteCursor
 
-                let _payloadFormatIndicatorInt: aws_mqtt5_payload_format_indicator? = payloadFormatIndicator?.nativeValue
+                let _payloadFormatIndicatorInt: aws_mqtt5_payload_format_indicator? = payloadFormatIndicator?.rawValue
                 let _messageExpiryInterval: UInt32? = try? messageExpiryInterval?.secondUInt32()
 
                 return withOptionalUnsafePointers(
@@ -249,7 +249,7 @@ public class PublishPacket: CStruct {
         let payload = Data(bytes: publishView.payload.ptr, count: publishView.payload.len)
 
         let payloadFormatIndicator: PayloadFormatIndicator? = publishView.payload_format != nil ?
-        PayloadFormatIndicator(rawValue: Int(publishView.payload_format.pointee.rawValue)) : nil
+        PayloadFormatIndicator(publishView.payload_format.pointee) : nil
 
         let messageExpiryInterval = convertOptionalUInt32(publishView.message_expiry_interval_seconds)
         let messageExpiryIntervalTimeInterval: TimeInterval? = messageExpiryInterval.map { TimeInterval($0) }
