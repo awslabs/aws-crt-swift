@@ -541,7 +541,7 @@ extension RetainHandlingType {
 public enum OutboundTopicAliasBehaviorType {
     /// Maps to Disabled.  This keeps the client from being broken (by default) if the broker
     /// topic aliasing implementation has a problem.
-    case `default`
+    case defaultBehavior
 
     ///  Outbound aliasing is the user's responsibility.  Client will cache and use
     ///  previously-established aliases if they fall within the negotiated limits of the connection.
@@ -562,7 +562,7 @@ extension OutboundTopicAliasBehaviorType {
     /// Returns the native representation of the Swift enum
     var rawValue: aws_mqtt5_client_outbound_topic_alias_behavior_type {
         switch self {
-        case .default: return AWS_MQTT5_COTABT_DEFAULT
+        case .defaultBehavior: return AWS_MQTT5_COTABT_DEFAULT
         case .manual: return AWS_MQTT5_COTABT_MANUAL
         case .lru: return AWS_MQTT5_COTABT_LRU
         case .disabled: return AWS_MQTT5_COTABT_DISABLED
