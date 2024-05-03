@@ -1108,10 +1108,10 @@ private func MqttClientWebsocketTransform(
     callbackCore.rwlock.read {
         if callbackCore.callbackFlag == false { return }
 
-        guard let _rawHttpMessage = rawHttpMessage else {
+        guard let rawHttpMessage else {
             fatalError("Null HttpRequeset in websocket transform function.")
         }
-        let httpRequest = HTTPRequest(nativeHttpMessage: _rawHttpMessage)
+        let httpRequest = HTTPRequest(nativeHttpMessage: rawHttpMessage)
         @Sendable func signerTransform(request: HTTPRequestBase, errorCode: Int32) {
             completeFn?(request.rawValue, errorCode, completeCtx)
         }
@@ -1119,7 +1119,6 @@ private func MqttClientWebsocketTransform(
         if callbackCore.onWebsocketInterceptor != nil {
             callbackCore.onWebsocketInterceptor!(httpRequest, signerTransform)
         }
-
     }
 }
 
