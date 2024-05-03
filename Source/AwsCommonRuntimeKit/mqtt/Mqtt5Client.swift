@@ -456,11 +456,11 @@ private func unsubscribeCompletionCallback(unsuback: UnsafePointer<aws_mqtt5_pac
         return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: error_code)))
     }
 
-    guard let unsuback = UnsubackPacket.convertFromNative(unsuback) else {
+    if let unsuback {
+        continuationCore.continuation.resume(returning: UnsubackPacket(unsuback))
+    } else {
         fatalError("Unsuback missing in the Unsubscribe completion callback.")
     }
-
-    continuationCore.continuation.resume(returning: unsuback)
 }
 
 /// When the native client calls swift callbacks they are processed through the MqttCallbackCore
