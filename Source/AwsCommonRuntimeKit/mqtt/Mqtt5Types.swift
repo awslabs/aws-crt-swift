@@ -10,25 +10,43 @@ enum MqttError: Error {
 
 /// MQTT message delivery quality of service.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901234>`__ encoding values.
-public enum QoS: Int {
+public enum QoS {
 
     /// The message is delivered according to the capabilities of the underlying network. No response is sent by the
     /// receiver and no retry is performed by the sender. The message arrives at the receiver either once or not at all.
-    case atMostOnce = 0
+    case atMostOnce
 
     /// A level of service that ensures that the message arrives at the receiver at least once.
-    case atLeastOnce = 1
+    case atLeastOnce
 
     /// A level of service that ensures that the message arrives at the receiver exactly once.
     /// Note that this client does not currently support QoS 2 as of (March 2024)
-    case exactlyOnce = 2
+    case exactlyOnce
 
 }
 
-internal extension QoS {
+extension QoS {
     /// Returns the native representation of the Swift enum
-    var nativeValue: aws_mqtt5_qos {
-        return aws_mqtt5_qos(rawValue: UInt32(self.rawValue))
+    var rawValue: aws_mqtt5_qos {
+        switch self {
+        case .atMostOnce: return AWS_MQTT5_QOS_AT_MOST_ONCE
+        case .atLeastOnce: return AWS_MQTT5_QOS_AT_LEAST_ONCE
+        case .exactlyOnce: return AWS_MQTT5_QOS_EXACTLY_ONCE
+        }
+    }
+
+    /// Initializes Swift enum from native representation
+    init(_ cEnum: aws_mqtt5_qos) {
+        switch cEnum {
+        case AWS_MQTT5_QOS_AT_MOST_ONCE:
+            self = .atMostOnce
+        case AWS_MQTT5_QOS_AT_LEAST_ONCE:
+            self = .atLeastOnce
+        case AWS_MQTT5_QOS_EXACTLY_ONCE:
+            self = .exactlyOnce
+        default:
+            fatalError("Unknown QoS Value")
+        }
     }
 }
 
@@ -363,30 +381,35 @@ public enum UnsubackReasonCode: Int {
 }
 
 /// Controls how the mqtt client should behave with respect to MQTT sessions.
-public enum ClientSessionBehaviorType: Int {
+public enum ClientSessionBehaviorType {
 
     /// Default client session behavior. Maps to CLEAN.
-    case `default` = 0
+    case `default`
 
     /// Always ask for a clean session when connecting
-    case clean = 1
+    case clean
 
     /// Always attempt to rejoin an existing session after an initial connection success.
     /// Session rejoin requires an appropriate non-zero session expiry interval in the client's CONNECT options.
-    case rejoinPostSuccess = 2
+    case rejoinPostSuccess
 
     /// Always attempt to rejoin an existing session.  Since the client does not support durable session persistence,
     /// this option is not guaranteed to be spec compliant because any unacknowledged qos1 publishes (which are
     /// part of the client session state) will not be present on the initial connection.  Until we support
     /// durable session resumption, this option is technically spec-breaking, but useful.
     /// Always rejoin requires an appropriate non-zero session expiry interval in the client's CONNECT options.
-    case rejoinAlways = 3
+    case rejoinAlways
 }
 
-internal extension ClientSessionBehaviorType {
+extension ClientSessionBehaviorType {
     /// Returns the native representation of the Swift enum
-    var nativeValue: aws_mqtt5_client_session_behavior_type {
-        return aws_mqtt5_client_session_behavior_type(rawValue: UInt32(self.rawValue))
+    var rawValue: aws_mqtt5_client_session_behavior_type {
+        switch self {
+        case .default: return AWS_MQTT5_CSBT_DEFAULT
+        case .clean: return AWS_MQTT5_CSBT_CLEAN
+        case .rejoinPostSuccess: return AWS_MQTT5_CSBT_REJOIN_POST_SUCCESS
+        case .rejoinAlways: return AWS_MQTT5_CSBT_REJOIN_ALWAYS
+        }
     }
 }
 
@@ -411,10 +434,11 @@ public enum ExtendedValidationAndFlowControlOptions {
 }
 
 extension ExtendedValidationAndFlowControlOptions {
+    /// Returns the native representation of the Swift enum
     var rawValue: aws_mqtt5_extended_validation_and_flow_control_options {
         switch self {
-        case .none:  return aws_mqtt5_extended_validation_and_flow_control_options(rawValue: 0)
-        case .awsIotCoreDefaults:  return aws_mqtt5_extended_validation_and_flow_control_options(rawValue: 1)
+        case .none:  return AWS_MQTT5_EVAFCO_NONE
+        case .awsIotCoreDefaults:  return AWS_MQTT5_EVAFCO_AWS_IOT_CORE_DEFAULTS
         }
     }
 }
@@ -442,91 +466,135 @@ public enum ClientOperationQueueBehaviorType {
 }
 
 extension ClientOperationQueueBehaviorType {
+    /// Returns the native representation of the Swift enum
     var rawValue: aws_mqtt5_client_operation_queue_behavior_type {
         switch self {
-        case .default:  return aws_mqtt5_client_operation_queue_behavior_type(rawValue: 0)
-        case .failNonQos1PublishOnDisconnect:  return aws_mqtt5_client_operation_queue_behavior_type(rawValue: 1)
-        case .failQos0PublishOnDisconnect:  return aws_mqtt5_client_operation_queue_behavior_type(rawValue: 2)
-        case .failAllOnDisconnect:  return aws_mqtt5_client_operation_queue_behavior_type(rawValue: 3)
+        case .default: return AWS_MQTT5_COQBT_DEFAULT
+        case .failNonQos1PublishOnDisconnect:  return AWS_MQTT5_COQBT_FAIL_NON_QOS1_PUBLISH_ON_DISCONNECT
+        case .failQos0PublishOnDisconnect:  return AWS_MQTT5_COQBT_FAIL_QOS0_PUBLISH_ON_DISCONNECT
+        case .failAllOnDisconnect:  return AWS_MQTT5_COQBT_FAIL_ALL_ON_DISCONNECT
         }
     }
 }
 
 /// Optional property describing a PUBLISH payload's format.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901111>`__ encoding values.
-public enum PayloadFormatIndicator: Int {
+public enum PayloadFormatIndicator {
 
     /// The payload is arbitrary binary data
-    case bytes = 0
+    case bytes
 
     /// The payload is a well-formed utf-8 string value.
-    case utf8 = 1
+    case utf8
 }
 
 extension PayloadFormatIndicator {
-    var nativeValue: aws_mqtt5_payload_format_indicator {
-        return aws_mqtt5_payload_format_indicator(rawValue: UInt32(self.rawValue))
+    var rawValue: aws_mqtt5_payload_format_indicator {
+        switch self {
+        case .bytes: return AWS_MQTT5_PFI_BYTES
+        case .utf8: return AWS_MQTT5_PFI_UTF8
+        }
+    }
+
+    /// Initializes Swift enum from native representation
+    init(_ cEnum: aws_mqtt5_payload_format_indicator) {
+        switch cEnum {
+        case AWS_MQTT5_PFI_BYTES:
+            self = .bytes
+        case AWS_MQTT5_PFI_UTF8:
+            self = .utf8
+        default:
+            fatalError("Unknown QoS Value")
+        }
     }
 }
 
 /// Configures how retained messages should be handled when subscribing with a topic filter that matches topics with
 /// associated retained messages.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901169>`_ encoding values.
-public enum RetainHandlingType: Int {
+public enum RetainHandlingType {
 
     /// The server should always send all retained messages on topics that match a subscription's filter.
-    case sendOnSubscribe = 0
+    case sendOnSubscribe
 
     /// The server should send retained messages on topics that match the subscription's filter, but only for the
     /// first matching subscription, per session.
-    case sendOnSubscribeIfNew = 1
+    case sendOnSubscribeIfNew
 
     /// Subscriptions must not trigger any retained message publishes from the server.
-    case dontSend = 2
+    case dontSend
 }
 
 extension RetainHandlingType {
-    var natvieValue: aws_mqtt5_retain_handling_type {
-        return aws_mqtt5_retain_handling_type(rawValue: UInt32(self.rawValue))
+    /// Returns the native representation of the Swift enum
+    var rawValue: aws_mqtt5_retain_handling_type {
+        switch self {
+        case .sendOnSubscribe: return AWS_MQTT5_RHT_SEND_ON_SUBSCRIBE
+        case .sendOnSubscribeIfNew: return AWS_MQTT5_RHT_SEND_ON_SUBSCRIBE_IF_NEW
+        case .dontSend: return AWS_MQTT5_RHT_DONT_SEND
+        }
     }
 }
 
 /// An enumeration that controls how the client applies topic aliasing to outbound publish packets.
 /// Topic alias behavior is described in `MQTT5 Topic Aliasing <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901113>`_
-public enum OutboundTopicAliasBehaviorType: Int {
+public enum OutboundTopicAliasBehaviorType {
     /// Maps to Disabled.  This keeps the client from being broken (by default) if the broker
     /// topic aliasing implementation has a problem.
-    case `default` = 0
+    case defaultBehavior
 
     ///  Outbound aliasing is the user's responsibility.  Client will cache and use
     ///  previously-established aliases if they fall within the negotiated limits of the connection.
     ///  The user must still always submit a full topic in their publishes because disconnections disrupt
     ///  topic alias mappings unpredictably.  The client will properly use a requested alias when the most-recently-seen
     ///  binding for a topic alias value matches the alias and topic in the publish packet.
-    case manual = 1
+    case manual
 
     /// (Recommended) The client will ignore any user-specified topic aliasing and instead use an LRU cache to drive
     ///  alias usage.
-    case lru = 2
+    case lru
 
     /// Completely disable outbound topic aliasing.
-    case disabled = 3
+    case disabled
+}
+
+extension OutboundTopicAliasBehaviorType {
+    /// Returns the native representation of the Swift enum
+    var rawValue: aws_mqtt5_client_outbound_topic_alias_behavior_type {
+        switch self {
+        case .defaultBehavior: return AWS_MQTT5_COTABT_DEFAULT
+        case .manual: return AWS_MQTT5_COTABT_MANUAL
+        case .lru: return AWS_MQTT5_COTABT_LRU
+        case .disabled: return AWS_MQTT5_COTABT_DISABLED
+        }
+    }
 }
 
 /// An enumeration that controls whether or not the client allows the broker to send publishes that use topic
 /// aliasing.
 /// Topic alias behavior is described in `MQTT5 Topic Aliasing <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901113>`_
-public enum InboundTopicAliasBehaviorType: Int {
+public enum InboundTopicAliasBehaviorType {
 
     /// Maps to Disabled.  This keeps the client from being broken (by default) if the broker
     /// topic aliasing implementation has a problem.
-    case `default` = 0
+    case `default`
 
     /// Allow the server to send PUBLISH packets to the client that use topic aliasing
-    case enabled = 1
+    case enabled
 
     /// Forbid the server from sending PUBLISH packets to the client that use topic aliasing
-    case disabled = 2
+    case disabled
+}
+
+extension InboundTopicAliasBehaviorType {
+    /// Returns the native representation of the Swift enum
+    var rawValue: aws_mqtt5_client_inbound_topic_alias_behavior_type {
+        switch self {
+        case .default: return AWS_MQTT5_CITABT_DEFAULT
+        case .enabled: return AWS_MQTT5_CITABT_ENABLED
+        case .disabled: return AWS_MQTT5_CITABT_DISABLED
+        }
+    }
 }
 
 /// Configuration for all client topic aliasing behavior.
@@ -548,8 +616,7 @@ public class TopicAliasingOptions: CStruct {
     func withCStruct<Result>(_ body: (aws_mqtt5_client_topic_alias_options) -> Result) -> Result {
         var raw_topic_alias_options = aws_mqtt5_client_topic_alias_options()
         if let outboundBehavior = outboundBehavior {
-            raw_topic_alias_options.outbound_topic_alias_behavior =
-            aws_mqtt5_client_outbound_topic_alias_behavior_type(UInt32(outboundBehavior.rawValue))
+            raw_topic_alias_options.outbound_topic_alias_behavior = outboundBehavior.rawValue
         }
 
         if let outboundCacheMaxSize = outboundCacheMaxSize {
@@ -557,8 +624,7 @@ public class TopicAliasingOptions: CStruct {
         }
 
         if let inboundBehavior = inboundBehavior {
-            raw_topic_alias_options.inbound_topic_alias_behavior =
-            aws_mqtt5_client_inbound_topic_alias_behavior_type(UInt32(inboundBehavior.rawValue))
+            raw_topic_alias_options.inbound_topic_alias_behavior = inboundBehavior.rawValue
         }
 
         if let inboundCacheMaxSize = inboundCacheMaxSize {
@@ -759,10 +825,7 @@ public class NegotiatedSettings {
         }
 
         let _negotiatedSettings = from.pointee
-        guard let negotiatedMaximumQos = QoS(rawValue: Int(_negotiatedSettings.maximum_qos.rawValue)) else {
-            fatalError("NegotiatedSettings from native missing a maximum qos value.")
-        }
-
+        let negotiatedMaximumQos = QoS(_negotiatedSettings.maximum_qos)
         let negotiatedSessionExpiryInterval: TimeInterval = TimeInterval(_negotiatedSettings.session_expiry_interval)
         let negotiatedReceiveMaximumFromServer = _negotiatedSettings.receive_maximum_from_server
         let negotiatedMaximumPacketSizeToServer = _negotiatedSettings.maximum_packet_size_to_server
@@ -792,7 +855,6 @@ public class NegotiatedSettings {
             clientId: negotiatedClientId)
 
         return negotiatedSettings
-
     }
 }
 
@@ -1230,7 +1292,7 @@ public class MqttClientOptions: CStructWithUserData {
         }
 
         if let sessionBehavior = self.sessionBehavior {
-            raw_options.session_behavior = sessionBehavior.nativeValue
+            raw_options.session_behavior = sessionBehavior.rawValue
         }
 
         if let extendedValidationAndFlowControlOptions = self.extendedValidationAndFlowControlOptions {

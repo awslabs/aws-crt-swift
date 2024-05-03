@@ -187,14 +187,14 @@ public class PublishPacket: CStruct {
     func withCStruct<Result>(_ body: (aws_mqtt5_packet_publish_view) -> Result) -> Result {
         var raw_publish_view = aws_mqtt5_packet_publish_view()
 
-        raw_publish_view.qos = self.qos.nativeValue
+        raw_publish_view.qos = self.qos.rawValue
         raw_publish_view.retain = retain
         return topic.withByteCursor { topicCustor in
             raw_publish_view.topic =  topicCustor
             return withAWSByteCursorFromOptionalData(to: payload) { cByteCursor in
                 raw_publish_view.payload = cByteCursor
 
-                let _payloadFormatIndicatorInt: aws_mqtt5_payload_format_indicator? = payloadFormatIndicator?.nativeValue
+                let _payloadFormatIndicatorInt: aws_mqtt5_payload_format_indicator? = payloadFormatIndicator?.rawValue
                 let _messageExpiryInterval: UInt32? = try? messageExpiryInterval?.secondUInt32()
 
                 return withOptionalUnsafePointers(
@@ -245,10 +245,11 @@ public class PublishPacket: CStruct {
         }
         let publishView = from.pointee
 
+        let qos = QoS(publishView.qos)
         let payload = Data(bytes: publishView.payload.ptr, count: publishView.payload.len)
 
         let payloadFormatIndicator: PayloadFormatIndicator? = publishView.payload_format != nil ?
-        PayloadFormatIndicator(rawValue: Int(publishView.payload_format.pointee.rawValue)) : nil
+        PayloadFormatIndicator(publishView.payload_format.pointee) : nil
 
         let messageExpiryInterval = convertOptionalUInt32(publishView.message_expiry_interval_seconds)
         let messageExpiryIntervalTimeInterval: TimeInterval? = messageExpiryInterval.map { TimeInterval($0) }
@@ -266,9 +267,6 @@ public class PublishPacket: CStruct {
             count: publishView.user_property_count,
             userPropertiesPointer: publishView.user_properties)
 
-        guard let qos = QoS(rawValue: Int(publishView.qos.rawValue)) else {
-            fatalError("PublishPacket Received has an invalid qos")
-        }
 
         let publishPacket = PublishPacket(qos: qos,
                                           topic: publishView.topic.toString(),
@@ -377,11 +375,11 @@ public class Subscription: CStruct {
     typealias RawType = aws_mqtt5_subscription_view
     func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
         var view = aws_mqtt5_subscription_view()
-        view.qos = self.qos.nativeValue
+        view.qos = self.qos.rawValue
         view.no_local = self.noLocal ?? false
         view.retain_as_published = self.retainAsPublished ?? false
         if let retainType = self.retainHandlingType {
-            view.retain_handling_type = retainType.natvieValue
+            view.retain_handling_type = retainType.rawValue
         } else {
             view.retain_handling_type = aws_mqtt5_retain_handling_type(0)
         }
@@ -857,8 +855,7 @@ public class ConnackPacket {
 
         var maximumQos: QoS?
         if let maximumQosValue = connackView.maximum_qos {
-            let maximumQoSNativeValue = maximumQosValue.pointee.rawValue
-            maximumQos = QoS(rawValue: Int(maximumQoSNativeValue))
+            maximumQos = QoS(maximumQosValue.pointee)
         }
 
         let retainAvailable = convertOptionalBool(connackView.retain_available)
@@ -897,6 +894,5 @@ public class ConnackPacket {
             serverReference: serverReference)
 
         return connackPacket
-
     }
 }
