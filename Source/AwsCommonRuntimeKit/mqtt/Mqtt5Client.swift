@@ -303,9 +303,10 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
 
             case AWS_MQTT5_CLET_CONNECTION_SUCCESS:
 
-                guard let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data) else {
+                guard let connackView = lifecycleEvent.pointee.connack_data else {
                     fatalError("ConnackPacket missing in a Connection Success lifecycle event.")
                 }
+                let connackPacket = ConnackPacket(connackView)
 
                 guard let negotiatedSettings = lifecycleEvent.pointee.settings else {
                     fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.")
@@ -318,7 +319,10 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
 
             case AWS_MQTT5_CLET_CONNECTION_FAILURE:
 
-                let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data)
+                var connackPacket: ConnackPacket?
+                if let connackView = lifecycleEvent.pointee.connack_data {
+                    connackPacket = ConnackPacket(connackView)
+                }
 
                 let lifecycleConnectionFailureData = LifecycleConnectionFailureData(
                     crtError: crtError,
