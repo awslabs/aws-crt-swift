@@ -280,12 +280,14 @@ public class Mqtt5Client {
 /// Handles lifecycle events from native Mqtt Client
 internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
 
+    // todo simplify?
     guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent else {
         fatalError("MqttClientLifecycleEvents was called from native without an aws_mqtt5_client_lifecycle_event.")
     }
 
     let crtError = CRTError(code: lifecycleEvent.pointee.error_code)
 
+    // todo simplify?
     if let userData = lifecycleEvent.pointee.user_data {
         let callbackCore: MqttCallbackCore = Unmanaged<MqttCallbackCore>.fromOpaque(userData).takeUnretainedValue()
 
@@ -325,10 +327,10 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
 
             case AWS_MQTT5_CLET_DISCONNECTION:
 
-                guard let disconnectPacket = DisconnectPacket.convertFromNative(lifecycleEvent.pointee.disconnect_data) else {
-                    let lifecycleDisconnectData = LifecycleDisconnectData(crtError: crtError)
-                    callbackCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
-                    return
+                var disconnectPacket: DisconnectPacket?
+
+                if let disconnectView: UnsafePointer<aws_mqtt5_packet_disconnect_view> = lifecycleEvent.pointee.disconnect_data {
+                    disconnectPacket = DisconnectPacket(disconnectView)
                 }
 
                 let lifecycleDisconnectData = LifecycleDisconnectData(
@@ -344,7 +346,6 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
                 fatalError("A lifecycle event with an invalid event type was encountered.")
             }
         }
-
     }
 }
 

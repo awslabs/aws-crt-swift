@@ -650,7 +650,28 @@ public class DisconnectPacket: CStruct {
             self.reasonString = reasonString
             self.serverReference = serverReference
             self.userProperties = userProperties
+    }
+
+    internal convenience init(_ from: UnsafePointer<aws_mqtt5_packet_disconnect_view>){
+        let disconnectView = from.pointee
+        guard let reasonCode = DisconnectReasonCode(rawValue: Int(disconnectView.reason_code.rawValue)) else {
+            fatalError("aws_mqtt5_packet_disconnect_view from native missing a reason code.")
         }
+        let sessionExpiryInterval = convertOptionalUInt32(disconnectView.session_expiry_interval_seconds)
+        let sessionExpiryIntervalSeconds: TimeInterval? = sessionExpiryInterval.map { TimeInterval($0) }
+        let reasonString = convertAwsByteCursorToOptionalString(disconnectView.reason_string)
+        let serverReference = convertAwsByteCursorToOptionalString(disconnectView.reason_string)
+        let userProperties = convertOptionalUserProperties(
+            count: disconnectView.user_property_count,
+            userPropertiesPointer: disconnectView.user_properties)
+
+        self.init(reasonCode: reasonCode,
+                  sessionExpiryInterval: sessionExpiryIntervalSeconds,
+                  reasonString: reasonString,
+                  serverReference: serverReference,
+                  userProperties: userProperties)
+    }
+
     func validateConversionToNative() throws {
         if let sessionExpiryInterval {
             if sessionExpiryInterval < 0 || sessionExpiryInterval > Double(UInt32.max) {
@@ -690,34 +711,6 @@ public class DisconnectPacket: CStruct {
                     }
             }
         }
-    }
-
-    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_disconnect_view>?) -> DisconnectPacket? {
-        guard let from else {
-            return nil
-        }
-        let disconnectView = from.pointee
-        guard let reasonCode = DisconnectReasonCode(rawValue: Int(disconnectView.reason_code.rawValue)) else {
-            fatalError("aws_mqtt5_packet_disconnect_view from native missing a reason code.")
-        }
-
-        let sessionExpiryInterval = convertOptionalUInt32(disconnectView.session_expiry_interval_seconds)
-        let sessionExpiryIntervalSeconds: TimeInterval? = sessionExpiryInterval.map { TimeInterval($0) }
-        let reasonString = convertAwsByteCursorToOptionalString(disconnectView.reason_string)
-        let serverReference = convertAwsByteCursorToOptionalString(disconnectView.reason_string)
-        let userProperties = convertOptionalUserProperties(
-            count: disconnectView.user_property_count,
-            userPropertiesPointer: disconnectView.user_properties)
-
-        let disconnectPacket = DisconnectPacket(
-            reasonCode: reasonCode,
-            sessionExpiryInterval: sessionExpiryIntervalSeconds,
-            reasonString: reasonString,
-            serverReference: serverReference,
-            userProperties: userProperties
-        )
-        return disconnectPacket
-
     }
 }
 
