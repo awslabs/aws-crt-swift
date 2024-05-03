@@ -267,7 +267,6 @@ public class PublishPacket: CStruct {
             count: publishView.user_property_count,
             userPropertiesPointer: publishView.user_properties)
 
-
         let publishPacket = PublishPacket(qos: qos,
                                           topic: publishView.topic.toString(),
                                           payload: payload,
