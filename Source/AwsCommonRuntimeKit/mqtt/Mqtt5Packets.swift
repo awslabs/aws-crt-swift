@@ -305,22 +305,19 @@ public class PubackPacket {
         self.userProperties = userProperties
     }
 
-    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_puback_view>?) -> PubackPacket? {
-        guard let from = from else {
-            return nil
+    internal convenience init(_ from: UnsafePointer<aws_mqtt5_packet_puback_view>) {
+        let pubackView = from.pointee
+        guard let reasonCode = PubackReasonCode(rawValue: Int(pubackView.reason_code.rawValue))
+        else {
+            fatalError("Puback from native has an invalid reason code.")
         }
-        let pubackPointer = from.pointee
-
-        guard let reasonCode = PubackReasonCode(rawValue: Int(pubackPointer.reason_code.rawValue))
-        else {fatalError("SubackPacket from native has an invalid reason code.")}
-
-        let reasonString = pubackPointer.reason_string?.pointee.toString()
-
+        let reasonString = pubackView.reason_string?.pointee.toString()
         let userProperties = convertOptionalUserProperties(
-            count: pubackPointer.user_property_count,
-            userPropertiesPointer: pubackPointer.user_properties)
-
-        return PubackPacket(reasonCode: reasonCode, reasonString: reasonString, userProperties: userProperties)
+            count: pubackView.user_property_count,
+            userPropertiesPointer: pubackView.user_properties)
+        self.init(reasonCode: reasonCode,
+                  reasonString: reasonString,
+                  userProperties: userProperties)
     }
 }
 
@@ -503,34 +500,56 @@ public class SubackPacket {
         self.userProperties = userProperties
     }
 
-    public static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_suback_view>?) -> SubackPacket? {
-
-        guard let from else {
-            return nil
-        }
-
-        let subackPointer = from.pointee
-
+    internal convenience init(_ from: UnsafePointer<aws_mqtt5_packet_suback_view>) {
+        let subackView = from.pointee
         var subackReasonCodes: [SubackReasonCode] = []
-        for i in 0..<subackPointer.reason_code_count {
-            let reasonCodePointer = subackPointer.reason_codes.advanced(by: Int(i)).pointee
+        for i in 0..<subackView.reason_code_count {
+            let reasonCodePointer = subackView.reason_codes.advanced(by: Int(i)).pointee
             guard let reasonCode = SubackReasonCode(rawValue: Int(reasonCodePointer.rawValue)) else {
                 fatalError("SubackPacket from native has an invalid reason code.")
             }
             subackReasonCodes.append(reasonCode)
         }
 
-        let reasonString = subackPointer.reason_string?.pointee.toString()
+        let reasonString = subackView.reason_string?.pointee.toString()
 
         let userProperties = convertOptionalUserProperties(
-            count: subackPointer.user_property_count,
-            userPropertiesPointer: subackPointer.user_properties)
+            count: subackView.user_property_count,
+            userPropertiesPointer: subackView.user_properties)
 
-        let suback = SubackPacket(reasonCodes: subackReasonCodes,
-                                  reasonString: reasonString,
-                                  userProperties: userProperties)
-        return suback
+        self.init(reasonCodes: subackReasonCodes,
+                  reasonString: reasonString,
+                  userProperties: userProperties)
     }
+
+    // public static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_suback_view>?) -> SubackPacket? {
+
+    //     guard let from else {
+    //         return nil
+    //     }
+
+    //     let subackPointer = from.pointee
+
+    //     var subackReasonCodes: [SubackReasonCode] = []
+    //     for i in 0..<subackPointer.reason_code_count {
+    //         let reasonCodePointer = subackPointer.reason_codes.advanced(by: Int(i)).pointee
+    //         guard let reasonCode = SubackReasonCode(rawValue: Int(reasonCodePointer.rawValue)) else {
+    //             fatalError("SubackPacket from native has an invalid reason code.")
+    //         }
+    //         subackReasonCodes.append(reasonCode)
+    //     }
+
+    //     let reasonString = subackPointer.reason_string?.pointee.toString()
+
+    //     let userProperties = convertOptionalUserProperties(
+    //         count: subackPointer.user_property_count,
+    //         userPropertiesPointer: subackPointer.user_properties)
+
+    //     let suback = SubackPacket(reasonCodes: subackReasonCodes,
+    //                               reasonString: reasonString,
+    //                               userProperties: userProperties)
+    //     return suback
+    // }
 
 }
 
