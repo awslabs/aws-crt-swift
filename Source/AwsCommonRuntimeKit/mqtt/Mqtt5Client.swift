@@ -278,7 +278,7 @@ public class Mqtt5Client {
 // MARK: - Internal/Private
 
 /// Handles lifecycle events from native Mqtt Client
-internal func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
+internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
 
     guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent else {
         fatalError("MqttClientLifecycleEvents was called from native without an aws_mqtt5_client_lifecycle_event.")
@@ -348,7 +348,7 @@ internal func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt
     }
 }
 
-internal func MqttClientPublishRecievedEvents(
+internal func MqttClientHandlePublishRecieved(
     _ publishPacketView: UnsafePointer<aws_mqtt5_packet_publish_view>?,
     _ userData: UnsafeMutableRawPointer?) {
     let callbackCore = Unmanaged<MqttCallbackCore>.fromOpaque(userData!).takeUnretainedValue()
@@ -356,12 +356,13 @@ internal func MqttClientPublishRecievedEvents(
     // validate the callback flag, if flag is false, return
     callbackCore.rwlock.read {
         if callbackCore.callbackFlag == false { return }
-
-        guard let publish_packet = PublishPacket.convertFromNative(publishPacketView) else {
-            fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.")
+        if let publishPacketView {
+            let publishPacket = PublishPacket(publishPacketView)
+            let publishReceivedData = PublishReceivedData(publishPacket: publishPacket)
+            callbackCore.onPublishReceivedCallback(publishReceivedData)
+        } else {
+            fatalError("MqttClientHandlePublishRecieved called with null publishPacketView")
         }
-        let puback = PublishReceivedData(publishPacket: publish_packet)
-        callbackCore.onPublishReceivedCallback(puback)
     }
 }
 
