@@ -486,8 +486,8 @@ public class SubackPacket {
         self.userProperties = userProperties
     }
 
-    internal convenience init(_ from: UnsafePointer<aws_mqtt5_packet_suback_view>) {
-        let subackView = from.pointee
+    internal init(_ suback_view: UnsafePointer<aws_mqtt5_packet_suback_view>) {
+        let subackView = suback_view.pointee
         var subackReasonCodes: [SubackReasonCode] = []
         for i in 0..<subackView.reason_code_count {
             let reasonCodePointer = subackView.reason_codes.advanced(by: Int(i)).pointee
@@ -496,16 +496,11 @@ public class SubackPacket {
             }
             subackReasonCodes.append(reasonCode)
         }
-
-        let reasonString = subackView.reason_string?.pointee.toString()
-
-        let userProperties = convertOptionalUserProperties(
+        self.reasonCodes = subackReasonCodes
+        self.reasonString = subackView.reason_string?.pointee.toString()
+        self.userProperties = convertOptionalUserProperties(
             count: subackView.user_property_count,
             userPropertiesPointer: subackView.user_properties)
-
-        self.init(reasonCodes: subackReasonCodes,
-                  reasonString: reasonString,
-                  userProperties: userProperties)
     }
 }
 
