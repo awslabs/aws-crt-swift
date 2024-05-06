@@ -19,11 +19,11 @@ disabled_rules:
 
 opt_in_rules:
   - vertical_parameter_alignment_on_call
-  - opening_brace
   - empty_count
 
 # configurable rules can be customized from this configuration file
 force_cast: warning
+opening_brace: error
 closing_brace: error
 colon:
   severity: error
