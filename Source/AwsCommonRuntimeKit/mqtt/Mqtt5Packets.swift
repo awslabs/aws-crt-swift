@@ -195,8 +195,8 @@ public class PublishPacket: CStruct {
 
     /// Get payload converted to a utf8 String
     public func payloadAsString() -> String? {
-        if let data = payload {
-            return String(data: data, encoding: .utf8) ?? nil
+        if let payload{
+            return String(data: payload, encoding: .utf8) ?? nil
         }
         return nil
     }
@@ -297,19 +297,13 @@ public class PubackPacket {
         self.userProperties = userProperties
     }
 
-    internal convenience init(_ from: UnsafePointer<aws_mqtt5_packet_puback_view>) {
-        let pubackView = from.pointee
-        guard let reasonCode = PubackReasonCode(rawValue: Int(pubackView.reason_code.rawValue))
-        else {
-            fatalError("Puback from native has an invalid reason code.")
-        }
-        let reasonString = pubackView.reason_string?.pointee.toString()
-        let userProperties = convertOptionalUserProperties(
+    internal init(_ puback_view: UnsafePointer<aws_mqtt5_packet_puback_view>) {
+        let pubackView = puback_view.pointee
+        self.reasonCode = PubackReasonCode(rawValue: Int(pubackView.reason_code.rawValue))!
+        self.reasonString = pubackView.reason_string?.pointee.toString()
+        self.userProperties = convertOptionalUserProperties(
             count: pubackView.user_property_count,
             userPropertiesPointer: pubackView.user_properties)
-        self.init(reasonCode: reasonCode,
-                  reasonString: reasonString,
-                  userProperties: userProperties)
     }
 }
 
