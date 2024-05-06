@@ -147,12 +147,12 @@ public class MqttConnectOptions: CStruct {
             _requestProblemInformation,
             _willDelayIntervalSec,
             self.receiveMaximum,
-            self.maximumPacketSize) { (sessionExpiryIntervalSecPointer,
-                                       requestResponseInformationPointer,
-                                       requestProblemInformationPointer,
-                                       willDelayIntervalSecPointer,
-                                       receiveMaximumPointer,
-                                       maximumPacketSizePointer) in
+            self.maximumPacketSize) { sessionExpiryIntervalSecPointer,
+                                      requestResponseInformationPointer,
+                                      requestProblemInformationPointer,
+                                      willDelayIntervalSecPointer,
+                                      receiveMaximumPointer,
+                                      maximumPacketSizePointer in
 
                 raw_connect_options.session_expiry_interval_seconds = sessionExpiryIntervalSecPointer
                 raw_connect_options.request_response_information = requestResponseInformationPointer
@@ -437,9 +437,11 @@ public class MqttClientOptions: CStructWithUserData {
             tls_options,
             self.httpProxyOptions,
             self.topicAliasingOptions,
-            connnectOptions) { (socketOptionsCPointer, tlsOptionsCPointer,
-                                 httpProxyOptionsCPointer, topicAliasingOptionsCPointer,
-                                 connectOptionsCPointer) in
+            connnectOptions) { socketOptionsCPointer,
+                               tlsOptionsCPointer,
+                               httpProxyOptionsCPointer,
+                               topicAliasingOptionsCPointer,
+                               connectOptionsCPointer in
 
                 raw_options.socket_options = socketOptionsCPointer
                 raw_options.tls_options = tlsOptionsCPointer
