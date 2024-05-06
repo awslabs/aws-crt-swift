@@ -488,15 +488,8 @@ public class SubackPacket {
 
     internal init(_ suback_view: UnsafePointer<aws_mqtt5_packet_suback_view>) {
         let subackView = suback_view.pointee
-        var subackReasonCodes: [SubackReasonCode] = []
-        for i in 0..<subackView.reason_code_count {
-            let reasonCodePointer = subackView.reason_codes.advanced(by: Int(i)).pointee
-            guard let reasonCode = SubackReasonCode(rawValue: Int(reasonCodePointer.rawValue)) else {
-                fatalError("SubackPacket from native has an invalid reason code.")
-            }
-            subackReasonCodes.append(reasonCode)
-        }
-        self.reasonCodes = subackReasonCodes
+        let reasonCodeBuffer = UnsafeBufferPointer(start: subackView.reason_codes, count: subackView.reason_code_count)
+        self.reasonCodes = reasonCodeBuffer.compactMap { SubackReasonCode(rawValue: Int($0.rawValue)) }
         self.reasonString = subackView.reason_string?.pointee.toString()
         self.userProperties = convertOptionalUserProperties(
             count: subackView.user_property_count,
