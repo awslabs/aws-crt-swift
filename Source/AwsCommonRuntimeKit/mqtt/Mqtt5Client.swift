@@ -164,8 +164,9 @@ public class Mqtt5Client {
             if rawValue != nil {
                 let errorCode = aws_mqtt5_client_start(rawValue)
 
-            if errorCode != AWS_OP_SUCCESS {
-                throw CommonRunTimeError.crtError(CRTError(code: errorCode))
+                if errorCode != AWS_OP_SUCCESS {
+                    throw CommonRunTimeError.crtError(CRTError(code: errorCode))
+                }
             }
         }
     }
@@ -210,7 +211,6 @@ public class Mqtt5Client {
                     return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
             }
-
         }
     }
 
