@@ -589,17 +589,14 @@ public class UnsubackPacket {
         self.userProperties = userProperties
     }
 
-    internal convenience init(_ from: UnsafePointer<aws_mqtt5_packet_unsuback_view>){
-        let unsubackView = from.pointee
+    internal init(_ unsuback_view: UnsafePointer<aws_mqtt5_packet_unsuback_view>){
+        let unsubackView = unsuback_view.pointee
         let reasonCodeBuffer = UnsafeBufferPointer(start: unsubackView.reason_codes, count: unsubackView.reason_code_count)
-        let unsubackReasonCodes = reasonCodeBuffer.compactMap { UnsubackReasonCode(rawValue: Int($0.rawValue)) }
-        let reasonString = unsubackView.reason_string?.pointee.toString()
-        let userProperties = convertOptionalUserProperties(
+        self.reasonCodes = reasonCodeBuffer.compactMap { UnsubackReasonCode(rawValue: Int($0.rawValue)) }
+        self.reasonString = unsubackView.reason_string?.pointee.toString()
+        self.userProperties = convertOptionalUserProperties(
             count: unsubackView.user_property_count,
             userPropertiesPointer: unsubackView.user_properties)
-        self.init(reasonCodes: unsubackReasonCodes,
-                  reasonString: reasonString,
-                  userProperties: userProperties)
     }
 }
 
