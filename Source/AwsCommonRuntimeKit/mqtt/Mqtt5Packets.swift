@@ -768,51 +768,31 @@ public class ConnackPacket {
         self.serverReference = serverReference
     }
 
-    internal convenience init(_ from: UnsafePointer<aws_mqtt5_packet_connack_view>){
-        let connackView = from.pointee
+    internal init(_ connack_view: UnsafePointer<aws_mqtt5_packet_connack_view>){
+        let connackView = connack_view.pointee
 
-        let sessionPresent = connackView.session_present
-        guard let reasonCode = ConnectReasonCode(rawValue: Int(connackView.reason_code.rawValue)) else {
-            fatalError("aws_mqtt5_packet_connack_view from native missing a reason code.")
-        }
-        let sessionExpiryInterval = (connackView.session_expiry_interval?.pointee).map { TimeInterval($0) }
-        let receiveMaximum = convertOptionalUInt16(connackView.receive_maximum)
-        var maximumQos: QoS?
+        self.sessionPresent = connackView.session_present
+        self.reasonCode = ConnectReasonCode(rawValue: Int(connackView.reason_code.rawValue))!
+        self.sessionExpiryInterval = (connackView.session_expiry_interval?.pointee).map { TimeInterval($0) }
+        self.receiveMaximum = convertOptionalUInt16(connackView.receive_maximum)
         if let maximumQosValue = connackView.maximum_qos {
-            maximumQos = QoS(maximumQosValue.pointee)
+            self.maximumQos = QoS(maximumQosValue.pointee)
+        } else {
+            self.maximumQos = nil
         }
-        let retainAvailable = convertOptionalBool(connackView.retain_available)
-        let maximumPacketSize = convertOptionalUInt32(connackView.maximum_packet_size)
-        let assignedClientIdentifier = convertAwsByteCursorToOptionalString(connackView.assigned_client_identifier)
-        let topicAliasMaximum = convertOptionalUInt16(connackView.topic_alias_maximum)
-        let reasonString = convertAwsByteCursorToOptionalString(connackView.reason_string)
-        let wildcardSubscriptionsAvailable = convertOptionalBool(connackView.wildcard_subscriptions_available)
-        let subscriptionIdentifiersAvailable = convertOptionalBool(connackView.subscription_identifiers_available)
-        let sharedSubscriptionAvailable = convertOptionalBool(connackView.shared_subscriptions_available)
-        let serverKeepAlive = convertOptionalUInt16(connackView.server_keep_alive)
-        let serverKeepAliveInSeconds: TimeInterval? = serverKeepAlive.map { TimeInterval($0) }
-        let responseInformation = convertAwsByteCursorToOptionalString(connackView.response_information)
-        let serverReference = convertAwsByteCursorToOptionalString(connackView.server_reference)
-        let userProperties = convertOptionalUserProperties(
+        self.retainAvailable = convertOptionalBool(connackView.retain_available)
+        self.maximumPacketSize = convertOptionalUInt32(connackView.maximum_packet_size)
+        self.assignedClientIdentifier = convertAwsByteCursorToOptionalString(connackView.assigned_client_identifier)
+        self.topicAliasMaximum = convertOptionalUInt16(connackView.topic_alias_maximum)
+        self.reasonString = convertAwsByteCursorToOptionalString(connackView.reason_string)
+        self.wildcardSubscriptionsAvailable = convertOptionalBool(connackView.wildcard_subscriptions_available)
+        self.subscriptionIdentifiersAvailable = convertOptionalBool(connackView.subscription_identifiers_available)
+        self.sharedSubscriptionAvailable = convertOptionalBool(connackView.shared_subscriptions_available)
+        self.serverKeepAlive = convertOptionalUInt16(connackView.server_keep_alive).map { TimeInterval($0) }
+        self.responseInformation = convertAwsByteCursorToOptionalString(connackView.response_information)
+        self.serverReference = convertAwsByteCursorToOptionalString(connackView.server_reference)
+        self.userProperties = convertOptionalUserProperties(
             count: connackView.user_property_count,
             userPropertiesPointer: connackView.user_properties)
-
-        self.init(sessionPresent: sessionPresent,
-                  reasonCode: reasonCode,
-                  sessionExpiryInterval: sessionExpiryInterval,
-                  receiveMaximum: receiveMaximum,
-                  maximumQos: maximumQos,
-                  retainAvailable: retainAvailable,
-                  maximumPacketSize: maximumPacketSize,
-                  assignedClientIdentifier: assignedClientIdentifier,
-                  topicAliasMaximum: topicAliasMaximum,
-                  reasonString: reasonString,
-                  userProperties: userProperties,
-                  wildcardSubscriptionsAvailable: wildcardSubscriptionsAvailable,
-                  subscriptionIdentifiersAvailable: subscriptionIdentifiersAvailable,
-                  sharedSubscriptionAvailable: sharedSubscriptionAvailable,
-                  serverKeepAlive: serverKeepAliveInSeconds,
-                  responseInformation: responseInformation,
-                  serverReference: serverReference)
     }
 }
