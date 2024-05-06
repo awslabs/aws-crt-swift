@@ -43,5 +43,3 @@ trailing_semicolon: error
 vertical_parameter_alignment: error
 vertical_parameter_alignment_on_call:
   severity: error
-closure_parameter_position:
-  warning: disable
