@@ -168,37 +168,29 @@ public class PublishPacket: CStruct {
         self.userProperties = userProperties
     }
 
-    internal convenience init(_ from: UnsafePointer<aws_mqtt5_packet_publish_view>) {
-        let publishView = from.pointee
-        let qos = QoS(publishView.qos)
-        let payload = Data(bytes: publishView.payload.ptr, count: publishView.payload.len)
-        let payloadFormatIndicator: PayloadFormatIndicator? = publishView.payload_format != nil ?
-        PayloadFormatIndicator(publishView.payload_format.pointee) : nil
-        let messageExpiryInterval = convertOptionalUInt32(publishView.message_expiry_interval_seconds)
-        let messageExpiryIntervalTimeInterval: TimeInterval? = messageExpiryInterval.map { TimeInterval($0) }
-        let correlationDataPointer: Data? = publishView.correlation_data != nil ?
-                Data(bytes: publishView.correlation_data!.pointee.ptr, count: publishView.correlation_data!.pointee.len) : nil
+    internal init(_ publish_view: UnsafePointer<aws_mqtt5_packet_publish_view>) {
+        let publishView = publish_view.pointee
+        self.qos = QoS(publishView.qos)
+        self.topic = publishView.topic.toString()
+        self.payload = Data(bytes: publishView.payload.ptr, count: publishView.payload.len)
+        self.retain = publishView.retain
+        self.payloadFormatIndicator = publishView.payload_format != nil ?
+            PayloadFormatIndicator(publishView.payload_format.pointee) : nil
+        self.messageExpiryInterval = convertOptionalUInt32(publishView.message_expiry_interval_seconds).map { TimeInterval($0) }
+        self.topicAlias = convertOptionalUInt16(publishView.topic_alias)
+        self.responseTopic = convertAwsByteCursorToOptionalString(publishView.response_topic)
+        self.correlationData = publishView.correlation_data != nil ?
+            Data(bytes: publishView.correlation_data!.pointee.ptr, count: publishView.correlation_data!.pointee.len) : nil
         var identifier: [UInt32]? = []
         for i in 0..<publishView.subscription_identifier_count {
             let subscription_identifier: UInt32 = UInt32(publishView.subscription_identifiers.advanced(by: Int(i)).pointee)
             identifier?.append(subscription_identifier)
         }
-        let userProperties = convertOptionalUserProperties(
+        self.subscriptionIdentifiers = identifier
+        self.contentType = convertAwsByteCursorToOptionalString(publishView.content_type)
+        self.userProperties = convertOptionalUserProperties(
             count: publishView.user_property_count,
             userPropertiesPointer: publishView.user_properties)
-
-        self.init(qos: qos,
-                  topic: publishView.topic.toString(),
-                  payload: payload,
-                  retain: publishView.retain,
-                  payloadFormatIndicator: payloadFormatIndicator,
-                  messageExpiryInterval: messageExpiryIntervalTimeInterval,
-                  topicAlias: convertOptionalUInt16(publishView.topic_alias),
-                  responseTopic: convertAwsByteCursorToOptionalString(publishView.response_topic),
-                  correlationData: correlationDataPointer,
-                  subscriptionIdentifiers: identifier,
-                  contentType: convertAwsByteCursorToOptionalString(publishView.content_type),
-                  userProperties: userProperties)
     }
 
     /// Get payload converted to a utf8 String
