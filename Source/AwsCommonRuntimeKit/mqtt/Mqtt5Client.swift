@@ -200,17 +200,22 @@ public class Mqtt5Client {
     /// - Throws: CommonRuntimeError.crtError
     public func subscribe(subscribePacket: SubscribePacket) async throws -> SubackPacket {
 
-        return try await withCheckedThrowingContinuation { continuation in
-            subscribePacket.withCPointer { subscribePacketPointer in
+        return try await withCheckedThrowingContinuation { [weak self] continuation in
+            subscribePacket.withCPointer { [weak self] subscribePacketPointer in
                 var callbackOptions = aws_mqtt5_subscribe_completion_options()
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = subscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-                                    let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
-                    guard result == AWS_OP_SUCCESS else {
-                        continuationCore.release()
-                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
-                    }
+
+                guard let rawValue = self?.rawValue else {
+                    continuationCore.release()
+                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                }
+                let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
+                guard result == AWS_OP_SUCCESS else {
+                    continuationCore.release()
+                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                }
             }
         }
     }
@@ -228,13 +233,19 @@ public class Mqtt5Client {
 
         try publishPacket.validateConversionToNative()
 
-        return try await withCheckedThrowingContinuation { continuation in
+        return try await withCheckedThrowingContinuation { [weak self] continuation in
 
-            publishPacket.withCPointer { publishPacketPointer in
+            publishPacket.withCPointer { [weak self] publishPacketPointer in
                 var callbackOptions = aws_mqtt5_publish_completion_options()
                 let continuationCore = ContinuationCore<PublishResult>(continuation: continuation)
                 callbackOptions.completion_callback = publishCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
+                
+                guard let rawValue = self?.rawValue else {
+                    continuationCore.release()
+                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                }
+                
                 let result = aws_mqtt5_client_publish(rawValue, publishPacketPointer, &callbackOptions)
                 if result != AWS_OP_SUCCESS {
                     continuationCore.release()
@@ -254,13 +265,17 @@ public class Mqtt5Client {
     /// - Throws: CommonRuntimeError.crtError
     public func unsubscribe(unsubscribePacket: UnsubscribePacket) async throws -> UnsubackPacket {
 
-        return try await withCheckedThrowingContinuation { continuation in
+        return try await withCheckedThrowingContinuation { [weak self] continuation in
 
-            unsubscribePacket.withCPointer { unsubscribePacketPointer in
+            unsubscribePacket.withCPointer { [weak self] unsubscribePacketPointer in
                 var callbackOptions = aws_mqtt5_unsubscribe_completion_options()
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = unsubscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
+                guard let rawValue = self?.rawValue else {
+                    continuationCore.release()
+                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                }
                 let result = aws_mqtt5_client_unsubscribe(rawValue, unsubscribePacketPointer, &callbackOptions)
                 guard result == AWS_OP_SUCCESS else {
                     continuationCore.release()
