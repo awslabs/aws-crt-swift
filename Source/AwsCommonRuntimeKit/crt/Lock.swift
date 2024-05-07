@@ -11,15 +11,15 @@ class ReadWriteLock {
         pthread_rwlock_destroy(&rwlock)
     }
 
-    func read(_ closure: () throws -> Void) rethrows {
+    func read<Result>(_ closure: () throws -> Result) rethrows -> Result {
         pthread_rwlock_rdlock(&rwlock)
         defer { pthread_rwlock_unlock(&rwlock) }
         return try closure()
     }
 
-    func write( _ closure: () throws -> Void) rethrows {
+    func write<Result>( _ closure: () throws -> Result) rethrows -> Result {
         pthread_rwlock_wrlock(&rwlock)
         defer { pthread_rwlock_unlock(&rwlock) }
-        try closure()
+        return try closure()
     }
 }

@@ -127,7 +127,6 @@ public typealias OnWebSocketHandshakeIntercept = (HTTPRequest, @escaping OnWebSo
 public class Mqtt5Client {
     private var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
     private var callbackCore: MqttCallbackCore
-    let rwlock = ReadWriteLock()
 
     init(clientOptions options: MqttClientOptions) throws {
 
@@ -150,7 +149,7 @@ public class Mqtt5Client {
             self.callbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-        self.rawValue = rawValue
+                self.rawValue = rawValue
     }
 
     deinit {
@@ -160,7 +159,7 @@ public class Mqtt5Client {
     }
 
     public func start() throws {
-        try self.rwlock.read {
+        try self.callbackCore.rwlock.read {
             if rawValue != nil {
                 let errorCode = aws_mqtt5_client_start(rawValue)
 
@@ -181,6 +180,8 @@ public class Mqtt5Client {
                 disconnectPacket.withCPointer { disconnectPointer in
                     errorCode = aws_mqtt5_client_stop(rawValue, disconnectPointer, nil)
                 }
+            } else {
+                errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
             }
 
             if errorCode != AWS_OP_SUCCESS {
@@ -205,11 +206,11 @@ public class Mqtt5Client {
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = subscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-                let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
-                guard result == AWS_OP_SUCCESS else {
-                    continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
-                }
+                                    let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
+                    guard result == AWS_OP_SUCCESS else {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
             }
         }
     }
@@ -272,9 +273,7 @@ public class Mqtt5Client {
     public func close() {
         self.callbackCore.close()
         aws_mqtt5_client_release(rawValue)
-        self.rwlock.write {
-            rawValue = nil
-        }
+        rawValue = nil
         print("called, close")
     }
 }
