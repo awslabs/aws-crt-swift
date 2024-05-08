@@ -444,7 +444,7 @@ public class MqttClientOptions: CStructWithUserData {
                 raw_options.topic_aliasing_options = topicAliasingOptionsCPointer
                 raw_options.connect_options = connectOptionsCPointer
 
-                guard let _userData = userData else {
+                guard let userData else {
                     // directly return
                     return hostName.withByteCursor { hostNameByteCursor in
                         raw_options.host_name = hostNameByteCursor
@@ -454,15 +454,15 @@ public class MqttClientOptions: CStructWithUserData {
 
                 if self.onWebsocketTransform != nil {
                     raw_options.websocket_handshake_transform = MqttClientWebsocketTransform
-                    raw_options.websocket_handshake_transform_user_data = _userData
+                    raw_options.websocket_handshake_transform_user_data = userData
                 }
 
                 raw_options.lifecycle_event_handler = MqttClientLifeycyleEvents
-                raw_options.lifecycle_event_handler_user_data = _userData
+                raw_options.lifecycle_event_handler_user_data = userData
                 raw_options.publish_received_handler = MqttClientPublishRecievedEvents
-                raw_options.publish_received_handler_user_data = _userData
+                raw_options.publish_received_handler_user_data = userData
                 raw_options.client_termination_handler = MqttClientTerminationCallback
-                raw_options.client_termination_handler_user_data = _userData
+                raw_options.client_termination_handler_user_data = userData
                 return hostName.withByteCursor { hostNameByteCursor in
                     raw_options.host_name = hostNameByteCursor
                     return body(raw_options)
