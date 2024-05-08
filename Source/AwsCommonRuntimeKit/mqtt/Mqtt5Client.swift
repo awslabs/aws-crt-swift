@@ -214,15 +214,17 @@ public class Mqtt5Client {
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = subscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-                // validate the client in case close() is called.
-                guard let rawValue = self.rawValue else {
-                    continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
-                }
-                let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
-                guard result == AWS_OP_SUCCESS else {
-                    continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                self.callbackCore.rwlock.read{
+                    // validate the client in case close() is called.
+                    guard let rawValue = self.rawValue else {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
+                    let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
+                    guard result == AWS_OP_SUCCESS else {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
                 }
             }
         }
@@ -249,17 +251,20 @@ public class Mqtt5Client {
                 callbackOptions.completion_callback = publishCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
                 
-                // validate the client in case close() is called.
-                guard let rawValue = self.rawValue else {
-                    continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                self.callbackCore.rwlock.read{
+                    // validate the client in case close() is called.
+                    guard let rawValue = self.rawValue else {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
+                    
+                    let result = aws_mqtt5_client_publish(rawValue, publishPacketPointer, &callbackOptions)
+                    if result != AWS_OP_SUCCESS {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
                 }
-                
-                let result = aws_mqtt5_client_publish(rawValue, publishPacketPointer, &callbackOptions)
-                if result != AWS_OP_SUCCESS {
-                    continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
-                }
+               
             }
         }
     }
@@ -281,15 +286,17 @@ public class Mqtt5Client {
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = unsubscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-                // validate the client in case close() is called.
-                guard let rawValue = self.rawValue else {
-                    continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
-                }
-                let result = aws_mqtt5_client_unsubscribe(rawValue, unsubscribePacketPointer, &callbackOptions)
-                guard result == AWS_OP_SUCCESS else {
-                    continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                self.callbackCore.rwlock.read{
+                    // validate the client in case close() is called.
+                    guard let rawValue = self.rawValue else {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
+                    let result = aws_mqtt5_client_unsubscribe(rawValue, unsubscribePacketPointer, &callbackOptions)
+                    guard result == AWS_OP_SUCCESS else {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
                 }
             }
         }
