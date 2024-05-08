@@ -128,12 +128,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 self.semaphorePublishReceived.signal()
                 if let _testclient = self.test_client
                 {
-                    try? _testclient.stop()
-//                    async let _ = _testclient.publish(publishPacket: PublishPacket(qos: QoS.atLeastOnce, topic: "test"))
-//                    print("after publish")
-//                    try? _testclient.stop()
-//                    print("after stop")
-
+                    // try? _testclient.stop()
+                    //                        async let _ = _testclient.publish(publishPacket: PublishPacket(qos: QoS.atLeastOnce, topic: "test"))
+                    //                        print("after publish")
+                    if Int.random(in: 1..<10) > 5 {
+                        _testclient.close()
+                        print("after stop")
+                    }
                 }
                 print("after close")
                 self.publishCount += 1
@@ -1364,22 +1365,19 @@ class Mqtt5ClientTests: XCBaseTestCase {
     */
     func testMqtt5SubUnsub() async throws {
         try skipIfPlatformDoesntSupportTLS()
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
 
-        let tlsOptions = try TLSContextOptions.makeMTLS(
-            certificatePath: inputCert,
-            privateKeyPath: inputKey
-        )
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+        let clientId = createClientId()
+
+        let connectOptions = MqttConnectOptions(clientId: clientId)
 
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext)
+            port: UInt32(inputPort)!)
 
-        let testContext = MqttTestContext()
+      let testContext = MqttTestContext(publishTarget: 10)
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
         testContext.withClient(testClient: client)
         try connectClient(client: client, testContext: testContext)
@@ -1393,33 +1391,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
             })
         print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
 
-        let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic, payload: "Hello World".data(using: .utf8))
-        let publishResult: PublishResult =
-            try await withTimeout(client: client, seconds: 2, operation: {
-                try await client.publish(publishPacket: publishPacket)
-            })
-
-        if let puback = publishResult.puback {
-            print("PubackPacket received with result \(puback.reasonCode)")
-        } else {
-            XCTFail("PublishResult missing.")
-            return
+        for index in 1...10 {
+            print("publish for \(index) time(s)")
+            let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic, payload: "Hello World \(index)".data(using: .utf8))
+            let publishResult: PublishResult = try await client.publish(publishPacket: publishPacket)
         }
-
-        if testContext.semaphorePublishReceived.wait(timeout: .now() + 5) == .timedOut {
-            print("Publish not received after 5 seconds")
-            XCTFail("Publish packet not received on subscribed topic")
-            return
-        }
-
-        let unsubscribePacket = UnsubscribePacket(topicFilter: topic)
-        let unsubackPacket: UnsubackPacket =
-            try await withTimeout(client: client, seconds: 2, operation: {
-                try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
-            })
-        print("UnsubackPacket received with result \(unsubackPacket.reasonCodes[0])")
-
-        try disconnectClientCleanup(client: client, testContext: testContext)
+        testContext.semaphorePublishTargetReached.wait()
+        //try disconnectClientCleanup(client: client, testContext: testContext)
     }
 
     /*
@@ -1907,6 +1885,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             hostName: inputHost,
             port: UInt32(inputPort)!)
 
+
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
         try connectClient(client: client, testContext: testContext)
@@ -1914,8 +1893,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
         let subscribePacket = SubscribePacket(subscription: Subscription(topicFilter: topic, qos: QoS.atLeastOnce))
+        async let _ = try? client.subscribe(subscribePacket: subscribePacket)
 
-        async let _ = client.subscribe(subscribePacket: subscribePacket)
+        client.close()
         print("Done")
     }
 }

@@ -149,7 +149,7 @@ public class Mqtt5Client {
             self.callbackCore.release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-                self.rawValue = rawValue
+        self.rawValue = rawValue
     }
 
     deinit {
@@ -160,30 +160,38 @@ public class Mqtt5Client {
 
     public func start() throws {
         try self.callbackCore.rwlock.read {
-            if rawValue != nil {
-                let errorCode = aws_mqtt5_client_start(rawValue)
-
-                if errorCode != AWS_OP_SUCCESS {
-                    throw CommonRunTimeError.crtError(CRTError(code: errorCode))
-                }
+            // validate the client in case close() is called.
+            guard let rawValue = self.rawValue else {
+                // TODO add new error type for client closed
+                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+            }
+            let errorCode = aws_mqtt5_client_start(rawValue)
+            
+            if errorCode != AWS_OP_SUCCESS {
+                throw CommonRunTimeError.crtError(CRTError(code: errorCode))
             }
         }
     }
 
     public func stop(disconnectPacket: DisconnectPacket? = nil) throws {
-        if rawValue != nil {
+        try self.callbackCore.rwlock.read {
+            // validate the client in case close() is called.
+            guard let rawValue = self.rawValue else {
+                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+            }
+            
             var errorCode: Int32 = 0
-
+            
             if let disconnectPacket {
                 try disconnectPacket.validateConversionToNative()
-
+                
                 disconnectPacket.withCPointer { disconnectPointer in
                     errorCode = aws_mqtt5_client_stop(rawValue, disconnectPointer, nil)
                 }
             } else {
                 errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
             }
-
+            
             if errorCode != AWS_OP_SUCCESS {
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
             }
@@ -200,14 +208,14 @@ public class Mqtt5Client {
     /// - Throws: CommonRuntimeError.crtError
     public func subscribe(subscribePacket: SubscribePacket) async throws -> SubackPacket {
 
-        return try await withCheckedThrowingContinuation { [weak self] continuation in
-            subscribePacket.withCPointer { [weak self] subscribePacketPointer in
+        return try await withCheckedThrowingContinuation { continuation in
+            subscribePacket.withCPointer { subscribePacketPointer in
                 var callbackOptions = aws_mqtt5_subscribe_completion_options()
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = subscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-
-                guard let rawValue = self?.rawValue else {
+                // validate the client in case close() is called.
+                guard let rawValue = self.rawValue else {
                     continuationCore.release()
                     return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
@@ -230,18 +238,19 @@ public class Mqtt5Client {
     ///
     /// - Throws: CommonRuntimeError.crtError
     public func publish(publishPacket: PublishPacket) async throws -> PublishResult {
-
+            
         try publishPacket.validateConversionToNative()
-
-        return try await withCheckedThrowingContinuation { [weak self] continuation in
-
-            publishPacket.withCPointer { [weak self] publishPacketPointer in
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            
+            publishPacket.withCPointer { publishPacketPointer in
                 var callbackOptions = aws_mqtt5_publish_completion_options()
                 let continuationCore = ContinuationCore<PublishResult>(continuation: continuation)
                 callbackOptions.completion_callback = publishCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
                 
-                guard let rawValue = self?.rawValue else {
+                // validate the client in case close() is called.
+                guard let rawValue = self.rawValue else {
                     continuationCore.release()
                     return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
@@ -265,14 +274,15 @@ public class Mqtt5Client {
     /// - Throws: CommonRuntimeError.crtError
     public func unsubscribe(unsubscribePacket: UnsubscribePacket) async throws -> UnsubackPacket {
 
-        return try await withCheckedThrowingContinuation { [weak self] continuation in
+        return try await withCheckedThrowingContinuation { continuation in
 
-            unsubscribePacket.withCPointer { [weak self] unsubscribePacketPointer in
+            unsubscribePacket.withCPointer { unsubscribePacketPointer in
                 var callbackOptions = aws_mqtt5_unsubscribe_completion_options()
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = unsubscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-                guard let rawValue = self?.rawValue else {
+                // validate the client in case close() is called.
+                guard let rawValue = self.rawValue else {
                     continuationCore.release()
                     return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
@@ -288,7 +298,9 @@ public class Mqtt5Client {
     public func close() {
         self.callbackCore.close()
         aws_mqtt5_client_release(rawValue)
-        rawValue = nil
+        self.callbackCore.rwlock.write{
+            rawValue = nil
+        }
         print("called, close")
     }
 }
@@ -362,7 +374,6 @@ internal func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt
                 fatalError("A lifecycle event with an invalid event type was encountered.")
             }
         }
-
     }
 }
 
@@ -379,7 +390,9 @@ internal func MqttClientPublishRecievedEvents(
             fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.")
         }
         let puback = PublishReceivedData(publishPacket: publish_packet)
-        callbackCore.onPublishReceivedCallback(puback)
+        DispatchQueue.main.async {
+            callbackCore.onPublishReceivedCallback(puback)
+        }
     }
 }
 
