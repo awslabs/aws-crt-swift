@@ -462,9 +462,9 @@ public class MqttClientOptions: CStructWithUserData {
                     raw_options.websocket_handshake_transform_user_data = userData
                 }
 
-                raw_options.lifecycle_event_handler = MqttClientLifeycyleEvents
+                raw_options.lifecycle_event_handler = MqttClientHandleLifecycleEvent
                 raw_options.lifecycle_event_handler_user_data = userData
-                raw_options.publish_received_handler = MqttClientPublishRecievedEvents
+                raw_options.publish_received_handler = MqttClientHandlePublishRecieved
                 raw_options.publish_received_handler_user_data = userData
                 raw_options.client_termination_handler = MqttClientTerminationCallback
                 raw_options.client_termination_handler_user_data = userData
@@ -524,7 +524,7 @@ public class NegotiatedSettings {
     /// The final client id in use by the newly-established connection.  This will be the configured client id if one was given in the configuration, otherwise, if no client id was specified, this will be the client id assigned by the server.  Reconnection attempts will always use the auto-assigned client id, allowing for auto-assigned session resumption.
     public let clientId: String
 
-    internal init(_ settings: UnsafePointer<aws_mqtt5_negotiated_settings>){
+    internal init(_ settings: UnsafePointer<aws_mqtt5_negotiated_settings>) {
         let negotiatedSettings = settings.pointee
         self.maximumQos = QoS(negotiatedSettings.maximum_qos)
         self.sessionExpiryInterval = TimeInterval(negotiatedSettings.session_expiry_interval)

@@ -225,7 +225,7 @@ public class Mqtt5Client {
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = subscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-                self.rwlock.read{
+                self.rwlock.read {
                     // validate the client in case close() is called.
                     guard let rawValue = self.rawValue else {
                         continuationCore.release()
@@ -297,7 +297,7 @@ public class Mqtt5Client {
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = unsubscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-                self.rwlock.read{
+                self.rwlock.read {
                     // validate the client in case close() is called.
                     guard let rawValue = self.rawValue else {
                         continuationCore.release()
@@ -313,9 +313,8 @@ public class Mqtt5Client {
         }
     }
 
-
     public func close() {
-        self.rwlock.write{
+        self.rwlock.write {
             self.callbackFlag = false
             aws_mqtt5_client_release(rawValue)
             self.rawValue = nil
@@ -343,14 +342,15 @@ public class Mqtt5Client {
 /// Handles lifecycle events from native Mqtt Client
 internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
 
-    guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent else {
+    guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent,
+        let userData = lifecycleEvent.pointee.user_data else {
         fatalError("MqttClientLifecycleEvents was called from native without an aws_mqtt5_client_lifecycle_event.")
     }
-    let client: Mqtt5Client = Unmanaged<Mqtt5Client>.fromOpaque(userData).takeUnretainedValue()
+    let client = Unmanaged<Mqtt5Client>.fromOpaque(lifecycleEvent.pointee.user_data).takeUnretainedValue()
     let crtError = CRTError(code: lifecycleEvent.pointee.error_code)
 
-    if let userData = lifecycleEvent.pointee.user_data {
-        // validate the callback flag, if flag is false, return
+    // validate the callback flag, if flag is false, return
+    // validate the callback flag, if flag is false, return
         client.rwlock.read {
             if client.callbackFlag == false { return }
 
@@ -363,23 +363,27 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
                 }
             case AWS_MQTT5_CLET_CONNECTION_SUCCESS:
 
-                guard let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data) else {
+                guard let connackView = lifecycleEvent.pointee.connack_data else {
                     fatalError("ConnackPacket missing in a Connection Success lifecycle event.")
                 }
+                let connackPacket = ConnackPacket(connackView)
 
-                guard let negotiatedSettings = NegotiatedSettings.convertFromNative(lifecycleEvent.pointee.settings) else {
+                guard let negotiatedSettings = lifecycleEvent.pointee.settings else {
                     fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.")
                 }
 
                 let lifecycleConnectionSuccessData = LifecycleConnectionSuccessData(
                     connackPacket: connackPacket,
-                    negotiatedSettings: negotiatedSettings)
+                    negotiatedSettings: NegotiatedSettings(negotiatedSettings))
                 Task {
                     await client.onLifecycleEventConnectionSuccess(lifecycleConnectionSuccessData)
                 }
             case AWS_MQTT5_CLET_CONNECTION_FAILURE:
 
-                let connackPacket = ConnackPacket.convertFromNative(lifecycleEvent.pointee.connack_data)
+                var connackPacket: ConnackPacket?
+                if let connackView = lifecycleEvent.pointee.connack_data {
+                    connackPacket = ConnackPacket(connackView)
+                }
 
                 let lifecycleConnectionFailureData = LifecycleConnectionFailureData(
                     crtError: crtError,
@@ -387,48 +391,46 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
                 Task {
                     await client.onLifecycleEventConnectionFailure(lifecycleConnectionFailureData)
                 }
-
             case AWS_MQTT5_CLET_DISCONNECTION:
 
-                guard let disconnectPacket = DisconnectPacket.convertFromNative(lifecycleEvent.pointee.disconnect_data) else {
-                    let lifecycleDisconnectData = LifecycleDisconnectData(crtError: crtError)
-                    Task {
-                        await client.onLifecycleEventDisconnection(lifecycleDisconnectData)
-                    }
-                    return
+                var disconnectPacket: DisconnectPacket?
+
+                if let disconnectView: UnsafePointer<aws_mqtt5_packet_disconnect_view> = lifecycleEvent.pointee.disconnect_data {
+                    disconnectPacket = DisconnectPacket(disconnectView)
                 }
 
                 let lifecycleDisconnectData = LifecycleDisconnectData(
-                        crtError: crtError,
-                        disconnectPacket: disconnectPacket)
-
+                    crtError: crtError,
+                    disconnectPacket: disconnectPacket)
                 Task {
                     await client.onLifecycleEventDisconnection(lifecycleDisconnectData)
                 }
             case AWS_MQTT5_CLET_STOPPED:
-
                 Task {
                     await client.onLifecycleEventStoppedCallback(LifecycleStoppedData())
                 }
-
             default:
                 fatalError("A lifecycle event with an invalid event type was encountered.")
             }
-        }
     }
 }
 
 internal func MqttClientHandlePublishRecieved(
     _ publish: UnsafePointer<aws_mqtt5_packet_publish_view>?,
     _ user_data: UnsafeMutableRawPointer?) {
-    let client = Unmanaged<MqttCallbackCore>.fromOpaque(user_data!).takeUnretainedValue()
+    let client = Unmanaged<Mqtt5Client>.fromOpaque(user_data!).takeUnretainedValue()
 
     // validate the callback flag, if flag is false, return
     client.rwlock.read {
         if client.callbackFlag == false { return }
-        let puback = PublishReceivedData(publishPacket: publish_packet)
-        Task {
-            await client.onPublishReceivedCallback(puback)
+        if let publish {
+            let publishPacket = PublishPacket(publish)
+            let publishReceivedData = PublishReceivedData(publishPacket: publishPacket)
+            Task {
+                await client.onPublishReceivedCallback(publishReceivedData)
+            }
+        } else {
+            fatalError("MqttClientHandlePublishRecieved called with null publish")
         }
     }
 }
@@ -439,7 +441,7 @@ internal func MqttClientWebsocketTransform(
     _ complete_fn: (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
     _ complete_ctx: UnsafeMutableRawPointer?) {
 
-    let client = Unmanaged<Mqtt5Client>.fromOpaque(userData!).takeUnretainedValue()
+    let client = Unmanaged<Mqtt5Client>.fromOpaque(complete_ctx!).takeUnretainedValue()
 
     // validate the callback flag, if flag is false, return
         client.rwlock.read {
