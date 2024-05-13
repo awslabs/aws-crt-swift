@@ -223,36 +223,22 @@ extension aws_array_list {
     }
 }
 
-/// Convert a native aws_byte_cursor pointer into a String?
-func convertAwsByteCursorToOptionalString(_ awsByteCursor: UnsafePointer<aws_byte_cursor>?) -> String? {
-    guard let cursor = awsByteCursor?.pointee else {
-        return nil
+extension Optional {
+    /// unwrap an optional unsafepointer to its underlying type
+    func unwrap<T>() -> T? where Wrapped == (UnsafePointer<T>) {
+        guard let validPointer = self else {
+            return nil
+        }
+        return validPointer.pointee
     }
-    return cursor.toString()
-}
 
-/// Convert a native uint16_t pointer into a Swift UInt16?
-func convertOptionalUInt16(_ pointer: UnsafePointer<UInt16>?) -> UInt16? {
-    guard let validPointer = pointer else {
-        return nil
+    /// convert UnsafePointer<aws_byte_cursor> to optional String
+    func toString() -> String? where Wrapped == (UnsafePointer<aws_byte_cursor>) {
+        guard let validPointer = self?.pointee else {
+            return nil
+        }
+        return validPointer.toString()
     }
-    return validPointer.pointee
-}
-
-/// Convert a native uint32_t pointer into a Swift UInt32?
-func convertOptionalUInt32(_ pointer: UnsafePointer<UInt32>?) -> UInt32? {
-    guard let validPointer = pointer else {
-        return nil
-    }
-    return validPointer.pointee
-}
-
-/// Convert a native bool pointer to an optional Swift Bool
-func convertOptionalBool(_ pointer: UnsafePointer<Bool>?) -> Bool? {
-    guard let validPointer = pointer else {
-        return nil
-    }
-    return validPointer.pointee
 }
 
 extension Bool {

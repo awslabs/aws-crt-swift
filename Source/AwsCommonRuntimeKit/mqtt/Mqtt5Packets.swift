@@ -176,9 +176,9 @@ public class PublishPacket: CStruct {
         self.retain = publishView.retain
         self.payloadFormatIndicator = publishView.payload_format != nil ?
             PayloadFormatIndicator(publishView.payload_format.pointee) : nil
-        self.messageExpiryInterval = convertOptionalUInt32(publishView.message_expiry_interval_seconds).map { TimeInterval($0) }
-        self.topicAlias = convertOptionalUInt16(publishView.topic_alias)
-        self.responseTopic = convertAwsByteCursorToOptionalString(publishView.response_topic)
+        self.messageExpiryInterval = publishView.message_expiry_interval_seconds.unwrap().map { TimeInterval($0) }
+        self.topicAlias = publishView.topic_alias.unwrap()
+        self.responseTopic = publishView.response_topic.toString()
         self.correlationData = publishView.correlation_data != nil ?
             Data(bytes: publishView.correlation_data!.pointee.ptr, count: publishView.correlation_data!.pointee.len) : nil
         var identifier: [UInt32]? = []
@@ -187,7 +187,7 @@ public class PublishPacket: CStruct {
             identifier?.append(subscription_identifier)
         }
         self.subscriptionIdentifiers = identifier
-        self.contentType = convertAwsByteCursorToOptionalString(publishView.content_type)
+        self.contentType = publishView.content_type.toString()
         self.userProperties = convertOptionalUserProperties(
             count: publishView.user_property_count,
             userPropertiesPointer: publishView.user_properties)
@@ -627,9 +627,9 @@ public class DisconnectPacket: CStruct {
         let disconnectView = disconnect_view.pointee
 
         self.reasonCode = DisconnectReasonCode(rawValue: Int(disconnectView.reason_code.rawValue))!
-        self.sessionExpiryInterval = convertOptionalUInt32(disconnectView.session_expiry_interval_seconds).map { TimeInterval($0) }
-        self.reasonString = convertAwsByteCursorToOptionalString(disconnectView.reason_string)
-        self.serverReference = convertAwsByteCursorToOptionalString(disconnectView.reason_string)
+        self.sessionExpiryInterval = disconnectView.session_expiry_interval_seconds.unwrap().map { TimeInterval($0) }
+        self.reasonString = disconnectView.reason_string.toString()
+        self.serverReference = disconnectView.reason_string.toString()
         self.userProperties = convertOptionalUserProperties(
             count: disconnectView.user_property_count,
             userPropertiesPointer: disconnectView.user_properties)
@@ -774,23 +774,23 @@ public class ConnackPacket {
         self.sessionPresent = connackView.session_present
         self.reasonCode = ConnectReasonCode(rawValue: Int(connackView.reason_code.rawValue))!
         self.sessionExpiryInterval = (connackView.session_expiry_interval?.pointee).map { TimeInterval($0) }
-        self.receiveMaximum = convertOptionalUInt16(connackView.receive_maximum)
+        self.receiveMaximum = connackView.receive_maximum.unwrap()
         if let maximumQosValue = connackView.maximum_qos {
             self.maximumQos = QoS(maximumQosValue.pointee)
         } else {
             self.maximumQos = nil
         }
-        self.retainAvailable = convertOptionalBool(connackView.retain_available)
-        self.maximumPacketSize = convertOptionalUInt32(connackView.maximum_packet_size)
-        self.assignedClientIdentifier = convertAwsByteCursorToOptionalString(connackView.assigned_client_identifier)
-        self.topicAliasMaximum = convertOptionalUInt16(connackView.topic_alias_maximum)
-        self.reasonString = convertAwsByteCursorToOptionalString(connackView.reason_string)
-        self.wildcardSubscriptionsAvailable = convertOptionalBool(connackView.wildcard_subscriptions_available)
-        self.subscriptionIdentifiersAvailable = convertOptionalBool(connackView.subscription_identifiers_available)
-        self.sharedSubscriptionAvailable = convertOptionalBool(connackView.shared_subscriptions_available)
-        self.serverKeepAlive = convertOptionalUInt16(connackView.server_keep_alive).map { TimeInterval($0) }
-        self.responseInformation = convertAwsByteCursorToOptionalString(connackView.response_information)
-        self.serverReference = convertAwsByteCursorToOptionalString(connackView.server_reference)
+        self.retainAvailable = connackView.retain_available.unwrap()
+        self.maximumPacketSize = connackView.maximum_packet_size.unwrap()
+        self.assignedClientIdentifier = connackView.assigned_client_identifier.toString()
+        self.topicAliasMaximum = connackView.topic_alias_maximum.unwrap()
+        self.reasonString = connackView.reason_string.toString()
+        self.wildcardSubscriptionsAvailable = connackView.wildcard_subscriptions_available.unwrap()
+        self.subscriptionIdentifiersAvailable = connackView.subscription_identifiers_available.unwrap()
+        self.sharedSubscriptionAvailable = connackView.shared_subscriptions_available.unwrap()
+        self.serverKeepAlive = connackView.server_keep_alive.unwrap().map { TimeInterval($0) }
+        self.responseInformation = connackView.response_information.toString()
+        self.serverReference = connackView.server_reference.toString()
         self.userProperties = convertOptionalUserProperties(
             count: connackView.user_property_count,
             userPropertiesPointer: connackView.user_properties)
