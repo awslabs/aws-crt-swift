@@ -28,6 +28,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /// stop client and check for discconnection and stopped lifecycle events
     func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) throws -> Void {
         try client.stop(disconnectPacket: disconnectPacket)
+        defer{client.close()}
 
         if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
             print("Disconnection timed out after 5 seconds")
@@ -45,6 +46,17 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /// stop client and check for stopped lifecycle event
     func stopClient(client: Mqtt5Client, testContext: MqttTestContext) throws -> Void {
         try client.stop()
+        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+            print("Stop timed out after 5 seconds")
+            XCTFail("Stop timed out")
+            throw MqttTestError.stopFail
+        }
+    }
+
+    /// stop client and check for stopped lifecycle event
+    func stopClientCleanup(client: Mqtt5Client, testContext: MqttTestContext) throws -> Void {
+        try client.stop()
+        defer{client.close()}
         if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
             print("Stop timed out after 5 seconds")
             XCTFail("Stop timed out")
@@ -81,12 +93,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         public var lifecycleDisconnectionData: LifecycleDisconnectData?
         public var publishCount = 0
         public var publishTarget = 1
-        public var test_client : Mqtt5Client?
-
-        func withClient(testClient: Mqtt5Client? = nil)
-        {
-            self.test_client = testClient
-        }
 
         init(contextName: String = "",
              publishTarget: Int = 1,
@@ -123,20 +129,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 } else {
                     print(contextName + " Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos)")
                 }
-
                 self.publishPacket = publishData.publishPacket
                 self.semaphorePublishReceived.signal()
-                if let _testclient = self.test_client
-                {
-                    // try? _testclient.stop()
-                    //                        async let _ = _testclient.publish(publishPacket: PublishPacket(qos: QoS.atLeastOnce, topic: "test"))
-                    //                        print("after publish")
-                    if Int.random(in: 1..<10) > 5 {
-                        _testclient.close()
-                        print("after stop")
-                    }
-                }
-                print("after close")
                 self.publishCount += 1
                 if self.publishCount == self.publishTarget {
                     self.semaphorePublishTargetReached.signal()
@@ -187,16 +181,14 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
 
             self.onWebSocketHandshake = { httpRequest, completCallback in
-                Task{
-                    do
-                    {
-                        let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
-                        completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
-                    }
-                    catch
-                    {
-                        completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
-                    }
+                do
+                {
+                    let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
+                    completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
+                }
+                catch
+                {
+                    completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
                 }
             }
         }
@@ -320,7 +312,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         XCTAssertNotNil(clientOptions)
         let mqtt5client = try Mqtt5Client(clientOptions: clientOptions);
         XCTAssertNotNil(mqtt5client)
-
+        mqtt5client.close()
     }
 
     /*
@@ -379,6 +371,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let context = MqttTestContext()
         let mqtt5client = try createClient(clientOptions: clientOptions, testContext: context)
         XCTAssertNotNil(mqtt5client)
+        mqtt5client.close()
     }
 
     /*===============================================================
@@ -817,7 +810,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try stopClient(client: client, testContext: testContext)
+        try stopClientCleanup(client: client, testContext: testContext)
     }
 
     /*
@@ -852,7 +845,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try stopClient(client: client, testContext: testContext)
+        try stopClientCleanup(client: client, testContext: testContext)
     }
 
     /*
@@ -888,7 +881,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try stopClient(client: client, testContext: testContext)
+        try stopClientCleanup(client: client, testContext: testContext)
     }
 
     /*
@@ -917,7 +910,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try stopClient(client: client, testContext: testContext)
+        try stopClientCleanup(client: client, testContext: testContext)
     }
 
     /*
@@ -949,7 +942,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try stopClient(client: client, testContext: testContext)
+        try stopClientCleanup(client: client, testContext: testContext)
     }
 
     /*
@@ -1046,7 +1039,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try stopClient(client: client, testContext: testContext)
+        try stopClientCleanup(client: client, testContext: testContext)
         try disconnectClientCleanup(client: client2, testContext: testContext2)
     }
 
@@ -1184,6 +1177,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        defer { client.close() }
         try connectClient(client: client, testContext: testContext)
 
         let disconnectPacket = DisconnectPacket(sessionExpiryInterval: -1)
@@ -1218,6 +1212,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        defer { client.close() }
         try connectClient(client: client, testContext: testContext)
 
         let publishPacket = PublishPacket(qos: .atMostOnce,
@@ -1379,7 +1374,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
       let testContext = MqttTestContext(publishTarget: 10)
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        testContext.withClient(testClient: client)
         try connectClient(client: client, testContext: testContext)
 
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
@@ -1394,10 +1388,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
         for index in 1...10 {
             print("publish for \(index) time(s)")
             let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic, payload: "Hello World \(index)".data(using: .utf8))
-            let publishResult: PublishResult = try await client.publish(publishPacket: publishPacket)
+            let _ = try await client.publish(publishPacket: publishPacket)
         }
         testContext.semaphorePublishTargetReached.wait()
-        //try disconnectClientCleanup(client: client, testContext: testContext)
+        try disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*
@@ -1872,6 +1866,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
         try connectClient(client: client, testContext: testContext)
+        // close is required for client cleanup
+        client.close()
     }
 
     /*
@@ -1892,10 +1888,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
         try stopClient(client: client, testContext: testContext)
 
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
-        let subscribePacket = SubscribePacket(subscription: Subscription(topicFilter: topic, qos: QoS.atLeastOnce))
-        async let _ = try? client.subscribe(subscribePacket: subscribePacket)
+        let subscribePacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic)
+        async let _ = try? client.publish(publishPacket: subscribePacket)
 
         client.close()
-        print("Done")
     }
 }
