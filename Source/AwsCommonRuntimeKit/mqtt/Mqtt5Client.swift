@@ -456,10 +456,10 @@ internal func MqttClientWebsocketTransform(
     _ complete_fn: (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
     _ complete_ctx: UnsafeMutableRawPointer?) {
 
-    let client = Unmanaged<Mqtt5Client>.fromOpaque(complete_ctx!).takeUnretainedValue()
+    let client = Unmanaged<Mqtt5Client>.fromOpaque(user_data!).takeUnretainedValue()
 
     // validate the callback flag, if flag is false, return
-        client.rwlock.read {
+    client.rwlock.read {
         if client.callbackFlag == false { return }
 
         guard let request else {
