@@ -168,10 +168,35 @@ public class PublishPacket: CStruct {
         self.userProperties = userProperties
     }
 
+    internal init(_ publish_view: UnsafePointer<aws_mqtt5_packet_publish_view>) {
+        let publishView = publish_view.pointee
+        self.qos = QoS(publishView.qos)
+        self.topic = publishView.topic.toString()
+        self.payload = Data(bytes: publishView.payload.ptr, count: publishView.payload.len)
+        self.retain = publishView.retain
+        self.payloadFormatIndicator = publishView.payload_format != nil ?
+            PayloadFormatIndicator(publishView.payload_format.pointee) : nil
+        self.messageExpiryInterval = convertOptionalUInt32(publishView.message_expiry_interval_seconds).map { TimeInterval($0) }
+        self.topicAlias = convertOptionalUInt16(publishView.topic_alias)
+        self.responseTopic = convertAwsByteCursorToOptionalString(publishView.response_topic)
+        self.correlationData = publishView.correlation_data != nil ?
+            Data(bytes: publishView.correlation_data!.pointee.ptr, count: publishView.correlation_data!.pointee.len) : nil
+        var identifier: [UInt32]? = []
+        for i in 0..<publishView.subscription_identifier_count {
+            let subscription_identifier: UInt32 = UInt32(publishView.subscription_identifiers.advanced(by: Int(i)).pointee)
+            identifier?.append(subscription_identifier)
+        }
+        self.subscriptionIdentifiers = identifier
+        self.contentType = convertAwsByteCursorToOptionalString(publishView.content_type)
+        self.userProperties = convertOptionalUserProperties(
+            count: publishView.user_property_count,
+            userPropertiesPointer: publishView.user_properties)
+    }
+
     /// Get payload converted to a utf8 String
     public func payloadAsString() -> String? {
-        if let data = payload {
-            return String(data: data, encoding: .utf8) ?? nil
+        if let payload{
+            return String(data: payload, encoding: .utf8) ?? nil
         }
         return nil
     }
@@ -239,50 +264,6 @@ public class PublishPacket: CStruct {
             }
         }
     }
-
-    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_publish_view>?) -> PublishPacket? {
-        guard let from else {
-            return nil
-        }
-        let publishView = from.pointee
-
-        let qos = QoS(publishView.qos)
-        let payload = Data(bytes: publishView.payload.ptr, count: publishView.payload.len)
-
-        let payloadFormatIndicator: PayloadFormatIndicator? = publishView.payload_format != nil ?
-        PayloadFormatIndicator(publishView.payload_format.pointee) : nil
-
-        let messageExpiryInterval = convertOptionalUInt32(publishView.message_expiry_interval_seconds)
-        let messageExpiryIntervalTimeInterval: TimeInterval? = messageExpiryInterval.map { TimeInterval($0) }
-
-        let correlationDataPointer: Data? = publishView.correlation_data != nil ?
-                Data(bytes: publishView.correlation_data!.pointee.ptr, count: publishView.correlation_data!.pointee.len) : nil
-
-        var identifier: [UInt32]? = []
-        for i in 0..<publishView.subscription_identifier_count {
-            let subscription_identifier: UInt32 = UInt32(publishView.subscription_identifiers.advanced(by: Int(i)).pointee)
-            identifier?.append(subscription_identifier)
-        }
-
-        let userProperties = convertOptionalUserProperties(
-            count: publishView.user_property_count,
-            userPropertiesPointer: publishView.user_properties)
-
-        let publishPacket = PublishPacket(qos: qos,
-                                          topic: publishView.topic.toString(),
-                                          payload: payload,
-                                          retain: publishView.retain,
-                                          payloadFormatIndicator: payloadFormatIndicator,
-                                          messageExpiryInterval: messageExpiryIntervalTimeInterval,
-                                          topicAlias: convertOptionalUInt16(publishView.topic_alias),
-                                          responseTopic: convertAwsByteCursorToOptionalString(publishView.response_topic),
-                                          correlationData: correlationDataPointer,
-                                          subscriptionIdentifiers: identifier,
-                                          contentType: convertAwsByteCursorToOptionalString(publishView.content_type),
-                                          userProperties: userProperties)
-
-        return publishPacket
-    }
 }
 
 /// Publish result returned by Publish operation.
@@ -316,22 +297,13 @@ public class PubackPacket {
         self.userProperties = userProperties
     }
 
-    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_puback_view>?) -> PubackPacket? {
-        guard let from = from else {
-            return nil
-        }
-        let pubackPointer = from.pointee
-
-        guard let reasonCode = PubackReasonCode(rawValue: Int(pubackPointer.reason_code.rawValue))
-        else {fatalError("SubackPacket from native has an invalid reason code.")}
-
-        let reasonString = pubackPointer.reason_string?.pointee.toString()
-
-        let userProperties = convertOptionalUserProperties(
-            count: pubackPointer.user_property_count,
-            userPropertiesPointer: pubackPointer.user_properties)
-
-        return PubackPacket(reasonCode: reasonCode, reasonString: reasonString, userProperties: userProperties)
+    internal init(_ puback_view: UnsafePointer<aws_mqtt5_packet_puback_view>) {
+        let pubackView = puback_view.pointee
+        self.reasonCode = PubackReasonCode(rawValue: Int(pubackView.reason_code.rawValue))!
+        self.reasonString = pubackView.reason_string?.pointee.toString()
+        self.userProperties = convertOptionalUserProperties(
+            count: pubackView.user_property_count,
+            userPropertiesPointer: pubackView.user_properties)
     }
 }
 
@@ -514,35 +486,15 @@ public class SubackPacket {
         self.userProperties = userProperties
     }
 
-    public static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_suback_view>?) -> SubackPacket? {
-
-        guard let from else {
-            return nil
-        }
-
-        let subackPointer = from.pointee
-
-        var subackReasonCodes: [SubackReasonCode] = []
-        for i in 0..<subackPointer.reason_code_count {
-            let reasonCodePointer = subackPointer.reason_codes.advanced(by: Int(i)).pointee
-            guard let reasonCode = SubackReasonCode(rawValue: Int(reasonCodePointer.rawValue)) else {
-                fatalError("SubackPacket from native has an invalid reason code.")
-            }
-            subackReasonCodes.append(reasonCode)
-        }
-
-        let reasonString = subackPointer.reason_string?.pointee.toString()
-
-        let userProperties = convertOptionalUserProperties(
-            count: subackPointer.user_property_count,
-            userPropertiesPointer: subackPointer.user_properties)
-
-        let suback = SubackPacket(reasonCodes: subackReasonCodes,
-                                  reasonString: reasonString,
-                                  userProperties: userProperties)
-        return suback
+    internal init(_ suback_view: UnsafePointer<aws_mqtt5_packet_suback_view>) {
+        let subackView = suback_view.pointee
+        let reasonCodeBuffer = UnsafeBufferPointer(start: subackView.reason_codes, count: subackView.reason_code_count)
+        self.reasonCodes = reasonCodeBuffer.compactMap { SubackReasonCode(rawValue: Int($0.rawValue)) }
+        self.reasonString = subackView.reason_string?.pointee.toString()
+        self.userProperties = convertOptionalUserProperties(
+            count: subackView.user_property_count,
+            userPropertiesPointer: subackView.user_properties)
     }
-
 }
 
 /// Data model of an `MQTT5 UNSUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc384800445>`_ packet.
@@ -630,23 +582,14 @@ public class UnsubackPacket {
         self.userProperties = userProperties
     }
 
-    public static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_unsuback_view>?) -> UnsubackPacket? {
-        if let _from = from {
-            let unsubackPointer = _from.pointee
-
-            let reasonCodeBuffer = UnsafeBufferPointer(start: unsubackPointer.reason_codes, count: unsubackPointer.reason_code_count)
-            let unsubackReasonCodes = reasonCodeBuffer.compactMap { UnsubackReasonCode(rawValue: Int($0.rawValue)) }
-            let reasonString = unsubackPointer.reason_string?.pointee.toString()
-            let userProperties = convertOptionalUserProperties(
-                count: unsubackPointer.user_property_count,
-                userPropertiesPointer: unsubackPointer.user_properties)
-            let unsuback = UnsubackPacket(reasonCodes: unsubackReasonCodes,
-                                          reasonString: reasonString,
-                                          userProperties: userProperties)
-            return unsuback
-        }
-
-        return nil
+    internal init(_ unsuback_view: UnsafePointer<aws_mqtt5_packet_unsuback_view>){
+        let unsubackView = unsuback_view.pointee
+        let reasonCodeBuffer = UnsafeBufferPointer(start: unsubackView.reason_codes, count: unsubackView.reason_code_count)
+        self.reasonCodes = reasonCodeBuffer.compactMap { UnsubackReasonCode(rawValue: Int($0.rawValue)) }
+        self.reasonString = unsubackView.reason_string?.pointee.toString()
+        self.userProperties = convertOptionalUserProperties(
+            count: unsubackView.user_property_count,
+            userPropertiesPointer: unsubackView.user_properties)
     }
 }
 
@@ -678,7 +621,20 @@ public class DisconnectPacket: CStruct {
             self.reasonString = reasonString
             self.serverReference = serverReference
             self.userProperties = userProperties
-        }
+    }
+
+    internal init(_ disconnect_view: UnsafePointer<aws_mqtt5_packet_disconnect_view>){
+        let disconnectView = disconnect_view.pointee
+
+        self.reasonCode = DisconnectReasonCode(rawValue: Int(disconnectView.reason_code.rawValue))!
+        self.sessionExpiryInterval = convertOptionalUInt32(disconnectView.session_expiry_interval_seconds).map { TimeInterval($0) }
+        self.reasonString = convertAwsByteCursorToOptionalString(disconnectView.reason_string)
+        self.serverReference = convertAwsByteCursorToOptionalString(disconnectView.reason_string)
+        self.userProperties = convertOptionalUserProperties(
+            count: disconnectView.user_property_count,
+            userPropertiesPointer: disconnectView.user_properties)
+    }
+
     func validateConversionToNative() throws {
         if let sessionExpiryInterval {
             if sessionExpiryInterval < 0 || sessionExpiryInterval > Double(UInt32.max) {
@@ -718,34 +674,6 @@ public class DisconnectPacket: CStruct {
                     }
             }
         }
-    }
-
-    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_disconnect_view>?) -> DisconnectPacket? {
-        guard let from else {
-            return nil
-        }
-        let disconnectView = from.pointee
-        guard let reasonCode = DisconnectReasonCode(rawValue: Int(disconnectView.reason_code.rawValue)) else {
-            fatalError("aws_mqtt5_packet_disconnect_view from native missing a reason code.")
-        }
-
-        let sessionExpiryInterval = convertOptionalUInt32(disconnectView.session_expiry_interval_seconds)
-        let sessionExpiryIntervalSeconds: TimeInterval? = sessionExpiryInterval.map { TimeInterval($0) }
-        let reasonString = convertAwsByteCursorToOptionalString(disconnectView.reason_string)
-        let serverReference = convertAwsByteCursorToOptionalString(disconnectView.reason_string)
-        let userProperties = convertOptionalUserProperties(
-            count: disconnectView.user_property_count,
-            userPropertiesPointer: disconnectView.user_properties)
-
-        let disconnectPacket = DisconnectPacket(
-            reasonCode: reasonCode,
-            sessionExpiryInterval: sessionExpiryIntervalSeconds,
-            reasonString: reasonString,
-            serverReference: serverReference,
-            userProperties: userProperties
-        )
-        return disconnectPacket
-
     }
 }
 
@@ -840,59 +768,31 @@ public class ConnackPacket {
         self.serverReference = serverReference
     }
 
-    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_packet_connack_view>?) -> ConnackPacket? {
-        guard let from else {
-            return nil
-        }
-        let connackView = from.pointee
+    internal init(_ connack_view: UnsafePointer<aws_mqtt5_packet_connack_view>){
+        let connackView = connack_view.pointee
 
-        let sessionPresent = connackView.session_present
-        guard let reasonCode = ConnectReasonCode(rawValue: Int(connackView.reason_code.rawValue)) else {
-            fatalError("aws_mqtt5_packet_connack_view from native missing a reason code.")
-        }
-        let sessionExpiryInterval = (connackView.session_expiry_interval?.pointee).map { TimeInterval($0) }
-        let receiveMaximum = convertOptionalUInt16(connackView.receive_maximum)
-
-        var maximumQos: QoS?
+        self.sessionPresent = connackView.session_present
+        self.reasonCode = ConnectReasonCode(rawValue: Int(connackView.reason_code.rawValue))!
+        self.sessionExpiryInterval = (connackView.session_expiry_interval?.pointee).map { TimeInterval($0) }
+        self.receiveMaximum = convertOptionalUInt16(connackView.receive_maximum)
         if let maximumQosValue = connackView.maximum_qos {
-            maximumQos = QoS(maximumQosValue.pointee)
+            self.maximumQos = QoS(maximumQosValue.pointee)
+        } else {
+            self.maximumQos = nil
         }
-
-        let retainAvailable = convertOptionalBool(connackView.retain_available)
-        let maximumPacketSize = convertOptionalUInt32(connackView.maximum_packet_size)
-        let assignedClientIdentifier = convertAwsByteCursorToOptionalString(connackView.assigned_client_identifier)
-        let topicAliasMaximum = convertOptionalUInt16(connackView.topic_alias_maximum)
-        let reasonString = convertAwsByteCursorToOptionalString(connackView.reason_string)
-        let wildcardSubscriptionsAvailable = convertOptionalBool(connackView.wildcard_subscriptions_available)
-        let subscriptionIdentifiersAvailable = convertOptionalBool(connackView.subscription_identifiers_available)
-        let sharedSubscriptionAvailable = convertOptionalBool(connackView.shared_subscriptions_available)
-        let serverKeepAlive = convertOptionalUInt16(connackView.server_keep_alive)
-        let serverKeepAliveInSeconds: TimeInterval? = serverKeepAlive.map { TimeInterval($0) }
-        let responseInformation = convertAwsByteCursorToOptionalString(connackView.response_information)
-        let serverReference = convertAwsByteCursorToOptionalString(connackView.server_reference)
-        let userProperties = convertOptionalUserProperties(
+        self.retainAvailable = convertOptionalBool(connackView.retain_available)
+        self.maximumPacketSize = convertOptionalUInt32(connackView.maximum_packet_size)
+        self.assignedClientIdentifier = convertAwsByteCursorToOptionalString(connackView.assigned_client_identifier)
+        self.topicAliasMaximum = convertOptionalUInt16(connackView.topic_alias_maximum)
+        self.reasonString = convertAwsByteCursorToOptionalString(connackView.reason_string)
+        self.wildcardSubscriptionsAvailable = convertOptionalBool(connackView.wildcard_subscriptions_available)
+        self.subscriptionIdentifiersAvailable = convertOptionalBool(connackView.subscription_identifiers_available)
+        self.sharedSubscriptionAvailable = convertOptionalBool(connackView.shared_subscriptions_available)
+        self.serverKeepAlive = convertOptionalUInt16(connackView.server_keep_alive).map { TimeInterval($0) }
+        self.responseInformation = convertAwsByteCursorToOptionalString(connackView.response_information)
+        self.serverReference = convertAwsByteCursorToOptionalString(connackView.server_reference)
+        self.userProperties = convertOptionalUserProperties(
             count: connackView.user_property_count,
             userPropertiesPointer: connackView.user_properties)
-
-        let connackPacket = ConnackPacket(
-            sessionPresent: sessionPresent,
-            reasonCode: reasonCode,
-            sessionExpiryInterval: sessionExpiryInterval,
-            receiveMaximum: receiveMaximum,
-            maximumQos: maximumQos,
-            retainAvailable: retainAvailable,
-            maximumPacketSize: maximumPacketSize,
-            assignedClientIdentifier: assignedClientIdentifier,
-            topicAliasMaximum: topicAliasMaximum,
-            reasonString: reasonString,
-            userProperties: userProperties,
-            wildcardSubscriptionsAvailable: wildcardSubscriptionsAvailable,
-            subscriptionIdentifiersAvailable: subscriptionIdentifiersAvailable,
-            sharedSubscriptionAvailable: sharedSubscriptionAvailable,
-            serverKeepAlive: serverKeepAliveInSeconds,
-            responseInformation: responseInformation,
-            serverReference: serverReference)
-
-        return connackPacket
     }
 }

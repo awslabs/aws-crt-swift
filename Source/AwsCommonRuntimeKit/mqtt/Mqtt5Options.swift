@@ -147,9 +147,12 @@ public class MqttConnectOptions: CStruct {
             _requestProblemInformation,
             _willDelayIntervalSec,
             self.receiveMaximum,
-            self.maximumPacketSize) { (sessionExpiryIntervalSecPointer, requestResponseInformationPointer,
-                                       requestProblemInformationPointer, willDelayIntervalSecPointer,
-                                       receiveMaximumPointer, maximumPacketSizePointer) in
+            self.maximumPacketSize) { sessionExpiryIntervalSecPointer,
+                                      requestResponseInformationPointer,
+                                      requestProblemInformationPointer,
+                                      willDelayIntervalSecPointer,
+                                      receiveMaximumPointer,
+                                      maximumPacketSizePointer in
 
                 raw_connect_options.session_expiry_interval_seconds = sessionExpiryIntervalSecPointer
                 raw_connect_options.request_response_information = requestResponseInformationPointer
@@ -434,9 +437,11 @@ public class MqttClientOptions: CStructWithUserData {
             tls_options,
             self.httpProxyOptions,
             self.topicAliasingOptions,
-            connnectOptions) { (socketOptionsCPointer, tlsOptionsCPointer,
-                                 httpProxyOptionsCPointer, topicAliasingOptionsCPointer,
-                                 connectOptionsCPointer) in
+            connnectOptions) { socketOptionsCPointer,
+                               tlsOptionsCPointer,
+                               httpProxyOptionsCPointer,
+                               topicAliasingOptionsCPointer,
+                               connectOptionsCPointer in
 
                 raw_options.socket_options = socketOptionsCPointer
                 raw_options.tls_options = tlsOptionsCPointer
@@ -519,70 +524,20 @@ public class NegotiatedSettings {
     /// The final client id in use by the newly-established connection.  This will be the configured client id if one was given in the configuration, otherwise, if no client id was specified, this will be the client id assigned by the server.  Reconnection attempts will always use the auto-assigned client id, allowing for auto-assigned session resumption.
     public let clientId: String
 
-    public init (maximumQos: QoS,
-                 sessionExpiryInterval: TimeInterval,
-                 receiveMaximumFromServer: UInt16,
-                 maximumPacketSizeToServer: UInt32,
-                 topicAliasMaximumToServer: UInt16,
-                 topicAliasMaximumToClient: UInt16,
-                 serverKeepAlive: TimeInterval,
-                 retainAvailable: Bool,
-                 wildcardSubscriptionsAvailable: Bool,
-                 subscriptionIdentifiersAvailable: Bool,
-                 sharedSubscriptionsAvailable: Bool,
-                 rejoinedSession: Bool,
-                 clientId: String) {
-        self.maximumQos = maximumQos
-        self.sessionExpiryInterval = sessionExpiryInterval
-        self.receiveMaximumFromServer = receiveMaximumFromServer
-        self.maximumPacketSizeToServer = maximumPacketSizeToServer
-        self.topicAliasMaximumToServer = topicAliasMaximumToServer
-        self.topicAliasMaximumToClient = topicAliasMaximumToClient
-        self.serverKeepAlive = serverKeepAlive
-        self.retainAvailable = retainAvailable
-        self.wildcardSubscriptionsAvailable = wildcardSubscriptionsAvailable
-        self.subscriptionIdentifiersAvailable = subscriptionIdentifiersAvailable
-        self.sharedSubscriptionsAvailable = sharedSubscriptionsAvailable
-        self.rejoinedSession = rejoinedSession
-        self.clientId = clientId
-    }
-
-    static func convertFromNative(_ from: UnsafePointer<aws_mqtt5_negotiated_settings>?) -> NegotiatedSettings? {
-
-        guard let from else {
-            return nil
-        }
-
-        let _negotiatedSettings = from.pointee
-        let negotiatedMaximumQos = QoS(_negotiatedSettings.maximum_qos)
-        let negotiatedSessionExpiryInterval: TimeInterval = TimeInterval(_negotiatedSettings.session_expiry_interval)
-        let negotiatedReceiveMaximumFromServer = _negotiatedSettings.receive_maximum_from_server
-        let negotiatedMaximumPacketSizeToServer = _negotiatedSettings.maximum_packet_size_to_server
-        let negotiatedTopicAliasMaximumToServer = _negotiatedSettings.topic_alias_maximum_to_server
-        let negotiatedTopicAliasMaximumToClient = _negotiatedSettings.topic_alias_maximum_to_client
-        let negotiatedServerKeepAlive: TimeInterval = TimeInterval(_negotiatedSettings.server_keep_alive)
-        let negotiatedRetainAvailable = _negotiatedSettings.retain_available
-        let negotiatedWildcardSubscriptionsAvailable = _negotiatedSettings.wildcard_subscriptions_available
-        let negotiatedSubscriptionIdentifiersAvailable = _negotiatedSettings.subscription_identifiers_available
-        let negotiatedSharedSubscriptionsAvailable = _negotiatedSettings.shared_subscriptions_available
-        let negotiatedRejoinedSession = _negotiatedSettings.rejoined_session
-        let negotiatedClientId = _negotiatedSettings.client_id_storage.toString()
-
-        let negotiatedSettings = NegotiatedSettings(
-            maximumQos: negotiatedMaximumQos,
-            sessionExpiryInterval: negotiatedSessionExpiryInterval,
-            receiveMaximumFromServer: negotiatedReceiveMaximumFromServer,
-            maximumPacketSizeToServer: negotiatedMaximumPacketSizeToServer,
-            topicAliasMaximumToServer: negotiatedTopicAliasMaximumToServer,
-            topicAliasMaximumToClient: negotiatedTopicAliasMaximumToClient,
-            serverKeepAlive: negotiatedServerKeepAlive,
-            retainAvailable: negotiatedRetainAvailable,
-            wildcardSubscriptionsAvailable: negotiatedWildcardSubscriptionsAvailable,
-            subscriptionIdentifiersAvailable: negotiatedSubscriptionIdentifiersAvailable,
-            sharedSubscriptionsAvailable: negotiatedSharedSubscriptionsAvailable,
-            rejoinedSession: negotiatedRejoinedSession,
-            clientId: negotiatedClientId)
-
-        return negotiatedSettings
+    internal init(_ settings: UnsafePointer<aws_mqtt5_negotiated_settings>){
+        let negotiatedSettings = settings.pointee
+        self.maximumQos = QoS(negotiatedSettings.maximum_qos)
+        self.sessionExpiryInterval = TimeInterval(negotiatedSettings.session_expiry_interval)
+        self.receiveMaximumFromServer = negotiatedSettings.receive_maximum_from_server
+        self.maximumPacketSizeToServer = negotiatedSettings.maximum_packet_size_to_server
+        self.topicAliasMaximumToServer = negotiatedSettings.topic_alias_maximum_to_server
+        self.topicAliasMaximumToClient = negotiatedSettings.topic_alias_maximum_to_client
+        self.serverKeepAlive = TimeInterval(negotiatedSettings.server_keep_alive)
+        self.retainAvailable = negotiatedSettings.retain_available
+        self.wildcardSubscriptionsAvailable = negotiatedSettings.wildcard_subscriptions_available
+        self.subscriptionIdentifiersAvailable = negotiatedSettings.subscription_identifiers_available
+        self.sharedSubscriptionsAvailable = negotiatedSettings.shared_subscriptions_available
+        self.rejoinedSession = negotiatedSettings.rejoined_session
+        self.clientId = negotiatedSettings.client_id_storage.toString()
     }
 }

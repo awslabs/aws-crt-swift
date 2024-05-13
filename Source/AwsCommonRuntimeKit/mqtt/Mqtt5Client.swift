@@ -341,17 +341,15 @@ public class Mqtt5Client {
 // MARK: - Internal/Private
 
 /// Handles lifecycle events from native Mqtt Client
-internal func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
+internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
 
     guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent else {
         fatalError("MqttClientLifecycleEvents was called from native without an aws_mqtt5_client_lifecycle_event.")
     }
-
+    let client: Mqtt5Client = Unmanaged<Mqtt5Client>.fromOpaque(userData).takeUnretainedValue()
     let crtError = CRTError(code: lifecycleEvent.pointee.error_code)
 
     if let userData = lifecycleEvent.pointee.user_data {
-        let client: Mqtt5Client = Unmanaged<Mqtt5Client>.fromOpaque(userData).takeUnretainedValue()
-
         // validate the callback flag, if flag is false, return
         client.rwlock.read {
             if client.callbackFlag == false { return }
@@ -420,18 +418,14 @@ internal func MqttClientLifeycyleEvents(_ lifecycleEvent: UnsafePointer<aws_mqtt
     }
 }
 
-internal func MqttClientPublishRecievedEvents(
-    _ publishPacketView: UnsafePointer<aws_mqtt5_packet_publish_view>?,
-    _ userData: UnsafeMutableRawPointer?) {
-    let client = Unmanaged<Mqtt5Client>.fromOpaque(userData!).takeUnretainedValue()
+internal func MqttClientHandlePublishRecieved(
+    _ publish: UnsafePointer<aws_mqtt5_packet_publish_view>?,
+    _ user_data: UnsafeMutableRawPointer?) {
+    let client = Unmanaged<MqttCallbackCore>.fromOpaque(user_data!).takeUnretainedValue()
 
     // validate the callback flag, if flag is false, return
     client.rwlock.read {
         if client.callbackFlag == false { return }
-
-        guard let publish_packet = PublishPacket.convertFromNative(publishPacketView) else {
-            fatalError("NegotiatedSettings missing in a Connection Success lifecycle event.")
-        }
         let puback = PublishReceivedData(publishPacket: publish_packet)
         Task {
             await client.onPublishReceivedCallback(puback)
@@ -440,10 +434,10 @@ internal func MqttClientPublishRecievedEvents(
 }
 
 internal func MqttClientWebsocketTransform(
-    _ rawHttpMessage: OpaquePointer?,
-    _ userData: UnsafeMutableRawPointer?,
-    _ completeFn: (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
-    _ completeCtx: UnsafeMutableRawPointer?) {
+    _ request: OpaquePointer?,
+    _ user_data: UnsafeMutableRawPointer?,
+    _ complete_fn: (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
+    _ complete_ctx: UnsafeMutableRawPointer?) {
 
     let client = Unmanaged<Mqtt5Client>.fromOpaque(userData!).takeUnretainedValue()
 
@@ -451,12 +445,12 @@ internal func MqttClientWebsocketTransform(
         client.rwlock.read {
         if client.callbackFlag == false { return }
 
-        guard let rawHttpMessage else {
+        guard let request else {
             fatalError("Null HttpRequeset in websocket transform function.")
         }
-        let httpRequest = HTTPRequest(nativeHttpMessage: rawHttpMessage)
+        let httpRequest = HTTPRequest(nativeHttpMessage: request)
         @Sendable func signerTransform(request: HTTPRequestBase, errorCode: Int32) {
-            completeFn?(request.rawValue, errorCode, completeCtx)
+            complete_fn?(request.rawValue, errorCode, complete_ctx)
         }
 
         if client.onWebsocketInterceptor != nil {
@@ -475,44 +469,46 @@ internal func MqttClientTerminationCallback(_ userData: UnsafeMutableRawPointer?
 }
 
 /// The completion callback to invoke when subscribe operation completes in native
-private func subscribeCompletionCallback(subackPacket: UnsafePointer<aws_mqtt5_packet_suback_view>?,
-                                         errorCode: Int32,
-                                         userData: UnsafeMutableRawPointer?) {
-    let continuationCore = Unmanaged<ContinuationCore<SubackPacket>>.fromOpaque(userData!).takeRetainedValue()
+private func subscribeCompletionCallback(suback: UnsafePointer<aws_mqtt5_packet_suback_view>?,
+                                         error_code: Int32,
+                                         complete_ctx: UnsafeMutableRawPointer?) {
+    let continuationCore = Unmanaged<ContinuationCore<SubackPacket>>.fromOpaque(complete_ctx!).takeRetainedValue()
 
-    guard errorCode == AWS_OP_SUCCESS else {
-        return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+    guard error_code == AWS_OP_SUCCESS else {
+        return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: error_code)))
     }
 
-    guard let suback = SubackPacket.convertFromNative(subackPacket) else {
+    if let suback {
+        continuationCore.continuation.resume(returning: SubackPacket(suback))
+    } else {
         fatalError("Suback missing in the subscription completion callback.")
     }
-
-    continuationCore.continuation.resume(returning: suback)
 }
 
 /// The completion callback to invoke when publish operation completes in native
 private func publishCompletionCallback(packet_type: aws_mqtt5_packet_type,
-                                       navtivePublishResult: UnsafeRawPointer?,
-                                       errorCode: Int32,
-                                       userData: UnsafeMutableRawPointer?) {
-    let continuationCore = Unmanaged<ContinuationCore<PublishResult>>.fromOpaque(userData!).takeRetainedValue()
+                                       packet: UnsafeRawPointer?,
+                                       error_code: Int32,
+                                       complete_ctx: UnsafeMutableRawPointer?) {
+    let continuationCore = Unmanaged<ContinuationCore<PublishResult>>.fromOpaque(complete_ctx!).takeRetainedValue()
 
-    if errorCode != AWS_OP_SUCCESS {
-        return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+    if error_code != AWS_OP_SUCCESS {
+        return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: error_code)))
     }
 
     switch packet_type {
     case AWS_MQTT5_PT_NONE:     // QoS0
         return continuationCore.continuation.resume(returning: PublishResult())
+
     case AWS_MQTT5_PT_PUBACK:   // QoS1
-        guard let puback = navtivePublishResult?.assumingMemoryBound(
+        guard let puback = packet?.assumingMemoryBound(
             to: aws_mqtt5_packet_puback_view.self) else {
             return continuationCore.continuation.resume(
                 throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
             }
-        let publishResult = PublishResult(puback: PubackPacket.convertFromNative(puback))
+        let publishResult = PublishResult(puback: PubackPacket(puback))
         return continuationCore.continuation.resume(returning: publishResult)
+
     default:
         return continuationCore.continuation.resume(
             throwing: CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_UNKNOWN.rawValue)))
@@ -520,18 +516,18 @@ private func publishCompletionCallback(packet_type: aws_mqtt5_packet_type,
 }
 
 /// The completion callback to invoke when unsubscribe operation completes in native
-private func unsubscribeCompletionCallback(unsubackPacket: UnsafePointer<aws_mqtt5_packet_unsuback_view>?,
-                                           errorCode: Int32,
-                                           userData: UnsafeMutableRawPointer?) {
-    let continuationCore = Unmanaged<ContinuationCore<UnsubackPacket>>.fromOpaque(userData!).takeRetainedValue()
+private func unsubscribeCompletionCallback(unsuback: UnsafePointer<aws_mqtt5_packet_unsuback_view>?,
+                                           error_code: Int32,
+                                           complete_ctx: UnsafeMutableRawPointer?) {
+    let continuationCore = Unmanaged<ContinuationCore<UnsubackPacket>>.fromOpaque(complete_ctx!).takeRetainedValue()
 
-    guard errorCode == AWS_OP_SUCCESS else {
-        return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+    guard error_code == AWS_OP_SUCCESS else {
+        return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: error_code)))
     }
 
-    guard let unsuback = UnsubackPacket.convertFromNative(unsubackPacket) else {
+    if let unsuback {
+        continuationCore.continuation.resume(returning: UnsubackPacket(unsuback))
+    } else {
         fatalError("Unsuback missing in the Unsubscribe completion callback.")
     }
-
-    continuationCore.continuation.resume(returning: unsuback)
 }
