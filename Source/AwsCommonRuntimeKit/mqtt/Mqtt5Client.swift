@@ -479,9 +479,9 @@ internal func MqttClientWebsocketTransform(
 }
 
 internal func MqttClientTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
-    // termination callback
-    print("[Mqtt5 Client Swift] TERMINATION CALLBACK")
-    // takeRetainedValue would release the reference. ONLY DO IT AFTER YOU DO NOT NEED THE CALLBACK CORE
+    // Termination callback. This is triggered when the native client is terminated.
+    // It is safe to release the swift mqtt5 client at this point.
+    // `takeRetainedValue()` would release the client reference. ONLY DO IT AFTER YOU NEED RELEASE THE CLIENT
     _ = Unmanaged<Mqtt5Client>.fromOpaque(userData!).takeRetainedValue()
 }
 
