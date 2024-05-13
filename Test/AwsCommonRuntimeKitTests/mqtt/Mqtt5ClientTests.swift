@@ -1911,8 +1911,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
         let subscribePacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic)
-        async let _ = try? client.publish(publishPacket: subscribePacket)
-
+        Task {
+            let _ = try? await client.publish(publishPacket: subscribePacket)
+        }
         client.close()
     }
 }
