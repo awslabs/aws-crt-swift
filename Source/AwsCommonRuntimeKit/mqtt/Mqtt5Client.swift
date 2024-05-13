@@ -141,6 +141,14 @@ public class Mqtt5Client {
     internal let rwlock = ReadWriteLock()
     internal var callbackFlag = true
 
+    /// Creates a Mqtt5Client instance using the provided Mqtt5ClientOptions. Once the Mqtt5Client is created,
+    /// changing the settings will not cause a change in already created Mqtt5Client's. 
+    /// Once created, it is MANDATORY to call `close()` to clean up the Mqtt5Client resource
+    ///
+    /// - Parameters:
+    ///     clientOptions: The MqttClientOptions class to use to configure the new Mqtt5Client.
+    ///
+    /// - Throws: CommonRuntimeError.crtError If the system is unable to allocate space for a native MQTT5 client structure
     init(clientOptions options: MqttClientOptions) throws {
 
         try options.validateConversionToNative()
@@ -164,10 +172,11 @@ public class Mqtt5Client {
         self.rawValue = rawValue
     }
 
-    deinit {
-        print("[MQTT5 CLIENT TEST] DEINIT")
-    }
-
+    /// Notifies the Mqtt5Client that you want it maintain connectivity to the configured endpoint.
+    /// The client will attempt to stay connected using the properties of the reconnect-related parameters
+    /// in the Mqtt5Client configuration on client creation.
+    ///
+    /// - Throws: CommonRuntimeError.crtError
     public func start() throws {
         try self.rwlock.read {
             // validate the client in case close() is called.
@@ -183,6 +192,14 @@ public class Mqtt5Client {
         }
     }
 
+    /// Notifies the Mqtt5Client that you want it to end connectivity to the configured endpoint, disconnecting any
+    /// existing connection and halting any reconnect attempts. No DISCONNECT packets will be sent.
+    ///
+    /// - Parameters:
+    ///     - disconnectPacket: (optional) Properties of a DISCONNECT packet to send as part of the shutdown
+    ///     process. When disconnectPacket is null, no DISCONNECT packets will be sent.
+    ///
+    /// - Throws: CommonRuntimeError.crtError
     public func stop(disconnectPacket: DisconnectPacket? = nil) throws {
         try self.rwlock.read {
             // validate the client in case close() is called.
@@ -312,6 +329,7 @@ public class Mqtt5Client {
         }
     }
 
+    /// Discard all operations and cleanup the client. It is MANDATORY function to call to release the client.
     public func close() {
         self.rwlock.write {
             self.callbackFlag = false
