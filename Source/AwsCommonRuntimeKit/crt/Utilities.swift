@@ -231,14 +231,6 @@ extension Optional {
         }
         return validPointer.pointee
     }
-
-    /// convert UnsafePointer<aws_byte_cursor> to optional String
-    func toString() -> String? where Wrapped == (UnsafePointer<aws_byte_cursor>) {
-        guard let validPointer = self?.pointee else {
-            return nil
-        }
-        return validPointer.toString()
-    }
 }
 
 extension Bool {

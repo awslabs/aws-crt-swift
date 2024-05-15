@@ -142,7 +142,7 @@ public class Mqtt5Client {
     internal var callbackFlag = true
 
     /// Creates a Mqtt5Client instance using the provided Mqtt5ClientOptions. Once the Mqtt5Client is created,
-    /// changing the settings will not cause a change in already created Mqtt5Client's. 
+    /// changing the settings will not cause a change in already created Mqtt5Client's.
     /// Once created, it is MANDATORY to call `close()` to clean up the Mqtt5Client resource
     ///
     /// - Parameters:
@@ -179,15 +179,10 @@ public class Mqtt5Client {
     /// - Throws: CommonRuntimeError.crtError
     public func start() throws {
         try self.rwlock.read {
-            // validate the client in case close() is called.
-            guard let rawValue = self.rawValue else {
-                // TODO add new error type for client closed
-                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
-            }
             let errorCode = aws_mqtt5_client_start(rawValue)
 
             if errorCode != AWS_OP_SUCCESS {
-                throw CommonRunTimeError.crtError(CRTError(code: errorCode))
+                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
             }
         }
     }
@@ -202,11 +197,6 @@ public class Mqtt5Client {
     /// - Throws: CommonRuntimeError.crtError
     public func stop(disconnectPacket: DisconnectPacket? = nil) throws {
         try self.rwlock.read {
-            // validate the client in case close() is called.
-            guard let rawValue = self.rawValue else {
-                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
-            }
-
             var errorCode: Int32 = 0
 
             if let disconnectPacket {
@@ -242,11 +232,6 @@ public class Mqtt5Client {
                 callbackOptions.completion_callback = subscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
                 self.rwlock.read {
-                    // validate the client in case close() is called.
-                    guard let rawValue = self.rawValue else {
-                        continuationCore.release()
-                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
-                    }
                     let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
                     guard result == AWS_OP_SUCCESS else {
                         continuationCore.release()
@@ -279,12 +264,6 @@ public class Mqtt5Client {
                 callbackOptions.completion_user_data = continuationCore.passRetained()
 
                 self.rwlock.read {
-                    // validate the client in case close() is called.
-                    guard let rawValue = self.rawValue else {
-                        continuationCore.release()
-                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
-                    }
-
                     let result = aws_mqtt5_client_publish(rawValue, publishPacketPointer, &callbackOptions)
                     if result != AWS_OP_SUCCESS {
                         continuationCore.release()
@@ -314,11 +293,6 @@ public class Mqtt5Client {
                 callbackOptions.completion_callback = unsubscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
                 self.rwlock.read {
-                    // validate the client in case close() is called.
-                    guard let rawValue = self.rawValue else {
-                        continuationCore.release()
-                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
-                    }
                     let result = aws_mqtt5_client_unsubscribe(rawValue, unsubscribePacketPointer, &callbackOptions)
                     guard result == AWS_OP_SUCCESS else {
                         continuationCore.release()

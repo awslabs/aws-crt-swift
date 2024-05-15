@@ -178,7 +178,7 @@ public class PublishPacket: CStruct {
             PayloadFormatIndicator(publishView.payload_format.pointee) : nil
         self.messageExpiryInterval = publishView.message_expiry_interval_seconds.unwrap().map { TimeInterval($0) }
         self.topicAlias = publishView.topic_alias.unwrap()
-        self.responseTopic = publishView.response_topic.toString()
+        self.responseTopic = publishView.response_topic?.pointee.toString()
         self.correlationData = publishView.correlation_data != nil ?
             Data(bytes: publishView.correlation_data!.pointee.ptr, count: publishView.correlation_data!.pointee.len) : nil
         var identifier: [UInt32]? = []
@@ -187,7 +187,7 @@ public class PublishPacket: CStruct {
             identifier?.append(subscription_identifier)
         }
         self.subscriptionIdentifiers = identifier
-        self.contentType = publishView.content_type.toString()
+        self.contentType = publishView.content_type?.pointee.toString()
         self.userProperties = convertOptionalUserProperties(
             count: publishView.user_property_count,
             userPropertiesPointer: publishView.user_properties)
@@ -204,7 +204,8 @@ public class PublishPacket: CStruct {
     func validateConversionToNative() throws {
         if let messageExpiryInterval {
             if messageExpiryInterval < 0 || messageExpiryInterval > Double(UInt32.max) {
-                throw MqttError.validation(message: "Invalid sessionExpiryInterval value")
+                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue, 
+                                                           context: "Invalid sessionExpiryInterval value"))
             }
         }
     }
@@ -628,8 +629,8 @@ public class DisconnectPacket: CStruct {
 
         self.reasonCode = DisconnectReasonCode(rawValue: Int(disconnectView.reason_code.rawValue))!
         self.sessionExpiryInterval = disconnectView.session_expiry_interval_seconds.unwrap().map { TimeInterval($0) }
-        self.reasonString = disconnectView.reason_string.toString()
-        self.serverReference = disconnectView.reason_string.toString()
+        self.reasonString = disconnectView.reason_string?.pointee.toString()
+        self.serverReference = disconnectView.reason_string?.pointee.toString()
         self.userProperties = convertOptionalUserProperties(
             count: disconnectView.user_property_count,
             userPropertiesPointer: disconnectView.user_properties)
@@ -638,7 +639,8 @@ public class DisconnectPacket: CStruct {
     func validateConversionToNative() throws {
         if let sessionExpiryInterval {
             if sessionExpiryInterval < 0 || sessionExpiryInterval > Double(UInt32.max) {
-                throw MqttError.validation(message: "Invalid sessionExpiryInterval value")
+                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue,
+                                                           context: "Invalid sessionExpiryInterval value"))
             }
         }
     }
@@ -782,15 +784,15 @@ public class ConnackPacket {
         }
         self.retainAvailable = connackView.retain_available.unwrap()
         self.maximumPacketSize = connackView.maximum_packet_size.unwrap()
-        self.assignedClientIdentifier = connackView.assigned_client_identifier.toString()
+        self.assignedClientIdentifier = connackView.assigned_client_identifier?.pointee.toString()
         self.topicAliasMaximum = connackView.topic_alias_maximum.unwrap()
-        self.reasonString = connackView.reason_string.toString()
+        self.reasonString = connackView.reason_string?.pointee.toString()
         self.wildcardSubscriptionsAvailable = connackView.wildcard_subscriptions_available.unwrap()
         self.subscriptionIdentifiersAvailable = connackView.subscription_identifiers_available.unwrap()
         self.sharedSubscriptionAvailable = connackView.shared_subscriptions_available.unwrap()
         self.serverKeepAlive = connackView.server_keep_alive.unwrap().map { TimeInterval($0) }
-        self.responseInformation = connackView.response_information.toString()
-        self.serverReference = connackView.server_reference.toString()
+        self.responseInformation = connackView.response_information?.pointee.toString()
+        self.serverReference = connackView.server_reference?.pointee.toString()
         self.userProperties = convertOptionalUserProperties(
             count: connackView.user_property_count,
             userPropertiesPointer: connackView.user_properties)
