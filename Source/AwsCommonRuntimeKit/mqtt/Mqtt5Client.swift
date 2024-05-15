@@ -139,11 +139,10 @@ public class Mqtt5Client {
     // The websocket interceptor could be nil if the websocket is not in use
     internal let onWebsocketInterceptor: OnWebSocketHandshakeIntercept?
     internal let rwlock = ReadWriteLock()
-    internal var callbackFlag = true
+    internal var callbackFlag = false
 
-    /// Creates a Mqtt5Client instance using the provided Mqtt5ClientOptions. Once the Mqtt5Client is created,
-    /// changing the settings will not cause a change in already created Mqtt5Client's. 
-    /// Once created, it is MANDATORY to call `close()` to clean up the Mqtt5Client resource
+    /// Creates a Mqtt5Client instance using the provided MqttClientOptions. It is MANDATORY to call `close()`
+    /// to clean up the Mqtt5Client resource
     ///
     /// - Parameters:
     ///     clientOptions: The MqttClientOptions class to use to configure the new Mqtt5Client.
@@ -162,13 +161,14 @@ public class Mqtt5Client {
         self.onWebsocketInterceptor = options.onWebsocketTransform
 
         guard let rawValue = (options.withCPointer(
-            userData: self.callbackUserData()) { optionsPointer in
+            userData: Unmanaged<Mqtt5Client>.passRetained(self).toOpaque()) { optionsPointer in
                 return aws_mqtt5_client_new(allocator.rawValue, optionsPointer)
             }) else {
             // failed to create client, release the callback core
-            self.release()
+            Unmanaged<Mqtt5Client>.passUnretained(self).release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
+        self.callbackFlag = true
         self.rawValue = rawValue
     }
 
@@ -179,7 +179,7 @@ public class Mqtt5Client {
     /// - Throws: CommonRuntimeError.crtError
     public func start() throws {
         try self.rwlock.read {
-            // validate the client in case close() is called.
+            // Validate close() has not been called on client.
             guard let rawValue = self.rawValue else {
                 // TODO add new error type for client closed
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
@@ -202,7 +202,7 @@ public class Mqtt5Client {
     /// - Throws: CommonRuntimeError.crtError
     public func stop(disconnectPacket: DisconnectPacket? = nil) throws {
         try self.rwlock.read {
-            // validate the client in case close() is called.
+            // Validate close() has not been called on client.
             guard let rawValue = self.rawValue else {
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
             }
@@ -242,7 +242,7 @@ public class Mqtt5Client {
                 callbackOptions.completion_callback = subscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
                 self.rwlock.read {
-                    // validate the client in case close() is called.
+                    // Validate close() has not been called on client.
                     guard let rawValue = self.rawValue else {
                         continuationCore.release()
                         return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
@@ -279,7 +279,7 @@ public class Mqtt5Client {
                 callbackOptions.completion_user_data = continuationCore.passRetained()
 
                 self.rwlock.read {
-                    // validate the client in case close() is called.
+                    // Validate close() has not been called on client.
                     guard let rawValue = self.rawValue else {
                         continuationCore.release()
                         return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
@@ -314,7 +314,7 @@ public class Mqtt5Client {
                 callbackOptions.completion_callback = unsubscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
                 self.rwlock.read {
-                    // validate the client in case close() is called.
+                    // Validate close() has not been called on client.
                     guard let rawValue = self.rawValue else {
                         continuationCore.release()
                         return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
@@ -336,19 +336,6 @@ public class Mqtt5Client {
             aws_mqtt5_client_release(rawValue)
             self.rawValue = nil
         }
-    }
-
-    /////////////////////////////////////////////////////////
-    // helper functions for self retained reference
-    private func callbackUserData() -> UnsafeMutableRawPointer {
-        return Unmanaged<Mqtt5Client>.passRetained(self).toOpaque()
-    }
-
-    private func release() {
-        self.rwlock.write {
-            self.callbackFlag = false
-        }
-        Unmanaged<Mqtt5Client>.passUnretained(self).release()
     }
 
 }
