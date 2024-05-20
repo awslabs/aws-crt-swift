@@ -28,7 +28,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /// stop client and check for discconnection and stopped lifecycle events
     func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) throws -> Void {
         try client.stop(disconnectPacket: disconnectPacket)
-        defer{client.close()}
 
         if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
             print("Disconnection timed out after 5 seconds")
@@ -56,7 +55,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /// stop client and check for stopped lifecycle event
     func stopClientCleanup(client: Mqtt5Client, testContext: MqttTestContext) throws -> Void {
         try client.stop()
-        defer{client.close()}
         if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
             print("Stop timed out after 5 seconds")
             XCTFail("Stop timed out")
@@ -280,7 +278,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 group.cancelAll()
             } catch {
                 // Close the client to complete all operations that may be timing out
-                client.close()
                 throw MqttTestError.timeout
             }
         }
@@ -1031,7 +1028,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         // Create a second client with the same client id
         let testContext2 = MqttTestContext(contextName: "client2")
         let client2 = try createClient(clientOptions: clientOptions, testContext: testContext2)
-        defer { client2.close() }
 
         // Connect with second client
         try connectClient(client: client2, testContext: testContext2)
@@ -1473,7 +1469,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContextPublisher = MqttTestContext(contextName: "Publisher")
         let clientPublisher = try createClient(clientOptions: clientOptions, testContext: testContextPublisher)
-        defer { clientPublisher.close() }
         try connectClient(client: clientPublisher, testContext: testContextPublisher)
 
         let clientIDSubscriber = createClientId() + "Subscriber"
@@ -1486,7 +1481,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
             connectOptions: connectOptionsSubscriber)
 
         let clientSubscriber = try createClient(clientOptions: clientOptionsSubscriber, testContext: testContextSubscriber)
-        defer { clientSubscriber.close() }
         try connectClient(client: clientSubscriber, testContext: testContextSubscriber)
 
         let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
@@ -1746,7 +1740,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
             connectOptions: connectOptions1)
         let testContext1 = MqttTestContext()
         let client1 = try createClient(clientOptions: clientOptions1, testContext: testContext1)
-        defer { client1.close() }
         try connectClient(client: client1, testContext: testContext1)
 
         // Create and connect client2
@@ -1758,7 +1751,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
             connectOptions: connectOptions2)
         let testContext2 = MqttTestContext(publishTarget: 10)
         let client2 = try createClient(clientOptions: clientOptions2, testContext: testContext2)
-        defer { client2.close() }
         try connectClient(client: client2, testContext: testContext2)
 
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
@@ -1819,7 +1811,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
             connectOptions: connectOptions1)
         let testContext1 = MqttTestContext(contextName: "Client1")
         let client1 = try createClient(clientOptions: clientOptions1, testContext: testContext1)
-        defer { client1.close() }
         try connectClient(client: client1, testContext: testContext1)
 
         // Create client2
@@ -1831,7 +1822,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
             connectOptions: connectOptions2)
         let testContext2 = MqttTestContext(contextName: "Client2")
         let client2 = try createClient(clientOptions: clientOptions2, testContext: testContext2)
-        defer { client2.close() }
 
         // Create client3
         let connectOptions3 = MqttConnectOptions(clientId: createClientId())
@@ -1842,7 +1832,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
             connectOptions: connectOptions3)
         let testContext3 = MqttTestContext(contextName: "Client3")
         let client3 = try createClient(clientOptions: clientOptions3, testContext: testContext3)
-        defer { client3.close() }
 
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
         let publishPacket = PublishPacket(qos: .atLeastOnce,
