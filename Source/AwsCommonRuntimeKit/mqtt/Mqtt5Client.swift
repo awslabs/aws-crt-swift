@@ -424,10 +424,6 @@ public class Mqtt5ClientCore {
         }
     }
 
-    deinit{
-        print("MQTT5 CLIENT CORE DINIT")
-    }
-
 }
 
 
