@@ -157,7 +157,7 @@ public class Mqtt5Client {
     ///
     /// - Throws: CommonRuntimeError.crtError
     public func stop(disconnectPacket: DisconnectPacket? = nil) throws {
-        try self.clientCore.stop()
+        try self.clientCore.stop(disconnectPacket: disconnectPacket)
     }
 
     /// Tells the client to attempt to subscribe to one or more topic filters.
