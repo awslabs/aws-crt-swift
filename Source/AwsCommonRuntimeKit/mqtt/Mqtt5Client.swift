@@ -185,7 +185,6 @@ public class Mqtt5Client {
         return try await clientCore.publish(publishPacket: publishPacket)
     }
 
-
     /// Tells the client to attempt to unsubscribe to one or more topic filters.
     ///
     /// - Parameters:
@@ -203,7 +202,7 @@ public class Mqtt5Client {
         clientCore.close()
     }
 
-    deinit{
+    deinit {
         clientCore.close()
     }
 
@@ -425,9 +424,6 @@ public class Mqtt5ClientCore {
     }
 
 }
-
-
-
 
 /// Handles lifecycle events from native Mqtt Client
 internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {

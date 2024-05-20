@@ -91,7 +91,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
              onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure? = nil,
              onLifecycleEventDisconnection: OnLifecycleEventDisconnection? = nil) {
 
-
             self.contextName = contextName
 
             self.publishTarget = publishTarget
@@ -1042,7 +1041,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                               connectOptions: connectOptions)
 
             let _ = try Mqtt5Client(clientOptions: clientOptions)
-
             XCTFail("Negative keepAliveInterval didn't throw an error.")
             return
         }
@@ -1056,7 +1054,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                               port: UInt32(8883),
                                               connectOptions: connectOptions)
             let _ = try Mqtt5Client(clientOptions: clientOptions)
-
             XCTFail("Negative sessionExpiryInterval didn't throw an error.")
             return
         } catch {
@@ -1069,7 +1066,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                               port: UInt32(8883),
                                               connectOptions: connectOptions)
             let _ = try Mqtt5Client(clientOptions: clientOptions)
-
             XCTFail("Negative willDelayInterval didn't throw an error.")
             return
         } catch {
@@ -1081,7 +1077,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                               port: UInt32(8883),
                                               minReconnectDelay: -1)
             let _ = try Mqtt5Client(clientOptions: clientOptions)
-
             XCTFail("Negative minReconnectDelay didn't throw an error.")
             return
         } catch {
@@ -1093,7 +1088,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                               port: UInt32(8883),
                                               maxReconnectDelay: -1)
             let _ = try Mqtt5Client(clientOptions: clientOptions)
-
             XCTFail("Negative maxReconnectDelay didn't throw an error.")
             return
         } catch {
@@ -1105,7 +1099,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                               port: UInt32(8883),
                                               minConnectedTimeToResetReconnectDelay: -1)
             let _ = try Mqtt5Client(clientOptions: clientOptions)
-
             XCTFail("Negative minConnectedTimeToResetReconnectDelay didn't throw an error.")
             return
         } catch {
@@ -1117,7 +1110,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                               port: UInt32(8883),
                                               pingTimeout: -1)
             let _ = try Mqtt5Client(clientOptions: clientOptions)
-
             XCTFail("Negative pingTimeout didn't throw an error.")
             return
         } catch {
@@ -1129,7 +1121,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                               port: UInt32(8883),
                                               connackTimeout: -1)
             let _ = try Mqtt5Client(clientOptions: clientOptions)
-
             XCTFail("Negative connackTimeout didn't throw an error.")
             return
         } catch {
@@ -1141,7 +1132,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                               port: UInt32(8883),
                                               ackTimeout: -1)
             let _ = try Mqtt5Client(clientOptions: clientOptions)
-
             XCTFail("Negative ackTimeout didn't throw an error.")
             return
         } catch {
