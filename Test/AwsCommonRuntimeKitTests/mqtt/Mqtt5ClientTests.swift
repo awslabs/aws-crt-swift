@@ -1934,15 +1934,15 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        // offline operation would never complete. Use close to force quit
+        // offline operation would never complete. Use close to force quit.
         defer { client.close() }
         try connectClient(client: client, testContext: testContext)
         try stopClient(client: client, testContext: testContext)
 
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
-        let subscribePacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic)
+        let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic)
         Task {
-            let _ = try? await client.publish(publishPacket: subscribePacket)
+            let _ = try? await client.publish(publishPacket: publishPacket)
         }
     }
 }
