@@ -134,7 +134,6 @@ public class Mqtt5Client {
     ///
     /// - Throws: CommonRuntimeError.crtError If the system is unable to allocate space for a native MQTT5 client structure
     public init(clientOptions options: MqttClientOptions) throws {
-        try options.validateConversionToNative()
         clientCore = try Mqtt5ClientCore(clientOptions: options)
     }
 
@@ -261,15 +260,17 @@ public class Mqtt5ClientCore {
     ///
     /// - Throws: CommonRuntimeError.crtError
     public func start() throws {
-        guard let _ = try client_guard ({
+        try self.rwlock.read {
+            // Validate close() has not been called on client.
+            guard let rawValue = self.rawValue else {
+                // TODO add new error type for client closed
+                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+            }
             let errorCode = aws_mqtt5_client_start(rawValue)
 
             if errorCode != AWS_OP_SUCCESS {
                 throw CommonRunTimeError.crtError(CRTError(code: errorCode))
             }
-        }) else {
-            // TODO add new error type for client closed
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
 
@@ -282,7 +283,11 @@ public class Mqtt5ClientCore {
     ///
     /// - Throws: CommonRuntimeError.crtError
     public func stop(disconnectPacket: DisconnectPacket? = nil) throws {
-        guard let _ = try client_guard ({
+        try self.rwlock.read {
+            // Validate close() has not been called on client.
+            guard let rawValue = self.rawValue else {
+                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+            }
 
             var errorCode: Int32 = 0
 
@@ -299,8 +304,6 @@ public class Mqtt5ClientCore {
             if errorCode != AWS_OP_SUCCESS {
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
             }
-        }) else {
-            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
 
@@ -320,15 +323,17 @@ public class Mqtt5ClientCore {
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = subscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-                guard let _ = client_guard ({
+                self.rwlock.read {
+                    // Validate close() has not been called on client.
+                    guard let rawValue = self.rawValue else {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
                     let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
                     guard result == AWS_OP_SUCCESS else {
                         continuationCore.release()
                         return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                     }
-                }) else {
-                    continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
             }
         }
@@ -355,15 +360,18 @@ public class Mqtt5ClientCore {
                 callbackOptions.completion_callback = publishCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
 
-                guard let _ = client_guard ({
+                self.rwlock.read {
+                    // Validate close() has not been called on client.
+                    guard let rawValue = self.rawValue else {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
+
                     let result = aws_mqtt5_client_publish(rawValue, publishPacketPointer, &callbackOptions)
                     if result != AWS_OP_SUCCESS {
                         continuationCore.release()
                         return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                     }
-                }) else {
-                    continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
             }
         }
@@ -386,36 +394,29 @@ public class Mqtt5ClientCore {
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = unsubscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-                guard let _ = client_guard ({
+                self.rwlock.read {
+                    // Validate close() has not been called on client.
+                    guard let rawValue = self.rawValue else {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
                     let result = aws_mqtt5_client_unsubscribe(rawValue, unsubscribePacketPointer, &callbackOptions)
                     guard result == AWS_OP_SUCCESS else {
                         continuationCore.release()
                         return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                     }
-                }) else {
-                    continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
             }
         }
     }
 
-    /// Discard all operations and shutdown the client.
+    /// Discard all operations and cleanup the client. It is MANDATORY function to call to release the client core.
     public func close() {
-        client_guard {
-            aws_mqtt5_client_release(rawValue)
-            self.rawValue = nil
-        }
-    }
-
-    /// Help Function: use lock to guard native client
-    private func client_guard<Result>(_ body: () throws ->  Result) rethrows -> Result?
-    {
-        return try self.rwlock.write {
-            if let _ = self.rawValue {
-                return try body()
+        self.rwlock.write {
+            if let rawValue = self.rawValue {
+                aws_mqtt5_client_release(rawValue)
+                self.rawValue = nil
             }
-            return nil
         }
     }
 
