@@ -195,7 +195,7 @@ public class PublishPacket: CStruct {
 
     /// Get payload converted to a utf8 String
     public func payloadAsString() -> String? {
-        if let payload{
+        if let payload {
             return String(data: payload, encoding: .utf8) ?? nil
         }
         return nil
@@ -460,7 +460,7 @@ public class SubscribePacket: CStruct {
                         to: self.subscriptionIdentifier) { identiferPointer in
                             raw_subscrbe_view.subscription_identifier = identiferPointer
                             return body(raw_subscrbe_view)
-                        }
+                    }
             }
         }
     }
@@ -582,7 +582,7 @@ public class UnsubackPacket {
         self.userProperties = userProperties
     }
 
-    internal init(_ unsuback_view: UnsafePointer<aws_mqtt5_packet_unsuback_view>){
+    internal init(_ unsuback_view: UnsafePointer<aws_mqtt5_packet_unsuback_view>) {
         let unsubackView = unsuback_view.pointee
         let reasonCodeBuffer = UnsafeBufferPointer(start: unsubackView.reason_codes, count: unsubackView.reason_code_count)
         self.reasonCodes = reasonCodeBuffer.compactMap { UnsubackReasonCode(rawValue: Int($0.rawValue)) }
@@ -623,7 +623,7 @@ public class DisconnectPacket: CStruct {
             self.userProperties = userProperties
     }
 
-    internal init(_ disconnect_view: UnsafePointer<aws_mqtt5_packet_disconnect_view>){
+    internal init(_ disconnect_view: UnsafePointer<aws_mqtt5_packet_disconnect_view>) {
         let disconnectView = disconnect_view.pointee
 
         self.reasonCode = DisconnectReasonCode(rawValue: Int(disconnectView.reason_code.rawValue))!
@@ -768,7 +768,7 @@ public class ConnackPacket {
         self.serverReference = serverReference
     }
 
-    internal init(_ connack_view: UnsafePointer<aws_mqtt5_packet_connack_view>){
+    internal init(_ connack_view: UnsafePointer<aws_mqtt5_packet_connack_view>) {
         let connackView = connack_view.pointee
 
         self.sessionPresent = connackView.session_present

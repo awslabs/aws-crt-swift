@@ -97,22 +97,22 @@ public class LifecycleDisconnectData {
 // MARK: - Callback typealias definitions
 
 /// Defines signature of the Publish callback
-public typealias OnPublishReceived = (PublishReceivedData) -> Void
+public typealias OnPublishReceived = (PublishReceivedData) async -> Void
 
 /// Defines signature of the Lifecycle Event Stopped callback
-public typealias OnLifecycleEventStopped = (LifecycleStoppedData) -> Void
+public typealias OnLifecycleEventStopped = (LifecycleStoppedData) async -> Void
 
 /// Defines signature of the Lifecycle Event Attempting Connect callback
-public typealias OnLifecycleEventAttemptingConnect = (LifecycleAttemptingConnectData) -> Void
+public typealias OnLifecycleEventAttemptingConnect = (LifecycleAttemptingConnectData) async -> Void
 
 /// Defines signature of the Lifecycle Event Connection Success callback
-public typealias OnLifecycleEventConnectionSuccess = (LifecycleConnectionSuccessData) -> Void
+public typealias OnLifecycleEventConnectionSuccess = (LifecycleConnectionSuccessData) async -> Void
 
 /// Defines signature of the Lifecycle Event Connection Failure callback
-public typealias OnLifecycleEventConnectionFailure = (LifecycleConnectionFailureData) -> Void
+public typealias OnLifecycleEventConnectionFailure = (LifecycleConnectionFailureData) async -> Void
 
 /// Defines signature of the Lifecycle Event Disconnection callback
-public typealias OnLifecycleEventDisconnection = (LifecycleDisconnectData) -> Void
+public typealias OnLifecycleEventDisconnection = (LifecycleDisconnectData) async -> Void
 
 /// Callback for users to invoke upon completion of, presumably asynchronous, OnWebSocketHandshakeIntercept callback's initiated process.
 public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32) -> Void
@@ -121,44 +121,151 @@ public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32
 /// such as signing/authorization etc... Returning from this function does not continue the websocket
 /// handshake since some work flows may be asynchronous. To accommodate that, onComplete must be invoked upon
 /// completion of the signing process.
-public typealias OnWebSocketHandshakeIntercept = (HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete) -> Void
+public typealias OnWebSocketHandshakeIntercept = (HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete) async -> Void
 
 // MARK: - Mqtt5 Client
 public class Mqtt5Client {
-    private var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
-    private var callbackCore: MqttCallbackCore
+    internal var clientCore: Mqtt5ClientCore
 
-    init(clientOptions options: MqttClientOptions) throws {
+    /// Creates a Mqtt5Client instance using the provided MqttClientOptions.
+    ///
+    /// - Parameters:
+    ///     clientOptions: The MqttClientOptions class to use to configure the new Mqtt5Client.
+    ///
+    /// - Throws: CommonRuntimeError.crtError If the system is unable to allocate space for a native MQTT5 client structure
+    public init(clientOptions options: MqttClientOptions) throws {
+        clientCore = try Mqtt5ClientCore(clientOptions: options)
+    }
 
-        try options.validateConversionToNative()
+    /// Notifies the Mqtt5Client that you want it maintain connectivity to the configured endpoint.
+    /// The client will attempt to stay connected using the properties of the reconnect-related parameters
+    /// in the Mqtt5Client configuration on client creation.
+    ///
+    /// - Throws: CommonRuntimeError.crtError
+    public func start() throws {
+        try self.clientCore.start()
+    }
 
-        self.callbackCore = MqttCallbackCore(
-            onPublishReceivedCallback: options.onPublishReceivedFn,
-            onLifecycleEventStoppedCallback: options.onLifecycleEventStoppedFn,
-            onLifecycleEventAttemptingConnect: options.onLifecycleEventAttemptingConnectFn,
-            onLifecycleEventConnectionSuccess: options.onLifecycleEventConnectionSuccessFn,
-            onLifecycleEventConnectionFailure: options.onLifecycleEventConnectionFailureFn,
-            onLifecycleEventDisconnection: options.onLifecycleEventDisconnectionFn,
-            onWebsocketInterceptor: options.onWebsocketTransform)
+    /// Notifies the Mqtt5Client that you want it to end connectivity to the configured endpoint, disconnecting any
+    /// existing connection and halting any reconnect attempts. No DISCONNECT packets will be sent.
+    ///
+    /// - Parameters:
+    ///     - disconnectPacket: (optional) Properties of a DISCONNECT packet to send as part of the shutdown
+    ///     process. When disconnectPacket is null, no DISCONNECT packets will be sent.
+    ///
+    /// - Throws: CommonRuntimeError.crtError
+    public func stop(disconnectPacket: DisconnectPacket? = nil) throws {
+        try self.clientCore.stop(disconnectPacket: disconnectPacket)
+    }
 
-        guard let rawValue = (options.withCPointer(
-            userData: self.callbackCore.callbackUserData()) { optionsPointer in
+    /// Tells the client to attempt to subscribe to one or more topic filters.
+    ///
+    /// - Parameters:
+    ///     - subscribePacket: SUBSCRIBE packet to send to the server
+    /// - Returns:
+    ///     - `SubackPacket`: return Suback packet if the subscription operation succeeded
+    ///
+    /// - Throws: CommonRuntimeError.crtError
+    public func subscribe(subscribePacket: SubscribePacket) async throws -> SubackPacket {
+        return try await clientCore.subscribe(subscribePacket: subscribePacket)
+    }
+
+    /// Tells the client to attempt to publish to topic filter.
+    ///
+    /// - Parameters:
+    ///     - publishPacket: PUBLISH packet to send to the server
+    /// - Returns:
+    ///     - For qos 0 packet: return `None` if publish succeeded
+    ///     - For qos 1 packet: return `PublishResult` packet if the publish succeeded
+    ///
+    /// - Throws: CommonRuntimeError.crtError
+    public func publish(publishPacket: PublishPacket) async throws -> PublishResult {
+        return try await clientCore.publish(publishPacket: publishPacket)
+    }
+
+    /// Tells the client to attempt to unsubscribe to one or more topic filters.
+    ///
+    /// - Parameters:
+    ///     - unsubscribePacket: UNSUBSCRIBE packet to send to the server
+    /// - Returns:
+    ///     - `UnsubackPacket`: return Unsuback packet if the unsubscribe operation succeeded
+    ///
+    /// - Throws: CommonRuntimeError.crtError
+    public func unsubscribe(unsubscribePacket: UnsubscribePacket) async throws -> UnsubackPacket {
+        return try await clientCore.unsubscribe(unsubscribePacket: unsubscribePacket)
+    }
+
+    /// Force the client to discard all operations and cleanup the client.
+    public func close() {
+        clientCore.close()
+    }
+
+    deinit {
+        clientCore.close()
+    }
+
+}
+
+// MARK: - Internal/Private
+
+/// Mqtt5 Client Core, internal class to handle Mqtt5 Client operations
+public class Mqtt5ClientCore {
+    fileprivate var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
+    fileprivate let rwlock = ReadWriteLock()
+
+    ///////////////////////////////////////
+    // user callbacks
+    ///////////////////////////////////////
+    fileprivate let onPublishReceivedCallback: OnPublishReceived
+    fileprivate let onLifecycleEventStoppedCallback: OnLifecycleEventStopped
+    fileprivate let onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect
+    fileprivate let onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess
+    fileprivate let onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure
+    fileprivate let onLifecycleEventDisconnection: OnLifecycleEventDisconnection
+    // The websocket interceptor could be nil if the websocket is not in use
+    fileprivate let onWebsocketInterceptor: OnWebSocketHandshakeIntercept?
+
+    /// Creates a Mqtt5Client instance using the provided MqttClientOptions.
+    ///
+    /// - Parameters:
+    ///     clientOptions: The MqttClientOptions class to use to configure the new Mqtt5Client.
+    ///
+    /// - Throws: CommonRuntimeError.crtError If the system is unable to allocate space for a native MQTT5 client structure
+    init(clientOptions: MqttClientOptions) throws {
+
+        try clientOptions.validateConversionToNative()
+
+        self.onPublishReceivedCallback = clientOptions.onPublishReceivedFn ?? { (_) in return }
+        self.onLifecycleEventStoppedCallback = clientOptions.onLifecycleEventStoppedFn ?? { (_) in return}
+        self.onLifecycleEventAttemptingConnect = clientOptions.onLifecycleEventAttemptingConnectFn ?? { (_) in return}
+        self.onLifecycleEventConnectionSuccess = clientOptions.onLifecycleEventConnectionSuccessFn ?? { (_) in return}
+        self.onLifecycleEventConnectionFailure = clientOptions.onLifecycleEventConnectionFailureFn ?? { (_) in return}
+        self.onLifecycleEventDisconnection = clientOptions.onLifecycleEventDisconnectionFn ?? { (_) in return}
+        self.onWebsocketInterceptor = clientOptions.onWebsocketTransform
+
+        guard let rawValue = (clientOptions.withCPointer(
+            userData: Unmanaged<Mqtt5ClientCore>.passRetained(self).toOpaque()) { optionsPointer in
                 return aws_mqtt5_client_new(allocator.rawValue, optionsPointer)
             }) else {
             // failed to create client, release the callback core
-            self.callbackCore.release()
+            Unmanaged<Mqtt5ClientCore>.passUnretained(self).release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue
     }
 
-    deinit {
-        self.callbackCore.close()
-        aws_mqtt5_client_release(rawValue)
-    }
-
+    /// Notifies the Mqtt5Client that you want it maintain connectivity to the configured endpoint.
+    /// The client will attempt to stay connected using the properties of the reconnect-related parameters
+    /// in the Mqtt5Client configuration on client creation.
+    ///
+    /// - Throws: CommonRuntimeError.crtError
     public func start() throws {
-        if rawValue != nil {
+        try self.rwlock.read {
+            // Validate close() has not been called on client.
+            guard let rawValue = self.rawValue else {
+                // TODO add new error type for client closed
+                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+            }
             let errorCode = aws_mqtt5_client_start(rawValue)
 
             if errorCode != AWS_OP_SUCCESS {
@@ -167,8 +274,21 @@ public class Mqtt5Client {
         }
     }
 
+    /// Notifies the Mqtt5Client that you want it to end connectivity to the configured endpoint, disconnecting any
+    /// existing connection and halting any reconnect attempts. No DISCONNECT packets will be sent.
+    ///
+    /// - Parameters:
+    ///     - disconnectPacket: (optional) Properties of a DISCONNECT packet to send as part of the shutdown
+    ///     process. When disconnectPacket is null, no DISCONNECT packets will be sent.
+    ///
+    /// - Throws: CommonRuntimeError.crtError
     public func stop(disconnectPacket: DisconnectPacket? = nil) throws {
-        if rawValue != nil {
+        try self.rwlock.read {
+            // Validate close() has not been called on client.
+            guard let rawValue = self.rawValue else {
+                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+            }
+
             var errorCode: Int32 = 0
 
             if let disconnectPacket {
@@ -203,13 +323,19 @@ public class Mqtt5Client {
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = subscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-                let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
-                guard result == AWS_OP_SUCCESS else {
-                    continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                self.rwlock.read {
+                    // Validate close() has not been called on client.
+                    guard let rawValue = self.rawValue else {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
+                    let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
+                    guard result == AWS_OP_SUCCESS else {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
                 }
             }
-
         }
     }
 
@@ -233,10 +359,19 @@ public class Mqtt5Client {
                 let continuationCore = ContinuationCore<PublishResult>(continuation: continuation)
                 callbackOptions.completion_callback = publishCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-                let result = aws_mqtt5_client_publish(rawValue, publishPacketPointer, &callbackOptions)
-                if result != AWS_OP_SUCCESS {
-                    continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+
+                self.rwlock.read {
+                    // Validate close() has not been called on client.
+                    guard let rawValue = self.rawValue else {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
+
+                    let result = aws_mqtt5_client_publish(rawValue, publishPacketPointer, &callbackOptions)
+                    if result != AWS_OP_SUCCESS {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
                 }
             }
         }
@@ -259,43 +394,55 @@ public class Mqtt5Client {
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = unsubscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-                let result = aws_mqtt5_client_unsubscribe(rawValue, unsubscribePacketPointer, &callbackOptions)
-                guard result == AWS_OP_SUCCESS else {
-                    continuationCore.release()
-                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                self.rwlock.read {
+                    // Validate close() has not been called on client.
+                    guard let rawValue = self.rawValue else {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
+                    let result = aws_mqtt5_client_unsubscribe(rawValue, unsubscribePacketPointer, &callbackOptions)
+                    guard result == AWS_OP_SUCCESS else {
+                        continuationCore.release()
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                    }
                 }
             }
         }
     }
 
+    /// Discard all operations and cleanup the client. It is MANDATORY function to call to release the client core.
     public func close() {
-        self.callbackCore.close()
-        aws_mqtt5_client_release(rawValue)
-        rawValue = nil
+        self.rwlock.write {
+            if let rawValue = self.rawValue {
+                aws_mqtt5_client_release(rawValue)
+                self.rawValue = nil
+            }
+        }
     }
-}
 
-// MARK: - Internal/Private
+}
 
 /// Handles lifecycle events from native Mqtt Client
 internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
 
-    guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent else {
+    guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent,
+        let userData = lifecycleEvent.pointee.user_data else {
         fatalError("MqttClientLifecycleEvents was called from native without an aws_mqtt5_client_lifecycle_event.")
     }
-    let callbackCore = Unmanaged<MqttCallbackCore>.fromOpaque(lifecycleEvent.pointee.user_data).takeUnretainedValue()
+    let clientCore = Unmanaged<Mqtt5ClientCore>.fromOpaque(userData).takeUnretainedValue()
     let crtError = CRTError(code: lifecycleEvent.pointee.error_code)
 
     // validate the callback flag, if flag is false, return
-    callbackCore.rwlock.read {
-        if callbackCore.callbackFlag == false { return }
+    clientCore.rwlock.read {
+        if clientCore.rawValue == nil { return }
 
         switch lifecycleEvent.pointee.event_type {
         case AWS_MQTT5_CLET_ATTEMPTING_CONNECT:
 
             let lifecycleAttemptingConnectData = LifecycleAttemptingConnectData()
-            callbackCore.onLifecycleEventAttemptingConnect(lifecycleAttemptingConnectData)
-
+            Task {
+                await clientCore.onLifecycleEventAttemptingConnect(lifecycleAttemptingConnectData)
+            }
         case AWS_MQTT5_CLET_CONNECTION_SUCCESS:
 
             guard let connackView = lifecycleEvent.pointee.connack_data else {
@@ -310,8 +457,9 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
             let lifecycleConnectionSuccessData = LifecycleConnectionSuccessData(
                 connackPacket: connackPacket,
                 negotiatedSettings: NegotiatedSettings(negotiatedSettings))
-            callbackCore.onLifecycleEventConnectionSuccess(lifecycleConnectionSuccessData)
-
+            Task {
+                await clientCore.onLifecycleEventConnectionSuccess(lifecycleConnectionSuccessData)
+            }
         case AWS_MQTT5_CLET_CONNECTION_FAILURE:
 
             var connackPacket: ConnackPacket?
@@ -322,8 +470,9 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
             let lifecycleConnectionFailureData = LifecycleConnectionFailureData(
                 crtError: crtError,
                 connackPacket: connackPacket)
-            callbackCore.onLifecycleEventConnectionFailure(lifecycleConnectionFailureData)
-
+            Task {
+                await clientCore.onLifecycleEventConnectionFailure(lifecycleConnectionFailureData)
+            }
         case AWS_MQTT5_CLET_DISCONNECTION:
 
             var disconnectPacket: DisconnectPacket?
@@ -333,14 +482,15 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
             }
 
             let lifecycleDisconnectData = LifecycleDisconnectData(
-                    crtError: crtError,
-                    disconnectPacket: disconnectPacket)
-            callbackCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
-
+                crtError: crtError,
+                disconnectPacket: disconnectPacket)
+            Task {
+                await clientCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
+            }
         case AWS_MQTT5_CLET_STOPPED:
-
-            callbackCore.onLifecycleEventStoppedCallback(LifecycleStoppedData())
-
+            Task {
+                await clientCore.onLifecycleEventStoppedCallback(LifecycleStoppedData())
+            }
         default:
             fatalError("A lifecycle event with an invalid event type was encountered.")
         }
@@ -350,15 +500,17 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
 internal func MqttClientHandlePublishRecieved(
     _ publish: UnsafePointer<aws_mqtt5_packet_publish_view>?,
     _ user_data: UnsafeMutableRawPointer?) {
-    let callbackCore = Unmanaged<MqttCallbackCore>.fromOpaque(user_data!).takeUnretainedValue()
+    let clientCore = Unmanaged<Mqtt5ClientCore>.fromOpaque(user_data!).takeUnretainedValue()
 
     // validate the callback flag, if flag is false, return
-    callbackCore.rwlock.read {
-        if callbackCore.callbackFlag == false { return }
+    clientCore.rwlock.read {
+        if clientCore.rawValue == nil { return }
         if let publish {
             let publishPacket = PublishPacket(publish)
             let publishReceivedData = PublishReceivedData(publishPacket: publishPacket)
-            callbackCore.onPublishReceivedCallback(publishReceivedData)
+            Task {
+                await clientCore.onPublishReceivedCallback(publishReceivedData)
+            }
         } else {
             fatalError("MqttClientHandlePublishRecieved called with null publish")
         }
@@ -371,11 +523,11 @@ internal func MqttClientWebsocketTransform(
     _ complete_fn: (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
     _ complete_ctx: UnsafeMutableRawPointer?) {
 
-    let callbackCore = Unmanaged<MqttCallbackCore>.fromOpaque(user_data!).takeUnretainedValue()
+    let clientCore = Unmanaged<Mqtt5ClientCore>.fromOpaque(user_data!).takeUnretainedValue()
 
     // validate the callback flag, if flag is false, return
-    callbackCore.rwlock.read {
-        if callbackCore.callbackFlag == false { return }
+    clientCore.rwlock.read {
+        if clientCore.rawValue == nil { return }
 
         guard let request else {
             fatalError("Null HttpRequeset in websocket transform function.")
@@ -385,17 +537,19 @@ internal func MqttClientWebsocketTransform(
             complete_fn?(request.rawValue, errorCode, complete_ctx)
         }
 
-        if callbackCore.onWebsocketInterceptor != nil {
-            callbackCore.onWebsocketInterceptor!(httpRequest, signerTransform)
+        if clientCore.onWebsocketInterceptor != nil {
+            Task {
+                await clientCore.onWebsocketInterceptor!(httpRequest, signerTransform)
+            }
         }
     }
 }
 
 internal func MqttClientTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
-    // termination callback
-    print("[Mqtt5 Client Swift] TERMINATION CALLBACK")
-    // takeRetainedValue would release the reference. ONLY DO IT AFTER YOU DO NOT NEED THE CALLBACK CORE
-    _ = Unmanaged<MqttCallbackCore>.fromOpaque(userData!).takeRetainedValue()
+    // Termination callback. This is triggered when the native client is terminated.
+    // It is safe to release the swift mqtt5 client at this point.
+    // `takeRetainedValue()` would release the client reference. ONLY DO IT AFTER YOU NEED RELEASE THE CLIENT
+    _ = Unmanaged<Mqtt5ClientCore>.fromOpaque(userData!).takeRetainedValue()
 }
 
 /// The completion callback to invoke when subscribe operation completes in native
@@ -459,57 +613,5 @@ private func unsubscribeCompletionCallback(unsuback: UnsafePointer<aws_mqtt5_pac
         continuationCore.continuation.resume(returning: UnsubackPacket(unsuback))
     } else {
         fatalError("Unsuback missing in the Unsubscribe completion callback.")
-    }
-}
-
-/// When the native client calls swift callbacks they are processed through the MqttCallbackCore
-private class MqttCallbackCore {
-    let onPublishReceivedCallback: OnPublishReceived
-    let onLifecycleEventStoppedCallback: OnLifecycleEventStopped
-    let onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect
-    let onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess
-    let onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure
-    let onLifecycleEventDisconnection: OnLifecycleEventDisconnection
-    // The websocket interceptor could be nil if the websocket is not in use
-    let onWebsocketInterceptor: OnWebSocketHandshakeIntercept?
-
-    let rwlock = ReadWriteLock()
-    var callbackFlag = true
-
-    init(onPublishReceivedCallback: OnPublishReceived? = nil,
-         onLifecycleEventStoppedCallback: OnLifecycleEventStopped? = nil,
-         onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect? = nil,
-         onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess? = nil,
-         onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure? = nil,
-         onLifecycleEventDisconnection: OnLifecycleEventDisconnection? = nil,
-         onWebsocketInterceptor: OnWebSocketHandshakeIntercept? = nil,
-         data: AnyObject? = nil) {
-
-        self.onPublishReceivedCallback = onPublishReceivedCallback ?? { (_) in return }
-        self.onLifecycleEventStoppedCallback = onLifecycleEventStoppedCallback ?? { (_) in return}
-        self.onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect ?? { (_) in return}
-        self.onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess ?? { (_) in return}
-        self.onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure ?? { (_) in return}
-        self.onLifecycleEventDisconnection = onLifecycleEventDisconnection ?? { (_) in return}
-        self.onWebsocketInterceptor = onWebsocketInterceptor
-    }
-
-    /// Calling this function performs a manual retain on the MqttShutdownCallbackCore.
-    /// and returns the UnsafeMutableRawPointer hold the object itself.
-    ///
-    /// You should always release the retained pointer to avoid memory leak
-    func callbackUserData() -> UnsafeMutableRawPointer {
-        return Unmanaged<MqttCallbackCore>.passRetained(self).toOpaque()
-    }
-
-    func release() {
-        close()
-        Unmanaged<MqttCallbackCore>.passUnretained(self).release()
-    }
-
-    func close() {
-        rwlock.write {
-            self.callbackFlag = false
-        }
     }
 }

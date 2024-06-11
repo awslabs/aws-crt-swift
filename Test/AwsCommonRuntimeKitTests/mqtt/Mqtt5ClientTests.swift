@@ -116,15 +116,14 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 } else {
                     print(contextName + " Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos)")
                 }
-
                 self.publishPacket = publishData.publishPacket
                 self.semaphorePublishReceived.signal()
-
                 self.publishCount += 1
                 if self.publishCount == self.publishTarget {
                     self.semaphorePublishTargetReached.signal()
                 }
             }
+
             self.onLifecycleEventStopped = onLifecycleEventStopped ?? { _ in
                 print(contextName + " Mqtt5ClientTests: onLifecycleEventStopped")
                 self.semaphoreStopped.signal()
@@ -169,16 +168,14 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
 
             self.onWebSocketHandshake = { httpRequest, completCallback in
-                Task{
-                    do
-                    {
-                        let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
-                        completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
-                    }
-                    catch
-                    {
-                        completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
-                    }
+                do
+                {
+                    let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
+                    completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
+                }
+                catch
+                {
+                    completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
                 }
             }
         }
@@ -302,7 +299,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         XCTAssertNotNil(clientOptions)
         let mqtt5client = try Mqtt5Client(clientOptions: clientOptions);
         XCTAssertNotNil(mqtt5client)
-
     }
 
     /*
@@ -949,7 +945,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let testContext = MqttTestContext()
         testContext.withWebsocketTransform(isSuccess: false)
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-
         try client.start()
 
         if testContext.semaphoreConnectionFailure.wait(timeout: .now() + 5) == .timedOut {
@@ -1346,63 +1341,62 @@ class Mqtt5ClientTests: XCBaseTestCase {
     * [Op-UC1] Sub-Unsub happy path
     */
     func testMqtt5SubUnsub() async throws {
-        try skipIfPlatformDoesntSupportTLS()
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+            try skipIfPlatformDoesntSupportTLS()
+            let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+            let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+            let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
 
-        let tlsOptions = try TLSContextOptions.makeMTLS(
-            certificatePath: inputCert,
-            privateKeyPath: inputKey
-        )
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+            let tlsOptions = try TLSContextOptions.makeMTLS(
+                certificatePath: inputCert,
+                privateKeyPath: inputKey
+            )
+            let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
 
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext)
+            let clientOptions = MqttClientOptions(
+                hostName: inputHost,
+                port: UInt32(8883),
+                tlsCtx: tlsContext)
 
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
+            let testContext = MqttTestContext()
+            let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+            try connectClient(client: client, testContext: testContext)
 
-        let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
-        let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+            let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+            let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+            let subackPacket: SubackPacket =
+                try await withTimeout(client: client, seconds: 2, operation: {
+                    try await client.subscribe(subscribePacket: subscribePacket)
+                })
+            print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
 
-        let subackPacket: SubackPacket =
-            try await withTimeout(client: client, seconds: 2, operation: {
-                try await client.subscribe(subscribePacket: subscribePacket)
-            })
-        print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
+            let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic, payload: "Hello World".data(using: .utf8))
+            let publishResult: PublishResult =
+                try await withTimeout(client: client, seconds: 2, operation: {
+                    try await client.publish(publishPacket: publishPacket)
+                })
 
-        let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic, payload: "Hello World".data(using: .utf8))
-        let publishResult: PublishResult =
-            try await withTimeout(client: client, seconds: 2, operation: {
-                try await client.publish(publishPacket: publishPacket)
-            })
+            if let puback = publishResult.puback {
+                print("PubackPacket received with result \(puback.reasonCode)")
+            } else {
+                XCTFail("PublishResult missing.")
+                return
+            }
 
-        if let puback = publishResult.puback {
-            print("PubackPacket received with result \(puback.reasonCode)")
-        } else {
-            XCTFail("PublishResult missing.")
-            return
+            if testContext.semaphorePublishReceived.wait(timeout: .now() + 5) == .timedOut {
+                print("Publish not received after 5 seconds")
+                XCTFail("Publish packet not received on subscribed topic")
+                return
+            }
+
+            let unsubscribePacket = UnsubscribePacket(topicFilter: topic)
+            let unsubackPacket: UnsubackPacket =
+                try await withTimeout(client: client, seconds: 2, operation: {
+                    try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
+                })
+            print("UnsubackPacket received with result \(unsubackPacket.reasonCodes[0])")
+
+            try disconnectClientCleanup(client: client, testContext: testContext)
         }
-
-        if testContext.semaphorePublishReceived.wait(timeout: .now() + 5) == .timedOut {
-            print("Publish not received after 5 seconds")
-            XCTFail("Publish packet not received on subscribed topic")
-            return
-        }
-
-        let unsubscribePacket = UnsubscribePacket(topicFilter: topic)
-        let unsubackPacket: UnsubackPacket =
-            try await withTimeout(client: client, seconds: 2, operation: {
-                try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
-            })
-        print("UnsubackPacket received with result \(unsubackPacket.reasonCodes[0])")
-
-        try disconnectClientCleanup(client: client, testContext: testContext)
-    }
 
     /*
     * [Op-UC2] Will test
@@ -1525,49 +1519,49 @@ class Mqtt5ClientTests: XCBaseTestCase {
     * [Op-UC4] Multi-sub unsub
     */
     func testMqtt5MultiSubUnsub() async throws {
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+            let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+            let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
 
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!)
+            let clientOptions = MqttClientOptions(
+                hostName: inputHost,
+                port: UInt32(inputPort)!)
 
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
+            let testContext = MqttTestContext()
+            let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+            try connectClient(client: client, testContext: testContext)
 
-        let topic1 = "test/MQTT5_Binding_Swift_" + UUID().uuidString
-        let topic2 = "test/MQTT5_Binding_Swift_" + UUID().uuidString
-        let subscriptions = [Subscription(topicFilter: topic1, qos: QoS.atLeastOnce, noLocal: false),
-                                          Subscription(topicFilter: topic2, qos: QoS.atMostOnce, noLocal: false)]
-        let subscribePacket = SubscribePacket(subscriptions: subscriptions)
+            let topic1 = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+            let topic2 = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+            let subscriptions = [Subscription(topicFilter: topic1, qos: QoS.atLeastOnce, noLocal: false),
+                                              Subscription(topicFilter: topic2, qos: QoS.atMostOnce, noLocal: false)]
+            let subscribePacket = SubscribePacket(subscriptions: subscriptions)
 
-        let subackPacket: SubackPacket =
-            try await withTimeout(client: client, seconds: 2, operation: {
-                try await client.subscribe(subscribePacket: subscribePacket)
-            })
+            let subackPacket: SubackPacket =
+                try await withTimeout(client: client, seconds: 2, operation: {
+                    try await client.subscribe(subscribePacket: subscribePacket)
+                })
 
-        let expectedSubacKEnums = [SubackReasonCode.grantedQos1, SubackReasonCode.grantedQos0]
-        try compareEnums(arrayOne: subackPacket.reasonCodes, arrayTwo: expectedSubacKEnums)
-        print("SubackPacket received with results")
-        for i in 0..<subackPacket.reasonCodes.count {
-            print("Index:\(i) result:\(subackPacket.reasonCodes[i])")
+            let expectedSubacKEnums = [SubackReasonCode.grantedQos1, SubackReasonCode.grantedQos0]
+            try compareEnums(arrayOne: subackPacket.reasonCodes, arrayTwo: expectedSubacKEnums)
+            print("SubackPacket received with results")
+            for i in 0..<subackPacket.reasonCodes.count {
+                print("Index:\(i) result:\(subackPacket.reasonCodes[i])")
+            }
+
+            let unsubscribeTopics = [topic1, topic2, "fake_topic1"]
+            let unsubscribePacket = UnsubscribePacket(topicFilters: unsubscribeTopics)
+            let unsubackPacket: UnsubackPacket =
+                try await withTimeout(client: client, seconds: 2, operation: {
+                    try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
+                })
+
+            print("UnsubackPacket received with results")
+            for i in 0..<unsubackPacket.reasonCodes.count {
+                print("Index:\(i) result:\(unsubackPacket.reasonCodes[i])")
+            }
+
+            try disconnectClientCleanup(client: client, testContext: testContext)
         }
-
-        let unsubscribeTopics = [topic1, topic2, "fake_topic1"]
-        let unsubscribePacket = UnsubscribePacket(topicFilters: unsubscribeTopics)
-        let unsubackPacket: UnsubackPacket =
-            try await withTimeout(client: client, seconds: 2, operation: {
-                try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
-            })
-
-        print("UnsubackPacket received with results")
-        for i in 0..<unsubackPacket.reasonCodes.count {
-            print("Index:\(i) result:\(unsubackPacket.reasonCodes[i])")
-        }
-
-        try disconnectClientCleanup(client: client, testContext: testContext)
-    }
 
     /*===============================================================
                      ERROR OPERATION TESTS
@@ -1857,5 +1851,50 @@ class Mqtt5ClientTests: XCBaseTestCase {
         try disconnectClientCleanup(client:client1, testContext: testContext1)
         try disconnectClientCleanup(client:client2, testContext: testContext2)
         try disconnectClientCleanup(client:client3, testContext: testContext3)
+    }
+
+    /*===============================================================
+                     BINDING CLEANUP TESTS
+    =================================================================*/
+    /*
+    * [BCT-UC1] Start Without Stop
+    */
+    func testStartWithoutStop() async throws {
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!)
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try connectClient(client: client, testContext: testContext)
+    }
+
+    /*
+    * [BCT-UC2] Offline Operations
+    */
+    func testOfflineOperations() async throws {
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(inputPort)!)
+
+
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        // offline operation would never complete. Use close to force quit.
+        defer { client.close() }
+        try connectClient(client: client, testContext: testContext)
+        try stopClient(client: client, testContext: testContext)
+
+        let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+        let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic)
+        Task {
+            let _ = try? await client.publish(publishPacket: publishPacket)
+        }
     }
 }
