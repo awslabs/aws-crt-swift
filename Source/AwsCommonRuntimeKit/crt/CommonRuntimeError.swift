@@ -22,7 +22,7 @@ public struct CRTError: Equatable {
         self.message = String(cString: aws_error_str(self.code))
         self.name = String(cString: aws_error_name(self.code))
     }
-    
+
     public init<T: BinaryInteger>(code: T, context: String?) {
         if code > INT32_MAX || code <= 0 {
             self.code = Int32(AWS_ERROR_UNKNOWN.rawValue)

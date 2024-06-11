@@ -204,7 +204,7 @@ public class PublishPacket: CStruct {
     func validateConversionToNative() throws {
         if let messageExpiryInterval {
             if messageExpiryInterval < 0 || messageExpiryInterval > Double(UInt32.max) {
-                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue, 
+                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue,
                                                            context: "Invalid sessionExpiryInterval value"))
             }
         }
