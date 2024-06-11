@@ -263,13 +263,12 @@ public class Mqtt5ClientCore {
         try self.rwlock.read {
             // Validate close() has not been called on client.
             guard let rawValue = self.rawValue else {
-                // TODO add new error type for client closed
-                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue, context: "Mqtt client is closed."))
             }
             let errorCode = aws_mqtt5_client_start(rawValue)
 
             if errorCode != AWS_OP_SUCCESS {
-                throw CommonRunTimeError.crtError(CRTError(code: errorCode))
+                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
             }
         }
     }
@@ -286,7 +285,7 @@ public class Mqtt5ClientCore {
         try self.rwlock.read {
             // Validate close() has not been called on client.
             guard let rawValue = self.rawValue else {
-                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue, context: "Mqtt client is closed."))
             }
 
             var errorCode: Int32 = 0
@@ -327,7 +326,7 @@ public class Mqtt5ClientCore {
                     // Validate close() has not been called on client.
                     guard let rawValue = self.rawValue else {
                         continuationCore.release()
-                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue, context: "Mqtt client is closed.")))
                     }
                     let result = aws_mqtt5_client_subscribe(rawValue, subscribePacketPointer, &callbackOptions)
                     guard result == AWS_OP_SUCCESS else {
@@ -364,7 +363,7 @@ public class Mqtt5ClientCore {
                     // Validate close() has not been called on client.
                     guard let rawValue = self.rawValue else {
                         continuationCore.release()
-                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue, context: "Mqtt client is closed.")))
                     }
 
                     let result = aws_mqtt5_client_publish(rawValue, publishPacketPointer, &callbackOptions)
@@ -398,7 +397,7 @@ public class Mqtt5ClientCore {
                     // Validate close() has not been called on client.
                     guard let rawValue = self.rawValue else {
                         continuationCore.release()
-                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue, context: "Mqtt client is closed.")))
                     }
                     let result = aws_mqtt5_client_unsubscribe(rawValue, unsubscribePacketPointer, &callbackOptions)
                     guard result == AWS_OP_SUCCESS else {
