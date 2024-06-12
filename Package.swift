@@ -283,7 +283,10 @@ packageTargets.append(contentsOf: [
                         "AwsCChecksums",
                         "AwsCEventStream",
                         "AwsCMqtt"],
-        path: "Source/AwsCommonRuntimeKit"
+        path: "Source/AwsCommonRuntimeKit",
+        resources: [
+            .copy("PrivacyInfo.xcprivacy")
+        ]
     ),
     .testTarget(
         name: "AwsCommonRuntimeKitTests",
