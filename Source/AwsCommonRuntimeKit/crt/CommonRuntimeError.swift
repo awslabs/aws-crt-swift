@@ -14,7 +14,7 @@ public struct CRTError: Equatable {
     public let name: String
 
     public init<T: BinaryInteger>(code: T) {
-        if code > INT32_MAX || code <= 0 {
+        if code > INT32_MAX || code < 0 {
             self.code = Int32(AWS_ERROR_UNKNOWN.rawValue)
         } else {
             self.code = Int32(code)
@@ -24,7 +24,7 @@ public struct CRTError: Equatable {
     }
 
     public init<T: BinaryInteger>(code: T, context: String?) {
-        if code > INT32_MAX || code <= 0 {
+        if code > INT32_MAX || code < 0 {
             self.code = Int32(AWS_ERROR_UNKNOWN.rawValue)
         } else {
             self.code = Int32(code)
