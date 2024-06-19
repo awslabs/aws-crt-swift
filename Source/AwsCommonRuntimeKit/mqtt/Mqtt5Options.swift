@@ -3,6 +3,7 @@
 
 import Foundation
 import AwsCMqtt
+import LibNative
 
 /// Configuration for all client topic aliasing behavior.
 public class TopicAliasingOptions: CStruct {
@@ -110,7 +111,7 @@ public class MqttConnectOptions: CStruct {
     func validateConversionToNative() throws {
         if let keepAliveInterval {
             if keepAliveInterval < 0 || keepAliveInterval > Double(UInt16.max) {
-                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue,
+                throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue,
                                                            context: "Invalid keepAliveInterval value"))
             }
         }
@@ -118,14 +119,14 @@ public class MqttConnectOptions: CStruct {
         do {
             _ = try sessionExpiryInterval?.secondUInt32()
         } catch {
-            throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue,
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue,
                                                        context: "Invalid sessionExpiryInterval value"))
         }
 
         do {
             _ = try willDelayInterval?.secondUInt32()
         } catch {
-            throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue,
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue,
                                                        context: "Invalid willDelayInterval value"))
         }
     }
@@ -342,41 +343,41 @@ public class MqttClientOptions: CStructWithUserData {
         do {
             _ = try minReconnectDelay?.millisecondUInt64()
         } catch {
-            throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue,
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue,
                                                        context: "Invalid minReconnectDelay value"))
         }
 
         do {
             _ = try maxReconnectDelay?.millisecondUInt64()
         } catch {
-            throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue,
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue,
                                                        context: "Invalid maxReconnectDelay value"))
         }
 
         do {
             _ = try minConnectedTimeToResetReconnectDelay?.millisecondUInt64()
         } catch {
-            throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue,
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue,
                                                        context: "Invalid minConnectedTimeToResetReconnectDelay value"))
         }
 
         do {
             _ = try pingTimeout?.millisecondUInt32()
         } catch {
-            throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue,
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue,
                                                        context: "Invalid pingTimeout value"))
         }
 
         do {
             _ = try connackTimeout?.millisecondUInt32()
         } catch {
-            throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue,
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue,
                                                        context: "Invalid connackTimeout value"))
         }
 
         if let ackTimeout {
             if ackTimeout < 0 || ackTimeout > Double(UInt32.max) {
-                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue,
+                throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue,
                                                            context: "Invalid ackTimeout value"))
             }
         }

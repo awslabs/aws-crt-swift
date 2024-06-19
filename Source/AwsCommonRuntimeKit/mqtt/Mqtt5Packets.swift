@@ -4,6 +4,7 @@
 import Foundation
 import AwsCHttp
 import AwsCMqtt
+import LibNative
 
 /// Mqtt5 User Property
 public class UserProperty: CStruct {
@@ -204,7 +205,7 @@ public class PublishPacket: CStruct {
     func validateConversionToNative() throws {
         if let messageExpiryInterval {
             if messageExpiryInterval < 0 || messageExpiryInterval > Double(UInt32.max) {
-                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue,
+                throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue,
                                                            context: "Invalid sessionExpiryInterval value"))
             }
         }
@@ -639,7 +640,7 @@ public class DisconnectPacket: CStruct {
     func validateConversionToNative() throws {
         if let sessionExpiryInterval {
             if sessionExpiryInterval < 0 || sessionExpiryInterval > Double(UInt32.max) {
-                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue,
+                throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue,
                                                            context: "Invalid sessionExpiryInterval value"))
             }
         }
