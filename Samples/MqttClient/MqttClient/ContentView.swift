@@ -4,7 +4,6 @@
 import SwiftUI
 import AwsCommonRuntimeKit
 
-
 let TEST_HOST = "<endpoint>"
 let TEST_PORT: UInt32 = 1883
 
@@ -30,12 +29,10 @@ struct ContentView: View {
         .padding()
     }
 
-
 }
 
-
 /// start client and check for connection success
-func connectClient(client: Mqtt5Client, testContext: MqttTestContext) throws -> Void {
+func connectClient(client: Mqtt5Client, testContext: MqttTestContext) throws {
     try client.start()
     if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
         print("Connection Success Timed out after 5 seconds")
@@ -43,7 +40,7 @@ func connectClient(client: Mqtt5Client, testContext: MqttTestContext) throws -> 
 }
 
 /// stop client and check for discconnection and stopped lifecycle events
-func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) throws -> Void {
+func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) throws {
     try client.stop(disconnectPacket: disconnectPacket)
 
     if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
@@ -56,7 +53,7 @@ func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, 
 }
 
 /// stop client and check for stopped lifecycle event
-func stopClient(client: Mqtt5Client, testContext: MqttTestContext) throws -> Void {
+func stopClient(client: Mqtt5Client, testContext: MqttTestContext) throws {
     try client.stop()
     if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
         print("Stop timed out after 5 seconds")
@@ -74,7 +71,7 @@ struct Message: Identifiable {
     let text: String
 }
 
-class MqttTestContext : ObservableObject {
+class MqttTestContext: ObservableObject {
     @Published var messages: [Message] = [Message(id: 0, text: "Click the \"Setup Client and Start\" to start the client.")]
 
     public var contextName: String
@@ -102,8 +99,7 @@ class MqttTestContext : ObservableObject {
     public var publishCount = 0
     public var publishTarget = 1
 
-    func printView(_ message: String)
-    {
+    func printView(_ message: String) {
         let newMessage = Message(id: messages.count, text: message)
         self.messages.append(newMessage)
         print(message)
@@ -139,9 +135,13 @@ class MqttTestContext : ObservableObject {
 
         self.onPublishReceived = onPublishReceived ?? { publishData in
             if let payloadString = publishData.publishPacket.payloadAsString() {
-                self.printView(contextName + " Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos) payload:\'\(payloadString)\'")
+                self.printView(contextName +
+                " Mqtt5ClientTests: onPublishReceived." +
+                "Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos) payload:\'\(payloadString)\'")
             } else {
-                self.printView(contextName + " Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos)")
+                self.printView(contextName +
+                " Mqtt5ClientTests: onPublishReceived." +
+                "Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos)")
             }
             self.publishPacket = publishData.publishPacket
             self.semaphorePublishReceived.signal()
@@ -163,7 +163,8 @@ class MqttTestContext : ObservableObject {
             self.negotiatedSettings = successData.negotiatedSettings
             self.connackPacket = successData.connackPacket
             Task {
-                async let _ = try await client!.subscribe(subscribePacket: SubscribePacket(subscription: Subscription(topicFilter: "test/topic", qos: QoS.atLeastOnce)))
+                async let _ = try await client!.subscribe(subscribePacket: SubscribePacket(
+                    subscription: Subscription(topicFilter: "test/topic", qos: QoS.atLeastOnce)))
             }
             self.semaphoreConnectionSuccess.signal()
         }
@@ -241,7 +242,7 @@ func library_init() {
     CommonRuntimeKit.initialize()
 }
 
-var client: Mqtt5Client? = nil
+var client: Mqtt5Client?
 
 func setupClientAndStart() {
     let backgroundQueue = DispatchQueue(label: "background_queue",
@@ -252,7 +253,7 @@ func setupClientAndStart() {
         let inputHost = TEST_HOST
         let inputPort: UInt32 = TEST_PORT
 
-        let ConnectPacket = MqttConnectOptions(keepAliveInterval:60, clientId: createClientId())
+        let ConnectPacket = MqttConnectOptions(keepAliveInterval: 60, clientId: createClientId())
 
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
@@ -262,11 +263,9 @@ func setupClientAndStart() {
         do {
             client = try createClient(clientOptions: clientOptions, testContext: mqttTestContext)
             try connectClient(client: client!, testContext: mqttTestContext)
-        }
-        catch {
+        } catch {
             mqttTestContext.printView("Failed to setup client.")
         }
 
     }
 }
-
