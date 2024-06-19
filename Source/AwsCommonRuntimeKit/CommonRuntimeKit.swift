@@ -15,7 +15,7 @@ public struct CommonRuntimeKit {
         aws_auth_library_init(allocator.rawValue)
         aws_event_stream_library_init(allocator.rawValue)
         aws_mqtt_library_init(allocator.rawValue)
-        aws_register_error_info(&s_crt_swift_error_list);
+        aws_register_error_info(&s_crt_swift_error_list)
     }
 
     /**
@@ -24,7 +24,7 @@ public struct CommonRuntimeKit {
      * Warning: It will hang if you are still holding references to any CRT objects such as HostResolver.
      */
     public static func cleanUp() {
-        aws_unregister_error_info(&s_crt_swift_error_list);
+        aws_unregister_error_info(&s_crt_swift_error_list)
         aws_mqtt_library_clean_up()
         aws_event_stream_library_clean_up()
         aws_auth_library_clean_up()
