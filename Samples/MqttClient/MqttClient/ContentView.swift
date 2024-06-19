@@ -4,8 +4,12 @@
 import SwiftUI
 import AwsCommonRuntimeKit
 
+// The app setup a direct connection with default TLS options.
+// Update the host and port before run the app.
 let TEST_HOST = "<endpoint>"
 let TEST_PORT: UInt32 = 1883
+var mqttTestContext = MqttTestContext()
+var client: Mqtt5Client?
 
 @available(iOS 14.0, *)
 struct ContentView: View {
@@ -31,24 +35,17 @@ struct ContentView: View {
 
 }
 
+/// Message struct for information print
+struct Message: Identifiable {
+    let id: Int
+    let text: String
+}
+
 /// start client and check for connection success
 func connectClient(client: Mqtt5Client, testContext: MqttTestContext) throws {
     try client.start()
     if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
         print("Connection Success Timed out after 5 seconds")
-    }
-}
-
-/// stop client and check for discconnection and stopped lifecycle events
-func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) throws {
-    try client.stop(disconnectPacket: disconnectPacket)
-
-    if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-        print("Disconnection timed out after 5 seconds")
-    }
-
-    if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-        print("Stop timed out after 5 seconds")
     }
 }
 
@@ -60,15 +57,9 @@ func stopClient(client: Mqtt5Client, testContext: MqttTestContext) throws {
     }
 }
 
+/// generate a random client id
 func createClientId() -> String {
     return "aws-crt-swift-iOS-test-" + UUID().uuidString
-}
-
-var mqttTestContext = MqttTestContext(publishTarget: 10)
-
-struct Message: Identifiable {
-    let id: Int
-    let text: String
 }
 
 class MqttTestContext: ObservableObject {
@@ -85,28 +76,23 @@ class MqttTestContext: ObservableObject {
     public var onWebSocketHandshake: OnWebSocketHandshakeIntercept?
 
     public let semaphorePublishReceived: DispatchSemaphore
-    public let semaphorePublishTargetReached: DispatchSemaphore
     public let semaphoreConnectionSuccess: DispatchSemaphore
     public let semaphoreConnectionFailure: DispatchSemaphore
     public let semaphoreDisconnection: DispatchSemaphore
     public let semaphoreStopped: DispatchSemaphore
 
-    public var negotiatedSettings: NegotiatedSettings?
-    public var connackPacket: ConnackPacket?
-    public var publishPacket: PublishPacket?
     public var lifecycleConnectionFailureData: LifecycleConnectionFailureData?
     public var lifecycleDisconnectionData: LifecycleDisconnectData?
     public var publishCount = 0
-    public var publishTarget = 1
 
-    func printView(_ message: String) {
-        let newMessage = Message(id: messages.count, text: message)
+    /// Print the text and pending new message to message list
+    func printView(_ txt: String) {
+        let newMessage = Message(id: messages.count, text: txt)
         self.messages.append(newMessage)
-        print(message)
+        print(txt)
     }
 
     init(contextName: String = "Client",
-         publishTarget: Int = 1,
          onPublishReceived: OnPublishReceived? = nil,
          onLifecycleEventStopped: OnLifecycleEventStopped? = nil,
          onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect? = nil,
@@ -116,11 +102,9 @@ class MqttTestContext: ObservableObject {
 
         self.contextName = contextName
 
-        self.publishTarget = publishTarget
         self.publishCount = 0
 
         self.semaphorePublishReceived = DispatchSemaphore(value: 0)
-        self.semaphorePublishTargetReached = DispatchSemaphore(value: 0)
         self.semaphoreConnectionSuccess = DispatchSemaphore(value: 0)
         self.semaphoreConnectionFailure = DispatchSemaphore(value: 0)
         self.semaphoreDisconnection = DispatchSemaphore(value: 0)
@@ -134,21 +118,15 @@ class MqttTestContext: ObservableObject {
         self.onLifecycleEventDisconnection = onLifecycleEventDisconnection
 
         self.onPublishReceived = onPublishReceived ?? { publishData in
+            var message = contextName + " Mqtt5ClientTests: onPublishReceived." +
+            "Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos)"
             if let payloadString = publishData.publishPacket.payloadAsString() {
-                self.printView(contextName +
-                " Mqtt5ClientTests: onPublishReceived." +
-                "Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos) payload:\'\(payloadString)\'")
-            } else {
-                self.printView(contextName +
-                " Mqtt5ClientTests: onPublishReceived." +
-                "Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos)")
+                message += "payload:\'\(payloadString)\'"
             }
-            self.publishPacket = publishData.publishPacket
+            // Pending received publish to message list
+            self.printView(message)
             self.semaphorePublishReceived.signal()
             self.publishCount += 1
-            if self.publishCount == self.publishTarget {
-                self.semaphorePublishTargetReached.signal()
-            }
         }
 
         self.onLifecycleEventStopped = onLifecycleEventStopped ?? { _ in
@@ -158,10 +136,9 @@ class MqttTestContext: ObservableObject {
         self.onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect ?? { _ in
             self.printView(contextName + " Mqtt5ClientTests: onLifecycleEventAttemptingConnect")
         }
-        self.onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess ?? { successData in
+        self.onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess ?? { _ in
             self.printView(contextName + " Mqtt5ClientTests: onLifecycleEventConnectionSuccess")
-            self.negotiatedSettings = successData.negotiatedSettings
-            self.connackPacket = successData.connackPacket
+            // Subscribe to test/topic on connection success
             Task {
                 async let _ = try await client!.subscribe(subscribePacket: SubscribePacket(
                     subscription: Subscription(topicFilter: "test/topic", qos: QoS.atLeastOnce)))
@@ -181,84 +158,62 @@ class MqttTestContext: ObservableObject {
     }
 }
 
-func createClient(clientOptions: MqttClientOptions?, testContext: MqttTestContext) throws -> Mqtt5Client {
+// Create client from client options and test context
+func createClient(clientOptions: MqttClientOptions, testContext: MqttTestContext) throws -> Mqtt5Client {
 
     let clientOptionsWithCallbacks: MqttClientOptions
 
-    if let clientOptions {
-        clientOptionsWithCallbacks = MqttClientOptions(
-            hostName: clientOptions.hostName,
-            port: clientOptions.port,
-            bootstrap: clientOptions.bootstrap,
-            socketOptions: clientOptions.socketOptions,
-            tlsCtx: clientOptions.tlsCtx,
-            onWebsocketTransform: testContext.onWebSocketHandshake,
-            httpProxyOptions: clientOptions.httpProxyOptions,
-            connectOptions: clientOptions.connectOptions,
-            sessionBehavior: clientOptions.sessionBehavior,
-            extendedValidationAndFlowControlOptions: clientOptions.extendedValidationAndFlowControlOptions,
-            offlineQueueBehavior: clientOptions.offlineQueueBehavior,
-            retryJitterMode: clientOptions.retryJitterMode,
-            minReconnectDelay: clientOptions.minReconnectDelay,
-            maxReconnectDelay: clientOptions.maxReconnectDelay,
-            minConnectedTimeToResetReconnectDelay: clientOptions.minConnectedTimeToResetReconnectDelay,
-            pingTimeout: clientOptions.pingTimeout,
-            connackTimeout: clientOptions.connackTimeout,
-            ackTimeout: clientOptions.ackTimeout,
-            topicAliasingOptions: clientOptions.topicAliasingOptions,
-            onPublishReceivedFn: testContext.onPublishReceived,
-            onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
-            onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
-            onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
-            onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
-            onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
-    } else {
-        let elg = try EventLoopGroup()
-        let resolver = try HostResolver.makeDefault(eventLoopGroup: elg)
-        let clientBootstrap = try ClientBootstrap(
-            eventLoopGroup: elg,
-            hostResolver: resolver)
-        let socketOptions = SocketOptions()
-
-        clientOptionsWithCallbacks = MqttClientOptions(
-            hostName: "172.20.10.8",
-            port: 1883,
-            bootstrap: clientBootstrap,
-            socketOptions: socketOptions,
-            onPublishReceivedFn: testContext.onPublishReceived,
-            onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
-            onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
-            onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
-            onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
-            onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
-    }
+    clientOptionsWithCallbacks = MqttClientOptions(
+        hostName: clientOptions.hostName,
+        port: clientOptions.port,
+        bootstrap: clientOptions.bootstrap,
+        socketOptions: clientOptions.socketOptions,
+        tlsCtx: clientOptions.tlsCtx,
+        onWebsocketTransform: testContext.onWebSocketHandshake,
+        httpProxyOptions: clientOptions.httpProxyOptions,
+        connectOptions: clientOptions.connectOptions,
+        sessionBehavior: clientOptions.sessionBehavior,
+        extendedValidationAndFlowControlOptions: clientOptions.extendedValidationAndFlowControlOptions,
+        offlineQueueBehavior: clientOptions.offlineQueueBehavior,
+        retryJitterMode: clientOptions.retryJitterMode,
+        minReconnectDelay: clientOptions.minReconnectDelay,
+        maxReconnectDelay: clientOptions.maxReconnectDelay,
+        minConnectedTimeToResetReconnectDelay: clientOptions.minConnectedTimeToResetReconnectDelay,
+        pingTimeout: clientOptions.pingTimeout,
+        connackTimeout: clientOptions.connackTimeout,
+        ackTimeout: clientOptions.ackTimeout,
+        topicAliasingOptions: clientOptions.topicAliasingOptions,
+        onPublishReceivedFn: testContext.onPublishReceived,
+        onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
+        onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
+        onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
+        onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
+        onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
 
     let mqtt5Client = try Mqtt5Client(clientOptions: clientOptionsWithCallbacks)
     return mqtt5Client
 }
 
+/// Init CRT library
 func library_init() {
     Logger.initialize(pipe: stdout, level: .debug)
     CommonRuntimeKit.initialize()
 }
 
-var client: Mqtt5Client?
-
+/// Setup the client and start the session.
 func setupClientAndStart() {
     let backgroundQueue = DispatchQueue(label: "background_queue",
                                         qos: .background)
 
     backgroundQueue.async {
 
-        let inputHost = TEST_HOST
-        let inputPort: UInt32 = TEST_PORT
-
         let ConnectPacket = MqttConnectOptions(keepAliveInterval: 60, clientId: createClientId())
 
         let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: inputPort,
-            connectOptions: ConnectPacket, connackTimeout: TimeInterval(10))
+            hostName: TEST_HOST,
+            port: TEST_PORT,
+            connectOptions: ConnectPacket,
+            connackTimeout: TimeInterval(10))
 
         do {
             client = try createClient(clientOptions: clientOptions, testContext: mqttTestContext)
@@ -266,6 +221,5 @@ func setupClientAndStart() {
         } catch {
             mqttTestContext.printView("Failed to setup client.")
         }
-
     }
 }
