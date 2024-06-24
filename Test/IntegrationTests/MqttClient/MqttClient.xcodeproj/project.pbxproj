@@ -12,6 +12,7 @@
 		A63CEBC62C2387A3003A71B7 /* AwsCommonRuntimeKit in Frameworks */ = {isa = PBXBuildFile; productRef = A63CEBC52C2387A3003A71B7 /* AwsCommonRuntimeKit */; };
 		A63CEBC82C2387CD003A71B7 /* AwsCommonRuntimeKit in Frameworks */ = {isa = PBXBuildFile; productRef = A63CEBC72C2387CD003A71B7 /* AwsCommonRuntimeKit */; };
 		A6C798772C238DD30055AE09 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A6C798762C238DD30055AE09 /* Assets.xcassets */; };
+		A6C7987B2C2A2A340055AE09 /* AwsCommonRuntimeKit in Frameworks */ = {isa = PBXBuildFile; productRef = A6C7987A2C2A2A340055AE09 /* AwsCommonRuntimeKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A6C7987B2C2A2A340055AE09 /* AwsCommonRuntimeKit in Frameworks */,
 				A63CEBC62C2387A3003A71B7 /* AwsCommonRuntimeKit in Frameworks */,
 				A63CEBC82C2387CD003A71B7 /* AwsCommonRuntimeKit in Frameworks */,
 			);
@@ -79,6 +81,7 @@
 			packageProductDependencies = (
 				A63CEBC52C2387A3003A71B7 /* AwsCommonRuntimeKit */,
 				A63CEBC72C2387CD003A71B7 /* AwsCommonRuntimeKit */,
+				A6C7987A2C2A2A340055AE09 /* AwsCommonRuntimeKit */,
 			);
 			productName = MqttClient;
 			productReference = A63CEBB12C238347003A71B7 /* MqttClient.app */;
@@ -109,7 +112,7 @@
 			);
 			mainGroup = A63CEBA82C238347003A71B7;
 			packageReferences = (
-				A63CEBC22C238604003A71B7 /* XCLocalSwiftPackageReference "../.." */,
+				A6C798792C2A2A340055AE09 /* XCLocalSwiftPackageReference "../../.." */,
 			);
 			productRefGroup = A63CEBB22C238347003A71B7 /* Products */;
 			projectDirPath = "";
@@ -301,7 +304,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = K33Z8NL3RV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -347,9 +350,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		A63CEBC22C238604003A71B7 /* XCLocalSwiftPackageReference "../.." */ = {
+		A6C798792C2A2A340055AE09 /* XCLocalSwiftPackageReference "../../.." */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = ../..;
+			relativePath = ../../..;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -359,6 +362,10 @@
 			productName = AwsCommonRuntimeKit;
 		};
 		A63CEBC72C2387CD003A71B7 /* AwsCommonRuntimeKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AwsCommonRuntimeKit;
+		};
+		A6C7987A2C2A2A340055AE09 /* AwsCommonRuntimeKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AwsCommonRuntimeKit;
 		};

@@ -9,4 +9,4 @@ cmake-build-debug
 .vscode
 
 # Ignore XCode project local user data
-Samples/**/xcuserdata
+Test/**/xcuserdata
