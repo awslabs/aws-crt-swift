@@ -29,7 +29,7 @@ class SigningConfigTests: XCBaseTestCase {
             XCTAssertNotNil(cSigningConfig.credentials)
             XCTAssertEqual(UInt64(signingConfig.expiration!), cSigningConfig.expiration_in_seconds)
             XCTAssertEqual(signingConfig.signedBodyHeader.rawValue, cSigningConfig.signed_body_header)
-            XCTAssertEqual(signingConfig.signedBodyValue.rawValue, cSigningConfig.signed_body_value.toString())
+            XCTAssertEqual(signingConfig.signedBodyValue.description, cSigningConfig.signed_body_value.toString())
         }
     }
 }
