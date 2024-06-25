@@ -180,7 +180,7 @@ public enum SignedBodyValue: CustomStringConvertible, Equatable {
     /// For empty sha256
     case emptySha256
     /// Use this to provide a precalculated sha256 value
-    case sha256(String)
+    case precomputedSha256(String)
     /// Use this in the case of needing to not use the payload for signing
     case unsignedPayload
     /// For streaming sha256 payload
@@ -202,8 +202,8 @@ public enum SignedBodyValue: CustomStringConvertible, Equatable {
             return ""
         case .emptySha256:
             return "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-        case .sha256(let hash):
-            return hash
+        case .precomputedSha256(let value):
+            return value
         case .unsignedPayload:
             return "UNSIGNED-PAYLOAD"
         case .streamingSha256Payload:
@@ -221,7 +221,7 @@ public enum SignedBodyValue: CustomStringConvertible, Equatable {
         }
     }
 
-    public static func ==(lhs: SignedBodyValue, rhs: SignedBodyValue) -> Bool {
+    public static func == (lhs: SignedBodyValue, rhs: SignedBodyValue) -> Bool {
         return lhs.description == rhs.description
     }
 }
