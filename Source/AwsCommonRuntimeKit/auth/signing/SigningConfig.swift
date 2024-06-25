@@ -119,7 +119,7 @@ public struct SigningConfig: CStructWithUserData {
         return withByteCursorFromStrings(
             region,
             service,
-            signedBodyValue.rawValue) { regionCursor, serviceCursor, signedBodyValueCursor in
+            signedBodyValue.description) { regionCursor, serviceCursor, signedBodyValueCursor in
 
             cConfig.region = regionCursor
             cConfig.service = serviceCursor
@@ -174,25 +174,56 @@ public enum SignedBodyHeaderType {
 /// Optional string to use as the canonical request's body value.
 /// Typically, this is the SHA-256 of the (request/chunk/event) payload, written as lowercase hex.
 /// If this has been precalculated, it can be set here. Special values used by certain services can also be set.
-public enum SignedBodyValue: String {
+public enum SignedBodyValue: CustomStringConvertible, Equatable {
     /// if empty, a public value  will be calculated from the payload during signing
-    case empty = ""
+    case empty
     /// For empty sha256
-    case emptySha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    case emptySha256
+    /// Use this to provide a precalculated sha256 value
+    case sha256(String)
     /// Use this in the case of needing to not use the payload for signing
-    case unsignedPayload = "UNSIGNED-PAYLOAD"
+    case unsignedPayload
     /// For streaming sha256 payload
-    case streamingSha256Payload = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD"
+    case streamingSha256Payload
     /// For streaming sha256 payload trailer
-    case streamingSha256PayloadTrailer = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER"
+    case streamingSha256PayloadTrailer
     /// For streaming sigv4a sha256 payload
-    case streamingECDSA_P256Sha256Payload = "STREAMING-AWS4-ECDSA-P256-SHA256-PAYLOAD"
+    case streamingECDSA_P256Sha256Payload
     /// For streaming sigv4a sha256 payload trailer
-    case streamingECDSA_P256Sha256PayloadTrailer = "STREAMING-AWS4-ECDSA-P256-SHA256-PAYLOAD-TRAILER"
+    case streamingECDSA_P256Sha256PayloadTrailer
     /// For streaming sigv4a sha256 events
-    case streamingSha256Events = "STREAMING-AWS4-HMAC-SHA256-EVENTS"
+    case streamingSha256Events
     /// For streaming unsigned payload trailer
-    case streamingUnSignedPayloadTrailer = "STREAMING-UNSIGNED-PAYLOAD-TRAILER"
+    case streamingUnSignedPayloadTrailer
+
+    public var description: String {
+        switch self {
+        case .empty:
+            return ""
+        case .emptySha256:
+            return "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        case .sha256(let hash):
+            return hash
+        case .unsignedPayload:
+            return "UNSIGNED-PAYLOAD"
+        case .streamingSha256Payload:
+            return "STREAMING-AWS4-HMAC-SHA256-PAYLOAD"
+        case .streamingSha256PayloadTrailer:
+            return "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER"
+        case .streamingECDSA_P256Sha256Payload:
+            return "STREAMING-AWS4-ECDSA-P256-SHA256-PAYLOAD"
+        case .streamingECDSA_P256Sha256PayloadTrailer:
+            return "STREAMING-AWS4-ECDSA-P256-SHA256-PAYLOAD-TRAILER"
+        case .streamingSha256Events:
+            return "STREAMING-AWS4-HMAC-SHA256-EVENTS"
+        case .streamingUnSignedPayloadTrailer:
+            return "STREAMING-UNSIGNED-PAYLOAD-TRAILER"
+        }
+    }
+
+    public static func ==(lhs: SignedBodyValue, rhs: SignedBodyValue) -> Bool {
+        return lhs.description == rhs.description
+    }
 }
 
 public enum SigningAlgorithmType {
