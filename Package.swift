@@ -18,11 +18,6 @@ let cSettings: [CSetting] = [
     .define("DEBUG_BUILD", .when(configuration: .debug))
 ]
 
-let cSettingsCommon: [CSetting] = [
-    .headerSearchPath("source/external/libcbor"),
-    .define("DEBUG_BUILD", .when(configuration: .debug))
-]
-
 //////////////////////////////////////////////////////////////////////
 /// Configure C targets.
 /// Note: We can not use unsafe flags because SwiftPM makes the target ineligible for use by other packages.
@@ -43,6 +38,10 @@ awsCCommonPlatformExcludes.append("source/arch/arm")
 #if !os(Windows)
 awsCCommonPlatformExcludes.append("source/windows")
 #endif
+let cSettingsCommon: [CSetting] = [
+    .headerSearchPath("source/external/libcbor"),
+    .define("DEBUG_BUILD", .when(configuration: .debug))
+]
 
 //////////////////////////////////////////////////////////////////////
 /// aws-c-cal
