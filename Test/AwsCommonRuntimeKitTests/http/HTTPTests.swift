@@ -64,14 +64,15 @@ class HTTPTests: HTTPClientTestFixture {
         let streamBase = try connection.makeRequest(requestOptions: httpRequestOptions)
         try streamBase.activate()
         XCTAssertFalse(onCompleteCalled)
+        let metrics = connectionManager.fetchMetrics()
+        XCTAssertTrue(metrics.availableConcurrency > 0)
+        XCTAssertTrue(metrics.leasedConcurrency > 0)
+
         let data = TEST_DOC_LINE.data(using: .utf8)!
         for chunk in data.chunked(into: 5) {
             try await streamBase.writeChunk(chunk: chunk, endOfStream: false)
             XCTAssertFalse(onCompleteCalled)
         }
-        let metrics = connectionManager.fetchMetrics()
-        XCTAssertTrue(metrics.availableConcurrency > 0)
-        XCTAssertTrue(metrics.leasedConcurrency > 0)
 
         XCTAssertFalse(onCompleteCalled)
         // Sleep for 5 seconds to make sure onComplete is not triggerred
