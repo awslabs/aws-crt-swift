@@ -18,6 +18,11 @@ let cSettings: [CSetting] = [
     .define("DEBUG_BUILD", .when(configuration: .debug))
 ]
 
+let cSettingsCommon: [CSetting] = [
+    .headerSearchPath("source/external/libcbor"),
+    .define("DEBUG_BUILD", .when(configuration: .debug))
+]
+
 //////////////////////////////////////////////////////////////////////
 /// Configure C targets.
 /// Note: We can not use unsafe flags because SwiftPM makes the target ineligible for use by other packages.
@@ -198,7 +203,7 @@ packageTargets.append(contentsOf: [
         dependencies: ["AwsCPlatformConfig"],
         path: "aws-common-runtime/aws-c-common",
         exclude: awsCCommonPlatformExcludes,
-        cSettings: cSettings
+        cSettings: cSettingsCommon
     ),
     .target(
         name: "AwsCSdkUtils",
