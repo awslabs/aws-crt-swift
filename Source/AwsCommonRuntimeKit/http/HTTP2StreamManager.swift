@@ -42,6 +42,21 @@ public class HTTP2StreamManager {
         })
     }
 
+    /// Fetch the current manager metrics from connection manager.
+    public func fetchMetrics() throws -> HTTPClientConnectionManagerMetrics {
+        do {
+            var cManagerMetrics = aws_http_manager_metrics()
+            aws_http2_stream_manager_fetch_metrics(rawValue, &cManagerMetrics)
+            return HTTPClientConnectionManagerMetrics(
+                availableConcurrency: cManagerMetrics.available_concurrency,
+                pendingConcurrencyAcquires: cManagerMetrics.pending_concurrency_acquires,
+                leasedConcurrency: cManagerMetrics.leased_concurrency
+            )
+        } catch {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+    }
+
     deinit {
         aws_http2_stream_manager_release(rawValue)
     }
