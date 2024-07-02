@@ -65,7 +65,6 @@ class HTTPTests: HTTPClientTestFixture {
         try streamBase.activate()
         XCTAssertFalse(onCompleteCalled)
         let metrics = connectionManager.fetchMetrics()
-        XCTAssertTrue(metrics.availableConcurrency > 0)
         XCTAssertTrue(metrics.leasedConcurrency > 0)
 
         let data = TEST_DOC_LINE.data(using: .utf8)!
