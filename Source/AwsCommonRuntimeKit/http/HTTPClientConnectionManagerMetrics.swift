@@ -15,9 +15,9 @@ public struct HTTPClientConnectionManagerMetrics {
     public var leasedConcurrency: Int
 
     public init(
-        availableConcurrency: Int = 0,
-        pendingConcurrencyAcquires: Int = 0,
-        leasedConcurrency: Int = 0
+        availableConcurrency: Int,
+        pendingConcurrencyAcquires: Int,
+        leasedConcurrency: Int
     ) {
         self.availableConcurrency = availableConcurrency
         self.pendingConcurrencyAcquires = pendingConcurrencyAcquires
