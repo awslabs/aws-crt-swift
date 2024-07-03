@@ -125,6 +125,9 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
 
         let stream = try await streamManager.acquireStream(requestOptions: http2RequestOptions)
         XCTAssertFalse(onCompleteCalled)
+        let metrics = streamManager.fetchMetrics()
+        XCTAssertTrue(metrics.availableConcurrency > 0)
+        XCTAssertTrue(metrics.leasedConcurrency > 0)
         let data = TEST_DOC_LINE.data(using: .utf8)!
         for chunk in data.chunked(into: 5) {
             try await stream.writeChunk(chunk: chunk, endOfStream: false)

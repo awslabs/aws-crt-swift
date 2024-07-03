@@ -38,6 +38,10 @@ awsCCommonPlatformExcludes.append("source/arch/arm")
 #if !os(Windows)
 awsCCommonPlatformExcludes.append("source/windows")
 #endif
+let cSettingsCommon: [CSetting] = [
+    .headerSearchPath("source/external/libcbor"),
+    .define("DEBUG_BUILD", .when(configuration: .debug))
+]
 
 //////////////////////////////////////////////////////////////////////
 /// aws-c-cal
@@ -198,7 +202,7 @@ packageTargets.append(contentsOf: [
         dependencies: ["AwsCPlatformConfig"],
         path: "aws-common-runtime/aws-c-common",
         exclude: awsCCommonPlatformExcludes,
-        cSettings: cSettings
+        cSettings: cSettingsCommon
     ),
     .target(
         name: "AwsCSdkUtils",
