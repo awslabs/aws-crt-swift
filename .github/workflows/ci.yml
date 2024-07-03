@@ -76,7 +76,9 @@ jobs:
       - name: Buil test apple
         run: |
           xcode-select --print-path
-          cd Test/IntegrationTests/MqttClient
+          pwd
+          cd aws-crt-swift/Test/IntegrationTests/MqttClient
+          pwd
           xcodebuild -resolvePackageDependencies
           echo "start build app"
           xcodebuild -scheme "MqttClient" \
