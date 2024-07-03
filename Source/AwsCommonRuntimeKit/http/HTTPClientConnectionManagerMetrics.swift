@@ -11,7 +11,7 @@ public struct HTTPClientConnectionManagerMetrics {
     public var availableConcurrency: Int
     /// The number of requests that are awaiting concurrency to be made available from the HTTP manager.
     public var pendingConcurrencyAcquires: Int
-    /// The number of connections (http/1.1) or streams (for h2 via. stream manager) currently vended to user.
+    /// The number of connections (HTTP/1.1) or streams (for HTTP/2 via. stream manager) currently vended to user.
     public var leasedConcurrency: Int
 
     public init(
