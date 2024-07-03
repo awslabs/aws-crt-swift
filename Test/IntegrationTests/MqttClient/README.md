@@ -3,7 +3,7 @@
 This sample is an iOS application that launches the Mqtt Client and subscribes to the topic `test/topic`.
 
 ## How to run the application
-1. Open project `Samples/MqttClient/MqttClient.xcodeproj` with XCode
+1. Open project `Test/IntegrationTests/MqttClient/MqttClient.xcodeproj` with XCode
 2. Signing. Signing is required for iOS application. Setup `Project > Signing & Capabilities > Team` to automatically manage signing.
 3. Update Dependency. The project depends on aws-crt-swift. Go to `File > Add package dependency > Add Local ... ` and select your local aws-crt-swift. Alternatively, you can also enter Package URL `https://github.com/awslabs/aws-crt-swift` for released versions.
 4. Run the application.
