@@ -61,6 +61,30 @@ jobs:
           chmod a+x builder
           ./builder build -p ${{ env.PACKAGE_NAME }}
 
+  ios-integration-test:
+    runs-on: macos-14
+    env:
+      DEVELOPER_DIR: /Applications/Xcode.app
+      XCODE_DESTINATION: 'OS X'
+      NSUnbufferedIO: YES
+    steps:
+      - name: Build ${{ env.PACKAGE_NAME }} + consumers
+        run: |
+          python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
+          chmod a+x builder
+          ./builder build -p ${{ env.PACKAGE_NAME }}
+      - name: Buil test apple
+        run: |
+          xcode-select --print-path
+          cd Test/IntegrationTests/MqttClient
+          xcodebuild -resolvePackageDependencies
+          echo "start build app"
+          xcodebuild -scheme "MqttClient" \
+          -archivePath $RUNNER_TEMP/MqttClient.xcarchive \
+          -configuration Release \
+          -destination generic/platform=iOS \
+          clean archive
+
   devices:
     runs-on: ${{ matrix.runner }}
     env:
