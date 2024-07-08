@@ -63,20 +63,22 @@ jobs:
 
   ios-integration-test:
     runs-on: macos-14
+    permissions:
+      id-token: write # This is required for requesting the JWT
+      contents: read # This is required for actions/checkout
     env:
       DEVELOPER_DIR: /Applications/Xcode.app
       XCODE_DESTINATION: 'OS X'
       NSUnbufferedIO: YES
       BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.MOBILEPROVISION_BASE64 }}
       KEYCHAIN_PASSWORD: ${{ secrets.TEST_KEYCHAIN_PASSWORD }}
-      CI_TEST_SECRET_MANAGER_ROLE: arn:aws:iam::976188456881:role/CI_TEST_SECRET_MANAGER_ACCESS
+      CI_TEST_SECRET_MANAGER_ROLE: arn:aws:iam::976188456881:role/CI_TEST_PROVIDER_ASSUME_ROLE
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
           chmod a+x builder
           ./builder build -p ${{ env.PACKAGE_NAME }}
-
       - name: configure AWS credentials (PubSub)
         uses: aws-actions/configure-aws-credentials@v2
         with:
