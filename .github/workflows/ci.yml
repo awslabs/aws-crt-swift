@@ -85,7 +85,7 @@ jobs:
           -archivePath $RUNNER_TEMP/MqttClient.xcarchive \
           -configuration Release \
           -destination generic/platform=iOS \
-          clean archive
+          clean archive -allowProvisioningUpdates
 
   devices:
     runs-on: ${{ matrix.runner }}
