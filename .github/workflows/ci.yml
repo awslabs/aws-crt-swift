@@ -73,6 +73,31 @@ jobs:
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
           chmod a+x builder
           ./builder build -p ${{ env.PACKAGE_NAME }}
+      - name: Install the Apple certificate and provisioning profile
+        env:
+          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.MOBILEPROVISION_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.TEST_KEYCHAIN_PASSWORD }}
+          CI_TEST_SECRET_MANAGER_ROLE: arn:aws:iam::976188456881:role/CI_TEST_SECRET_MANAGER_ACCESS
+        run: |
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          PP_PATH=$RUNNER_TEMP/shoppingmacdev.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          pkcs12_identity_base64=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/test/base64_pkcs12" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
+          pkcs12_identity_pw=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/test/pw_pkcs12" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
+          # import certificate and provisioning profile from secrets
+          echo -n "$pkcs12_identity_base64" | base64 --decode -o $CERTIFICATE_PATH
+          # echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$pkcs12_identity_pw" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+          # apply provisioning profile
+          # mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          # cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
       - name: Buil test apple
         run: |
           xcode-select --print-path
