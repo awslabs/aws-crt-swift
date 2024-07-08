@@ -91,7 +91,7 @@ jobs:
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           pkcs12_identity_base64=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/test/base64_pkcs12" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
           pkcs12_identity_pw=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/test/pw_pkcs12" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
-          provision_base64 = $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/test/provision_base64" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
+          provision_base64=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/test/provision_base64" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
           # import certificate and provisioning profile from secrets
           echo -n "$pkcs12_identity_base64" | base64 --decode -o $CERTIFICATE_PATH
           echo -n "$provision_base64" | base64 --decode -o $PP_PATH
