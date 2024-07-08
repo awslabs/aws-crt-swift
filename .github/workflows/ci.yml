@@ -92,6 +92,7 @@ jobs:
 
           pkcs12_identity_base64=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/test/base64_pkcs12" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
           pkcs12_identity_pw=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/test/pw_pkcs12" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
+          echo -n "$pkcs12_identity_base64"
           # import certificate and provisioning profile from secrets
           echo -n "$pkcs12_identity_base64" | base64 --decode -o $CERTIFICATE_PATH
           # echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o $PP_PATH
