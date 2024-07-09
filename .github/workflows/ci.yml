@@ -118,6 +118,59 @@ jobs:
           -configuration Release \
           -destination generic/platform=iOS \
           clean archive -allowProvisioningUpdates
+      - name: Export ipa
+        run: |
+          cd aws-crt-swift/Test/IntegrationTests/MqttClient
+          EXPORT_OPTS_PATH=ExportOptions.plist
+          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/MqttClient.xcarchive -exportOptionsPlist $EXPORT_OPTS_PATH -exportPath output
+          cd output
+          ls
+      - name: Setup Device Farm test file and environment
+        env:
+          SCRIPT_PATH: ./DeviceFarmScript
+      # Device Farm Instructions: https://docs.aws.amazon.com/devicefarm/latest/developerguide/test-types-appium.html
+        run: |
+          cd aws-crt-swift/Test/IntegrationTests/MqttClient
+          pwd
+          pip install virtualenv
+          virtualenv --help
+          virtualenv workspace
+          cd workspace
+          source bin/activate
+          pip install -r $SCRIPT_PATH/requirements.txt
+          # Create a test bundle folder for upload
+          mkdir tests
+          cp $SCRIPT_PATH/mqtt_test_script.py tests/
+          find tests/
+          py.test --collect-only tests/
+          cd tests/
+          find . -name '__pycache__' -type d -exec rm -r {} +
+          find . -name '*.pyc' -exec rm -f {} +
+          find . -name '*.pyo' -exec rm -f {} +
+          find . -name '*~' -exec rm -f {} +
+          cd ..
+          pip freeze > requirements.txt
+          zip -r test_bundle.zip tests/ requirements.txt
+      - name: configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::976188456881:role/CI_DEVICE_FARM_ROLE
+          aws-region: us-west-2
+      - name: Execute device farm test
+        run: |
+          cd aws-crt-swift/Test/IntegrationTests/MqttClient
+          pip install -r ./DeviceFarmScript/requirements.txt
+          cd devicefarm
+          ls
+          ls ./workspace/
+          python -u -c ./DeviceFarmScript/run_ios_ci.py \
+          --run_id ${{ github.run_id }} \
+          --run_attempt ${{ github.run_attempt }} \
+          --project_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/ProjectArn" --query "SecretString" | cut -f5 -d\" | cut -f1 -d'\') \
+          --device_pool_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/iOSPoolArn" --query "SecretString" | cut -f5 -d\" | cut -f1 -d'\')
+          --app_file_path ./output/MqttClient.ipa
+          --test_file_path ./workspace/test_bundle.zip
+          --test_spec_file_path ./DeviceFarmScript/test_spec.yaml
 
   devices:
     runs-on: ${{ matrix.runner }}
