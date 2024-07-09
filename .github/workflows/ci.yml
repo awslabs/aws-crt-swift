@@ -120,9 +120,10 @@ jobs:
           clean archive -allowProvisioningUpdates
       - name: Export ipa
         run: |
+          exportFileData=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/iOSApp/exportOption" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
+          echo -n "$exportFileData" | base64 --decode -o ExportOptions.plist
           cd aws-crt-swift/Test/IntegrationTests/MqttClient
-          EXPORT_OPTS_PATH=ExportOptions.plist
-          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/MqttClient.xcarchive -exportOptionsPlist $EXPORT_OPTS_PATH -exportPath output
+          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/MqttClient.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath output
           cd output
           ls
       - name: Setup Device Farm test file and environment
