@@ -30,6 +30,11 @@ class TestApp:
         if self.driver:
             self.driver.quit()
 
+    @pytest.mark.parametrize("test_suite", [
+        "test suite 1",
+        "test suite 2"
+    ])
+
     def start_mqtt(self, test_suite):
         sleep(3)
         self.perform_click_element('Setup Client and Start')
