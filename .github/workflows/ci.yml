@@ -127,8 +127,6 @@ jobs:
           cd output
           ls
       - name: Setup Device Farm test file and environment
-        env:
-          SCRIPT_PATH: ./DeviceFarmScript
       # Device Farm Instructions: https://docs.aws.amazon.com/devicefarm/latest/developerguide/test-types-appium.html
         run: |
           cd aws-crt-swift/Test/IntegrationTests/MqttClient
@@ -138,10 +136,10 @@ jobs:
           virtualenv workspace
           cd workspace
           source bin/activate
-          pip install -r $SCRIPT_PATH/requirements.txt
+          pip install -r ../DeviceFarmScript/requirements.txt
           # Create a test bundle folder for upload
           mkdir tests
-          cp $SCRIPT_PATH/mqtt_test_script.py tests/
+          cp ../DeviceFarmScript/mqtt_test_script.py tests/
           find tests/
           py.test --collect-only tests/
           cd tests/
