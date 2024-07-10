@@ -21,7 +21,7 @@ capabilities = dict(
 
 appium_server_url = 'http://0.0.0.0:4723/wd/hub'
 
-class TestApp:
+class TestMqttIOS:
     def setup_method(self):
         self.driver = webdriver.Remote(appium_server_url, options=XCUITestOptions().load_capabilities(capabilities))
         self.driver.implicitly_wait(10)
@@ -35,7 +35,7 @@ class TestApp:
         "test suite 2"
     ])
 
-    def start_mqtt(self, test_suite):
+    def test_mqtt(self, test_suite):
         sleep(3)
         self.perform_click_element('Setup Client and Start')
         sleep(3)
@@ -49,4 +49,4 @@ class TestApp:
             pytest.skip(f"Element with ID '{element_id}' not found. Skipped the test")
 
 if __name__ == '__main__':
-    TestApp.start_mqtt()
+    TestMqttIOS.test_mqtt()
