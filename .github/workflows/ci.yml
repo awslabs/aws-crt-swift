@@ -160,9 +160,7 @@ jobs:
           cd aws-crt-swift/Test/IntegrationTests/MqttClient
           pip install -r ./DeviceFarmScript/requirements.txt
           ls
-          ls ./workspace/
-          cd workspace
-          python ../DeviceFarmScript/run_ios_ci.py \
+          python ./DeviceFarmScript/run_ios_ci.py \
           --run_id ${{ github.run_id }} \
           --run_attempt ${{ github.run_attempt }} \
           --project_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/ProjectArn" --query "SecretString" | cut -f2 -d\") \
