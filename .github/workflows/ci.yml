@@ -167,7 +167,7 @@ jobs:
           --device_pool_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/iOSPoolArn" --query "SecretString" | cut -f2 -d\") \
           --app_file_path ./output/MqttClient.ipa \
           --test_file_path ./workspace/test_bundle.zip \
-          --test_spec_file_path ./DeviceFarmScript/test_spec.yaml
+          --test_spec_file_path ./DeviceFarmScript/test_spec.yml
 
   devices:
     runs-on: ${{ matrix.runner }}
