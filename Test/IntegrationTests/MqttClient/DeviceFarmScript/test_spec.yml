@@ -1,22 +1,97 @@
 version: 0.1
+# These default test spec file commands assume that the test package has been built in accordance
+# with the instructions in AWS Device Farm's documentation for testing with Appium Python:
+# https://docs.aws.amazon.com/devicefarm/latest/developerguide/test-types-appium.html
 
-# Phases are collection of commands that get executed on Device Farm.
+# Note that iOS 17 and above devices use a test host with an Apple silicon CPU, whereas
+# iOS 16 and below devices use a test host with an Intel CPU.
+
+# Phases represent collections of commands that are executed during your test run on the test host.
 phases:
-  # The install phase includes commands that install dependencies that your tests use.
-  # Default dependencies for testing frameworks supported on Device Farm are already installed.
+
+  # The install phase contains commands for installing dependencies to run your tests.
+  # For your convenience, certain dependencies are preinstalled on the test host.
+
+  # For iOS tests, you can use the Python tools pyenv and pip to setup your environment, as well as
+  # Node.JS tools nvm, npm, and avm to setup your Appium server. By default, Python versions 3.10
+  # and 3.7 are available on the test host.
   install:
     commands:
-      # To install a newer version of Appium such as version 2.1.2. Appium used to run iOS running script
-      - export APPIUM_VERSION=2.1.2
-      - avm $APPIUM_VERSION
+      # The Appium server is written using Node.js. In order to run your desired version of Appium,
+      # you first need to set up a Node.js environment that is compatible with your version of Appium.
+      # For iOS, use "nvm use" to switch between the two preinstalled NodeJS versions 14 and 16, and
+      # use "nvm install" to download a new version of your choice.
+      - export NVM_DIR=$HOME/.nvm
+      - . $NVM_DIR/nvm.sh
+      - nvm use 16
+      - node --version
 
-  # The pre-test phase includes commands that setup your test environment.
+      # For iOS, Appium versions 1.22.2 and 2.2.1 are preinstalled and selectable through avm.
+      # For all other versions, please use npm to install them. For example:
+      # - npm install -g appium@2.1.3;
+      # Note that, for iOS devices, Appium 2 is only supported on iOS version 14 and above using
+      # NodeJS version 16 and above.
+      - avm 2.2.1
+      - appium --version
+
+      # For Appium version 2, for iOS tests, the XCUITest driver is preinstalled using version 5.7.0
+      # If you want to install a different version of the driver, you can use the Appium extension CLI
+      # to uninstall the existing XCUITest driver and install your desired version:
+      # - |-
+      #   if [ $DEVICEFARM_DEVICE_PLATFORM_NAME = "iOS" ];
+      #   then
+      #     appium driver uninstall xcuitest;
+      #     appium driver install xcuitest@5.8.1;
+      #   fi;
+
+      # We recommend setting the Appium server's base path explicitly for accepting commands.
+      - export APPIUM_BASE_PATH=/wd/hub
+
+      # Use pyenv and virtualenv to setup a Python environment on iOS.
+      - export PYTHON_VERSION=3
+      - |-
+        if printf "%s\n" "14.5" "$DEVICEFARM_DEVICE_OS_VERSION" |sort -VC;
+        then
+          # For iOS device versions 14.5 and above, you can switch between Python versions 3.10
+          # and 3.7 using pyenv as shown below.
+          export PATH="$HOME/.pyenv/bin:$PATH";
+          eval "$(pyenv init -)";
+          pyenv global 3.10;
+        else
+          # At this time, only Python version 3.7 is supported for iOS device versions 14.4 and
+          # below. This is supported using virtualenv as shown below.
+          . $DEVICEFARM_TEST_PACKAGE_PATH/bin/activate;
+        fi;
+      - python --version
+
+      # Install the Python dependencies using pip.
+      - cd $DEVICEFARM_TEST_PACKAGE_PATH
+      - python -m pip install -r requirements.txt
+
+  # The pre-test phase contains commands for setting up your test environment.
   pre_test:
     commands:
-      # Appium downloads Chromedriver using a feature that is considered insecure for multitenant
-      # environments. This is not a problem for Device Farm because each test host is allocated
-      # exclusively for one customer, then terminated entirely. For more information, please see
-      # https://github.com/appium/appium/blob/master/packages/appium/docs/en/guides/security.md
+      # Device farm provides different pre-built versions of WebDriverAgent, an essential Appium
+      # dependency for iOS devices, and each version is suggested for different versions of Appium:
+      # DEVICEFARM_WDA_DERIVED_DATA_PATH_V8: this version is suggested for Appium 2
+      # DEVICEFARM_WDA_DERIVED_DATA_PATH_V7: this version is suggested for Appium 1
+      - |-
+        if [ $(appium --version | cut -d "." -f1) -ge 2 ];
+        then
+          DEVICEFARM_WDA_DERIVED_DATA_PATH=$DEVICEFARM_WDA_DERIVED_DATA_PATH_V8;
+        else
+          DEVICEFARM_WDA_DERIVED_DATA_PATH=$DEVICEFARM_WDA_DERIVED_DATA_PATH_V7;
+        fi;
+
+      # Additionally, for iOS versions 16 and below, the device unique identifier (UDID) needs
+      # to be slightly modified for Appium tests.
+      - |-
+        if [ $(echo $DEVICEFARM_DEVICE_OS_VERSION | cut -d "." -f 1) -le 16 ];
+        then
+          DEVICEFARM_DEVICE_UDID_FOR_APPIUM=$(echo $DEVICEFARM_DEVICE_UDID | tr -d "-");
+        else
+          DEVICEFARM_DEVICE_UDID_FOR_APPIUM=$DEVICEFARM_DEVICE_UDID;
+        fi;
 
       # We recommend starting the Appium server process in the background using the command below.
       # The Appium server log will be written to the $DEVICEFARM_LOG_DIR directory.
@@ -30,11 +105,12 @@ phases:
           "{\"appium:deviceName\": \"$DEVICEFARM_DEVICE_NAME\", \
           \"platformName\": \"$DEVICEFARM_DEVICE_PLATFORM_NAME\", \
           \"appium:app\": \"$DEVICEFARM_APP_PATH\", \
-          \"appium:udid\":\"$DEVICEFARM_DEVICE_UDID\", \
+          \"appium:udid\":\"$DEVICEFARM_DEVICE_UDID_FOR_APPIUM\", \
           \"appium:platformVersion\": \"$DEVICEFARM_DEVICE_OS_VERSION\", \
-          \"appium:chromedriverExecutableDir\": \"$DEVICEFARM_CHROMEDRIVER_EXECUTABLE_DIR\", \
-          \"appium:automationName\": \"UiAutomator2\"}" \
-          >> $DEVICEFARM_LOG_DIR/appium.log 2>&amp;1 &amp;
+          \"appium:derivedDataPath\": \"$DEVICEFARM_WDA_DERIVED_DATA_PATH\", \
+          \"appium:usePrebuiltWDA\": true, \
+          \"appium:automationName\": \"XCUITest\"}" \
+          >> $DEVICEFARM_LOG_DIR/appium.log 2>&1 &
 
       # This code will wait until the Appium server starts.
       - |-
@@ -49,17 +125,27 @@ phases:
           sleep 1;
         done;
 
-  # The test phase includes commands that run your test suite execution.
+  # The test phase contains commands for running your tests.
   test:
     commands:
+      # Your test package is downloaded and unpackaged into the $DEVICEFARM_TEST_PACKAGE_PATH directory.
+      - cd $DEVICEFARM_TEST_PACKAGE_PATH
+      - echo "Starting the Appium Python test"
 
-  # The post test phase includes are commands that are run after your tests are executed.
+      # The following command runs your Appium Python test.
+      # Please refer to "https://docs.pytest.org/en/latest/usage.html" for more options
+      # on running pytest from the command line.
+      - python -m pytest tests/ --junit-xml $DEVICEFARM_LOG_DIR/junitreport.xml
+
+  # The post-test phase contains commands that are run after your tests have completed.
+  # If you need to run any commands to generating logs and reports on how your test performed,
+  # we recommend adding them to this section.
   post_test:
     commands:
 
-# The artifacts phase lets you specify the location where your tests logs, device logs will be stored.
-# And also let you specify the location of your test logs and artifacts which you want to be collected by Device Farm.
-# These logs and artifacts will be available through ListArtifacts API in Device Farm.
+# Artifacts are a list of paths on the filesystem where you can store test output and reports.
+# All files in these paths will be collected by Device Farm.
+# These files will be available through the ListArtifacts API as your "Customer Artifacts".
 artifacts:
-  # By default, Device Farm will collect your artifacts from following directories
+  # By default, Device Farm will collect your artifacts from the $DEVICEFARM_LOG_DIR directory.
   - $DEVICEFARM_LOG_DIR
