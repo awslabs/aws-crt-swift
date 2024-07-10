@@ -39,6 +39,7 @@ def upload_file(client, projectArn, unique_prefix, filepath, _type):
         print(f"Upload of {filename} in state {response['upload']['status']} after " + str(
             datetime.datetime.now() - started))
         if device_farm_upload_status['upload']['status'] == 'FAILED':
+            print('File upload status code: ' + str(device_farm_upload_status.status_code) + ' reason: ' + device_farm_upload_status.reason)
             print('Upload failed to process')
             sys.exit(-1)
         time.sleep(1)
@@ -73,7 +74,7 @@ def main():
     unique_prefix = 'CI-' + run_id + '-' + run_attempt
     device_farm_app_upload_arn = upload_file(client, project_arn, unique_prefix, app_file_path, 'IOS_APP')
     device_farm_test_upload_arn = upload_file(client, project_arn, unique_prefix, test_file_path, 'APPIUM_PYTHON_TEST_PACKAGE')
-    device_farm_test_spec_upload_arn = upload_file(client, project_arn, unique_prefix, test_spec_file_path, 'APPIUM_PYTHON_TEST_PACKAGE')
+    device_farm_test_spec_upload_arn = upload_file(client, project_arn, unique_prefix, test_spec_file_path, 'INSTRUMENTATION_TEST_SPEC')
 
     print('scheduling run')
     schedule_run_response = client.schedule_run(
