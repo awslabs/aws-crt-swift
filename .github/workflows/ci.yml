@@ -166,9 +166,9 @@ jobs:
           --run_id ${{ github.run_id }} \
           --run_attempt ${{ github.run_attempt }} \
           --project_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/ProjectArn" --query "SecretString" ) \
-          --device_pool_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/iOSPoolArn" --query "SecretString" )
-          --app_file_path ./output/MqttClient.ipa
-          --test_file_path ./workspace/test_bundle.zip
+          --device_pool_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/iOSPoolArn" --query "SecretString" ) \
+          --app_file_path ./output/MqttClient.ipa \
+          --test_file_path ./workspace/test_bundle.zip \
           --test_spec_file_path ./DeviceFarmScript/test_spec.yaml
 
   devices:
