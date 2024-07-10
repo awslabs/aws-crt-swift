@@ -272,9 +272,6 @@ packageTargets.append(contentsOf: [
         exclude: awsCMqttExcludes,
         cSettings: cSettings
     ),
-    .systemLibrary(
-        name: "LibNative"
-    ),
     .target(
         name: "AwsCommonRuntimeKit",
         dependencies: [ "AwsCAuth",
@@ -285,8 +282,7 @@ packageTargets.append(contentsOf: [
                         "AwsCCommon",
                         "AwsCChecksums",
                         "AwsCEventStream",
-                        "AwsCMqtt",
-                        "LibNative"],
+                        "AwsCMqtt"],
         path: "Source/AwsCommonRuntimeKit",
         resources: [
             .copy("PrivacyInfo.xcprivacy")
