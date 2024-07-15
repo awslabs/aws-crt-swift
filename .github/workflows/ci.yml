@@ -126,6 +126,10 @@ jobs:
           xcodebuild -exportArchive -archivePath $RUNNER_TEMP/MqttClient.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath output
           cd output
           ls
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.7'
       - name: Setup Device Farm test file and environment
       # Device Farm Instructions: https://docs.aws.amazon.com/devicefarm/latest/developerguide/test-types-appium.html
         run: |
