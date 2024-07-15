@@ -11,9 +11,8 @@ let TEST_PORT: UInt32 = 1883
 var mqttTestContext = MqttTestContext()
 var client: Mqtt5Client?
 
-@available(iOS 14.0, *)
 struct ContentView: View {
-    @StateObject var testContext = mqttTestContext
+    @ObservedObject var testContext = mqttTestContext
     var body: some View {
         VStack {
             Button("Setup Client and Start") {
