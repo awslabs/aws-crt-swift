@@ -66,8 +66,8 @@ phases:
 
       # Install the Python dependencies using pip.
       - cd $DEVICEFARM_TEST_PACKAGE_PATH
-      # Use 2020 resolver for python3.7
-      - python -m pip install -r requirements.txt --use-feature=2020-resolver
+      # Use 2020 resolver for python3.7, where Python3.7 is running on iOS13
+      - python -m pip install -r requirements.txt
 
   # The pre-test phase contains commands for setting up your test environment.
   pre_test:
