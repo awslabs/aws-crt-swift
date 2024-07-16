@@ -87,7 +87,7 @@ jobs:
       - name: Install the Apple certificate and provisioning profile
         run: |
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          PP_PATH=$RUNNER_TEMP/shoppingmacdev.mobileprovision
+          PP_PATH=$RUNNER_TEMP/mqttclient.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
           pkcs12_identity_base64=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/test/base64_pkcs12" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
           pkcs12_identity_pw=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/test/pw_pkcs12" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
