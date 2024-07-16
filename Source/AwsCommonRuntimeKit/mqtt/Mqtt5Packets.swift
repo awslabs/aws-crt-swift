@@ -177,8 +177,8 @@ public class PublishPacket: CStruct {
         self.retain = publishView.retain
         self.payloadFormatIndicator = publishView.payload_format != nil ?
             PayloadFormatIndicator(publishView.payload_format.pointee) : nil
-        self.messageExpiryInterval = publishView.message_expiry_interval_seconds.unwrap().map { TimeInterval($0) }
-        self.topicAlias = publishView.topic_alias.unwrap()
+        self.messageExpiryInterval = (publishView.message_expiry_interval_seconds?.pointee).map { TimeInterval($0) }
+        self.topicAlias = publishView.topic_alias?.pointee
         self.responseTopic = publishView.response_topic?.pointee.toString()
         self.correlationData = publishView.correlation_data != nil ?
             Data(bytes: publishView.correlation_data!.pointee.ptr, count: publishView.correlation_data!.pointee.len) : nil
@@ -629,7 +629,7 @@ public class DisconnectPacket: CStruct {
         let disconnectView = disconnect_view.pointee
 
         self.reasonCode = DisconnectReasonCode(rawValue: Int(disconnectView.reason_code.rawValue))!
-        self.sessionExpiryInterval = disconnectView.session_expiry_interval_seconds.unwrap().map { TimeInterval($0) }
+        self.sessionExpiryInterval = (disconnectView.session_expiry_interval_seconds?.pointee).map { TimeInterval($0) }
         self.reasonString = disconnectView.reason_string?.pointee.toString()
         self.serverReference = disconnectView.reason_string?.pointee.toString()
         self.userProperties = convertOptionalUserProperties(
@@ -777,21 +777,21 @@ public class ConnackPacket {
         self.sessionPresent = connackView.session_present
         self.reasonCode = ConnectReasonCode(rawValue: Int(connackView.reason_code.rawValue))!
         self.sessionExpiryInterval = (connackView.session_expiry_interval?.pointee).map { TimeInterval($0) }
-        self.receiveMaximum = connackView.receive_maximum.unwrap()
+        self.receiveMaximum = connackView.receive_maximum?.pointee
         if let maximumQosValue = connackView.maximum_qos {
             self.maximumQos = QoS(maximumQosValue.pointee)
         } else {
             self.maximumQos = nil
         }
-        self.retainAvailable = connackView.retain_available.unwrap()
-        self.maximumPacketSize = connackView.maximum_packet_size.unwrap()
+        self.retainAvailable = connackView.retain_available?.pointee
+        self.maximumPacketSize = connackView.maximum_packet_size?.pointee
         self.assignedClientIdentifier = connackView.assigned_client_identifier?.pointee.toString()
-        self.topicAliasMaximum = connackView.topic_alias_maximum.unwrap()
+        self.topicAliasMaximum = connackView.topic_alias_maximum?.pointee
         self.reasonString = connackView.reason_string?.pointee.toString()
-        self.wildcardSubscriptionsAvailable = connackView.wildcard_subscriptions_available.unwrap()
-        self.subscriptionIdentifiersAvailable = connackView.subscription_identifiers_available.unwrap()
-        self.sharedSubscriptionAvailable = connackView.shared_subscriptions_available.unwrap()
-        self.serverKeepAlive = connackView.server_keep_alive.unwrap().map { TimeInterval($0) }
+        self.wildcardSubscriptionsAvailable = connackView.wildcard_subscriptions_available?.pointee
+        self.subscriptionIdentifiersAvailable = connackView.subscription_identifiers_available?.pointee
+        self.sharedSubscriptionAvailable = connackView.shared_subscriptions_available?.pointee
+        self.serverKeepAlive = (connackView.server_keep_alive?.pointee).map { TimeInterval($0) }
         self.responseInformation = connackView.response_information?.pointee.toString()
         self.serverReference = connackView.server_reference?.pointee.toString()
         self.userProperties = convertOptionalUserProperties(

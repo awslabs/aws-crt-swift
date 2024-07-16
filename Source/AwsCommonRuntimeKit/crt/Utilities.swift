@@ -224,16 +224,6 @@ extension aws_array_list {
     }
 }
 
-extension Optional {
-    /// unwrap an optional unsafepointer to its underlying type
-    func unwrap<T>() -> T? where Wrapped == (UnsafePointer<T>) {
-        guard let validPointer = self else {
-            return nil
-        }
-        return validPointer.pointee
-    }
-}
-
 extension Bool {
     var uintValue: UInt32 {
         return self ? 1 : 0
