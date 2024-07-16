@@ -158,6 +158,7 @@ jobs:
       - name: Execute device farm test
         run: |
           cd aws-crt-swift/Test/IntegrationTests/MqttClient
+          pip uninstall -r ./DeviceFarmScript/requirements.txt
           pip install -r ./DeviceFarmScript/requirements.txt
           ls
           python ./DeviceFarmScript/run_ios_ci.py \
