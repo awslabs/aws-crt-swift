@@ -11,16 +11,12 @@
 #define AWS_DEFINE_ERROR_INFO_CRT_SWIFT(CODE, STR) [(CODE)-0x4400] = AWS_DEFINE_ERROR_INFO(CODE, STR, "aws-crt-swift")
 
 enum aws_swift_errors {
-    AWS_CRT_SWIFT_INVALID_ARGUMENT = AWS_ERROR_ENUM_BEGIN_RANGE(AWS_CRT_SWIFT_PACKAGE_ID),
-    AWS_CRT_SWIFT_MQTT_CLIENT_CLOSED,
+    AWS_CRT_SWIFT_MQTT_CLIENT_CLOSED = AWS_ERROR_ENUM_BEGIN_RANGE(AWS_CRT_SWIFT_PACKAGE_ID),
     AWS_CRT_SWIFT_ERROR_END_RANGE = AWS_ERROR_ENUM_END_RANGE(AWS_CRT_SWIFT_PACKAGE_ID),
 };
 
 
 static struct aws_error_info s_crt_swift_errors[] = {
-    AWS_DEFINE_ERROR_INFO_CRT_SWIFT(
-                                    AWS_CRT_SWIFT_INVALID_ARGUMENT,
-                                    "An invalid argument was passed to a function."),
     AWS_DEFINE_ERROR_INFO_CRT_SWIFT(
                                     AWS_CRT_SWIFT_MQTT_CLIENT_CLOSED,
                                     "The Mqtt Client is closed.")
