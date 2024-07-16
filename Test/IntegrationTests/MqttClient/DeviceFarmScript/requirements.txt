@@ -9,3 +9,4 @@ pytest-metadata~=3.0.0
 pytest-html~=3.2.0
 selenium~=4.10.0
 pluggy==1.2.0
+trio~=0.22.2
