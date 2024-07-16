@@ -24,7 +24,7 @@ appium_server_url = 'http://0.0.0.0:4723/wd/hub'
 class TestMqttIOS:
     def setup_method(self):
         # self.driver = webdriver.Remote(appium_server_url, options=XCUITestOptions().load_capabilities(capabilities))
-        self.driver = webdriver.Remote(appium_server_url, capabilities=capabilities)
+        self.driver = webdriver.Remote(appium_server_url, capabilities)
         self.driver.implicitly_wait(10)
 
     def teardown_method(self):
