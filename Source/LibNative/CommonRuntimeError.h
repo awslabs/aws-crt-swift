@@ -6,6 +6,13 @@
 #include <aws/common/common.h>
 #include <aws/common/error.h>
 
+/**
+ * The file introduced the swift error spaces, defines the error code used for aws-crt-swift.
+ * We defined the error codes here because Swift error handling requires the use of enums, and Swift
+ * does not support extensible enums, which makes future extensions challenging. Therefore, we chose
+ * to add a C error space to ensure future-proofing.
+ */
+
 #define AWS_CRT_SWIFT_PACKAGE_ID 17
 
 #define AWS_DEFINE_ERROR_INFO_CRT_SWIFT(CODE, STR) [(CODE)-0x4400] = AWS_DEFINE_ERROR_INFO(CODE, STR, "aws-crt-swift")
