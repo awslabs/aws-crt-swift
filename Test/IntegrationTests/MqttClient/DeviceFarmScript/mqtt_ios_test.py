@@ -30,9 +30,8 @@ class TestMqttIOS:
         if self.driver:
             self.driver.quit()
 
-    @pytest.mark.parametrize("test_suite", [
-        "test suite 1",
-        "test suite 2"
+    @pytest.mark.parametrize("Eventloop Test", [
+        "Background Process"
     ])
 
     def test_mqtt(self, test_suite):
