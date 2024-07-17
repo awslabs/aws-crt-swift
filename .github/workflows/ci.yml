@@ -96,7 +96,7 @@ jobs:
           - runner: macos-13
             xcode: Xcode_15.2
           # Don't run new macOS with old Xcode
-          - runner: macos-14-xlarge
+          - runner: macos-14-large
             xcode: Xcode_14.1
           - runner: macos-14
             xcode: Xcode_14.1
