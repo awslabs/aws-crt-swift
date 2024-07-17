@@ -30,11 +30,11 @@ class TestMqttIOS:
         if self.driver:
             self.driver.quit()
 
-    @pytest.mark.parametrize("Eventloop Test", [
+    @pytest.mark.parametrize("event_loop_tests", [
         "Background Process"
     ])
 
-    def test_mqtt(self, test_suite):
+    def test_mqtt(self, event_loop_tests):
         sleep(3)
         self.perform_click_element('Setup Client and Start')
         # Sleep to make sure the connection is finished
