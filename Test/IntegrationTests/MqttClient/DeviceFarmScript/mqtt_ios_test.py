@@ -40,7 +40,7 @@ class TestMqttIOS:
         # Sleep to make sure the connection is finished
         sleep(10)
         # put the application in background
-        self.driver.runAppInBackground(-1)
+        self.driver.background_app(-1)
 
     def perform_click_element(self, element_id):
         try:
