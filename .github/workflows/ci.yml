@@ -38,7 +38,7 @@ jobs:
         run: |
           aws s3 cp --debug s3://aws-crt-test-stuff/ci/${{ env.BUILDER_VERSION }}/linux-container-ci.sh ./linux-container-ci.sh && chmod a+x ./linux-container-ci.sh
           ./linux-container-ci.sh ${{ env.BUILDER_VERSION }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
-  osx:
+  macos:
     runs-on: ${{ matrix.runner }}
     env:
       DEVELOPER_DIR: /Applications/Xcode.app
@@ -49,11 +49,11 @@ jobs:
       matrix:
         # This matrix runs tests on Mac, on oldest & newest supported Xcodes
         runner:
-          - macos-12
-          - macos-13
+          - macos-12 # x64
+          - macos-13 # x64
           - macos-14
           - macos-13-xlarge
-          - macos-14-xlarge
+          - macos-14-large #x64
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
@@ -72,11 +72,11 @@ jobs:
       matrix:
         # This matrix runs tests on iOS, tvOS & watchOS, on oldest & newest supported Xcodes
         runner:
-          - macos-12
-          - macos-13
+          - macos-12 # x64
+          - macos-13 # x64
           - macos-14
           - macos-13-xlarge
-          - macos-14-xlarge
+          - macos-14-large #x64
         target:
           [{ os: ios, destination: 'iOS Simulator,OS=16.1,name=iPhone 14'},
            { os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15'},
