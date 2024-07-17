@@ -33,6 +33,8 @@ phases:
       # NodeJS version 16 and above.
       - avm 2.2.1
       - appium --version
+      # make sure install xcuitest
+      - appium driver install xcuitest
 
       # For Appium version 2, for iOS tests, the XCUITest driver is preinstalled using version 5.7.0
       # If you want to install a different version of the driver, you can use the Appium extension CLI
