@@ -72,29 +72,20 @@ jobs:
       NSUnbufferedIO: YES
       BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.MOBILEPROVISION_BASE64 }}
       KEYCHAIN_PASSWORD: ${{ secrets.TEST_KEYCHAIN_PASSWORD }}
-      CI_TEST_SECRET_MANAGER_ROLE: arn:aws:iam::976188456881:role/CI_TEST_PROVIDER_ASSUME_ROLE
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
           chmod a+x builder
           ./builder build -p ${{ env.PACKAGE_NAME }}
-      - name: configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: ${{ env.CI_TEST_SECRET_MANAGER_ROLE }}
-          aws-region: us-east-1
       - name: Install the Apple certificate and provisioning profile
         run: |
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           PP_PATH=$RUNNER_TEMP/mqttclient.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-          pkcs12_identity_base64=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/test/base64_pkcs12" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
-          pkcs12_identity_pw=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/test/pw_pkcs12" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
-          provision_base64=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/test/provision_base64" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
-          # import certificate and provisioning profile from secrets
-          echo -n "$pkcs12_identity_base64" | base64 --decode -o $CERTIFICATE_PATH
-          echo -n "$provision_base64" | base64 --decode -o $PP_PATH
+          aws s3 cp s3://aws-crt-test-stuff/iosTestApp.p12 $CERTIFICATE_PATH
+          aws s3 cp s3://aws-crt-test-stuff/aws-common-runtime.MqttClient.mobileprovision $PP_PATH
+          pkcs12_identity_pw=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/ios/pkcs12_identity_password" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
@@ -150,11 +141,6 @@ jobs:
           cd ..
           pip freeze > requirements.txt
           zip -r test_bundle.zip tests/ requirements.txt
-      - name: configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: arn:aws:iam::976188456881:role/CI_DEVICE_FARM_ROLE
-          aws-region: us-west-2
       - name: Execute device farm iOS Highly Available
         run: |
           cd aws-crt-swift/Test/IntegrationTests/MqttClient
@@ -163,8 +149,8 @@ jobs:
           python ./DeviceFarmScript/run_ios_ci.py \
           --run_id ${{ github.run_id }} \
           --run_attempt ${{ github.run_attempt }} \
-          --project_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/ProjectArn" --query "SecretString" | cut -f2 -d\") \
-          --device_pool_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/iOSPoolArn" --query "SecretString" | cut -f2 -d\") \
+          --project_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/iOSProjectArn" --query "SecretString" | cut -f2 -d\") \
+          --device_pool_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/iOSHighlyAvailablePool" --query "SecretString" | cut -f2 -d\") \
           --app_file_path ./output/MqttClient.ipa \
           --test_file_path ./workspace/test_bundle.zip \
           --test_spec_file_path ./DeviceFarmScript/test_spec.yml
@@ -176,7 +162,7 @@ jobs:
           python ./DeviceFarmScript/run_ios_ci.py \
           --run_id ${{ github.run_id }} \
           --run_attempt ${{ github.run_attempt }} \
-          --project_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/ProjectArn" --query "SecretString" | cut -f2 -d\") \
+          --project_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/iOSProjectArn" --query "SecretString" | cut -f2 -d\") \
           --device_pool_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/iOS13PoolArn" --query "SecretString" | cut -f2 -d\") \
           --app_file_path ./output/MqttClient.ipa \
           --test_file_path ./workspace/test_bundle.zip \
