@@ -3,11 +3,6 @@
 
 import AwsCMqtt
 
-// TODO this is temporary. We will replace this with aws-crt-swift error codes.
-enum MqttError: Error {
-    case validation(message: String)
-}
-
 /// MQTT message delivery quality of service.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901234>`__ encoding values.
 public enum QoS {
