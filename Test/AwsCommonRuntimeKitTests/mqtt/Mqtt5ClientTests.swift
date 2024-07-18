@@ -392,7 +392,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let connectOptions = MqttConnectOptions(
             clientId: createClientId(),
             username: inputUsername,
-            password: inputPassword
+            password: inputPassword.data(using: .utf8)
         )
 
         let clientOptions = MqttClientOptions(
@@ -579,7 +579,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let connectOptions = MqttConnectOptions(
             clientId: createClientId(),
             username: inputUsername,
-            password: inputPassword
+            password: inputPassword.data(using: .utf8)
         )
 
         let clientOptions = MqttClientOptions(
