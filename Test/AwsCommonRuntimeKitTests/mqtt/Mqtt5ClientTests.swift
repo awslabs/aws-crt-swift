@@ -393,7 +393,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let connectOptions = MqttConnectOptions(
             clientId: createClientId(),
             username: inputUsername,
-            password: inputPassword
+            password: inputPassword.data(using: .utf8)
         )
 
         let clientOptions = MqttClientOptions(
@@ -580,7 +580,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let connectOptions = MqttConnectOptions(
             clientId: createClientId(),
             username: inputUsername,
-            password: inputPassword
+            password: inputPassword.data(using: .utf8)
         )
 
         let clientOptions = MqttClientOptions(
@@ -1046,7 +1046,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         } catch CommonRunTimeError.crtError(let crtError) {
             print("expected keepAliveInterval error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue))
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
        }
 
         do {
@@ -1059,7 +1059,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         } catch CommonRunTimeError.crtError(let crtError) {
             print("expected sessionExpirtyInterval error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue))
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
        }
 
         do {
@@ -1072,7 +1072,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         } catch CommonRunTimeError.crtError(let crtError) {
             print("expected willDelayInterval error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue))
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
        }
 
         do {
@@ -1084,7 +1084,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         } catch CommonRunTimeError.crtError(let crtError) {
             print("expected minReconnectDelay error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue))
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
        }
 
         do {
@@ -1096,7 +1096,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         } catch CommonRunTimeError.crtError(let crtError) {
             print("expected minReconnectDelay error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue))
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
        }
 
         do {
@@ -1108,7 +1108,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         } catch CommonRunTimeError.crtError(let crtError) {
             print("expected minConnectedTimeToResetReconnectDelay error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue))
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
        }
 
         do {
@@ -1120,7 +1120,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         } catch CommonRunTimeError.crtError(let crtError) {
             print("expected pingTimeout error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue))
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
        }
 
         do {
@@ -1132,7 +1132,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         } catch CommonRunTimeError.crtError(let crtError) {
             print("expected connackTimeout error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue))
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
        }
 
         do {
@@ -1144,7 +1144,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         } catch CommonRunTimeError.crtError(let crtError) {
             print("expected ackTimeout error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue))
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
         }
     }
 
@@ -1179,7 +1179,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         } catch CommonRunTimeError.crtError(let crtError) {
             print("expected sessionExpiryInterval error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue))
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
         }
     }
 
@@ -1217,7 +1217,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         } catch CommonRunTimeError.crtError(let crtError) {
             print("expected messageExpiryInterval error:\(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue))
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
         }
     }
 

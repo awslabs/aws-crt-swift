@@ -15,7 +15,7 @@ class HTTPTests: HTTPClientTestFixture {
         _ = try await sendHTTPRequest(method: "GET", endpoint: host, path: getPath, connectionManager: connectionManager)
         _ = try await sendHTTPRequest(method: "GET", endpoint: host, path: "/delete", expectedStatus: 404, connectionManager: connectionManager)
     }
-    
+
     func testGetHTTPSRequestWithUtf8Header() async throws {
         let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
         let utf8Header = HTTPHeader(name: "TestHeader", value: "TestValueWithEmoji🤯")
@@ -64,6 +64,9 @@ class HTTPTests: HTTPClientTestFixture {
         let streamBase = try connection.makeRequest(requestOptions: httpRequestOptions)
         try streamBase.activate()
         XCTAssertFalse(onCompleteCalled)
+        let metrics = connectionManager.fetchMetrics()
+        XCTAssertTrue(metrics.leasedConcurrency > 0)
+
         let data = TEST_DOC_LINE.data(using: .utf8)!
         for chunk in data.chunked(into: 5) {
             try await streamBase.writeChunk(chunk: chunk, endOfStream: false)
@@ -118,7 +121,7 @@ class HTTPTests: HTTPClientTestFixture {
         // Sleep for 5 seconds to make sure onComplete is not triggerred
         try await Task.sleep(nanoseconds: 5_000_000_000)
         XCTAssertFalse(onCompleteCalled)
-        
+
         let lastChunkData = Data("last chunk data".utf8)
         try await streamBase.writeChunk(chunk: lastChunkData, endOfStream: true)
         semaphore.wait()
@@ -135,7 +138,7 @@ class HTTPTests: HTTPClientTestFixture {
         XCTAssertEqual(body.data, TEST_DOC_LINE + String(decoding: lastChunkData, as: UTF8.self))
     }
 
-    
+
     func testHTTPStreamIsReleasedIfNotActivated() async throws {
         do {
             let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: getPath)

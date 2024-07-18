@@ -366,7 +366,7 @@ public class Mqtt5ClientCore {
                     guard let rawValue = self.rawValue else {
                         continuationCore.release()
                         return continuation.resume(throwing: CommonRunTimeError.crtError(
-                            CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue, context: "Mqtt client is closed.")))
+                            CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue, context: "Mqtt client is closed.")))
                     }
 
                     let result = aws_mqtt5_client_publish(rawValue, publishPacketPointer, &callbackOptions)
@@ -401,7 +401,7 @@ public class Mqtt5ClientCore {
                     guard let rawValue = self.rawValue else {
                         continuationCore.release()
                         return continuation.resume(throwing: CommonRunTimeError.crtError(
-                            CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue, context: "Mqtt client is closed.")))
+                            CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue, context: "Mqtt client is closed.")))
                     }
                     let result = aws_mqtt5_client_unsubscribe(rawValue, unsubscribePacketPointer, &callbackOptions)
                     guard result == AWS_OP_SUCCESS else {
