@@ -7,7 +7,7 @@ import datetime
 import requests # - for uploading files
 import boto3
 
-parser = argparse.ArgumentParser(description="Utility script to upload and run Android Device tests on AWS Device Farm for CI")
+parser = argparse.ArgumentParser(description="Utility script to upload and run Device tests on AWS Device Farm for CI")
 parser.add_argument('--run_id', required=True, help="A unique number for each workflow run within a repository")
 parser.add_argument('--run_attempt', required=True, help="A unique number for each attempt of a particular workflow run in a repository")
 parser.add_argument('--project_arn', required=True, help="Arn for the Device Farm Project the apk will be tested on")
@@ -60,7 +60,7 @@ def main():
 
     region = os.getenv('AWS_DEVICE_FARM_REGION')
 
-    print("Beginning Android Device Farm Setup \n")
+    print("Beginning Device Farm Setup \n")
 
     # Create Boto3 client for Device Farm
     try:
