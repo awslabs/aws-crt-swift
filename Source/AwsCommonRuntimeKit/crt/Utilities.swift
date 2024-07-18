@@ -4,6 +4,7 @@ import struct Foundation.Date
 import struct Foundation.Data
 import struct Foundation.TimeInterval
 import AwsCCal
+import LibNative
 
 /// This class is used to add reference counting to stuff that do not support it
 /// like Structs, Closures, and Protocols etc by wrapping it in a Class.
@@ -220,16 +221,6 @@ extension aws_array_list {
             result.append(String(awsString: strPtr)!)
         }
         return result
-    }
-}
-
-extension Optional {
-    /// unwrap an optional unsafepointer to its underlying type
-    func unwrap<T>() -> T? where Wrapped == (UnsafePointer<T>) {
-        guard let validPointer = self else {
-            return nil
-        }
-        return validPointer.pointee
     }
 }
 

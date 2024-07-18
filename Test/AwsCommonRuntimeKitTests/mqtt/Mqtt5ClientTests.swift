@@ -1043,10 +1043,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let _ = try Mqtt5Client(clientOptions: clientOptions)
             XCTFail("Negative keepAliveInterval didn't throw an error.")
             return
-        }
-        catch {
-            print("expected keepAliveInterval error: \(error)")
-        }
+        } catch CommonRunTimeError.crtError(let crtError) {
+            print("expected keepAliveInterval error: \(crtError)")
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+       }
 
         do {
             let connectOptions = MqttConnectOptions(sessionExpiryInterval: TimeInterval(-1))
@@ -1056,9 +1056,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let _ = try Mqtt5Client(clientOptions: clientOptions)
             XCTFail("Negative sessionExpiryInterval didn't throw an error.")
             return
-        } catch {
-            print("expected sessionExpirtyInterval error: \(error)")
-        }
+        } catch CommonRunTimeError.crtError(let crtError) {
+            print("expected sessionExpirtyInterval error: \(crtError)")
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+       }
 
         do {
             let connectOptions = MqttConnectOptions(willDelayInterval: -1)
@@ -1068,9 +1069,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let _ = try Mqtt5Client(clientOptions: clientOptions)
             XCTFail("Negative willDelayInterval didn't throw an error.")
             return
-        } catch {
-            print("expected willDelayInterval error: \(error)")
-        }
+        } catch CommonRunTimeError.crtError(let crtError) {
+            print("expected willDelayInterval error: \(crtError)")
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+       }
 
         do {
             let clientOptions = MqttClientOptions(hostName: "localhost",
@@ -1079,9 +1081,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let _ = try Mqtt5Client(clientOptions: clientOptions)
             XCTFail("Negative minReconnectDelay didn't throw an error.")
             return
-        } catch {
-            print("expected minReconnectDelay error: \(error)")
-        }
+        } catch CommonRunTimeError.crtError(let crtError) {
+            print("expected minReconnectDelay error: \(crtError)")
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+       }
 
         do {
             let clientOptions = MqttClientOptions(hostName: "localhost",
@@ -1090,9 +1093,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let _ = try Mqtt5Client(clientOptions: clientOptions)
             XCTFail("Negative maxReconnectDelay didn't throw an error.")
             return
-        } catch {
-            print("expected minReconnectDelay error: \(error)")
-        }
+        } catch CommonRunTimeError.crtError(let crtError) {
+            print("expected minReconnectDelay error: \(crtError)")
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+       }
 
         do {
             let clientOptions = MqttClientOptions(hostName: "localhost",
@@ -1101,9 +1105,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let _ = try Mqtt5Client(clientOptions: clientOptions)
             XCTFail("Negative minConnectedTimeToResetReconnectDelay didn't throw an error.")
             return
-        } catch {
-            print("expected minConnectedTimeToResetReconnectDelay error: \(error)")
-        }
+        } catch CommonRunTimeError.crtError(let crtError) {
+            print("expected minConnectedTimeToResetReconnectDelay error: \(crtError)")
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+       }
 
         do {
             let clientOptions = MqttClientOptions(hostName: "localhost",
@@ -1112,9 +1117,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let _ = try Mqtt5Client(clientOptions: clientOptions)
             XCTFail("Negative pingTimeout didn't throw an error.")
             return
-        } catch {
-            print("expected pingTimeout error: \(error)")
-        }
+        } catch CommonRunTimeError.crtError(let crtError) {
+            print("expected pingTimeout error: \(crtError)")
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+       }
 
         do {
             let clientOptions = MqttClientOptions(hostName: "localhost",
@@ -1123,9 +1129,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let _ = try Mqtt5Client(clientOptions: clientOptions)
             XCTFail("Negative connackTimeout didn't throw an error.")
             return
-        } catch {
-            print("expected connackTimeout error: \(error)")
-        }
+        } catch CommonRunTimeError.crtError(let crtError) {
+            print("expected connackTimeout error: \(crtError)")
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+       }
 
         do {
             let clientOptions = MqttClientOptions(hostName: "localhost",
@@ -1134,8 +1141,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let _ = try Mqtt5Client(clientOptions: clientOptions)
             XCTFail("Negative ackTimeout didn't throw an error.")
             return
-        } catch {
-            print("expected ackTimeout error: \(error)")
+        } catch CommonRunTimeError.crtError(let crtError) {
+            print("expected ackTimeout error: \(crtError)")
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
         }
     }
 
@@ -1168,8 +1176,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
             try client.stop(disconnectPacket: disconnectPacket)
             XCTFail("Negative sessionExpiryInterval didn't throw an error.")
             return
-        } catch {
-            print("expected sessionExpiryInterval error: \(error)")
+        } catch CommonRunTimeError.crtError(let crtError) {
+            print("expected sessionExpiryInterval error: \(crtError)")
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
         }
     }
 
@@ -1205,8 +1214,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let _ = try await client.publish(publishPacket: publishPacket)
             XCTFail("Negative messageExpiryInterval didn't throw an error.")
             return
-        } catch {
-            print("expected messageExpiryInterval error: \(error)")
+        } catch CommonRunTimeError.crtError(let crtError) {
+            print("expected messageExpiryInterval error:\(crtError)")
+            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
         }
     }
 

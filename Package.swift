@@ -38,6 +38,10 @@ awsCCommonPlatformExcludes.append("source/arch/arm")
 #if !os(Windows)
 awsCCommonPlatformExcludes.append("source/windows")
 #endif
+let cSettingsCommon: [CSetting] = [
+    .headerSearchPath("source/external/libcbor"),
+    .define("DEBUG_BUILD", .when(configuration: .debug))
+]
 
 //////////////////////////////////////////////////////////////////////
 /// aws-c-cal
@@ -207,7 +211,7 @@ packageTargets.append(contentsOf: [
         dependencies: ["AwsCPlatformConfig"],
         path: "aws-common-runtime/aws-c-common",
         exclude: awsCCommonPlatformExcludes,
-        cSettings: cSettings
+        cSettings: cSettingsCommon
     ),
     .target(
         name: "AwsCSdkUtils",
@@ -272,6 +276,9 @@ packageTargets.append(contentsOf: [
         exclude: awsCMqttExcludes,
         cSettings: cSettings
     ),
+    .systemLibrary(
+        name: "LibNative"
+    ),
     .target(
         name: "AwsCommonRuntimeKit",
         dependencies: [ "AwsCAuth",
@@ -282,8 +289,12 @@ packageTargets.append(contentsOf: [
                         "AwsCCommon",
                         "AwsCChecksums",
                         "AwsCEventStream",
-                        "AwsCMqtt"],
-        path: "Source/AwsCommonRuntimeKit"
+                        "AwsCMqtt",
+                        "LibNative"],
+        path: "Source/AwsCommonRuntimeKit",
+        resources: [
+            .copy("PrivacyInfo.xcprivacy")
+        ]
     ),
     .testTarget(
         name: "AwsCommonRuntimeKitTests",
