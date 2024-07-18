@@ -112,8 +112,7 @@ jobs:
       - name: Export ipa
         run: |
           cd aws-crt-swift/Test/IntegrationTests/MqttClient
-          exportFileData=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/iOSApp/exportOption" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
-          echo -n "$exportFileData" | base64 --decode -o ExportOptions.plist
+          aws s3 cp s3://aws-crt-test-stuff/ExportOptions.plist ExportOptions.plist
           xcodebuild -exportArchive -archivePath $RUNNER_TEMP/MqttClient.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath output
           cd output
           ls
