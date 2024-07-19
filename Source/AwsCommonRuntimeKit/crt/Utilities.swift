@@ -148,7 +148,7 @@ extension TimeInterval {
         let _millisecond = (self * 1_000).rounded()
         guard _millisecond >= 0 && _millisecond <= Double(UInt32.max) else {
             // todo convert the millisecond conversion errors into aws-crt-swift errors
-            throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue))
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue))
         }
         return UInt32(_millisecond)
     }
@@ -157,7 +157,7 @@ extension TimeInterval {
         let _millisecond = (self * 1_000).rounded()
         guard _millisecond >= 0 && _millisecond <= Double(UInt64.max) else {
             // todo convert the millisecond conversion errors into aws-crt-swift errors
-            throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue))
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue))
         }
         return UInt64(_millisecond)
     }
@@ -165,7 +165,7 @@ extension TimeInterval {
     func secondUInt16() throws -> UInt16 {
         guard self >= 0 && self <= Double(UInt16.max) else {
             // todo convert the millisecond conversion errors into aws-crt-swift errors
-            throw CommonRunTimeError.crtError( CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue))
+            throw CommonRunTimeError.crtError( CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue))
         }
         return UInt16(self)
     }
@@ -173,7 +173,7 @@ extension TimeInterval {
     func secondUInt32() throws -> UInt32 {
         guard self >= 0 && self <= Double(UInt32.max) else {
             // todo convert the millisecond conversion errors into aws-crt-swift errors
-            throw CommonRunTimeError.crtError( CRTError(code: AWS_CRT_SWIFT_INVALID_ARGUMENT.rawValue))
+            throw CommonRunTimeError.crtError( CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue))
         }
         return UInt32(self)
     }
