@@ -13,7 +13,7 @@ class EndpointsRuleEngineTests: XCBaseTestCase {
       "partitions": [
         {
           "id": "aws",
-          "regionRegex": "^(us|eu|ap|sa|ca|me|af)-\\w+-\\d+$",
+          "regionRegex": "^(us|eu|ap|sa|ca|me|af)\\-\\w+\\-\\d+$",
           "regions": {
             "af-south-1": {},
             "af-east-1": {},
@@ -288,5 +288,6 @@ class EndpointsRuleEngineTests: XCBaseTestCase {
       try! context.add(name: "Region", value: "us-west-2")
       try! context.add(name: "Boolean", value: true)
       try! context.add(name: "StringArray", value: ["a", "b"])
+      try! context.add(name: "StringArray", value: [])
     }
 }

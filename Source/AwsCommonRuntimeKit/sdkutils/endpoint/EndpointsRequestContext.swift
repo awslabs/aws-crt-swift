@@ -48,17 +48,6 @@ public class EndpointsRequestContext {
         }
     }
 
-    private func withByteCursorArrayFromStringArray<R>(
-        _ arg: [String], _ body: (UnsafeMutablePointer<aws_byte_cursor>, Int) -> R) -> R {
-        withArrayOfCStrings(arg) { cStrArr in
-            var cursors = cStrArr.map { aws_byte_cursor_from_c_str($0) }
-            let len = cursors.count
-            return cursors.withUnsafeMutableBufferPointer { cursorsPtr in 
-                return body(cursorsPtr.baseAddress!, len)
-            }
-        }
-    }
-
     /// Add a string array endpoint parameter to the request context
     /// - Parameters:
     ///   - name: The name of the parameter
