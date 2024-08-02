@@ -282,4 +282,11 @@ class EndpointsRuleEngineTests: XCBaseTestCase {
             let _ = try! engine.resolve(context: context)
         }
     }
+
+    func testRequestContext() {
+      let context = try! EndpointsRequestContext()
+      try! context.add(name: "Region", value: "us-west-2")
+      try! context.add(name: "Boolean", value: true)
+      try! context.add(name: "StringArray", value: ["a", "b"])
+    }
 }
