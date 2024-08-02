@@ -48,8 +48,8 @@ public class EndpointsRequestContext {
         }
     }
 
-    private func withByteCursorArrayFromStringArray<R>(_ arg: [String], 
-        _ body: (UnsafeMutablePointer<aws_byte_cursor>, Int) -> R) -> R {
+    private func withByteCursorArrayFromStringArray<R>(
+        _ arg: [String], _ body: (UnsafeMutablePointer<aws_byte_cursor>, Int) -> R) -> R {
         withArrayOfCStrings(arg) { cStrArr in
             var cursors = cStrArr.map { aws_byte_cursor_from_c_str($0) }
             let len = cursors.count
