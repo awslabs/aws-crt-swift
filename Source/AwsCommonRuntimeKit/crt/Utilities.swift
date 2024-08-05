@@ -273,8 +273,8 @@ func withByteCursorFromStrings<Result>(
     }
 }
 
-func withByteCursorArrayFromStringArray<R>(
-    _ arg: [String], _ body: (UnsafePointer<aws_byte_cursor>, Int) -> R) -> R {
+extension Array where Element == String {
+  func withByteCursorArray<R>(
     let cStrings = arg.map { strdup($0) } + [nil]
     let cursors = cStrings.map { aws_byte_cursor_from_c_str($0) }
     let len = cursors.count
