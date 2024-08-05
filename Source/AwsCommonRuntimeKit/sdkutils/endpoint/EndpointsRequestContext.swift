@@ -57,7 +57,7 @@ public class EndpointsRequestContext {
             return
         }
         if (name.withByteCursor { nameCursor in
-            withByteCursorArrayFromStringArray(value) { ptr, len in        
+            value.withByteCursorArray { ptr, len in        
                 aws_endpoints_request_context_add_string_array(allocator.rawValue, rawValue, nameCursor, ptr, len)
             }
         }) != AWS_OP_SUCCESS {

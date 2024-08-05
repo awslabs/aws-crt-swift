@@ -9,7 +9,7 @@ class UtilitiesTests: XCBaseTestCase {
 
     func testStringArrayToByteCursorArray() {
         let strings1 = ["a", "b"]
-        withByteCursorArrayFromStringArray(strings1) { cursors, len in
+        strings1.withByteCursorArray { cursors, len in
             XCTAssertEqual(len, 2)
             for i in 0..<len {
                 withUnsafePointer(to: cursors[i]) { pointer in
@@ -19,7 +19,7 @@ class UtilitiesTests: XCBaseTestCase {
         }
 
         let strings2: [String] = []
-        withByteCursorArrayFromStringArray(strings2) { cursors, len in
+        strings2.withByteCursorArray { cursors, len in
             XCTAssertEqual(len, 0)
         }
     }
