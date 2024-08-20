@@ -16,10 +16,10 @@ var package = Package(name: "aws-crt-swift",
 
 let cSettings: [CSetting] = [
     .define("DEBUG_BUILD", .when(configuration: .debug)),
-/* Disable Intel VTune tracing API here since aws-crt-swift doesn't use CMake */
+    // Disable Intel VTune tracing API here since aws-crt-swift doesn't use CMake
     .define("INTEL_NO_ITTNOTIFY_API"),
-/* Don't use APIs forbidden by App Stores (e.g. non-public system APIs) */
-    .defien("AWS_APPSTORE_SAFE"),
+    // Don't use APIs forbidden by App Stores (e.g. non-public system APIs)
+    .define("AWS_APPSTORE_SAFE"),
 ]
 
 //////////////////////////////////////////////////////////////////////
