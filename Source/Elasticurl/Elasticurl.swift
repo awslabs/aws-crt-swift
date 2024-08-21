@@ -276,22 +276,6 @@ struct Elasticurl {
             }
             httpRequest.addHeaders(headers: headers)
 
-            let onResponse: HTTPRequestOptions.OnResponse = { _, headers in
-                for header in headers {
-                    print(header.name + " : " + header.value)
-                }
-            }
-
-            let onBody: HTTPRequestOptions.OnIncomingBody = { bodyChunk in
-                writeData(data: bodyChunk)
-            }
-
-            let onComplete: HTTPRequestOptions.OnStreamComplete = { result in
-                print(result)
-
-                semaphore.signal()
-            }
-
             let httpClientOptions = HTTPClientConnectionOptions(clientBootstrap: bootstrap,
                                                                 hostName: context.url.host!,
                                                                 initialWindowSize: Int.max,
