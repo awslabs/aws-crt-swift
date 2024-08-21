@@ -16,7 +16,8 @@ disabled_rules:
   - file_length
   - syntactic_sugar
   - unused_capture_list
-  - blanket_disable_command
+  - blanket_disable_command.
+  - trailing_comma
 
 opt_in_rules:
   - empty_count
