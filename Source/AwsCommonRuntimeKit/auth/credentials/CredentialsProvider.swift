@@ -569,6 +569,9 @@ private func onGetCredentials(credentials: OpaquePointer?,
     continuationCore.continuation.resume(returning: Credentials(rawValue: credentials!))
 }
 
+// We need to share this pointer to C in a task block but Swift compiler complains
+// that Pointer does not conform to Sendable. Wrap the pointer in a @unchecked Sendable block
+// for Swift compiler to stop complaining.
 struct SendablePointer: @unchecked Sendable {
     let pointer: UnsafeMutableRawPointer
 }
