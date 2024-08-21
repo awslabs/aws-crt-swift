@@ -1,9 +1,9 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
+import _Concurrency
 import AwsCommonRuntimeKit
 import Foundation
-import _Concurrency
 
 // swiftlint:disable cyclomatic_complexity function_body_length
 struct Context {
@@ -15,16 +15,15 @@ struct Context {
     public var certificate: String?
     public var privateKey: String?
     public var connectTimeout: Int = 3000
-    public var headers: [String: String] = [String: String]()
+    public var headers: [String: String] = .init()
     public var includeHeaders: Bool = false
     public var outputFileName: String?
     public var traceFile: String?
     public var insecure: Bool = false
-    public var url: URL = URL(fileURLWithPath: "")
+    public var url: URL = .init(fileURLWithPath: "")
     public var data: Data?
     public var alpnList: [String] = []
     public var outputStream = FileHandle.standardOutput
-
 }
 
 @main
@@ -33,7 +32,6 @@ struct Elasticurl {
     private static var context = Context()
 
     static func parseArguments() {
-
         let optionString = "a:b:c:e:f:H:d:g:j:l:m:M:GPHiko:t:v:VwWh"
         let options = [ElasticurlOptions.caCert.rawValue,
                        ElasticurlOptions.caPath.rawValue,
@@ -100,7 +98,6 @@ struct Elasticurl {
         }
 
         if let dataFilePath = argumentsDict["g"] as? String {
-
             guard let url = URL(string: dataFilePath) else {
                 print("path to data file is incorrect or does not exist")
                 exit(-1)
@@ -161,7 +158,7 @@ struct Elasticurl {
             context.alpnList.append("h2")
         }
 
-        if argumentsDict["w"] == nil && argumentsDict["W"] == nil {
+        if argumentsDict["w"] == nil, argumentsDict["W"] == nil {
             context.alpnList.append("h2")
             context.alpnList.append("http/1.1")
         }
@@ -173,7 +170,8 @@ struct Elasticurl {
 
         // make sure a url was given before we do anything else
         guard let urlString = CommandLine.arguments.last,
-              let url = URL(string: urlString) else {
+              let url = URL(string: urlString)
+        else {
             print("Invalid URL: \(CommandLine.arguments.last!)")
             exit(-1)
         }
@@ -258,8 +256,6 @@ struct Elasticurl {
 
             let socketOptions = SocketOptions(socketType: .stream)
 
-            let semaphore = DispatchSemaphore(value: 0)
-
             var stream: HTTPStream?
             let path = context.url.path == "" ? "/" : context.url.path
             let httpRequest: HTTPRequest = try HTTPRequest(method: context.verb, path: path)
@@ -286,21 +282,40 @@ struct Elasticurl {
                                                                 monitoringOptions: nil)
 
             let connectionManager = try HTTPClientConnectionManager(options: httpClientOptions)
-            do {
-                let connection = try await connectionManager.acquireConnection()
-                let requestOptions = HTTPRequestOptions(request: httpRequest,
-                                                        onResponse: onResponse,
-                                                        onIncomingBody: onBody,
-                                                        onStreamComplete: onComplete)
-                stream = try connection.makeRequest(requestOptions: requestOptions)
-                try stream!.activate()
+            let connection = try await connectionManager.acquireConnection()
+            try await withCheckedThrowingContinuation { continuation in
+                let onResponse: HTTPRequestOptions.OnResponse = { _, headers in
+                    for header in headers {
+                        print(header.name + " : " + header.value)
+                    }
+                }
 
-            } catch {
-                print("connection has shut down with error: \(error.localizedDescription)" )
-                semaphore.signal()
+                let onBody: HTTPRequestOptions.OnIncomingBody = { bodyChunk in
+                    writeData(data: bodyChunk)
+                }
+
+                let onComplete: HTTPRequestOptions.OnStreamComplete = { result in
+                    switch result {
+                    case let .success(status):
+                        print("response status:\(status)")
+                        continuation.resume(returning: ())
+                    case let .failure(error):
+                        continuation.resume(throwing: error)
+                    }
+                }
+
+                do {
+                    let requestOptions = HTTPRequestOptions(request: httpRequest,
+                                                            onResponse: onResponse,
+                                                            onIncomingBody: onBody,
+                                                            onStreamComplete: onComplete)
+                    stream = try connection.makeRequest(requestOptions: requestOptions)
+                    try stream!.activate()
+                } catch {
+                    continuation.resume(throwing: error)
+                }
             }
 
-            semaphore.wait()
             exit(EXIT_SUCCESS)
         } catch let err {
             showHelp()
