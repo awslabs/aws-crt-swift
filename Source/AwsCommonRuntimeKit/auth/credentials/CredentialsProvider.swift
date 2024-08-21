@@ -585,7 +585,7 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
     let delegate = Unmanaged<Box<CredentialsProviding>>
         .fromOpaque(delegatePtr)
         .takeUnretainedValue().contents
-    let userData = SendablePointer(pointer: userData);
+    let userData = SendablePointer(pointer: userData)
     Task {
         do {
             let credentials = try await delegate.getCredentials()
