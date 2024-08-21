@@ -85,9 +85,8 @@ awsCCalPlatformExcludes.append("source/unix")
 /// s2n-tls
 //////////////////////////////////////////////////////////////////////
 #if os(Linux)
-// add pq-crypto back after adding in platform and chipset detection
 let s2nExcludes = ["bin", "codebuild", "coverage", "docker-images",
-                   "docs", "lib", "pq-crypto/kyber_r3",
+                   "docs", "lib",
                    "libcrypto-build", "scram",
                    "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
                    "tls/Makefile", "utils/Makefile", "error/Makefile", "tls/extensions/Makefile",
