@@ -2,7 +2,7 @@
 import PackageDescription
 
 let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
-                       "LICENSE", "format-check.sh", "NOTICE", "builder.json",
+                       "LICENSE", "format-check.py", "NOTICE", "builder.json",
                        "CMakeLists.txt", "README.md"]
 var packageTargets: [Target] = []
 
@@ -112,7 +112,7 @@ packageTargets.append(.target(
 /// aws-c-io
 //////////////////////////////////////////////////////////////////////
 var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
-var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11.md", "THIRD-PARTY-LICENSES.txt",
+var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11.md",
                               "source/pkcs11/v2.40"] + excludesFromAll
 var cSettingsIO = cSettings
 
@@ -144,7 +144,6 @@ var awsCChecksumsExcludes = [
     "LICENSE",
     "builder.json",
     "README.md",
-    "format-check.sh",
     "cmake",
     "tests"]
 
