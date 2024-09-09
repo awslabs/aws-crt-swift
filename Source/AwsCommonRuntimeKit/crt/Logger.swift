@@ -11,7 +11,7 @@ public enum LogTarget {
 }
 
 public struct Logger {
-    private static var logger: aws_logger? = nil
+    private static var logger: aws_logger?
     private static let lock = NSLock()
 
     /// Initializes the CRT logger based on the specified log target and log level. The CRT logger must be only initialized once in your application. Initializing the logger multiple times is not supported.
@@ -25,7 +25,9 @@ public struct Logger {
 
         // Check if the logger is already initialized
         guard logger == nil else {
-            throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_UNSUPPORTED_OPERATION.rawValue, context: "Initializing the CRT Logger multiple times is not supported."))
+            throw CommonRunTimeError.crtError(CRTError(
+                code: AWS_ERROR_UNSUPPORTED_OPERATION.rawValue, 
+                context: "Initializing the CRT Logger multiple times is not supported."))
         }
 
         // Initialize the logger
