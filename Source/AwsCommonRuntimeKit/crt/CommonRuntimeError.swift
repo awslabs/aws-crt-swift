@@ -21,7 +21,10 @@ public struct CRTError: Equatable {
         }
         var message = String(cString: aws_error_str(self.code))
         if let context {
-            message += ". " + context;
+            if message.last != "." {
+                message += ".";
+            }
+            message += " " + context;
         }
         self.message = message 
         self.name = String(cString: aws_error_name(self.code))

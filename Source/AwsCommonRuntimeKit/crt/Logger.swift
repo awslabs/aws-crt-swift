@@ -37,16 +37,18 @@ public struct Logger {
         switch target {
         case .standardOutput:
             options.file = stdout
+            aws_logger_init_standard(&logger!, allocator.rawValue, &options)
         case .standardError:
             options.file = stderr
+            aws_logger_init_standard(&logger!, allocator.rawValue, &options)
         case .filePath(let filePath):
             filePath.withCString { cFilePath in
                 options.filename = cFilePath
+                aws_logger_init_standard(&logger!, allocator.rawValue, &options)
             }
         }
 
         // Initialize and set the logger
-        aws_logger_init_standard(&logger!, allocator.rawValue, &options)
         aws_logger_set(&logger!)
     }
 }
