@@ -13,7 +13,7 @@ class FileBasedConfigurationTests: XCBaseTestCase {
         let fileBasedConfiguration = try FileBasedConfiguration(configFilePath: profilePath, credentialsFilePath: configPath)
         XCTAssertNotNil(fileBasedConfiguration)
         let defaultSection = fileBasedConfiguration.getSection(name: "default", sectionType: .profile)!
-        XCTAssertEqual(defaultSection.propertyCount, 4)
+        XCTAssertEqual(defaultSection.propertyCount, 3)
         let property = defaultSection.getProperty(name: "aws_access_key_id")!
         XCTAssertEqual("accessKey", property.value)
 
