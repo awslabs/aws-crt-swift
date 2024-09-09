@@ -8,12 +8,16 @@ import AwsCCommon
 class XCBaseTestCase: XCTestCase {
     internal let tracingAllocator = TracingAllocator(tracingStacksOf: allocator)
 
+    override class func setUp() {
+        super.setUp()
+        try! Logger.initialize(target: .standardOutput, level: .error)
+    }
+    
     override func setUp() {
         super.setUp()
         // XCode currently lacks a way to enable logs exclusively for failed tests only.
         // To prevent log spamming, we use `error` log level to only print error message.
         // We should update this once a more efficient log processing method becomes available.
-        try! Logger.initialize(target: .standardOutput, level: .error)
 
         // Override the allocator with tracing allocator
         allocator = tracingAllocator.rawValue
