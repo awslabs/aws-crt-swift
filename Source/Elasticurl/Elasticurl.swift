@@ -1,4 +1,4 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.elastic
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCommonRuntimeKit
@@ -222,10 +222,10 @@ struct Elasticurl {
         createOutputFile()
         if let traceFile = context.traceFile {
             print("enable logging with trace file")
-            Logger.initilize(filePath: traceFile, level: context.logLevel)
+            try! Logger.initialize(target: .filePath(traceFile), level: context.logLevel)
         } else {
             print("enable logging with stdout")
-            Logger.initialize(pipe: stdout, level: context.logLevel)
+            try! Logger.initialize(target: .standardOutput, level: context.logLevel)
         }
 
         await run()

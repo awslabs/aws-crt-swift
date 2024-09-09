@@ -2,38 +2,52 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import AwsCCommon
-var logger: aws_logger?
+import Foundation
+
+public enum LogTarget {
+    case standardOutput
+    case standardError
+    case filePath(String) 
+}
 
 public struct Logger {
-    public static func initialize(pipe: UnsafeMutablePointer<FILE>?, level: LogLevel) {
-        // Clean up the logger if it was previously initialized
-        if var logger = logger {
-            aws_logger_clean_up(&logger)
-            aws_logger_set(nil)
+    private static var logger: aws_logger? = nil
+    private static let lock = NSLock()
+
+    /// Initializes the CRT logger based on the specified log target and log level. The CRT logger must be only initialized once in your application. Initializing the logger multiple times is not supported.
+    /// - Parameters:
+    ///   - target: The logging target, which can be standard output, standard error, or a custom file path.
+    ///   - level: The logging level, represented by the `LogLevel` enum.
+    /// - Throws: CommonRunTimeError.crtException
+    public static func initialize(target: LogTarget, level: LogLevel) throws {
+        lock.lock()
+        defer { lock.unlock() }
+
+        // Check if the logger is already initialized
+        guard logger == nil else {
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_UNSUPPORTED_OPERATION.rawValue, context: "Initializing the CRT Logger multiple times is not supported."))
         }
+
+        // Initialize the logger
         logger = aws_logger()
         var options = aws_logger_standard_options()
         options.level = level.rawValue
-        options.file = pipe
+
+        // Set options based on the logging target
+        switch target {
+        case .standardOutput:
+            options.file = stdout
+        case .standardError:
+            options.file = stderr
+        case .filePath(let filePath):
+            filePath.withCString { cFilePath in
+                options.filename = cFilePath
+            }
+        }
+
+        // Initialize and set the logger
         aws_logger_init_standard(&logger!, allocator.rawValue, &options)
         aws_logger_set(&logger!)
-    }
-
-    public static func initilize(filePath: String, level: LogLevel) {
-        // Clean up the logger if it was previously initialized
-        if var logger = logger {
-            aws_logger_clean_up(&logger)
-            aws_logger_set(nil)
-        }
-        logger = aws_logger()
-        
-        filePath.withCString { cFilePath in
-            var options = aws_logger_standard_options()
-            options.level = level.rawValue
-            options.filename = cFilePath
-            aws_logger_init_standard(&logger!, allocator.rawValue, &options)
-            aws_logger_set(&logger!)
-        }
     }
 }
 

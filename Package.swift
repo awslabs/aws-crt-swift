@@ -136,6 +136,7 @@ awsCIoPlatformExcludes.append("source/s2n")
 /// aws-c-checksums
 //////////////////////////////////////////////////////////////////////
 var awsCChecksumsExcludes = [
+    "bin",
     "CMakeLists.txt",
     "LICENSE",
     "builder.json",
