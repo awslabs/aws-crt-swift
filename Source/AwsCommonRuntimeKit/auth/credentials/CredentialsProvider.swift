@@ -512,11 +512,10 @@ extension CredentialsProvider.Source {
     ///
     /// If both relative uri and absolute uri are set, relative uri has higher priority.
     /// Token is used in auth header but only for absolute uri.
-    /// While above information is used in request only, endpoint info is needed when creating ecs provider to initiate the connection
-    /// manager, more specifically, host and http scheme (tls or not) from endpoint are needed.
+    /// 
     ///  - Parameters:
     ///    - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials
-    ///    - tlsContext: (Optional) Client TLS context to use when querying STS web identity provider.
+    ///    - tlsContext: Client TLS context to use when querying STS web identity provider.
     ///                  If set, port 443 is used. If NULL, port 80 is used.
     ///   - shutdownCallback:  (Optional) shutdown callback
     /// - Returns: `CredentialsProvider`
