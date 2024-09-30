@@ -530,7 +530,8 @@ extension CredentialsProvider.Source {
             ecsOptions.bootstrap = bootstrap.rawValue
             ecsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
-            guard let provider: UnsafeMutablePointer<aws_credentials_provider> = aws_credentials_provider_new_ecs_from_environment(allocator.rawValue, &ecsOptions) else {
+            guard let provider: UnsafeMutablePointer<aws_credentials_provider> =
+                    aws_credentials_provider_new_ecs_from_environment(allocator.rawValue, &ecsOptions) else {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
             }
