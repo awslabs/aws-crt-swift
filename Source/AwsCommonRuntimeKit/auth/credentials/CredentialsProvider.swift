@@ -521,12 +521,12 @@ extension CredentialsProvider.Source {
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `ecsEnvironment`(bootstrap: ClientBootstrap,
-                                        tlsContext: TLSContext? = nil,
+                                        tlsContext: TLSContext,
                                         shutdownCallback: ShutdownCallback? = nil) -> Self {
         Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var ecsOptions = aws_credentials_provider_ecs_environment_options()
-            ecsOptions.tls_ctx = tlsContext?.rawValue
+            ecsOptions.tls_ctx = tlsContext.rawValue
             ecsOptions.bootstrap = bootstrap.rawValue
             ecsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
 
