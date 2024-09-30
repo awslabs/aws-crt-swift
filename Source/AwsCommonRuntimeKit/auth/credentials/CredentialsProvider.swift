@@ -512,7 +512,7 @@ extension CredentialsProvider.Source {
     ///
     /// If both relative uri and absolute uri are set, relative uri has higher priority.
     /// Token is used in auth header but only for absolute uri.
-    /// 
+    ///
     ///  - Parameters:
     ///    - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials
     ///    - tlsContext: Client TLS context to use when querying STS web identity provider.
@@ -521,8 +521,8 @@ extension CredentialsProvider.Source {
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `ecsEnvironment`(bootstrap: ClientBootstrap,
-                                 tlsContext: TLSContext? = nil,
-                                 shutdownCallback: ShutdownCallback? = nil) -> Self {
+                                        tlsContext: TLSContext? = nil,
+                                        shutdownCallback: ShutdownCallback? = nil) -> Self {
         Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var ecsOptions = aws_credentials_provider_ecs_environment_options()
