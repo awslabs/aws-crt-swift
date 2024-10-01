@@ -4,6 +4,7 @@
 import XCTest
 import Foundation
 import AwsCMqtt
+import LibNative
 @testable import AwsCommonRuntimeKit
 
 enum MqttTestError: Error {
