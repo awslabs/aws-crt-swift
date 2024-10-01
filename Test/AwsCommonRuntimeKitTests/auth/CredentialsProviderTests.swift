@@ -133,7 +133,8 @@ class CredentialsProviderTests: XCBaseTestCase {
         do {
             let provider = try CredentialsProvider(source: .process(
                     fileBasedConfiguration: FileBasedConfiguration(
-                            configFilePath: Bundle.module.path(forResource: "example_profile", ofType: "txt")!),
+                        configFilePath: Bundle.module.path(forResource: "example_profile", ofType: "txt")!),
+                    profileFileNameOverride: "process",
                     shutdownCallback: getShutdownCallback()))
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)

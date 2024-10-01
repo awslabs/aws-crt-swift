@@ -1,5 +1,5 @@
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
+// Copyright Amazon.com, Inc. or its affiliates. 
+// All Rights Reserved. SPDX-License-Identifier: Apache-2.0.
 
 import AwsCAuth
 import AwsCIo
@@ -572,6 +572,13 @@ private func onGetCredentials(credentials: OpaquePointer?,
     continuationCore.continuation.resume(returning: Credentials(rawValue: credentials!))
 }
 
+// We need to share this pointer to C in a task block but Swift compiler complains
+// that Pointer does not conform to Sendable. Wrap the pointer in a @unchecked Sendable block
+// for Swift compiler to stop complaining.
+struct SendablePointer: @unchecked Sendable {
+    let pointer: UnsafeMutableRawPointer
+}
+
 private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
                                       _ callbackFn: (@convention(c) (
                                                         OpaquePointer?,
@@ -581,14 +588,15 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
     let delegate = Unmanaged<Box<CredentialsProviding>>
         .fromOpaque(delegatePtr)
         .takeUnretainedValue().contents
+    let userData = SendablePointer(pointer: userData)
     Task {
         do {
             let credentials = try await delegate.getCredentials()
-            callbackFn(credentials.rawValue, AWS_OP_SUCCESS, userData)
+            callbackFn(credentials.rawValue, AWS_OP_SUCCESS, userData.pointer)
         } catch CommonRunTimeError.crtError(let crtError) {
-            callbackFn(nil, crtError.code, userData)
+            callbackFn(nil, crtError.code, userData.pointer)
         } catch {
-            callbackFn(nil, Int32(AWS_AUTH_CREDENTIALS_PROVIDER_DELEGATE_FAILURE.rawValue), userData)
+            callbackFn(nil, Int32(AWS_AUTH_CREDENTIALS_PROVIDER_DELEGATE_FAILURE.rawValue), userData.pointer)
         }
     }
     return AWS_OP_SUCCESS
