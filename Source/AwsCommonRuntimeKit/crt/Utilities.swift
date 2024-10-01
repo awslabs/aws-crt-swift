@@ -428,3 +428,18 @@ func withOptionalArrayRawPointer<T, Result>(
         return try body(ptr)
     }
 }
+extension Array where Element == String {
+  func withByteCursorArray<R>(_ body: (UnsafePointer<aws_byte_cursor>, Int) -> R) -> R {
+        let len = self.count
+        let cStrings = self.map { strdup($0) }
+        let cursors = cStrings.map { aws_byte_cursor_from_c_str($0) }
+        
+        defer {
+            cStrings.forEach { free($0) }
+        }
+
+        return cursors.withUnsafeBufferPointer { cursorsPtr in 
+            return body(cursorsPtr.baseAddress!, len)
+        }
+    }
+}
