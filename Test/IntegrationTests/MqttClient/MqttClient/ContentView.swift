@@ -196,7 +196,7 @@ func createClient(clientOptions: MqttClientOptions, testContext: MqttTestContext
 
 /// Init CRT library
 func library_init() {
-    Logger.initialize(pipe: stdout, level: .debug)
+    try? Logger.initialize(target: .standardOutput, level: .debug)
     CommonRuntimeKit.initialize()
 }
 
