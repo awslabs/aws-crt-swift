@@ -2,7 +2,7 @@
 import PackageDescription
 
 let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
-                       "LICENSE", "format-check.sh", "NOTICE", "builder.json",
+                       "LICENSE", "format-check.py", "NOTICE", "builder.json",
                        "CMakeLists.txt", "README.md"]
 var packageTargets: [Target] = []
 
@@ -15,7 +15,11 @@ var package = Package(name: "aws-crt-swift",
 )
 
 let cSettings: [CSetting] = [
-    .define("DEBUG_BUILD", .when(configuration: .debug))
+    .define("DEBUG_BUILD", .when(configuration: .debug)),
+    // Disable Intel VTune tracing API here since aws-crt-swift doesn't use CMake
+    .define("INTEL_NO_ITTNOTIFY_API"),
+    // Don't use APIs forbidden by App Stores (e.g. non-public system APIs)
+    .define("AWS_APPSTORE_SAFE"),
 ]
 
 //////////////////////////////////////////////////////////////////////
@@ -81,10 +85,8 @@ awsCCalPlatformExcludes.append("source/unix")
 /// s2n-tls
 //////////////////////////////////////////////////////////////////////
 #if os(Linux)
-// add pq-crypto back after adding in platform and chipset detection
 let s2nExcludes = ["bin", "codebuild", "coverage", "docker-images",
-                   "docs", "lib", "pq-crypto/kyber_r3",
-                   "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
+                   "docs", "lib",
                    "libcrypto-build", "scram",
                    "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
                    "tls/Makefile", "utils/Makefile", "error/Makefile", "tls/extensions/Makefile",
@@ -108,7 +110,7 @@ packageTargets.append(.target(
 /// aws-c-io
 //////////////////////////////////////////////////////////////////////
 var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
-var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11.md", "THIRD-PARTY-LICENSES.txt",
+var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11.md",
                               "source/pkcs11/v2.40"] + excludesFromAll
 var cSettingsIO = cSettings
 
@@ -136,11 +138,11 @@ awsCIoPlatformExcludes.append("source/s2n")
 /// aws-c-checksums
 //////////////////////////////////////////////////////////////////////
 var awsCChecksumsExcludes = [
+    "bin",
     "CMakeLists.txt",
     "LICENSE",
     "builder.json",
     "README.md",
-    "format-check.sh",
     "cmake",
     "tests"]
 
