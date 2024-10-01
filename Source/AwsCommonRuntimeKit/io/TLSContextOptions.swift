@@ -37,7 +37,7 @@ public class TLSContextOptions: CStruct {
     public static func makeMTLS(
         certificateData: Data,
         privateKeyData: Data) throws -> TLSContextOptions {
-        #if os(tvOS) || os(iOS) || os(watchOS)
+        #if os(watchOS)
         throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
         #endif
         return try TLSContextOptions(certificateData: certificateData, privateKeyData: privateKeyData)
@@ -55,7 +55,7 @@ public class TLSContextOptions: CStruct {
     public static func makeMTLS(
         certificatePath: String,
         privateKeyPath: String) throws -> TLSContextOptions {
-        #if os(tvOS) || os(iOS) || os(watchOS)
+        #if os(watchOS)
         throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
         #endif
         return try TLSContextOptions(certificatePath: certificatePath, privateKeyPath: privateKeyPath)
