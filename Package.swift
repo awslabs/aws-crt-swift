@@ -136,6 +136,8 @@ awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
 #if os(macOS)
 cSettingsIO.append(.define("AWS_USE_KQUEUE"))
+awsCIoPlatformExcludes.append("source/darwin/dispatch_queue_event_loop.c")
+awsCIoPlatformExcludes.append("source/darwin/nw_socket.c")
 #else // iOS, tvOS
 cSettingsIO.append(.define("AWS_USE_DISPATCH_QUEUE"))
 cSettingsIO.append(.define("AWS_USE_SECITEM"))
