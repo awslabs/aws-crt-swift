@@ -133,6 +133,7 @@ awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
 cSettingsIO.append(.define("AWS_USE_DISPATCH_QUEUE"))
+cSettingsIO.append(.define("AWS_USE_SECITEM"))
 #endif
 
 //////////////////////////////////////////////////////////////////////
