@@ -140,6 +140,7 @@ cSettingsIO.append(.define("AWS_USE_KQUEUE"))
 cSettingsIO.append(.define("AWS_USE_DISPATCH_QUEUE"))
 cSettingsIO.append(.define("AWS_USE_SECITEM"))
 #endif
+#endif
 
 //////////////////////////////////////////////////////////////////////
 /// aws-c-checksums
