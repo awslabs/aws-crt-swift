@@ -126,6 +126,22 @@ public class TLSContextOptions: CStruct {
     public func setMinimumTLSVersion(_ tlsVersion: TLSVersion) {
         aws_tls_ctx_options_set_minimum_tls_version(rawValue, aws_tls_versions(rawValue: tlsVersion.rawValue))
     }
+    
+    /// Updates TLSContextOptions to use specified options when importing certificate and key into keychain.
+    ///
+    /// NOTE: This only works on Apple devices using Apple keychain via Secitem.. The library is currently only tested on iOS.
+    ///
+    /// - Parameters:
+    ///     - certLabel: Human readable label to apply to certificate being imported into keychain.
+    ///     - keyLabel: Human readable label to apply to key being imported into keychain.
+    /// - Throws: CommonRuntimeError.crtError
+    public func setSecitemLabels(certLabel: String? = nil, keyLabel: String? = nil) throws {
+        let secitemOptions = TLSSecitemOptions(certLabel: certLabel, keyLabel: keyLabel)
+        
+        if aws_tls_ctx_options_set_secitem_options(rawValue, secitemOptions.rawValue) != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+    }
 
     typealias RawType = aws_tls_ctx_options
     func withCStruct<Result>(_ body: (aws_tls_ctx_options) -> Result) -> Result {
