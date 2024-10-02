@@ -134,6 +134,9 @@ cSettingsIO.append(.define("AWS_USE_EPOLL"))
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
+#if os(macOS)
+cSettingsIO.append(.define("AWS_USE_KQUEUE"))
+#else // iOS, tvOS
 cSettingsIO.append(.define("AWS_USE_DISPATCH_QUEUE"))
 cSettingsIO.append(.define("AWS_USE_SECITEM"))
 #endif

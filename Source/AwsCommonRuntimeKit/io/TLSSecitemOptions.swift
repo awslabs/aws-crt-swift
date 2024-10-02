@@ -3,7 +3,7 @@
 
 import AwsCIo
 
-public class TLSSecitemOptions : CStruct {
+public class TLSSecitemOptions: CStruct {
     var rawValue: UnsafeMutablePointer<aws_secitem_options>
 
     public init(
