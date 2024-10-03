@@ -61,6 +61,12 @@ extension XCTestCase {
         #endif
     }
 
+    func skipIfWindows() throws {
+        #if os(Windows)
+            throw XCTSkip("Skipping test on Windows")
+        #endif
+    }
+
     func skipIftvOS() throws {
         #if os(tvOS)
             throw XCTSkip("Skipping test on tvOS")

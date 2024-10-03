@@ -65,6 +65,8 @@ class FileBasedConfigurationTests: XCBaseTestCase {
     }
 
     func testResolveConfigPath() throws {
+        try skipIfWindows()
+
         // from $HOME
         let home = "/test/home"
         let oldHome = getenv("HOME")

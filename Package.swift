@@ -198,6 +198,14 @@ let awsCEventStreamExcludes = [
     "CODE_OF_CONDUCT.md",
     "clang-tidy/run-clang-tidy.sh"] + excludesFromAll
 
+//////////////////////////////////////////////////////////////////////
+/// AwsCommonRuntimeKitTests
+//////////////////////////////////////////////////////////////////////
+var awsCommonRuntimeKitTestsExcludes: [String] = []
+#if !os(Windows)
+awsCommonRuntimeKitTestsExcludes.append("shims/windows")
+#endif
+
 packageTargets.append(contentsOf: [
     .target(
         name: "AwsCPlatformConfig",
@@ -287,6 +295,7 @@ packageTargets.append(contentsOf: [
         name: "AwsCommonRuntimeKitTests",
         dependencies: ["AwsCommonRuntimeKit"],
         path: "Test/AwsCommonRuntimeKitTests",
+        exclude: awsCommonRuntimeKitTestsExcludes,
         resources: [
             .process("Resources")
         ]
