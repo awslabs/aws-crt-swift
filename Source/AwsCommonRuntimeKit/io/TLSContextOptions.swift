@@ -124,7 +124,7 @@ public class TLSContextOptions: CStruct {
     }
 
     public func setMinimumTLSVersion(_ tlsVersion: TLSVersion) {
-        aws_tls_ctx_options_set_minimum_tls_version(rawValue, aws_tls_versions(rawValue: tlsVersion.rawValue))
+        aws_tls_ctx_options_set_minimum_tls_version(rawValue, aws_tls_versions(rawValue: Int32(tlsVersion.rawValue)))
     }
 
     typealias RawType = aws_tls_ctx_options

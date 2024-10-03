@@ -4,6 +4,11 @@
 import AwsCEventStream
 import Foundation
 
+#if os(Windows)
+// Resolve ambiguity with the Windows SDK type.
+import struct Foundation.UUID
+#endif
+
 public struct EventStreamHeader {
     /// max header name length is 127 bytes (Int8.max)
     public static let maxNameLength = AWS_EVENT_STREAM_HEADER_NAME_LEN_MAX

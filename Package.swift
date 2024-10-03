@@ -39,13 +39,19 @@ var awsCCommonPlatformExcludes = ["source/android",
 // includes arch/generic because the SwiftPM doesn't like the necessary compiler flags.
 awsCCommonPlatformExcludes.append("source/arch/intel")
 awsCCommonPlatformExcludes.append("source/arch/arm")
-#if !os(Windows)
+#if os(Windows)
+awsCCommonPlatformExcludes.append("source/posix")
+#else
 awsCCommonPlatformExcludes.append("source/windows")
 #endif
-let cSettingsCommon: [CSetting] = [
+
+var cSettingsCommon: [CSetting] = [
     .headerSearchPath("source/external/libcbor"),
     .define("DEBUG_BUILD", .when(configuration: .debug))
 ]
+#if os(Windows)
+cSettingsCommon.append(.define("AWS_OS_WINDOWS_DESKTOP"))
+#endif
 
 //////////////////////////////////////////////////////////////////////
 /// aws-c-cal
@@ -117,6 +123,8 @@ var cSettingsIO = cSettings
 #if os(Linux)
 ioDependencies.append("S2N_TLS")
 cSettingsIO.append(.define("USE_S2N"))
+#elseif os(Windows)
+cSettingsIO.append(.define("AWS_USE_IO_COMPLETION_PORTS"))
 #endif
 
 #if os(Windows)
@@ -124,6 +132,7 @@ awsCIoPlatformExcludes.append("source/posix")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
 awsCIoPlatformExcludes.append("source/darwin")
+awsCIoPlatformExcludes.append("source/bsd")
 #elseif os(Linux)
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/bsd")
@@ -145,9 +154,6 @@ var awsCChecksumsExcludes = [
     "README.md",
     "cmake",
     "tests"]
-
-// swift never uses Microsoft Visual C++ compiler
-awsCChecksumsExcludes.append("source/intel/visualc")
 
 // Hardware accelerated checksums are disabled because SwiftPM doesn't like the necessary compiler flags.
 // We can add it once SwiftPM has the necessary support for CPU flags or builds C libraries

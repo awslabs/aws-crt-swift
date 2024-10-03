@@ -42,7 +42,7 @@ private func doSeek(_ stream: UnsafeMutablePointer<aws_input_stream>!,
     let iStreamCore = Unmanaged<IStreamCore>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
     let iStreamable = iStreamCore.iStreamable
     do {
-        let streamSeekType = StreamSeekType(rawValue: seekBasis.rawValue)!
+        let streamSeekType = StreamSeekType(rawValue: UInt32(seekBasis.rawValue))!
         try iStreamable.seek(offset: offset, streamSeekType: streamSeekType)
         iStreamCore.isEndOfStream = false
         return AWS_OP_SUCCESS
