@@ -311,7 +311,7 @@ packageTargets.append(contentsOf: [
         resources: [
             .process("Resources")
         ],
-        cSettings: [
+        swiftSettings: [
             .define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])),
             .define("AWS_USE_DISPATCH_QUEUE", .when(platforms: [.iOS, .tvOS])),
             .define("AWS_USE_KQUEUE", .when(platforms: [.macOS]))
