@@ -54,6 +54,5 @@ class TLSContextTests: XCBaseTestCase {
         let context = try TLSContext(options:options, mode: .client)
         _ = TLSConnectionOptions(context: context)
     }
-
 #endif
 }

@@ -22,6 +22,9 @@ let cSettings: [CSetting] = [
     .define("AWS_APPSTORE_SAFE"),
 ]
 
+/// Store any defines that will be used by Swift Tests in swiftTestSettings
+var swiftTestSettings: [SwiftSetting] = []
+
 //////////////////////////////////////////////////////////////////////
 /// Configure C targets.
 /// Note: We can not use unsafe flags because SwiftPM makes the target ineligible for use by other packages.
@@ -125,11 +128,13 @@ awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
 awsCIoPlatformExcludes.append("source/darwin")
 cSettingsIO.append(.define("AWS_USE_IO_COMPLETION_PORTS"))
+swiftTestSettings.append(.define("AWS_USE_IO_COMPLETION_PORTS"))
 #elseif os(Linux)
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
 cSettingsIO.append(.define("AWS_USE_EPOLL"))
+swiftTestSettings.append(.define("AWS_USE_EPOLL"))
 #else  // macOS, iOS, watchOS, tvOS
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/linux")
@@ -138,6 +143,10 @@ cSettingsIO.append(.define("__APPLE__"))
 cSettingsIO.append(.define("AWS_USE_DISPATCH_QUEUE", .when(platforms: [.iOS, .tvOS])))
 cSettingsIO.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
 cSettingsIO.append(.define("AWS_USE_KQUEUE", .when(platforms: [.macOS])))
+swiftTestSettings.append(.define("__APPLE__"))
+swiftTestSettings.append(.define("AWS_USE_DISPATCH_QUEUE", .when(platforms: [.iOS, .tvOS])))
+swiftTestSettings.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
+swiftTestSettings.append(.define("AWS_USE_KQUEUE", .when(platforms: [.macOS])))
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -311,11 +320,7 @@ packageTargets.append(contentsOf: [
         resources: [
             .process("Resources")
         ],
-        swiftSettings: [
-            .define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])),
-            .define("AWS_USE_DISPATCH_QUEUE", .when(platforms: [.iOS, .tvOS])),
-            .define("AWS_USE_KQUEUE", .when(platforms: [.macOS]))
-        ]
+        swiftSettings: swiftTestSettings
     ),
     .executableTarget(
         name: "Elasticurl",
