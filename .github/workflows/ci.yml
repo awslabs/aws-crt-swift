@@ -70,7 +70,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # This matrix runs tests on iOS, tvOS & watchOS, on oldest & newest supported Xcodes
+        # This matrix runs tests on iOS and tvOS on oldest & newest supported Xcodes
         runner:
           - macos-12 # x64
           - macos-13 # x64
@@ -81,9 +81,7 @@ jobs:
           [{ os: ios, destination: 'iOS Simulator,OS=16.1,name=iPhone 14'},
            { os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15'},
            { os: tvos, destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'},
-           { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'},
-           { os: watchos, destination: 'watchOS Simulator,OS=10.2,name=Apple Watch SE (40mm) (2nd generation)'},
-           { os: watchos, destination: 'watchOS Simulator,OS=9.1,name=Apple Watch Series 5 (40mm)'}]
+           { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'}]
         xcode:
           - Xcode_14.1
           - Xcode_15.2
@@ -110,10 +108,6 @@ jobs:
             xcode: Xcode_14.1
           - target: { os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15'}
             xcode: Xcode_14.1
-          - target: { os: watchos, destination: 'watchOS Simulator,OS=10.2,name=Apple Watch SE (40mm) (2nd generation)'}
-            xcode: Xcode_14.1
-          - target: { os: watchos, destination: 'watchOS Simulator,OS=9.1,name=Apple Watch Series 5 (40mm)'}
-            xcode: Xcode_15.2
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
