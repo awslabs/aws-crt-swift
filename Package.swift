@@ -310,6 +310,11 @@ packageTargets.append(contentsOf: [
         path: "Test/AwsCommonRuntimeKitTests",
         resources: [
             .process("Resources")
+        ],
+        cSettings: [
+            .define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])),
+            .define("AWS_USE_DISPATCH_QUEUE", .when(platforms: [.iOS, .tvOS])),
+            .define("AWS_USE_KQUEUE", .when(platforms: [.macOS]))
         ]
     ),
     .executableTarget(
