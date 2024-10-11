@@ -1,0 +1,5 @@
+Helpers for swift to build the aws-common-runtime packages
+
+It contains:
+* a symlink to point s2n/unstable/cleanup.h to api/unstable/cleanup.h for building s2n with the other aws-common-runtime packages.
+* `aws/common/config.h`, because cmake will run for swift build. Set the config.h separately.
