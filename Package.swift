@@ -117,7 +117,6 @@ var cSettingsIO = cSettings
 #if os(Linux)
 ioDependencies.append("S2N_TLS")
 cSettingsIO.append(.define("USE_S2N"))
-cSettingsIO.append(.define("AWS_S2N_INSOURCE_PATH"))
 #endif
 
 #if os(Windows)
