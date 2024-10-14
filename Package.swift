@@ -126,10 +126,19 @@ awsCIoPlatformExcludes.append("source/darwin")
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
-#else  // macOS, iOS, watchOS, tvOS
+#elseif os(iOS)  // macOS, iOS, watchOS, tvOS
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
+awsCIoPlatformExcludes.append("source/posix")
+cSettingsIO.append(.define("AWS_USE_DISPATCH_QUEUE"))
+#else
+awsCIoPlatformExcludes.append("source/windows")
+awsCIoPlatformExcludes.append("source/linux")
+awsCIoPlatformExcludes.append("source/bsd")
+awsCIoPlatformExcludes.append("source/posix/socket.c")
+awsCIoPlatformExcludes.append("source/s2n")
+cSettingsIO.append(.define("AWS_USE_DISPATCH_QUEUE"))
 #endif
 
 //////////////////////////////////////////////////////////////////////
