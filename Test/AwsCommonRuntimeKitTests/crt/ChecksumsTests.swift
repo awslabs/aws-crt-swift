@@ -17,5 +17,11 @@ class ChecksumsTests: XCBaseTestCase {
         XCTAssertEqual("Hello".data(using: .utf8)!.computeCRC32C(), 2178485787)
         XCTAssertEqual("{\"foo\":\"base64 encoded sha1 checksum\"}".data(using: .utf8)!.computeCRC32C(), 3565301023)
     }
+
+    func testCRC64Nvme() throws {
+        XCTAssertEqual("".data(using: .utf8)!.computeCRC64Nvme(), 0)
+        XCTAssertEqual(Data(count: 32).computeCRC64Nvme(), 0xCF3473434D4ECF3B)
+        XCTAssertEqual(Data(Array(0..<32)).computeCRC64Nvme(), 0xB9D9D4A8492CBD7F)
+    }
     
 }
