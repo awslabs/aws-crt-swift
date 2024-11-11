@@ -122,10 +122,6 @@ ioDependencies.append("S2N_TLS")
 cSettingsIO.append(.define("USE_S2N"))
 #endif
 
-#if !os(macOS) && !os(iOS) && !os(tvOS) && !os(watchOS)
-awsCIoPlatformExcludes.append("include/aws/io/private/dispatch_queue.h")
-#endif
-
 #if os(Windows)
 awsCIoPlatformExcludes.append("source/posix")
 awsCIoPlatformExcludes.append("source/linux")
