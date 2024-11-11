@@ -122,19 +122,21 @@ ioDependencies.append("S2N_TLS")
 cSettingsIO.append(.define("USE_S2N"))
 #endif
 
+#if !os(macOS) && !os(iOS) && !os(tvOS) && !os(watchOS)
+awsCIoPlatformExcludes.append("include/aws/io/private/dispatch_queue.h")
+#endif
+
 #if os(Windows)
 awsCIoPlatformExcludes.append("source/posix")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
 awsCIoPlatformExcludes.append("source/darwin")
-awsCIoPlatformExcludes.append("include/aws/io/private/dispatch_queue.h")
 cSettingsIO.append(.define("AWS_USE_IO_COMPLETION_PORTS"))
 swiftTestSettings.append(.define("AWS_USE_IO_COMPLETION_PORTS"))
 #elseif os(Linux)
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
-awsCIoPlatformExcludes.append("include/aws/io/private/dispatch_queue.h")
 cSettingsIO.append(.define("AWS_USE_EPOLL"))
 swiftTestSettings.append(.define("AWS_USE_EPOLL"))
 #else  // macOS, iOS, watchOS, tvOS
