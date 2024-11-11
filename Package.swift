@@ -133,6 +133,7 @@ swiftTestSettings.append(.define("AWS_USE_IO_COMPLETION_PORTS"))
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
+cSettingsIO.append(.define("AWS_ENABLE_EPOLL")) // are we using both?
 cSettingsIO.append(.define("AWS_USE_EPOLL"))
 swiftTestSettings.append(.define("AWS_USE_EPOLL"))
 #else  // macOS, iOS, watchOS, tvOS
