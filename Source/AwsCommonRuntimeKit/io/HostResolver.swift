@@ -40,7 +40,7 @@ public class HostResolver: HostResolverProtocol {
             shutdownCallback: shutdownCallback)
     }
 
-    init(eventLoopGroup: EventLoopGroup,
+    public init(eventLoopGroup: EventLoopGroup,
          maxHosts: Int,
          maxTTL: Int,
          shutdownCallback: ShutdownCallback? = nil) throws {
