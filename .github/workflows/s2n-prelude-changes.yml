@@ -1,4 +1,4 @@
-# Detect changes to s2n_prelude.h so that we can update our Package.swift to stay in sync with it. 
+# Detect changes to s2n_prelude.h to update our `Package.swift` and stay in sync with it.
 # See: https://github.com/awslabs/aws-crt-swift/pull/299 for updating the Package.swift.
 
 name: s2n_prelude.h Change Detector
