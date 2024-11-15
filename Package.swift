@@ -1,4 +1,4 @@
-// swift-tools-version:5.9
+// swift-tools-version:5.7
 import PackageDescription
 
 let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
@@ -146,9 +146,6 @@ var awsCChecksumsExcludes = [
     "cmake",
     "tests"]
 
-// swift never uses Microsoft Visual C++ compiler
-awsCChecksumsExcludes.append("source/intel/visualc")
-
 // Hardware accelerated checksums are disabled because SwiftPM doesn't like the necessary compiler flags.
 // We can add it once SwiftPM has the necessary support for CPU flags or builds C libraries
 // using CMake.
@@ -288,8 +285,7 @@ packageTargets.append(contentsOf: [
     .executableTarget(
         name: "Elasticurl",
         dependencies: ["AwsCommonRuntimeKit"],
-        path: "Source/Elasticurl",
-        swiftSettings: [.interoperabilityMode(.Cxx)]
+        path: "Source/Elasticurl"
     )
 ] )
 package.targets = packageTargets
