@@ -7,13 +7,6 @@ let excludesFromAll = [
     "CMakeLists.txt", "README.md",
 ]
 var packageTargets: [Target] = []
-packageTargets.append(
-    .target(
-        name: "AwsCPlatformConfig",
-        path: "aws-common-runtime/config",
-        publicHeadersPath: ".",
-        cSettings: cSettings
-    ))
 var package = Package(
     name: "aws-crt-swift",
     platforms: [.iOS(.v13), .macOS(.v10_15), .tvOS(.v13), .watchOS(.v6)],
@@ -228,12 +221,12 @@ let awsCEventStreamExcludes =
     ] + excludesFromAll
 
 packageTargets.append(contentsOf: [
-    // .target(
-    //     name: "AwsCPlatformConfig",
-    //     path: "aws-common-runtime/config",
-    //     publicHeadersPath: ".",
-    //     cSettings: cSettings
-    // ),
+    .target(
+        name: "AwsCPlatformConfig",
+        path: "aws-common-runtime/config",
+        publicHeadersPath: ".",
+        cSettings: cSettings
+    ),
     .target(
         name: "AwsCCommon",
         dependencies: ["AwsCPlatformConfig"],
