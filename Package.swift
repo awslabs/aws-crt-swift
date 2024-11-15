@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.9
 import PackageDescription
 
 let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
@@ -288,7 +288,8 @@ packageTargets.append(contentsOf: [
     .executableTarget(
         name: "Elasticurl",
         dependencies: ["AwsCommonRuntimeKit"],
-        path: "Source/Elasticurl"
+        path: "Source/Elasticurl",
+        swiftSettings: [.interoperabilityMode(.Cxx)]
     )
 ] )
 package.targets = packageTargets
