@@ -1,0 +1,30 @@
+# Detect changes to s2n_prelude.h so that we can update our Package.swift to stay in sync with it. 
+# See: https://github.com/awslabs/aws-crt-swift/pull/299 for updating the Package.swift.
+
+name: s2n_prelude.h Change Detector
+
+on: [push]
+
+jobs:
+  check-for-changes:
+
+    runs-on: ubuntu-24.04 # latest
+
+    steps:
+    - name: Checkout Sources
+      uses: actions/checkout@v4
+
+    - name: Check s2n_prelude.h
+      run: |
+        TMPFILE=$(mktemp)
+          echo "1fdf8e7a914412cc7242b8d64732fa89  aws-common-runtime/s2n/utils/s2n_prelude.h" > $TMPFILE
+        md5sum --check $TMPFILE
+
+    # No further steps if successful
+
+    - name: Echo fail
+      if: failure()
+      run: |
+          echo "The aws-crt-swift has a hack to manually define macros which are defined in s2n_prelude.h in Package.Swift.
+                This check will fail whenever s2n_prelude.h is updated by the S2N team. You should make sure that Package.Swift is updated accordingly
+                with the s2n_prelude.h changes and then run `md5sum aws-common-runtime/s2n/utils/s2n_prelude.h` and update the value above."
