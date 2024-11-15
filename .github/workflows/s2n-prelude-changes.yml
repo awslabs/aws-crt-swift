@@ -13,6 +13,8 @@ jobs:
     steps:
     - name: Checkout Sources
       uses: actions/checkout@v4
+      with:     
+        submodule: true 
 
     - name: Check s2n_prelude.h
       run: |
