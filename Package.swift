@@ -100,7 +100,7 @@ packageTargets.append(.target(
     publicHeadersPath: "api",
     cSettings: [
         .headerSearchPath("./"),
-        .define("S2N_NO_PQ")
+        .define("S2N_NO_PQ"),
         // This is a hack to get around the fact that S2N uses the compiler option `-include`
         // to include `s2n_prelude.h` in all .c files. Since SwiftPM doesn't support compiler flags,
         // we manually define the macros from `s2n_prelude.h`. When SwiftPM supports compiler flags
