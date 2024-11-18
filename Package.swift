@@ -100,8 +100,17 @@ packageTargets.append(.target(
     publicHeadersPath: "api",
     cSettings: [
         .headerSearchPath("./"),
-        .define("POSIX_C_SOURCE=200809L"),
-        .define("S2N_NO_PQ")
+        .define("S2N_NO_PQ"),
+        // This is a hack to get around the fact that S2N uses the compiler option `-include`
+        // to include `s2n_prelude.h` in all .c files. Since SwiftPM doesn't support compiler flags,
+        // we manually define the macros from `s2n_prelude.h`. When SwiftPM supports compiler flags
+        // or building packages using CMake, this hack should be removed.
+        // We are not defining `S2N_API` because we don't need to expose any symbols from S2N in crt-swift.
+        .define("_S2N_PRELUDE_INCLUDED"),
+        .define("S2N_BUILD_RELEASE"),
+        .define("_FORTIFY_SOURCE", to: "2"),
+        .define("POSIX_C_SOURCE", to: "200809L"),
+
     ]
 ))
 #endif
@@ -145,9 +154,6 @@ var awsCChecksumsExcludes = [
     "README.md",
     "cmake",
     "tests"]
-
-// swift never uses Microsoft Visual C++ compiler
-awsCChecksumsExcludes.append("source/intel/visualc")
 
 // Hardware accelerated checksums are disabled because SwiftPM doesn't like the necessary compiler flags.
 // We can add it once SwiftPM has the necessary support for CPU flags or builds C libraries
