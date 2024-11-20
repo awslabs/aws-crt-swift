@@ -63,7 +63,11 @@ public class CBOREncoder {
     }
 
     public func getEncoded() -> Data {
-        aws_cbor_encoder_get_encoded_data(self.rawValue).toData()
+        let encoded = aws_cbor_encoder_get_encoded_data(self.rawValue)
+        print(encoded)
+        let data = encoded.toData()
+        print(data)
+        return data
     }
 
     deinit {
@@ -90,14 +94,20 @@ public enum CBORType: Equatable {
 public class CBORDecoder {
     var rawValue: OpaquePointer
     // Keep a reference to data to make it outlive the decoder
-    let data: Data
+    var c_array: [UInt8]
 
     public init(data: Data) {
         // TODO: Try init?
-        self.data = data
-        rawValue = self.data.withAWSByteCursorPointer {
-            aws_cbor_decoder_new(allocator.rawValue, $0.pointee)!
+        // TODO: Can we get rid of the copy here?
+        c_array = [UInt8](repeating: 0, count: data.count)
+        data.copyBytes(to: &c_array, count: data.count)
+
+        let count = c_array.count;
+        self.rawValue = self.c_array.withUnsafeBytes {
+            let cursor = aws_byte_cursor_from_array($0.baseAddress, count)
+            return aws_cbor_decoder_new(allocator.rawValue, cursor)!
         }
+
     }
 
     public func decodeNext() throws -> CBORType {
@@ -115,8 +125,90 @@ public class CBORDecoder {
                 else {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
+                print(out_value)
                 return .uint64(out_value)
             }
+
+        case AWS_CBOR_TYPE_NEGINT:
+            do {
+                var out_value: UInt64 = 0
+                guard
+                    aws_cbor_decoder_pop_next_negative_int_val(self.rawValue, &out_value)
+                        == AWS_OP_SUCCESS
+                else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                print(out_value)
+                return .int(-(Int64(out_value+1)))
+            }
+        case AWS_CBOR_TYPE_FLOAT:
+            do {
+                var out_value: Double = 0
+                guard
+                    aws_cbor_decoder_pop_next_float_val(self.rawValue, &out_value)
+                        == AWS_OP_SUCCESS
+                else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                print(out_value)
+                return .double(out_value) 
+            }
+        case AWS_CBOR_TYPE_BYTES:
+            do {
+                var out_value: aws_byte_cursor = aws_byte_cursor()
+                guard
+                    aws_cbor_decoder_pop_next_bytes_val(self.rawValue, &out_value)
+                        == AWS_OP_SUCCESS
+                else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                print(out_value)
+                return .bytes(out_value.toData())
+            }
+        case AWS_CBOR_TYPE_TEXT:
+            do {
+                var out_value: aws_byte_cursor = aws_byte_cursor()
+                guard
+                    aws_cbor_decoder_pop_next_text_val(self.rawValue, &out_value)
+                        == AWS_OP_SUCCESS
+                else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                print(out_value)
+                return .text(out_value.toString())
+            }
+        case AWS_CBOR_TYPE_BOOL:
+            do {
+                var out_value: Bool = false;
+                guard
+                    aws_cbor_decoder_pop_next_boolean_val(self.rawValue, &out_value)
+                        == AWS_OP_SUCCESS
+                else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                return .bool(out_value)
+            }
+        case AWS_CBOR_TYPE_NULL:
+            do {
+                guard
+                    aws_cbor_decoder_consume_next_single_element(self.rawValue)
+                        == AWS_OP_SUCCESS
+                else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                return .null 
+            }
+        case AWS_CBOR_TYPE_UNDEFINED:
+            do {
+                guard
+                    aws_cbor_decoder_consume_next_single_element(self.rawValue)
+                        == AWS_OP_SUCCESS
+                else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                return .undefined 
+            }
+
         default:
             fatalError("invalid cbor decode type")
         }
