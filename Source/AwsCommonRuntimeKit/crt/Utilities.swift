@@ -124,6 +124,11 @@ extension TimeInterval {
 }
 
 extension aws_byte_cursor {
+
+    func toData() -> Data {
+        Data(bytesNoCopy: self.ptr, count: self.len, deallocator: .none)
+    }
+
     func toString() -> String {
         if self.len == 0 {
             return ""
