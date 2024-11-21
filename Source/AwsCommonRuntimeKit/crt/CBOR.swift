@@ -1,27 +1,48 @@
-import AwsCCommon
+//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+import AwsCCommon
 import Foundation
 
-// TODO: docs, usage guide
+/// CBOR Types. These types don't map one-to-one to the CBOR RFC.
 public enum CBORType: Equatable {
+    /// UINT64 type for positive numbers.
     case uint64(_ value: UInt64)
+    /// INT64 type for negative numbers. If the number is positive, it will be encoded as UINT64 type.
     case int(_ value: Int64)
+    /// Double type. It might be encoded as an integer if possible without loss of precision. Half-precision floats are not supported.
     case double(_ value: Double)
+    /// Bytes type for binary data
     case bytes(_ value: Data)
+    /// Text type for utf-8 encoded strings
     case text(_ value: String)
+    /// Array type
     case array(_ value: [CBORType])
+    /// Map type
     case map(_ value: [String: CBORType])
+    /// Date type. It will be encoded as epoch-based date/time.
     case date(_ value: Date)
+    /// Bool type
     case bool(_ value: Bool)
+    /// Null type
     case null
+    /// Undefined type
     case undefined
+    /// Break type for indefinite-length arrays, maps, bytes, and text. For encoding, you should start the encoding
+    /// with `indef_*_start` and then end the encoding with this `indef_break` type. During decoding, you will get 
+    /// the `indef_*_start` type first, followed by N elements, and the break type at the end.
     case indef_break
+    /// Indefinite Array Type
     case indef_array_start
+    /// Indefinite Map Type
     case indef_map_start
+    /// Indefinite Bytes Type
     case indef_bytes_start
+    /// Indefinite Text Type
     case indef_text_start
 }
 
+
+/// Encoder for the CBOR Types.
 public class CBOREncoder {
     var rawValue: OpaquePointer
 
@@ -33,6 +54,10 @@ public class CBOREncoder {
         self.rawValue = rawValue
     }
 
+    /// Encode a single type
+    /// - Parameters:
+    ///   - value: value to encode 
+    /// - Throws: CommonRuntimeError.crtError
     public func encode(_ value: CBORType) {
         switch value {
         case .uint64(let value): aws_cbor_encoder_write_uint(self.rawValue, value)
@@ -88,6 +113,8 @@ public class CBOREncoder {
         }
     }
 
+    /// Get all the values encoded so far as an array of raw bytes.
+    /// This won't reset the encoder, and you will get all the bytes encoded so far from the beginning.
     public func getEncoded() -> [UInt8] {
         let encoded = aws_cbor_encoder_get_encoded_data(self.rawValue)
         print(encoded)
@@ -101,6 +128,7 @@ public class CBOREncoder {
     }
 }
 
+/// Decoder for the CBOR encoding.
 public class CBORDecoder {
     var rawValue: OpaquePointer
     // Keep a reference to data to make it outlive the decoder
@@ -119,6 +147,8 @@ public class CBORDecoder {
         self.rawValue = rawValue
     }
 
+    /// Decodes and returns the next value. If there is no value, this function will throw an error. 
+    /// You must call `hasNext()` before calling this function.
     public func popNext() throws -> CBORType {
         var cbor_type: aws_cbor_type = AWS_CBOR_TYPE_UNKNOWN
         guard aws_cbor_decoder_peek_type(self.rawValue, &cbor_type) == AWS_OP_SUCCESS else {
@@ -331,7 +361,7 @@ public class CBORDecoder {
         }
     }
 
-    // todo: docs
+    /// Returns true if there is any data left to decode.
     public func hasNext() -> Bool {
         aws_cbor_decoder_get_remaining_length(self.rawValue) != 0
     }
