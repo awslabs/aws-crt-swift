@@ -17,6 +17,9 @@ class CBORTests: XCBaseTestCase {
             .bool(true),
             .null,
             .undefined,
+            .date(Date(timeIntervalSince1970: 10.5)),
+            .array([.int(-100), .uint64(1000)]),
+            .map(["key": .uint64(100), "key2": .int(-100)]),
         ]
         // encode the values
         let encoder = CBOREncoder()

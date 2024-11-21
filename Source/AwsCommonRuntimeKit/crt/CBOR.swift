@@ -16,6 +16,8 @@ public class CBOREncoder {
         case .int(let value):
             do {
                 if value >= 0 {
+                    // TODO: This is unexpected because decoding doesn't return the same value. We should just
+                    // throw error in this case.
                     aws_cbor_encoder_write_uint(self.rawValue, UInt64(value))
                 } else {
                     aws_cbor_encoder_write_negint(self.rawValue, UInt64(-1 - value))
@@ -52,10 +54,10 @@ public class CBOREncoder {
                     aws_cbor_encoder_write_text(self.rawValue, cursor)
                 }
             }
-        case .timestamp(let value):
+        case .date(let value):
             do {
                 // tag 1 means epoch based timestamp
-                aws_cbor_encoder_write_tag(self.rawValue, 1)
+                aws_cbor_encoder_write_tag(self.rawValue, UInt64(AWS_CBOR_TAG_EPOCH_TIME))
                 aws_cbor_encoder_write_float(self.rawValue, value.timeIntervalSince1970)
             }
         case .undefined: aws_cbor_encoder_write_undefined(self.rawValue)
@@ -83,7 +85,7 @@ public enum CBORType: Equatable {
     case text(_ value: String)
     case array(_ value: [CBORType])
     case map(_ value: [String: CBORType])
-    case timestamp(_ value: Date)
+    case date(_ value: Date)
     case bool(_ value: Bool)
     case null
     case undefined
@@ -198,6 +200,68 @@ public class CBORDecoder {
                 }
                 return .null 
             }
+
+        case AWS_CBOR_TYPE_TAG:
+                var out_value: UInt64 = 0
+                guard
+                    aws_cbor_decoder_pop_next_tag_val(self.rawValue, &out_value)
+                        == AWS_OP_SUCCESS
+                else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                guard
+                    out_value == 1
+                else {
+                    // TODO: fix error
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                let timestamp = try decodeNext()
+
+                if case .double(let value) = timestamp {
+                    return .date(Date.init(timeIntervalSince1970: value))
+                }
+                else if case .uint64(let value) = timestamp {
+                    return .date(Date.init(timeIntervalSince1970: Double(value)))
+                } else if case .int(let value) = timestamp {
+                    return .date(Date.init(timeIntervalSince1970: Double(value)))
+                } else {
+                    // TODO: fix error
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+        case AWS_CBOR_TYPE_ARRAY_START:
+                var out_value: UInt64 = 0
+                guard
+                    aws_cbor_decoder_pop_next_array_start(self.rawValue, &out_value)
+                        == AWS_OP_SUCCESS
+                else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                var array: [CBORType] = [] 
+                for _ in 0..<out_value {
+                    array.append(try decodeNext())
+                }
+                return .array(array)
+        case AWS_CBOR_TYPE_MAP_START:
+                var out_value: UInt64 = 0
+                guard
+                    aws_cbor_decoder_pop_next_map_start(self.rawValue, &out_value)
+                        == AWS_OP_SUCCESS
+                else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                var map: [String: CBORType] = [:] 
+                for _ in 0..<out_value {
+                    let key = try decodeNext()
+                    if case .text(let key) = key {
+                        map[key] = try decodeNext()
+                    }
+                    else {
+                        // TODO: fix error
+                        throw CommonRunTimeError.crtError(.makeFromLastError())
+                    }
+                }
+                return .map(map)
+
         case AWS_CBOR_TYPE_UNDEFINED:
             do {
                 guard
