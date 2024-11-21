@@ -39,8 +39,6 @@ public class CBOREncoder {
         case .int(let value):
             do {
                 if value >= 0 {
-                    // TODO: This is unexpected because decoding doesn't return the same value. We should just
-                    // throw error in this case.
                     aws_cbor_encoder_write_uint(self.rawValue, UInt64(value))
                 } else {
                     aws_cbor_encoder_write_negint(self.rawValue, UInt64(-1 - value))
@@ -121,7 +119,7 @@ public class CBORDecoder {
         self.rawValue = rawValue
     }
 
-    public func decodeNext() throws -> CBORType {
+    public func popNext() throws -> CBORType {
         var cbor_type: aws_cbor_type = AWS_CBOR_TYPE_UNKNOWN
         guard aws_cbor_decoder_peek_type(self.rawValue, &cbor_type) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -223,7 +221,7 @@ public class CBORDecoder {
                 // TODO: fix error
                 throw CommonRunTimeError.crtError(.makeFromLastError())
             }
-            let timestamp = try decodeNext()
+            let timestamp = try popNext()
 
             if case .double(let value) = timestamp {
                 return .date(Date.init(timeIntervalSince1970: value))
@@ -245,7 +243,7 @@ public class CBORDecoder {
             }
             var array: [CBORType] = []
             for _ in 0..<out_value {
-                array.append(try decodeNext())
+                array.append(try popNext())
             }
             return .array(array)
         case AWS_CBOR_TYPE_MAP_START:
@@ -258,9 +256,9 @@ public class CBORDecoder {
             }
             var map: [String: CBORType] = [:]
             for _ in 0..<out_value {
-                let key = try decodeNext()
+                let key = try popNext()
                 if case .text(let key) = key {
-                    map[key] = try decodeNext()
+                    map[key] = try popNext()
                 } else {
                     // TODO: fix error
                     throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -333,6 +331,7 @@ public class CBORDecoder {
         }
     }
 
+    // todo: docs
     public func hasNext() -> Bool {
         aws_cbor_decoder_get_remaining_length(self.rawValue) != 0
     }

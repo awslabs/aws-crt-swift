@@ -49,7 +49,7 @@ class CBORTests: XCBaseTestCase {
         let decoder = try! CBORDecoder(data: encoded)
         for value in values {
             XCTAssertTrue(decoder.hasNext())
-            XCTAssertEqual(try! decoder.decodeNext(), value)
+            XCTAssertEqual(try! decoder.popNext(), value)
         }
         XCTAssertFalse(decoder.hasNext())
     }
