@@ -38,7 +38,7 @@ class CBORTests: XCBaseTestCase {
             .indef_break,
         ]
         // encode the values
-        let encoder = CBOREncoder()
+        let encoder = try! CBOREncoder()
         for value in values {
             encoder.encode(value)
         }
@@ -46,7 +46,7 @@ class CBORTests: XCBaseTestCase {
 
         print(encoded)
 
-        let decoder = CBORDecoder(data: encoded)
+        let decoder = try! CBORDecoder(data: encoded)
         for value in values {
             XCTAssertTrue(decoder.hasNext())
             XCTAssertEqual(try! decoder.decodeNext(), value)

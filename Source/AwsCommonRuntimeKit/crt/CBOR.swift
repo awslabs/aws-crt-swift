@@ -25,9 +25,12 @@ public enum CBORType: Equatable {
 public class CBOREncoder {
     var rawValue: OpaquePointer
 
-    public init() {
-        // TODO: Try init?
-        rawValue = aws_cbor_encoder_new(allocator.rawValue)!
+    public init() throws {
+        let rawValue = aws_cbor_encoder_new(allocator.rawValue)
+        guard let rawValue else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+        self.rawValue = rawValue
     }
 
     public func encode(_ value: CBORType) {
@@ -58,7 +61,6 @@ public class CBOREncoder {
                     aws_cbor_encoder_write_bytes(self.rawValue, cursor.pointee)
                 }
             }
-        //case .cbor_break: aws_cbor_encoder_write_break(self.rawValue)
         case .map(let values):
             do {
                 aws_cbor_encoder_write_map_start(self.rawValue, values.count)
@@ -76,7 +78,6 @@ public class CBOREncoder {
             }
         case .date(let value):
             do {
-                // tag 1 means epoch based timestamp
                 aws_cbor_encoder_write_tag(self.rawValue, UInt64(AWS_CBOR_TAG_EPOCH_TIME))
                 aws_cbor_encoder_write_float(self.rawValue, value.timeIntervalSince1970)
             }
@@ -95,10 +96,10 @@ public class CBOREncoder {
         }
     }
 
-    public func getEncoded() -> Data {
+    public func getEncoded() -> [UInt8] {
         let encoded = aws_cbor_encoder_get_encoded_data(self.rawValue)
         print(encoded)
-        let data = encoded.toData()
+        let data = encoded.toArray()
         print(data)
         return data
     }
@@ -111,20 +112,20 @@ public class CBOREncoder {
 public class CBORDecoder {
     var rawValue: OpaquePointer
     // Keep a reference to data to make it outlive the decoder
-    var c_array: [UInt8]
+    var data: [UInt8]
 
-    public init(data: Data) {
+    public init(data: [UInt8]) throws {
         // TODO: Try init?
-        // TODO: Can we get rid of the copy here?
-        c_array = [UInt8](repeating: 0, count: data.count)
-        data.copyBytes(to: &c_array, count: data.count)
-
-        let count = c_array.count
-        self.rawValue = self.c_array.withUnsafeBytes {
+        self.data = data
+        let count = self.data.count
+        let rawValue = self.data.withUnsafeBytes {
             let cursor = aws_byte_cursor_from_array($0.baseAddress, count)
-            return aws_cbor_decoder_new(allocator.rawValue, cursor)!
+            return aws_cbor_decoder_new(allocator.rawValue, cursor)
         }
-
+        guard let rawValue else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+        self.rawValue = rawValue
     }
 
     public func decodeNext() throws -> CBORType {
