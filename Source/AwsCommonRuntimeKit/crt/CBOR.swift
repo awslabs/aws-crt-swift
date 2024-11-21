@@ -116,11 +116,7 @@ public class CBOREncoder {
     /// Get all the values encoded so far as an array of raw bytes.
     /// This won't reset the encoder, and you will get all the bytes encoded so far from the beginning.
     public func getEncoded() -> [UInt8] {
-        let encoded = aws_cbor_encoder_get_encoded_data(self.rawValue)
-        print(encoded)
-        let data = encoded.toArray()
-        print(data)
-        return data
+        aws_cbor_encoder_get_encoded_data(self.rawValue).toArray()
     }
 
     deinit {
@@ -164,7 +160,6 @@ public class CBORDecoder {
                 else {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
-                print(out_value)
                 return .uint64(out_value)
             }
 
@@ -177,7 +172,6 @@ public class CBORDecoder {
                 else {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
-                print(out_value)
                 return .int(-(Int64(out_value + 1)))
             }
         case AWS_CBOR_TYPE_FLOAT:
@@ -189,7 +183,6 @@ public class CBORDecoder {
                 else {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
-                print(out_value)
                 return .double(out_value)
             }
         case AWS_CBOR_TYPE_BYTES:
@@ -201,7 +194,6 @@ public class CBORDecoder {
                 else {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
-                print(out_value)
                 return .bytes(out_value.toData())
             }
         case AWS_CBOR_TYPE_TEXT:
@@ -213,7 +205,6 @@ public class CBORDecoder {
                 else {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
-                print(out_value)
                 return .text(out_value.toString())
             }
         case AWS_CBOR_TYPE_BOOL:
