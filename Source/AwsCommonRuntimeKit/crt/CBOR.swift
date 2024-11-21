@@ -239,8 +239,7 @@ public class CBORDecoder {
             guard
                 out_value == 1
             else {
-                // TODO: fix error
-                throw CommonRunTimeError.crtError(.makeFromLastError())
+                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
             }
             let timestamp = try popNext()
 
@@ -251,8 +250,7 @@ public class CBORDecoder {
             } else if case .int(let value) = timestamp {
                 return .date(Date.init(timeIntervalSince1970: Double(value)))
             } else {
-                // TODO: fix error
-                throw CommonRunTimeError.crtError(.makeFromLastError())
+                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
             }
         case AWS_CBOR_TYPE_ARRAY_START:
             var out_value: UInt64 = 0
@@ -281,8 +279,7 @@ public class CBORDecoder {
                 if case .text(let key) = key {
                     map[key] = try popNext()
                 } else {
-                    // TODO: fix error
-                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                    throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
                 }
             }
             return .map(map)
