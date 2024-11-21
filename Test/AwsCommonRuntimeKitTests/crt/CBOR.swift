@@ -1,8 +1,9 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-import XCTest
 import AwsCCommon
+import XCTest
+
 @testable import AwsCommonRuntimeKit
 
 class CBORTests: XCBaseTestCase {
@@ -38,12 +39,15 @@ class CBORTests: XCBaseTestCase {
             .indef_break,
         ]
 
-        // encode the values
-        let encoder = try! CBOREncoder()
-        for value in values {
-            encoder.encode(value)
+        // encode the values. Drop the encoder to verify lifetime semantics.
+        var encoded: [UInt8] = []
+        do {
+            let encoder = try! CBOREncoder()
+            for value in values {
+                encoder.encode(value)
+            }
+            encoded = encoder.getEncoded()
         }
-        let encoded = encoder.getEncoded();
 
         // decode the values
         let decoder = try! CBORDecoder(data: encoded)
