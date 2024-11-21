@@ -7,7 +7,7 @@ import AwsCCommon
 
 class CBORTests: XCBaseTestCase {
 
-    func testCBOREncode() async throws {
+    func testCBOR() async throws {
         let values: [CBORType] = [
             .uint64(100),
             .int(-100),
@@ -20,6 +20,22 @@ class CBORTests: XCBaseTestCase {
             .date(Date(timeIntervalSince1970: 10.5)),
             .array([.int(-100), .uint64(1000)]),
             .map(["key": .uint64(100), "key2": .int(-100)]),
+            .indef_array_start,
+            .uint64(100),
+            .int(-100),
+            .indef_break,
+            .indef_map_start,
+            .text("key1"),
+            .uint64(100),
+            .text("key2"),
+            .int(-100),
+            .indef_break,
+            .indef_text_start,
+            .text("hello"),
+            .indef_break,
+            .indef_bytes_start,
+            .int(-100),
+            .indef_break,
         ]
         // encode the values
         let encoder = CBOREncoder()

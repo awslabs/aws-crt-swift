@@ -307,7 +307,7 @@ public class CBORDecoder {
                 }
                 return .indef_array_start
             }
-        case AWS_CBOR_TYPE_MAP_START:
+        case AWS_CBOR_TYPE_INDEF_MAP_START:
             do {
                 guard
                     aws_cbor_decoder_consume_next_single_element(self.rawValue)
@@ -336,7 +336,7 @@ public class CBORDecoder {
                 else {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
-                return .indef_map_start
+                return .indef_text_start
             }
 
         default:
