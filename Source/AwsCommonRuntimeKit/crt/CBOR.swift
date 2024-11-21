@@ -82,17 +82,11 @@ public class CBOREncoder {
                 aws_cbor_encoder_write_float(self.rawValue, value.timeIntervalSince1970)
             }
         case .undefined: aws_cbor_encoder_write_undefined(self.rawValue)
-
         case .indef_break: aws_cbor_encoder_write_break(self.rawValue)
-
         case .indef_array_start: aws_cbor_encoder_write_indef_array_start(self.rawValue)
-
         case .indef_map_start: aws_cbor_encoder_write_indef_map_start(self.rawValue)
-
         case .indef_bytes_start: aws_cbor_encoder_write_indef_bytes_start(self.rawValue)
-
         case .indef_text_start: aws_cbor_encoder_write_indef_text_start(self.rawValue)
-
         }
     }
 
@@ -115,7 +109,6 @@ public class CBORDecoder {
     var data: [UInt8]
 
     public init(data: [UInt8]) throws {
-        // TODO: Try init?
         self.data = data
         let count = self.data.count
         let rawValue = self.data.withUnsafeBytes {
@@ -216,7 +209,6 @@ public class CBORDecoder {
                 }
                 return .null
             }
-
         case AWS_CBOR_TYPE_TAG:
             var out_value: UInt64 = 0
             guard
@@ -275,7 +267,6 @@ public class CBORDecoder {
                 }
             }
             return .map(map)
-
         case AWS_CBOR_TYPE_UNDEFINED:
             do {
                 guard
@@ -286,7 +277,6 @@ public class CBORDecoder {
                 }
                 return .undefined
             }
-
         case AWS_CBOR_TYPE_BREAK:
             do {
                 guard
@@ -297,7 +287,6 @@ public class CBORDecoder {
                 }
                 return .indef_break
             }
-
         case AWS_CBOR_TYPE_INDEF_ARRAY_START:
             do {
                 guard
@@ -339,10 +328,8 @@ public class CBORDecoder {
                 }
                 return .indef_text_start
             }
-
         default:
-            // TODO: just fail the decoding?
-            fatalError("invalid cbor decode type")
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
         }
     }
 
