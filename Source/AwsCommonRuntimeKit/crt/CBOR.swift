@@ -2,6 +2,23 @@ import AwsCCommon
 //  SPDX-License-Identifier: Apache-2.0.
 import Foundation
 
+// TODO: docs, usage guide
+public enum CBORType: Equatable {
+    case uint64(_ value: UInt64)
+    case int(_ value: Int64)
+    case double(_ value: Double)
+    case bytes(_ value: Data)
+    case text(_ value: String)
+    case array(_ value: [CBORType])
+    case map(_ value: [String: CBORType])
+    case date(_ value: Date)
+    case bool(_ value: Bool)
+    case null
+    case undefined
+    //case cbor_break
+    // ask if they need unbounded arrays, map, text, bytes
+}
+
 public class CBOREncoder {
     var rawValue: OpaquePointer
 
@@ -77,22 +94,6 @@ public class CBOREncoder {
     }
 }
 
-public enum CBORType: Equatable {
-    case uint64(_ value: UInt64)
-    case int(_ value: Int64)
-    case double(_ value: Double)
-    case bytes(_ value: Data)
-    case text(_ value: String)
-    case array(_ value: [CBORType])
-    case map(_ value: [String: CBORType])
-    case date(_ value: Date)
-    case bool(_ value: Bool)
-    case null
-    case undefined
-    //case cbor_break
-    // ask if they need unbounded arrays, map, text, bytes
-}
-
 public class CBORDecoder {
     var rawValue: OpaquePointer
     // Keep a reference to data to make it outlive the decoder
@@ -104,7 +105,7 @@ public class CBORDecoder {
         c_array = [UInt8](repeating: 0, count: data.count)
         data.copyBytes(to: &c_array, count: data.count)
 
-        let count = c_array.count;
+        let count = c_array.count
         self.rawValue = self.c_array.withUnsafeBytes {
             let cursor = aws_byte_cursor_from_array($0.baseAddress, count)
             return aws_cbor_decoder_new(allocator.rawValue, cursor)!
@@ -141,7 +142,7 @@ public class CBORDecoder {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
                 print(out_value)
-                return .int(-(Int64(out_value+1)))
+                return .int(-(Int64(out_value + 1)))
             }
         case AWS_CBOR_TYPE_FLOAT:
             do {
@@ -153,7 +154,7 @@ public class CBORDecoder {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
                 print(out_value)
-                return .double(out_value) 
+                return .double(out_value)
             }
         case AWS_CBOR_TYPE_BYTES:
             do {
@@ -181,7 +182,7 @@ public class CBORDecoder {
             }
         case AWS_CBOR_TYPE_BOOL:
             do {
-                var out_value: Bool = false;
+                var out_value: Bool = false
                 guard
                     aws_cbor_decoder_pop_next_boolean_val(self.rawValue, &out_value)
                         == AWS_OP_SUCCESS
@@ -198,69 +199,67 @@ public class CBORDecoder {
                 else {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
-                return .null 
+                return .null
             }
 
         case AWS_CBOR_TYPE_TAG:
-                var out_value: UInt64 = 0
-                guard
-                    aws_cbor_decoder_pop_next_tag_val(self.rawValue, &out_value)
-                        == AWS_OP_SUCCESS
-                else {
-                    throw CommonRunTimeError.crtError(.makeFromLastError())
-                }
-                guard
-                    out_value == 1
-                else {
-                    // TODO: fix error
-                    throw CommonRunTimeError.crtError(.makeFromLastError())
-                }
-                let timestamp = try decodeNext()
+            var out_value: UInt64 = 0
+            guard
+                aws_cbor_decoder_pop_next_tag_val(self.rawValue, &out_value)
+                    == AWS_OP_SUCCESS
+            else {
+                throw CommonRunTimeError.crtError(.makeFromLastError())
+            }
+            guard
+                out_value == 1
+            else {
+                // TODO: fix error
+                throw CommonRunTimeError.crtError(.makeFromLastError())
+            }
+            let timestamp = try decodeNext()
 
-                if case .double(let value) = timestamp {
-                    return .date(Date.init(timeIntervalSince1970: value))
-                }
-                else if case .uint64(let value) = timestamp {
-                    return .date(Date.init(timeIntervalSince1970: Double(value)))
-                } else if case .int(let value) = timestamp {
-                    return .date(Date.init(timeIntervalSince1970: Double(value)))
+            if case .double(let value) = timestamp {
+                return .date(Date.init(timeIntervalSince1970: value))
+            } else if case .uint64(let value) = timestamp {
+                return .date(Date.init(timeIntervalSince1970: Double(value)))
+            } else if case .int(let value) = timestamp {
+                return .date(Date.init(timeIntervalSince1970: Double(value)))
+            } else {
+                // TODO: fix error
+                throw CommonRunTimeError.crtError(.makeFromLastError())
+            }
+        case AWS_CBOR_TYPE_ARRAY_START:
+            var out_value: UInt64 = 0
+            guard
+                aws_cbor_decoder_pop_next_array_start(self.rawValue, &out_value)
+                    == AWS_OP_SUCCESS
+            else {
+                throw CommonRunTimeError.crtError(.makeFromLastError())
+            }
+            var array: [CBORType] = []
+            for _ in 0..<out_value {
+                array.append(try decodeNext())
+            }
+            return .array(array)
+        case AWS_CBOR_TYPE_MAP_START:
+            var out_value: UInt64 = 0
+            guard
+                aws_cbor_decoder_pop_next_map_start(self.rawValue, &out_value)
+                    == AWS_OP_SUCCESS
+            else {
+                throw CommonRunTimeError.crtError(.makeFromLastError())
+            }
+            var map: [String: CBORType] = [:]
+            for _ in 0..<out_value {
+                let key = try decodeNext()
+                if case .text(let key) = key {
+                    map[key] = try decodeNext()
                 } else {
                     // TODO: fix error
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
-        case AWS_CBOR_TYPE_ARRAY_START:
-                var out_value: UInt64 = 0
-                guard
-                    aws_cbor_decoder_pop_next_array_start(self.rawValue, &out_value)
-                        == AWS_OP_SUCCESS
-                else {
-                    throw CommonRunTimeError.crtError(.makeFromLastError())
-                }
-                var array: [CBORType] = [] 
-                for _ in 0..<out_value {
-                    array.append(try decodeNext())
-                }
-                return .array(array)
-        case AWS_CBOR_TYPE_MAP_START:
-                var out_value: UInt64 = 0
-                guard
-                    aws_cbor_decoder_pop_next_map_start(self.rawValue, &out_value)
-                        == AWS_OP_SUCCESS
-                else {
-                    throw CommonRunTimeError.crtError(.makeFromLastError())
-                }
-                var map: [String: CBORType] = [:] 
-                for _ in 0..<out_value {
-                    let key = try decodeNext()
-                    if case .text(let key) = key {
-                        map[key] = try decodeNext()
-                    }
-                    else {
-                        // TODO: fix error
-                        throw CommonRunTimeError.crtError(.makeFromLastError())
-                    }
-                }
-                return .map(map)
+            }
+            return .map(map)
 
         case AWS_CBOR_TYPE_UNDEFINED:
             do {
@@ -270,10 +269,11 @@ public class CBORDecoder {
                 else {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
-                return .undefined 
+                return .undefined
             }
 
         default:
+            // TODO: just fail the decoding?
             fatalError("invalid cbor decode type")
         }
     }
