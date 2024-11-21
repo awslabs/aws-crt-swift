@@ -15,8 +15,11 @@ public enum CBORType: Equatable {
     case bool(_ value: Bool)
     case null
     case undefined
-    //case cbor_break
-    // ask if they need unbounded arrays, map, text, bytes
+    case indef_break
+    case indef_array_start
+    case indef_map_start
+    case indef_bytes_start
+    case indef_text_start
 }
 
 public class CBOREncoder {
@@ -78,6 +81,17 @@ public class CBOREncoder {
                 aws_cbor_encoder_write_float(self.rawValue, value.timeIntervalSince1970)
             }
         case .undefined: aws_cbor_encoder_write_undefined(self.rawValue)
+
+        case .indef_break: aws_cbor_encoder_write_break(self.rawValue)
+
+        case .indef_array_start: aws_cbor_encoder_write_indef_array_start(self.rawValue)
+
+        case .indef_map_start: aws_cbor_encoder_write_indef_map_start(self.rawValue)
+
+        case .indef_bytes_start: aws_cbor_encoder_write_indef_bytes_start(self.rawValue)
+
+        case .indef_text_start: aws_cbor_encoder_write_indef_text_start(self.rawValue)
+
         }
     }
 
@@ -270,6 +284,59 @@ public class CBORDecoder {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
                 return .undefined
+            }
+
+        case AWS_CBOR_TYPE_BREAK:
+            do {
+                guard
+                    aws_cbor_decoder_consume_next_single_element(self.rawValue)
+                        == AWS_OP_SUCCESS
+                else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                return .indef_break
+            }
+
+        case AWS_CBOR_TYPE_INDEF_ARRAY_START:
+            do {
+                guard
+                    aws_cbor_decoder_consume_next_single_element(self.rawValue)
+                        == AWS_OP_SUCCESS
+                else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                return .indef_array_start
+            }
+        case AWS_CBOR_TYPE_MAP_START:
+            do {
+                guard
+                    aws_cbor_decoder_consume_next_single_element(self.rawValue)
+                        == AWS_OP_SUCCESS
+                else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                return .indef_map_start
+            }
+
+        case AWS_CBOR_TYPE_INDEF_BYTES_START:
+            do {
+                guard
+                    aws_cbor_decoder_consume_next_single_element(self.rawValue)
+                        == AWS_OP_SUCCESS
+                else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                return .indef_bytes_start
+            }
+        case AWS_CBOR_TYPE_INDEF_TEXT_START:
+            do {
+                guard
+                    aws_cbor_decoder_consume_next_single_element(self.rawValue)
+                        == AWS_OP_SUCCESS
+                else {
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
+                return .indef_map_start
             }
 
         default:
