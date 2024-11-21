@@ -41,7 +41,6 @@ public enum CBORType: Equatable {
     case indef_text_start
 }
 
-
 /// Encoder for the CBOR Types.
 public class CBOREncoder {
     var rawValue: OpaquePointer
@@ -145,6 +144,7 @@ public class CBORDecoder {
 
     /// Decodes and returns the next value. If there is no value, this function will throw an error. 
     /// You must call `hasNext()` before calling this function.
+    // swiftlint:disable function_body_length 
     public func popNext() throws -> CBORType {
         var cbor_type: aws_cbor_type = AWS_CBOR_TYPE_UNKNOWN
         guard aws_cbor_decoder_peek_type(self.rawValue, &cbor_type) == AWS_OP_SUCCESS else {
