@@ -31,14 +31,14 @@ public enum CBORType: Equatable {
     /// with `indef_*_start` and then end the encoding with this `indef_break` type. During decoding, you will get 
     /// the `indef_*_start` type first, followed by N elements, and the break type at the end.
     case indef_break
-    /// Indefinite Array Type
-    case indef_array_start
-    /// Indefinite Map Type
-    case indef_map_start
     /// Indefinite Bytes Type
     case indef_bytes_start
     /// Indefinite Text Type
     case indef_text_start
+    /// Indefinite Array Type
+    case indef_array_start
+    /// Indefinite Map Type
+    case indef_map_start
 }
 
 /// Encoder for the CBOR Types.
