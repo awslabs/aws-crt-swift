@@ -172,7 +172,7 @@ public class CBORDecoder {
                 else {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
-                return .int(-(Int64(out_value + 1)))
+                return .int(Int64(-Int64(out_value) - 1))
             }
         case AWS_CBOR_TYPE_FLOAT:
             do {
