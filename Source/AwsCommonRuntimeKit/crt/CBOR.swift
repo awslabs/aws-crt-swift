@@ -6,7 +6,7 @@ import Foundation
 /// CBOR Types. These types don't map one-to-one to the CBOR RFC.
 public enum CBORType: Equatable {
     /// UINT64 type for positive numbers.
-    case uint64(_ value: UInt64)
+    case uint(_ value: UInt64)
     /// INT64 type for negative numbers. If the number is positive, it will be encoded as UINT64 type.
     case int(_ value: Int64)
     /// Double type. It might be encoded as an integer if possible without loss of precision. Half-precision floats are not supported.
@@ -63,7 +63,7 @@ public class CBOREncoder {
     /// - Throws: CommonRuntimeError.crtError
     public func encode(_ value: CBORType) {
         switch value {
-        case .uint64(let value): aws_cbor_encoder_write_uint(self.rawValue, value)
+        case .uint(let value): aws_cbor_encoder_write_uint(self.rawValue, value)
         case .int(let value):
             do {
                 if value >= 0 {
@@ -165,7 +165,7 @@ public class CBORDecoder {
                 else {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
-                return .uint64(out_value)
+                return .uint(out_value)
             }
 
         case AWS_CBOR_TYPE_NEGINT:
@@ -249,7 +249,7 @@ public class CBORDecoder {
 
             if case .double(let value) = timestamp {
                 return .date(Date.init(timeIntervalSince1970: value))
-            } else if case .uint64(let value) = timestamp {
+            } else if case .uint(let value) = timestamp {
                 return .date(Date.init(timeIntervalSince1970: Double(value)))
             } else if case .int(let value) = timestamp {
                 return .date(Date.init(timeIntervalSince1970: Double(value)))
