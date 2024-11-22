@@ -177,6 +177,9 @@ public class CBORDecoder {
                 else {
                     throw CommonRunTimeError.crtError(.makeFromLastError())
                 }
+                guard out_value <= Int64.max else {
+                    throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
+                }
                 return .int(Int64(-Int64(out_value) - 1))
             }
         case AWS_CBOR_TYPE_FLOAT:
