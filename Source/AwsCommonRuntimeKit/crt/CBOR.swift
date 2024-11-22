@@ -27,6 +27,10 @@ public enum CBORType: Equatable {
     case null
     /// Undefined type
     case undefined
+    /// Tag type. Refer to RFC8949, section 3.4. For tag 1 (epoch-based time), 
+    /// you should use the `date` type, which is a helper for this. 
+    /// Values with tag 1 will be decoded as the `date` type.
+    case tag(_ value: UInt64)
     /// Break type for indefinite-length arrays, maps, bytes, and text. For encoding, you should start the encoding
     /// with `indef_*_start` and then end the encoding with this `indef_break` type. During decoding, you will get 
     /// the `indef_*_start` type first, followed by N elements, and the break type at the end.
@@ -104,6 +108,7 @@ public class CBOREncoder {
                 aws_cbor_encoder_write_float(self.rawValue, value.timeIntervalSince1970)
             }
         case .undefined: aws_cbor_encoder_write_undefined(self.rawValue)
+        case .tag(let value): aws_cbor_encoder_write_tag(self.rawValue, value)
         case .indef_break: aws_cbor_encoder_write_break(self.rawValue)
         case .indef_array_start: aws_cbor_encoder_write_indef_array_start(self.rawValue)
         case .indef_map_start: aws_cbor_encoder_write_indef_map_start(self.rawValue)
@@ -236,11 +241,10 @@ public class CBORDecoder {
             else {
                 throw CommonRunTimeError.crtError(.makeFromLastError())
             }
-            guard
-                out_value == 1
-            else {
-                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
+            if out_value != 1 {
+                return .tag(out_value)
             }
+
             let timestamp = try popNext()
 
             if case .double(let value) = timestamp {

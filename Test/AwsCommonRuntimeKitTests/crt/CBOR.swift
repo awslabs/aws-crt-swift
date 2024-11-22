@@ -10,6 +10,7 @@ class CBORTests: XCBaseTestCase {
 
     func testCBOR() async throws {
         let values_to_encode: [CBORType] = [
+            // simple types
             .uint64(100),
             .uint64(UInt64.min),
             .uint64(UInt64.max),
@@ -18,14 +19,22 @@ class CBORTests: XCBaseTestCase {
             .int(Int64.max),
             .double(10.59),
             .double(10.0),
-            .bytes("hello".data(using: .utf8)!),
-            .text("hello"),
             .bool(true),
             .null,
             .undefined,
-            .date(Date(timeIntervalSince1970: 10.5)),
+            // test tag
+            .tag(0),
+            .uint64(100),
+            // test that tag 1 is decoded as date
+            .tag(1),
+            .double(Date(timeIntervalSince1970: 10.5).timeIntervalSince1970),
+            .date(Date(timeIntervalSince1970: 20.5)),
+            // complex types
             .array([.int(-100), .uint64(1000)]),
             .map(["key": .uint64(100), "key2": .int(-100)]),
+            .bytes("hello".data(using: .utf8)!),
+            .text("hello"),
+            // indef types
             .indef_array_start,
             .uint64(100),
             .int(-100),
@@ -44,6 +53,7 @@ class CBORTests: XCBaseTestCase {
             .indef_break,
         ]
         let expected_decoded_values: [CBORType] = [
+            // simple types
             .uint64(100),
             .uint64(UInt64.min),
             .uint64(UInt64.max),
@@ -52,14 +62,20 @@ class CBORTests: XCBaseTestCase {
             .uint64(UInt64(Int64.max)),
             .double(10.59),
             .uint64(10),
-            .bytes("hello".data(using: .utf8)!),
-            .text("hello"),
             .bool(true),
             .null,
             .undefined,
+            // test tag
+            .tag(0),
+            .uint64(100),
             .date(Date(timeIntervalSince1970: 10.5)),
+            .date(Date(timeIntervalSince1970: 20.5)),
+            // complex types
             .array([.int(-100), .uint64(1000)]),
             .map(["key": .uint64(100), "key2": .int(-100)]),
+            .bytes("hello".data(using: .utf8)!),
+            .text("hello"),
+            // indef types
             .indef_array_start,
             .uint64(100),
             .int(-100),
