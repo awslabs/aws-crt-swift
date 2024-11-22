@@ -4,6 +4,7 @@ import AwsCCommon
 import Foundation
 
 /// CBOR Types. These types don't map one-to-one to the CBOR RFC.
+/// Numbers will be encoded using the "smallest possible" encoding.
 public enum CBORType: Equatable {
     /// UINT64 type for positive numbers.
     case uint(_ value: UInt64)
@@ -19,7 +20,9 @@ public enum CBORType: Equatable {
     case array(_ value: [CBORType])
     /// Map type
     case map(_ value: [String: CBORType])
-    /// Date type. It will be encoded as epoch-based date/time.
+    /// Date type. It will be encoded as epoch-based time.
+    /// There might be some precision loss if this is encoded as an integer and 
+    /// later converted to a double in some cases.
     case date(_ value: Date)
     /// Bool type
     case bool(_ value: Bool)
