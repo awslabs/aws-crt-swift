@@ -5,6 +5,7 @@ import Foundation
 
 /// CBOR Types. These types don't map one-to-one to the CBOR RFC.
 /// Numbers will be encoded using the "smallest possible" encoding.
+/// Warning: This enum is non-exhaustive and subject to change in the future.
 public enum CBORType: Equatable {
     /// UINT64 type for positive numbers.
     case uint(_ value: UInt64)
