@@ -136,7 +136,7 @@ public class CBOREncoder {
 public class CBORDecoder {
     var rawValue: OpaquePointer
     // Keep a reference to data to make it outlive the decoder
-    var data: [UInt8]
+    let data: [UInt8]
 
     public init(data: [UInt8]) throws {
         self.data = data
