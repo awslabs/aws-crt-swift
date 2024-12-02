@@ -73,9 +73,15 @@ jobs:
       BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.MOBILEPROVISION_BASE64 }}
       KEYCHAIN_PASSWORD: ${{ secrets.TEST_KEYCHAIN_PASSWORD }}
     steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
       - name : 
         run : |
           pwd
+          ls
           cd aws-crt-swift/Test/IntegrationTests/MqttClient
           ENDPOINT=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "test/endpoint" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
           cert=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "test/cert" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\") && echo -e "$cert" > ./cert.pem
