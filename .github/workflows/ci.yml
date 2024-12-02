@@ -75,8 +75,8 @@ jobs:
     steps:
       - name : 
         run : |
-          ls
-          cd Test/IntegrationTests/MqttClient
+          pwd
+          cd aws-crt-swift/Test/IntegrationTests/MqttClient
           ENDPOINT=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "test/endpoint" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
           cert=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "test/cert" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\") && echo -e "$cert" > ./cert.pem
           key=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "test/privatekey" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\") && echo -e "$key" > ./privatekey.pem
