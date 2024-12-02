@@ -150,7 +150,7 @@ class MqttTestContext: ObservableObject {
             self.semaphoreConnectionFailure.signal()
         }
         self.onLifecycleEventDisconnection = onLifecycleEventDisconnection ?? { disconnectionData in
-            self.printView(contextName + " Mqtt5ClientTests: onLifecycleEventDisconnection")
+            self.printView(contextName + " Mqtt5ClientTests: onLifecycleEventDisconnection:  \(disconnectionData.crtError.code)")
             self.lifecycleDisconnectionData = disconnectionData
             self.semaphoreDisconnection.signal()
         }
@@ -208,15 +208,47 @@ func setupClientAndStart() {
 
         let ConnectPacket = MqttConnectOptions(keepAliveInterval: 60, clientId: createClientId())
 
+//        let certPath = Bundle.main.path(forResource: "cert", ofType: "pem")!
+//        let keypath = Bundle.main.path(forResource: "privatekey", ofType: "pem")!
+//        
+//        let certtext = try! String(contentsOf: Bundle.main.url(forResource: "cert", withExtension: "pem")!)
+//        let keytext = try! String(contentsOf: Bundle.main.url(forResource: "privatekey", withExtension: "pem")!)
+//
+        let certData = try! Data(contentsOf: Bundle.main.url(forResource: "cert", withExtension: "pem")!)
+        let keyData = try! Data(contentsOf: Bundle.main.url(forResource: "privatekey", withExtension: "pem")!)
+//        
+//        mqttTestContext.printView("cert path" + certtext);
+//        mqttTestContext.printView("key path" + keytext);
+//        
+//        
+        let tlsOptions = try! TLSContextOptions.makeMTLS(
+            certificateData: certData, privateKeyData: keyData
+        )
+        let tlsContext = try! TLSContext(options: tlsOptions, mode: .client)
+        
+        
         let clientOptions = MqttClientOptions(
             hostName: TEST_HOST,
             port: TEST_PORT,
+            tlsCtx: tlsContext,
             connectOptions: ConnectPacket,
-            connackTimeout: TimeInterval(10))
-
+            connackTimeout: TimeInterval(10000))
         do {
-            client = try createClient(clientOptions: clientOptions, testContext: mqttTestContext)
+            client = try! createClient(clientOptions: clientOptions, testContext: mqttTestContext)
             try connectClient(client: client!, testContext: mqttTestContext)
+
+            let topic = "test/topic";
+
+            Task {
+                var index = 0;
+                while(true){
+                    let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic, payload: ("Hello World \(index)".data(using: .utf8)));
+                    let _: PublishResult = try! await client!.publish(publishPacket: publishPacket)
+                    index += 1;
+                    sleep(1);
+                }
+            }
+            
         } catch {
             mqttTestContext.printView("Failed to setup client.")
         }
