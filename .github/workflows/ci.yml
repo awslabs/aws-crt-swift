@@ -73,6 +73,13 @@ jobs:
       BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.MOBILEPROVISION_BASE64 }}
       KEYCHAIN_PASSWORD: ${{ secrets.TEST_KEYCHAIN_PASSWORD }}
     steps:
+      - name : 
+        run : |
+          cd aws-crt-swift/Test/IntegrationTests/MqttClient
+          ENDPOINT=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "test/endpoint" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
+          cert=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "test/cert" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\") && echo -e "$cert" > ./cert.pem
+          key=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "test/privatekey" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\") && echo -e "$key" > ./privatekey.pem
+          sed -i '' "s/<endpoint>/${ENDPOINT}/g" ContextView.swift
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
           python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
@@ -96,7 +103,7 @@ jobs:
           # apply provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
-      - name: Buil Test App
+      - name: Build Test App
         run: |
           xcode-select --print-path
           pwd

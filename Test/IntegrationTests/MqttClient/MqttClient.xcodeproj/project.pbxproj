@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A6183C4B2CFE3157007281B8 /* cert.pem in Resources */ = {isa = PBXBuildFile; fileRef = A6183C482CFE3157007281B8 /* cert.pem */; };
+		A6183C4F2CFE322E007281B8 /* privatekey.pem in Resources */ = {isa = PBXBuildFile; fileRef = A6183C4E2CFE322E007281B8 /* privatekey.pem */; };
 		A63CEBB52C238347003A71B7 /* MqttClientApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63CEBB42C238347003A71B7 /* MqttClientApp.swift */; };
 		A63CEBB72C238347003A71B7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63CEBB62C238347003A71B7 /* ContentView.swift */; };
 		A63CEBC62C2387A3003A71B7 /* AwsCommonRuntimeKit in Frameworks */ = {isa = PBXBuildFile; productRef = A63CEBC52C2387A3003A71B7 /* AwsCommonRuntimeKit */; };
@@ -16,6 +18,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A6183C482CFE3157007281B8 /* cert.pem */ = {isa = PBXFileReference; lastKnownFileType = text; path = cert.pem; sourceTree = "<group>"; };
+		A6183C4E2CFE322E007281B8 /* privatekey.pem */ = {isa = PBXFileReference; lastKnownFileType = text; path = privatekey.pem; sourceTree = "<group>"; };
 		A63CEBB12C238347003A71B7 /* MqttClient.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MqttClient.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A63CEBB42C238347003A71B7 /* MqttClientApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MqttClientApp.swift; sourceTree = "<group>"; };
 		A63CEBB62C238347003A71B7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -58,6 +62,8 @@
 				A6C798762C238DD30055AE09 /* Assets.xcassets */,
 				A63CEBB42C238347003A71B7 /* MqttClientApp.swift */,
 				A63CEBB62C238347003A71B7 /* ContentView.swift */,
+				A6183C482CFE3157007281B8 /* cert.pem */,
+				A6183C4E2CFE322E007281B8 /* privatekey.pem */,
 			);
 			path = MqttClient;
 			sourceTree = "<group>";
@@ -128,7 +134,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A6183C4F2CFE322E007281B8 /* privatekey.pem in Resources */,
 				A6C798772C238DD30055AE09 /* Assets.xcassets in Resources */,
+				A6183C4B2CFE3157007281B8 /* cert.pem in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -274,7 +282,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = 3V5W3HV3D4;
+				DEVELOPMENT_TEAM = K33Z8NL3RV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MqttClient/Info.plist;
@@ -304,7 +312,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = 3V5W3HV3D4;
+				DEVELOPMENT_TEAM = K33Z8NL3RV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MqttClient/Info.plist;

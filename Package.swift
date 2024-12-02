@@ -145,7 +145,7 @@ cSettingsIO.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
 cSettingsIO.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
 swiftTestSettings.append(.define("__APPLE__"))
 swiftTestSettings.append(.define("AWS_ENABLE_DISPATCH_QUEUE", .when(platforms: [.iOS, .tvOS, .macOS])))
-swiftTestSettings.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
+swiftTestSettings.append(.define("AWS_USE_SECITEM", .when(platforms: [.macOS, .iOS, .tvOS])))
 swiftTestSettings.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
 #endif
 

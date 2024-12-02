@@ -7,7 +7,7 @@ import AwsCommonRuntimeKit
 // The app setup a direct connection with default TLS options.
 // Update the host and port before run the app.
 let TEST_HOST = "<endpoint>"
-let TEST_PORT: UInt32 = 1883
+let TEST_PORT: UInt32 = 8883
 var mqttTestContext = MqttTestContext()
 var client: Mqtt5Client?
 
@@ -216,7 +216,7 @@ func setupClientAndStart() {
 //
         let certData = try! Data(contentsOf: Bundle.main.url(forResource: "cert", withExtension: "pem")!)
         let keyData = try! Data(contentsOf: Bundle.main.url(forResource: "privatekey", withExtension: "pem")!)
-//        
+
 //        mqttTestContext.printView("cert path" + certtext);
 //        mqttTestContext.printView("key path" + keytext);
 //        
