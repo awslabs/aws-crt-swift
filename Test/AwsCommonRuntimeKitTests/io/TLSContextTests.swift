@@ -39,4 +39,20 @@ class TLSContextTests: XCBaseTestCase {
         _ = TLSConnectionOptions(context: context)
     }
 #endif
+
+#if AWS_USE_SECITEM
+    func testCreateTlsContextWithSecitemOptions() throws {
+        let certPath = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT311_IOT_CORE_X509_CERT")
+        let privateKeyPath = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT311_IOT_CORE_X509_KEY")
+
+        let certificateData = try Data(contentsOf: URL(fileURLWithPath: certPath))
+        let privateKeyData = try Data(contentsOf: URL(fileURLWithPath: privateKeyPath))
+
+        let options = try TLSContextOptions.makeMTLS(certificateData: certificateData, privateKeyData: privateKeyData)
+        try options.setSecitemLabels(certLabel: "TEST_CERT_LABEL", keyLabel: "TEST_KEY_LABEL")
+
+        let context = try TLSContext(options:options, mode: .client)
+        _ = TLSConnectionOptions(context: context)
+    }
+#endif
 }
