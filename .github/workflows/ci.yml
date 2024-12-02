@@ -102,7 +102,7 @@ jobs:
           ENDPOINT=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "unit-test/endpoint" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
           cert=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "unit-test/certificate" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\") && echo -e "$cert" > ./cert.pem
           key=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "unit-test/privatekey" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\") && echo -e "$key" > ./privatekey.pem
-          sed -i '' "s/<endpoint>/${ENDPOINT}/g" ContextView.swift
+          sed -i '' "s/<endpoint>/${ENDPOINT}/g" ContentView.swift
       - name: Build Test App
         run: |
           xcode-select --print-path
