@@ -61,6 +61,123 @@ jobs:
           chmod a+x builder
           ./builder build -p ${{ env.PACKAGE_NAME }}
 
+  ios-integration-test:
+    runs-on: macos-14
+    permissions:
+      id-token: write # This is required for requesting the JWT
+      contents: read # This is required for actions/checkout
+    env:
+      DEVELOPER_DIR: /Applications/Xcode.app
+      XCODE_DESTINATION: 'OS X'
+      NSUnbufferedIO: YES
+      BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.MOBILEPROVISION_BASE64 }}
+      KEYCHAIN_PASSWORD: ${{ secrets.TEST_KEYCHAIN_PASSWORD }}
+    steps:
+      - name: Build ${{ env.PACKAGE_NAME }} + consumers
+        run: |
+          python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
+          chmod a+x builder
+          ./builder build -p ${{ env.PACKAGE_NAME }}
+      - name: Install the Apple certificate and provisioning profile
+        run: |
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          PP_PATH=$RUNNER_TEMP/mqttclient.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          aws s3 cp s3://aws-crt-test-stuff/iosTestApp.p12 $CERTIFICATE_PATH
+          aws s3 cp s3://aws-crt-test-stuff/aws-common-runtime.MqttClient.mobileprovision $PP_PATH
+          pkcs12_identity_pw=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/ios/pkcs12_identity_password" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$pkcs12_identity_pw" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+          # apply provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+      - name : Setup iOS App Credentials
+        run : |
+          cd aws-crt-swift/Test/IntegrationTests/MqttClient/MqttClient
+          ENDPOINT=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "unit-test/endpoint" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
+          cert=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "unit-test/certificate" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\") && echo -e "$cert" > ./cert.pem
+          key=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "unit-test/privatekey" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\") && echo -e "$key" > ./privatekey.pem
+          sed -i '' "s/<endpoint>/${ENDPOINT}/g" ContentView.swift
+      - name: Build Test App
+        run: |
+          xcode-select --print-path
+          pwd
+          cd aws-crt-swift/Test/IntegrationTests/MqttClient
+          pwd
+          xcodebuild -resolvePackageDependencies
+          echo "start build app"
+          xcodebuild -scheme "MqttClient" \
+          -archivePath $RUNNER_TEMP/MqttClient.xcarchive \
+          -configuration Release \
+          -destination generic/platform=iOS \
+          clean archive -allowProvisioningUpdates
+      - name: Export ipa
+        run: |
+          cd aws-crt-swift/Test/IntegrationTests/MqttClient
+          aws s3 cp s3://aws-crt-test-stuff/ExportOptions.plist ExportOptions.plist
+          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/MqttClient.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath output
+          cd output
+          ls
+      - name: Setup Device Farm test file and environment
+      # Device Farm Instructions: https://docs.aws.amazon.com/devicefarm/latest/developerguide/test-types-appium.html
+        run: |
+          cd aws-crt-swift/Test/IntegrationTests/MqttClient
+          pwd
+          pip install virtualenv
+          virtualenv --help
+          virtualenv workspace
+          cd workspace
+          source bin/activate
+          pip install -r ../DeviceFarmScript/requirements.txt
+          # Create a test bundle folder for upload
+          mkdir tests
+          cp ../DeviceFarmScript/mqtt_ios_test.py tests/
+          find tests/
+          py.test --collect-only tests/
+          cd tests/
+          find . -name '__pycache__' -type d -exec rm -r {} +
+          find . -name '*.pyc' -exec rm -f {} +
+          find . -name '*.pyo' -exec rm -f {} +
+          find . -name '*~' -exec rm -f {} +
+          cd ..
+          pip freeze > requirements.txt
+          zip -r test_bundle.zip tests/ requirements.txt
+      - name: configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: us-west-2 # Device Farm only available on us-west-2
+      - name: Execute device farm iOS Highly Available
+        run: |
+          cd aws-crt-swift/Test/IntegrationTests/MqttClient
+          pip install -r ./DeviceFarmScript/requirements.txt
+          ls
+          python ./DeviceFarmScript/run_ios_ci.py \
+          --run_id ${{ github.run_id }} \
+          --run_attempt ${{ github.run_attempt }} \
+          --project_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/iOSProjectArn" --query "SecretString" | cut -f2 -d\") \
+          --device_pool_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/iOSHighlyAvailablePool" --query "SecretString" | cut -f2 -d\") \
+          --app_file_path ./output/MqttClient.ipa \
+          --test_file_path ./workspace/test_bundle.zip \
+          --test_spec_file_path ./DeviceFarmScript/test_spec.yml
+      - name: Execute device farm iOS 13
+        run: |
+          cd aws-crt-swift/Test/IntegrationTests/MqttClient
+          pip install -r ./DeviceFarmScript/requirements.txt
+          ls
+          python ./DeviceFarmScript/run_ios_ci.py \
+          --run_id ${{ github.run_id }} \
+          --run_attempt ${{ github.run_attempt }} \
+          --project_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/iOSProjectArn" --query "SecretString" | cut -f2 -d\") \
+          --device_pool_arn $(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/DeviceFarm/iOS13PoolArn" --query "SecretString" | cut -f2 -d\") \
+          --app_file_path ./output/MqttClient.ipa \
+          --test_file_path ./workspace/test_bundle.zip \
+          --test_spec_file_path ./DeviceFarmScript/test_spec.yml
+
   devices:
     runs-on: ${{ matrix.runner }}
     env:
@@ -70,7 +187,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # This matrix runs tests on iOS, tvOS & watchOS, on oldest & newest supported Xcodes
+        # This matrix runs tests on iOS and tvOS on oldest & newest supported Xcodes
         runner:
           - macos-12 # x64
           - macos-13 # x64
@@ -81,9 +198,7 @@ jobs:
           [{ os: ios, destination: 'iOS Simulator,OS=16.1,name=iPhone 14'},
            { os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15'},
            { os: tvos, destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'},
-           { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'},
-           { os: watchos, destination: 'watchOS Simulator,OS=10.2,name=Apple Watch SE (40mm) (2nd generation)'},
-           { os: watchos, destination: 'watchOS Simulator,OS=9.1,name=Apple Watch Series 5 (40mm)'}]
+           { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'}]
         xcode:
           - Xcode_14.1
           - Xcode_15.2
@@ -110,10 +225,6 @@ jobs:
             xcode: Xcode_14.1
           - target: { os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15'}
             xcode: Xcode_14.1
-          - target: { os: watchos, destination: 'watchOS Simulator,OS=10.2,name=Apple Watch SE (40mm) (2nd generation)'}
-            xcode: Xcode_14.1
-          - target: { os: watchos, destination: 'watchOS Simulator,OS=9.1,name=Apple Watch Series 5 (40mm)'}
-            xcode: Xcode_15.2
     steps:
       - name: Build ${{ env.PACKAGE_NAME }} + consumers
         run: |
