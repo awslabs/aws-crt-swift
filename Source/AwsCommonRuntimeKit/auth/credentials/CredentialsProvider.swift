@@ -483,11 +483,11 @@ extension CredentialsProvider.Source {
         Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var stsOptions = aws_credentials_provider_sts_options()
+            stsOptions.bootstrap = bootstrap.rawValue;
             stsOptions.tls_ctx = tlsContext.rawValue
             stsOptions.creds_provider = credentialsProvider.rawValue
             stsOptions.duration_seconds = UInt16(duration)
             stsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
-            stsOptions.bootstrap = bootstrap.rawValue;
 
             guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                     roleArn,
