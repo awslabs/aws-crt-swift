@@ -485,6 +485,7 @@ extension CredentialsProvider.Source {
         Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
             var stsOptions = aws_credentials_provider_sts_options()
+            stsOptions.bootstrap = bootstrap.rawValue
             stsOptions.tls_ctx = tlsContext.rawValue
             stsOptions.creds_provider = credentialsProvider.rawValue
             stsOptions.duration_seconds = UInt16(duration)

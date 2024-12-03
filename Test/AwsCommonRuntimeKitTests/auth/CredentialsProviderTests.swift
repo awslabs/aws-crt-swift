@@ -221,17 +221,17 @@ class CredentialsProviderTests: XCBaseTestCase {
                 tokenFilePath: "tokenFilePath"))
     }
 
-    func testCreateDestroyStsInvalidRole() async throws {
+    func testCreateDestroySts() async throws {
         let provider = try CredentialsProvider(source: .static(accessKey: accessKey,
                 secret: secret,
                 sessionToken: sessionToken))
-        XCTAssertThrowsError(try CredentialsProvider(source: .sts(bootstrap: getClientBootstrap(),
+        _ = try CredentialsProvider(source: .sts(bootstrap: getClientBootstrap(),
                 tlsContext: getTlsContext(),
                 credentialsProvider: provider,
-                roleArn: "invalid-role-arn",
+                roleArn: "roleArn",
                 sessionName: "test-session",
                 duration: 10,
-                shutdownCallback: getShutdownCallback())))
+                shutdownCallback: getShutdownCallback()))
     }
 
     func testCreateDestroyEcsMissingCreds() async throws {
