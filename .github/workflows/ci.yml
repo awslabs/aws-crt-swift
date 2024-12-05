@@ -49,7 +49,6 @@ jobs:
       matrix:
         # This matrix runs tests on Mac, on oldest & newest supported Xcodes
         runner:
-          - macos-12 # x64
           - macos-13 # x64
           - macos-14
           - macos-13-xlarge
@@ -72,7 +71,6 @@ jobs:
       matrix:
         # This matrix runs tests on iOS and tvOS on oldest & newest supported Xcodes
         runner:
-          - macos-12 # x64
           - macos-13 # x64
           - macos-14
           - macos-13-xlarge
@@ -88,8 +86,6 @@ jobs:
         exclude:
           # Don't run old macOS with new Xcode
           - runner: macos-13-xlarge
-            xcode: Xcode_15.2
-          - runner: macos-12
             xcode: Xcode_15.2
           - runner: macos-13
             xcode: Xcode_15.2
