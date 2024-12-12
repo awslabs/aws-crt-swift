@@ -80,7 +80,7 @@ public final class Credentials {
     ///
     /// Temporarily, `accountId` is backed by a Swift instance variable.
     /// In the future, when the C implementation implements `account_id` the implementation will get account ID from the `aws_credentials` instance.
-    /// - Returns:`String?`: The AWS Secret or nil
+    /// - Returns:`String?`: The AWS `accountId` or nil
     public func getAccountId() -> String? {
         accountId
     }
