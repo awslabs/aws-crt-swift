@@ -29,7 +29,10 @@ public class CredentialsProvider: CredentialsProviding {
     /// - Throws: CommonRuntimeError.crtError
     public func getCredentials() async throws -> Credentials {
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Credentials, Error>) in
-            let continuationCore = ContinuationCore(continuation: continuation, userData: ["accountId": accountId as Any])
+            let continuationCore = ContinuationCore(
+                continuation: continuation,
+                userData: ["accountId": accountId as Any]
+            )
             if aws_credentials_provider_get_credentials(rawValue,
                                                         onGetCredentials,
                                                         continuationCore.passRetained()) != AWS_OP_SUCCESS {
