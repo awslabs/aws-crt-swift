@@ -14,8 +14,12 @@ public class CredentialsProvider: CredentialsProviding {
 
     let rawValue: UnsafeMutablePointer<aws_credentials_provider>
 
-    init(credentialsProvider: UnsafeMutablePointer<aws_credentials_provider>) {
+    // TODO: remove this property once aws-c-auth supports account_id
+    private let accountId: String?
+
+    init(credentialsProvider: UnsafeMutablePointer<aws_credentials_provider>, accountId: String? = nil) {
         self.rawValue = credentialsProvider
+        self.accountId = accountId
     }
 
     /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
@@ -25,7 +29,7 @@ public class CredentialsProvider: CredentialsProviding {
     /// - Throws: CommonRuntimeError.crtError
     public func getCredentials() async throws -> Credentials {
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Credentials, Error>) in
-            let continuationCore = ContinuationCore(continuation: continuation)
+            let continuationCore = ContinuationCore(continuation: continuation, userData: ["accountId": accountId as Any])
             if aws_credentials_provider_get_credentials(rawValue,
                                                         onGetCredentials,
                                                         continuationCore.passRetained()) != AWS_OP_SUCCESS {
@@ -50,6 +54,14 @@ extension CredentialsProvider {
     public convenience init(source: Source) throws {
         let unsafeProvider = try source.makeProvider()
         self.init(credentialsProvider: unsafeProvider)
+    }
+
+    // TODO: Remove the following initializer when aws-c-auth provides account_id in credentials
+    /// Creates a credentials provider that sources the credentials from the provided source and `accountId`
+    @_spi(AccountIDTempSupport)
+    public convenience init(source: Source, accountId: String?) throws {
+        let unsafeProvider = try source.makeProvider()
+        self.init(credentialsProvider: unsafeProvider, accountId: accountId)
     }
 
     /// Create a credentials provider that depends on provider to fetch the credentials.
@@ -568,7 +580,8 @@ private func onGetCredentials(credentials: OpaquePointer?,
     }
 
     // Success
-    continuationCore.continuation.resume(returning: Credentials(rawValue: credentials!))
+    let accountId = continuationCore.userData?["accountId"] as? String
+    continuationCore.continuation.resume(returning: Credentials(rawValue: credentials!, accountId: accountId))
 }
 
 // We need to share this pointer to C in a task block but Swift compiler complains
