@@ -76,22 +76,10 @@ class CBORTests: XCBaseTestCase {
             .bytes("hello".data(using: .utf8)!),
             .text("hello"),
             // indef types
-            .indef_array_start,
-            .uint(100),
-            .int(-100),
-            .indef_break,
-            .indef_map_start,
-            .text("key1"),
-            .uint(100),
-            .text("key2"),
-            .int(-100),
-            .indef_break,
-            .indef_text_start,
+            .array([.uint(100), .int(-100)]),
+            .map(["key1": .uint(100)], ["key2": .int(-100)]),
             .text("hello"),
-            .indef_break,
-            .indef_bytes_start,
             .int(-100),
-            .indef_break,
         ]
 
 
