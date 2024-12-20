@@ -121,6 +121,8 @@ public class CBOREncoder {
         }
     }
 
+    /// Get all the values encoded so far as an array of raw bytes.
+    /// This won't reset the encoder, and you will get all the bytes encoded so far from the beginning.
     public func getEncoded() -> [UInt8] {
         aws_cbor_encoder_get_encoded_data(self.rawValue).toArray()
     }
@@ -133,6 +135,7 @@ public class CBOREncoder {
 /// Decoder for the CBOR encoding.
 public class CBORDecoder {
     var rawValue: OpaquePointer
+    // Keep a reference to data to make it outlive the decoder
     let data: [UInt8]
 
     public init(data: [UInt8]) throws {
