@@ -132,6 +132,7 @@ public class CBOREncoder {
     }
 }
 
+// swiftlint:disable type_body_length
 /// Decoder for the CBOR encoding.
 public class CBORDecoder {
     var rawValue: OpaquePointer
