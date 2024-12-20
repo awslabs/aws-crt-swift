@@ -322,6 +322,7 @@ public class CBORDecoder {
         return .map(map)
     }
 
+    // Decoding helper methods for break and indefinite types
     private func decodeBreak() throws -> CBORType {
         // This should only be called inside indefinite decoding
         guard aws_cbor_decoder_consume_next_single_element(self.rawValue) == AWS_OP_SUCCESS else {
@@ -330,7 +331,6 @@ public class CBORDecoder {
         return .indef_break
     }
 
-    // New methods for indefinite decoding:
     private func decodeIndefiniteArray() throws -> CBORType {
         guard aws_cbor_decoder_consume_next_single_element(self.rawValue) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
