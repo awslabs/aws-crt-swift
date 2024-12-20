@@ -93,14 +93,13 @@ public class CBOREncoder {
         case .tag(let t):
             aws_cbor_encoder_write_tag(self.rawValue, t)
 
-        case .array(let arr):
-            // Handle arrays as indefinite-length
-            aws_cbor_encoder_write_indef_array_start(self.rawValue)
-            for element in arr {
-                self.encode(element)
+        case .array(let values):
+            do {
+                aws_cbor_encoder_write_array_start(self.rawValue, values.count)
+                for value in values {
+                    encode(value)
+                }
             }
-            aws_cbor_encoder_write_break(self.rawValue)
-
         case .map(let values):
             do {
                 aws_cbor_encoder_write_map_start(self.rawValue, values.count)
