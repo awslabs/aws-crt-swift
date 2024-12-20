@@ -61,6 +61,10 @@ public class CBOREncoder {
         self.rawValue = rawValue
     }
 
+    /// Encode a single type
+    /// - Parameters:
+    /// - value: value to encode
+    /// - Throws: CommonRuntimeError.crtError
     public func encode(_ value: CBORType) {
         switch value {
         case .uint(let v):
@@ -144,6 +148,7 @@ public class CBORDecoder {
         self.rawValue = rawValue
     }
 
+    /// Returns true if there is any data left to decode.
     public func hasNext() -> Bool {
         aws_cbor_decoder_get_remaining_length(self.rawValue) != 0
     }
