@@ -77,7 +77,7 @@ class CBORTests: XCBaseTestCase {
             .text("hello"),
             // indef types
             .array([.uint(100), .int(-100)]),
-            .map(["key1": .uint(100)], ["key2": .int(-100)]),
+            .map(["key1": .uint(100), "key2": .int(-100)]),
             .text("hello"),
             .int(-100),
         ]
