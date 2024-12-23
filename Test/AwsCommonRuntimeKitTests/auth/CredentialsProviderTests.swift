@@ -205,6 +205,44 @@ class CredentialsProviderTests: XCBaseTestCase {
         wait(for: [shutdownWasCalled], timeout: 15)
     }
     
+    
+    func testCreateDestroyCognitoCredsProviderWithoutHttpProxy() async throws {
+        let exceptionWasThrown = XCTestExpectation(description: "Exception was thrown")
+        do {
+            let cognitoEndpoint = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_ENDPOINT")
+            let cognitoIdentity = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_IDENTITY")
+            
+            
+            let provider = try CredentialsProvider(source: .cognito(bootstrap: getClientBootstrap(), tlsContext: getTlsContext(), endpoint: cognitoEndpoint, identity: cognitoIdentity, shutdownCallback: getShutdownCallback()))
+            let credentials = try await provider.getCredentials()
+            XCTAssertNotNil(credentials)
+        } catch {
+            exceptionWasThrown.fulfill()
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
+    }
+    
+    // Http proxy related tests could only run behind vpc to access the proxy
+    func testCreateDestroyCognitoCredsProviderWithHttpProxy() async throws {
+        let exceptionWasThrown = XCTestExpectation(description: "Exception was thrown")
+        do {
+            let cognitoEndpoint = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_ENDPOINT")
+            let cognitoIdentity = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_IDENTITY")
+            
+            let httpproxyHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_HTTP_PROXY_HOST")
+            let httpproxyPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_HTTP_PROXY_PORT")
+            
+            let httpProxys = HTTPProxyOptions(hostName: httpproxyHost, port: UInt32(httpproxyPort)!, connectionType: .tunnel)
+            
+            let provider = try CredentialsProvider(source: .cognito(bootstrap: getClientBootstrap(), tlsContext: getTlsContext(), endpoint: cognitoEndpoint, identity: cognitoIdentity, shutdownCallback: getShutdownCallback()))
+            let credentials = try await provider.getCredentials()
+            XCTAssertNotNil(credentials)
+        } catch {
+            exceptionWasThrown.fulfill()
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
+    }
+    
     func testCreateDestroyStsWebIdentityInvalidEnv() async throws {
         XCTAssertThrowsError(try CredentialsProvider(source: .stsWebIdentity(
             bootstrap: getClientBootstrap(),
@@ -253,38 +291,4 @@ class CredentialsProviderTests: XCBaseTestCase {
         wait(for: [exceptionWasThrown], timeout: 15)
     }
     
-    func testCreateDestroyCognitoCredsProviderWithoutHttpProxy() async throws {
-        let exceptionWasThrown = XCTestExpectation(description: "Exception was thrown")
-        do {
-            let cognitoEndpoint = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT311_COGNITO_ENDPOINT")
-            let cognitoIdentity = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT311_COGNITO_IDENTITY")
-            
-            
-            let provider = try CredentialsProvider(source: .cognito(bootstrap: getClientBootstrap(), tlsContext: getTlsContext(), endpoint: cognitoEndpoint, identity: cognitoIdentity, shutdownCallback: getShutdownCallback()))
-            _ = try await provider.getCredentials()
-        } catch {
-            exceptionWasThrown.fulfill()
-        }
-        wait(for: [exceptionWasThrown], timeout: 15)
-    }
-    
-    // Http proxy related tests could only run behind vpc to access the proxy
-    func testCreateDestroyCognitoCredsProviderWithHttpProxy() async throws {
-        let exceptionWasThrown = XCTestExpectation(description: "Exception was thrown")
-        do {
-            let cognitoEndpoint = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT311_COGNITO_ENDPOINT")
-            let cognitoIdentity = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT311_COGNITO_IDENTITY")
-            
-            let httpproxyHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_HTTP_PROXY_HOST")
-            let httpproxyPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_HTTP_PROXY_PORT")
-            
-            let httpProxys = HTTPProxyOptions(hostName: httpproxyHost, port: UInt32(httpproxyPort)!, connectionType: .tunnel)
-            
-            let provider = try CredentialsProvider(source: .cognito(bootstrap: getClientBootstrap(), tlsContext: getTlsContext(), endpoint: cognitoEndpoint, identity: cognitoIdentity, shutdownCallback: getShutdownCallback()))
-            _ = try await provider.getCredentials()
-        } catch {
-            exceptionWasThrown.fulfill()
-        }
-        wait(for: [exceptionWasThrown], timeout: 15)
-    }
 }
