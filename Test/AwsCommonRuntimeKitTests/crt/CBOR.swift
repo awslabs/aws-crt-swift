@@ -49,7 +49,8 @@ class CBORTests: XCBaseTestCase {
             .text("hello"),
             .indef_break,
             .indef_bytes_start,
-            .int(-100),
+            .bytes(Data([0x01, 0x02, 0x03])), // First chunk of bytes
+            .bytes(Data([0x04, 0x05])),       // Second chunk of bytes
             .indef_break,
         ]
         let expected_decoded_values: [CBORType] = [
@@ -68,6 +69,7 @@ class CBORTests: XCBaseTestCase {
             // test tag
             .tag(0),
             .uint(100),
+            // test that tag 1 is decoded as date
             .date(Date(timeIntervalSince1970: 10.5)),
             .date(Date(timeIntervalSince1970: 20.5)),
             // complex types
@@ -76,22 +78,10 @@ class CBORTests: XCBaseTestCase {
             .bytes("hello".data(using: .utf8)!),
             .text("hello"),
             // indef types
-            .indef_array_start,
-            .uint(100),
-            .int(-100),
-            .indef_break,
-            .indef_map_start,
-            .text("key1"),
-            .uint(100),
-            .text("key2"),
-            .int(-100),
-            .indef_break,
-            .indef_text_start,
+            .array([.uint(100), .int(-100)]),
+            .map(["key1": .uint(100), "key2": .int(-100)]),
             .text("hello"),
-            .indef_break,
-            .indef_bytes_start,
-            .int(-100),
-            .indef_break,
+            .bytes(Data([0x01, 0x02, 0x03, 0x04, 0x05])),
         ]
 
 
@@ -107,9 +97,10 @@ class CBORTests: XCBaseTestCase {
 
         // decode the values
         let decoder = try! CBORDecoder(data: encoded)
-        for value in expected_decoded_values {
+        for expected in expected_decoded_values {
             XCTAssertTrue(decoder.hasNext())
-            XCTAssertEqual(try! decoder.popNext(), value)
+            let actual = try! decoder.popNext()
+            XCTAssertEqual(actual, expected)
         }
         XCTAssertFalse(decoder.hasNext())
     }
