@@ -67,35 +67,35 @@ public class CBOREncoder {
     /// - Throws: CommonRuntimeError.crtError
     public func encode(_ value: CBORType) {
         switch value {
-        case .uint(let v):
-            aws_cbor_encoder_write_uint(self.rawValue, v)
-        case .int(let v):
-            if v >= 0 {
-                aws_cbor_encoder_write_uint(self.rawValue, UInt64(v))
+        case .uint(let value):
+            aws_cbor_encoder_write_uint(self.rawValue, value)
+        case .int(let value):
+            if value >= 0 {
+                aws_cbor_encoder_write_uint(self.rawValue, UInt64(value))
             } else {
-                aws_cbor_encoder_write_negint(self.rawValue, UInt64(-1 - v))
+                aws_cbor_encoder_write_negint(self.rawValue, UInt64(-1 - value))
             }
-        case .double(let v):
-            aws_cbor_encoder_write_float(self.rawValue, v)
-        case .bool(let v):
-            aws_cbor_encoder_write_bool(self.rawValue, v)
-        case .bytes(let d):
-            d.withAWSByteCursorPointer { cursor in
+        case .double(let value):
+            aws_cbor_encoder_write_float(self.rawValue, value)
+        case .bool(let value):
+            aws_cbor_encoder_write_bool(self.rawValue, value)
+        case .bytes(let data):
+            data.withAWSByteCursorPointer { cursor in
                 aws_cbor_encoder_write_bytes(self.rawValue, cursor.pointee)
             }
-        case .text(let s):
-            s.withByteCursor { cursor in
+        case .text(let string):
+            string.withByteCursor { cursor in
                 aws_cbor_encoder_write_text(self.rawValue, cursor)
             }
         case .null:
             aws_cbor_encoder_write_null(self.rawValue)
         case .undefined:
             aws_cbor_encoder_write_undefined(self.rawValue)
-        case .date(let d):
+        case .date(let date):
             aws_cbor_encoder_write_tag(self.rawValue, UInt64(AWS_CBOR_TAG_EPOCH_TIME))
-            aws_cbor_encoder_write_float(self.rawValue, d.timeIntervalSince1970)
-        case .tag(let t):
-            aws_cbor_encoder_write_tag(self.rawValue, t)
+            aws_cbor_encoder_write_float(self.rawValue, date.timeIntervalSince1970)
+        case .tag(let tag):
+            aws_cbor_encoder_write_tag(self.rawValue, tag)
 
         case .array(let values):
             do {
@@ -189,7 +189,7 @@ public class CBORDecoder {
         case AWS_CBOR_TYPE_UNDEFINED:
             return try decodeUndefined()
         case AWS_CBOR_TYPE_BREAK:
-            return try decodeBreak() // should only occur inside indefinite decoding
+            return try decodeBreak()
 
         case AWS_CBOR_TYPE_INDEF_ARRAY_START:
             return try decodeIndefiniteArray()
@@ -277,13 +277,10 @@ public class CBORDecoder {
         guard aws_cbor_decoder_pop_next_tag_val(self.rawValue, &out_value) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
-
-        // If it's not the epoch-based time tag (tag 1), return as a generic tag.
-        if out_value != 1 {
+        guard out_value == 1 else {
             return .tag(out_value)
         }
 
-        // If it's a tag 1, it should be followed by an epoch-based time value.
         let timestamp = try popNext()
         switch timestamp {
         case .double(let value):
@@ -345,16 +342,12 @@ public class CBORDecoder {
         }
         var array: [CBORType] = []
         while true {
-            var cbor_type: aws_cbor_type = AWS_CBOR_TYPE_UNKNOWN
-            guard aws_cbor_decoder_peek_type(self.rawValue, &cbor_type) == AWS_OP_SUCCESS else {
-                throw CommonRunTimeError.crtError(.makeFromLastError())
-            }
-
-            if cbor_type == AWS_CBOR_TYPE_BREAK {
-                _ = try decodeBreak()
+            let cbor_type = try popNext()
+            if cbor_type == .indef_break {
                 break
+            } else {
+                array.append(cbor_type)
             }
-            array.append(try popNext())
         }
         return .array(array)
     }
@@ -365,23 +358,17 @@ public class CBORDecoder {
         }
         var map: [String: CBORType] = [:]
         while true {
-            var cbor_type: aws_cbor_type = AWS_CBOR_TYPE_UNKNOWN
-            guard aws_cbor_decoder_peek_type(self.rawValue, &cbor_type) == AWS_OP_SUCCESS else {
-                throw CommonRunTimeError.crtError(.makeFromLastError())
-            }
-
-            if cbor_type == AWS_CBOR_TYPE_BREAK {
-                _ = try decodeBreak()
-                break
-            }
-
             let keyVal = try popNext()
-            guard case .text(let key) = keyVal else {
-                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
-            }
+            if keyVal == .indef_break {
+                break
+            } else {
+                guard case .text(let key) = keyVal else {
+                    throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
+                }
 
-            let value = try popNext()
-            map[key] = value
+                let value = try popNext()
+                map[key] = value
+            }
         }
         return .map(map)
     }
@@ -393,22 +380,15 @@ public class CBORDecoder {
 
         var data = Data()
         while true {
-            var cbor_type: aws_cbor_type = AWS_CBOR_TYPE_UNKNOWN
-            guard aws_cbor_decoder_peek_type(self.rawValue, &cbor_type) == AWS_OP_SUCCESS else {
-                throw CommonRunTimeError.crtError(.makeFromLastError())
-            }
-
-            if cbor_type == AWS_CBOR_TYPE_BREAK {
-                _ = try decodeBreak()
+            let cbor_type = try popNext()
+            if cbor_type == .indef_break {
                 break
+            } else {
+                guard case .bytes(let chunkData) = cbor_type else {
+                    throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
+                }
+                data.append(chunkData)
             }
-
-            let chunk = try popNext()
-            guard case .bytes(let chunkData) = chunk else {
-                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
-            }
-
-            data.append(chunkData)
         }
         return .bytes(data)
     }
@@ -420,22 +400,15 @@ public class CBORDecoder {
 
         var text = ""
         while true {
-            var cbor_type: aws_cbor_type = AWS_CBOR_TYPE_UNKNOWN
-            guard aws_cbor_decoder_peek_type(self.rawValue, &cbor_type) == AWS_OP_SUCCESS else {
-                throw CommonRunTimeError.crtError(.makeFromLastError())
-            }
-
-            if cbor_type == AWS_CBOR_TYPE_BREAK {
-                _ = try decodeBreak()
+            let cbor_type = try popNext()
+            if cbor_type == .indef_break {
                 break
+            } else {
+                guard case .text(let chunkStr) = cbor_type else {
+                    throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
+                }
+                text += chunkStr
             }
-
-            let chunk = try popNext()
-            guard case .text(let chunkStr) = chunk else {
-                throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
-            }
-
-            text += chunkStr
         }
         return .text(text)
     }
