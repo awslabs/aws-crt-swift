@@ -4,6 +4,7 @@ import struct Foundation.Date
 import struct Foundation.Data
 import struct Foundation.TimeInterval
 import AwsCCal
+import LibNative
 
 /// This class is used to add reference counting to stuff that do not support it
 /// like Structs, Closures, and Protocols etc by wrapping it in a Class.
@@ -58,12 +59,12 @@ extension Data {
         }
     }
 
-    func withAWSByteCursorPointer<Result>(_ body: (UnsafeMutablePointer<aws_byte_cursor>) -> Result) -> Result {
+    func withAWSByteCursorPointer<Result>(_ body: (UnsafeMutablePointer<aws_byte_cursor>) throws -> Result) rethrows -> Result {
         let count = self.count
-        return self.withUnsafeBytes { rawBufferPointer -> Result in
+        return try self.withUnsafeBytes { rawBufferPointer -> Result in
             var cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, count)
-            return withUnsafeMutablePointer(to: &cursor) {
-                body($0)
+            return try withUnsafeMutablePointer(to: &cursor) {
+                return try body($0)
             }
         }
     }
@@ -76,6 +77,27 @@ extension Data {
         return stride(from: 0, to: count, by: size).map {
             self[$0 ..< Swift.min($0 + size, count)]
         }
+    }
+}
+
+func withAWSByteCursorFromOptionalData<Result>(
+    to data: Data?, _ body: (aws_byte_cursor) throws -> Result) rethrows -> Result {
+    guard let data else {
+        return try body(aws_byte_cursor())
+    }
+    return try data.withUnsafeBytes { rawBufferPointer -> Result in
+        let cursor = aws_byte_cursor_from_array(rawBufferPointer.baseAddress, data.count)
+        return try body(cursor)
+    }
+}
+
+func withAWSByteCursorPointerFromOptionalData<Result>(
+    to data: Data?, _ body: (UnsafePointer<aws_byte_cursor>?) throws -> Result) rethrows -> Result {
+    guard let data else {
+        return try body(nil)
+    }
+    return try data.withAWSByteCursorPointer { dataByteCusorPointer in
+        return try body(dataByteCusorPointer)
     }
 }
 
@@ -120,6 +142,40 @@ extension Date {
 extension TimeInterval {
     var millisecond: UInt64 {
         UInt64((self*1000).rounded())
+    }
+
+    func millisecondUInt32() throws -> UInt32 {
+        let _millisecond = (self * 1_000).rounded()
+        guard _millisecond >= 0 && _millisecond <= Double(UInt32.max) else {
+            // todo convert the millisecond conversion errors into aws-crt-swift errors
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue))
+        }
+        return UInt32(_millisecond)
+    }
+
+    func millisecondUInt64() throws -> UInt64 {
+        let _millisecond = (self * 1_000).rounded()
+        guard _millisecond >= 0 && _millisecond <= Double(UInt64.max) else {
+            // todo convert the millisecond conversion errors into aws-crt-swift errors
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue))
+        }
+        return UInt64(_millisecond)
+    }
+
+    func secondUInt16() throws -> UInt16 {
+        guard self >= 0 && self <= Double(UInt16.max) else {
+            // todo convert the millisecond conversion errors into aws-crt-swift errors
+            throw CommonRunTimeError.crtError( CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue))
+        }
+        return UInt16(self)
+    }
+
+    func secondUInt32() throws -> UInt32 {
+        guard self >= 0 && self <= Double(UInt32.max) else {
+            // todo convert the millisecond conversion errors into aws-crt-swift errors
+            throw CommonRunTimeError.crtError( CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue))
+        }
+        return UInt32(self)
     }
 }
 
@@ -180,6 +236,10 @@ extension Bool {
     var uintValue: UInt32 {
         return self ? 1 : 0
     }
+
+    var uint8Value: UInt8 {
+        return self ? 1 : 0
+    }
 }
 
 func withOptionalCString<Result>(
@@ -214,6 +274,33 @@ func withOptionalByteCursorPointerFromStrings<Result>(
     return try withOptionalByteCursorPointerFromString(arg1) { arg1C in
         return try withOptionalByteCursorPointerFromString(arg2) { arg2C in
             return try body(arg1C, arg2C)
+        }
+    }
+}
+
+func withOptionalByteCursorPointerFromStrings<Result>(
+    _ arg1: String?,
+    _ arg2: String?,
+    _ body: (UnsafePointer<aws_byte_cursor>?, UnsafePointer<aws_byte_cursor>?) -> Result
+) -> Result {
+    return withOptionalByteCursorPointerFromString(arg1) { arg1C in
+        return withOptionalByteCursorPointerFromString(arg2) { arg2C in
+            return body(arg1C, arg2C)
+        }
+    }
+}
+
+func withOptionalByteCursorPointerFromStrings<Result>(
+    _ arg1: String?,
+    _ arg2: String?,
+    _ arg3: String?,
+    _ body: (UnsafePointer<aws_byte_cursor>?, UnsafePointer<aws_byte_cursor>?, UnsafePointer<aws_byte_cursor>?) -> Result
+) -> Result {
+    return withOptionalByteCursorPointerFromString(arg1) { arg1C in
+        return withOptionalByteCursorPointerFromString(arg2) { arg2C in
+            return withOptionalByteCursorPointerFromString(arg3) { arg3C in
+                return body(arg1C, arg2C, arg3C)
+            }
         }
     }
 }
@@ -281,6 +368,74 @@ func withByteCursorFromStrings<Result>(
     }
 }
 
+func withOptionalUnsafePointer<T, Result>(to arg1: T?, _ body: (UnsafePointer<T>?) -> Result) -> Result {
+    guard let _arg1 = arg1 else {
+        return body(nil)
+    }
+    return withUnsafePointer(to: _arg1) { _valuePointer in
+        return body(_valuePointer)
+    }
+}
+
+func withOptionalUnsafePointers<T1, T2, T3, Result>(
+    _ arg1: T1?,
+    _ arg2: T2?,
+    _ arg3: T3?,
+    _ body: (UnsafePointer<T1>?, UnsafePointer<T2>?, UnsafePointer<T3>?) -> Result) -> Result {
+    return withOptionalUnsafePointer(to: arg1) { _arg1Pointer in
+        return withOptionalUnsafePointer(to: arg2) { _arg2Pointer in
+            return withOptionalUnsafePointer(to: arg3) { _arg3Pointer in
+                return body(_arg1Pointer, _arg2Pointer, _arg3Pointer)
+            }
+        }
+    }
+}
+
+func withOptionalUnsafePointers<T1, T2, T3, T4, T5, T6, Result>(
+    _ arg1: T1?,
+    _ arg2: T2?,
+    _ arg3: T3?,
+    _ arg4: T4?,
+    _ arg5: T5?,
+    _ arg6: T6?,
+    _ body: (UnsafePointer<T1>?,
+             UnsafePointer<T2>?,
+             UnsafePointer<T3>?,
+             UnsafePointer<T4>?,
+             UnsafePointer<T5>?,
+             UnsafePointer<T6>?) -> Result) -> Result {
+    return withOptionalUnsafePointer(to: arg1) { _arg1Pointer in
+        return withOptionalUnsafePointer(to: arg2) { _arg2Pointer in
+            return withOptionalUnsafePointer(to: arg3) { _arg3Pointer in
+                return withOptionalUnsafePointer(to: arg4) { _arg4Pointer in
+                    return withOptionalUnsafePointer(to: arg5) { _arg5Pointer in
+                        return withOptionalUnsafePointer(to: arg6) { _arg6Pointer in
+                            return body( _arg1Pointer,
+                                         _arg2Pointer,
+                                         _arg3Pointer,
+                                         _arg4Pointer,
+                                         _arg5Pointer,
+                                         _arg6Pointer)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// With Optional Array<Element> into c pointer UnsafePointer<T>
+func withOptionalArrayRawPointer<T, Result>(
+    of array: Array<T>?, _ body: (UnsafePointer<T>?) throws -> Result) rethrows -> Result {
+    guard let _array = array else {
+        return try body(nil)
+    }
+    return try _array.withUnsafeBufferPointer { arrayBufferPointer in
+        let ptr = UnsafeRawPointer(arrayBufferPointer.baseAddress!).bindMemory(
+              to: T.self, capacity: arrayBufferPointer.count)
+        return try body(ptr)
+    }
+}
 extension Array where Element == String {
   func withByteCursorArray<R>(_ body: (UnsafePointer<aws_byte_cursor>, Int) -> R) -> R {
         let len = self.count

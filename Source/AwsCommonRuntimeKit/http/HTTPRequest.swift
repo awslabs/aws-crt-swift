@@ -54,6 +54,14 @@ public class HTTPRequest: HTTPRequestBase {
         self.body = body
         addHeaders(headers: headers)
     }
+
+    /// Internal helper init function to acquire a reference of native http request
+    init (nativeHttpMessage: OpaquePointer) {
+        super.init(rawValue: nativeHttpMessage)
+        // Acquire a refcount to keep the message alive until this object dies.
+        aws_http_message_acquire(self.rawValue)
+    }
+
 }
 
 /// Represents a single client request to be sent on a HTTP2 connection

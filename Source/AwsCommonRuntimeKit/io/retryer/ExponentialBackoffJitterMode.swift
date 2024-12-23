@@ -3,12 +3,22 @@
 
 import AwsCIo
 
+/// Controls how the reconnect delay is modified in order to smooth out the distribution of reconnection attempt
+/// timepoints for a large set of reconnecting clients.
+/// See `Exponential Backoff and Jitter <https:///aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/>`_
 public enum ExponentialBackoffJitterMode {
-    /// Uses AWS_EXPONENTIAL_BACKOFF_JITTER_FULL
+    /// Maps to full
     /// Link to documentation: https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/
     case `default`
+
+    /// Do not perform any randomization on the reconnect delay
     case none
+
+    /// Fully random between no delay and the current exponential backoff value.
     case full
+
+    /// Backoff is taken randomly from the interval between the base backoff
+    /// interval and a scaling (greater than 1) of the current backoff value
     case decorrelated
 }
 
