@@ -4,6 +4,7 @@
 import Foundation
 import AwsCHttp
 import AwsCMqtt
+import LibNative
 
 /// Mqtt5 User Property
 public class UserProperty: CStruct {
