@@ -8,13 +8,15 @@ class CredentialsTests: XCBaseTestCase {
     func testCreateAWSCredentials() async throws {
         let accessKey = "AccessKey"
         let secret = "Secret"
+        let accountId = "0123456789"
         let sessionToken = "Token"
         let expiration = Date(timeIntervalSinceNow: 10)
 
-        let credentials = try Credentials(accessKey: accessKey, secret: secret, sessionToken: sessionToken, expiration: expiration)
+        let credentials = try Credentials(accessKey: accessKey, secret: secret, accountId: accountId, sessionToken: sessionToken, expiration: expiration)
 
         XCTAssertEqual(accessKey, credentials.getAccessKey())
         XCTAssertEqual(secret, credentials.getSecret())
+        XCTAssertEqual(accountId, credentials.getAccountId())
         XCTAssertEqual(sessionToken, credentials.getSessionToken())
         XCTAssertEqual(UInt64(expiration.timeIntervalSince1970), UInt64(credentials.getExpiration()!.timeIntervalSince1970))
 
@@ -36,6 +38,22 @@ class CredentialsTests: XCBaseTestCase {
         let expiration2 = Date(timeIntervalSince1970: (Double) (UInt64.max)+10)
         let credentials2 = try Credentials(accessKey: accessKey, secret: secret, sessionToken: sessionToken, expiration: expiration2)
         XCTAssertNil(credentials2.getExpiration())
+    }
+
+    func testCreateAWSCredentialsWithoutAccountId() async throws {
+        let accessKey = "AccessKey"
+        let secret = "Secret"
+        let sessionToken = "Token"
+        let expiration = Date(timeIntervalSinceNow: 10)
+
+        let credentials = try Credentials(accessKey: accessKey, secret: secret, accountId: nil, sessionToken: sessionToken, expiration: expiration)
+
+        XCTAssertEqual(accessKey, credentials.getAccessKey())
+        XCTAssertEqual(secret, credentials.getSecret())
+        XCTAssertNil(credentials.getAccountId())
+        XCTAssertEqual(sessionToken, credentials.getSessionToken())
+        XCTAssertEqual(UInt64(expiration.timeIntervalSince1970), UInt64(credentials.getExpiration()!.timeIntervalSince1970))
+
     }
 
     func testCreateAWSCredentialsWithoutSessionToken() async throws {

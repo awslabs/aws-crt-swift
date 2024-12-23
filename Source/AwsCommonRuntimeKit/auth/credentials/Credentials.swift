@@ -8,9 +8,13 @@ public final class Credentials {
 
     let rawValue: OpaquePointer
 
-    init(rawValue: OpaquePointer) {
+    // TODO: remove this property once aws-c-auth supports account_id
+    private let accountId: String?
+
+    init(rawValue: OpaquePointer, accountId: String? = nil) {
         self.rawValue = rawValue
         aws_credentials_acquire(rawValue)
+        self.accountId = accountId
     }
 
     /// Creates a new set of aws credentials
@@ -19,12 +23,14 @@ public final class Credentials {
     ///   - accessKey: value for the aws access key id field
     ///   - secret: value for the secret access key field
     ///   - sessionToken: (Optional) security token associated with the credentials
+    ///   - accountId: (Optional) the account ID for the resolved credentials, if known
     ///   - expiration: (Optional) Point in time after which credentials will no longer be valid.
     ///                 For credentials that do not expire, use nil.
     ///                 If expiration.timeIntervalSince1970 is greater than UInt64.max, it will be converted to nil.
     /// - Throws: CommonRuntimeError.crtError
     public init(accessKey: String,
                 secret: String,
+                accountId: String? = nil,
                 sessionToken: String? = nil,
                 expiration: Date? = nil) throws {
 
@@ -51,6 +57,7 @@ public final class Credentials {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue
+        self.accountId = accountId
     }
 
     /// Gets the access key from the `aws_credentials` instance
@@ -67,6 +74,15 @@ public final class Credentials {
     public func getSecret() -> String? {
         let secret = aws_credentials_get_secret_access_key(rawValue)
         return secret.toOptionalString()
+    }
+
+    /// Gets the account ID from the `Credentials`, if any.
+    ///
+    /// Temporarily, `accountId` is backed by a Swift instance variable.
+    /// In the future, when the C implementation implements `account_id` the implementation will get account ID from the `aws_credentials` instance.
+    /// - Returns:`String?`: The AWS `accountId` or nil
+    public func getAccountId() -> String? {
+        accountId
     }
 
     /// Gets the session token from the `aws_credentials` instance
