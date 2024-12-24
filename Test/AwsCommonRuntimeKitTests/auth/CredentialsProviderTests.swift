@@ -216,7 +216,9 @@ class CredentialsProviderTests: XCBaseTestCase {
             let provider = try CredentialsProvider(source: .cognito(bootstrap: getClientBootstrap(), tlsContext: getTlsContext(), endpoint: cognitoEndpoint, identity: cognitoIdentity, shutdownCallback: getShutdownCallback()))
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
-        } catch {
+        } catch is XCTSkip{ // skip the test as the environment var is not set
+            shutdownWasCalled.fulfill()
+        }catch {
             exceptionWasThrown.fulfill()
         }
         wait(for: [shutdownWasCalled], timeout: 15)
@@ -237,7 +239,11 @@ class CredentialsProviderTests: XCBaseTestCase {
             let provider = try CredentialsProvider(source: .cognito(bootstrap: getClientBootstrap(), tlsContext: getTlsContext(), endpoint: cognitoEndpoint, identity: cognitoIdentity, shutdownCallback: getShutdownCallback()))
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
-        } catch {
+        }
+        catch is XCTSkip{ // skip the test as the environment var is not set
+            shutdownWasCalled.fulfill()
+        }
+        catch {
             exceptionWasThrown.fulfill()
         }
         wait(for: [shutdownWasCalled], timeout: 15)
