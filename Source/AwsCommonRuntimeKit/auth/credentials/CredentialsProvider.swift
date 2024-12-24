@@ -653,7 +653,7 @@ extension CredentialsProvider.Source {
                                  identity: String,
                                  logins: [CognitoLoginPair]? = nil,
                                  customRoleArn: String? = nil,
-                                 proxyOptions:HTTPProxyOptions? = nil,
+                                 proxyOptions: HTTPProxyOptions? = nil,
                                  shutdownCallback: ShutdownCallback? = nil) -> Self {
         Self {
             var cognitoOptions = aws_credentials_provider_cognito_options()
