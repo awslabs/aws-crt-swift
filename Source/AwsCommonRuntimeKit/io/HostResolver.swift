@@ -24,7 +24,7 @@ public protocol HostResolverProtocol {
 }
 
 /// CRT Host Resolver which performs async DNS lookups
-public class HostResolver: HostResolverProtocol {
+public class HostResolver: HostResolverProtocol, @unchecked Sendable {
     let rawValue: UnsafeMutablePointer<aws_host_resolver>
     let maxTTL: Int
 

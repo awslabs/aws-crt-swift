@@ -164,7 +164,7 @@ public class Signer {
     }
 }
 
-class SignRequestCore {
+class SignRequestCore : @unchecked Sendable {
     let request: HTTPRequestBase
     var continuation: CheckedContinuation<HTTPRequestBase, Error>
     let shouldSignHeader: ((String) -> Bool)?
@@ -220,9 +220,10 @@ private func onSigningComplete(signingResult: UnsafeMutablePointer<aws_signing_r
 
     // Success
     var awsStringPointer: UnsafeMutablePointer<aws_string>!
+    let signature = AWSString("signature")
     guard aws_signing_result_get_property(
             signingResult!,
-            g_aws_signature_property_name,
+            signature.rawValue,
             &awsStringPointer) == AWS_OP_SUCCESS else {
         chunkSignerCore.continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
         return

@@ -10,7 +10,7 @@ public protocol CredentialsProviding {
     func getCredentials() async throws -> Credentials
 }
 
-public class CredentialsProvider: CredentialsProviding {
+public class CredentialsProvider: CredentialsProviding, @unchecked Sendable {
 
     let rawValue: UnsafeMutablePointer<aws_credentials_provider>
 
@@ -590,7 +590,7 @@ private func onGetCredentials(credentials: OpaquePointer?,
 // We need to share this pointer to C in a task block but Swift compiler complains
 // that Pointer does not conform to Sendable. Wrap the pointer in a @unchecked Sendable block
 // for Swift compiler to stop complaining.
-struct SendablePointer: @unchecked Sendable {
+struct SendableRawPointer: @unchecked Sendable {
     let pointer: UnsafeMutableRawPointer
 }
 
@@ -600,12 +600,13 @@ private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
                                                         Int32,
                                                         UnsafeMutableRawPointer?) -> Void)!,
                                       _ userData: UnsafeMutableRawPointer!) -> Int32 {
-    let delegate = Unmanaged<Box<CredentialsProviding>>
-        .fromOpaque(delegatePtr)
-        .takeUnretainedValue().contents
-    let userData = SendablePointer(pointer: userData)
+    let userData = SendableRawPointer(pointer: userData)
+    let delegatePtr = SendableRawPointer(pointer: delegatePtr)
     Task {
         do {
+            let delegate = Unmanaged<Box<CredentialsProviding>>
+                .fromOpaque(delegatePtr.pointer)
+                .takeUnretainedValue().contents
             let credentials = try await delegate.getCredentials()
             callbackFn(credentials.rawValue, AWS_OP_SUCCESS, userData.pointer)
         } catch CommonRunTimeError.crtError(let crtError) {

@@ -4,7 +4,7 @@
 import AwsCAuth
 import Foundation
 
-public final class Credentials {
+public final class Credentials : @unchecked Sendable {
 
     let rawValue: OpaquePointer
 

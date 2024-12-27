@@ -6,7 +6,7 @@ import AwsCommonRuntimeKit
 import Foundation
 
 // swiftlint:disable cyclomatic_complexity function_body_length
-struct Context {
+struct Context : @unchecked Sendable {
     // args
     public var logLevel: LogLevel = .trace
     public var verb: String = "GET"
@@ -27,11 +27,10 @@ struct Context {
 }
 
 @main
-struct Elasticurl {
+struct Elasticurl : @unchecked Sendable {
     private static let version = "0.1.0"
-    private static var context = Context()
 
-    static func parseArguments() {
+    static func parseArguments() -> Context {
         let optionString = "a:b:c:e:f:H:d:g:j:l:m:M:GPHiko:t:v:VwWh"
         let options = [ElasticurlOptions.caCert.rawValue,
                        ElasticurlOptions.caPath.rawValue,
@@ -63,6 +62,8 @@ struct Elasticurl {
                                                              arguments: CommandLine.unsafeArgv,
                                                              optionString: optionString, options: options)
 
+        
+        var context = Context()
         if let caCert = argumentsDict["a"] as? String {
             context.caCert = caCert
         }
@@ -176,6 +177,7 @@ struct Elasticurl {
             exit(-1)
         }
         context.url = url
+        return context
     }
 
     static func showHelp() {
@@ -202,22 +204,24 @@ struct Elasticurl {
         print("  -h, --help: Display this message and quit.")
     }
 
-    static func createOutputFile() {
+    static func createOutputFile(context: Context) -> Context {
+        var context = context
         if let fileName = context.outputFileName {
             let fileManager = FileManager.default
             let path = FileManager.default.currentDirectoryPath + "/" + fileName
             fileManager.createFile(atPath: path, contents: nil, attributes: nil)
             context.outputStream = FileHandle(forWritingAtPath: fileName) ?? FileHandle.standardOutput
         }
+        return context
     }
 
-    static func writeData(data: Data) {
+    static func writeData(data: Data, context: Context) {
         context.outputStream.write(data)
     }
 
     static func main() async {
-        parseArguments()
-        createOutputFile()
+        var context = parseArguments()
+        context = createOutputFile(context: context)
         if let traceFile = context.traceFile {
             print("enable logging with trace file")
             try? Logger.initialize(target: .filePath(traceFile), level: context.logLevel)
@@ -226,10 +230,10 @@ struct Elasticurl {
             try? Logger.initialize(target: .standardOutput, level: context.logLevel)
         }
 
-        await run()
+        await run(context)
     }
 
-    static func run() async {
+    static func run(_ context: Context) async {
         do {
             guard let host = context.url.host else {
                 print("no proper host was parsed from the url. quitting.")
@@ -291,7 +295,7 @@ struct Elasticurl {
                 }
 
                 let onBody: HTTPRequestOptions.OnIncomingBody = { bodyChunk in
-                    writeData(data: bodyChunk)
+                    writeData(data: bodyChunk, context: context)
                 }
 
                 let onComplete: HTTPRequestOptions.OnStreamComplete = { result in

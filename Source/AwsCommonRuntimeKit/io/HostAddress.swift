@@ -4,7 +4,7 @@
 import AwsCIo
 
 /// Represents a single HostAddress resolved by the Host Resolver
-public struct HostAddress: CStruct {
+public struct HostAddress: CStruct, @unchecked Sendable {
 
     /// Address type is ipv4 or ipv6
     public let addressType: HostAddressType

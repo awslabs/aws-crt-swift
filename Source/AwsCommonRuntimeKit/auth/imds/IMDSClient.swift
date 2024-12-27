@@ -4,7 +4,7 @@
 import AwsCAuth
 
 // swiftlint:disable type_body_length
-public class IMDSClient {
+public class IMDSClient: @unchecked Sendable {
     let rawValue: OpaquePointer
     
     /// Creates an IMDSClient that always uses IMDSv2

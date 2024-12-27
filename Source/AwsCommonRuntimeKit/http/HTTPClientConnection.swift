@@ -6,7 +6,7 @@ import AwsCIo
 import Foundation
 
 // swiftlint:disable force_try
-public class HTTPClientConnection {
+public class HTTPClientConnection: @unchecked Sendable {
     let rawValue: UnsafeMutablePointer<aws_http_connection>
     /// This will keep the connection manager alive until connection is alive
     let manager: HTTPClientConnectionManager

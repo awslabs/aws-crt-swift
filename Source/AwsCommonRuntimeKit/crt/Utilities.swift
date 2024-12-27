@@ -5,6 +5,12 @@ import struct Foundation.Data
 import struct Foundation.TimeInterval
 import AwsCCal
 
+
+
+struct SendablePointer<T>: @unchecked Sendable {
+    let pointer: UnsafeMutablePointer<T>
+}
+
 /// This class is used to add reference counting to stuff that do not support it
 /// like Structs, Closures, and Protocols etc by wrapping it in a Class.
 /// This also allows us to use anything with Unmanaged which we required for C callbacks.

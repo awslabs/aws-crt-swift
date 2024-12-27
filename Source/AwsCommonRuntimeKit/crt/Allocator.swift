@@ -6,7 +6,10 @@ import AwsCCommon
  The default allocator.
  You are probably looking to use `allocator` instead.
  */
-var allocator = aws_default_allocator()!
+// TODO: Is there a better way to do this?
+extension UnsafeMutablePointer: @unchecked @retroactive Sendable where Pointee == aws_allocator {}
+
+let allocator = aws_default_allocator()!
 
 /// An allocator is used to allocate memory on the heap.
 protocol Allocator {

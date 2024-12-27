@@ -47,7 +47,7 @@ private func onConnectionSetup(connection: UnsafeMutablePointer<aws_http_connect
     }
 
     // Success
-    switch aws_http_connection_get_version(connection) {
+    return switch aws_http_connection_get_version(connection) {
     case AWS_HTTP_VERSION_2: continuation.resume(
         returning: HTTP2ClientConnection(
             manager: callbackDataCore.connectionManager,
