@@ -10,6 +10,8 @@ public protocol CredentialsProviding {
     func getCredentials() async throws -> Credentials
 }
 
+// We can't mutate this class after initialization. Swift can not verify the sendability due to pointer,
+// So mark it unchecked Sendable
 public class CredentialsProvider: CredentialsProviding, @unchecked Sendable {
 
     let rawValue: UnsafeMutablePointer<aws_credentials_provider>

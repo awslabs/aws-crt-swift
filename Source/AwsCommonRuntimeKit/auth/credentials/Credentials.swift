@@ -4,7 +4,9 @@
 import AwsCAuth
 import Foundation
 
-public final class Credentials : @unchecked Sendable {
+// We can't mutate this class after initialization. Swift can not verify the sendability due to OpaquePointer,
+// So mark it unchecked Sendable
+public final class Credentials: @unchecked Sendable {
 
     let rawValue: OpaquePointer
 

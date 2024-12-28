@@ -164,7 +164,7 @@ public class Signer {
     }
 }
 
-class SignRequestCore : @unchecked Sendable {
+class SignRequestCore: @unchecked Sendable {
     let request: HTTPRequestBase
     var continuation: CheckedContinuation<HTTPRequestBase, Error>
     let shouldSignHeader: ((String) -> Bool)?
