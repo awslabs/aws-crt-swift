@@ -2,14 +2,13 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import AwsCCommon
 
-
 /*
  * The default allocator.
  * You are probably looking to use `allocator` instead.
  * We need to declare `allocator` as mutable (`var`) instead of `let` because we override it with a tracing allocator in tests. This is not mutated anywhere else apart from the start of tests.
  * Swift compiler doesn't let us compile this code due to global shared mutable state without locks, and complains that this is not safe. Disable the safety here since we know better than the compiler.
  */
-nonisolated(unsafe) var allocator = aws_default_allocator()!.rawValue
+nonisolated(unsafe) var allocator = aws_default_allocator()!
 
 /// An allocator is used to allocate memory on the heap.
 protocol Allocator {

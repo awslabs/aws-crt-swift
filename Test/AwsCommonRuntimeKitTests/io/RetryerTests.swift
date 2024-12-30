@@ -37,7 +37,7 @@ class RetryerTests: XCBaseTestCase {
             XCTAssertNotNil(token)
             _ = try await retryer.scheduleRetry(token: token, errorType: RetryError.serverError)
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await fulfillment(of: [shutdownWasCalled], timeout: 15)
     }
 
     func testGenerateRandom() async throws {
@@ -59,6 +59,6 @@ class RetryerTests: XCBaseTestCase {
             XCTAssertNotNil(token)
             _ = try await retryer.scheduleRetry(token: token, errorType: RetryError.serverError)
         }
-        await fulfilment(of: [generateRandomWasCalled, shutdownWasCalled], timeout: 15, enforceOrder: true)
+        await fulfillment(of: [generateRandomWasCalled, shutdownWasCalled], timeout: 15, enforceOrder: true)
     }
 }

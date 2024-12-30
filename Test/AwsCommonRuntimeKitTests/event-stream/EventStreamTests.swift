@@ -48,7 +48,7 @@ class EventStreamTests: XCBaseTestCase {
                 })
         try decoder.decode(data: encoded)
         XCTAssertTrue(headers.elementsEqual(decodedHeaders))
-        wait(for: [onCompleteWasCalled], timeout: 1)
+        await fulfillment(of: [onCompleteWasCalled], timeout: 1)
     }
 
     func testEncodeDecodePayload() async throws {
@@ -76,7 +76,7 @@ class EventStreamTests: XCBaseTestCase {
                 })
         try decoder.decode(data: encoded)
         XCTAssertEqual(payload, decodedPayload)
-        wait(for: [onCompleteWasCalled], timeout: 1)
+        await fulfillment(of: [onCompleteWasCalled], timeout: 1)
     }
 
     func testEncodeOutOfScope() async throws {
@@ -114,7 +114,7 @@ class EventStreamTests: XCBaseTestCase {
 
         let expectedHeaders = [EventStreamHeader(name: "int16", value: .int32(value: 16))]
         XCTAssertTrue(expectedHeaders.elementsEqual(decodedHeaders))
-        wait(for: [onCompleteWasCalled], timeout: 1)
+        await fulfillment(of: [onCompleteWasCalled], timeout: 1)
     }
 
     func testDecodeByteByByte() async throws {
@@ -150,7 +150,7 @@ class EventStreamTests: XCBaseTestCase {
 
         XCTAssertEqual(payload, decodedPayload)
         XCTAssertTrue(headers.elementsEqual(decodedHeaders))
-        wait(for: [onCompleteWasCalled], timeout: 1)
+        await fulfillment(of: [onCompleteWasCalled], timeout: 1)
     }
 
     func testEmpty() async throws {
@@ -175,6 +175,6 @@ class EventStreamTests: XCBaseTestCase {
                     XCTFail("Error occurred. Code: \(code)\nMessage:\(message)")
                 })
         try decoder.decode(data: encoded)
-        wait(for: [onCompleteWasCalled], timeout: 1)
+        await fulfillment(of: [onCompleteWasCalled], timeout: 1)
     }
 }

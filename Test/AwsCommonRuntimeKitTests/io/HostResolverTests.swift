@@ -61,6 +61,6 @@ class HostResolverTests: XCBaseTestCase {
                     maxTTL: 5,
                     shutdownCallback: shutdownCallback)
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await fulfillment(of: [shutdownWasCalled], timeout: 15)
     }
 }

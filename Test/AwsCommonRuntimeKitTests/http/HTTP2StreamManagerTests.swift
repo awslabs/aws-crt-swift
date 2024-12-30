@@ -4,7 +4,7 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-class HTT2StreamManagerTests: HTTPClientTestFixture {
+class HTT2StreamManagerTests {
     let endpoint = "d1cz66xoahf9cl.cloudfront.net"; // Use cloudfront for HTTP/2
     let path = "/random_32_byte.data";
 
@@ -102,16 +102,16 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
 
     func testHTTP2Stream() async throws {
         let streamManager = try makeStreamManger(host: endpoint)
-        _ = try await sendHTTP2Request(method: "GET", path: path, authority: endpoint, streamManager: streamManager)
+        _ = try await HTTPClientTestFixture.sendHTTP2Request(method: "GET", path: path, authority: endpoint, streamManager: streamManager)
     }
 
     func testHTTP2StreamUpload() async throws {
         let streamManager = try makeStreamManger(host: "nghttp2.org")
-        let semaphore = DispatchSemaphore(value: 0)
+        let semaphore = Semaphore(value: 0)
         var httpResponse = HTTPResponse()
         var onCompleteCalled = false
         let testBody = "testBody"
-        let http2RequestOptions = try getHTTP2RequestOptions(
+        let http2RequestOptions = try HTTPClientTestFixture.getHTTP2RequestOptions(
                 method: "PUT",
                 path: "/httpbin/put",
                 authority: "nghttp2.org",
@@ -128,7 +128,7 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         let metrics = streamManager.fetchMetrics()
         XCTAssertTrue(metrics.availableConcurrency > 0)
         XCTAssertTrue(metrics.leasedConcurrency > 0)
-        let data = TEST_DOC_LINE.data(using: .utf8)!
+        let data = HTTPClientTestFixture.TEST_DOC_LINE.data(using: .utf8)!
         for chunk in data.chunked(into: 5) {
             try await stream.writeChunk(chunk: chunk, endOfStream: false)
             XCTAssertFalse(onCompleteCalled)
@@ -139,7 +139,7 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         try await Task.sleep(nanoseconds: 5_000_000_000)
         XCTAssertFalse(onCompleteCalled)
         try await stream.writeChunk(chunk: Data(), endOfStream: true)
-        semaphore.wait()
+        await semaphore.wait()
         XCTAssertTrue(onCompleteCalled)
         XCTAssertNil(httpResponse.error)
         XCTAssertEqual(httpResponse.statusCode, 200)
@@ -150,13 +150,13 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
         }
 
         let body: Response = try! JSONDecoder().decode(Response.self, from: httpResponse.body)
-        XCTAssertEqual(body.data, testBody + TEST_DOC_LINE)
+        XCTAssertEqual(body.data, testBody + HTTPClientTestFixture.TEST_DOC_LINE)
     }
 
     // Test that the binding works not the actual functionality. C part has tests for functionality
     func testHTTP2StreamReset() async throws {
         let streamManager = try makeStreamManger(host: endpoint)
-        let http2RequestOptions = try getHTTP2RequestOptions(
+        let http2RequestOptions = try HTTPClientTestFixture.getHTTP2RequestOptions(
                 method: "PUT",
                 path: "/httpbin/put",
                 authority: "nghttp2.org")
@@ -171,18 +171,12 @@ class HTT2StreamManagerTests: HTTPClientTestFixture {
 
     func testHTTP2ParallelStreams(count: Int) async throws {
         let streamManager = try makeStreamManger(host: "nghttp2.org")
-        let requestCompleteExpectation = XCTestExpectation(description: "Request was completed successfully")
-        requestCompleteExpectation.expectedFulfillmentCount = count
-        await withTaskGroup(of: Void.self) { taskGroup in
+        return await withTaskGroup(of: Void.self) { taskGroup in
             for _ in 1...count {
                 taskGroup.addTask {
-                    _ = try! await self.sendHTTP2Request(method: "GET", path: "/httpbin/get", authority: "nghttp2.org", streamManager: streamManager, onComplete: { _ in
-                        requestCompleteExpectation.fulfill()
-                    })
+                    _ = try! await HTTPClientTestFixture.sendHTTP2Request(method: "GET", path: "/httpbin/get", authority: "nghttp2.org", streamManager: streamManager)
                 }
             }
         }
-        wait(for: [requestCompleteExpectation], timeout: 15)
-        print("Request were successfully completed.")
     }
 }

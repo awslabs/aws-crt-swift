@@ -13,6 +13,6 @@ class ShutdownCallbackOptionsTests: XCBaseTestCase {
                 shutdownWasCalled.fulfill()
             }
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await fulfillment(of: [shutdownWasCalled], timeout: 15)
     }
 }

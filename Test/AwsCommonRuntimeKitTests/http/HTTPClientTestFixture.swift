@@ -12,14 +12,40 @@ struct HTTPResponse {
     var version: HTTPVersion?
 }
 
+actor Semaphore {
+    private var count: Int
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    init(value: Int = 0) {
+        self.count = value
+    }
+
+    func wait() async {
+        count -= 1
+        if count >= 0 { return }
+        await withCheckedContinuation {
+            waiters.append($0)
+        }
+    }
+
+    func signal(count: Int = 1) {
+        assert(count >= 1)
+        self.count += count
+        for _ in 0..<count {
+            if waiters.isEmpty { return }
+            waiters.removeFirst().resume()
+        }
+    }
+}
+
 class HTTPClientTestFixture: XCBaseTestCase {
-    let TEST_DOC_LINE: String = """
+    static let TEST_DOC_LINE: String = """
                                 This is a sample to prove that http downloads and uploads work. 
                                 It doesn't really matter what's in here, 
                                 we mainly just need to verify the downloads and uploads work.
                                 """
 
-    func sendHTTPRequest(method: String,
+    static func sendHTTPRequest(method: String,
                          endpoint: String,
                          path: String = "/",
                          body: String = "",
@@ -27,54 +53,56 @@ class HTTPClientTestFixture: XCBaseTestCase {
                          connectionManager: HTTPClientConnectionManager,
                          expectedVersion: HTTPVersion = HTTPVersion.version_1_1,
                          requestVersion: HTTPVersion = HTTPVersion.version_1_1,
-                         numRetries: UInt = 2,
+                         numRetries: UInt = 0,
                          onResponse: HTTPRequestOptions.OnResponse? = nil,
                          onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                          onComplete: HTTPRequestOptions.OnStreamComplete? = nil) async throws -> HTTPResponse {
 
         var httpResponse = HTTPResponse()
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-                let httpRequestOptions: HTTPRequestOptions
-                if requestVersion == HTTPVersion.version_2 {
-                    httpRequestOptions = try getHTTP2RequestOptions(
-                        method: method,
-                        path: path,
-                        authority: endpoint,
-                        body: body,
-                        response: &httpResponse,
-                        continuation: continuation,
-                        onResponse: onResponse,
-                        onBody: onBody,
-                        onComplete: onComplete)
-                } else {
-                    httpRequestOptions = try getHTTPRequestOptions(
-                        method: method,
-                        endpoint: endpoint,
-                        path: path,
-                        body: body,
-                        response: &httpResponse,
-                        continuation: continuation,
-                        onResponse: onResponse,
-                        onBody: onBody,
-                        onComplete: onComplete)
-                }
-                
-                for i in 1...numRetries+1 where httpResponse.statusCode != expectedStatus {
-                    print("Attempt#\(i) to send an HTTP request")
-                    
-                    XCTAssertTrue(connection.isOpen)
-                    httpResponse.version = connection.httpVersion
-                    XCTAssertEqual(connection.httpVersion, expectedVersion)
-                    let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
-                    try stream.activate()
-                }
+        let semaphore = Semaphore(value: 0)
+
+        let httpRequestOptions: HTTPRequestOptions
+        if requestVersion == HTTPVersion.version_2 {
+            httpRequestOptions = try getHTTP2RequestOptions(
+                    method: method,
+                    path: path,
+                    authority: endpoint,
+                    body: body,
+                    response: &httpResponse,
+                    semaphore: semaphore,
+                    onResponse: onResponse,
+                    onBody: onBody,
+                    onComplete: onComplete)
+        } else {
+            httpRequestOptions = try getHTTPRequestOptions(
+                    method: method,
+                    endpoint: endpoint,
+                    path: path,
+                    body: body,
+                    response: &httpResponse,
+                    semaphore: semaphore,
+                    onResponse: onResponse,
+                    onBody: onBody,
+                    onComplete: onComplete)
         }
+
+        for i in 1...numRetries+1 where httpResponse.statusCode != expectedStatus {
+            print("Attempt#\(i) to send an HTTP request")
+            let connection = try await connectionManager.acquireConnection()
+            XCTAssertTrue(connection.isOpen)
+            httpResponse.version = connection.httpVersion
+            XCTAssertEqual(connection.httpVersion, expectedVersion)
+            let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+            try stream.activate()
+            await semaphore.wait()
+        }
+
         XCTAssertNil(httpResponse.error)
         XCTAssertEqual(httpResponse.statusCode, expectedStatus)
         return httpResponse
     }
 
-    func sendHTTP2Request(method: String,
+    static func sendHTTP2Request(method: String,
                           path: String,
                           scheme: String = "https",
                           authority: String,
@@ -88,34 +116,34 @@ class HTTPClientTestFixture: XCBaseTestCase {
                           onComplete: HTTPRequestOptions.OnStreamComplete? = nil) async throws -> HTTPResponse {
 
         var httpResponse = HTTPResponse()
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            Task {
-                let httpRequestOptions = try getHTTP2RequestOptions(
-                    method: method,
-                    path: path,
-                    scheme: scheme,
-                    authority: authority,
-                    body: body,
-                    response: &httpResponse,
-                    continuation: continuation,
-                    onResponse: onResponse,
-                    onBody: onBody,
-                    onComplete: onComplete,
-                    http2ManualDataWrites: http2ManualDataWrites)
-                
-                for i in 1...numRetries+1 where httpResponse.statusCode != expectedStatus {
-                    print("Attempt#\(i) to send an HTTP request")
-                    let stream = try await streamManager.acquireStream(requestOptions: httpRequestOptions)
-                    try stream.activate()
-                }
-            }
+        let semaphore = Semaphore(value: 0)
+
+        let httpRequestOptions = try getHTTP2RequestOptions(
+                method: method,
+                path: path,
+                scheme: scheme,
+                authority: authority,
+                body: body,
+                response: &httpResponse,
+                semaphore: semaphore,
+                onResponse: onResponse,
+                onBody: onBody,
+                onComplete: onComplete,
+                http2ManualDataWrites: http2ManualDataWrites)
+
+        for i in 1...numRetries+1 where httpResponse.statusCode != expectedStatus {
+            print("Attempt#\(i) to send an HTTP request")
+            let stream = try await streamManager.acquireStream(requestOptions: httpRequestOptions)
+            try stream.activate()
+            await semaphore.wait()
         }
+
         XCTAssertNil(httpResponse.error)
         XCTAssertEqual(httpResponse.statusCode, expectedStatus)
         return httpResponse
     }
 
-    func getHttpConnectionManager(endpoint: String,
+    static func getHttpConnectionManager(endpoint: String,
                                   ssh: Bool = true,
                                   port: Int = 443,
                                   alpnList: [String] = ["http/1.1"],
@@ -142,9 +170,9 @@ class HTTPClientTestFixture: XCBaseTestCase {
         return try HTTPClientConnectionManager(options: httpClientOptions)
     }
 
-    func getRequestOptions(request: HTTPRequestBase,
+    static func getRequestOptions(request: HTTPRequestBase,
                            response: UnsafeMutablePointer<HTTPResponse>? = nil,
-                           continuation: CheckedContinuation<Void, Never>? = nil,
+                           semaphore: Semaphore? = nil,
                            onResponse: HTTPRequestOptions.OnResponse? = nil,
                            onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                            onComplete: HTTPRequestOptions.OnStreamComplete? = nil,
@@ -168,18 +196,18 @@ class HTTPClientTestFixture: XCBaseTestCase {
                         response?.pointee.error = error
                     }
                     onComplete?(result)
-                    continuation?.resume()
+                    Task { await semaphore?.signal() }
                 },
                 http2ManualDataWrites: http2ManualDataWrites)
     }
 
 
-    func getHTTPRequestOptions(method: String,
+    static func getHTTPRequestOptions(method: String,
                                endpoint: String,
                                path: String,
                                body: String = "",
                                response: UnsafeMutablePointer<HTTPResponse>? = nil,
-                               continuation: CheckedContinuation<Void, Never>? = nil,
+                               semaphore: Semaphore? = nil,
                                headers: [HTTPHeader] = [HTTPHeader](),
                                onResponse: HTTPRequestOptions.OnResponse? = nil,
                                onBody: HTTPRequestOptions.OnIncomingBody? = nil,
@@ -198,20 +226,20 @@ class HTTPClientTestFixture: XCBaseTestCase {
         return getRequestOptions(
                 request: httpRequest,
                 response: response,
-                continuation: continuation,
+                semaphore: semaphore,
                 onResponse: onResponse,
                 onBody: onBody,
                 onComplete: onComplete)
     }
 
-    func getHTTP2RequestOptions(method: String,
+    static func getHTTP2RequestOptions(method: String,
                                 path: String,
                                 scheme: String = "https",
                                 authority: String,
                                 body: String = "",
                                 manualDataWrites: Bool = false,
                                 response: UnsafeMutablePointer<HTTPResponse>? = nil,
-                                continuation: CheckedContinuation<Void, Never>? = nil,
+                                semaphore: Semaphore? = nil,
                                 onResponse: HTTPRequestOptions.OnResponse? = nil,
                                 onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                                 onComplete: HTTPRequestOptions.OnStreamComplete? = nil,
@@ -227,7 +255,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
         return getRequestOptions(
                 request: http2Request,
                 response: response,
-                continuation: continuation,
+                semaphore: semaphore,
                 onResponse: onResponse,
                 onBody: onBody,
                 onComplete: onComplete,

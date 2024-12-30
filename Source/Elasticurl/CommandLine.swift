@@ -4,7 +4,7 @@
 import Foundation
 import AwsCCommon
 // swiftlint:disable trailing_whitespace
-
+// TODO: what is swift parser? 
 struct CommandLineParser : @unchecked Sendable {
     /// A function to parse command line arguments
     /// - Parameters:
