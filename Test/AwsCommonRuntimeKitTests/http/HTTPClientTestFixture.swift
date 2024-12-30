@@ -33,44 +33,43 @@ class HTTPClientTestFixture: XCBaseTestCase {
                          onComplete: HTTPRequestOptions.OnStreamComplete? = nil) async throws -> HTTPResponse {
 
         var httpResponse = HTTPResponse()
-        let semaphore = DispatchSemaphore(value: 0)
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            Task {
+                let httpRequestOptions: HTTPRequestOption
+                if requestVersion == HTTPVersion.version_2 {
+                    httpRequestOptions = try getHTTP2RequestOptions(
+                            method: method,
+                            path: path,
+                            authority: endpoint,
+                            body: body,
+                            response: &httpResponse,
+                            continuation: continuation,
+                            onResponse: onResponse,
+                            onBody: onBody,
+                            onComplete: onComplete)
+                } else {
+                    httpRequestOptions = try getHTTPRequestOptions(
+                            method: method,
+                            endpoint: endpoint,
+                            path: path,
+                            body: body,
+                            response: &httpResponse,
+                            continuation: continuation,
+                            onResponse: onResponse,
+                            onBody: onBody,
+                            onComplete: onComplete)
+                }
 
-        let httpRequestOptions: HTTPRequestOptions
-        if requestVersion == HTTPVersion.version_2 {
-            httpRequestOptions = try getHTTP2RequestOptions(
-                    method: method,
-                    path: path,
-                    authority: endpoint,
-                    body: body,
-                    response: &httpResponse,
-                    semaphore: semaphore,
-                    onResponse: onResponse,
-                    onBody: onBody,
-                    onComplete: onComplete)
-        } else {
-            httpRequestOptions = try getHTTPRequestOptions(
-                    method: method,
-                    endpoint: endpoint,
-                    path: path,
-                    body: body,
-                    response: &httpResponse,
-                    semaphore: semaphore,
-                    onResponse: onResponse,
-                    onBody: onBody,
-                    onComplete: onComplete)
+                for i in 1...numRetries+1 where httpResponse.statusCode != expectedStatus {
+                    print("Attempt#\(i) to send an HTTP request")
+                    let connection = try await connectionManager.acquireConnection()
+                    XCTAssertTrue(connection.isOpen)
+                    httpResponse.version = connection.httpVersion
+                    XCTAssertEqual(connection.httpVersion, expectedVersion)
+                    let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+                    try stream.activate()
+                }
         }
-
-        for i in 1...numRetries+1 where httpResponse.statusCode != expectedStatus {
-            print("Attempt#\(i) to send an HTTP request")
-            let connection = try await connectionManager.acquireConnection()
-            XCTAssertTrue(connection.isOpen)
-            httpResponse.version = connection.httpVersion
-            XCTAssertEqual(connection.httpVersion, expectedVersion)
-            let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
-            try stream.activate()
-            semaphore.wait()
-        }
-
         XCTAssertNil(httpResponse.error)
         XCTAssertEqual(httpResponse.statusCode, expectedStatus)
         return httpResponse
@@ -90,28 +89,28 @@ class HTTPClientTestFixture: XCBaseTestCase {
                           onComplete: HTTPRequestOptions.OnStreamComplete? = nil) async throws -> HTTPResponse {
 
         var httpResponse = HTTPResponse()
-        let semaphore = DispatchSemaphore(value: 0)
-
-        let httpRequestOptions = try getHTTP2RequestOptions(
-                method: method,
-                path: path,
-                scheme: scheme,
-                authority: authority,
-                body: body,
-                response: &httpResponse,
-                semaphore: semaphore,
-                onResponse: onResponse,
-                onBody: onBody,
-                onComplete: onComplete,
-                http2ManualDataWrites: http2ManualDataWrites)
-
-        for i in 1...numRetries+1 where httpResponse.statusCode != expectedStatus {
-            print("Attempt#\(i) to send an HTTP request")
-            let stream = try await streamManager.acquireStream(requestOptions: httpRequestOptions)
-            try stream.activate()
-            semaphore.wait()
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            Task {
+                let httpRequestOptions = try getHTTP2RequestOptions(
+                    method: method,
+                    path: path,
+                    scheme: scheme,
+                    authority: authority,
+                    body: body,
+                    response: &httpResponse,
+                    continutaion: continuation,
+                    onResponse: onResponse,
+                    onBody: onBody,
+                    onComplete: onComplete,
+                    http2ManualDataWrites: http2ManualDataWrites)
+                
+                for i in 1...numRetries+1 where httpResponse.statusCode != expectedStatus {
+                    print("Attempt#\(i) to send an HTTP request")
+                    let stream = try await streamManager.acquireStream(requestOptions: httpRequestOptions)
+                    try stream.activate()
+                }
+            }
         }
-
         XCTAssertNil(httpResponse.error)
         XCTAssertEqual(httpResponse.statusCode, expectedStatus)
         return httpResponse
@@ -146,7 +145,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
 
     func getRequestOptions(request: HTTPRequestBase,
                            response: UnsafeMutablePointer<HTTPResponse>? = nil,
-                           semaphore: DispatchSemaphore? = nil,
+                           continutaion: CheckedContinuation<Void, Never>? = nil,
                            onResponse: HTTPRequestOptions.OnResponse? = nil,
                            onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                            onComplete: HTTPRequestOptions.OnStreamComplete? = nil,
@@ -170,7 +169,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                         response?.pointee.error = error
                     }
                     onComplete?(result)
-                    semaphore?.signal()
+                    continutaion?.resume()
                 },
                 http2ManualDataWrites: http2ManualDataWrites)
     }
@@ -181,7 +180,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                path: String,
                                body: String = "",
                                response: UnsafeMutablePointer<HTTPResponse>? = nil,
-                               semaphore: DispatchSemaphore? = nil,
+                               continutaion: CheckedContinuation<Void, Never>? = nil,
                                headers: [HTTPHeader] = [HTTPHeader](),
                                onResponse: HTTPRequestOptions.OnResponse? = nil,
                                onBody: HTTPRequestOptions.OnIncomingBody? = nil,
@@ -200,7 +199,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
         return getRequestOptions(
                 request: httpRequest,
                 response: response,
-                semaphore: semaphore,
+                continutaion: continutaion,
                 onResponse: onResponse,
                 onBody: onBody,
                 onComplete: onComplete)
@@ -213,7 +212,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                 body: String = "",
                                 manualDataWrites: Bool = false,
                                 response: UnsafeMutablePointer<HTTPResponse>? = nil,
-                                semaphore: DispatchSemaphore? = nil,
+                                continutaion: CheckedContinuation<Void, Never>? = nil,
                                 onResponse: HTTPRequestOptions.OnResponse? = nil,
                                 onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                                 onComplete: HTTPRequestOptions.OnStreamComplete? = nil,
@@ -229,7 +228,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
         return getRequestOptions(
                 request: http2Request,
                 response: response,
-                semaphore: semaphore,
+                continutaion: continutaion,
                 onResponse: onResponse,
                 onBody: onBody,
                 onComplete: onComplete,

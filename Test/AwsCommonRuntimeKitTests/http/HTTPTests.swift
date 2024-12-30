@@ -151,16 +151,18 @@ class HTTPTests: HTTPClientTestFixture {
     }
 
     func testStreamLivesUntilComplete() async throws {
-        let semaphore = DispatchSemaphore(value: 0)
-
-        do {
-            let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: getPath, semaphore: semaphore)
-            let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
-            let connection = try await connectionManager.acquireConnection()
-            let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
-            try stream.activate()
+        // let semaphore = DispatchSemaphore(value: 0)
+        await withCheckedContinuation { continuation in
+            do {
+                let httpRequestOptions = try getHTTPRequestOptions(method: "GET", endpoint: host, path: getPath, continutaion: continuation)
+                let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
+                let connection = try await connectionManager.acquireConnection()
+                let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+                try stream.activate()
+            }
         }
-        semaphore.wait()
+        
+       // semaphore.wait()
     }
 
     func testManagerLivesUntilComplete() async throws {
@@ -179,8 +181,9 @@ class HTTPTests: HTTPClientTestFixture {
 
     func testConnectionLivesUntilComplete() async throws {
         var stream: HTTPStream! = nil
-        let semaphore = DispatchSemaphore(value: 0)
 
+        let semaphore = DispatchSemaphore(value: 0)
+         
         do {
             let connectionManager = try await getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
             let connection = try await connectionManager.acquireConnection()

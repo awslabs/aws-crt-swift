@@ -5,7 +5,7 @@ import AwsCHttp
 import Foundation
 
 /// An HTTP2Stream represents a single HTTP/2 specific HTTP Request/Response.
-public class HTTP2Stream: HTTPStream {
+public class HTTP2Stream: HTTPStream, @unchecked Sendable {
     private let httpConnection: HTTPClientConnection?
 
     // Called by Connection Manager

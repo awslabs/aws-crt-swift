@@ -59,6 +59,6 @@ class RetryerTests: XCBaseTestCase {
             XCTAssertNotNil(token)
             _ = try await retryer.scheduleRetry(token: token, errorType: RetryError.serverError)
         }
-        wait(for: [generateRandomWasCalled, shutdownWasCalled], timeout: 15)
+        await fulfilment(of: [generateRandomWasCalled, shutdownWasCalled], timeout: 15, enforceOrder: true)
     }
 }

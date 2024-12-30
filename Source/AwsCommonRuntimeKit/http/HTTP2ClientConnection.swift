@@ -5,7 +5,7 @@ import AwsCHttp
 import AwsCIo
 import Foundation
 
-public class HTTP2ClientConnection: HTTPClientConnection {
+public class HTTP2ClientConnection: HTTPClientConnection, @unchecked Sendable {
 
     /// Creates a new http2 stream from the `HTTPRequestOptions` given.
     /// - Parameter requestOptions: An `HTTPRequestOptions` struct containing callbacks on
