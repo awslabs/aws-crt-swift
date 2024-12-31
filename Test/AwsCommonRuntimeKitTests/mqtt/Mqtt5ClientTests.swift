@@ -657,7 +657,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
         testContext.withIoTSigv4WebsocketTransform(region: region, provider: provider)
 
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        testContext.onWebSocketHandshake = nil
         try connectClient(client: client, testContext: testContext)
         try disconnectClientCleanup(client:client, testContext: testContext)
     }
@@ -700,7 +699,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
 
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        testContext.onWebSocketHandshake = nil
         try connectClient(client: client, testContext: testContext)
         try disconnectClientCleanup(client:client, testContext: testContext)
     }
@@ -762,6 +760,45 @@ class Mqtt5ClientTests: XCBaseTestCase {
         try connectClient(client: client, testContext: testContext)
         try disconnectClientCleanup(client:client, testContext: testContext)
     }
+    
+    
+    func testMqttWebsocketWithCognitoCredentialProvider() async throws {
+        let iotEndpoint = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+        let port = 443
+        let cognitoEndpoint = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_ENDPOINT")
+        let cognitoIdentity = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_IDENTITY")
+        let context = MqttTestContext(contextName: "WebsocketWithCognitoCredentialProvider")
+
+        let elg = try EventLoopGroup()
+        let resolver = try HostResolver(eventLoopGroup: elg, maxHosts: 16, maxTTL: 30)
+        let clientBootstrap = try ClientBootstrap(
+            eventLoopGroup: elg,
+            hostResolver: resolver)
+        
+        let options = TLSContextOptions.makeDefault()
+        let tlscontext = try TLSContext(options: options, mode: .client)
+        
+        let cognitoProvider = try CredentialsProvider(source: .cognito(bootstrap: clientBootstrap, tlsContext: tlscontext, endpoint: cognitoEndpoint, identity: cognitoIdentity))
+                    
+        let testContext = MqttTestContext()
+        testContext.withIoTSigv4WebsocketTransform(region: "us-east-1", provider: cognitoProvider)
+        let connectOptions = MqttConnectOptions(
+            keepAliveInterval: TimeInterval(100),
+            clientId: createClientId())
+        
+        let clientOptions = MqttClientOptions(
+            hostName: iotEndpoint,
+            port: UInt32(port),
+            connectOptions: connectOptions,
+            connackTimeout: 10000)
+
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+
+        XCTAssertNotNil(client)
+        try connectClient(client: client, testContext: context)
+        try disconnectClientCleanup(client: client, testContext: context)
+    }
+
 
 
     /*===============================================================
