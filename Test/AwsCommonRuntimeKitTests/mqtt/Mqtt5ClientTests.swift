@@ -637,6 +637,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
      * [ConnWS-UC4] websocket connection with TLS, using sigv4
      */
     func testMqtt5WSConnectWithMutualTLS() throws {
+        do{
             try skipIfPlatformDoesntSupportTLS()
             
             let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
@@ -673,6 +674,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             try disconnectClientCleanup(client:client, testContext: testContext)
             // Clean up the WebSocket handshake function to ensure the test context is properly released
             testContext.onWebSocketHandshake=nil
+        }
         wait(for: [credentialProviderShutdownWasCalled], timeout: 15);
     }
 
