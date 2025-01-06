@@ -6,8 +6,7 @@ import AwsCEventStream
 @testable import AwsCommonRuntimeKit
 
 class EventStreamTests: XCBaseTestCase {
-    let semaphore = DispatchSemaphore(value: 0)
-
+    
     func testEncodeDecodeHeaders() async throws {
         let onCompleteWasCalled = XCTestExpectation(description: "OnComplete was called")
 

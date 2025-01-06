@@ -107,7 +107,7 @@ class HTT2StreamManagerTests: XCBaseTestCase {
 
     func testHTTP2StreamUpload() async throws {
         let streamManager = try makeStreamManger(host: "nghttp2.org")
-        let semaphore = Semaphore(value: 0)
+        let semaphore = TestSemaphore(value: 0)
         var httpResponse = HTTPResponse()
         var onCompleteCalled = false
         let testBody = "testBody"

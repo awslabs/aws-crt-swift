@@ -137,7 +137,7 @@ class HTTP2ClientConnectionTests: XCBaseTestCase {
 
     func testHTTP2StreamUpload() async throws {
         let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(endpoint: "nghttp2.org", alpnList: ["h2"])
-        let semaphore = Semaphore(value: 0)
+        let semaphore = TestSemaphore(value: 0)
         var httpResponse = HTTPResponse()
         var onCompleteCalled = false
         let testBody = "testBody"
