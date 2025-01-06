@@ -63,7 +63,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     }
     
     func createClientId() -> String {
-        return "aws-crt-swift-unit-test-" + UUID().uuidString
+        return "test-aws-crt-swift-unit-" + UUID().uuidString
     }
     
     class MqttTestContext {
@@ -787,7 +787,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let port = 443
             let cognitoEndpoint = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_ENDPOINT")
             let cognitoIdentity = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_IDENTITY")
-            let context = MqttTestContext(contextName: "WebsocketWithCognitoCredentialProvider")
+            let testContext = MqttTestContext(contextName: "WebsocketWithCognitoCredentialProvider")
             let elg = try EventLoopGroup()
             let resolver = try HostResolver(eventLoopGroup: elg, maxHosts: 16, maxTTL: 30)
             let clientBootstrap = try ClientBootstrap(
@@ -798,8 +798,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let tlscontext = try TLSContext(options: options, mode: .client)
             
             let cognitoProvider = try CredentialsProvider(source: .cognito(bootstrap: clientBootstrap, tlsContext: tlscontext, endpoint: cognitoEndpoint, identity: cognitoIdentity, shutdownCallback: credentialProviderShutdownCallback()))
-            
-            let testContext = MqttTestContext()
+
             testContext.withIoTSigv4WebsocketTransform(region: "us-east-1", provider: cognitoProvider)
             let connectOptions = MqttConnectOptions(
                 keepAliveInterval: TimeInterval(100),
@@ -808,12 +807,21 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let clientOptions = MqttClientOptions(
                 hostName: iotEndpoint,
                 port: UInt32(port),
+                bootstrap: clientBootstrap,
+                tlsCtx: tlscontext,
                 connectOptions: connectOptions,
-                connackTimeout: 10000)
+                connackTimeout: 10000,
+                onPublishReceivedFn: testContext.onPublishReceived,
+                onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
+                onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
+                onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
+                onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
+                onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
+            
             let client = try createClient(clientOptions: clientOptions, testContext: testContext)
             XCTAssertNotNil(client)
-            try connectClient(client: client, testContext: context)
-            try disconnectClientCleanup(client: client, testContext: context)
+            try connectClient(client: client, testContext: testContext)
+            try disconnectClientCleanup(client: client, testContext: testContext)
             testContext.onWebSocketHandshake = nil
         }
         wait(for: [credentialProviderShutdownWasCalled], timeout: 5);
