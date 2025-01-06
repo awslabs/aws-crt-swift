@@ -109,11 +109,10 @@ packageTargets.append(.target(
         // we manually define the macros from `s2n_prelude.h`. When SwiftPM supports compiler flags
         // or building packages using CMake, this hack should be removed.
         // We are not defining `S2N_API` because we don't need to expose any symbols from S2N in crt-swift.
-            .define("_S2N_PRELUDE_INCLUDED"),
+        .define("_S2N_PRELUDE_INCLUDED"),
         .define("S2N_BUILD_RELEASE"),
         .define("_FORTIFY_SOURCE", to: "2"),
         .define("POSIX_C_SOURCE", to: "200809L"),
-        
     ]
 ))
 #endif
