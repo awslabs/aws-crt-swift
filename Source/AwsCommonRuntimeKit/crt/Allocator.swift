@@ -5,9 +5,13 @@ import AwsCCommon
 /*
  * The default allocator.
  * We need to declare `allocator` as mutable (`var`) instead of `let` because we override it with a tracing allocator in tests. This is not mutated anywhere else apart from the start of tests.
- * Swift compiler doesn't let us compile this code due to global shared mutable state without locks, and complains that this is not safe. Disable the safety here since we won't modify it.
+ * Swift compiler doesn't let us compile this code in Swift 6 due to global shared mutable state without locks, and complains that this is not safe. Disable the safety here since we won't modify it.
  */
+#if swift(>=5.10)
 nonisolated(unsafe) var allocator = aws_default_allocator()!
+#else
+var allocator = aws_default_allocator()!
+#endif
 
 /// An allocator is used to allocate memory on the heap.
 protocol Allocator {
