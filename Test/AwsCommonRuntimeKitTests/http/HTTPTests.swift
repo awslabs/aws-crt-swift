@@ -152,15 +152,14 @@ class HTTPTests {
 
     func testStreamLivesUntilComplete() async throws {
         let semaphore = Semaphore(value: 0)
-            do {
-                let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(method: "GET", endpoint: host, path: getPath, semaphore: semaphore)
-                let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
-                let connection = try await connectionManager.acquireConnection()
-                let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
-                try stream.activate()
-            }
-        
-       await semaphore.wait()
+        do {
+            let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(method: "GET", endpoint: host, path: getPath, semaphore: semaphore)
+            let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
+            let connection = try await connectionManager.acquireConnection()
+            let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+            try stream.activate()
+        }
+        await semaphore.wait()
     }
 
     func testManagerLivesUntilComplete() async throws {

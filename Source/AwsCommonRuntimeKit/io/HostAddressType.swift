@@ -4,7 +4,7 @@
 import AwsCIo
 
 /// Type of Host Address (ipv4 or ipv6)
-public enum HostAddressType {
+public enum HostAddressType: Sendable {
     case A
     case AAAA
 }

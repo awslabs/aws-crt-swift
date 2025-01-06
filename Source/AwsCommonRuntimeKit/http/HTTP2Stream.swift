@@ -5,6 +5,8 @@ import AwsCHttp
 import Foundation
 
 /// An HTTP2Stream represents a single HTTP/2 specific HTTP Request/Response.
+// Swift cannot verify the sendability due to a pointer, and thread safety is handled in the C layer.
+// So mark it as unchecked Sendable.
 public class HTTP2Stream: HTTPStream, @unchecked Sendable {
     private let httpConnection: HTTPClientConnection?
 

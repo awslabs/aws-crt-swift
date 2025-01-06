@@ -4,6 +4,8 @@ import AwsCHttp
 import Foundation
 
 /// An HTTP1Stream represents a single HTTP/1.1 specific Http Request/Response.
+// Swift cannot verify the sendability due to a pointer, and thread safety is handled in the C layer.
+// So mark it as unchecked Sendable.
 public class HTTP1Stream: HTTPStream, @unchecked Sendable {
     /// Stream keeps a reference to HttpConnection to keep it alive
     private let httpConnection: HTTPClientConnection

@@ -55,7 +55,7 @@ public actor Logger {
     }
 }
 
-public enum LogLevel {
+public enum LogLevel: Sendable {
     case none
     case fatal
     case error

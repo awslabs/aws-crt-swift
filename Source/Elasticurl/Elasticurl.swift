@@ -6,7 +6,7 @@ import AwsCommonRuntimeKit
 import Foundation
 
 // swiftlint:disable cyclomatic_complexity function_body_length
-struct Context : @unchecked Sendable {
+struct Context: Sendable {
     // args
     public var logLevel: LogLevel = .trace
     public var verb: String = "GET"
@@ -27,7 +27,7 @@ struct Context : @unchecked Sendable {
 }
 
 @main
-struct Elasticurl : @unchecked Sendable {
+struct Elasticurl {
     private static let version = "0.1.0"
 
     static func parseArguments() -> Context {

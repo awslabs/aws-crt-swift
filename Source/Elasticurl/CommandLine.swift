@@ -4,8 +4,7 @@
 import Foundation
 import AwsCCommon
 // swiftlint:disable trailing_whitespace
-// TODO: what is swift parser? 
-struct CommandLineParser : @unchecked Sendable {
+struct CommandLineParser {
     /// A function to parse command line arguments
     /// - Parameters:
     ///   - argc: The number of arguments
@@ -61,6 +60,8 @@ extension CLIHasArg: RawRepresentable, CaseIterable {
     }
 }
 
+// Swift cannot verify the sendability due to a pointer, and thread safety is handled in the C layer.
+// So mark it as unchecked Sendable.
 class AWSCLIOption: @unchecked Sendable {
     let rawValue: aws_cli_option
     let name: UnsafeMutablePointer<CChar>

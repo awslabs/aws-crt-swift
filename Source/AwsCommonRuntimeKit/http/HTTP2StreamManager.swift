@@ -3,6 +3,8 @@
 import AwsCHttp
 
 /// Manages a Pool of HTTP/2 Streams. Creates and manages HTTP/2 connections under the hood.
+// Swift cannot verify the sendability due to a pointer, and thread safety is handled in the C layer.
+// So mark it as unchecked Sendable.
 public class HTTP2StreamManager: @unchecked Sendable {
     let rawValue: UnsafeMutablePointer<aws_http2_stream_manager>
 
