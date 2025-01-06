@@ -3,7 +3,7 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-class HTTP2ClientConnectionTests {
+class HTTP2ClientConnectionTests: XCBaseTestCase {
 
     let expectedVersion = HTTPVersion.version_2
 

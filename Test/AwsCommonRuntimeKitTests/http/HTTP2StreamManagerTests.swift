@@ -4,7 +4,7 @@
 import XCTest
 @testable import AwsCommonRuntimeKit
 
-class HTT2StreamManagerTests {
+class HTT2StreamManagerTests: XCBaseTestCase {
     let endpoint = "d1cz66xoahf9cl.cloudfront.net"; // Use cloudfront for HTTP/2
     let path = "/random_32_byte.data";
 

@@ -6,7 +6,7 @@ import XCTest
 import AwsCCommon
 import AwsCHttp
 
-class HTTPTests {
+class HTTPTests: XCBaseTestCase {
     let host = "postman-echo.com"
     let getPath = "/get"
 

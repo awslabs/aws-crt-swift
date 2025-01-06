@@ -3,10 +3,10 @@
 import AwsCHttp
 import Foundation
 
-/// An base abstract class that represents a single Http Request/Response for both HTTP/1.1 and HTTP/2.
-/// Can be used to update the Window size, and get status code.
 // Swift cannot verify the sendability due to a pointer, and thread safety is handled in the C layer.
 // So mark it as unchecked Sendable.
+/// An base abstract class that represents a single Http Request/Response for both HTTP/1.1 and HTTP/2.
+/// Can be used to update the Window size, and get status code.
 public class HTTPStream: @unchecked Sendable {
     let rawValue: UnsafeMutablePointer<aws_http_stream>
     var callbackData: HTTPStreamCallbackCore

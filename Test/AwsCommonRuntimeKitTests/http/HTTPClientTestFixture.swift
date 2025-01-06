@@ -57,7 +57,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                          connectionManager: HTTPClientConnectionManager,
                          expectedVersion: HTTPVersion = HTTPVersion.version_1_1,
                          requestVersion: HTTPVersion = HTTPVersion.version_1_1,
-                         numRetries: UInt = 0,
+                         numRetries: UInt = 2,
                          onResponse: HTTPRequestOptions.OnResponse? = nil,
                          onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                          onComplete: HTTPRequestOptions.OnStreamComplete? = nil) async throws -> HTTPResponse {
