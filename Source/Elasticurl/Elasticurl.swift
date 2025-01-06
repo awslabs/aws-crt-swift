@@ -62,7 +62,6 @@ struct Elasticurl {
                                                              arguments: CommandLine.unsafeArgv,
                                                              optionString: optionString, options: options)
 
-        
         var context = Context()
         if let caCert = argumentsDict["a"] as? String {
             context.caCert = caCert

@@ -12,7 +12,11 @@ struct HTTPResponse {
     var version: HTTPVersion?
 }
 
-actor Semaphore {
+/*
+ * Async Semaphore compatible with Swift's structured concurrency. Swift complains about the normal sync Semaphore since it's a blocking wait.  
+ * https://forums.swift.org/t/semaphore-alternatives-for-structured-concurrency/59353
+ */
+actor TestSemaphore {
     private var count: Int
     private var waiters: [CheckedContinuation<Void, Never>] = []
 
@@ -59,7 +63,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                          onComplete: HTTPRequestOptions.OnStreamComplete? = nil) async throws -> HTTPResponse {
 
         var httpResponse = HTTPResponse()
-        let semaphore = Semaphore(value: 0)
+        let semaphore = TestSemaphore(value: 0)
 
         let httpRequestOptions: HTTPRequestOptions
         if requestVersion == HTTPVersion.version_2 {
@@ -116,7 +120,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                           onComplete: HTTPRequestOptions.OnStreamComplete? = nil) async throws -> HTTPResponse {
 
         var httpResponse = HTTPResponse()
-        let semaphore = Semaphore(value: 0)
+        let semaphore = TestSemaphore(value: 0)
 
         let httpRequestOptions = try getHTTP2RequestOptions(
                 method: method,
@@ -172,7 +176,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
 
     static func getRequestOptions(request: HTTPRequestBase,
                            response: UnsafeMutablePointer<HTTPResponse>? = nil,
-                           semaphore: Semaphore? = nil,
+                           semaphore: TestSemaphore? = nil,
                            onResponse: HTTPRequestOptions.OnResponse? = nil,
                            onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                            onComplete: HTTPRequestOptions.OnStreamComplete? = nil,
@@ -207,7 +211,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                path: String,
                                body: String = "",
                                response: UnsafeMutablePointer<HTTPResponse>? = nil,
-                               semaphore: Semaphore? = nil,
+                               semaphore: TestSemaphore? = nil,
                                headers: [HTTPHeader] = [HTTPHeader](),
                                onResponse: HTTPRequestOptions.OnResponse? = nil,
                                onBody: HTTPRequestOptions.OnIncomingBody? = nil,
@@ -239,7 +243,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                                 body: String = "",
                                 manualDataWrites: Bool = false,
                                 response: UnsafeMutablePointer<HTTPResponse>? = nil,
-                                semaphore: Semaphore? = nil,
+                                semaphore: TestSemaphore? = nil,
                                 onResponse: HTTPRequestOptions.OnResponse? = nil,
                                 onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                                 onComplete: HTTPRequestOptions.OnStreamComplete? = nil,

@@ -47,7 +47,7 @@ class HTTPTests {
 
     func testHTTPChunkTransferEncoding() async throws {
         let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(endpoint: host, alpnList: ["http/1.1"])
-        let semaphore = Semaphore(value: 0)
+        let semaphore = TestSemaphore(value: 0)
         var httpResponse = HTTPResponse()
         var onCompleteCalled = false
         let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(
@@ -94,7 +94,7 @@ class HTTPTests {
 
     func testHTTPChunkTransferEncodingWithDataInLastChunk() async throws {
         let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(endpoint: host, alpnList: ["http/1.1"])
-        let semaphore = Semaphore(value: 0)
+        let semaphore = TestSemaphore(value: 0)
         var httpResponse = HTTPResponse()
         var onCompleteCalled = false
         let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(
@@ -151,7 +151,7 @@ class HTTPTests {
     }
 
     func testStreamLivesUntilComplete() async throws {
-        let semaphore = Semaphore(value: 0)
+        let semaphore = TestSemaphore(value: 0)
         do {
             let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(method: "GET", endpoint: host, path: getPath, semaphore: semaphore)
             let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
@@ -164,7 +164,7 @@ class HTTPTests {
 
     func testManagerLivesUntilComplete() async throws {
         var connection: HTTPClientConnection! = nil
-        let semaphore = Semaphore(value: 0)
+        let semaphore = TestSemaphore(value: 0)
 
         do {
             let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
@@ -179,7 +179,7 @@ class HTTPTests {
     func testConnectionLivesUntilComplete() async throws {
         var stream: HTTPStream! = nil
 
-        let semaphore = Semaphore(value: 0)
+        let semaphore = TestSemaphore(value: 0)
          
         do {
             let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(endpoint: host, ssh: true, port: 443)

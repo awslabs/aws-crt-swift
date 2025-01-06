@@ -3,7 +3,7 @@
 
 import Foundation
 import AwsCCommon
-// swiftlint:disable trailing_whitespace
+
 struct CommandLineParser {
     /// A function to parse command line arguments
     /// - Parameters:
@@ -15,7 +15,6 @@ struct CommandLineParser {
     /// - Returns: A dictionary of`[String: Any] ` with `String` as the name of the flag and `Any` as the
     /// value passed in
     public static func parseArguments(argc: Int32,
-
                                       arguments: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>,
                                       optionString: String,
                                       options: [aws_cli_option]) -> [String: Any] {
