@@ -5,6 +5,7 @@
 
 #ifndef AWS_COMMON_CONFIG_H
 #define AWS_COMMON_CONFIG_H
+
 /*
  * This header exposes compiler feature test results determined during cmake
  * configure time to inline function implementations. The macros defined here
@@ -13,7 +14,7 @@
  */
 #ifdef __APPLE__
 /* This is a trick to skip OpenSSL header on Apple platforms since Swift Package Manager is not smart enough to exclude
- * some headers. 
+ * some headers.
  */
 #    define AWS_C_CAL_OPENSSLCRYPTO_COMMON_H
 #endif

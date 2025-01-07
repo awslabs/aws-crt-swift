@@ -124,6 +124,14 @@ extension TimeInterval {
 }
 
 extension aws_byte_cursor {
+    func toData() -> Data {
+        Data(bytes: self.ptr, count: self.len)
+    }
+
+    func toArray() -> [UInt8] {
+        Array(UnsafeBufferPointer(start: self.ptr, count: self.len))
+    }
+
     func toString() -> String {
         if self.len == 0 {
             return ""
