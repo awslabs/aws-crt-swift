@@ -6,7 +6,7 @@ import AwsCEventStream
 @testable import AwsCommonRuntimeKit
 
 class EventStreamTests: XCBaseTestCase {
-    
+
     func testEncodeDecodeHeaders() async throws {
         let onCompleteWasCalled = XCTestExpectation(description: "OnComplete was called")
 
@@ -47,7 +47,7 @@ class EventStreamTests: XCBaseTestCase {
                 })
         try decoder.decode(data: encoded)
         XCTAssertTrue(headers.elementsEqual(decodedHeaders))
-        await fulfillment(of: [onCompleteWasCalled], timeout: 1)
+        await awaitExpectation([onCompleteWasCalled])
     }
 
     func testEncodeDecodePayload() async throws {
@@ -75,7 +75,7 @@ class EventStreamTests: XCBaseTestCase {
                 })
         try decoder.decode(data: encoded)
         XCTAssertEqual(payload, decodedPayload)
-        await fulfillment(of: [onCompleteWasCalled], timeout: 1)
+        await awaitExpectation([onCompleteWasCalled])
     }
 
     func testEncodeOutOfScope() async throws {
@@ -113,7 +113,7 @@ class EventStreamTests: XCBaseTestCase {
 
         let expectedHeaders = [EventStreamHeader(name: "int16", value: .int32(value: 16))]
         XCTAssertTrue(expectedHeaders.elementsEqual(decodedHeaders))
-        await fulfillment(of: [onCompleteWasCalled], timeout: 1)
+        await awaitExpectation([onCompleteWasCalled])
     }
 
     func testDecodeByteByByte() async throws {
@@ -149,7 +149,7 @@ class EventStreamTests: XCBaseTestCase {
 
         XCTAssertEqual(payload, decodedPayload)
         XCTAssertTrue(headers.elementsEqual(decodedHeaders))
-        await fulfillment(of: [onCompleteWasCalled], timeout: 1)
+        await awaitExpectation([onCompleteWasCalled])
     }
 
     func testEmpty() async throws {
@@ -174,6 +174,6 @@ class EventStreamTests: XCBaseTestCase {
                     XCTFail("Error occurred. Code: \(code)\nMessage:\(message)")
                 })
         try decoder.decode(data: encoded)
-        await fulfillment(of: [onCompleteWasCalled], timeout: 1)
+        await awaitExpectation([onCompleteWasCalled])
     }
 }

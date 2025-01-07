@@ -7,7 +7,7 @@ import AwsCCommon
 
 class XCBaseTestCase: XCTestCase {
     internal let tracingAllocator = TracingAllocator(tracingStacksOf: allocator)
-    
+
     override func setUp() {
         super.setUp()
         // XCode currently lacks a way to enable logs exclusively for failed tests only.
@@ -64,6 +64,15 @@ extension XCTestCase {
     func skipIftvOS() throws {
         #if os(tvOS)
             throw XCTSkip("Skipping test on tvOS")
+        #endif
+    }
+
+    func awaitExpectation(_ expectations: [XCTestExpectation]) async {
+        // Remove the Ifdef once our minimum supported Swift version reaches 5.10
+        #if swift(>=5.10)
+            await fulfillment(of: expectations, timeout: 5)
+        #else
+        wait(for: expectations, timeout: 5)
         #endif
     }
 

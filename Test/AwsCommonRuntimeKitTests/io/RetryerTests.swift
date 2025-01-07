@@ -4,12 +4,12 @@ import XCTest
 @testable import AwsCommonRuntimeKit
 class RetryerTests: XCBaseTestCase {
     let expectation = XCTestExpectation(description: "Credentials callback was called")
-    
+
     func testCreateAWSRetryer() throws {
         let elg = try EventLoopGroup(threadCount: 1)
         _ = try RetryStrategy(eventLoopGroup: elg)
     }
-    
+
     func testAcquireToken() async throws {
         let elg = try EventLoopGroup(threadCount: 1)
         let retryer = try RetryStrategy(eventLoopGroup: elg)
@@ -37,7 +37,7 @@ class RetryerTests: XCBaseTestCase {
             XCTAssertNotNil(token)
             _ = try await retryer.scheduleRetry(token: token, errorType: RetryError.serverError)
         }
-        await fulfillment(of: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
     func testGenerateRandom() async throws {
@@ -59,6 +59,6 @@ class RetryerTests: XCBaseTestCase {
             XCTAssertNotNil(token)
             _ = try await retryer.scheduleRetry(token: token, errorType: RetryError.serverError)
         }
-        await fulfillment(of: [generateRandomWasCalled, shutdownWasCalled], timeout: 15, enforceOrder: true)
+        await awaitExpectation([generateRandomWasCalled, shutdownWasCalled])
     }
 }

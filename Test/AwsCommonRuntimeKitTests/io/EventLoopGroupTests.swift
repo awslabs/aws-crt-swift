@@ -11,7 +11,7 @@ class EventLoopGroupTests: XCBaseTestCase {
         _ = try EventLoopGroup() {
             shutdownWasCalled.fulfill()
         }
-        await fulfillment(of: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
     func testCanCreateGroupWithThreads() throws {
