@@ -3,7 +3,6 @@
 
 import Foundation
 import AwsCCommon
-// swiftlint:disable trailing_whitespace
 
 struct CommandLineParser {
     /// A function to parse command line arguments
@@ -27,8 +26,8 @@ struct CommandLineParser {
                 break
             }
             if let char = UnicodeScalar(Int(opt)) {
-                if aws_cli_optarg != nil {
-                    argumentsDict[String(char)] = String(cString: aws_cli_optarg)
+                if aws_get_cli_optarg() != nil {
+                    argumentsDict[String(char)] = String(cString: aws_get_cli_optarg())
                 } else {
                     // if argument doesnt have a value just mark it as present in the dictionary
                     argumentsDict[String(char)] = true
@@ -60,7 +59,9 @@ extension CLIHasArg: RawRepresentable, CaseIterable {
     }
 }
 
-class AWSCLIOption {
+// Swift cannot verify the sendability due to a pointer, and thread safety is handled in the C layer.
+// So mark it as unchecked Sendable.
+class AWSCLIOption: @unchecked Sendable {
     let rawValue: aws_cli_option
     let name: UnsafeMutablePointer<CChar>
     init(name: String, hasArg: CLIHasArg, flag: UnsafeMutablePointer<Int32>? = nil, val: String) {

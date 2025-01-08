@@ -12,14 +12,44 @@ struct HTTPResponse {
     var version: HTTPVersion?
 }
 
+/*
+ * Async Semaphore compatible with Swift's structured concurrency. Swift complains about the normal sync Semaphore since it's a blocking wait.  
+ * See: https://forums.swift.org/t/semaphore-alternatives-for-structured-concurrency/59353
+ */
+actor TestSemaphore {
+    private var count: Int
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    init(value: Int = 0) {
+        self.count = value
+    }
+
+    func wait() async {
+        count -= 1
+        if count >= 0 { return }
+        await withCheckedContinuation {
+            waiters.append($0)
+        }
+    }
+
+    func signal(count: Int = 1) {
+        assert(count >= 1)
+        self.count += count
+        for _ in 0..<count {
+            if waiters.isEmpty { return }
+            waiters.removeFirst().resume()
+        }
+    }
+}
+
 class HTTPClientTestFixture: XCBaseTestCase {
-    let TEST_DOC_LINE: String = """
+    static let TEST_DOC_LINE: String = """
                                 This is a sample to prove that http downloads and uploads work. 
                                 It doesn't really matter what's in here, 
                                 we mainly just need to verify the downloads and uploads work.
                                 """
 
-    func sendHTTPRequest(method: String,
+    static func sendHTTPRequest(method: String,
                          endpoint: String,
                          path: String = "/",
                          body: String = "",
@@ -33,7 +63,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                          onComplete: HTTPRequestOptions.OnStreamComplete? = nil) async throws -> HTTPResponse {
 
         var httpResponse = HTTPResponse()
-        let semaphore = DispatchSemaphore(value: 0)
+        let semaphore = TestSemaphore(value: 0)
 
         let httpRequestOptions: HTTPRequestOptions
         if requestVersion == HTTPVersion.version_2 {
@@ -68,7 +98,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
             XCTAssertEqual(connection.httpVersion, expectedVersion)
             let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
             try stream.activate()
-            semaphore.wait()
+            await semaphore.wait()
         }
 
         XCTAssertNil(httpResponse.error)
@@ -76,7 +106,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
         return httpResponse
     }
 
-    func sendHTTP2Request(method: String,
+    static func sendHTTP2Request(method: String,
                           path: String,
                           scheme: String = "https",
                           authority: String,
@@ -90,7 +120,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
                           onComplete: HTTPRequestOptions.OnStreamComplete? = nil) async throws -> HTTPResponse {
 
         var httpResponse = HTTPResponse()
-        let semaphore = DispatchSemaphore(value: 0)
+        let semaphore = TestSemaphore(value: 0)
 
         let httpRequestOptions = try getHTTP2RequestOptions(
                 method: method,
@@ -109,7 +139,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
             print("Attempt#\(i) to send an HTTP request")
             let stream = try await streamManager.acquireStream(requestOptions: httpRequestOptions)
             try stream.activate()
-            semaphore.wait()
+            await semaphore.wait()
         }
 
         XCTAssertNil(httpResponse.error)
@@ -117,7 +147,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
         return httpResponse
     }
 
-    func getHttpConnectionManager(endpoint: String,
+    static func getHttpConnectionManager(endpoint: String,
                                   ssh: Bool = true,
                                   port: Int = 443,
                                   alpnList: [String] = ["http/1.1"],
@@ -144,9 +174,9 @@ class HTTPClientTestFixture: XCBaseTestCase {
         return try HTTPClientConnectionManager(options: httpClientOptions)
     }
 
-    func getRequestOptions(request: HTTPRequestBase,
+    static func getRequestOptions(request: HTTPRequestBase,
                            response: UnsafeMutablePointer<HTTPResponse>? = nil,
-                           semaphore: DispatchSemaphore? = nil,
+                           semaphore: TestSemaphore? = nil,
                            onResponse: HTTPRequestOptions.OnResponse? = nil,
                            onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                            onComplete: HTTPRequestOptions.OnStreamComplete? = nil,
@@ -170,18 +200,18 @@ class HTTPClientTestFixture: XCBaseTestCase {
                         response?.pointee.error = error
                     }
                     onComplete?(result)
-                    semaphore?.signal()
+                    Task { await semaphore?.signal() }
                 },
                 http2ManualDataWrites: http2ManualDataWrites)
     }
 
 
-    func getHTTPRequestOptions(method: String,
+    static func getHTTPRequestOptions(method: String,
                                endpoint: String,
                                path: String,
                                body: String = "",
                                response: UnsafeMutablePointer<HTTPResponse>? = nil,
-                               semaphore: DispatchSemaphore? = nil,
+                               semaphore: TestSemaphore? = nil,
                                headers: [HTTPHeader] = [HTTPHeader](),
                                onResponse: HTTPRequestOptions.OnResponse? = nil,
                                onBody: HTTPRequestOptions.OnIncomingBody? = nil,
@@ -206,14 +236,14 @@ class HTTPClientTestFixture: XCBaseTestCase {
                 onComplete: onComplete)
     }
 
-    func getHTTP2RequestOptions(method: String,
+    static func getHTTP2RequestOptions(method: String,
                                 path: String,
                                 scheme: String = "https",
                                 authority: String,
                                 body: String = "",
                                 manualDataWrites: Bool = false,
                                 response: UnsafeMutablePointer<HTTPResponse>? = nil,
-                                semaphore: DispatchSemaphore? = nil,
+                                semaphore: TestSemaphore? = nil,
                                 onResponse: HTTPRequestOptions.OnResponse? = nil,
                                 onBody: HTTPRequestOptions.OnIncomingBody? = nil,
                                 onComplete: HTTPRequestOptions.OnStreamComplete? = nil,

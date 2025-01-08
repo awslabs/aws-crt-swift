@@ -6,7 +6,7 @@ import AwsCAuth
 import Foundation
 @testable import AwsCommonRuntimeKit
 
-class HTTPProxyTests: HTTPClientTestFixture {
+class HTTPProxyTests: XCBaseTestCase {
 
     let HTTPProxyHost = ProcessInfo.processInfo.environment["AWS_TEST_HTTP_PROXY_HOST"]
     let HTTPProxyPort = ProcessInfo.processInfo.environment["AWS_TEST_HTTP_PROXY_PORT"]
@@ -185,13 +185,13 @@ class HTTPProxyTests: HTTPClientTestFixture {
         let uri = getURIFromTestType(type: type)
         let port = getPortFromTestType(type: type)
         let proxyOptions = try getProxyOptions(type: type, authType: authType)
-        let manager = try await getHttpConnectionManager(
+        let manager = try await HTTPClientTestFixture.getHttpConnectionManager(
                 endpoint: uri,
                 ssh: getSSH(type: type),
                 port: port,
                 alpnList: ["http/1.1"],
                 proxyOptions: proxyOptions)
-        _ = try await sendHTTPRequest(method: "GET", endpoint: uri, connectionManager: manager)
+        _ = try await HTTPClientTestFixture.sendHTTPRequest(method: "GET", endpoint: uri, connectionManager: manager)
     }
 
 }
