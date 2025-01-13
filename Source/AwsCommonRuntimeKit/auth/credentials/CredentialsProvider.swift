@@ -83,12 +83,14 @@ extension CredentialsProvider.Source {
     ///   - accessKey: The access key to use.
     ///   - secret: The secret to use.
     ///   - sessionToken: (Optional) Session token to use.
+    ///   - accountId: (Optional) Account id to use.
     ///   - shutdownCallback:  (Optional) shutdown callback
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `static`(accessKey: String,
                                 secret: String,
                                 sessionToken: String? = nil,
+                                accountId: String? = nil,
                                 shutdownCallback: ShutdownCallback? = nil) -> Self {
         Self {
 
@@ -98,10 +100,12 @@ extension CredentialsProvider.Source {
             guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                     accessKey,
                     secret,
-                    sessionToken, { accessKeyCursor, secretCursor, sessionTokenCursor in
+                    sessionToken,
+                    accountId, { accessKeyCursor, secretCursor, sessionTokenCursor, accountIdCursor in
                         staticOptions.access_key_id = accessKeyCursor
                         staticOptions.secret_access_key = secretCursor
                         staticOptions.session_token = sessionTokenCursor
+                        staticOptions.account_id = accountIdCursor
                         return aws_credentials_provider_new_static(allocator.rawValue, &staticOptions)
                     })
             else {

@@ -81,6 +81,22 @@ class CredentialsProviderTests: XCBaseTestCase {
         wait(for: [shutdownWasCalled], timeout: 15)
     }
 
+    func testCreateCredentialsProviderStaticWithAccountId() async throws {
+        do {
+            let accountId = "Account ID"
+            let provider = try CredentialsProvider(source: .static(accessKey: accessKey,
+                    secret: secret,
+                    sessionToken: sessionToken,
+                    accountId: accountId,
+                    shutdownCallback: getShutdownCallback()))
+            let credentials = try await provider.getCredentials()
+            XCTAssertNotNil(credentials)
+            assertCredentials(credentials: credentials)
+            XCTAssertEqual(accountId, credentials.getAccountId())
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
+    }
+
     func testCredentialsProviderEnvThrow() async {
         let exceptionWasThrown = XCTestExpectation(description: "Exception was thrown because of missing credentials in environment")
         do {
