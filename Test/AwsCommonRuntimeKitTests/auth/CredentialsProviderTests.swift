@@ -2,12 +2,11 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import XCTest
-@_spi(AccountIDTempSupport) @testable import AwsCommonRuntimeKit
+@testable import AwsCommonRuntimeKit
 
 class CredentialsProviderTests: XCBaseTestCase {
     let accessKey = "AccessKey"
     let secret = "Sekrit"
-    var accountId: String? = nil
     let sessionToken = "Token"
 
     let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
@@ -69,14 +68,12 @@ class CredentialsProviderTests: XCBaseTestCase {
         wait(for: [shutdownWasCalled], timeout: 15)
     }
 
-        // TODO: change this test to not pass accountId separately once the source function handles it
     func testCreateCredentialsProviderStatic() async throws {
-        accountId = "0123456789"
         do {
             let provider = try CredentialsProvider(source: .static(accessKey: accessKey,
                     secret: secret,
                     sessionToken: sessionToken,
-                    shutdownCallback: getShutdownCallback()), accountId: accountId)
+                    shutdownCallback: getShutdownCallback()))
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
