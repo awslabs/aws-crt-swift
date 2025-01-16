@@ -115,6 +115,22 @@ public class TLSContextOptions: CStruct {
         }
     }
 
+    public func overrideDefaultTrustStoreWithPath(caPath: String) throws {
+        if aws_tls_ctx_options_override_default_trust_store_from_path(rawValue,
+                                                                      caPath,
+                                                                      nil) != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+    }
+
+    public func overrideDefaultTrustStoreWithFile(caFile: String) throws {
+        if aws_tls_ctx_options_override_default_trust_store_from_path(rawValue,
+                                                                      nil,
+                                                                      caFile) != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+    }
+
     public func setAlpnList(_ alpnList: [String]) {
         aws_tls_ctx_options_set_alpn_list(rawValue, alpnList.joined(separator: ";"))
     }
