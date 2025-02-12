@@ -143,7 +143,6 @@ cSettingsIO.append(.define("AWS_ENABLE_EPOLL"))
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
-cSettingsIO.append(.define("__APPLE__"))
 cSettingsIO.append(.define("AWS_ENABLE_KQUEUE"))
 #endif
 
