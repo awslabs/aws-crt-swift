@@ -44,14 +44,16 @@ public final class Credentials {
             sessionToken,
             accountId) { accessKeyCursor, secretCursor, sessionTokenCursor, accountIdCursor in
 
-            return aws_credentials_new_with_account_id(
-                allocator.rawValue,
-                accessKeyCursor,
-                secretCursor,
-                sessionTokenCursor,
-                accountIdCursor,
-                expirationTimeout)
-        }) else {
+                    var options = aws_credentials_options()
+                    options.access_key_id_cursor = accessKeyCursor
+                    options.secret_access_key_cursor = secretCursor
+                    options.session_token_cursor = sessionTokenCursor
+                    options.account_id_cursor = accountIdCursor
+                    options.expiration_timepoint_seconds = expirationTimeout
+
+                    return aws_credentials_new_with_options(allocator.rawValue, &options)
+                })
+        else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue
