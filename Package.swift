@@ -133,14 +133,18 @@ awsCIoPlatformExcludes.append("source/posix")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
 awsCIoPlatformExcludes.append("source/darwin")
+cSettingsIO.append(.define("AWS_ENABLE_IO_COMPLETION_PORTS"))
 #elseif os(Linux)
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
+cSettingsIO.append(.define("AWS_ENABLE_EPOLL"))
 #else  // macOS, iOS, watchOS, tvOS
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
+cSettingsIO.append(.define("__APPLE__"))
+cSettingsIO.append(.define("AWS_ENABLE_KQUEUE"))
 #endif
 
 //////////////////////////////////////////////////////////////////////
