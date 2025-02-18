@@ -137,17 +137,24 @@ awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
 awsCIoPlatformExcludes.append("source/darwin")
 cSettingsIO.append(.define("AWS_ENABLE_IO_COMPLETION_PORTS"))
+<<<<<<< HEAD
 swiftTestSettings.append(.define("AWS_ENABLE_IO_COMPLETION_PORTS"))
+=======
+>>>>>>> main
 #elseif os(Linux)
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
 cSettingsIO.append(.define("AWS_ENABLE_EPOLL"))
+<<<<<<< HEAD
 swiftTestSettings.append(.define("AWS_ENABLE_EPOLL"))
+=======
+>>>>>>> main
 #else  // macOS, iOS, watchOS, tvOS
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
+<<<<<<< HEAD
 cSettingsIO.append(.define("__APPLE__"))
 cSettingsIO.append(.define("AWS_ENABLE_DISPATCH_QUEUE", .when(platforms: [.iOS, .tvOS, .macOS])))
 cSettingsIO.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
@@ -156,6 +163,9 @@ swiftTestSettings.append(.define("__APPLE__"))
 swiftTestSettings.append(.define("AWS_ENABLE_DISPATCH_QUEUE", .when(platforms: [.iOS, .tvOS, .macOS])))
 swiftTestSettings.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
 swiftTestSettings.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
+=======
+cSettingsIO.append(.define("AWS_ENABLE_KQUEUE"))
+>>>>>>> main
 #endif
 
 //////////////////////////////////////////////////////////////////////
