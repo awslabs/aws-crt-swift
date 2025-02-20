@@ -8,13 +8,9 @@ public final class Credentials {
 
     let rawValue: OpaquePointer
 
-    // TODO: remove this property once aws-c-auth supports account_id
-    private let accountId: String?
-
-    init(rawValue: OpaquePointer, accountId: String? = nil) {
+    init(rawValue: OpaquePointer) {
         self.rawValue = rawValue
         aws_credentials_acquire(rawValue)
-        self.accountId = accountId
     }
 
     /// Creates a new set of aws credentials
@@ -23,15 +19,15 @@ public final class Credentials {
     ///   - accessKey: value for the aws access key id field
     ///   - secret: value for the secret access key field
     ///   - sessionToken: (Optional) security token associated with the credentials
-    ///   - accountId: (Optional) the account ID for the resolved credentials, if known
+    ///   - accountId: (Optional) account id associated with the credentials
     ///   - expiration: (Optional) Point in time after which credentials will no longer be valid.
     ///                 For credentials that do not expire, use nil.
     ///                 If expiration.timeIntervalSince1970 is greater than UInt64.max, it will be converted to nil.
     /// - Throws: CommonRuntimeError.crtError
     public init(accessKey: String,
                 secret: String,
-                accountId: String? = nil,
                 sessionToken: String? = nil,
+                accountId: String? = nil, 
                 expiration: Date? = nil) throws {
 
         let expirationTimeout: UInt64
@@ -45,19 +41,22 @@ public final class Credentials {
         guard let rawValue = (withByteCursorFromStrings(
             accessKey,
             secret,
-            sessionToken) { accessKeyCursor, secretCursor, sessionTokenCursor in
+            sessionToken,
+            accountId) { accessKeyCursor, secretCursor, sessionTokenCursor, accountIdCursor in
 
-            return aws_credentials_new(
-                allocator.rawValue,
-                accessKeyCursor,
-                secretCursor,
-                sessionTokenCursor,
-                expirationTimeout)
-        }) else {
+                    var options = aws_credentials_options()
+                    options.access_key_id_cursor = accessKeyCursor
+                    options.secret_access_key_cursor = secretCursor
+                    options.session_token_cursor = sessionTokenCursor
+                    options.account_id_cursor = accountIdCursor
+                    options.expiration_timepoint_seconds = expirationTimeout
+
+                    return aws_credentials_new_with_options(allocator.rawValue, &options)
+                })
+        else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         self.rawValue = rawValue
-        self.accountId = accountId
     }
 
     /// Gets the access key from the `aws_credentials` instance
@@ -76,21 +75,20 @@ public final class Credentials {
         return secret.toOptionalString()
     }
 
-    /// Gets the account ID from the `Credentials`, if any.
-    ///
-    /// Temporarily, `accountId` is backed by a Swift instance variable.
-    /// In the future, when the C implementation implements `account_id` the implementation will get account ID from the `aws_credentials` instance.
-    /// - Returns:`String?`: The AWS `accountId` or nil
-    public func getAccountId() -> String? {
-        accountId
-    }
-
     /// Gets the session token from the `aws_credentials` instance
     ///
     /// - Returns:`String?`: The AWS Session token or nil
     public func getSessionToken() -> String? {
         let token = aws_credentials_get_session_token(rawValue)
         return token.toOptionalString()
+    }
+
+    /// Gets the account id from the `aws_credentials` instance
+    ///
+    /// - Returns:`String?`: The account id or nil
+    public func getAccountId() -> String? {
+        let accountId = aws_credentials_get_account_id(rawValue)
+        return accountId.toOptionalString()
     }
 
     /// Gets the expiration timeout from the `aws_credentials` instance
