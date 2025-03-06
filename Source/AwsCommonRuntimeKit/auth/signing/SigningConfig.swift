@@ -229,6 +229,7 @@ public enum SignedBodyValue: CustomStringConvertible, Equatable {
 public enum SigningAlgorithmType {
     case signingV4
     case signingV4Asymmetric
+    case signingV4S3Express
 }
 
 extension SignatureType {
@@ -257,6 +258,7 @@ extension SigningAlgorithmType {
         switch self {
         case .signingV4: return AWS_SIGNING_ALGORITHM_V4
         case .signingV4Asymmetric: return AWS_SIGNING_ALGORITHM_V4_ASYMMETRIC
+        case .signingV4S3Express: return AWS_SIGNING_ALGORITHM_V4_S3EXPRESS
         }
     }
 }

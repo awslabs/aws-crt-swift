@@ -31,6 +31,9 @@ class FileBasedConfigurationTests: XCBaseTestCase {
         XCTAssertEqual("accessKey1", credSection.getProperty(name: "aws_access_key_id")?.value)
         XCTAssertEqual(credSection.propertyCount, 2)
 
+        let servicesSection = fileBasedConfiguration.getSection(name: "test-service", sectionType: .services)!
+        XCTAssertEqual("test-url", servicesSection.getProperty(name: "s3")?.value)
+        XCTAssertEqual(servicesSection.propertyCount, 1)
     }
 
     func testCollectionOutOfScope() throws {
