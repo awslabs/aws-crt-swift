@@ -113,7 +113,6 @@ packageTargets.append(.target(
         .define("S2N_BUILD_RELEASE"),
         .define("_FORTIFY_SOURCE", to: "2"),
         .define("POSIX_C_SOURCE", to: "200809L"),
-
     ]
 ))
 #endif
