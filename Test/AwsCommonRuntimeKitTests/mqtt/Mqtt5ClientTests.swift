@@ -613,7 +613,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnWS-UC4] websocket connection with TLS, using sigv4
      */
-    func testMqtt5WSConnectWithMutualTLS() throws {
+    func testMqtt5WSConnectWithStaticCredentialProvider() throws {
         do{
             try skipIfPlatformDoesntSupportTLS()
             
@@ -645,7 +645,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                               service: "iotdevicegateway",
                                               region: "us-east-1",
                                               credentialsProvider: provider,
-                                          
                                               omitSessionToken: true)
             
             // We manually setup the websocket transform to avoid recursive reference between provider and test context
@@ -685,6 +684,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
             try disconnectClientCleanup(client:client, testContext: testContext)
             // Clean up the WebSocket handshake function to ensure the test context is properly released
             testContext.onWebSocketHandshake=nil
+        }
+        catch{
+            // Fulfill the callback if the error
+            self.credentialProviderShutdownWasCalled.fulfill()
         }
         wait(for: [credentialProviderShutdownWasCalled], timeout: 15);
     }
@@ -885,6 +888,10 @@ class Mqtt5ClientTests: XCBaseTestCase {
             XCTAssertNotNil(client)
             try connectClient(client: client, testContext: testContext)
             try disconnectClientCleanup(client: client, testContext: testContext)
+        }
+        catch{
+            // Fulfill the shutdown callback if the test failed. 
+            self.credentialProviderShutdownWasCalled.fulfill()
         }
         wait(for: [credentialProviderShutdownWasCalled], timeout: 5);
     }
