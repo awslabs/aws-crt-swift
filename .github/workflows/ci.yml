@@ -120,6 +120,18 @@ jobs:
       with:
         role-to-assume: ${{ env.CRT_CI_ROLE }}
         aws-region: ${{ env.AWS_DEFAULT_REGION }} 
+    - name:
+      run: |
+        aws s3 cp s3://aws-crt-test-stuff/iosTestApp.p12 ./pkcs12_identity.p12
+        pkcs12_identity_name=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/ios/pkcs12_identity_name" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
+        pkcs12_identity_password=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/ios/pkcs12_identity_password" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
+        security create-keychain -p test_password build.keychain
+        security set-keychain-settings -lut 21600 build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p test_password build.keychain
+        security import pkcs12_identity.p12 -A -k build.keychain -f pkcs12 -P $pkcs12_identity_password -T /usr/bin/codesign -T /usr/bin/security
+        security set-key-partition-list -S 'apple-tool:,apple:' -k test_password build.keychain
+        /usr/bin/codesign --force -s $pkcs12_identity_name . -v
     - name: Build ${{ env.PACKAGE_NAME }} + consumers
       run: |
         python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
