@@ -122,7 +122,7 @@ jobs:
         aws-region: ${{ env.AWS_DEFAULT_REGION }} 
     - name:
       run: |
-        aws s3 cp s3://aws-crt-test-stuff/iosTestApp.p12 ./pkcs12_identity.p12
+        aws s3 cp s3://aws-crt-test-stuff/pkcs12_identity.p12 ./pkcs12_identity.p12
         pkcs12_identity_name=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/ios/pkcs12_identity_name" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
         pkcs12_identity_password=$(aws secretsmanager get-secret-value --region us-east-1 --secret-id "ci/ios/pkcs12_identity_password" --query "SecretString" | cut -f2 -d":" | cut -f2 -d\")
         security create-keychain -p test_password build.keychain
