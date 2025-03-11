@@ -135,6 +135,7 @@ extension FileBasedConfiguration {
     public enum SectionType {
         case profile
         case ssoSession
+        case services
     }
 
     /// Source of file based config
@@ -197,6 +198,7 @@ extension FileBasedConfiguration.SectionType {
         switch self {
         case .profile: return AWS_PROFILE_SECTION_TYPE_PROFILE
         case .ssoSession: return AWS_PROFILE_SECTION_TYPE_SSO_SESSION
+        case .services: return AWS_PROFILE_SECTION_TYPE_SERVICES
         }
     }
 }
