@@ -42,6 +42,7 @@ class TLSContextTests: XCBaseTestCase {
 
 #if AWS_USE_SECITEM
     func testCreateTlsContextWithSecitemOptions() throws {
+        skipIfPlatformDoesntSupportTLS()
         let certPath = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT311_IOT_CORE_X509_CERT")
         let privateKeyPath = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT311_IOT_CORE_X509_KEY")
 
