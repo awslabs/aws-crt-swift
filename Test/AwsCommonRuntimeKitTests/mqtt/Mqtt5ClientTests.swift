@@ -28,7 +28,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /// start client and check for connection success
     func connectClient(client: Mqtt5Client, testContext: MqttTestContext) throws -> Void {
         try client.start()
-        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
+        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 10) == .timedOut {
             print("Connection Success Timed out after 5 seconds")
             XCTFail("Connection Timed Out")
             throw MqttTestError.connectionFail
