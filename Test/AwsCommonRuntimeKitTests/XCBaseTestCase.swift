@@ -13,7 +13,7 @@ class XCBaseTestCase: XCTestCase {
         // XCode currently lacks a way to enable logs exclusively for failed tests only.
         // To prevent log spamming, we use `error` log level to only print error message.
         // We should update this once a more efficient log processing method becomes available.
-        try? Logger.initialize(target: .standardOutput, level: .trace)
+        try? Logger.initialize(target: .standardOutput, level: .error)
 
         // Override the allocator with tracing allocator
         allocator = tracingAllocator.rawValue
@@ -68,7 +68,11 @@ extension XCTestCase {
     }
 
     func skipIfPlatformDoesntSupportTLS() throws {
+        // Skipped for secitem support as the unit tests requires enetitlement setup to have acces to
+        // the data protection keychain.
+        try skipIfiOS()
         try skipIfwatchOS()
+        try skipIftvOS()
     }
 
     /// Return the environment variable value, or Skip the test if env var is not set.
