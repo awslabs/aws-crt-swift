@@ -202,6 +202,7 @@ public class Mqtt5Client {
     }
 
     deinit {
+        print("client deinit....")
         clientCore.close()
     }
 

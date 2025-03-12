@@ -98,6 +98,7 @@ public class CredentialsProvider: CredentialsProviding {
     }
 
     deinit {
+        print("credential provider deinit")
         aws_credentials_provider_release(rawValue)
     }
 }
