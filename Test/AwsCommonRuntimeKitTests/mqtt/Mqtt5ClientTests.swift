@@ -612,42 +612,83 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnWS-UC4] websocket connection with TLS, using sigv4
      */
-    func testMqtt5WSConnectWithMutualTLS() throws {
-        try skipIfPlatformDoesntSupportTLS()
+    func testMqtt5WSConnectWithStaticCredentialProvider() throws {
+        do{
+            try skipIfPlatformDoesntSupportTLS()
 
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let region = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
+            let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+            let region = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
 
-        let tlsOptions = TLSContextOptions.makeDefault()
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+            let tlsOptions = TLSContextOptions.makeDefault()
+            let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
 
-        let elg = try EventLoopGroup()
-        let resolver = try HostResolver(eventLoopGroup: elg,
-                                        maxHosts: 8,
-                                        maxTTL: 30)
-        let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
+            let elg = try EventLoopGroup()
+            let resolver = try HostResolver(eventLoopGroup: elg,
+                                            maxHosts: 8,
+                                            maxTTL: 30)
+            let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
 
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(443),
-            bootstrap: bootstrap,
-            tlsCtx: tlsContext)
+            // setup role credential
+            let accessKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_ACCESS_KEY")
+            let secret = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SECRET_ACCESS_KEY")
+            let sessionToken = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SESSION_TOKEN")
 
-        // setup role credential
-        let accessKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_ACCESS_KEY")
-        let secret = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SECRET_ACCESS_KEY")
-        let sessionToken = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SESSION_TOKEN")
+            let provider = try CredentialsProvider(source: .static(accessKey: accessKey,
+                                                                    secret: secret,
+                                                                    sessionToken: sessionToken,shutdownCallback: credentialProviderShutdownCallback()))
+            let testContext = MqttTestContext()
 
-        let provider = try CredentialsProvider(source: .static(accessKey: accessKey,
-                                                               secret: secret,
-                                                               sessionToken: sessionToken))
-        let testContext = MqttTestContext()
-        testContext.withIoTSigv4WebsocketTransform(region: region, provider: provider)
 
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        testContext.onWebSocketHandshake = nil
-        try connectClient(client: client, testContext: testContext)
-        try disconnectClientCleanup(client:client, testContext: testContext)
+            let signingConfig = SigningConfig(algorithm: SigningAlgorithmType.signingV4,
+                                                signatureType: SignatureType.requestQueryParams,
+                                                service: "iotdevicegateway",
+                                                region: "us-east-1",
+                                                credentialsProvider: provider,
+                                                omitSessionToken: true)
+
+            // We manually setup the websocket transform to avoid recursive reference between provider and test context
+            let onWebsocketTransform : OnWebSocketHandshakeIntercept = { httpRequest, completCallback in
+                do
+                {
+                    let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
+                    completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
+                }
+                catch CommonRunTimeError.crtError (let error) {
+                    completCallback(httpRequest, Int32(error.code))
+                }
+                catch
+                {
+                    completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
+                }
+            }
+
+            let clientOptions = MqttClientOptions(
+                hostName: inputHost,
+                port: UInt32(443),
+                bootstrap: bootstrap,
+                tlsCtx: tlsContext,
+                onWebsocketTransform:onWebsocketTransform,
+                connackTimeout: 10000,
+                onPublishReceivedFn: testContext.onPublishReceived,
+                onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
+                onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
+                onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
+                onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
+                onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
+
+            let client = try Mqtt5Client(clientOptions: clientOptions)
+            XCTAssertNotNil(client)
+
+            try connectClient(client: client, testContext: testContext)
+            try disconnectClientCleanup(client:client, testContext: testContext)
+            // Clean up the WebSocket handshake function to ensure the test context is properly released
+            testContext.onWebSocketHandshake=nil
+        }
+        catch{
+            // Fulfill the callback if the error
+            self.credentialProviderShutdownWasCalled.fulfill()
+        }
+        wait(for: [credentialProviderShutdownWasCalled], timeout: 15);
     }
 
     /*
@@ -672,31 +713,59 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                         maxTTL: 30)
         let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
         let httpProxy = HTTPProxyOptions(hostName: httpHost, port: UInt32(httpPort)!, authType: .none, connectionType: HTTPProxyConnectionType.tunnel)
+        
+        let provider = try CredentialsProvider(source: .defaultChain(bootstrap: bootstrap,
+                                                                     fileBasedConfiguration: FileBasedConfiguration(),
+                                                                     tlsContext: tlsContext))
+        let testContext = MqttTestContext()
+
+
+        let signingConfig = SigningConfig(algorithm: SigningAlgorithmType.signingV4,
+                                          signatureType: SignatureType.requestQueryParams,
+                                          service: "iotdevicegateway",
+                                          region: "us-east-1",
+                                          credentialsProvider: provider,
+
+                                          omitSessionToken: true)
+
+        // We manually setup the websocket transform to avoid recursive reference between provider and test context
+        let onWebsocketTransform : OnWebSocketHandshakeIntercept = { httpRequest, completCallback in
+            do
+            {
+                let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
+                completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
+            }
+            catch CommonRunTimeError.crtError (let error) {
+                completCallback(httpRequest, Int32(error.code))
+            }
+            catch
+            {
+                completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
+            }
+        }
 
         let clientOptions = MqttClientOptions(
             hostName: iotHost,
             port: UInt32(443),
             bootstrap: bootstrap,
             tlsCtx: tlsContext,
-            httpProxyOptions: httpProxy)
+            onWebsocketTransform:onWebsocketTransform,
+            httpProxyOptions: httpProxy,
+            onPublishReceivedFn: testContext.onPublishReceived,
+            onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
+            onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
+            onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
+            onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
+            onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
 
-        let provider = try CredentialsProvider(source: .defaultChain(bootstrap: bootstrap,
-                                                                     fileBasedConfiguration: FileBasedConfiguration(),
-                                                                     tlsContext: tlsContext))
-        let testContext = MqttTestContext()
-        testContext.withIoTSigv4WebsocketTransform(region: region, provider: provider)
 
+        let client = try Mqtt5Client(clientOptions: clientOptions)
+        XCTAssertNotNil(client)
 
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        testContext.onWebSocketHandshake = nil
         try connectClient(client: client, testContext: testContext)
         try disconnectClientCleanup(client:client, testContext: testContext)
     }
 
-
-    /*
-     * [ConnWS-UC5] Websocket connection with HttpProxy options
-     */
     func testMqtt5WSConnectFull() throws {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_PORT")
@@ -749,6 +818,77 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
         try connectClient(client: client, testContext: testContext)
         try disconnectClientCleanup(client:client, testContext: testContext)
+    }
+    
+    func testMqttWebsocketWithCognitoCredentialProvider() async throws {
+        do{
+            let iotEndpoint = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+            let port = 443
+            let cognitoEndpoint = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_ENDPOINT")
+            let cognitoIdentity = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_IDENTITY")
+            let testContext = MqttTestContext(contextName: "WebsocketWithCognitoCredentialProvider")
+            let elg = try EventLoopGroup()
+            let resolver = try HostResolver(eventLoopGroup: elg, maxHosts: 16, maxTTL: 30)
+            let clientBootstrap = try ClientBootstrap(
+                eventLoopGroup: elg,
+                hostResolver: resolver)
+
+            let options = TLSContextOptions.makeDefault()
+            let tlscontext = try TLSContext(options: options, mode: .client)
+
+            let cognitoProvider = try CredentialsProvider(source: .cognito(bootstrap: clientBootstrap, tlsContext: tlscontext, endpoint: cognitoEndpoint, identity: cognitoIdentity, shutdownCallback: credentialProviderShutdownCallback()))
+
+            let connectOptions = MqttConnectOptions(
+                keepAliveInterval: TimeInterval(100),
+                clientId: createClientId())
+
+            let signingConfig = SigningConfig(algorithm: SigningAlgorithmType.signingV4,
+                                              signatureType: SignatureType.requestQueryParams,
+                                              service: "iotdevicegateway",
+                                              region: "us-east-1",
+                                              credentialsProvider: cognitoProvider,
+                                              omitSessionToken: true)
+
+            let onWebsocketTransform : OnWebSocketHandshakeIntercept = { httpRequest, completCallback in
+                do
+                {
+                    let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
+                    completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
+                }
+                catch CommonRunTimeError.crtError (let error) {
+                    completCallback(httpRequest, Int32(error.code))
+                }
+                catch
+                {
+                    completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
+                }
+            }
+
+            let clientOptions = MqttClientOptions(
+                hostName: iotEndpoint,
+                port: UInt32(port),
+                bootstrap: clientBootstrap,
+                tlsCtx: tlscontext,
+                onWebsocketTransform:onWebsocketTransform,
+                connectOptions: connectOptions,
+                connackTimeout: 10000,
+                onPublishReceivedFn: testContext.onPublishReceived,
+                onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
+                onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
+                onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
+                onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
+                onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
+
+            let client = try Mqtt5Client(clientOptions: clientOptions)
+            XCTAssertNotNil(client)
+            try connectClient(client: client, testContext: testContext)
+            try disconnectClientCleanup(client: client, testContext: testContext)
+        }
+        catch{
+            // Fulfill the shutdown callback if the test failed.
+            self.credentialProviderShutdownWasCalled.fulfill()
+        }
+        wait(for: [credentialProviderShutdownWasCalled], timeout: 15);
     }
 
 
