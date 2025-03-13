@@ -2,7 +2,7 @@
 import PackageDescription
 
 let excludesFromAll = ["tests", "cmake", "CONTRIBUTING.md",
-                       "LICENSE", "format-check.sh", "NOTICE", "builder.json",
+                       "LICENSE", "format-check.py", "NOTICE", "builder.json",
                        "CMakeLists.txt", "README.md"]
 var packageTargets: [Target] = []
 
@@ -15,8 +15,15 @@ var package = Package(name: "aws-crt-swift",
 )
 
 let cSettings: [CSetting] = [
-    .define("DEBUG_BUILD", .when(configuration: .debug))
+    .define("DEBUG_BUILD", .when(configuration: .debug)),
+    // Disable Intel VTune tracing API here since aws-crt-swift doesn't use CMake
+    .define("INTEL_NO_ITTNOTIFY_API"),
+    // Don't use APIs forbidden by App Stores (e.g. non-public system APIs)
+    .define("AWS_APPSTORE_SAFE"),
 ]
+
+/// Store any defines that will be used by Swift Tests in swiftTestSettings
+var swiftTestSettings: [SwiftSetting] = []
 
 //////////////////////////////////////////////////////////////////////
 /// Configure C targets.
@@ -38,6 +45,10 @@ awsCCommonPlatformExcludes.append("source/arch/arm")
 #if !os(Windows)
 awsCCommonPlatformExcludes.append("source/windows")
 #endif
+let cSettingsCommon: [CSetting] = [
+    .headerSearchPath("source/external/libcbor"),
+    .define("DEBUG_BUILD", .when(configuration: .debug))
+]
 
 //////////////////////////////////////////////////////////////////////
 /// aws-c-cal
@@ -77,10 +88,8 @@ awsCCalPlatformExcludes.append("source/unix")
 /// s2n-tls
 //////////////////////////////////////////////////////////////////////
 #if os(Linux)
-// add pq-crypto back after adding in platform and chipset detection
 let s2nExcludes = ["bin", "codebuild", "coverage", "docker-images",
-                   "docs", "lib", "pq-crypto/kyber_r3",
-                   "pq-crypto/README.md", "pq-crypto/Makefile", "pq-crypto/s2n_pq_asm.mk",
+                   "docs", "lib",
                    "libcrypto-build", "scram",
                    "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
                    "tls/Makefile", "utils/Makefile", "error/Makefile", "tls/extensions/Makefile",
@@ -94,8 +103,16 @@ packageTargets.append(.target(
     publicHeadersPath: "api",
     cSettings: [
         .headerSearchPath("./"),
-        .define("POSIX_C_SOURCE=200809L"),
-        .define("S2N_NO_PQ")
+        .define("S2N_NO_PQ"),
+        // This is a hack to get around the fact that S2N uses the compiler option `-include`
+        // to include `s2n_prelude.h` in all .c files. Since SwiftPM doesn't support compiler flags,
+        // we manually define the macros from `s2n_prelude.h`. When SwiftPM supports compiler flags
+        // or building packages using CMake, this hack should be removed.
+        // We are not defining `S2N_API` because we don't need to expose any symbols from S2N in crt-swift.
+        .define("_S2N_PRELUDE_INCLUDED"),
+        .define("S2N_BUILD_RELEASE"),
+        .define("_FORTIFY_SOURCE", to: "2"),
+        .define("POSIX_C_SOURCE", to: "200809L"),
     ]
 ))
 #endif
@@ -104,7 +121,7 @@ packageTargets.append(.target(
 /// aws-c-io
 //////////////////////////////////////////////////////////////////////
 var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
-var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11.md", "THIRD-PARTY-LICENSES.txt",
+var awsCIoPlatformExcludes = ["docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11.md",
                               "source/pkcs11/v2.40"] + excludesFromAll
 var cSettingsIO = cSettings
 
@@ -118,30 +135,39 @@ awsCIoPlatformExcludes.append("source/posix")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
 awsCIoPlatformExcludes.append("source/darwin")
+cSettingsIO.append(.define("AWS_ENABLE_IO_COMPLETION_PORTS"))
+swiftTestSettings.append(.define("AWS_ENABLE_IO_COMPLETION_PORTS"))
 #elseif os(Linux)
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
+cSettingsIO.append(.define("AWS_ENABLE_EPOLL"))
+swiftTestSettings.append(.define("AWS_ENABLE_EPOLL"))
 #else  // macOS, iOS, watchOS, tvOS
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
+cSettingsIO.append(.define("__APPLE__"))
+cSettingsIO.append(.define("AWS_ENABLE_DISPATCH_QUEUE", .when(platforms: [.iOS, .tvOS, .macOS])))
+cSettingsIO.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
+cSettingsIO.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
+swiftTestSettings.append(.define("__APPLE__"))
+swiftTestSettings.append(.define("AWS_ENABLE_DISPATCH_QUEUE", .when(platforms: [.iOS, .tvOS, .macOS])))
+swiftTestSettings.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
+swiftTestSettings.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
 #endif
 
 //////////////////////////////////////////////////////////////////////
 /// aws-c-checksums
 //////////////////////////////////////////////////////////////////////
 var awsCChecksumsExcludes = [
+    "bin",
     "CMakeLists.txt",
     "LICENSE",
     "builder.json",
     "README.md",
-    "format-check.sh",
     "cmake",
     "tests"]
-
-// swift never uses Microsoft Visual C++ compiler
-awsCChecksumsExcludes.append("source/intel/visualc")
 
 // Hardware accelerated checksums are disabled because SwiftPM doesn't like the necessary compiler flags.
 // We can add it once SwiftPM has the necessary support for CPU flags or builds C libraries
@@ -207,7 +233,7 @@ packageTargets.append(contentsOf: [
         dependencies: ["AwsCPlatformConfig"],
         path: "aws-common-runtime/aws-c-common",
         exclude: awsCCommonPlatformExcludes,
-        cSettings: cSettings
+        cSettings: cSettingsCommon
     ),
     .target(
         name: "AwsCSdkUtils",
@@ -272,6 +298,9 @@ packageTargets.append(contentsOf: [
         exclude: awsCMqttExcludes,
         cSettings: cSettings
     ),
+    .systemLibrary(
+        name: "LibNative"
+    ),
     .target(
         name: "AwsCommonRuntimeKit",
         dependencies: [ "AwsCAuth",
@@ -282,8 +311,12 @@ packageTargets.append(contentsOf: [
                         "AwsCCommon",
                         "AwsCChecksums",
                         "AwsCEventStream",
-                        "AwsCMqtt"],
-        path: "Source/AwsCommonRuntimeKit"
+                        "AwsCMqtt",
+                        "LibNative"],
+        path: "Source/AwsCommonRuntimeKit",
+        resources: [
+            .copy("PrivacyInfo.xcprivacy")
+        ]
     ),
     .testTarget(
         name: "AwsCommonRuntimeKitTests",
@@ -291,7 +324,8 @@ packageTargets.append(contentsOf: [
         path: "Test/AwsCommonRuntimeKitTests",
         resources: [
             .process("Resources")
-        ]
+        ],
+        swiftSettings: swiftTestSettings
     ),
     .executableTarget(
         name: "Elasticurl",

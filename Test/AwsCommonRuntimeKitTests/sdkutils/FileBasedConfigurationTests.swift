@@ -13,7 +13,7 @@ class FileBasedConfigurationTests: XCBaseTestCase {
         let fileBasedConfiguration = try FileBasedConfiguration(configFilePath: profilePath, credentialsFilePath: configPath)
         XCTAssertNotNil(fileBasedConfiguration)
         let defaultSection = fileBasedConfiguration.getSection(name: "default", sectionType: .profile)!
-        XCTAssertEqual(defaultSection.propertyCount, 4)
+        XCTAssertEqual(defaultSection.propertyCount, 3)
         let property = defaultSection.getProperty(name: "aws_access_key_id")!
         XCTAssertEqual("accessKey", property.value)
 
@@ -31,6 +31,9 @@ class FileBasedConfigurationTests: XCBaseTestCase {
         XCTAssertEqual("accessKey1", credSection.getProperty(name: "aws_access_key_id")?.value)
         XCTAssertEqual(credSection.propertyCount, 2)
 
+        let servicesSection = fileBasedConfiguration.getSection(name: "test-service", sectionType: .services)!
+        XCTAssertEqual("test-url", servicesSection.getProperty(name: "s3")?.value)
+        XCTAssertEqual(servicesSection.propertyCount, 1)
     }
 
     func testCollectionOutOfScope() throws {
@@ -67,7 +70,9 @@ class FileBasedConfigurationTests: XCBaseTestCase {
     func testResolveConfigPath() throws {
         // from $HOME
         let home = "/test/home"
+        let oldHome = getenv("HOME")
         setenv("HOME", home, 1)
+
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .config), "\(home)/.aws/config")
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .credentials), "\(home)/.aws/credentials")
 
@@ -84,5 +89,8 @@ class FileBasedConfigurationTests: XCBaseTestCase {
         // from relative path
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .config, overridePath: "~/.aws/config"), "\(home)/.aws/config")
         XCTAssertEqual(try FileBasedConfiguration.resolveConfigPath(sourceType: .credentials, overridePath: "~/.aws/credentials"), "\(home)/.aws/credentials")
+
+        // reset home env
+        setenv("HOME", oldHome!, 1)
     }
 }

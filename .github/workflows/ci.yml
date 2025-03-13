@@ -6,25 +6,27 @@ on:
       - 'main'
 
 env:
-  BUILDER_VERSION: v0.9.52
-  BUILDER_SOURCE: releases
+  BUILDER_VERSION: xcodebuild_setup
+  BUILDER_SOURCE: channels
   BUILDER_HOST: https://d19elf31gohf1l.cloudfront.net
   PACKAGE_NAME: aws-crt-swift
   RUN: ${{ github.run_id }}-${{ github.run_number }}
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_REGION: us-east-1
+  CRT_CI_ROLE: ${{ secrets.CRT_CI_ROLE_ARN }}
+  AWS_DEFAULT_REGION: us-east-1
+
+permissions:
+  id-token: write # This is required for requesting the JWT
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: GitHub Action for SwiftLint
         uses: norio-nomura/action-swiftlint@3.2.1
 
   linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -34,49 +36,109 @@ jobs:
           # issue to fix centos opened against apple here: https://github.com/apple/swift-docker/issues/258
           # - centos-x64
     steps:
-      - name: Build ${{ env.PACKAGE_NAME }}
-        run: |
-          aws s3 cp --debug s3://aws-crt-test-stuff/ci/${{ env.BUILDER_VERSION }}/linux-container-ci.sh ./linux-container-ci.sh && chmod a+x ./linux-container-ci.sh
-          ./linux-container-ci.sh ${{ env.BUILDER_VERSION }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
-  osx:
-    runs-on: macos-12
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ env.CRT_CI_ROLE }}
+        aws-region: ${{ env.AWS_DEFAULT_REGION }} 
+    - name: Build ${{ env.PACKAGE_NAME }}
+      run: |
+        aws s3 cp --debug s3://aws-crt-test-stuff/ci/${{ env.BUILDER_VERSION }}/linux-container-ci.sh ./linux-container-ci.sh && chmod a+x ./linux-container-ci.sh
+        ./linux-container-ci.sh ${{ env.BUILDER_VERSION }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
+  
+  macos:
+    runs-on: ${{ matrix.runner }}
     env:
       DEVELOPER_DIR: /Applications/Xcode.app
-    steps:
-      - name: Build ${{ env.PACKAGE_NAME }} + consumers
-        run: |
-          python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
-          chmod a+x builder
-          ./builder build -p ${{ env.PACKAGE_NAME }}
-
-  # TODO: Run tests for devices
-  devices:
-    runs-on: macos-12
-    env:
-      DEVELOPER_DIR: /Applications/Xcode.app
+      XCODE_DESTINATION: 'OS X'
+      NSUnbufferedIO: YES
     strategy:
       fail-fast: false
       matrix:
-        target:
-          - ios
-          - tvos
-          - watchos
+        # This matrix runs tests on Mac, on oldest & newest supported Xcodes
+        runner:
+          - macos-13 # x64
+          - macos-14
+          - macos-13-xlarge
+          - macos-14-large #x64
     steps:
-      - name: Build ${{ env.PACKAGE_NAME }} + consumers
-        run: |
-          python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
-          chmod a+x builder
-          ./builder build -p ${{ env.PACKAGE_NAME }} --target=${{ matrix.target }}-armv8
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ env.CRT_CI_ROLE }}
+        aws-region: ${{ env.AWS_DEFAULT_REGION }} 
+    - name: Build ${{ env.PACKAGE_NAME }} + consumers
+      run: |
+        python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
+        chmod a+x builder
+        ./builder build -p ${{ env.PACKAGE_NAME }}
+
+  devices:
+    runs-on: ${{ matrix.runner }}
+    env:
+      DEVELOPER_DIR: /Applications/${{ matrix.xcode }}.app/Contents/Developer
+      XCODE_DESTINATION: ${{matrix.target.destination}}
+      NSUnbufferedIO: YES
+    strategy:
+      fail-fast: false
+      matrix:
+        # This matrix runs tests on iOS and tvOS on oldest & newest supported Xcodes
+        runner:
+          - macos-13 # x64
+          - macos-14
+          - macos-13-xlarge
+          - macos-14-large #x64
+        target:
+          [{ os: ios, destination: 'iOS Simulator,OS=16.1,name=iPhone 14'},
+           { os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15'},
+           { os: tvos, destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'},
+           { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'}]
+        xcode:
+          - Xcode_14.1
+          - Xcode_15.2
+        exclude:
+          # Don't run old macOS with new Xcode
+          - runner: macos-13-xlarge
+            xcode: Xcode_15.2
+          - runner: macos-13
+            xcode: Xcode_15.2
+          # Don't run new macOS with old Xcode
+          - runner: macos-14-large
+            xcode: Xcode_14.1
+          - runner: macos-14
+            xcode: Xcode_14.1
+          # Don't run old simulators with new Xcode
+          - target: { os: tvos, destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'}
+            xcode: Xcode_15.2
+          - target: { os: ios, destination: 'iOS Simulator,OS=16.1,name=iPhone 14'}
+            xcode: Xcode_15.2
+          # Don't run new simulators with old Xcode
+          - target: { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'}
+            xcode: Xcode_14.1
+          - target: { os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15'}
+            xcode: Xcode_14.1
+    steps:
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ env.CRT_CI_ROLE }}
+        aws-region: ${{ env.AWS_DEFAULT_REGION }} 
+    - name: Build ${{ env.PACKAGE_NAME }} + consumers
+      run: |
+        python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
+        chmod a+x builder
+        ./builder build -p ${{ env.PACKAGE_NAME }} --target=${{ matrix.target.os }}-armv8
 
   check-submodules:
-    runs-on: ubuntu-22.04 # latest
+    runs-on: ubuntu-24.04 # latest
     steps:
-      - name: Checkout Source
-        uses: actions/checkout@v3
-        with:
-          submodules: true
-          fetch-depth: 0
-      - name: Check Submodules
-        # note: using "@main" because "@${{env.BUILDER_VERSION}}" doesn't work
-        # https://github.com/actions/runner/issues/480
-        uses: awslabs/aws-crt-builder/.github/actions/check-submodules@main
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ env.CRT_CI_ROLE }}
+        aws-region: ${{ env.AWS_DEFAULT_REGION }} 
+    - name: Checkout Source
+      uses: actions/checkout@v4
+      with:
+        submodules: true
+        fetch-depth: 0
+    - name: Check Submodules
+      # note: using "@main" because "@${{env.BUILDER_VERSION}}" doesn't work
+      # https://github.com/actions/runner/issues/480
+      uses: awslabs/aws-crt-builder/.github/actions/check-submodules@main

@@ -81,6 +81,22 @@ class CredentialsProviderTests: XCBaseTestCase {
         wait(for: [shutdownWasCalled], timeout: 15)
     }
 
+    func testCreateCredentialsProviderStaticWithAccountId() async throws {
+        do {
+            let accountId = "Account ID"
+            let provider = try CredentialsProvider(source: .static(accessKey: accessKey,
+                    secret: secret,
+                    sessionToken: sessionToken,
+                    accountId: accountId,
+                    shutdownCallback: getShutdownCallback()))
+            let credentials = try await provider.getCredentials()
+            XCTAssertNotNil(credentials)
+            assertCredentials(credentials: credentials)
+            XCTAssertEqual(accountId, credentials.getAccountId())
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
+    }
+
     func testCredentialsProviderEnvThrow() async {
         let exceptionWasThrown = XCTestExpectation(description: "Exception was thrown because of missing credentials in environment")
         do {
@@ -133,7 +149,8 @@ class CredentialsProviderTests: XCBaseTestCase {
         do {
             let provider = try CredentialsProvider(source: .process(
                     fileBasedConfiguration: FileBasedConfiguration(
-                            configFilePath: Bundle.module.path(forResource: "example_profile", ofType: "txt")!),
+                        configFilePath: Bundle.module.path(forResource: "example_profile", ofType: "txt")!),
+                    profileFileNameOverride: "process",
                     shutdownCallback: getShutdownCallback()))
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
@@ -201,6 +218,50 @@ class CredentialsProviderTests: XCBaseTestCase {
         wait(for: [shutdownWasCalled], timeout: 15)
     }
 
+
+    func testCreateDestroyCognitoCredsProviderWithoutHttpProxy() async throws {
+        let exceptionWasThrown = XCTestExpectation(description: "Exception was thrown")
+        do {
+            let cognitoEndpoint = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_ENDPOINT")
+            let cognitoIdentity = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_IDENTITY")
+
+
+            let provider = try CredentialsProvider(source: .cognito(bootstrap: getClientBootstrap(), tlsContext: getTlsContext(), endpoint: cognitoEndpoint, identity: cognitoIdentity, shutdownCallback: getShutdownCallback()))
+            let credentials = try await provider.getCredentials()
+            XCTAssertNotNil(credentials)
+        } catch is XCTSkip{ // skip the test as the environment var is not set
+            shutdownWasCalled.fulfill()
+        }catch {
+            exceptionWasThrown.fulfill()
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
+    }
+
+    // Http proxy related tests could only run behind vpc to access the proxy
+    func testCreateDestroyCognitoCredsProviderWithHttpProxy() async throws {
+        let exceptionWasThrown = XCTestExpectation(description: "Exception was thrown")
+        do {
+            let cognitoEndpoint = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_ENDPOINT")
+            let cognitoIdentity = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_IDENTITY")
+
+            let httpproxyHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_HTTP_PROXY_HOST")
+            let httpproxyPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_HTTP_PROXY_PORT")
+
+            let httpProxys = HTTPProxyOptions(hostName: httpproxyHost, port: UInt32(httpproxyPort)!, connectionType: .tunnel)
+
+            let provider = try CredentialsProvider(source: .cognito(bootstrap: getClientBootstrap(), tlsContext: getTlsContext(), endpoint: cognitoEndpoint, identity: cognitoIdentity, shutdownCallback: getShutdownCallback()))
+            let credentials = try await provider.getCredentials()
+            XCTAssertNotNil(credentials)
+        }
+        catch is XCTSkip{ // skip the test as the environment var is not set
+            shutdownWasCalled.fulfill()
+        }
+        catch {
+            exceptionWasThrown.fulfill()
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
+    }
+
     func testCreateDestroyStsWebIdentityInvalidEnv() async throws {
         XCTAssertThrowsError(try CredentialsProvider(source: .stsWebIdentity(
                 bootstrap: getClientBootstrap(),
@@ -220,17 +281,17 @@ class CredentialsProviderTests: XCBaseTestCase {
                 tokenFilePath: "tokenFilePath"))
     }
 
-    func testCreateDestroyStsInvalidRole() async throws {
+    func testCreateDestroySts() async throws {
         let provider = try CredentialsProvider(source: .static(accessKey: accessKey,
                 secret: secret,
                 sessionToken: sessionToken))
-        XCTAssertThrowsError(try CredentialsProvider(source: .sts(bootstrap: getClientBootstrap(),
+        _ = try CredentialsProvider(source: .sts(bootstrap: getClientBootstrap(),
                 tlsContext: getTlsContext(),
                 credentialsProvider: provider,
-                roleArn: "invalid-role-arn",
+                roleArn: "roleArn",
                 sessionName: "test-session",
                 duration: 10,
-                shutdownCallback: getShutdownCallback())))
+                shutdownCallback: getShutdownCallback()))
     }
 
     func testCreateDestroyEcsMissingCreds() async throws {

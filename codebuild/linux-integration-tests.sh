@@ -9,5 +9,5 @@ fi
 env
 
 swift -v
-swift build
-swift test
+python3 -c "from urllib.request import urlretrieve; urlretrieve('$BUILDER_HOST/$BUILDER_SOURCE/$BUILDER_VERSION/builder.pyz?run=$CODEBUILD_BUILD_ID', 'builder.pyz')"
+python3 builder.pyz build --project $PACKAGE_NAME downstream --cmake-extra=-DUSE_OPENSSL=ON

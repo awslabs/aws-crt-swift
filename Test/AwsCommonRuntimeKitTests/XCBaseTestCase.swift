@@ -7,10 +7,13 @@ import AwsCCommon
 
 class XCBaseTestCase: XCTestCase {
     internal let tracingAllocator = TracingAllocator(tracingStacksOf: allocator)
-
+    
     override func setUp() {
         super.setUp()
-        Logger.initialize(pipe: stdout, level: .trace)
+        // XCode currently lacks a way to enable logs exclusively for failed tests only.
+        // To prevent log spamming, we use `error` log level to only print error message.
+        // We should update this once a more efficient log processing method becomes available.
+        try? Logger.initialize(target: .standardOutput, level: .error)
 
         // Override the allocator with tracing allocator
         allocator = tracingAllocator.rawValue
@@ -35,20 +38,48 @@ extension XCTestCase {
     }
 
     func skipIfiOS() throws {
-        if #available(iOS 10, *) {
+        #if os(iOS)
             throw XCTSkip("Skipping test on iOS")
-        }
+        #endif
     }
 
     func skipifmacOS() throws {
-        if #available(macOS 10.14, *) {
+        #if os(macOS)
             throw XCTSkip("Skipping test on macOS")
-        }
+        #endif
     }
 
     func skipIfLinux() throws {
         #if os(Linux)
             throw XCTSkip("Skipping test on linux")
         #endif
+    }
+
+    func skipIfwatchOS() throws {
+        #if os(watchOS)
+            throw XCTSkip("Skipping test on watchOS")
+        #endif
+    }
+
+    func skipIftvOS() throws {
+        #if os(tvOS)
+            throw XCTSkip("Skipping test on tvOS")
+        #endif
+    }
+
+    func skipIfPlatformDoesntSupportTLS() throws {
+        // Skipped for secitem support as the unit tests requires enetitlement setup to have acces to
+        // the data protection keychain.
+        try skipIfiOS()
+        try skipIfwatchOS()
+        try skipIftvOS()
+    }
+
+    /// Return the environment variable value, or Skip the test if env var is not set.
+    func getEnvironmentVarOrSkipTest(environmentVarName name: String) throws -> String {
+        guard let result = ProcessInfo.processInfo.environment[name] else {
+            throw XCTSkip("Skipping test because required environment variable \(name) is missing.")
+        }
+        return result
     }
 }
