@@ -854,13 +854,16 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 {
                     let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
                     completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
+                    print("complete signing")
                 }
                 catch CommonRunTimeError.crtError (let error) {
                     completCallback(httpRequest, Int32(error.code))
+                    print("signing failed with crterror")
                 }
                 catch
                 {
                     completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
+                    print("signing failed")
                 }
             }
 
@@ -883,6 +886,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
             XCTAssertNotNil(client)
             try connectClient(client: client, testContext: testContext)
             try disconnectClientCleanup(client: client, testContext: testContext)
+            // Clean up the WebSocket handshake function to ensure the test context is properly released
+            testContext.onWebSocketHandshake=nil
         }
         catch{
             // Fulfill the shutdown callback if the test failed.
