@@ -2041,4 +2041,4 @@ class Mqtt5ClientTests: XCBaseTestCase {
 //             let _ = try? await client.publish(publishPacket: publishPacket)
 //         }
 //     }
-// }
+}
