@@ -444,7 +444,7 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
         case AWS_MQTT5_CLET_ATTEMPTING_CONNECT:
 
             let lifecycleAttemptingConnectData = LifecycleAttemptingConnectData()
-            Task {
+            Task.detached {
                 await clientCore.onLifecycleEventAttemptingConnect(lifecycleAttemptingConnectData)
             }
         case AWS_MQTT5_CLET_CONNECTION_SUCCESS:
@@ -461,7 +461,7 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
             let lifecycleConnectionSuccessData = LifecycleConnectionSuccessData(
                 connackPacket: connackPacket,
                 negotiatedSettings: NegotiatedSettings(negotiatedSettings))
-            Task {
+            Task.detached {
                 await clientCore.onLifecycleEventConnectionSuccess(lifecycleConnectionSuccessData)
             }
         case AWS_MQTT5_CLET_CONNECTION_FAILURE:
@@ -474,7 +474,7 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
             let lifecycleConnectionFailureData = LifecycleConnectionFailureData(
                 crtError: crtError,
                 connackPacket: connackPacket)
-            Task {
+            Task.detached {
                 await clientCore.onLifecycleEventConnectionFailure(lifecycleConnectionFailureData)
             }
         case AWS_MQTT5_CLET_DISCONNECTION:
@@ -488,11 +488,11 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
             let lifecycleDisconnectData = LifecycleDisconnectData(
                 crtError: crtError,
                 disconnectPacket: disconnectPacket)
-            Task {
+            Task.detached {
                 await clientCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
             }
         case AWS_MQTT5_CLET_STOPPED:
-            Task {
+            Task.detached {
                 await clientCore.onLifecycleEventStoppedCallback(LifecycleStoppedData())
             }
         default:
@@ -512,7 +512,7 @@ internal func MqttClientHandlePublishRecieved(
         if let publish {
             let publishPacket = PublishPacket(publish)
             let publishReceivedData = PublishReceivedData(publishPacket: publishPacket)
-            Task {
+            Task.detached {
                 await clientCore.onPublishReceivedCallback(publishReceivedData)
             }
         } else {
@@ -542,12 +542,13 @@ internal func MqttClientWebsocketTransform(
                 if clientCore.rawValue == nil {
                     print("could not call complete_fn as rawvalue is nil")
                 }
+                print("call complete function... ")
                 complete_fn?(request.rawValue, errorCode, complete_ctx)
             }
         }
 
         if clientCore.onWebsocketInterceptor != nil {
-            Task {
+            Task.detached {
                 print("websocket transform start ... ")
                 await clientCore.onWebsocketInterceptor!(httpRequest, signerTransform)
                 print("websocket transform fired")
