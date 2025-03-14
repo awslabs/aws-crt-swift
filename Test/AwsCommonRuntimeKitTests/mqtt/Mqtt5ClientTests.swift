@@ -852,7 +852,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let onWebsocketTransform : OnWebSocketHandshakeIntercept = { httpRequest, completCallback in
                 do
                 {
+                    print("start sign request ... ")
                     let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
+                    print("finish sign request ... ")
                     completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
                     print("complete signing")
                 }
