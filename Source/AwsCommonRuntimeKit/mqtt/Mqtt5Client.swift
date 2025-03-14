@@ -549,7 +549,9 @@ internal func MqttClientWebsocketTransform(
         if clientCore.onWebsocketInterceptor != nil {
             Task {
                 await clientCore.onWebsocketInterceptor!(httpRequest, signerTransform)
+                print("websocket transform fired")
             }
+            print("websocket transform task setup")
         }
     }
 }
