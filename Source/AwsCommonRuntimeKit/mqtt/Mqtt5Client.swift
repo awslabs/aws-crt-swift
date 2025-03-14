@@ -539,7 +539,9 @@ internal func MqttClientWebsocketTransform(
         let httpRequest = HTTPRequest(nativeHttpMessage: request)
         @Sendable func signerTransform(request: HTTPRequestBase, errorCode: Int32) {
             clientCore.rwlock.read {
-                if clientCore.rawValue == nil { return }
+                if clientCore.rawValue == nil {
+                    print("could not call complete_fn as rawvalue is nil")
+                }
                 complete_fn?(request.rawValue, errorCode, complete_ctx)
             }
         }
