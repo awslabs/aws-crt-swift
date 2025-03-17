@@ -3,7 +3,6 @@
 
 import Foundation
 import AwsCMqtt
-import LibNative
 
 /// Configuration for all client topic aliasing behavior.
 public class TopicAliasingOptions: CStruct {

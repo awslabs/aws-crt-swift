@@ -202,7 +202,6 @@ public class Mqtt5Client {
     }
 
     deinit {
-        print("client deinit....")
         clientCore.close()
     }
 
@@ -538,10 +537,7 @@ internal func MqttClientWebsocketTransform(
         }
         let httpRequest = HTTPRequest(nativeHttpMessage: request)
         @Sendable func signerTransform(request: HTTPRequestBase, errorCode: Int32) {
-            clientCore.rwlock.read {
-                if clientCore.rawValue == nil { return }
                 complete_fn?(request.rawValue, errorCode, complete_ctx)
-            }
         }
 
         if clientCore.onWebsocketInterceptor != nil {
