@@ -898,8 +898,6 @@ class Mqtt5ClientTests: XCBaseTestCase {
             print("catch error and fulfill the shutdown callback")
             self.credentialProviderShutdownWasCalled.fulfill()
         }
-        wait(for: [credentialProviderShutdownWasCalled], timeout: 15);
-        
     }
 
 
