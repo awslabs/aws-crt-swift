@@ -272,7 +272,9 @@ public class Mqtt5ClientCore {
             if errorCode != AWS_OP_SUCCESS {
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
             }
+            print("start(): client start")
         }
+        print("start(): exit start lock")
     }
 
     /// Notifies the Mqtt5Client that you want it to end connectivity to the configured endpoint, disconnecting any
@@ -555,8 +557,8 @@ internal func MqttClientWebsocketTransform(
             }
             print("websocket transform task setup")
         }
-        print("websocket ")
     }
+    print("MqttClientWebsocketTransform(): exit lock")
 }
 
 internal func MqttClientTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
