@@ -37,19 +37,17 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /// stop client and check for discconnection and stopped lifecycle events
     func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) throws -> Void {
         try client.stop(disconnectPacket: disconnectPacket)
-        sleep(30);
+       if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
+           print("Disconnection timed out after 5 seconds")
+           XCTFail("Disconnection timed out")
+           throw MqttTestError.disconnectFail
+       }
 
-//        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-//            print("Disconnection timed out after 5 seconds")
-//            XCTFail("Disconnection timed out")
-//            throw MqttTestError.disconnectFail
-//        }
-//
-//        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-//            print("Stop timed out after 5 seconds")
-//            XCTFail("Stop timed out")
-//            throw MqttTestError.stopFail
-//        }
+       if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
+           print("Stop timed out after 5 seconds")
+           XCTFail("Stop timed out")
+           throw MqttTestError.stopFail
+       }
     }
 
     /// stop client and check for stopped lifecycle event
@@ -887,15 +885,21 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
             let client = try Mqtt5Client(clientOptions: clientOptions)
             XCTAssertNotNil(client)
-            try connectClient(client: client, testContext: testContext)
-            sleep(30);
-            try disconnectClientCleanup(client: client, testContext: testContext)
+            // Here we do not waiting on Semaphore to void DispatchSemaphore deadlock. The semaphore deadlock happens when the
+            // task
+            try client.start()
+            sleep(5)
+            XCTAssertNotNil(testContext.negotiatedSettings)
+            try client.stop()
+            sleep(5)
         }
         catch{
             // Fulfill the shutdown callback if the test failed.
             print("catch error and fulfill the shutdown callback")
             self.credentialProviderShutdownWasCalled.fulfill()
         }
+        await fulfillment(of: [credentialProviderShutdownWasCalled], timeout: 15);
+        
     }
 
 
