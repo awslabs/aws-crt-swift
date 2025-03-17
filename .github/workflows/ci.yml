@@ -80,7 +80,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # This matrix runs tests on iOS and tvOS & on oldest & newest supported Xcodes
+        # This matrix runs tests on iOS and tvOS on oldest & newest supported Xcodes
         runner:
           - macos-13 # x64
           - macos-14

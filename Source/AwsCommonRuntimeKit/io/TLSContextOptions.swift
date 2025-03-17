@@ -37,7 +37,7 @@ public class TLSContextOptions: CStruct {
     public static func makeMTLS(
         certificateData: Data,
         privateKeyData: Data) throws -> TLSContextOptions {
-        #if os(tvOS) || os(iOS) || os(watchOS)
+        #if os(watchOS)
         throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
         #endif
         return try TLSContextOptions(certificateData: certificateData, privateKeyData: privateKeyData)
@@ -55,7 +55,7 @@ public class TLSContextOptions: CStruct {
     public static func makeMTLS(
         certificatePath: String,
         privateKeyPath: String) throws -> TLSContextOptions {
-        #if os(tvOS) || os(iOS) || os(watchOS)
+        #if os(watchOS)
         throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
         #endif
         return try TLSContextOptions(certificatePath: certificatePath, privateKeyPath: privateKeyPath)
@@ -115,6 +115,30 @@ public class TLSContextOptions: CStruct {
         }
     }
 
+    public func overrideDefaultTrustStoreWithData(caData: Data) throws {
+        guard caData.withAWSByteCursorPointer({ caByteCursor in
+            return aws_tls_ctx_options_override_default_trust_store(rawValue, caByteCursor)
+        }) == AWS_OP_SUCCESS else {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+    }
+
+    public func overrideDefaultTrustStoreWithPath(caPath: String) throws {
+        if aws_tls_ctx_options_override_default_trust_store_from_path(rawValue,
+                                                                      caPath,
+                                                                      nil) != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+    }
+
+    public func overrideDefaultTrustStoreWithFile(caFile: String) throws {
+        if aws_tls_ctx_options_override_default_trust_store_from_path(rawValue,
+                                                                      nil,
+                                                                      caFile) != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+    }
+
     public func setAlpnList(_ alpnList: [String]) {
         aws_tls_ctx_options_set_alpn_list(rawValue, alpnList.joined(separator: ";"))
     }
@@ -125,6 +149,22 @@ public class TLSContextOptions: CStruct {
 
     public func setMinimumTLSVersion(_ tlsVersion: TLSVersion) {
         aws_tls_ctx_options_set_minimum_tls_version(rawValue, aws_tls_versions(rawValue: tlsVersion.rawValue))
+    }
+    
+    /// Updates TLSContextOptions to use specified options when importing certificate and key into keychain.
+    ///
+    /// NOTE: This only works on Apple devices using Apple keychain via Secitem.. The library is currently only tested on iOS.
+    ///
+    /// - Parameters:
+    ///     - certLabel: Human readable label to apply to certificate being imported into keychain.
+    ///     - keyLabel: Human readable label to apply to key being imported into keychain.
+    /// - Throws: CommonRuntimeError.crtError
+    public func setSecitemLabels(certLabel: String? = nil, keyLabel: String? = nil) throws {
+        let secitemOptions = TLSSecitemOptions(certLabel: certLabel, keyLabel: keyLabel)
+        
+        if aws_tls_ctx_options_set_secitem_options(rawValue, secitemOptions.rawValue) != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
     }
 
     typealias RawType = aws_tls_ctx_options
