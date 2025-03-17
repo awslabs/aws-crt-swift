@@ -101,9 +101,9 @@ jobs:
           - runner: macos-13
             xcode: Xcode_15.2
           - runner: macos-13-xlarge
-            target: { os: tvos, destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'}
+            target: { os: tvos, destination: 'iOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'}
           - runner: macos-13
-            target: { os: tvos, destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'}
+            target: { os: tvos, destination: 'iOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'}
           # Don't run new macOS with old Xcode
           - runner: macos-14-large
             xcode: Xcode_14.1
