@@ -278,6 +278,10 @@ extension CredentialsProvider.Source {
     /// Generally:
     /// - Environment
     /// - Profile
+    ///     - STSCredentialsProvider
+    ///     - ProcessCredentialsProvider
+    ///     - ProfileCredentialsProvider
+    /// - STSWebIdenity Credentials Provider
     /// - (conditional, off by default) ECS
     /// - (conditional, on by default) EC2 Instance Metadata
     /// Support for environmental control of the default provider chain is not yet implemented.
@@ -376,11 +380,15 @@ extension CredentialsProvider.Source {
     /// ----------------------------------------------------------------------------------<br>
     /// | Parameter           | Environment Variable Name    | Config File Property Name |<br>
     /// |---------------------|------------------------------|---------------------------|<br>
-    /// | region              | AWS_DEFAULT_REGION           | region                    |<br>
+    /// | region              | AWS_REGION/AWS_DEFAULT_REGION| region                    |<br>
     /// | role_arn            | AWS_ROLE_ARN                 | role_arn                  |<br>
     /// | role_session_name   | AWS_ROLE_SESSION_NAME        | role_session_name         |<br>
     /// | token_file_path     | AWS_WEB_IDENTITY_TOKEN_FILE  | web_identity_token_file   |<br>
     /// ----------------------------------------------------------------------------------<br>
+    /// The order of resolution is the following
+    /// 1. Parameters
+    /// 2. Environment Variables (in case of region, the AWS_REGION is preferred over the AWS_DEFAULT_REGION)
+    /// 3. Config File
     /// </pre>
     /// - Parameters:
     ///   - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials.
