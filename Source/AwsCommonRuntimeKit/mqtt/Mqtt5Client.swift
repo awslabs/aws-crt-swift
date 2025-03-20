@@ -537,7 +537,7 @@ internal func MqttClientWebsocketTransform(
         }
         let httpRequest = HTTPRequest(nativeHttpMessage: request)
         @Sendable func signerTransform(request: HTTPRequestBase, errorCode: Int32) {
-                complete_fn?(request.rawValue, errorCode, complete_ctx)
+            complete_fn?(request.rawValue, errorCode, complete_ctx)
         }
 
         if clientCore.onWebsocketInterceptor != nil {

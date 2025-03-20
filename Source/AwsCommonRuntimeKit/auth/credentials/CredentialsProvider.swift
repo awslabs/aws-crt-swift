@@ -34,8 +34,12 @@ public struct CognitoLoginPair: CStruct {
     }
 }
 
-extension Array where Element == CognitoLoginPair {
-    func withCCognitoLoginPair<Result>(_ body: (OpaquePointer) throws -> Result) rethrows -> Result {
+extension Array where Element: CStruct {
+    func withAWSArrayList<Result>(_ body: (OpaquePointer?) throws -> Result) rethrows -> Result {
+        if capacity == 0 {
+            return try body(nil)
+        }
+        
         let array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
         defer {
             aws_array_list_clean_up(array_list)
@@ -45,7 +49,7 @@ extension Array where Element == CognitoLoginPair {
             array_list,
             allocator.rawValue,
             count,
-            MemoryLayout<aws_cognito_identity_provider_token_pair>.size) == AWS_OP_SUCCESS else {
+            MemoryLayout<Element.RawType>.size) == AWS_OP_SUCCESS else {
             fatalError("Unable to initialize array of user properties")
         }
         forEach {
@@ -56,21 +60,9 @@ extension Array where Element == CognitoLoginPair {
                 }
             }
         }
-        return try body(OpaquePointer(array_list.pointee.data))
+        return try body(OpaquePointer(array_list.pointee.data)) 
     }
 }
-
-/// Helper function to convert Swift [CognitoLoginPair]? into a native aws_cognito_identity_provider_token_pair pointer
-func withOptionalCognitoLoginPair<Result>(
-    of array: Array<CognitoLoginPair>?,
-    _ body: (OpaquePointer?) throws -> Result) rethrows -> Result {
-        guard let _array = array else {
-            return try body(nil)
-        }
-        return try _array.withCCognitoLoginPair { opaquePointer in
-            return try body(opaquePointer)
-        }
-    }
 
 public class CredentialsProvider: CredentialsProviding {
 
@@ -640,7 +632,7 @@ extension CredentialsProvider.Source {
                                  tlsContext: TLSContext,
                                  endpoint: String,
                                  identity: String,
-                                 logins: [CognitoLoginPair]? = nil,
+                                 logins: [CognitoLoginPair] = [],
                                  customRoleArn: String? = nil,
                                  proxyOptions: HTTPProxyOptions? = nil,
                                  shutdownCallback: ShutdownCallback? = nil) -> Self {
@@ -661,11 +653,9 @@ extension CredentialsProvider.Source {
                     return withOptionalCStructPointer(to: proxyOptions) { proxyOptionsPointer in
                         cognitoOptions.http_proxy_options = proxyOptionsPointer
                         
-                        return withOptionalCognitoLoginPair(of: logins, { loginArrayPointer in
-                            if let loginArrayPointer, let loginCount = logins?.count {
-                                cognitoOptions.logins = UnsafeMutablePointer<aws_cognito_identity_provider_token_pair>(loginArrayPointer)
-                                cognitoOptions.login_count = loginCount
-                            }
+                        return logins.withAWSArrayList { loginArrayPointer in
+                            cognitoOptions.logins = UnsafeMutablePointer<aws_cognito_identity_provider_token_pair>(loginArrayPointer)
+                            cognitoOptions.login_count = logins.count
                             
                             return withOptionalByteCursorPointerFromString(customRoleArn, { customRoleArnCursor in
                                 if let customRoleArnCursor {
@@ -673,13 +663,13 @@ extension CredentialsProvider.Source {
                                 }
                                 return aws_credentials_provider_new_cognito_caching(allocator.rawValue, &cognitoOptions)
                             })
-                        })
+                        }
                     }
                 })
-            else {
-                shutdownCallbackCore.release()
-                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
-            }
+                else {
+                    shutdownCallbackCore.release()
+                    throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+                }
             return provider
         }
     }
