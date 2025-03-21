@@ -34,36 +34,6 @@ public struct CognitoLoginPair: CStruct {
     }
 }
 
-extension Array where Element: CStruct {
-    func withAWSArrayList<Result>(_ body: (OpaquePointer?) throws -> Result) rethrows -> Result {
-        if capacity == 0 {
-            return try body(nil)
-        }
-        
-        let array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
-        defer {
-            aws_array_list_clean_up(array_list)
-            allocator.release(array_list)
-        }
-        guard aws_array_list_init_dynamic(
-            array_list,
-            allocator.rawValue,
-            count,
-            MemoryLayout<Element.RawType>.size) == AWS_OP_SUCCESS else {
-            fatalError("Unable to initialize array of user properties")
-        }
-        forEach {
-            $0.withCPointer {
-                // `aws_array_list_push_back` will do a memory copy of $0 into array_list
-                guard aws_array_list_push_back(array_list, $0) == AWS_OP_SUCCESS else {
-                    fatalError("Unable to add user property")
-                }
-            }
-        }
-        return try body(OpaquePointer(array_list.pointee.data)) 
-    }
-}
-
 public class CredentialsProvider: CredentialsProviding {
 
     let rawValue: UnsafeMutablePointer<aws_credentials_provider>

@@ -79,7 +79,7 @@ public class MqttConnectOptions: CStruct {
     public let will: PublishPacket?
 
     /// Array of MQTT5 user properties included with the packet.
-    public let userProperties: [UserProperty]?
+    public let userProperties: [UserProperty]
 
     public init (keepAliveInterval: TimeInterval? = nil,
                  clientId: String? = nil,
@@ -92,7 +92,7 @@ public class MqttConnectOptions: CStruct {
                  maximumPacketSize: UInt32? = nil,
                  willDelayInterval: TimeInterval? = nil,
                  will: PublishPacket? = nil,
-                 userProperties: [UserProperty]? = nil) {
+                 userProperties: [UserProperty] = []) {
         self.keepAliveInterval = keepAliveInterval
         self.clientId = clientId
         self.username = username
@@ -171,11 +171,11 @@ public class MqttConnectOptions: CStruct {
                         raw_connect_options.client_id = cClientId
 
                         // handle user property
-                        return withOptionalUserPropertyArray(of: userProperties) { cUserProperties in
-                            if let cUserProperties = cUserProperties {
-                                raw_connect_options.user_property_count = userProperties!.count
-                                raw_connect_options.user_properties = UnsafePointer<aws_mqtt5_user_property>(cUserProperties)
-                            }
+                        return userProperties.withAWSArrayList { cUserPropertiesPointer in
+    
+                            raw_connect_options.user_property_count = userProperties.count
+                            raw_connect_options.user_properties = UnsafePointer<aws_mqtt5_user_property>(cUserPropertiesPointer)
+
                             return withOptionalByteCursorPointerFromString(username) { cUsernamePointer in
                                     raw_connect_options.username = cUsernamePointer
                                     return withAWSByteCursorPointerFromOptionalData(to: password) { cPasswordPointer in

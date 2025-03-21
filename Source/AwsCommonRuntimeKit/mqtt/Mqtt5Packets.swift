@@ -44,44 +44,6 @@ public class UserProperty: CStruct {
     }
 }
 
-extension Array where Element == UserProperty {
-    func withCMqttUserProperties<Result>(_ body: (OpaquePointer) throws -> Result) rethrows -> Result {
-        let array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
-        defer {
-            aws_array_list_clean_up(array_list)
-            allocator.release(array_list)
-        }
-        guard aws_array_list_init_dynamic(
-            array_list,
-            allocator.rawValue,
-            count,
-            MemoryLayout<aws_mqtt5_user_property>.size) == AWS_OP_SUCCESS else {
-            fatalError("Unable to initialize array of user properties")
-        }
-        forEach {
-            $0.withCPointer {
-                // `aws_array_list_push_back` will do a memory copy of $0 into array_list
-                guard aws_array_list_push_back(array_list, $0) == AWS_OP_SUCCESS else {
-                    fatalError("Unable to add user property")
-                }
-            }
-        }
-        return try body(OpaquePointer(array_list.pointee.data))
-    }
-}
-
-/// Helper function to convert Swift [UserProperty]? into a native aws_mqtt5_user_property pointer
-func withOptionalUserPropertyArray<Result>(
-    of array: Array<UserProperty>?,
-    _ body: (OpaquePointer?) throws -> Result) rethrows -> Result {
-    guard let _array = array else {
-        return try body(nil)
-    }
-    return try _array.withCMqttUserProperties { opaquePointer in
-        return try body(opaquePointer)
-    }
-}
-
 /// Convert a native aws_mqtt5_user_property pointer into a Swift [UserProperty]?
 func convertOptionalUserProperties(count: size_t, userPropertiesPointer: UnsafePointer<aws_mqtt5_user_property>?) -> [UserProperty]? {
 
@@ -367,32 +329,6 @@ public class Subscription: CStruct {
 
 }
 
-extension Array where Element == Subscription {
-    func withCSubscriptions<Result>(_ body: (OpaquePointer) throws -> Result) rethrows -> Result {
-        let array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
-        defer {
-            aws_array_list_clean_up(array_list)
-            allocator.release(array_list)
-        }
-        guard aws_array_list_init_dynamic(
-            array_list,
-            allocator.rawValue,
-            count,
-            MemoryLayout<Element.RawType>.size) == AWS_OP_SUCCESS else {
-            fatalError("Unable to initialize array of user properties")
-        }
-        forEach {
-            $0.withCPointer {
-                // `aws_array_list_push_back` will do a memory copy of $0 into array_list
-                guard aws_array_list_push_back(array_list, $0) == AWS_OP_SUCCESS else {
-                    fatalError("Unable to add user property")
-                }
-            }
-        }
-        return try body(OpaquePointer(array_list.pointee.data))
-    }
-}
-
 /// Data model of an `MQTT5 SUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901161>`_ packet.
 public class SubscribePacket: CStruct {
 
@@ -441,26 +377,26 @@ public class SubscribePacket: CStruct {
 
     typealias RawType = aws_mqtt5_packet_subscribe_view
     func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
-        var raw_subscrbe_view = aws_mqtt5_packet_subscribe_view()
-        return self.subscriptions.withCSubscriptions { subscriptionPointer in
-            raw_subscrbe_view.subscriptions =
+        var raw_subscribe_view = aws_mqtt5_packet_subscribe_view()
+        return self.subscriptions.withAWSArrayList {subscriptionPointer in
+            raw_subscribe_view.subscriptions =
                 UnsafePointer<aws_mqtt5_subscription_view>(subscriptionPointer)
-            raw_subscrbe_view.subscription_count = self.subscriptions.count
+            raw_subscribe_view.subscription_count = self.subscriptions.count
 
             return withOptionalUserPropertyArray(
                 of: userProperties) { userPropertyPointer in
 
                     if let userPropertyPointer,
                        let userPropertyCount = userProperties?.count {
-                        raw_subscrbe_view.user_property_count = userPropertyCount
-                        raw_subscrbe_view.user_properties =
+                        raw_subscribe_view.user_property_count = userPropertyCount
+                        raw_subscribe_view.user_properties =
                             UnsafePointer<aws_mqtt5_user_property>(userPropertyPointer)
                     }
 
                     return withOptionalUnsafePointer(
-                        to: self.subscriptionIdentifier) { identiferPointer in
-                            raw_subscrbe_view.subscription_identifier = identiferPointer
-                            return body(raw_subscrbe_view)
+                        to: self.subscriptionIdentifier) { identifierPointer in
+                            raw_subscribe_view.subscription_identifier = identifierPointer
+                            return body(raw_subscribe_view)
                     }
             }
         }
