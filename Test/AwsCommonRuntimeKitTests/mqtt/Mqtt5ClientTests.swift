@@ -1559,7 +1559,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let clientIDPublisher = createClientId() + "Publisher"
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
-        let willPacket = PublishPacket(qos: .atLeastOnce, topic: topic, payload: "TEST WILL".data(using: .utf8))
+        let willPacket = PublishPacket(
+            qos: .atLeastOnce, topic: topic, payload: "TEST WILL".data(using: .utf8))
 
         let connectOptionsPublisher = MqttConnectOptions(clientId: clientIDPublisher, will: willPacket)
         let clientOptions = MqttClientOptions(
