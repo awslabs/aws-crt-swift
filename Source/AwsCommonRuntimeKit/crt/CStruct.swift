@@ -5,6 +5,7 @@ import AwsCCommon
 
 // This file defines the protocols & helper functions for C Structs.
 // Instances implementing this protocol should define RawType as their C Struct.
+
 protocol CStruct {
     associatedtype RawType
     func withCStruct<Result>(_ body: (RawType) -> Result) -> Result
@@ -15,6 +16,39 @@ extension CStruct {
         return withCStruct { cStruct in
             return withUnsafePointer(to: cStruct) { body($0) }
         }
+    }
+}
+
+extension Array where Element: CStruct {
+    /// Convert a CStruct Array into raw c pointer. The function would not do a deep copy of the CStruct element. If you required a deep copy
+    /// make sure to clean up the memory underneath. 
+    func withAWSArrayList<Result>(_ body: (OpaquePointer?) throws -> Result) rethrows -> Result {
+        guard capacity != 0 else {
+            return try body(nil)
+        }
+        
+        let array_list: UnsafeMutablePointer<aws_array_list> = allocator.allocate(capacity: 1)
+        defer {
+            aws_array_list_clean_up(array_list)
+            allocator.release(array_list)
+        }
+        guard aws_array_list_init_dynamic(
+            array_list,
+            allocator.rawValue,
+            count,
+            MemoryLayout<Element.RawType>.size) == AWS_OP_SUCCESS else {
+            fatalError("Unable to initialize array of user properties")
+        }
+        forEach {
+            $0.withCPointer {
+                // `aws_array_list_push_back` will do a memory copy of $0 into array_list, but it would
+                // not do a deep copy there.
+                guard aws_array_list_push_back(array_list, $0) == AWS_OP_SUCCESS else {
+                    fatalError("Unable to add user property")
+                }
+            }
+        }
+        return try body(OpaquePointer(array_list.pointee.data))
     }
 }
 
