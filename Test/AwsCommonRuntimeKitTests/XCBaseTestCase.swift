@@ -68,6 +68,8 @@ extension XCTestCase {
     }
 
     func skipIfPlatformDoesntSupportTLS() throws {
+        // Skipped for secitem support as the unit tests requires enetitlement setup to have acces to
+        // the data protection keychain.
         try skipIfiOS()
         try skipIfwatchOS()
         try skipIftvOS()
