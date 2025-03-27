@@ -67,7 +67,6 @@ var awsCCalPlatformExcludes = [
     "bin",
     "include/aws/cal/private",
     "source/shared/ed25519.c",
-    "source/shared/lccrypto_common.c",
     "CODE_OF_CONDUCT.md",
     "ecdsa-fuzz-corpus/windows/p256_sig_corpus.txt",
     "ecdsa-fuzz-corpus/darwin/p256_sig_corpus.txt"] + excludesFromAll
@@ -75,12 +74,14 @@ var awsCCalPlatformExcludes = [
 #if os(Windows)
 awsCCalPlatformExcludes.append("source/darwin")
 awsCCalPlatformExcludes.append("source/unix")
+awsCCalPlatformExcludes.append("source/shared/lccrypto_common.c")
 #elseif os(Linux)
 awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/darwin")
 #else  // macOS, iOS, watchOS, tvOS
 awsCCalPlatformExcludes.append("source/windows")
 awsCCalPlatformExcludes.append("source/unix")
+awsCCalPlatformExcludes.append("source/shared/lccrypto_common.c")
 #endif
 
 //////////////////////////////////////////////////////////////////////
