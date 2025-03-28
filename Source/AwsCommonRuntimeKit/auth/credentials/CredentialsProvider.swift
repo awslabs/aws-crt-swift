@@ -10,6 +10,30 @@ public protocol CredentialsProviding {
     func getCredentials() async throws -> Credentials
 }
 
+/// A pair defining an identity provider and a valid login token sourced from it.
+public struct CognitoLoginPair: CStruct {
+    public var IdentityProviderName: String
+    public var IdentityProviderToken: String
+    
+    public init(identityProviderName: String,
+                identityProviderToken: String) {
+        self.IdentityProviderName = identityProviderName
+        self.IdentityProviderToken = identityProviderToken
+    }
+    
+    typealias RawType = aws_cognito_identity_provider_token_pair
+    func withCStruct<Result>(_ body: (aws_cognito_identity_provider_token_pair) -> Result) -> Result {
+        var token_pair = aws_cognito_identity_provider_token_pair()
+        
+        return withByteCursorFromStrings(IdentityProviderName,
+                                         IdentityProviderToken) { identityProviderNameCursor, IdentityProviderTokenCursor in
+            token_pair.identity_provider_name = identityProviderNameCursor
+            token_pair.identity_provider_token = IdentityProviderTokenCursor
+            return body(token_pair)
+        }
+    }
+}
+
 public class CredentialsProvider: CredentialsProviding {
 
     let rawValue: UnsafeMutablePointer<aws_credentials_provider>
@@ -294,6 +318,7 @@ extension CredentialsProvider.Source {
     /// - Throws: CommonRuntimeError.crtError
     public static func `defaultChain`(bootstrap: ClientBootstrap,
                                       fileBasedConfiguration: FileBasedConfiguration,
+                                      tlsContext: TLSContext? = nil,
                                       shutdownCallback: ShutdownCallback? = nil) -> Self {
         Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
@@ -302,6 +327,7 @@ extension CredentialsProvider.Source {
             chainDefaultOptions.bootstrap = bootstrap.rawValue
             chainDefaultOptions.profile_collection_cached = fileBasedConfiguration.rawValue
             chainDefaultOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
+            chainDefaultOptions.tls_ctx = tlsContext?.rawValue
 
             guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue,
                                                                             &chainDefaultOptions)
@@ -564,6 +590,64 @@ extension CredentialsProvider.Source {
                 shutdownCallbackCore.release()
                 throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
             }
+            return provider
+        }
+    }
+    
+    /// Credential Provider that sources credentials from Cognito Identity service
+    ///  - Parameters:
+    ///    - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials
+    ///    - tlsContext: TLS configuration for secure socket connections.
+    ///    - endpoint: Cognito service regional endpoint to source credentials from.
+    ///    - identity: Cognito identity to fetch credentials relative to.
+    ///    - logins: (Optional) set of identity provider token pairs to allow for authenticated identity access.
+    ///    - customRoleArn: (Optional) ARN of the role to be assumed when multiple roles were received in the token from the identity provider.
+    ///    - proxyOptions: (Optional) Http proxy configuration for the http request that fetches credentials
+    ///   - shutdownCallback:  (Optional) shutdown callback
+    /// - Returns: `CredentialsProvider`
+    /// - Throws: CommonRuntimeError.crtError
+    public static func `cognito`(bootstrap: ClientBootstrap,
+                                 tlsContext: TLSContext,
+                                 endpoint: String,
+                                 identity: String,
+                                 logins: [CognitoLoginPair] = [],
+                                 customRoleArn: String? = nil,
+                                 proxyOptions: HTTPProxyOptions? = nil,
+                                 shutdownCallback: ShutdownCallback? = nil) -> Self {
+        Self {
+            var cognitoOptions = aws_credentials_provider_cognito_options()
+            cognitoOptions.bootstrap = bootstrap.rawValue
+            cognitoOptions.tls_ctx = tlsContext.rawValue
+            let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
+            cognitoOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
+            
+            guard let provider: UnsafeMutablePointer<aws_credentials_provider> = (withByteCursorFromStrings(
+                endpoint,
+                identity) { endpointCursor, identityCursor in
+                    
+                    cognitoOptions.endpoint = endpointCursor
+                    cognitoOptions.identity = identityCursor
+                    
+                    return withOptionalCStructPointer(to: proxyOptions) { proxyOptionsPointer in
+                        cognitoOptions.http_proxy_options = proxyOptionsPointer
+                        
+                        return logins.withAWSArrayList { loginArrayPointer in
+                            cognitoOptions.logins = UnsafeMutablePointer<aws_cognito_identity_provider_token_pair>(loginArrayPointer)
+                            cognitoOptions.login_count = logins.count
+                            
+                            return withOptionalByteCursorPointerFromString(customRoleArn, { customRoleArnCursor in
+                                if let customRoleArnCursor {
+                                    cognitoOptions.custom_role_arn = UnsafeMutablePointer<aws_byte_cursor>(mutating: customRoleArnCursor)
+                                }
+                                return aws_credentials_provider_new_cognito_caching(allocator.rawValue, &cognitoOptions)
+                            })
+                        }
+                    }
+                })
+                else {
+                    shutdownCallbackCore.release()
+                    throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+                }
             return provider
         }
     }

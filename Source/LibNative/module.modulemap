@@ -1,0 +1,6 @@
+
+module LibNative {
+    header "CommonRuntimeError.h"
+    export *
+}
+

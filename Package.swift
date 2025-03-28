@@ -22,6 +22,9 @@ let cSettings: [CSetting] = [
     .define("AWS_APPSTORE_SAFE"),
 ]
 
+/// Store any defines that will be used by Swift Tests in swiftTestSettings
+var swiftTestSettings: [SwiftSetting] = []
+
 //////////////////////////////////////////////////////////////////////
 /// Configure C targets.
 /// Note: We can not use unsafe flags because SwiftPM makes the target ineligible for use by other packages.
@@ -113,7 +116,6 @@ packageTargets.append(.target(
         .define("S2N_BUILD_RELEASE"),
         .define("_FORTIFY_SOURCE", to: "2"),
         .define("POSIX_C_SOURCE", to: "200809L"),
-
     ]
 ))
 #endif
@@ -137,16 +139,25 @@ awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
 awsCIoPlatformExcludes.append("source/darwin")
 cSettingsIO.append(.define("AWS_ENABLE_IO_COMPLETION_PORTS"))
+swiftTestSettings.append(.define("AWS_ENABLE_IO_COMPLETION_PORTS"))
 #elseif os(Linux)
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/bsd")
 awsCIoPlatformExcludes.append("source/darwin")
 cSettingsIO.append(.define("AWS_ENABLE_EPOLL"))
+swiftTestSettings.append(.define("AWS_ENABLE_EPOLL"))
 #else  // macOS, iOS, watchOS, tvOS
 awsCIoPlatformExcludes.append("source/windows")
 awsCIoPlatformExcludes.append("source/linux")
 awsCIoPlatformExcludes.append("source/s2n")
-cSettingsIO.append(.define("AWS_ENABLE_KQUEUE"))
+cSettingsIO.append(.define("__APPLE__"))
+cSettingsIO.append(.define("AWS_ENABLE_DISPATCH_QUEUE", .when(platforms: [.iOS, .tvOS, .macOS])))
+cSettingsIO.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
+cSettingsIO.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
+swiftTestSettings.append(.define("__APPLE__"))
+swiftTestSettings.append(.define("AWS_ENABLE_DISPATCH_QUEUE", .when(platforms: [.iOS, .tvOS, .macOS])))
+swiftTestSettings.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
+swiftTestSettings.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -203,6 +214,15 @@ let awsCEventStreamExcludes = [
     "bin",
     "CODE_OF_CONDUCT.md",
     "clang-tidy/run-clang-tidy.sh"] + excludesFromAll
+
+//////////////////////////////////////////////////////////////////////
+/// aws-c-mqtt
+//////////////////////////////////////////////////////////////////////
+
+let awsCMqttExcludes = [
+    "bin",
+    "CODE_OF_CONDUCT.md"
+] + excludesFromAll
 
 packageTargets.append(contentsOf: [
     .target(
@@ -275,6 +295,16 @@ packageTargets.append(contentsOf: [
         cSettings: cSettings
     ),
     .target(
+        name: "AwsCMqtt",
+        dependencies: ["AwsCHttp", "AwsCCal", "AwsCIo", "AwsCCommon"],
+        path: "aws-common-runtime/aws-c-mqtt",
+        exclude: awsCMqttExcludes,
+        cSettings: cSettings
+    ),
+    .systemLibrary(
+        name: "LibNative"
+    ),
+    .target(
         name: "AwsCommonRuntimeKit",
         dependencies: [ "AwsCAuth",
                         "AwsCHttp",
@@ -283,7 +313,9 @@ packageTargets.append(contentsOf: [
                         "AwsCIo",
                         "AwsCCommon",
                         "AwsCChecksums",
-                        "AwsCEventStream"],
+                        "AwsCEventStream",
+                        "AwsCMqtt",
+                        "LibNative"],
         path: "Source/AwsCommonRuntimeKit",
         resources: [
             .copy("PrivacyInfo.xcprivacy")
@@ -295,7 +327,8 @@ packageTargets.append(contentsOf: [
         path: "Test/AwsCommonRuntimeKitTests",
         resources: [
             .process("Resources")
-        ]
+        ],
+        swiftSettings: swiftTestSettings
     ),
     .executableTarget(
         name: "Elasticurl",

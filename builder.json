@@ -8,7 +8,7 @@
   ],
   "run_tests": true,
   "test_steps": [
-    "crt-ci-prep",
+    "crt-ci-prep-xcodebuild",
     "xcode-tests"
   ],
   "hosts": {
