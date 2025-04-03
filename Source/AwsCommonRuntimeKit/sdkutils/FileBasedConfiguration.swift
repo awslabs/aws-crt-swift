@@ -4,7 +4,7 @@
 import AwsCSdkUtils
 import struct Foundation.Data
 
-public class FileBasedConfiguration {
+public class FileBasedConfiguration: @unchecked Sendable {
     var rawValue: OpaquePointer
 
     /// If the `AWS_PROFILE` environment variable is set, use it. Otherwise, return "default".
@@ -145,7 +145,7 @@ extension FileBasedConfiguration {
     }
 
     /// Represents a section in the FileBasedConfiguration
-    public class Section {
+    public class Section: @unchecked Sendable {
         let rawValue: OpaquePointer
         // Keep a reference of configuration to keep it alive
         let fileBasedConfiguration: FileBasedConfiguration
@@ -205,7 +205,7 @@ extension FileBasedConfiguration.SectionType {
 
 extension FileBasedConfiguration.Section {
     /// Represents a section property in the file based configuration.
-    public class Property {
+    public class Property: @unchecked Sendable {
         let rawValue: OpaquePointer
         // Keep a reference of configuration to keep it alive
         let fileBasedConfiguration: FileBasedConfiguration
