@@ -4,7 +4,7 @@ import AwsCHttp
 
 typealias OnConnectionAcquired =  (HTTPClientConnection?, Int32) -> Void
 
-public class HTTPClientConnectionManager: @unchecked Sendable {
+public class HTTPClientConnectionManager:@unchecked Sendable {
     let rawValue: OpaquePointer
 
     public init(options: HTTPClientConnectionOptions) throws {

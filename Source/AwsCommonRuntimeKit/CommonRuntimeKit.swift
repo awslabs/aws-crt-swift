@@ -1,12 +1,10 @@
-import AwsCEventStream
 import AwsCAuth
+import AwsCEventStream
 import AwsCMqtt
 import LibNative
 
-/**
- * Initializes the library.
- * `CommonRuntimeKit.initialize` must be called before using any other functionality.
- */
+/// Initializes the library.
+/// `CommonRuntimeKit.initialize` must be called before using any other functionality.
 public struct CommonRuntimeKit {
 
     /// Initializes the library.
@@ -16,7 +14,7 @@ public struct CommonRuntimeKit {
         aws_event_stream_library_init(allocator.rawValue)
         aws_mqtt_library_init(allocator.rawValue)
         withUnsafePointer(to: s_crt_swift_error_list) { ptr in
-               aws_register_error_info(UnsafeMutablePointer(mutating: ptr))
+            aws_register_error_info(ptr)
         }
     }
 
@@ -27,7 +25,7 @@ public struct CommonRuntimeKit {
      */
     public static nonisolated func cleanUp() {
         withUnsafePointer(to: s_crt_swift_error_list) { ptr in
-            aws_unregister_error_info(UnsafeMutablePointer(mutating: ptr))
+            aws_unregister_error_info(ptr)
         }
         aws_mqtt_library_clean_up()
         aws_event_stream_library_clean_up()
