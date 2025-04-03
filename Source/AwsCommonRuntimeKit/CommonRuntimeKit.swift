@@ -15,7 +15,9 @@ public struct CommonRuntimeKit {
         aws_auth_library_init(allocator.rawValue)
         aws_event_stream_library_init(allocator.rawValue)
         aws_mqtt_library_init(allocator.rawValue)
-        aws_register_error_info(&s_crt_swift_error_list)
+        withUnsafePointer(to: s_crt_swift_error_list) { ptr in
+               aws_register_error_info(UnsafeMutablePointer(mutating: ptr))
+        }
     }
 
     /**
@@ -23,12 +25,13 @@ public struct CommonRuntimeKit {
      * Use this function only if you want to make sure that there are no memory leaks at the end of the application.
      * Warning: It will hang if you are still holding references to any CRT objects such as HostResolver.
      */
-    public static func cleanUp() {
-        aws_unregister_error_info(&s_crt_swift_error_list)
+    public static nonisolated func cleanUp() {
+        withUnsafePointer(to: s_crt_swift_error_list) { ptr in
+            aws_unregister_error_info(UnsafeMutablePointer(mutating: ptr))
+        }
         aws_mqtt_library_clean_up()
         aws_event_stream_library_clean_up()
         aws_auth_library_clean_up()
-
     }
 
     private init() {}

@@ -229,7 +229,7 @@ public class PublishPacket: CStruct {
 /// Publish result returned by Publish operation.
 /// - Members
 ///   - puback: returned PublishPacket for qos 1 publish; nil for qos 0 packet.
-public class PublishResult {
+public class PublishResult: @unchecked Sendable {
     public let puback: PubackPacket?
 
     public init (puback: PubackPacket? = nil) {
@@ -397,7 +397,7 @@ public class SubscribePacket: CStruct {
 }
 
 /// Data model of an `MQTT5 SUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901171>`_ packet.
-public class SubackPacket {
+public class SubackPacket: @unchecked Sendable {
 
     /// Array of reason codes indicating the result of each individual subscription entry in the associated SUBSCRIBE packet.
     public let reasonCodes: [SubackReasonCode]
@@ -491,7 +491,7 @@ public class UnsubscribePacket: CStruct {
 }
 
 /// Data model of an `MQTT5 UNSUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc471483687>`_ packet.
-public class UnsubackPacket {
+public class UnsubackPacket: @unchecked Sendable {
 
     /// Array of reason codes indicating the result of unsubscribing from each individual topic filter entry in the associated UNSUBSCRIBE packet.
     public let reasonCodes: [UnsubackReasonCode]
