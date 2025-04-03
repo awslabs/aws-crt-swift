@@ -67,19 +67,27 @@ extension XCTestCase {
         #endif
     }
 
+
     func awaitExpectation(_ expectations: [XCTestExpectation]) async {
         // Remove the Ifdef once our minimum supported Swift version reaches 5.10
-        #if swift(>=5.10)
-            await fulfillment(of: expectations, timeout: 5)
-        #else
+#if swift(>=5.10)
+        await fulfillment(of: expectations, timeout: 5)
+#else
         wait(for: expectations, timeout: 5)
-        #endif
+#endif
+    }
+    func skipIfPlatformDoesntSupportTLS() throws {
+        // Skipped for secitem support as the unit tests requires enetitlement setup to have acces to
+        // the data protection keychain.
+        try skipIfiOS()
+        try skipIfwatchOS()
+        try skipIftvOS()
     }
 
     /// Return the environment variable value, or Skip the test if env var is not set.
     func getEnvironmentVarOrSkipTest(environmentVarName name: String) throws -> String {
         guard let result = ProcessInfo.processInfo.environment[name] else {
-            throw XCTSkip("Skipping test because environment is not configured properly.")
+            throw XCTSkip("Skipping test because required environment variable \(name) is missing.")
         }
         return result
     }

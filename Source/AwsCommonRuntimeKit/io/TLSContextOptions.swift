@@ -19,13 +19,11 @@ public class TLSContextOptions: CStruct {
     ///     memory for the lifetime of the returned object.
     ///     - password: Password to PKCS #12 file. It must remain in memory for the lifetime of the returned object.
     /// - Throws: CommonRuntimeError.crtError
-#if os(tvOS) || os(iOS) || os(watchOS) || os(macOS)
     public static func makeMTLS(
         pkcs12Path: String,
         password: String) throws -> TLSContextOptions {
-        try TLSContextOptions(mtlsPkcs12FromPath: pkcs12Path, password: password)
+        return try TLSContextOptions(mtlsPkcs12FromPath: pkcs12Path, password: password)
     }
-#endif
 
     /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key. These are in memory
     /// buffers. These buffers must be in the PEM format.
@@ -36,13 +34,14 @@ public class TLSContextOptions: CStruct {
     ///     - certificateData: Certificate contents in memory.
     ///     - privateKeyData: Private key contents in memory.
     /// - Throws: CommonRuntimeError.crtError
-#if !(os(tvOS) || os(iOS) || os(watchOS))
     public static func makeMTLS(
         certificateData: Data,
         privateKeyData: Data) throws -> TLSContextOptions {
-        try TLSContextOptions(certificateData: certificateData, privateKeyData: privateKeyData)
+        #if os(watchOS)
+        throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
+        #endif
+        return try TLSContextOptions(certificateData: certificateData, privateKeyData: privateKeyData)
     }
-#endif
 
     /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key. These are paths to a
     /// file on disk. These files must be in the PEM format.
@@ -53,13 +52,14 @@ public class TLSContextOptions: CStruct {
     ///     - certificatePath: Path to certificate file.
     ///     - privateKeyPath: Path to private key file.
     /// - Throws: CommonRuntimeError.crtError
-#if !(os(tvOS) || os(iOS) || os(watchOS))
     public static func makeMTLS(
         certificatePath: String,
         privateKeyPath: String) throws -> TLSContextOptions {
-        try TLSContextOptions(certificatePath: certificatePath, privateKeyPath: privateKeyPath)
+        #if os(watchOS)
+        throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
+        #endif
+        return try TLSContextOptions(certificatePath: certificatePath, privateKeyPath: privateKeyPath)
     }
-#endif
 
     init() {
         self.rawValue = allocator.allocate(capacity: 1)
@@ -115,6 +115,30 @@ public class TLSContextOptions: CStruct {
         }
     }
 
+    public func overrideDefaultTrustStoreWithData(caData: Data) throws {
+        guard caData.withAWSByteCursorPointer({ caByteCursor in
+            return aws_tls_ctx_options_override_default_trust_store(rawValue, caByteCursor)
+        }) == AWS_OP_SUCCESS else {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+    }
+
+    public func overrideDefaultTrustStoreWithPath(caPath: String) throws {
+        if aws_tls_ctx_options_override_default_trust_store_from_path(rawValue,
+                                                                      caPath,
+                                                                      nil) != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+    }
+
+    public func overrideDefaultTrustStoreWithFile(caFile: String) throws {
+        if aws_tls_ctx_options_override_default_trust_store_from_path(rawValue,
+                                                                      nil,
+                                                                      caFile) != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
+    }
+
     public func setAlpnList(_ alpnList: [String]) {
         aws_tls_ctx_options_set_alpn_list(rawValue, alpnList.joined(separator: ";"))
     }
@@ -125,6 +149,22 @@ public class TLSContextOptions: CStruct {
 
     public func setMinimumTLSVersion(_ tlsVersion: TLSVersion) {
         aws_tls_ctx_options_set_minimum_tls_version(rawValue, aws_tls_versions(rawValue: tlsVersion.rawValue))
+    }
+    
+    /// Updates TLSContextOptions to use specified options when importing certificate and key into keychain.
+    ///
+    /// NOTE: This only works on Apple devices using Apple keychain via Secitem.. The library is currently only tested on iOS.
+    ///
+    /// - Parameters:
+    ///     - certLabel: Human readable label to apply to certificate being imported into keychain.
+    ///     - keyLabel: Human readable label to apply to key being imported into keychain.
+    /// - Throws: CommonRuntimeError.crtError
+    public func setSecitemLabels(certLabel: String? = nil, keyLabel: String? = nil) throws {
+        let secitemOptions = TLSSecitemOptions(certLabel: certLabel, keyLabel: keyLabel)
+        
+        if aws_tls_ctx_options_set_secitem_options(rawValue, secitemOptions.rawValue) != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+        }
     }
 
     typealias RawType = aws_tls_ctx_options

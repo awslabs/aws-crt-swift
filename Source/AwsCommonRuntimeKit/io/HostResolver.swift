@@ -42,10 +42,7 @@ public class HostResolver: HostResolverProtocol, @unchecked Sendable {
             shutdownCallback: shutdownCallback)
     }
 
-    init(eventLoopGroup: EventLoopGroup,
-         maxHosts: Int,
-         maxTTL: Int,
-         shutdownCallback: ShutdownCallback? = nil) throws {
+    public init(eventLoopGroup: EventLoopGroup, maxHosts: Int, maxTTL: Int, shutdownCallback: ShutdownCallback? = nil) throws {
         let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
         let getRawValue: () -> UnsafeMutablePointer<aws_host_resolver>? = {
             withUnsafePointer(to: shutdownCallbackCore.getRetainedShutdownOptions()) { shutdownCallbackCorePointer in

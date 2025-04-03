@@ -10,18 +10,37 @@ public protocol CredentialsProviding {
     func getCredentials() async throws -> Credentials
 }
 
+/// A pair defining an identity provider and a valid login token sourced from it.
+public struct CognitoLoginPair: CStruct {
+    public var IdentityProviderName: String
+    public var IdentityProviderToken: String
+    
+    public init(identityProviderName: String,
+                identityProviderToken: String) {
+        self.IdentityProviderName = identityProviderName
+        self.IdentityProviderToken = identityProviderToken
+    }
+    
+    typealias RawType = aws_cognito_identity_provider_token_pair
+    func withCStruct<Result>(_ body: (aws_cognito_identity_provider_token_pair) -> Result) -> Result {
+        var token_pair = aws_cognito_identity_provider_token_pair()
+        
+        return withByteCursorFromStrings(IdentityProviderName,
+                                         IdentityProviderToken) { identityProviderNameCursor, IdentityProviderTokenCursor in
+            token_pair.identity_provider_name = identityProviderNameCursor
+            token_pair.identity_provider_token = IdentityProviderTokenCursor
+            return body(token_pair)
+        }
+    }
+}
+
 // We can't mutate this class after initialization. Swift can not verify the sendability due to pointer,
 // So mark it unchecked Sendable
 public class CredentialsProvider: CredentialsProviding, @unchecked Sendable {
-
     let rawValue: UnsafeMutablePointer<aws_credentials_provider>
 
-    // TODO: remove this property once aws-c-auth supports account_id
-    private let accountId: String?
-
-    init(credentialsProvider: UnsafeMutablePointer<aws_credentials_provider>, accountId: String? = nil) {
+    init(credentialsProvider: UnsafeMutablePointer<aws_credentials_provider>) {
         self.rawValue = credentialsProvider
-        self.accountId = accountId
     }
 
     /// Retrieves credentials from a provider by calling its implementation of get credentials and returns them to
@@ -31,10 +50,7 @@ public class CredentialsProvider: CredentialsProviding, @unchecked Sendable {
     /// - Throws: CommonRuntimeError.crtError
     public func getCredentials() async throws -> Credentials {
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Credentials, Error>) in
-            let continuationCore = ContinuationCore(
-                continuation: continuation,
-                userData: ["accountId": accountId as Any]
-            )
+            let continuationCore = ContinuationCore(continuation: continuation)
             if aws_credentials_provider_get_credentials(rawValue,
                                                         onGetCredentials,
                                                         continuationCore.passRetained()) != AWS_OP_SUCCESS {
@@ -59,14 +75,6 @@ extension CredentialsProvider {
     public convenience init(source: Source) throws {
         let unsafeProvider = try source.makeProvider()
         self.init(credentialsProvider: unsafeProvider)
-    }
-
-    // TODO: Remove the following initializer when aws-c-auth provides account_id in credentials
-    /// Creates a credentials provider that sources the credentials from the provided source and `accountId`
-    @_spi(AccountIDTempSupport)
-    public convenience init(source: Source, accountId: String?) throws {
-        let unsafeProvider = try source.makeProvider()
-        self.init(credentialsProvider: unsafeProvider, accountId: accountId)
     }
 
     /// Create a credentials provider that depends on provider to fetch the credentials.
@@ -100,12 +108,14 @@ extension CredentialsProvider.Source {
     ///   - accessKey: The access key to use.
     ///   - secret: The secret to use.
     ///   - sessionToken: (Optional) Session token to use.
+    ///   - accountId: (Optional) Account id to use.
     ///   - shutdownCallback:  (Optional) shutdown callback
     /// - Returns: `CredentialsProvider`
     /// - Throws: CommonRuntimeError.crtError
     public static func `static`(accessKey: String,
                                 secret: String,
                                 sessionToken: String? = nil,
+                                accountId: String? = nil,
                                 shutdownCallback: ShutdownCallback? = nil) -> Self {
         Self {
 
@@ -115,10 +125,12 @@ extension CredentialsProvider.Source {
             guard let provider: UnsafeMutablePointer<aws_credentials_provider> = withByteCursorFromStrings(
                     accessKey,
                     secret,
-                    sessionToken, { accessKeyCursor, secretCursor, sessionTokenCursor in
+                    sessionToken,
+                    accountId, { accessKeyCursor, secretCursor, sessionTokenCursor, accountIdCursor in
                         staticOptions.access_key_id = accessKeyCursor
                         staticOptions.secret_access_key = secretCursor
                         staticOptions.session_token = sessionTokenCursor
+                        staticOptions.account_id = accountIdCursor
                         return aws_credentials_provider_new_static(allocator.rawValue, &staticOptions)
                     })
             else {
@@ -291,6 +303,10 @@ extension CredentialsProvider.Source {
     /// Generally:
     /// - Environment
     /// - Profile
+    ///     - STSCredentialsProvider
+    ///     - ProcessCredentialsProvider
+    ///     - ProfileCredentialsProvider
+    /// - STSWebIdenity Credentials Provider
     /// - (conditional, off by default) ECS
     /// - (conditional, on by default) EC2 Instance Metadata
     /// Support for environmental control of the default provider chain is not yet implemented.
@@ -303,6 +319,7 @@ extension CredentialsProvider.Source {
     /// - Throws: CommonRuntimeError.crtError
     public static func `defaultChain`(bootstrap: ClientBootstrap,
                                       fileBasedConfiguration: FileBasedConfiguration,
+                                      tlsContext: TLSContext? = nil,
                                       shutdownCallback: ShutdownCallback? = nil) -> Self {
         Self {
             let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
@@ -311,6 +328,7 @@ extension CredentialsProvider.Source {
             chainDefaultOptions.bootstrap = bootstrap.rawValue
             chainDefaultOptions.profile_collection_cached = fileBasedConfiguration.rawValue
             chainDefaultOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
+            chainDefaultOptions.tls_ctx = tlsContext?.rawValue
 
             guard let provider = aws_credentials_provider_new_chain_default(allocator.rawValue,
                                                                             &chainDefaultOptions)
@@ -389,11 +407,15 @@ extension CredentialsProvider.Source {
     /// ----------------------------------------------------------------------------------<br>
     /// | Parameter           | Environment Variable Name    | Config File Property Name |<br>
     /// |---------------------|------------------------------|---------------------------|<br>
-    /// | region              | AWS_DEFAULT_REGION           | region                    |<br>
+    /// | region              | AWS_REGION/AWS_DEFAULT_REGION| region                    |<br>
     /// | role_arn            | AWS_ROLE_ARN                 | role_arn                  |<br>
     /// | role_session_name   | AWS_ROLE_SESSION_NAME        | role_session_name         |<br>
     /// | token_file_path     | AWS_WEB_IDENTITY_TOKEN_FILE  | web_identity_token_file   |<br>
     /// ----------------------------------------------------------------------------------<br>
+    /// The order of resolution is the following
+    /// 1. Parameters
+    /// 2. Environment Variables (in case of region, the AWS_REGION is preferred over the AWS_DEFAULT_REGION)
+    /// 3. Config File
     /// </pre>
     /// - Parameters:
     ///   - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials.
@@ -572,6 +594,64 @@ extension CredentialsProvider.Source {
             return provider
         }
     }
+    
+    /// Credential Provider that sources credentials from Cognito Identity service
+    ///  - Parameters:
+    ///    - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials
+    ///    - tlsContext: TLS configuration for secure socket connections.
+    ///    - endpoint: Cognito service regional endpoint to source credentials from.
+    ///    - identity: Cognito identity to fetch credentials relative to.
+    ///    - logins: (Optional) set of identity provider token pairs to allow for authenticated identity access.
+    ///    - customRoleArn: (Optional) ARN of the role to be assumed when multiple roles were received in the token from the identity provider.
+    ///    - proxyOptions: (Optional) Http proxy configuration for the http request that fetches credentials
+    ///   - shutdownCallback:  (Optional) shutdown callback
+    /// - Returns: `CredentialsProvider`
+    /// - Throws: CommonRuntimeError.crtError
+    public static func `cognito`(bootstrap: ClientBootstrap,
+                                 tlsContext: TLSContext,
+                                 endpoint: String,
+                                 identity: String,
+                                 logins: [CognitoLoginPair] = [],
+                                 customRoleArn: String? = nil,
+                                 proxyOptions: HTTPProxyOptions? = nil,
+                                 shutdownCallback: ShutdownCallback? = nil) -> Self {
+        Self {
+            var cognitoOptions = aws_credentials_provider_cognito_options()
+            cognitoOptions.bootstrap = bootstrap.rawValue
+            cognitoOptions.tls_ctx = tlsContext.rawValue
+            let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
+            cognitoOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
+            
+            guard let provider: UnsafeMutablePointer<aws_credentials_provider> = (withByteCursorFromStrings(
+                endpoint,
+                identity) { endpointCursor, identityCursor in
+                    
+                    cognitoOptions.endpoint = endpointCursor
+                    cognitoOptions.identity = identityCursor
+                    
+                    return withOptionalCStructPointer(to: proxyOptions) { proxyOptionsPointer in
+                        cognitoOptions.http_proxy_options = proxyOptionsPointer
+                        
+                        return logins.withAWSArrayList { loginArrayPointer in
+                            cognitoOptions.logins = UnsafeMutablePointer<aws_cognito_identity_provider_token_pair>(loginArrayPointer)
+                            cognitoOptions.login_count = logins.count
+                            
+                            return withOptionalByteCursorPointerFromString(customRoleArn, { customRoleArnCursor in
+                                if let customRoleArnCursor {
+                                    cognitoOptions.custom_role_arn = UnsafeMutablePointer<aws_byte_cursor>(mutating: customRoleArnCursor)
+                                }
+                                return aws_credentials_provider_new_cognito_caching(allocator.rawValue, &cognitoOptions)
+                            })
+                        }
+                    }
+                })
+                else {
+                    shutdownCallbackCore.release()
+                    throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+                }
+            return provider
+        }
+    }
 }
 
 private func onGetCredentials(credentials: OpaquePointer?,
@@ -585,8 +665,7 @@ private func onGetCredentials(credentials: OpaquePointer?,
     }
 
     // Success
-    let accountId = continuationCore.userData?["accountId"] as? String
-    continuationCore.continuation.resume(returning: Credentials(rawValue: credentials!, accountId: accountId))
+    continuationCore.continuation.resume(returning: Credentials(rawValue: credentials!))
 }
 
 // We need to share this pointer to C in a task block but Swift compiler complains

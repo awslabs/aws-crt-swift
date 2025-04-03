@@ -2,12 +2,11 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import XCTest
-@_spi(AccountIDTempSupport) @testable import AwsCommonRuntimeKit
+@testable import AwsCommonRuntimeKit
 
 class CredentialsProviderTests: XCBaseTestCase {
     let accessKey = "AccessKey"
     let secret = "Sekrit"
-    var accountId: String? = nil
     let sessionToken = "Token"
 
     let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
@@ -69,19 +68,33 @@ class CredentialsProviderTests: XCBaseTestCase {
         await awaitExpectation([shutdownWasCalled])
     }
 
-        // TODO: change this test to not pass accountId separately once the source function handles it
     func testCreateCredentialsProviderStatic() async throws {
-        accountId = "0123456789"
         do {
             let provider = try CredentialsProvider(source: .static(accessKey: accessKey,
                     secret: secret,
                     sessionToken: sessionToken,
-                    shutdownCallback: getShutdownCallback()), accountId: accountId)
+                    shutdownCallback: getShutdownCallback()))
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
         }
         await awaitExpectation([shutdownWasCalled])
+    }
+
+    func testCreateCredentialsProviderStaticWithAccountId() async throws {
+        do {
+            let accountId = "Account ID"
+            let provider = try CredentialsProvider(source: .static(accessKey: accessKey,
+                    secret: secret,
+                    sessionToken: sessionToken,
+                    accountId: accountId,
+                    shutdownCallback: getShutdownCallback()))
+            let credentials = try await provider.getCredentials()
+            XCTAssertNotNil(credentials)
+            assertCredentials(credentials: credentials)
+            XCTAssertEqual(accountId, credentials.getAccountId())
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
     }
 
     func testCredentialsProviderEnvThrow() async {
@@ -203,6 +216,69 @@ class CredentialsProviderTests: XCBaseTestCase {
             }
         }
         await awaitExpectation([shutdownWasCalled])
+    }
+
+
+    func testCreateDestroyCognitoCredsProviderWithoutHttpProxy() async throws {
+        let exceptionWasThrown = XCTestExpectation(
+            description: "Exception was thrown")
+        do {
+            let cognitoEndpoint = try getEnvironmentVarOrSkipTest(
+                environmentVarName: "AWS_TEST_MQTT5_COGNITO_ENDPOINT")
+            let cognitoIdentity = try getEnvironmentVarOrSkipTest(
+                environmentVarName: "AWS_TEST_MQTT5_COGNITO_IDENTITY")
+
+            let provider = try CredentialsProvider(
+                source: .cognito(
+                    bootstrap: getClientBootstrap(),
+                    tlsContext: getTlsContext(), endpoint: cognitoEndpoint,
+                    identity: cognitoIdentity,
+                    shutdownCallback: getShutdownCallback()))
+            let credentials = try await provider.getCredentials()
+            XCTAssertNotNil(credentials)
+        } catch is XCTSkip {
+            // skip the test as the environment var is not set
+            shutdownWasCalled.fulfill()
+        } catch {
+            exceptionWasThrown.fulfill()
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
+    }
+
+    // Http proxy related tests could only run behind vpc to access the proxy
+    func testCreateDestroyCognitoCredsProviderWithHttpProxy() async throws {
+        let exceptionWasThrown = XCTestExpectation(
+            description: "Exception was thrown")
+        do {
+            let cognitoEndpoint = try getEnvironmentVarOrSkipTest(
+                environmentVarName: "AWS_TEST_MQTT5_COGNITO_ENDPOINT")
+            let cognitoIdentity = try getEnvironmentVarOrSkipTest(
+                environmentVarName: "AWS_TEST_MQTT5_COGNITO_IDENTITY")
+
+            let httpproxyHost = try getEnvironmentVarOrSkipTest(
+                environmentVarName: "AWS_TEST_HTTP_PROXY_HOST")
+            let httpproxyPort = try getEnvironmentVarOrSkipTest(
+                environmentVarName: "AWS_TEST_HTTP_PROXY_PORT")
+
+            let httpProxys = HTTPProxyOptions(
+                hostName: httpproxyHost, port: UInt32(httpproxyPort)!,
+                connectionType: .tunnel)
+
+            let provider = try CredentialsProvider(
+                source: .cognito(
+                    bootstrap: getClientBootstrap(),
+                    tlsContext: getTlsContext(), endpoint: cognitoEndpoint,
+                    identity: cognitoIdentity,
+                    shutdownCallback: getShutdownCallback()))
+            let credentials = try await provider.getCredentials()
+            XCTAssertNotNil(credentials)
+        } catch is XCTSkip {  
+            // skip the test as the environment var is not set
+            shutdownWasCalled.fulfill()
+        } catch {
+            exceptionWasThrown.fulfill()
+        }
+        wait(for: [shutdownWasCalled], timeout: 15)
     }
 
     func testCreateDestroyStsWebIdentityInvalidEnv() async throws {
