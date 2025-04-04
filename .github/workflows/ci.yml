@@ -84,6 +84,8 @@ jobs:
       with:
         role-to-assume: ${{ env.CRT_CI_ROLE }}
         aws-region: ${{ env.AWS_DEFAULT_REGION }} 
+    - name: Checkout repository
+      uses: actions/checkout@v4
     - name: Set Swift version to 6
       run: |
         sed -i '' 's/swift-tools-version:5\.7/swift-tools-version:6\.0/' Package.swift
