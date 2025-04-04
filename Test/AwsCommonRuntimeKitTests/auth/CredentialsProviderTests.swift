@@ -94,7 +94,7 @@ class CredentialsProviderTests: XCBaseTestCase {
             assertCredentials(credentials: credentials)
             XCTAssertEqual(accountId, credentials.getAccountId())
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
     func testCredentialsProviderEnvThrow() async {
@@ -242,7 +242,7 @@ class CredentialsProviderTests: XCBaseTestCase {
         } catch {
             exceptionWasThrown.fulfill()
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
     // Http proxy related tests could only run behind vpc to access the proxy
@@ -278,7 +278,7 @@ class CredentialsProviderTests: XCBaseTestCase {
         } catch {
             exceptionWasThrown.fulfill()
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
     func testCreateDestroyStsWebIdentityInvalidEnv() async throws {
