@@ -23,13 +23,13 @@ enum aws_swift_errors {
 };
 
 
-static struct aws_error_info s_crt_swift_errors[] = {
+static const struct aws_error_info s_crt_swift_errors[] = {
     AWS_DEFINE_ERROR_INFO_CRT_SWIFT(
                                     AWS_CRT_SWIFT_MQTT_CLIENT_CLOSED,
                                     "The Mqtt Client is closed.")
 };
 
-static struct aws_error_info_list s_crt_swift_error_list = {
+static const struct aws_error_info_list s_crt_swift_error_list = {
     .error_list = s_crt_swift_errors,
     .count = AWS_ARRAY_SIZE(s_crt_swift_errors),
 };

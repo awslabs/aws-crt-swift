@@ -37,6 +37,6 @@ class HTTPClientConnectionManagerTests: XCBaseTestCase {
             }
             _ = try HTTPClientConnectionManager(options: httpClientOptions)
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 }
