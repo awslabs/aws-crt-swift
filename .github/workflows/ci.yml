@@ -71,6 +71,28 @@ jobs:
         chmod a+x builder
         ./builder build -p ${{ env.PACKAGE_NAME }}
 
+  macos-swift6:
+    runs-on: macos-14
+    env:
+      DEVELOPER_DIR: /Applications/Xcode.app
+      XCODE_DESTINATION: 'OS X'
+      NSUnbufferedIO: YES
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ env.CRT_CI_ROLE }}
+        aws-region: ${{ env.AWS_DEFAULT_REGION }} 
+    - name: Set Swift version to 6
+      run: |
+        sed -i '' 's/swift-tools-version:5\.7/swift-tools-version:6\.0/' Package.swift
+        cat Package.swift | head -3
+    - name: Build ${{ env.PACKAGE_NAME }} + consumers
+      run: |
+        swift build
+        swift test
+
   devices:
     runs-on: ${{ matrix.runner }}
     env:
