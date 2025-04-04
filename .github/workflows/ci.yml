@@ -72,7 +72,7 @@ jobs:
         ./builder build -p ${{ env.PACKAGE_NAME }}
 
   macos-swift6:
-    runs-on: macos-14
+    runs-on: macos-15
     env:
       DEVELOPER_DIR: /Applications/Xcode.app
       XCODE_DESTINATION: 'OS X'
