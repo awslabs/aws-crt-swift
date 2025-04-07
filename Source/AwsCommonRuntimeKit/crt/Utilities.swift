@@ -201,6 +201,9 @@ extension aws_byte_cursor {
         }
 
         let data = Data(bytesNoCopy: self.ptr, count: self.len, deallocator: .none)
+        // Using non-failable String(decoding:as:) to handle invalid UTF-8 with replacement characters. 
+        // Disable warning as it's a false positive.
+        // swiftlint:disable:next optional_data_string_conversion
         return String(decoding: data, as: UTF8.self)
     }
 

@@ -71,6 +71,7 @@ jobs:
         chmod a+x builder
         ./builder build -p ${{ env.PACKAGE_NAME }}
 
+  # Test that everything works with Swift 6 strict concurrency. We can remove this CI in the future once we raise our minimum Swift version to Swift 6.
   macos-swift6:
     runs-on: macos-15
     env:
