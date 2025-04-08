@@ -109,16 +109,16 @@ public class EndpointsRuleEngine {
 
     /// Get the properties of the resolved endpoint
     /// - Returns: The properties of the resolved endpoint
-    func getProperties(rawValue: OpaquePointer) throws -> [String: AnyHashable] {
+    func getProperties(rawValue: OpaquePointer) throws -> [String: EndpointProperty] {
         var properties = aws_byte_cursor()
         guard aws_endpoints_resolved_endpoint_get_properties(rawValue, &properties) == AWS_OP_SUCCESS else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
         guard properties.len > 0 else {
-            return [String: AnyHashable]()
+            return [String: EndpointProperty]()
         }
         let data = Data(bytes: properties.ptr, count: properties.len)
-        return try JSONDecoder().decode([String: EndpointProperty].self, from: data).toStringHashableDictionary()
+        return try JSONDecoder().decode([String: EndpointProperty].self, from: data)
     }
 
     /// Get the error of the resolved endpoint

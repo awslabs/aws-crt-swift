@@ -269,6 +269,7 @@ class CredentialsProviderTests: XCBaseTestCase {
                     bootstrap: getClientBootstrap(),
                     tlsContext: getTlsContext(), endpoint: cognitoEndpoint,
                     identity: cognitoIdentity,
+                    proxyOptions: httpProxys,
                     shutdownCallback: getShutdownCallback()))
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)

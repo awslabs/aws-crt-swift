@@ -9,37 +9,39 @@ class EndpointPropertyTests: XCTestCase {
     func testDecoderWithBool() throws {
         let data = "true".data(using: .utf8)!
         let actual = try JSONDecoder().decode(EndpointProperty.self, from: data)
-        XCTAssertEqual(true, actual.toAnyHashable())
+        XCTAssertEqual(.bool(true), actual)
     }
     
     func testDecoderWithString() throws {
         let data = "\"hello\"".data(using: .utf8)!
         let actual = try JSONDecoder().decode(EndpointProperty.self, from: data)
-        XCTAssertEqual("hello", actual.toAnyHashable())
+        XCTAssertEqual(.string("hello"), actual)
     }
 
     func testDecoderWithArray() throws {
         let data = "[\"hello\", \"world\"]".data(using: .utf8)!
         let actual = try JSONDecoder().decode(EndpointProperty.self, from: data)
-        XCTAssertEqual(["hello", "world"], actual.toAnyHashable())
+        XCTAssertEqual(.array([.string("hello"), .string("world")]), actual)
     }
 
     func testDecoderWithDictionary() throws {
         let data = "{\"hello\": \"world\"}".data(using: .utf8)!
         let actual = try JSONDecoder().decode(EndpointProperty.self, from: data)
-        XCTAssertEqual(["hello": "world"], actual.toAnyHashable())
+        XCTAssertEqual(.dictionary(["hello": .string("world")]), actual)
     }
 
     func testDecoderWithMixed() throws {
         let data = "{\"hello\": [\"world\", \"universe\"], \"isAlive\": true}".data(using: .utf8)!
         let actual = try JSONDecoder().decode(EndpointProperty.self, from: data)
-        let expected: [String: AnyHashable] = [
-            "hello": [
-                "world",
-                "universe"
-            ],
-            "isAlive": true
-        ]
-        XCTAssertEqual(expected, actual.toAnyHashable())
+        
+        let expected: EndpointProperty = .dictionary([
+            "hello": .array([
+                .string("world"),
+                .string("universe")
+            ]),
+            "isAlive": .bool(true)
+        ])
+        
+        XCTAssertEqual(expected, actual)
     }
 }
