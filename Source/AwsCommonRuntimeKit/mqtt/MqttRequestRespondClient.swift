@@ -83,7 +83,7 @@ public struct MqttRequestResponseResponse {
     let payload: Data
 }
 
-public struct responsePath {
+public struct ResponsePath {
     let topic: String
     let correlationTokenJsonPath: [String]
 }
@@ -91,7 +91,7 @@ public struct responsePath {
 /// Generic configuration options for request response operation
 public struct RequestResponseOperationOptions: CStruct {
     let subscriptionTopicFilters: [String]
-    let responsePaths: [responsePath]?
+    let responsePaths: [ResponsePath]?
     let topic: String
     let payload: Data
     let correlationToken: [String]?
@@ -115,13 +115,13 @@ public struct RequestResponseOperationOptions: CStruct {
 }
 
 // Place holder for
-public typealias onStreamStatusHandler = (SubscriptionStatusEvent) async -> Void
-public typealias onIncomingPublishEventHandler = (IncomingPublishEvent) async -> Void
+public typealias StreamStatusHandler = (SubscriptionStatusEvent) async -> Void
+public typealias IncomingPublishEventHandler = (IncomingPublishEvent) async -> Void
 
 /// Generic configuration options for streaming operations
 public struct StreamingOperationOptions: CStruct {
-    let onStreamStatusHandler: onStreamStatusHandler
-    let onIncomingPublishHandler: onIncomingPublishEventHandler
+    let onStreamStatusHandler: StreamStatusHandler
+    let onIncomingPublishHandler: IncomingPublishEventHandler
     let topicFilter: String
 
     public init () {
