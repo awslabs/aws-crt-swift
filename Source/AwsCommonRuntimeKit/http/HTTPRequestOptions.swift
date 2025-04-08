@@ -3,7 +3,7 @@
 import Foundation
 
 /// Definition for outgoing request and callbacks to receive response.
-public struct HTTPRequestOptions {
+public struct HTTPRequestOptions: @unchecked Sendable {
 
     /// Callback to receive interim response
     public typealias OnInterimResponse = (_ statusCode: UInt32,

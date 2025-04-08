@@ -6,7 +6,7 @@ import AwsCSdkUtils
 /// Resolved endpoint type
 public enum ResolvedEndpoint {
     /// Used for endpoints that are resolved successfully
-    case endpoint(url: String, headers: [String: [String]], properties: [String: AnyHashable])
+    case endpoint(url: String, headers: [String: [String]], properties: [String: EndpointProperty])
 
     /// Used for endpoints that resolve to an error
     case error(message: String)

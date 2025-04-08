@@ -10,7 +10,7 @@ public enum LogTarget {
     case filePath(String) 
 }
 
-public struct Logger {
+public actor Logger {
     private static var logger: aws_logger?
     private static let lock = NSLock()
 
@@ -55,7 +55,7 @@ public struct Logger {
     }
 }
 
-public enum LogLevel {
+public enum LogLevel: Sendable {
     case none
     case fatal
     case error

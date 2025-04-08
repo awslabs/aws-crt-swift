@@ -220,22 +220,30 @@ class EndpointsRuleEngineTests: XCBaseTestCase {
         try context.add(name: "Region", value: "us-west-2")
         let resolved = try engine.resolve(context: context)
         guard case ResolvedEndpoint.endpoint(url: let url,
-                              headers: let headers,
-                              properties: let properties) = resolved else {
+                                             headers: let headers,
+                                             properties: let properties) = resolved else {
             XCTFail("Endpoint resolved to an error")
             return
         }
         XCTAssertEqual("https://example.us-west-2.amazonaws.com", url)
-        let expectedProperties = [
-            "authSchemes": [
-                [
-                    "name": "sigv4",
-                    "signingName": "serviceName",
-                    "signingRegion": "us-west-2"
-                ]
-            ]
-        ]
+        let expectedProperties: [String: EndpointProperty] = ["authSchemes": .array([
+            .dictionary([
+                "name": .string("sigv4"),
+                "signingName": .string("serviceName"),
+                "signingRegion": .string("us-west-2")
+            ])
+        ])]
         XCTAssertEqual(expectedProperties, properties)
+//        let expectedProperties = [
+//            "authSchemes": [
+//                [
+//                    "name": "sigv4",
+//                    "signingName": "serviceName",
+//                    "signingRegion": "us-west-2"
+//                ]
+//            ]
+//        ]
+//        XCTAssertEqual(expectedProperties, properties)
         let expectedHeaders = [
             "x-amz-region": [
                 "us-west-2"
