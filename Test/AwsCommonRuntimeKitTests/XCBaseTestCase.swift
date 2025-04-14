@@ -69,7 +69,7 @@ extension XCTestCase {
         #endif
     }
 
-    func awaitExpectation(_ expectations: [XCTestExpectation], _ timeout: TimeInterval = 10) async {
+    func awaitExpectation(_ expectations: [XCTestExpectation], _ timeout: TimeInterval = 5) async {
         // Remove the Ifdef once our minimum supported Swift version reaches 5.10
         #if swift(>=5.10)
             await fulfillment(of: expectations, timeout: timeout)
@@ -107,14 +107,6 @@ actor TestSemaphore {
     }
 
     func wait() async {
-        count -= 1
-        if count >= 0 { return }
-        await withCheckedContinuation {
-            waiters.append($0)
-        }
-    }
-    
-    func wait(_ timeout: TimeInterval) async {
         count -= 1
         if count >= 0 { return }
         await withCheckedContinuation {

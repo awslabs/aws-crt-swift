@@ -412,31 +412,27 @@ class Mqtt5ClientTests: XCBaseTestCase {
      * [ConnDC-UC4] Direct Connection with mutual TLS
      */
     func testMqtt5DirectConnectWithMutualTLS() async throws {
-        do{
-            try skipIfPlatformDoesntSupportTLS()
-            let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-            let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-            let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-            
-            let tlsOptions = try TLSContextOptions.makeMTLS(
-                certificatePath: inputCert,
-                privateKeyPath: inputKey
-            )
-            let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-            
-            let clientOptions = MqttClientOptions(
-                hostName: inputHost,
-                port: UInt32(8883),
-                tlsCtx: tlsContext)
-            
-            let testContext = MqttTestContext()
-            let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-            try await connectClient(client: client, testContext: testContext)
-            try await disconnectClientCleanup(client: client, testContext: testContext)
-        }catch
-        {
-            XCTFail("Connection failed")
-        }
+        try skipIfPlatformDoesntSupportTLS()
+        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+        
+        let tlsOptions = try TLSContextOptions.makeMTLS(
+            certificatePath: inputCert,
+            privateKeyPath: inputKey
+        )
+        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+        
+        let clientOptions = MqttClientOptions(
+            hostName: inputHost,
+            port: UInt32(8883),
+            tlsCtx: tlsContext)
+        
+        let testContext = MqttTestContext()
+        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client: client, testContext: testContext)
+
     }
 
     /*
