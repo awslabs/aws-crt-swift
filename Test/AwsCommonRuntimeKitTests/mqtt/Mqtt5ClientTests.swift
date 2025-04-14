@@ -13,7 +13,7 @@ enum MqttTestError: Error {
     case stopFail
 }
 
-class Mqtt5ClientTests: XCBaseTestCase {
+class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     
     let credentialProviderShutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
     
@@ -1933,7 +1933,22 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 try await client3.subscribe(subscribePacket: subscribePacket)
             })
 
-        await awaitExpectation([testContext3.publishReceivedExpectation], 5)
+        do{
+            try await withTimeout(client: client3, seconds: 2, operation: {
+                await self.awaitExpectation([testContext3.publishReceivedExpectation], 5)
+            })
+        }
+        catch (let error)  {
+            if(error as! MqttTestError == MqttTestError.timeout) {
+                print("no retained publish from client1")
+            }
+            else
+            {
+                XCTFail("Retained publish from client1 received when it should be cleared")
+                return
+            }
+        }
+        
 
         try await disconnectClientCleanup(client:client1, testContext: testContext1)
         try await disconnectClientCleanup(client:client2, testContext: testContext2)
