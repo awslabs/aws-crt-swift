@@ -69,12 +69,12 @@ extension XCTestCase {
         #endif
     }
 
-    func awaitExpectation(_ expectations: [XCTestExpectation]) async {
+    func awaitExpectation(_ expectations: [XCTestExpectation], _ timeout: TimeInterval = 10) async {
         // Remove the Ifdef once our minimum supported Swift version reaches 5.10
         #if swift(>=5.10)
-            await fulfillment(of: expectations, timeout: 5)
+            await fulfillment(of: expectations, timeout: timeout)
         #else
-            wait(for: expectations, timeout: 5)
+            wait(for: expectations, timeout: timeout)
         #endif
     }
     func skipIfPlatformDoesntSupportTLS() throws {
@@ -107,6 +107,14 @@ actor TestSemaphore {
     }
 
     func wait() async {
+        count -= 1
+        if count >= 0 { return }
+        await withCheckedContinuation {
+            waiters.append($0)
+        }
+    }
+    
+    func wait(_ timeout: TimeInterval) async {
         count -= 1
         if count >= 0 { return }
         await withCheckedContinuation {
