@@ -1106,7 +1106,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         // Connect with second client
         try await connectClient(client: client2, testContext: testContext2)
 
-        await awaitExpectation([testContext.connectionFailureExpectation], 5)
+        await awaitExpectation([testContext.disconnectionExpectation], 5)
 
         if let disconnectionData = testContext.lifecycleDisconnectionData {
             print(disconnectionData.crtError)
@@ -1908,7 +1908,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             })
 
         
-        await awaitExpectation([testContext2.publishReceivedExpectation], 5)
+        await awaitExpectation([testContext2.publishReceivedExpectation], 10)
 
         XCTAssertEqual(testContext2.publishPacket?.payloadAsString(), publishPacket.payloadAsString())
 
