@@ -522,7 +522,7 @@ public class UnsubackPacket: @unchecked Sendable {
 }
 
 /// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
-public class DisconnectPacket: CStruct, @unchecked Sendable{
+public class DisconnectPacket: CStruct, @unchecked Sendable {
 
     /// Value indicating the reason that the sender is closing the connection
     public let reasonCode: DisconnectReasonCode
