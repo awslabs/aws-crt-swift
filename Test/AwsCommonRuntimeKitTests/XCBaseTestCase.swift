@@ -69,6 +69,16 @@ extension XCTestCase {
         #endif
     }
 
+    func awaitExpectationResult(_ expectations: [XCTestExpectation], _ timeout: TimeInterval = 5) async -> XCTWaiter.Result {
+        let waiter = XCTWaiter()
+        // Remove the Ifdef once our minimum supported Swift version reaches 5.10
+        #if swift(>=5.10)
+            return await waiter.fulfillment(of: expectations, timeout: timeout)
+        #else
+            return waiter.wait(for: expectations, timeout: timeout)
+        #endif
+    }
+    
     func awaitExpectation(_ expectations: [XCTestExpectation], _ timeout: TimeInterval = 5) async {
         // Remove the Ifdef once our minimum supported Swift version reaches 5.10
         #if swift(>=5.10)

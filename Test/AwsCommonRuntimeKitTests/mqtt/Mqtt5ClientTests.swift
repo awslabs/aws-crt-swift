@@ -1933,20 +1933,12 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
                 try await client3.subscribe(subscribePacket: subscribePacket)
             })
 
-        do{
-            try await withTimeout(client: client3, seconds: 2, operation: {
-                await self.awaitExpectation([testContext3.publishReceivedExpectation], 5)
-            })
-        }
-        catch (let error)  {
-            if(error as! MqttTestError == MqttTestError.timeout) {
-                print("no retained publish from client1")
-            }
-            else
-            {
-                XCTFail("Retained publish from client1 received when it should be cleared")
-                return
-            }
+        let waitResult = await awaitExpectationResult([testContext3.publishReceivedExpectation], 5)
+        if(waitResult == XCTWaiter.Result.timedOut){
+            print("no retained publish from client1")
+        }else{
+            XCTFail("Retained publish from client1 received when it should be cleared")
+            return
         }
         
 
