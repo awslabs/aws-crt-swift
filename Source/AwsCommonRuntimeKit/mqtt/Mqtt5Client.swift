@@ -125,7 +125,7 @@ public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32
 public typealias OnWebSocketHandshakeIntercept = (HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete) async -> Void
 
 // MARK: - Mqtt5 Client
-public class Mqtt5Client {
+public class Mqtt5Client: @unchecked Sendable {
     internal var clientCore: Mqtt5ClientCore
 
     /// Creates a Mqtt5Client instance using the provided MqttClientOptions.
