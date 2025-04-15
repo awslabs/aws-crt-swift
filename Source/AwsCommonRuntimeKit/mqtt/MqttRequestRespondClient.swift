@@ -115,13 +115,13 @@ public struct RequestResponseOperationOptions: CStruct {
 }
 
 // Place holder for
-public typealias StreamStatusHandler = (SubscriptionStatusEvent) async -> Void
+public typealias SubscriptionStatusEventHandler = (SubscriptionStatusEvent) async -> Void
 public typealias IncomingPublishEventHandler = (IncomingPublishEvent) async -> Void
 
 /// Generic configuration options for streaming operations
 public struct StreamingOperationOptions: CStruct {
-    let onStreamStatusHandler: StreamStatusHandler
-    let onIncomingPublishHandler: IncomingPublishEventHandler
+    let subscriptionStatusEventHandler: SubscriptionStatusEventHandler
+    let incomingPublishEventHandler: IncomingPublishEventHandler
     let topicFilter: String
 
     public init () {
