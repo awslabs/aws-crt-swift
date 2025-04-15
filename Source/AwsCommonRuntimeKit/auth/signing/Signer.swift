@@ -164,9 +164,11 @@ public class Signer {
     }
 }
 
-class SignRequestCore {
+// After signing, we mutate the request and resume the continuation, which may result in a thread change.
+// We won't modify it after continuation.resume is called. So we can mark it @unchecked Sendable
+class SignRequestCore: @unchecked Sendable {
     let request: HTTPRequestBase
-    var continuation: CheckedContinuation<HTTPRequestBase, Error>
+    let continuation: CheckedContinuation<HTTPRequestBase, Error>
     let shouldSignHeader: ((String) -> Bool)?
     init(request: HTTPRequestBase,
          continuation: CheckedContinuation<HTTPRequestBase, Error>,
@@ -207,6 +209,7 @@ private func onRequestSigningComplete(signingResult: UnsafeMutablePointer<aws_si
     } else {
         signRequestCore.continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
     }
+    // It's not thread-safe to modify `signingRequestCore.request` after continuation.resume
 }
 
 private func onSigningComplete(signingResult: UnsafeMutablePointer<aws_signing_result>?,
@@ -220,9 +223,10 @@ private func onSigningComplete(signingResult: UnsafeMutablePointer<aws_signing_r
 
     // Success
     var awsStringPointer: UnsafeMutablePointer<aws_string>!
+    let signature = AWSString("signature")
     guard aws_signing_result_get_property(
             signingResult!,
-            g_aws_signature_property_name,
+            signature.rawValue,
             &awsStringPointer) == AWS_OP_SUCCESS else {
         chunkSignerCore.continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
         return

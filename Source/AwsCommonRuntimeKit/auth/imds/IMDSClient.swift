@@ -4,7 +4,9 @@
 import AwsCAuth
 
 // swiftlint:disable type_body_length
-public class IMDSClient {
+// We can't mutate this class after initialization. Swift can not verify the sendability due to OpaquePointer,
+// So mark it unchecked Sendable
+public class IMDSClient: @unchecked Sendable {
     let rawValue: OpaquePointer
     
     /// Creates an IMDSClient that always uses IMDSv2

@@ -13,7 +13,7 @@ enum MqttTestError: Error {
     case stopFail
 }
 
-class Mqtt5ClientTests: XCBaseTestCase {
+class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     
     let credentialProviderShutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
     
@@ -25,47 +25,30 @@ class Mqtt5ClientTests: XCBaseTestCase {
     }
     
     /// start client and check for connection success
-    func connectClient(client: Mqtt5Client, testContext: MqttTestContext) throws -> Void {
+    func connectClient(client: Mqtt5Client, testContext: MqttTestContext) async throws{
         try client.start()
-        if testContext.semaphoreConnectionSuccess.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Success Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            throw MqttTestError.connectionFail
-        }
+        await awaitExpectation([testContext.connectionSuccessExpectation], 5)
+        
     }
 
     /// stop client and check for discconnection and stopped lifecycle events
-    func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) throws -> Void {
+    func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) async throws -> Void {
         try client.stop(disconnectPacket: disconnectPacket)
-
-        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection timed out after 5 seconds")
-            XCTFail("Disconnection timed out")
-            throw MqttTestError.disconnectFail
-        }
-
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            throw MqttTestError.stopFail
-        }
+        await awaitExpectation([testContext.disconnectionExpectation], 5)
+        await awaitExpectation([testContext.stoppedExpecation], 5)
     }
 
     /// stop client and check for stopped lifecycle event
-    func stopClient(client: Mqtt5Client, testContext: MqttTestContext) throws -> Void {
+    func stopClient(client: Mqtt5Client, testContext: MqttTestContext) async throws -> Void {
         try client.stop()
-        if testContext.semaphoreStopped.wait(timeout: .now() + 5) == .timedOut {
-            print("Stop timed out after 5 seconds")
-            XCTFail("Stop timed out")
-            throw MqttTestError.stopFail
-        }
+        return await awaitExpectation([testContext.stoppedExpecation], 5)
     }
 
     func createClientId() -> String {
         return "test-aws-crt-swift-unit-" + UUID().uuidString
     }
 
-    class MqttTestContext {
+    class MqttTestContext : @unchecked Sendable{
         public var contextName: String
 
         public var onPublishReceived: OnPublishReceived?
@@ -76,12 +59,12 @@ class Mqtt5ClientTests: XCBaseTestCase {
         public var onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
         public var onWebSocketHandshake: OnWebSocketHandshakeIntercept?
 
-        public let semaphorePublishReceived: DispatchSemaphore
-        public let semaphorePublishTargetReached: DispatchSemaphore
-        public let semaphoreConnectionSuccess: DispatchSemaphore
-        public let semaphoreConnectionFailure: DispatchSemaphore
-        public let semaphoreDisconnection: DispatchSemaphore
-        public let semaphoreStopped: DispatchSemaphore
+        public let publishReceivedExpectation: XCTestExpectation
+        public let publishTargetReachedExpectation: XCTestExpectation
+        public let connectionSuccessExpectation: XCTestExpectation
+        public let connectionFailureExpectation: XCTestExpectation
+        public let disconnectionExpectation: XCTestExpectation
+        public let stoppedExpecation: XCTestExpectation
 
         public var negotiatedSettings: NegotiatedSettings?
         public var connackPacket: ConnackPacket?
@@ -105,12 +88,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
             self.publishTarget = publishTarget
             self.publishCount = 0
 
-            self.semaphorePublishReceived = DispatchSemaphore(value: 0)
-            self.semaphorePublishTargetReached = DispatchSemaphore(value: 0)
-            self.semaphoreConnectionSuccess = DispatchSemaphore(value: 0)
-            self.semaphoreConnectionFailure = DispatchSemaphore(value: 0)
-            self.semaphoreDisconnection = DispatchSemaphore(value: 0)
-            self.semaphoreStopped = DispatchSemaphore(value: 0)
+            
+            self.publishReceivedExpectation = XCTestExpectation(description: "Expect publish received.")
+            self.publishTargetReachedExpectation = XCTestExpectation(description: "Expect publish target reached")
+            self.connectionSuccessExpectation = XCTestExpectation(description: "Expect connection Success")
+            self.connectionFailureExpectation = XCTestExpectation(description: "Expect connection Failure")
+            self.disconnectionExpectation = XCTestExpectation(description: "Expect disconnect")
+            self.stoppedExpecation = XCTestExpectation(description: "Expect stopped")
 
             self.onPublishReceived = onPublishReceived
             self.onLifecycleEventStopped = onLifecycleEventStopped
@@ -126,16 +110,16 @@ class Mqtt5ClientTests: XCBaseTestCase {
                     print(contextName + " Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos)")
                 }
                 self.publishPacket = publishData.publishPacket
-                self.semaphorePublishReceived.signal()
+                self.publishReceivedExpectation.fulfill()
                 self.publishCount += 1
                 if self.publishCount == self.publishTarget {
-                    self.semaphorePublishTargetReached.signal()
+                    self.publishTargetReachedExpectation.fulfill()
                 }
             }
 
             self.onLifecycleEventStopped = onLifecycleEventStopped ?? { _ in
                 print(contextName + " Mqtt5ClientTests: onLifecycleEventStopped")
-                self.semaphoreStopped.signal()
+                self.stoppedExpecation.fulfill()
             }
             self.onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect ?? { _ in
                 print(contextName + " Mqtt5ClientTests: onLifecycleEventAttemptingConnect")
@@ -144,17 +128,17 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 print(contextName + " Mqtt5ClientTests: onLifecycleEventConnectionSuccess")
                 self.negotiatedSettings = successData.negotiatedSettings
                 self.connackPacket = successData.connackPacket
-                self.semaphoreConnectionSuccess.signal()
+                self.connectionSuccessExpectation.fulfill()
             }
             self.onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure ?? { failureData in
                 print(contextName + " Mqtt5ClientTests: onLifecycleEventConnectionFailure")
                 self.lifecycleConnectionFailureData = failureData
-                self.semaphoreConnectionFailure.signal()
+                self.connectionFailureExpectation.fulfill()
             }
             self.onLifecycleEventDisconnection = onLifecycleEventDisconnection ?? { disconnectionData in
                 print(contextName + " Mqtt5ClientTests: onLifecycleEventDisconnection")
                 self.lifecycleDisconnectionData = disconnectionData
-                self.semaphoreDisconnection.signal()
+                self.disconnectionExpectation.fulfill()
             }
          }
 
@@ -235,9 +219,9 @@ class Mqtt5ClientTests: XCBaseTestCase {
         }
     }
 
-    func withTimeout<T>(client: Mqtt5Client, seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
+    func withTimeout<T: Sendable >(client: Mqtt5Client, seconds: TimeInterval, operation: @escaping @Sendable () async throws -> T) async throws -> T {
 
-        let timeoutTask: () async throws -> T = {
+        let timeoutTask: @Sendable () async throws -> T = {
             try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
             throw MqttTestError.timeout
         }
@@ -353,7 +337,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnDC-UC1] Happy path
      */
-    func testMqtt5DirectConnectMinimum() throws {
+    func testMqtt5DirectConnectMinimum() async throws {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
 
@@ -363,14 +347,14 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
-        try disconnectClientCleanup(client:client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*
      * [ConnDC-UC2] Direct Connection with Basic Authentication
      */
-    func testMqtt5DirectConnectWithBasicAuth() throws {
+    func testMqtt5DirectConnectWithBasicAuth() async throws {
 
         let inputUsername = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_USERNAME")
         let inputPassword = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_PASSWORD")
@@ -390,14 +374,14 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
-        try disconnectClientCleanup(client:client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*
      * [ConnDC-UC3] Direct Connection with TLS
      */
-    func testMqtt5DirectConnectWithTLS() throws {
+    func testMqtt5DirectConnectWithTLS() async throws {
 
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
@@ -413,40 +397,41 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
-        try disconnectClientCleanup(client:client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*
      * [ConnDC-UC4] Direct Connection with mutual TLS
      */
-    func testMqtt5DirectConnectWithMutualTLS() throws {
+    func testMqtt5DirectConnectWithMutualTLS() async throws {
         try skipIfPlatformDoesntSupportTLS()
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-
+        
         let tlsOptions = try TLSContextOptions.makeMTLS(
             certificatePath: inputCert,
             privateKeyPath: inputKey
         )
         let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
+        
         let clientOptions = MqttClientOptions(
             hostName: inputHost,
             port: UInt32(8883),
             tlsCtx: tlsContext)
-
+        
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
-        try disconnectClientCleanup(client:client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client: client, testContext: testContext)
+
     }
 
     /*
      * [ConnDC-UC5] Direct Connection with HttpProxy options and TLS
      */
-    func testMqtt5DirectConnectWithHttpProxy() throws {
+    func testMqtt5DirectConnectWithHttpProxy() async throws {
 
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
@@ -470,14 +455,14 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
-        try disconnectClientCleanup(client:client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*
      * [ConnDC-UC6] Direct Connection with all options set
      */
-    func testMqtt5DirectConnectMaximum() throws {
+    func testMqtt5DirectConnectMaximum() async throws {
 
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
@@ -527,8 +512,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
-        try disconnectClientCleanup(client:client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*===============================================================
@@ -537,7 +522,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnWS-UC1] Happy path. Websocket connection with minimal configuration.
      */
-    func testMqtt5WSConnectionMinimal() throws
+    func testMqtt5WSConnectionMinimal() async throws
     {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_PORT")
@@ -549,15 +534,15 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let testContext = MqttTestContext()
         testContext.withWebsocketTransform(isSuccess: true)
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
-        try disconnectClientCleanup(client:client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client:client, testContext: testContext)
     }
 
 
     /*
      * [ConnWS-UC2]  websocket connection with basic authentication
      */
-    func testMqtt5WSConnectWithBasicAuth() throws {
+    func testMqtt5WSConnectWithBasicAuth() async throws {
 
         let inputUsername = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_USERNAME")
         let inputPassword = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_PASSWORD")
@@ -578,15 +563,15 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let testContext = MqttTestContext()
         testContext.withWebsocketTransform(isSuccess: true)
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
-        try disconnectClientCleanup(client:client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client:client, testContext: testContext)
     }
 
 
     /*
      * [ConnWS-UC3] websocket connection with TLS
      */
-    func testMqtt5WSConnectWithTLS() throws {
+    func testMqtt5WSConnectWithTLS() async throws {
         try skipIfPlatformDoesntSupportTLS()
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_TLS_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_TLS_PORT")
@@ -605,14 +590,14 @@ class Mqtt5ClientTests: XCBaseTestCase {
         testContext.withWebsocketTransform(isSuccess: true)
 
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
-        try disconnectClientCleanup(client:client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*
      * [ConnWS-UC4] websocket connection with TLS, using sigv4
      */
-    func testMqtt5WSConnectWithStaticCredentialProvider() throws {
+    func testMqtt5WSConnectWithStaticCredentialProvider() async throws {
         do{
             try skipIfPlatformDoesntSupportTLS()
 
@@ -642,7 +627,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let signingConfig = SigningConfig(algorithm: SigningAlgorithmType.signingV4,
                                                 signatureType: SignatureType.requestQueryParams,
                                                 service: "iotdevicegateway",
-                                                region: "us-east-1",
+                                                region: region,
                                                 credentialsProvider: provider,
                                                 omitSessionToken: true)
 
@@ -679,8 +664,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
             let client = try Mqtt5Client(clientOptions: clientOptions)
             XCTAssertNotNil(client)
 
-            try connectClient(client: client, testContext: testContext)
-            try disconnectClientCleanup(client:client, testContext: testContext)
+            try await connectClient(client: client, testContext: testContext)
+            try await disconnectClientCleanup(client:client, testContext: testContext)
             // Clean up the WebSocket handshake function to ensure the test context is properly released
             testContext.onWebSocketHandshake=nil
         }
@@ -688,13 +673,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
             // Fulfill the callback if the error
             self.credentialProviderShutdownWasCalled.fulfill()
         }
-        wait(for: [credentialProviderShutdownWasCalled], timeout: 15);
+        await awaitExpectation([credentialProviderShutdownWasCalled])
     }
 
     /*
      * [ConnWS-UC5] Websocket connection with HttpProxy options
      */
-    func testMqtt5WSConnectWithHttpProxy() throws {
+    func testMqtt5WSConnectWithHttpProxy() async throws {
         try skipIfPlatformDoesntSupportTLS()
         try skipifmacOS()
 
@@ -723,7 +708,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let signingConfig = SigningConfig(algorithm: SigningAlgorithmType.signingV4,
                                           signatureType: SignatureType.requestQueryParams,
                                           service: "iotdevicegateway",
-                                          region: "us-east-1",
+                                          region: region,
                                           credentialsProvider: provider,
 
                                           omitSessionToken: true)
@@ -762,11 +747,11 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let client = try Mqtt5Client(clientOptions: clientOptions)
         XCTAssertNotNil(client)
 
-        try connectClient(client: client, testContext: testContext)
-        try disconnectClientCleanup(client:client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client:client, testContext: testContext)
     }
 
-    func testMqtt5WSConnectFull() throws {
+    func testMqtt5WSConnectFull() async throws {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_PORT")
 
@@ -816,8 +801,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let testContext = MqttTestContext()
         testContext.withWebsocketTransform(isSuccess: true)
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
-        try disconnectClientCleanup(client:client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client:client, testContext: testContext)
     }
     
     func testMqttWebsocketWithCognitoCredentialProvider() async throws {
@@ -884,8 +869,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
             let client = try Mqtt5Client(clientOptions: clientOptions)
             XCTAssertNotNil(client)
-            try connectClient(client: client, testContext: testContext)
-            try disconnectClientCleanup(client: client, testContext: testContext)
+            try await connectClient(client: client, testContext: testContext)
+            try await disconnectClientCleanup(client: client, testContext: testContext)
             // Clean up the WebSocket handshake function to ensure the test context is properly released
             testContext.onWebSocketHandshake=nil
         }
@@ -894,7 +879,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             print("catch error and fulfill the shutdown callback")
             self.credentialProviderShutdownWasCalled.fulfill()
         }
-        wait(for: [credentialProviderShutdownWasCalled], timeout: 15);
+        await awaitExpectation([credentialProviderShutdownWasCalled], 15);
     }
 
 
@@ -905,7 +890,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
      * [ConnNegativeID-UC1] Client connect with invalid host name
      */
-    func testMqtt5DirectConnectWithInvalidHost() throws {
+    func testMqtt5DirectConnectWithInvalidHost() async throws {
 
         let clientOptions = MqttClientOptions(
             hostName: "badhost",
@@ -916,11 +901,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
         try client.start()
 
-        if testContext.semaphoreConnectionFailure.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Failure Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        await awaitExpectation([testContext.connectionFailureExpectation], 5)
 
         if let failureData = testContext.lifecycleConnectionFailureData {
             XCTAssertEqual(failureData.crtError.code, Int32(AWS_IO_DNS_INVALID_NAME.rawValue))
@@ -929,13 +910,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try stopClient(client: client, testContext: testContext)
+        try await stopClient(client: client, testContext: testContext)
     }
 
     /*
      * [ConnNegativeID-UC2] Client connect with invalid port for direct connection
      */
-    func testMqtt5DirectConnectWithInvalidPort() throws {
+    func testMqtt5DirectConnectWithInvalidPort() async throws {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
 
         let clientOptions = MqttClientOptions(
@@ -947,11 +928,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
         try client.start()
 
-        if testContext.semaphoreConnectionFailure.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Failure Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        await awaitExpectation([testContext.connectionFailureExpectation], 5)
 
         if let failureData = testContext.lifecycleConnectionFailureData {
             if failureData.crtError.code != Int32(AWS_IO_SOCKET_CONNECTION_REFUSED.rawValue) &&
@@ -964,13 +941,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try stopClient(client: client, testContext: testContext)
+        try await stopClient(client: client, testContext: testContext)
     }
 
     /*
      * [ConnNegativeID-UC3] Client connect with invalid port for websocket connection
      */
-    func testMqtt5WSInvalidPort() throws {
+    func testMqtt5WSInvalidPort() async throws {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
 
         let clientOptions = MqttClientOptions(
@@ -983,11 +960,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         try client.start()
 
-        if testContext.semaphoreConnectionFailure.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Failure Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        await awaitExpectation([testContext.connectionFailureExpectation], 5)
 
         if let failureData = testContext.lifecycleConnectionFailureData {
             if failureData.crtError.code != Int32(AWS_IO_SOCKET_CONNECTION_REFUSED.rawValue) &&
@@ -1000,13 +973,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try stopClient(client: client, testContext: testContext)
+        try await stopClient(client: client, testContext: testContext)
     }
 
     /*
      * [ConnNegativeID-UC4] Client connect with socket timeout
      */
-    func testMqtt5DirectConnectWithSocketTimeout() throws {
+    func testMqtt5DirectConnectWithSocketTimeout() async throws {
         let clientOptions = MqttClientOptions(
             hostName: "www.example.com",
             port: UInt32(81))
@@ -1016,11 +989,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
         try client.start()
 
-        if testContext.semaphoreConnectionFailure.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Failure Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        await awaitExpectation([testContext.connectionFailureExpectation], 5)
 
         if let failureData = testContext.lifecycleConnectionFailureData {
             XCTAssertEqual(failureData.crtError.code, Int32(AWS_IO_SOCKET_TIMEOUT.rawValue))
@@ -1029,13 +998,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try stopClient(client: client, testContext: testContext)
+        try await stopClient(client: client, testContext: testContext)
     }
 
     /*
      * [ConnNegativeID-UC5] Client connect with incorrect basic authentication credentials
      */
-    func testMqtt5DirectConnectWithIncorrectBasicAuthenticationCredentials() throws {
+    func testMqtt5DirectConnectWithIncorrectBasicAuthenticationCredentials() async throws {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_PORT")
 
@@ -1048,11 +1017,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
         try client.start()
 
-        if testContext.semaphoreConnectionFailure.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Failure Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        await awaitExpectation([testContext.connectionFailureExpectation], 5)
 
         if let failureData = testContext.lifecycleConnectionFailureData {
             XCTAssertEqual(failureData.crtError.code, Int32(AWS_ERROR_MQTT5_CONNACK_CONNECTION_REFUSED.rawValue))
@@ -1061,13 +1026,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try stopClient(client: client, testContext: testContext)
+        try await stopClient(client: client, testContext: testContext)
     }
 
     /*
      * [ConnNegativeID-UC6] Client Websocket Handshake Failure test
      */
-    func testMqtt5WSHandshakeFailure() throws {
+    func testMqtt5WSHandshakeFailure() async throws {
 
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_PORT")
@@ -1081,11 +1046,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
         try client.start()
 
-        if testContext.semaphoreConnectionFailure.wait(timeout: .now() + 5) == .timedOut {
-            print("Connection Failure Timed out after 5 seconds")
-            XCTFail("Connection Timed Out")
-            return
-        }
+        await awaitExpectation([testContext.connectionFailureExpectation], 5)
 
         if let failureData = testContext.lifecycleConnectionFailureData {
             if failureData.crtError.code != Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue) {
@@ -1097,14 +1058,14 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try stopClient(client: client, testContext: testContext)
+        try await stopClient(client: client, testContext: testContext)
     }
 
 
     /*
     * [ConnNegativeID-UC7] Double Client ID Failure test
     */
-    func testMqtt5MTLSConnectDoubleClientIdFailure() throws {
+    func testMqtt5MTLSConnectDoubleClientIdFailure() async throws {
         try skipIfPlatformDoesntSupportTLS()
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
@@ -1129,20 +1090,16 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext(contextName: "client1")
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
 
         // Create a second client with the same client id
         let testContext2 = MqttTestContext(contextName: "client2")
         let client2 = try createClient(clientOptions: clientOptions, testContext: testContext2)
 
         // Connect with second client
-        try connectClient(client: client2, testContext: testContext2)
+        try await connectClient(client: client2, testContext: testContext2)
 
-        if testContext.semaphoreDisconnection.wait(timeout: .now() + 5) == .timedOut {
-            print("Disconnection due to duplicate client id timed out on client1")
-            XCTFail("Disconnection Timed Out")
-            return
-        }
+        await awaitExpectation([testContext.disconnectionExpectation], 5)
 
         if let disconnectionData = testContext.lifecycleDisconnectionData {
             print(disconnectionData.crtError)
@@ -1157,8 +1114,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try stopClient(client: client, testContext: testContext)
-        try disconnectClientCleanup(client: client2, testContext: testContext2)
+        try await stopClient(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client: client2, testContext: testContext2)
     }
 
     /*===============================================================
@@ -1303,7 +1260,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
 
         let disconnectPacket = DisconnectPacket(sessionExpiryInterval: -1)
         do {
@@ -1338,7 +1295,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
 
         let publishPacket = PublishPacket(qos: .atMostOnce,
                                           topic: "Test/Topic",
@@ -1364,7 +1321,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
     /*
     * [Negotiated-UC1] Happy path, minimal success test
     */
-    func testMqtt5NegotiatedSettingsMinimalSettings() throws {
+    func testMqtt5NegotiatedSettingsMinimalSettings() async throws {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
 
@@ -1379,7 +1336,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
 
         if let negotiatedSettings = testContext.negotiatedSettings {
             XCTAssertEqual(negotiatedSettings.sessionExpiryInterval, sessionExpirtyInterval)
@@ -1388,13 +1345,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try disconnectClientCleanup(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client: client, testContext: testContext)
     }
 
     /*
     * [Negotiated-UC2] maximum success test
     */
-    func testMqtt5NegotiatedSettingsMaximumSettings() throws {
+    func testMqtt5NegotiatedSettingsMaximumSettings() async throws {
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
         let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
 
@@ -1414,7 +1371,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
 
         if let negotiatedSettings = testContext.negotiatedSettings {
             XCTAssertEqual(negotiatedSettings.sessionExpiryInterval, sessionExpirtyInterval)
@@ -1426,13 +1383,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try disconnectClientCleanup(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client: client, testContext: testContext)
     }
 
     /*
     * [Negotiated-UC3] server settings limit test
     */
-    func testMqtt5NegotiatedSettingsServerLimit() throws {
+    func testMqtt5NegotiatedSettingsServerLimit() async throws {
         try skipIfPlatformDoesntSupportTLS()
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
@@ -1463,7 +1420,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
 
         if let negotiatedSettings = testContext.negotiatedSettings {
             XCTAssertNotEqual(sessionExpiryInterval, negotiatedSettings.sessionExpiryInterval)
@@ -1475,7 +1432,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        try disconnectClientCleanup(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client: client, testContext: testContext)
     }
 
     /*===============================================================
@@ -1503,7 +1460,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
             let testContext = MqttTestContext()
             let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-            try connectClient(client: client, testContext: testContext)
+            try await connectClient(client: client, testContext: testContext)
 
             let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
             let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
@@ -1526,12 +1483,8 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 return
             }
 
-            if testContext.semaphorePublishReceived.wait(timeout: .now() + 5) == .timedOut {
-                print("Publish not received after 5 seconds")
-                XCTFail("Publish packet not received on subscribed topic")
-                return
-            }
-
+            await awaitExpectation([testContext.publishReceivedExpectation], 5)
+                
             let unsubscribePacket = UnsubscribePacket(topicFilter: topic)
             let unsubackPacket: UnsubackPacket =
                 try await withTimeout(client: client, seconds: 2, operation: {
@@ -1539,7 +1492,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 })
             print("UnsubackPacket received with result \(unsubackPacket.reasonCodes[0])")
 
-            try disconnectClientCleanup(client: client, testContext: testContext)
+            try await disconnectClientCleanup(client: client, testContext: testContext)
         }
 
     /*
@@ -1571,7 +1524,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContextPublisher = MqttTestContext(contextName: "Publisher")
         let clientPublisher = try createClient(clientOptions: clientOptions, testContext: testContextPublisher)
-        try connectClient(client: clientPublisher, testContext: testContextPublisher)
+        try await connectClient(client: clientPublisher, testContext: testContextPublisher)
 
         let clientIDSubscriber = createClientId() + "Subscriber"
         let testContextSubscriber = MqttTestContext(contextName: "Subscriber")
@@ -1583,7 +1536,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             connectOptions: connectOptionsSubscriber)
 
         let clientSubscriber = try createClient(clientOptions: clientOptionsSubscriber, testContext: testContextSubscriber)
-        try connectClient(client: clientSubscriber, testContext: testContextSubscriber)
+        try await connectClient(client: clientSubscriber, testContext: testContextSubscriber)
 
         let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
         let subackPacket: SubackPacket =
@@ -1593,15 +1546,11 @@ class Mqtt5ClientTests: XCBaseTestCase {
         print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
 
         let disconnectPacket = DisconnectPacket(reasonCode: .disconnectWithWillMessage)
-        try disconnectClientCleanup(client: clientPublisher, testContext: testContextPublisher, disconnectPacket: disconnectPacket)
+        try await disconnectClientCleanup(client: clientPublisher, testContext: testContextPublisher, disconnectPacket: disconnectPacket)
 
-        if testContextSubscriber.semaphorePublishReceived.wait(timeout: .now() + 5) == .timedOut {
-            print("Publish not received after 5 seconds")
-            XCTFail("Publish packet not received on subscribed topic")
-            return
-        }
+        await awaitExpectation([testContextSubscriber.publishReceivedExpectation], 5)
 
-        try disconnectClientCleanup(client:clientSubscriber, testContext: testContextSubscriber)
+        try await disconnectClientCleanup(client:clientSubscriber, testContext: testContextSubscriber)
     }
 
     /*
@@ -1626,7 +1575,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
 
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
         let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
@@ -1648,16 +1597,12 @@ class Mqtt5ClientTests: XCBaseTestCase {
             return
         }
 
-        if testContext.semaphorePublishReceived.wait(timeout: .now() + 5) == .timedOut {
-            print("Publish not received after 5 seconds")
-            XCTFail("Publish packet not received on subscribed topic")
-            return
-        }
+        await awaitExpectation([testContext.publishReceivedExpectation], 5)
 
         let publishReceived = testContext.publishPacket!
         XCTAssertEqual(publishReceived.payload, payloadData, "Binary data received as publish not equal to binary data used to generate publish")
 
-        try disconnectClientCleanup(client: client, testContext: testContext)
+        try await disconnectClientCleanup(client: client, testContext: testContext)
     }
 
     /*
@@ -1673,7 +1618,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
             let testContext = MqttTestContext()
             let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-            try connectClient(client: client, testContext: testContext)
+            try await connectClient(client: client, testContext: testContext)
 
             let topic1 = "test/MQTT5_Binding_Swift_" + UUID().uuidString
             let topic2 = "test/MQTT5_Binding_Swift_" + UUID().uuidString
@@ -1705,7 +1650,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
                 print("Index:\(i) result:\(unsubackPacket.reasonCodes[i])")
             }
 
-            try disconnectClientCleanup(client: client, testContext: testContext)
+            try await disconnectClientCleanup(client: client, testContext: testContext)
         }
 
     /*===============================================================
@@ -1736,7 +1681,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
 
         let publishPacket = PublishPacket(qos: .atLeastOnce, topic: "")
         do {
@@ -1745,7 +1690,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_PUBLISH_OPTIONS_VALIDATION.rawValue))
         }
 
-        try disconnectClientCleanup(client:client, testContext: testContext)
+        try await disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*
@@ -1767,7 +1712,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
 
         let subscribePacket = SubscribePacket(topicFilter: "", qos: .atLeastOnce)
         do {
@@ -1776,7 +1721,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_SUBSCRIBE_OPTIONS_VALIDATION.rawValue))
         }
 
-        try disconnectClientCleanup(client:client, testContext: testContext)
+        try await disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*
@@ -1798,7 +1743,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
 
         let unsubscribePacket = UnsubscribePacket(topicFilter: "")
         do {
@@ -1807,7 +1752,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_UNSUBSCRIBE_OPTIONS_VALIDATION.rawValue))
         }
 
-        try disconnectClientCleanup(client:client, testContext: testContext)
+        try await disconnectClientCleanup(client:client, testContext: testContext)
     }
 
     /*===============================================================
@@ -1837,7 +1782,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             connectOptions: connectOptions1)
         let testContext1 = MqttTestContext()
         let client1 = try createClient(clientOptions: clientOptions1, testContext: testContext1)
-        try connectClient(client: client1, testContext: testContext1)
+        try await connectClient(client: client1, testContext: testContext1)
 
         // Create and connect client2
         let connectOptions2 = MqttConnectOptions(clientId: createClientId())
@@ -1848,7 +1793,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             connectOptions: connectOptions2)
         let testContext2 = MqttTestContext(publishTarget: 10)
         let client2 = try createClient(clientOptions: clientOptions2, testContext: testContext2)
-        try connectClient(client: client2, testContext: testContext2)
+        try await connectClient(client: client2, testContext: testContext2)
 
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
         let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
@@ -1869,14 +1814,11 @@ class Mqtt5ClientTests: XCBaseTestCase {
         }
 
         // Wait for client2 to receive 10 publishes
-        if testContext2.semaphorePublishTargetReached.wait(timeout: .now() + 10) == .timedOut {
-            print("Expected Publish receive target not hit after 10 seconds")
-            XCTFail("Missing Publishes")
-            return
-        }
+        await awaitExpectation([testContext2.publishTargetReachedExpectation], 5)
 
-        try disconnectClientCleanup(client:client1, testContext: testContext1)
-        try disconnectClientCleanup(client:client2, testContext: testContext2)
+
+        try await disconnectClientCleanup(client:client1, testContext: testContext1)
+        try await disconnectClientCleanup(client:client2, testContext: testContext2)
 
     }
 
@@ -1908,7 +1850,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
             connectOptions: connectOptions1)
         let testContext1 = MqttTestContext(contextName: "Client1")
         let client1 = try createClient(clientOptions: clientOptions1, testContext: testContext1)
-        try connectClient(client: client1, testContext: testContext1)
+        try await connectClient(client: client1, testContext: testContext1)
 
         // Create client2
         let connectOptions2 = MqttConnectOptions(clientId: createClientId())
@@ -1953,15 +1895,13 @@ class Mqtt5ClientTests: XCBaseTestCase {
         }
 
         // connect client2 and subscribe to topic with retained client1 publish
-        try connectClient(client: client2, testContext: testContext2)
+        try await connectClient(client: client2, testContext: testContext2)
         _ = try await withTimeout(client: client2, seconds: 2, operation: {
                 try await client2.subscribe(subscribePacket: subscribePacket)
             })
 
-        if testContext2.semaphorePublishReceived.wait(timeout: .now() + 10) == .timedOut {
-            XCTFail("Expected retained Publish not received")
-            return
-        }
+        
+        await awaitExpectation([testContext2.publishReceivedExpectation], 10)
 
         XCTAssertEqual(testContext2.publishPacket?.payloadAsString(), publishPacket.payloadAsString())
 
@@ -1980,22 +1920,24 @@ class Mqtt5ClientTests: XCBaseTestCase {
         }
 
         // connect client3 and subscribe to topic to insure there is no client1 retained publish
-        try connectClient(client: client3, testContext: testContext3)
+        try await connectClient(client: client3, testContext: testContext3)
 
         _ = try await withTimeout(client: client3, seconds: 2, operation: {
                 try await client3.subscribe(subscribePacket: subscribePacket)
             })
 
-        if testContext3.semaphorePublishReceived.wait(timeout: .now() + 1) == .timedOut {
+        let waitResult = await awaitExpectationResult([testContext3.publishReceivedExpectation], 5)
+        if(waitResult == XCTWaiter.Result.timedOut){
             print("no retained publish from client1")
-        } else {
+        }else{
             XCTFail("Retained publish from client1 received when it should be cleared")
             return
         }
+        
 
-        try disconnectClientCleanup(client:client1, testContext: testContext1)
-        try disconnectClientCleanup(client:client2, testContext: testContext2)
-        try disconnectClientCleanup(client:client3, testContext: testContext3)
+        try await disconnectClientCleanup(client:client1, testContext: testContext1)
+        try await disconnectClientCleanup(client:client2, testContext: testContext2)
+        try await disconnectClientCleanup(client:client3, testContext: testContext3)
     }
 
     /*===============================================================
@@ -2014,7 +1956,7 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         let testContext = MqttTestContext()
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try connectClient(client: client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
     }
 
     /*
@@ -2033,13 +1975,23 @@ class Mqtt5ClientTests: XCBaseTestCase {
         let client = try createClient(clientOptions: clientOptions, testContext: testContext)
         // offline operation would never complete. Use close to force quit.
         defer { client.close() }
-        try connectClient(client: client, testContext: testContext)
-        try stopClient(client: client, testContext: testContext)
+        try await connectClient(client: client, testContext: testContext)
+        try await stopClient(client: client, testContext: testContext)
 
         let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
         let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic)
-        Task {
-            let _ = try? await client.publish(publishPacket: publishPacket)
+
+        do{
+            // An offline publish would not get the puback back as the operation could never get an ack back
+            // the operation should timeout
+            let _ = try await withTimeout(client: client, seconds: 2, operation: {
+                try await client.publish(publishPacket: publishPacket)
+            })
+        }catch (let error)  {
+            if(error as! MqttTestError != MqttTestError.timeout) {
+                XCTFail("Offline publish failed with \(error)")
+            }
         }
+
     }
 }

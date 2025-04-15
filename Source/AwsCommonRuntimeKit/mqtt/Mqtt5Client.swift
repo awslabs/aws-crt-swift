@@ -34,7 +34,7 @@ public class ClientOperationStatistics {
 }
 
 /// Class containing data related to a Publish Received Callback
-public class PublishReceivedData {
+public class PublishReceivedData: @unchecked Sendable {
 
     /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet.
     public let publishPacket: PublishPacket
@@ -51,7 +51,7 @@ public class LifecycleStoppedData { }
 public class LifecycleAttemptingConnectData { }
 
 /// Class containing results of a Connect Success Lifecycle Event.
-public class LifecycleConnectionSuccessData {
+public class LifecycleConnectionSuccessData: @unchecked Sendable {
 
     /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
     public let connackPacket: ConnackPacket
@@ -66,7 +66,7 @@ public class LifecycleConnectionSuccessData {
 }
 
 /// Dataclass containing results of a Connect Failure Lifecycle Event.
-public class LifecycleConnectionFailureData {
+public class LifecycleConnectionFailureData: @unchecked Sendable {
 
     /// Error which caused connection failure.
     public let crtError: CRTError
@@ -81,7 +81,7 @@ public class LifecycleConnectionFailureData {
 }
 
 /// Dataclass containing results of a Disconnect Lifecycle Event
-public class LifecycleDisconnectData {
+public class LifecycleDisconnectData: @unchecked Sendable {
 
     /// Error which caused disconnection.
     public let crtError: CRTError
@@ -125,7 +125,7 @@ public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32
 public typealias OnWebSocketHandshakeIntercept = (HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete) async -> Void
 
 // MARK: - Mqtt5 Client
-public class Mqtt5Client {
+public class Mqtt5Client: @unchecked Sendable {
     internal var clientCore: Mqtt5ClientCore
 
     /// Creates a Mqtt5Client instance using the provided MqttClientOptions.
@@ -210,7 +210,7 @@ public class Mqtt5Client {
 // MARK: - Internal/Private
 
 /// Mqtt5 Client Core, internal class to handle Mqtt5 Client operations
-public class Mqtt5ClientCore {
+public class Mqtt5ClientCore: @unchecked Sendable {
     fileprivate var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
     fileprivate let rwlock = ReadWriteLock()
 
@@ -525,6 +525,7 @@ internal func MqttClientWebsocketTransform(
     _ user_data: UnsafeMutableRawPointer?,
     _ complete_fn: (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
     _ complete_ctx: UnsafeMutableRawPointer?) {
+    let complete_ctx = SendableRawPointer(pointer: complete_ctx)
 
     let clientCore = Unmanaged<Mqtt5ClientCore>.fromOpaque(user_data!).takeUnretainedValue()
 
@@ -537,7 +538,7 @@ internal func MqttClientWebsocketTransform(
         }
         let httpRequest = HTTPRequest(nativeHttpMessage: request)
         @Sendable func signerTransform(request: HTTPRequestBase, errorCode: Int32) {
-            complete_fn?(request.rawValue, errorCode, complete_ctx)
+            complete_fn?(request.rawValue, errorCode, complete_ctx.pointer)
         }
 
         if clientCore.onWebsocketInterceptor != nil {

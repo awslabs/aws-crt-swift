@@ -6,7 +6,7 @@ import AwsCHttp
 import AwsCMqtt
 
 /// Mqtt5 User Property
-public class UserProperty: CStruct {
+public class UserProperty: CStruct, @unchecked Sendable {
 
     /// Property name
     public let name: String
@@ -65,7 +65,7 @@ func convertOptionalUserProperties(count: size_t, userPropertiesPointer: UnsafeP
 }
 
 /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet
-public class PublishPacket: CStruct {
+public class PublishPacket: CStruct, @unchecked Sendable {
 
     /// The payload of the publish message in a byte buffer format
     public let payload: Data?
@@ -229,7 +229,7 @@ public class PublishPacket: CStruct {
 /// Publish result returned by Publish operation.
 /// - Members
 ///   - puback: returned PublishPacket for qos 1 publish; nil for qos 0 packet.
-public class PublishResult {
+public class PublishResult: @unchecked Sendable {
     public let puback: PubackPacket?
 
     public init (puback: PubackPacket? = nil) {
@@ -268,7 +268,7 @@ public class PubackPacket {
 }
 
 /// Configures a single subscription within a Subscribe operation
-public class Subscription: CStruct {
+public class Subscription: CStruct, @unchecked Sendable {
 
     /// The topic filter to subscribe to
     public let topicFilter: String
@@ -327,7 +327,7 @@ public class Subscription: CStruct {
 }
 
 /// Data model of an `MQTT5 SUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901161>`_ packet.
-public class SubscribePacket: CStruct {
+public class SubscribePacket: CStruct, @unchecked Sendable {
 
     /// Array of topic filters that the client wishes to listen to
     public let subscriptions: [Subscription]
@@ -397,7 +397,7 @@ public class SubscribePacket: CStruct {
 }
 
 /// Data model of an `MQTT5 SUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901171>`_ packet.
-public class SubackPacket {
+public class SubackPacket: @unchecked Sendable {
 
     /// Array of reason codes indicating the result of each individual subscription entry in the associated SUBSCRIBE packet.
     public let reasonCodes: [SubackReasonCode]
@@ -428,7 +428,7 @@ public class SubackPacket {
 }
 
 /// Data model of an `MQTT5 UNSUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc384800445>`_ packet.
-public class UnsubscribePacket: CStruct {
+public class UnsubscribePacket: CStruct, @unchecked Sendable {
 
     /// Array of topic filters that the client wishes to unsubscribe from.
     public let topicFilters: [String]
@@ -491,7 +491,7 @@ public class UnsubscribePacket: CStruct {
 }
 
 /// Data model of an `MQTT5 UNSUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc471483687>`_ packet.
-public class UnsubackPacket {
+public class UnsubackPacket: @unchecked Sendable {
 
     /// Array of reason codes indicating the result of unsubscribing from each individual topic filter entry in the associated UNSUBSCRIBE packet.
     public let reasonCodes: [UnsubackReasonCode]
@@ -522,7 +522,7 @@ public class UnsubackPacket {
 }
 
 /// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
-public class DisconnectPacket: CStruct {
+public class DisconnectPacket: CStruct, @unchecked Sendable {
 
     /// Value indicating the reason that the sender is closing the connection
     public let reasonCode: DisconnectReasonCode
