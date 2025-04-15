@@ -127,7 +127,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     func testMqttRequestResponse_CreateDestroy() async throws {
         let testContext = MqttRRTestContext()
         let client = try createMqtt5Client(testContext: testContext)
-        let _ = try MqttRequestRespondClient.newFromMqtt5Client(mqtt5Client: client)
+        let _ = try MqttRequestResponseClient.newFromMqtt5Client(mqtt5Client: client)
     }
     
     func testMqttRequestResponse_GetNamedShadowSuccessRejected() throws {
