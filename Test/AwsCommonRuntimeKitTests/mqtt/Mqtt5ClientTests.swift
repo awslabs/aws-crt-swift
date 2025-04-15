@@ -34,7 +34,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     /// stop client and check for discconnection and stopped lifecycle events
     func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) async throws -> Void {
         try client.stop(disconnectPacket: disconnectPacket)
-        return await awaitExpectation([testContext.disconnectionExpectation], 5)
+        await awaitExpectation([testContext.disconnectionExpectation], 5)
+        await awaitExpectation([testContext.stoppedExpecation], 5)
     }
 
     /// stop client and check for stopped lifecycle event
@@ -94,14 +95,6 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
             self.connectionFailureExpectation = XCTestExpectation(description: "Expect connection Failure")
             self.disconnectionExpectation = XCTestExpectation(description: "Expect disconnect")
             self.stoppedExpecation = XCTestExpectation(description: "Expect stopped")
-            
-            
-//            self.semaphorePublishReceived = TestSemaphore(value: 0)
-//            self.semaphorePublishTargetReached = TestSemaphore(value: 0)
-//            self.semaphoreConnectionSuccess = TestSemaphore(value: 0)
-//            self.semaphoreConnectionFailure = TestSemaphore(value: 0)
-//            self.semaphoreDisconnection = TestSemaphore(value: 0)
-//            self.semaphoreStopped = TestSemaphore(value: 0)
 
             self.onPublishReceived = onPublishReceived
             self.onLifecycleEventStopped = onLifecycleEventStopped
