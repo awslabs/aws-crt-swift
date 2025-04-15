@@ -211,7 +211,7 @@ public class Mqtt5Client: @unchecked Sendable {
 
 /// Mqtt5 Client Core, internal class to handle Mqtt5 Client operations
 public class Mqtt5ClientCore: @unchecked Sendable {
-    fileprivate var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
+    internal var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
     fileprivate let rwlock = ReadWriteLock()
 
     ///////////////////////////////////////
