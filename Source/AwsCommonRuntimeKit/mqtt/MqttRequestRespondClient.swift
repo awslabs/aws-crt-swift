@@ -177,19 +177,19 @@ public struct MqttRequestResponseClientOptions: CStruct {
     typealias RawType = aws_mqtt_request_response_client_options
     func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
         // TODO: convert into aws_mqtt_request_response_client_options
-        var options = aws_mqtt_request_response_client_options()
+        let options = aws_mqtt_request_response_client_options()
         return body(options)
     }
 
 }
 
 public class MqttRequestRespondClient {
-    fileprivate var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
+    fileprivate var rawValue: UnsafeMutablePointer<aws_mqtt_request_response_client>?
     fileprivate let rwlock = ReadWriteLock()
     
     public static func newFromMqtt5Client(
         mqtt5Client: Mqtt5Client,
-        options: MqttRequestResponseClientOptions) throws -> MqttRequestRespondClient {
+        options: MqttRequestResponseClientOptions = MqttRequestResponseClientOptions()) throws -> MqttRequestRespondClient {
             return MqttRequestRespondClient(mqttClient: mqtt5Client, options: options)
     }
     

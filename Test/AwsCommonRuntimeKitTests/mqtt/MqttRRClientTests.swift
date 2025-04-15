@@ -95,7 +95,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
 
         let clientOptionsWithCallbacks = MqttClientOptions(
             hostName: inputHost,
-            port: 443,
+            port: 8883,
             bootstrap: clientBootstrap,
             socketOptions: socketOptions,
             tlsCtx: tlsContext,
@@ -111,22 +111,23 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         return mqtt5Client
     }
     
-//    /// start client and check for connection success
-//        func connectClient(client: Mqtt5Client, testContext: MqttTestContext) async throws{
-//            try client.start()
-//            await awaitExpectation([testContext.connectionSuccessExpectation], 5)
-//            
-//        }
-//
-//    /// stop client and check for discconnection and stopped lifecycle events
-//    func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) async throws -> Void {
-//        try client.stop(disconnectPacket: disconnectPacket)
-//        return await awaitExpectation([testContext.disconnectionExpectation], 5)
-//    }
-
-    func testMqttRequestResponse_CreateDestroy() throws {
-        let client = createMqtt5Client(testContext: )
+    /// start client and check for connection success
+    func startClient(client: Mqtt5Client, testContext: MqttRRTestContext) async throws{
+        try client.start()
+        await awaitExpectation([testContext.connectionSuccessExpectation], 5)
         
+    }
+
+    /// stop client and check for discconnection and stopped lifecycle events
+    func stopClient(client: Mqtt5Client, testContext: MqttRRTestContext, disconnectPacket: DisconnectPacket? = nil) async throws -> Void {
+        try client.stop(disconnectPacket: disconnectPacket)
+        return await awaitExpectation([testContext.stoppedExpecation], 5)
+    }
+
+    func testMqttRequestResponse_CreateDestroy() async throws {
+        let testContext = MqttRRTestContext()
+        let client = try createMqtt5Client(testContext: testContext)
+        let rrClient = try MqttRequestRespondClient.newFromMqtt5Client(mqtt5Client: client)
     }
     
     func testMqttRequestResponse_GetNamedShadowSuccessRejected() throws {
