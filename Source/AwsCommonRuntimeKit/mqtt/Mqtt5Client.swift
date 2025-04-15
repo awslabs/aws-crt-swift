@@ -314,7 +314,8 @@ public class Mqtt5ClientCore: @unchecked Sendable {
     /// - Returns:
     ///     - `SubackPacket`: return Suback packet if the subscription operation succeeded
     ///
-    /// - Throws: CommonRuntimeError.crtError
+    /// - Throws:
+    ///     - CommonRuntimeError.crtError
     public func subscribe(subscribePacket: SubscribePacket) async throws -> SubackPacket {
 
         return try await withCheckedThrowingContinuation { continuation in

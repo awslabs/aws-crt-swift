@@ -51,20 +51,17 @@ extension SubscriptionStatusEventType {
     }
 }
 
-/**
- * An event that describes a change in subscription status for a streaming operation.
- */
- 
+/// An event that describes a change in subscription status for a streaming operation.
 public struct SubscriptionStatusEvent {
-    let event: SubscriptionStatusEventType
-    let errorCode: Int
+    /// The type of the event
+    public let event: SubscriptionStatusEventType
+    
+    /// An optional error code associated with the event. Only set for SubscriptionLost and SubscriptionHalted.
+    public let error: CRTError?
 }
 
-/**
- * An event that describes an incoming publish message received on a streaming operation.
- *
- * TODO: Igor have updated the events for IoT Command. Need update later
- */
+/// An event that describes an incoming publish message received on a streaming operation.
+// TODO: Igor has updated the events for IoT Command. Need update later
 public struct IncomingPublishEvent {
 
     /// The payload of the publish message in a byte buffer format
@@ -73,11 +70,13 @@ public struct IncomingPublishEvent {
     /// The topic associated with this PUBLISH packet.
     let topic: String
     
-    /// TODO: More options for IoT Command changes
-    /// ...
+    // TODO: More options for IoT Command changes
 }
 
+/// Function signature of a SubscriptionStatusEvent event handler
 public typealias SubscriptionStatusEventHandler = (SubscriptionStatusEvent) async -> Void
+
+/// Function signature of an IncomingPublishEvent event handler
 public typealias IncomingPublishEventHandler = (IncomingPublishEvent) async -> Void
 
 /// Encapsulates a response to an AWS IoT Core MQTT-based service request
@@ -86,12 +85,15 @@ public struct MqttRequestResponseResponse {
     let payload: Data
 }
 
+/// A response path is a pair of values - MQTT topic and a JSON path - that describe where a response to
+/// an MQTT-based request may arrive.  For a given request type, there may be multiple response paths and each
+/// one is associated with a separate JSON schema for the response body.
 public struct ResponsePath {
     let topic: String
     let correlationTokenJsonPath: [String]
 }
 
-/// Generic configuration options for request response operation
+/// Configuration options for request response operation
 public struct RequestResponseOperationOptions: CStruct {
     let subscriptionTopicFilters: [String]
     let responsePaths: [ResponsePath]?
@@ -133,7 +135,7 @@ public struct StreamingOperationOptions: CStruct {
     typealias RawType = aws_mqtt_streaming_operation_options
     func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
         // TODO: convert into aws_mqtt_request_operation_options
-        var options = aws_mqtt_streaming_operation_options()
+        let options = aws_mqtt_streaming_operation_options()
         return body(options)
     }
     
@@ -151,11 +153,9 @@ public class StreamingOperation {
         self.rawValue = nil
     }
     
-    /**
-     * Opens a streaming operation by making the appropriate MQTT subscription with the broker.
-     */
+    /// Opens a streaming operation by making the appropriate MQTT subscription with the broker.
     public func open() {
-        // TODO:
+        // TODO: open the stream
     }
 
     deinit{
@@ -163,50 +163,18 @@ public class StreamingOperation {
     }
 }
 
+/// Request-response client configuration options
 public class MqttRequestResponseClientOptions: CStructWithUserData {
 
-    var maxRequestResponseSubscription: Int = 3
-    var maxStreamingSubscription: Int = 0
-    var operationTimeout: TimeInterval = 5
+    /// Maximum number of subscriptions that the client will concurrently use for request-response operations. Default to 3.
+    public var maxRequestResponseSubscription: Int = 3
     
-    init() {}
+    /// Maximum number of subscriptions that the client will concurrently use for streaming operations Default to 0.
+    public var maxStreamingSubscription: Int = 0
     
-    /**
-     * Sets the maximum number of request-response subscriptions the client allows to be concurrently active
-     * at any one point in time.  When the client hits this threshold, requests will be delayed until
-     * earlier requests complete and release their subscriptions.  Each in-progress request will use either
-     * 1 or 2 MQTT subscriptions until completion.
-     *
-     * @param maxRequestResponseSubscriptions maximum number of concurrent subscriptions that the client
-     * will use for request-response operations
-     * @return reference to this
-     */
-    func withMaxRequestResponseSubscriptions(maxRequestResponseSubscriptions: Int) {
-        self.maxRequestResponseSubscription = maxRequestResponseSubscriptions
-    }
-
-    /// Sets the maximum number of concurrent streaming operation subscriptions that the client will allow.
-    /// Each "unique" (different topic filter) streaming operation will use 1 MQTT subscription.  When the
-    /// client hits this threshold, attempts to open new streaming operations will fail.
-    ///
-    /// @param maxStreamingSubscriptions maximum number of current subscriptions that the client will
-    /// use for streaming operations
-    func withMaxStreamingSubscriptions(maxStreamingSubscriptions: Int) {
-        self.maxStreamingSubscription = maxStreamingSubscriptions
-    }
-
-    /**
-     * Sets the timeout value, in seconds, for a request-response operation.  If a request is not complete
-     * by this time interval, the client will complete it as failed.  This time interval starts the instant
-     * the request is submitted to the client.
-     *
-     * @param operationTimeoutInSeconds request timeout in seconds
-     * @return reference to this
-     */
-    func withOperationTimeoutInSeconds(operationTimeoutInSeconds: TimeInterval) {
-        self.operationTimeout = operationTimeoutInSeconds
-    }
-
+    /// Duration, in seconds, that a request-response operation will wait for completion before giving up. Default to 5 seconds.
+    public var operationTimeout: TimeInterval = 5
+    
     typealias RawType = aws_mqtt_request_response_client_options
     func withCStruct<Result>(userData: UnsafeMutableRawPointer?, _ body: (aws_mqtt_request_response_client_options) -> Result) -> Result {
         var options = aws_mqtt_request_response_client_options()
@@ -217,7 +185,6 @@ public class MqttRequestResponseClientOptions: CStructWithUserData {
         options.user_data = userData
         return body(options)
     }
-
 }
 
 internal func MqttRRClientTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
@@ -228,7 +195,7 @@ internal func MqttRRClientTerminationCallback(_ userData: UnsafeMutableRawPointe
 }
 
 internal class MqttRequestResponseClientCore {
-    fileprivate var rawValue: OpaquePointer? // <aws_mqtt_request_response_client>?
+    fileprivate var rawValue: OpaquePointer? // aws_mqtt_request_response_client
     
     internal init(mqttClient: Mqtt5Client, options: MqttRequestResponseClientOptions) throws {
         guard let rawValue = (options.withCPointer(
@@ -256,6 +223,7 @@ internal class MqttRequestResponseClientCore {
         return StreamingOperation()
     }
     
+    /// release the request response client. You must not use the client after call `close()`.
     public func close() {
         aws_mqtt_request_response_client_release(self.rawValue)
         self.rawValue = nil
@@ -266,6 +234,15 @@ internal class MqttRequestResponseClientCore {
 public class MqttRequestResponseClient {
     fileprivate var clientCore: MqttRequestResponseClientCore
     
+    /// Creates a new request-response client using an MQTT5 client for protocol transport
+    ///
+    /// - Parameters:
+    ///     - mqtt5Client: protocolClient MQTT client to use for transport
+    ///     - options: request-response client configuration options
+    ///
+    /// - Returns:return a new MqttRequestResponseClient if success
+    ///
+    /// - Throws: CommonRuntimeError.crtError if creation failed
     public static func newFromMqtt5Client(
         mqtt5Client: Mqtt5Client,
         options: MqttRequestResponseClientOptions? = nil) throws -> MqttRequestResponseClient {
@@ -276,12 +253,23 @@ public class MqttRequestResponseClient {
         clientCore = try MqttRequestResponseClientCore(mqttClient: mqttClient, options: options)
     }
     
-    /// submit a request responds operation, throws CRTError if the operation failed
+    /// Submit a request responds operation, throws CRTError if the operation failed
+    ///
+    /// - Parameters:
+    ///     - operationOptions: configuration options for request response operation
+    /// - Returns:
+    ///     - MqttRequestResponseResponse
+    /// - Throws:CommonRuntimeError.crtError if submit failed
     public func submitRequest(operationOptions: RequestResponseOperationOptions) async throws -> MqttRequestResponseResponse {
         return try await clientCore.submitRequest(operationOptions: operationOptions)
     }
     
-    /// create a stream operation, throws CRTError if the creation failed. You would need call open() on the operation to start the stream
+    /// Create a stream operation, throws CRTError if the creation failed. You would need call open() on the operation to start the stream
+    /// - Parameters:
+    ///     - streamOptions: Configuration options for streaming operations
+    /// - Returns:
+    ///     - StreamingOperation
+    /// - Throws:CommonRuntimeError.crtError if creation failed
     public func createStream(streamOptions: StreamingOperationOptions) async throws -> StreamingOperation {
         return try await clientCore.createStream(streamOptions: streamOptions)
     }
