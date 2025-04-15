@@ -175,12 +175,23 @@ public class MqttRequestResponseClientOptions: CStructWithUserData {
     /// Duration, in seconds, that a request-response operation will wait for completion before giving up. Default to 5 seconds.
     public var operationTimeout: TimeInterval = 5
     
+    func validateConversionToNative() throws {
+        do {
+            _ = try self.operationTimeout.secondUInt32()
+        } catch {
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue,
+                                                       context: "Invalid operationTimeout value"))
+        }
+    }
+    
     typealias RawType = aws_mqtt_request_response_client_options
     func withCStruct<Result>(userData: UnsafeMutableRawPointer?, _ body: (aws_mqtt_request_response_client_options) -> Result) -> Result {
         var options = aws_mqtt_request_response_client_options()
         options.max_request_response_subscriptions = self.maxRequestResponseSubscription
         options.max_streaming_subscriptions = self.maxStreamingSubscription
-        options.operation_timeout_seconds = try! self.operationTimeout.secondUInt32()
+        if let _operationTimeout: UInt32 = try? self.operationTimeout.secondUInt32() {
+            options.operation_timeout_seconds = _operationTimeout
+        }
         options.terminated_callback = MqttRRClientTerminationCallback
         options.user_data = userData
         return body(options)

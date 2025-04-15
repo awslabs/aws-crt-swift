@@ -73,7 +73,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     }
     
     func createMqtt5Client(testContext: MqttRRTestContext) throws -> Mqtt5Client {
-        
+        try skipIfPlatformDoesntSupportTLS()
         let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
         let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
