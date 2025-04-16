@@ -259,6 +259,10 @@ class CredentialsProviderTests: XCBaseTestCase {
                 environmentVarName: "AWS_TEST_HTTP_PROXY_HOST")
             let httpproxyPort = try getEnvironmentVarOrSkipTest(
                 environmentVarName: "AWS_TEST_HTTP_PROXY_PORT")
+            
+            let httpProxys = HTTPProxyOptions(
+                hostName: httpproxyHost, port: UInt32(httpproxyPort)!,
+                connectionType: .tunnel)
 
             let provider = try CredentialsProvider(
                 source: .cognito(
