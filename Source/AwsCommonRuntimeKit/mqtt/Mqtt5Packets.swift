@@ -5,8 +5,10 @@ import Foundation
 import AwsCHttp
 import AwsCMqtt
 
+// We can't mutate this class after initialization. Swift can not verify the sendability due to direct use of c pointer,
+// so mark it unchecked Sendable
 /// Mqtt5 User Property
-public class UserProperty: CStruct {
+public class UserProperty: CStruct, @unchecked Sendable {
 
     /// Property name
     public let name: String
@@ -19,8 +21,6 @@ public class UserProperty: CStruct {
         self.value = value
 
         withByteCursorFromStrings(self.name, self.value) { cNameCursor, cValueCursor in
-            aws_byte_buf_clean_up(&name_buffer)
-            aws_byte_buf_clean_up(&value_buffer)
             aws_byte_buf_init_copy_from_cursor(&name_buffer, allocator, cNameCursor)
             aws_byte_buf_init_copy_from_cursor(&value_buffer, allocator, cValueCursor)
         }
@@ -64,8 +64,10 @@ func convertOptionalUserProperties(count: size_t, userPropertiesPointer: UnsafeP
     return userProperties
 }
 
+// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
+// so mark it unchecked Sendable
 /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet
-public class PublishPacket: CStruct {
+public class PublishPacket: CStruct, @unchecked Sendable {
 
     /// The payload of the publish message in a byte buffer format
     public let payload: Data?
@@ -226,6 +228,8 @@ public class PublishPacket: CStruct {
     }
 }
 
+// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
+// so mark it unchecked Sendable
 /// Publish result returned by Publish operation.
 /// - Members
 ///   - puback: returned PublishPacket for qos 1 publish; nil for qos 0 packet.
@@ -237,8 +241,10 @@ public class PublishResult: @unchecked Sendable {
     }
 }
 
+// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
+// so mark it unchecked Sendable
 /// "Data model of an `MQTT5 PUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901121>`_ packet
-public class PubackPacket {
+public class PubackPacket: @unchecked Sendable {
 
     /// Success indicator or failure reason for the associated PUBLISH packet.
     public let reasonCode: PubackReasonCode
@@ -267,8 +273,10 @@ public class PubackPacket {
     }
 }
 
+// We can't mutate this class after initialization. Swift can not verify the sendability due to direct use of c pointer,
+// so mark it unchecked Sendable
 /// Configures a single subscription within a Subscribe operation
-public class Subscription: CStruct {
+public class Subscription: CStruct, @unchecked Sendable {
 
     /// The topic filter to subscribe to
     public let topicFilter: String
@@ -326,8 +334,10 @@ public class Subscription: CStruct {
 
 }
 
+// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
+// so mark it unchecked Sendable
 /// Data model of an `MQTT5 SUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901161>`_ packet.
-public class SubscribePacket: CStruct {
+public class SubscribePacket: CStruct, @unchecked Sendable {
 
     /// Array of topic filters that the client wishes to listen to
     public let subscriptions: [Subscription]
@@ -396,6 +406,8 @@ public class SubscribePacket: CStruct {
     }
 }
 
+// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
+// so mark it unchecked Sendable
 /// Data model of an `MQTT5 SUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901171>`_ packet.
 public class SubackPacket: @unchecked Sendable {
 
@@ -427,8 +439,10 @@ public class SubackPacket: @unchecked Sendable {
     }
 }
 
+// We can't mutate this class after initialization. Swift can not verify the sendability due to direct use of c pointer,
+// so mark it unchecked Sendable
 /// Data model of an `MQTT5 UNSUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc384800445>`_ packet.
-public class UnsubscribePacket: CStruct {
+public class UnsubscribePacket: CStruct, @unchecked Sendable {
 
     /// Array of topic filters that the client wishes to unsubscribe from.
     public let topicFilters: [String]
@@ -490,6 +504,8 @@ public class UnsubscribePacket: CStruct {
     }
 }
 
+// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
+// so mark it unchecked Sendable
 /// Data model of an `MQTT5 UNSUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc471483687>`_ packet.
 public class UnsubackPacket: @unchecked Sendable {
 
@@ -522,7 +538,7 @@ public class UnsubackPacket: @unchecked Sendable {
 }
 
 /// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
-public class DisconnectPacket: CStruct {
+public class DisconnectPacket: CStruct, @unchecked Sendable {
 
     /// Value indicating the reason that the sender is closing the connection
     public let reasonCode: DisconnectReasonCode
@@ -602,8 +618,10 @@ public class DisconnectPacket: CStruct {
     }
 }
 
+// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
+// so mark it unchecked Sendable
 /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
-public class ConnackPacket {
+public class ConnackPacket: @unchecked Sendable {
 
     /// True if the client rejoined an existing session on the server, false otherwise.
     public let sessionPresent: Bool

@@ -125,8 +125,8 @@ public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32
 public typealias OnWebSocketHandshakeIntercept = (HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete) async -> Void
 
 // MARK: - Mqtt5 Client
-public class Mqtt5Client {
-    internal var clientCore: Mqtt5ClientCore
+public final class Mqtt5Client: Sendable {
+    internal let clientCore: Mqtt5ClientCore
 
     /// Creates a Mqtt5Client instance using the provided MqttClientOptions.
     ///
@@ -209,8 +209,10 @@ public class Mqtt5Client {
 
 // MARK: - Internal/Private
 
+// IMPORTANT: You are responsible for concurrency correctness of Mqtt5ClientCore.
+// The rawValue is mutable cross threads and protected by the rwlock.
 /// Mqtt5 Client Core, internal class to handle Mqtt5 Client operations
-public class Mqtt5ClientCore: @unchecked Sendable {
+internal class Mqtt5ClientCore: @unchecked Sendable {
     fileprivate var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
     fileprivate let rwlock = ReadWriteLock()
 
