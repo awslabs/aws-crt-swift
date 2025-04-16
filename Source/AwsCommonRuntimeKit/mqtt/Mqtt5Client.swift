@@ -209,8 +209,10 @@ public final class Mqtt5Client: Sendable {
 
 // MARK: - Internal/Private
 
+// IMPORTANT: You are responsible for concurrency correctness of Mqtt5ClientCore.
+// The rawValue is mutable cross threads and protected by the rwlock.
 /// Mqtt5 Client Core, internal class to handle Mqtt5 Client operations
-public class Mqtt5ClientCore: @unchecked Sendable {
+internal class Mqtt5ClientCore: @unchecked Sendable {
     fileprivate var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
     fileprivate let rwlock = ReadWriteLock()
 
