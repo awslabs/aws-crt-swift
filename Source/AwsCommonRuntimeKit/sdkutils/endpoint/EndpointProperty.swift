@@ -2,29 +2,29 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 /// Struct that represents endpoint property which can be a boolean, string or array of endpoint properties
-enum EndpointProperty {
+public enum EndpointProperty: Sendable, Equatable {
     case bool(Bool)
     case string(String)
     indirect case array([EndpointProperty])
     indirect case dictionary([String: EndpointProperty])
 
-    func toAnyHashable() -> AnyHashable {
-        switch self {
-        case .bool(let value):
-            return AnyHashable(value)
-        case .string(let value):
-            return AnyHashable(value)
-        case .array(let value):
-            return AnyHashable(value.map { $0.toAnyHashable() })
-        case .dictionary(let value):
-            return AnyHashable(value.mapValues { $0.toAnyHashable() })
-        }
-    }
+//    func toAnyHashable() -> AnyHashable {
+//        switch self {
+//        case .bool(let value):
+//            return AnyHashable(value)
+//        case .string(let value):
+//            return AnyHashable(value)
+//        case .array(let value):
+//            return AnyHashable(value.map { $0.toAnyHashable() })
+//        case .dictionary(let value):
+//            return AnyHashable(value.mapValues { $0.toAnyHashable() })
+//        }
+//    }
 }
 
 /// Decodable conformance
 extension EndpointProperty: Decodable {
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         if let container = try? decoder.container(keyedBy: EndpointPropertyCodingKeys.self) {
             self = EndpointProperty(from: container)
         } else if let container = try? decoder.unkeyedContainer() {
@@ -84,17 +84,17 @@ extension EndpointProperty: Decodable {
     }
 }
 
-extension Dictionary where Key == String, Value == EndpointProperty {
-    /// Converts EndpointProperty to a dictionary of `String`: `AnyHashable`
-    /// - Returns: Dictionary of `String`: `AnyHashable`
-    func toStringHashableDictionary() -> [String: AnyHashable] {
-        var dict: [String: AnyHashable] = [:]
-        for (key, value) in self {
-            dict[key] = value.toAnyHashable()
-        }
-        return dict
-    }
-}
+//extension Dictionary where Key == String, Value == EndpointProperty {
+//    /// Converts EndpointProperty to a dictionary of `String`: `AnyHashable`
+//    /// - Returns: Dictionary of `String`: `AnyHashable`
+//    func toStringHashableDictionary() -> [String: AnyHashable] {
+//        var dict: [String: AnyHashable] = [:]
+//        for (key, value) in self {
+//            dict[key] = value.toAnyHashable()
+//        }
+//        return dict
+//    }
+//}
 
 /// Coding keys for `EndpointProperty`
 struct EndpointPropertyCodingKeys: CodingKey {
