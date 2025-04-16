@@ -84,7 +84,7 @@ extension EndpointProperty: Decodable {
     }
 }
 
-//extension Dictionary where Key == String, Value == EndpointProperty {
+// extension Dictionary where Key == String, Value == EndpointProperty {
 //    /// Converts EndpointProperty to a dictionary of `String`: `AnyHashable`
 //    /// - Returns: Dictionary of `String`: `AnyHashable`
 //    func toStringHashableDictionary() -> [String: AnyHashable] {
@@ -94,7 +94,7 @@ extension EndpointProperty: Decodable {
 //        }
 //        return dict
 //    }
-//}
+// }
 
 /// Coding keys for `EndpointProperty`
 struct EndpointPropertyCodingKeys: CodingKey {
