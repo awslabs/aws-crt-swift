@@ -11,6 +11,10 @@ var package = Package(name: "aws-crt-swift",
                       products: [
                         .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
                         .executable(name: "Elasticurl", targets: ["Elasticurl"])
+                      ],
+                      dependencies: [
+                        // Arugment Parser Dependency for ElasticCurl
+                        .package(url: "https://github.com/apple/swift-argument-parser.git", .upToNextMajor(from: "1.5.0"))
                       ]
 )
 
@@ -332,7 +336,10 @@ packageTargets.append(contentsOf: [
     ),
     .executableTarget(
         name: "Elasticurl",
-        dependencies: ["AwsCommonRuntimeKit"],
+        dependencies: [
+            "AwsCommonRuntimeKit",
+            .product(name: "ArgumentParser", package: "swift-argument-parser"),
+        ],
         path: "Source/Elasticurl"
     )
 ] )

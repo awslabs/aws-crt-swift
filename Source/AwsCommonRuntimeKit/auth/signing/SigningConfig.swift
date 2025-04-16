@@ -4,7 +4,7 @@
 import AwsCAuth
 import Foundation
 
-public struct SigningConfig: CStructWithUserData {
+public struct SigningConfig: CStructWithUserData, @unchecked Sendable {
 
     /// What signing algorithm to use.
     public var algorithm: SigningAlgorithmType
@@ -136,7 +136,7 @@ private func onShouldSignHeader(nameCursor: UnsafePointer<aws_byte_cursor>!,
     return signRequestCore.shouldSignHeader!(name)
 }
 
-public enum SignatureType {
+public enum SignatureType: Sendable {
 
     /// A signature for a full http request should be computed, with header updates applied to the signing result.
     case requestHeaders
@@ -162,7 +162,7 @@ public enum SignatureType {
     case requestEvent
 }
 
-public enum SignedBodyHeaderType {
+public enum SignedBodyHeaderType: Sendable {
 
     /// Do not add a header
     case none
@@ -174,7 +174,7 @@ public enum SignedBodyHeaderType {
 /// Optional string to use as the canonical request's body value.
 /// Typically, this is the SHA-256 of the (request/chunk/event) payload, written as lowercase hex.
 /// If this has been precalculated, it can be set here. Special values used by certain services can also be set.
-public enum SignedBodyValue: CustomStringConvertible, Equatable {
+public enum SignedBodyValue: CustomStringConvertible, Equatable, Sendable {
     /// if empty, a public value  will be calculated from the payload during signing
     case empty
     /// For empty sha256
@@ -226,7 +226,7 @@ public enum SignedBodyValue: CustomStringConvertible, Equatable {
     }
 }
 
-public enum SigningAlgorithmType {
+public enum SigningAlgorithmType: Sendable {
     case signingV4
     case signingV4Asymmetric
     case signingV4S3Express

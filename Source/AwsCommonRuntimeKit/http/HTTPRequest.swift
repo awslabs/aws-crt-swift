@@ -5,7 +5,7 @@ import AwsCIo
 import AwsCCommon
 
 /// Represents a single client request to be sent on a HTTP 1.1 connection
-public class HTTPRequest: HTTPRequestBase {
+public class HTTPRequest: HTTPRequestBase, @unchecked Sendable {
 
     public var method: String {
         get {

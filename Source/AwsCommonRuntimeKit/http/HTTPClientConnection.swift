@@ -6,7 +6,9 @@ import AwsCIo
 import Foundation
 
 // swiftlint:disable force_try
-public class HTTPClientConnection {
+// Swift cannot verify the sendability due to a pointer, and thread safety is handled in the C layer.
+// So mark it as unchecked Sendable.
+public class HTTPClientConnection: @unchecked Sendable {
     let rawValue: UnsafeMutablePointer<aws_http_connection>
     /// This will keep the connection manager alive until connection is alive
     let manager: HTTPClientConnectionManager

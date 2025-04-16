@@ -4,13 +4,13 @@ import XCTest
 @testable import AwsCommonRuntimeKit
 
 class HostResolverTests: XCBaseTestCase {
-    
+
     func testCanResolveHosts() async throws {
         let elg = try EventLoopGroup()
         let resolver = try HostResolver(eventLoopGroup: elg,
                                            maxHosts: 8,
                                            maxTTL: 5)
-        
+
         let addresses = try await resolver.resolveAddress(args: HostResolverArguments(hostName: "localhost"))
         XCTAssertNoThrow(addresses)
         XCTAssertNotNil(addresses.count)
@@ -61,6 +61,6 @@ class HostResolverTests: XCBaseTestCase {
                     maxTTL: 5,
                     shutdownCallback: shutdownCallback)
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 }

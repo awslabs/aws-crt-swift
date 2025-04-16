@@ -34,8 +34,9 @@ public struct CognitoLoginPair: CStruct {
     }
 }
 
-public class CredentialsProvider: CredentialsProviding {
-
+// We can't mutate this class after initialization. Swift can not verify the sendability due to pointer,
+// So mark it unchecked Sendable
+public class CredentialsProvider: CredentialsProviding, @unchecked Sendable {
     let rawValue: UnsafeMutablePointer<aws_credentials_provider>
 
     init(credentialsProvider: UnsafeMutablePointer<aws_credentials_provider>) {
@@ -667,25 +668,19 @@ private func onGetCredentials(credentials: OpaquePointer?,
     continuationCore.continuation.resume(returning: Credentials(rawValue: credentials!))
 }
 
-// We need to share this pointer to C in a task block but Swift compiler complains
-// that Pointer does not conform to Sendable. Wrap the pointer in a @unchecked Sendable block
-// for Swift compiler to stop complaining.
-struct SendablePointer: @unchecked Sendable {
-    let pointer: UnsafeMutableRawPointer
-}
-
 private func getCredentialsDelegateFn(_ delegatePtr: UnsafeMutableRawPointer!,
                                       _ callbackFn: (@convention(c) (
                                                         OpaquePointer?,
                                                         Int32,
                                                         UnsafeMutableRawPointer?) -> Void)!,
                                       _ userData: UnsafeMutableRawPointer!) -> Int32 {
-    let delegate = Unmanaged<Box<CredentialsProviding>>
-        .fromOpaque(delegatePtr)
-        .takeUnretainedValue().contents
-    let userData = SendablePointer(pointer: userData)
+    let userData = SendableRawPointer(pointer: userData)
+    let delegatePtr = SendableRawPointer(pointer: delegatePtr)
     Task {
         do {
+            let delegate = Unmanaged<Box<CredentialsProviding>>
+                .fromOpaque(delegatePtr.pointer!)
+                .takeUnretainedValue().contents
             let credentials = try await delegate.getCredentials()
             callbackFn(credentials.rawValue, AWS_OP_SUCCESS, userData.pointer)
         } catch CommonRunTimeError.crtError(let crtError) {
