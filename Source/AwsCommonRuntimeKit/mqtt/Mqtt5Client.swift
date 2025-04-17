@@ -249,12 +249,12 @@ public class Mqtt5ClientCore {
 
         guard let rawValue = (clientOptions.withCPointer(
             userData: Unmanaged<Mqtt5ClientCore>.passRetained(self).toOpaque()) { optionsPointer in
-            return aws_mqtt5_client_new(allocator.rawValue, optionsPointer)
-        }) else {
-            // failed to create client, release the callback core
-            Unmanaged<Mqtt5ClientCore>.passUnretained(self).release()
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
+                    return aws_mqtt5_client_new(allocator.rawValue, optionsPointer)
+                }) else {
+                    // failed to create client, release the callback core
+                    Unmanaged<Mqtt5ClientCore>.passUnretained(self).release()
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
         self.rawValue = rawValue
     }
 
@@ -332,16 +332,13 @@ public class Mqtt5ClientCore {
                     // Validate close() has not been called on client.
                     guard let rawValue = self.rawValue else {
                         continuationCore.release()
-                        return continuation.resume(
-                            throwing: CommonRunTimeError.crtError(
-                                CRTError(code: AWS_CRT_SWIFT_MQTT_CLIENT_CLOSED.rawValue)))
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_MQTT_CLIENT_CLOSED.rawValue)))
                     }
                     let result = aws_mqtt5_client_subscribe(
                         rawValue, subscribePacketPointer, &callbackOptions)
                     guard result == AWS_OP_SUCCESS else {
                         continuationCore.release()
-                        return continuation.resume(
-                            throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                     }
                 }
             }
@@ -595,12 +592,10 @@ private func subscribeCompletionCallback(
 }
 
 /// The completion callback to invoke when publish operation completes in native
-private func publishCompletionCallback(
-    packet_type: aws_mqtt5_packet_type,
-    packet: UnsafeRawPointer?,
-    error_code: Int32,
-    complete_ctx: UnsafeMutableRawPointer?
-) {
+private func publishCompletionCallback(packet_type: aws_mqtt5_packet_type,
+                                       packet: UnsafeRawPointer?,
+                                       error_code: Int32,
+                                       complete_ctx: UnsafeMutableRawPointer?) {
     let continuationCore = Unmanaged<ContinuationCore<PublishResult>>.fromOpaque(complete_ctx!)
         .takeRetainedValue()
 
@@ -631,17 +626,14 @@ private func publishCompletionCallback(
 }
 
 /// The completion callback to invoke when unsubscribe operation completes in native
-private func unsubscribeCompletionCallback(
-    unsuback: UnsafePointer<aws_mqtt5_packet_unsuback_view>?,
-    error_code: Int32,
-    complete_ctx: UnsafeMutableRawPointer?
-) {
+private func unsubscribeCompletionCallback(unsuback: UnsafePointer<aws_mqtt5_packet_unsuback_view>?,
+                                           error_code: Int32,
+                                           complete_ctx: UnsafeMutableRawPointer?) {
     let continuationCore = Unmanaged<ContinuationCore<UnsubackPacket>>.fromOpaque(complete_ctx!)
         .takeRetainedValue()
 
     guard error_code == AWS_OP_SUCCESS else {
-        return continuationCore.continuation.resume(
-            throwing: CommonRunTimeError.crtError(CRTError(code: error_code)))
+        return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: error_code)))
     }
 
     if let unsuback {
