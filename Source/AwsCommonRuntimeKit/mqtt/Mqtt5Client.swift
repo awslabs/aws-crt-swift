@@ -125,7 +125,7 @@ public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32
 /// such as signing/authorization etc... Returning from this function does not continue the websocket
 /// handshake since some work flows may be asynchronous. To accommodate that, onComplete must be invoked upon
 /// completion of the signing process.
-public typealias OnWebSocketHandshakeIntercept = @Sendable (HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete) async -> Void
+public typealias OnWebSocketHandshakeIntercept = @Sendable (HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete) -> Void
 
 // MARK: - Mqtt5 Client
 public class Mqtt5Client {
@@ -537,9 +537,7 @@ internal func MqttClientWebsocketTransform(
         }
 
         if clientCore.onWebsocketInterceptor != nil {
-            Task {
-                await clientCore.onWebsocketInterceptor!(httpRequest, signerTransform)
-            }
+            clientCore.onWebsocketInterceptor!(httpRequest, signerTransform)
         }
     }
 }
@@ -585,10 +583,10 @@ private func publishCompletionCallback(packet_type: aws_mqtt5_packet_type,
 
     case AWS_MQTT5_PT_PUBACK:   // QoS1
         guard let puback = packet?.assumingMemoryBound(
-                to: aws_mqtt5_packet_puback_view.self) else {
+            to: aws_mqtt5_packet_puback_view.self) else {
             return continuationCore.continuation.resume(
                 throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
-        }
+            }
         let publishResult = PublishResult(puback: PubackPacket(puback))
         return continuationCore.continuation.resume(returning: publishResult)
 
