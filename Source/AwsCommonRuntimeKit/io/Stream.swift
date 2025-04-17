@@ -29,6 +29,8 @@ public protocol IStreamable {
     ///   Returns `0` if the data is not yet available.
     ///   Otherwise returns the number of bytes read.
     func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int?
+    
+    func isEndOfStream() -> Bool
 }
 
 public extension IStreamable {
@@ -112,5 +114,9 @@ extension FileHandle: IStreamable {
             data.copyBytes(to: buffer, from: 0..<data.count)
         }
         return data.count
+    }
+    
+    public func isEndOfStream() -> Bool {
+        return false
     }
 }
