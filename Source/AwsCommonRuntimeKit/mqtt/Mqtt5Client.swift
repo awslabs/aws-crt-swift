@@ -22,12 +22,10 @@ public class ClientOperationStatistics {
     /// Total packet size of operations that have been sent to the server and are waiting for a corresponding ACK before they can be completed.
     public let unackedOperationSize: UInt64
 
-    public init(
-        incompleteOperationCount: UInt64,
-        incompleteOperationSize: UInt64,
-        unackedOperationCount: UInt64,
-        unackedOperationSize: UInt64
-    ) {
+    public init(incompleteOperationCount: UInt64,
+                incompleteOperationSize: UInt64,
+                unackedOperationCount: UInt64,
+                unackedOperationSize: UInt64) {
         self.incompleteOperationCount = incompleteOperationCount
         self.incompleteOperationSize = incompleteOperationSize
         self.unackedOperationCount = unackedOperationCount
@@ -41,16 +39,16 @@ public class PublishReceivedData {
     /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet.
     public let publishPacket: PublishPacket
 
-    public init(publishPacket: PublishPacket) {
+    public init (publishPacket: PublishPacket) {
         self.publishPacket = publishPacket
     }
 }
 
 /// Class containing results of an Stopped Lifecycle Event. Currently unused.
-public class LifecycleStoppedData {}
+public class LifecycleStoppedData { }
 
 /// Class containing results of an Attempting Connect Lifecycle Event. Currently unused.
-public class LifecycleAttemptingConnectData {}
+public class LifecycleAttemptingConnectData { }
 
 /// Class containing results of a Connect Success Lifecycle Event.
 public class LifecycleConnectionSuccessData {
@@ -512,9 +510,7 @@ internal func MqttClientHandleLifecycleEvent(
 
             var disconnectPacket: DisconnectPacket?
 
-            if let disconnectView: UnsafePointer<aws_mqtt5_packet_disconnect_view> = lifecycleEvent
-                .pointee.disconnect_data
-            {
+            if let disconnectView: UnsafePointer<aws_mqtt5_packet_disconnect_view> = lifecycleEvent.pointee.disconnect_data {
                 disconnectPacket = DisconnectPacket(disconnectView)
             }
 
