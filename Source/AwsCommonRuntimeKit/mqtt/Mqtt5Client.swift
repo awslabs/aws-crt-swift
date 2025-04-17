@@ -267,8 +267,7 @@ public class Mqtt5ClientCore {
         try self.rwlock.read {
             // Validate close() has not been called on client.
             guard let rawValue = self.rawValue else {
-                throw CommonRunTimeError.crtError(
-                    CRTError(code: AWS_CRT_SWIFT_MQTT_CLIENT_CLOSED.rawValue))
+                throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_MQTT_CLIENT_CLOSED.rawValue))
             }
             let errorCode = aws_mqtt5_client_start(rawValue)
 
@@ -290,8 +289,7 @@ public class Mqtt5ClientCore {
         try self.rwlock.read {
             // Validate close() has not been called on client.
             guard let rawValue = self.rawValue else {
-                throw CommonRunTimeError.crtError(
-                    CRTError(code: AWS_CRT_SWIFT_MQTT_CLIENT_CLOSED.rawValue))
+                throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_MQTT_CLIENT_CLOSED.rawValue))
             }
 
             var errorCode: Int32 = 0
@@ -406,10 +404,9 @@ public class Mqtt5ClientCore {
                     guard let rawValue = self.rawValue else {
                         continuationCore.release()
                         return continuation.resume(throwing: CommonRunTimeError.crtError(
-                                CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue, context: "Mqtt client is closed.")))
+                            CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue, context: "Mqtt client is closed.")))
                     }
-                    let result = aws_mqtt5_client_unsubscribe(
-                        rawValue, unsubscribePacketPointer, &callbackOptions)
+                    let result = aws_mqtt5_client_unsubscribe(rawValue, unsubscribePacketPointer, &callbackOptions)
                     guard result == AWS_OP_SUCCESS else {
                         continuationCore.release()
                         return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
@@ -432,16 +429,11 @@ public class Mqtt5ClientCore {
 }
 
 /// Handles lifecycle events from native Mqtt Client
-internal func MqttClientHandleLifecycleEvent(
-    _ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?
-) {
+internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event>?) {
 
     guard let lifecycleEvent: UnsafePointer<aws_mqtt5_client_lifecycle_event> = lifecycleEvent,
-        let userData = lifecycleEvent.pointee.user_data
-    else {
-        fatalError(
-            "MqttClientLifecycleEvents was called from native without an aws_mqtt5_client_lifecycle_event."
-        )
+        let userData = lifecycleEvent.pointee.user_data else {
+        fatalError("MqttClientLifecycleEvents was called from native without an aws_mqtt5_client_lifecycle_event.")
     }
     let clientCore = Unmanaged<Mqtt5ClientCore>.fromOpaque(userData).takeUnretainedValue()
     let crtError = CRTError(code: lifecycleEvent.pointee.error_code)
@@ -508,8 +500,7 @@ internal func MqttClientHandleLifecycleEvent(
 
 internal func MqttClientHandlePublishRecieved(
     _ publish: UnsafePointer<aws_mqtt5_packet_publish_view>?,
-    _ user_data: UnsafeMutableRawPointer?
-) {
+    _ user_data: UnsafeMutableRawPointer?) {
     let clientCore = Unmanaged<Mqtt5ClientCore>.fromOpaque(user_data!).takeUnretainedValue()
 
     // validate the callback flag, if flag is false, return
@@ -529,8 +520,7 @@ internal func MqttClientWebsocketTransform(
     _ request: OpaquePointer?,
     _ user_data: UnsafeMutableRawPointer?,
     _ complete_fn: (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
-    _ complete_ctx: UnsafeMutableRawPointer?
-) {
+    _ complete_ctx: UnsafeMutableRawPointer?) {
 
     let clientCore = Unmanaged<Mqtt5ClientCore>.fromOpaque(user_data!).takeUnretainedValue()
 
@@ -562,13 +552,10 @@ internal func MqttClientTerminationCallback(_ userData: UnsafeMutableRawPointer?
 }
 
 /// The completion callback to invoke when subscribe operation completes in native
-private func subscribeCompletionCallback(
-    suback: UnsafePointer<aws_mqtt5_packet_suback_view>?,
-    error_code: Int32,
-    complete_ctx: UnsafeMutableRawPointer?
-) {
-    let continuationCore = Unmanaged<ContinuationCore<SubackPacket>>.fromOpaque(complete_ctx!)
-        .takeRetainedValue()
+private func subscribeCompletionCallback(suback: UnsafePointer<aws_mqtt5_packet_suback_view>?,
+                                         error_code: Int32,
+                                         complete_ctx: UnsafeMutableRawPointer?) {
+    let continuationCore = Unmanaged<ContinuationCore<SubackPacket>>.fromOpaque(complete_ctx!).takeRetainedValue()
 
     guard error_code == AWS_OP_SUCCESS else {
         return continuationCore.continuation.resume(
@@ -604,8 +591,7 @@ private func publishCompletionCallback(packet_type: aws_mqtt5_packet_type,
             let puback = packet?.assumingMemoryBound(
                 to: aws_mqtt5_packet_puback_view.self)
         else {
-            return continuationCore.continuation.resume(
-                throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+            return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
         }
         let publishResult = PublishResult(puback: PubackPacket(puback))
         return continuationCore.continuation.resume(returning: publishResult)
@@ -620,8 +606,7 @@ private func publishCompletionCallback(packet_type: aws_mqtt5_packet_type,
 private func unsubscribeCompletionCallback(unsuback: UnsafePointer<aws_mqtt5_packet_unsuback_view>?,
                                            error_code: Int32,
                                            complete_ctx: UnsafeMutableRawPointer?) {
-    let continuationCore = Unmanaged<ContinuationCore<UnsubackPacket>>.fromOpaque(complete_ctx!)
-        .takeRetainedValue()
+    let continuationCore = Unmanaged<ContinuationCore<UnsubackPacket>>.fromOpaque(complete_ctx!).takeRetainedValue()
 
     guard error_code == AWS_OP_SUCCESS else {
         return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: error_code)))
