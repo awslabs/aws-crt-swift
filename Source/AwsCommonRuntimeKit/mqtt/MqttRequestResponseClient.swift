@@ -83,6 +83,13 @@ public typealias IncomingPublishEventHandler = (IncomingPublishEvent) async -> V
 public struct MqttRequestResponseResponse {
     let topic: String
     let payload: Data
+    let error: CRTError?
+    
+    public init(topic: String, payload: Data, error: CRTError? = nil) {
+        self.topic = topic
+        self.payload = payload
+        self.error = error
+    }
 }
 
 /// A response path is a pair of values - MQTT topic and a JSON path - that describe where a response to
@@ -90,24 +97,23 @@ public struct MqttRequestResponseResponse {
 /// one is associated with a separate JSON schema for the response body.
 public struct ResponsePath {
     let topic: String
-    let correlationTokenJsonPath: [String]
+    let correlationTokenJsonPath: String
 }
 
 /// Configuration options for request response operation
 public struct RequestResponseOperationOptions: CStruct {
     let subscriptionTopicFilters: [String]
-    let responsePaths: [ResponsePath]?
+    let responsePaths: [ResponsePath]
     let topic: String
     let payload: Data
-    let correlationToken: [String]?
+    let correlationToken: String?
     
-    public init () {
-        // TODO: INIT THE MEMBERS
-        self.subscriptionTopicFilters = []
-        self.responsePaths = []
-        self.topic = ""
-        self.payload = Data()
-        self.correlationToken = nil
+    public init(subscriptionTopicFilters: [String], responsePaths: [ResponsePath], topic: String, payload: Data, correlationToken: String?) {
+        self.subscriptionTopicFilters = subscriptionTopicFilters
+        self.responsePaths = responsePaths
+        self.topic = topic
+        self.payload = payload
+        self.correlationToken = correlationToken
     }
 
     typealias RawType = aws_mqtt_request_operation_options
@@ -236,7 +242,7 @@ internal class MqttRequestResponseClientCore {
     }
     
     /// create a stream operation, throws CRTError if the creation failed. You would need call open() on the operation to start the stream
-    public func createStream(streamOptions: StreamingOperationOptions) async throws -> StreamingOperation {
+    public func createStream(streamOptions: StreamingOperationOptions) throws -> StreamingOperation {
         // TODO: create streamming operation
         return StreamingOperation()
     }
@@ -288,8 +294,8 @@ public class MqttRequestResponseClient {
     /// - Returns:
     ///     - StreamingOperation
     /// - Throws:CommonRuntimeError.crtError if creation failed
-    public func createStream(streamOptions: StreamingOperationOptions) async throws -> StreamingOperation {
-        return try await clientCore.createStream(streamOptions: streamOptions)
+    public func createStream(streamOptions: StreamingOperationOptions) throws -> StreamingOperation {
+        return try clientCore.createStream(streamOptions: streamOptions)
     }
     
     deinit{
