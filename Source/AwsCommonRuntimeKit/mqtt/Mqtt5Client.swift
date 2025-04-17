@@ -22,10 +22,10 @@ public class ClientOperationStatistics {
     /// Total packet size of operations that have been sent to the server and are waiting for a corresponding ACK before they can be completed.
     public let unackedOperationSize: UInt64
 
-    public init(incompleteOperationCount: UInt64,
-                incompleteOperationSize: UInt64,
-                unackedOperationCount: UInt64,
-                unackedOperationSize: UInt64) {
+    public init (incompleteOperationCount: UInt64,
+                 incompleteOperationSize: UInt64,
+                 unackedOperationCount: UInt64,
+                 unackedOperationSize: UInt64) {
         self.incompleteOperationCount = incompleteOperationCount
         self.incompleteOperationSize = incompleteOperationSize
         self.unackedOperationCount = unackedOperationCount
@@ -59,7 +59,7 @@ public class LifecycleConnectionSuccessData {
     /// Mqtt behavior settings that have been dynamically negotiated as part of the CONNECT/CONNACK exchange.
     public let negotiatedSettings: NegotiatedSettings
 
-    public init(connackPacket: ConnackPacket, negotiatedSettings: NegotiatedSettings) {
+    public init (connackPacket: ConnackPacket, negotiatedSettings: NegotiatedSettings) {
         self.connackPacket = connackPacket
         self.negotiatedSettings = negotiatedSettings
     }
@@ -74,7 +74,7 @@ public class LifecycleConnectionFailureData {
     /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
     public let connackPacket: ConnackPacket?
 
-    public init(crtError: CRTError, connackPacket: ConnackPacket? = nil) {
+    public init (crtError: CRTError, connackPacket: ConnackPacket? = nil) {
         self.crtError = crtError
         self.connackPacket = connackPacket
     }
@@ -89,7 +89,7 @@ public class LifecycleDisconnectData {
     /// Data model of an `MQTT5 DISCONNECT <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901205>`_ packet.
     public let disconnectPacket: DisconnectPacket?
 
-    public init(crtError: CRTError, disconnectPacket: DisconnectPacket? = nil) {
+    public init (crtError: CRTError, disconnectPacket: DisconnectPacket? = nil) {
         self.crtError = crtError
         self.disconnectPacket = disconnectPacket
     }
@@ -125,9 +125,7 @@ public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32
 /// such as signing/authorization etc... Returning from this function does not continue the websocket
 /// handshake since some work flows may be asynchronous. To accommodate that, onComplete must be invoked upon
 /// completion of the signing process.
-public typealias OnWebSocketHandshakeIntercept = @Sendable (
-    HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete
-) async -> Void
+public typealias OnWebSocketHandshakeIntercept = @Sendable (HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete) async -> Void
 
 // MARK: - Mqtt5 Client
 public class Mqtt5Client {
@@ -243,24 +241,16 @@ public class Mqtt5ClientCore {
 
         self.onPublishReceivedCallback = clientOptions.onPublishReceivedFn ?? { (_) in }
         self.onLifecycleEventStoppedCallback = clientOptions.onLifecycleEventStoppedFn ?? { (_) in }
-        self.onLifecycleEventAttemptingConnect =
-            clientOptions.onLifecycleEventAttemptingConnectFn ?? { (_) in }
-        self.onLifecycleEventConnectionSuccess =
-            clientOptions.onLifecycleEventConnectionSuccessFn ?? { (_) in }
-        self.onLifecycleEventConnectionFailure =
-            clientOptions.onLifecycleEventConnectionFailureFn ?? { (_) in }
-        self.onLifecycleEventDisconnection =
-            clientOptions.onLifecycleEventDisconnectionFn ?? { (_) in }
+        self.onLifecycleEventAttemptingConnect = clientOptions.onLifecycleEventAttemptingConnectFn ?? { (_) in }
+        self.onLifecycleEventConnectionSuccess = clientOptions.onLifecycleEventConnectionSuccessFn ?? { (_) in }
+        self.onLifecycleEventConnectionFailure = clientOptions.onLifecycleEventConnectionFailureFn ?? { (_) in }
+        self.onLifecycleEventDisconnection = clientOptions.onLifecycleEventDisconnectionFn ?? { (_) in }
         self.onWebsocketInterceptor = clientOptions.onWebsocketTransform
 
-        guard
-            let rawValue =
-                (clientOptions.withCPointer(
-                    userData: Unmanaged<Mqtt5ClientCore>.passRetained(self).toOpaque()
-                ) { optionsPointer in
-                    return aws_mqtt5_client_new(allocator.rawValue, optionsPointer)
-                })
-        else {
+        guard let rawValue = (clientOptions.withCPointer(
+            userData: Unmanaged<Mqtt5ClientCore>.passRetained(self).toOpaque()) { optionsPointer in
+            return aws_mqtt5_client_new(allocator.rawValue, optionsPointer)
+        }) else {
             // failed to create client, release the callback core
             Unmanaged<Mqtt5ClientCore>.passUnretained(self).release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
