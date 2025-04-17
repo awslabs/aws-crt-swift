@@ -7,7 +7,7 @@ import Foundation
 /**
  * The type of change to the state of a streaming operation subscription
  */
-public enum SubscriptionStatusEventType {
+public enum SubscriptionStatusEventType: Sendable {
     /**
      * The streaming operation is successfully subscribed to its topic (filter)
      */
@@ -52,7 +52,7 @@ extension SubscriptionStatusEventType {
 }
 
 /// An event that describes a change in subscription status for a streaming operation.
-public struct SubscriptionStatusEvent {
+public struct SubscriptionStatusEvent: Sendable {
     /// The type of the event
     public let event: SubscriptionStatusEventType
     
@@ -62,7 +62,7 @@ public struct SubscriptionStatusEvent {
 
 // TODO: Igor has updated the events for IoT Command. Need update later
 /// An event that describes an incoming publish message received on a streaming operation.
-public struct IncomingPublishEvent {
+public struct IncomingPublishEvent: Sendable {
 
     /// The payload of the publish message in a byte buffer format
     let payload: Data
@@ -74,15 +74,22 @@ public struct IncomingPublishEvent {
 }
 
 /// Function signature of a SubscriptionStatusEvent event handler
-public typealias SubscriptionStatusEventHandler = (SubscriptionStatusEvent) async -> Void
+public typealias SubscriptionStatusEventHandler = @Sendable (SubscriptionStatusEvent) async -> Void
 
 /// Function signature of an IncomingPublishEvent event handler
-public typealias IncomingPublishEventHandler = (IncomingPublishEvent) async -> Void
+public typealias IncomingPublishEventHandler = @Sendable (IncomingPublishEvent) async -> Void
 
 /// Encapsulates a response to an AWS IoT Core MQTT-based service request
 public struct MqttRequestResponseResponse {
     let topic: String
     let payload: Data
+    let error: CRTError?
+    
+    public init(topic: String, payload: Data, error: CRTError? = nil) {
+        self.topic = topic
+        self.payload = payload
+        self.error = error
+    }
 }
 
 /// A response path is a pair of values - MQTT topic and a JSON path - that describe where a response to
@@ -90,16 +97,16 @@ public struct MqttRequestResponseResponse {
 /// one is associated with a separate JSON schema for the response body.
 public struct ResponsePath {
     let topic: String
-    let correlationTokenJsonPath: [String]
+    let correlationTokenJsonPath: String
 }
 
 /// Configuration options for request response operation
 public struct RequestResponseOperationOptions: CStruct {
     let subscriptionTopicFilters: [String]
-    let responsePaths: [ResponsePath]?
+    let responsePaths: [ResponsePath]
     let topic: String
     let payload: Data
-    let correlationToken: [String]?
+    let correlationToken: String?
     
     public init () {
         // TODO: INIT THE MEMBERS
@@ -120,7 +127,7 @@ public struct RequestResponseOperationOptions: CStruct {
 }
 
 /// Configuration options for streaming operations
-public struct StreamingOperationOptions: CStruct {
+public struct StreamingOperationOptions: CStruct, Sendable {
     let subscriptionStatusEventHandler: SubscriptionStatusEventHandler
     let incomingPublishEventHandler: IncomingPublishEventHandler
     let topicFilter: String
@@ -164,8 +171,10 @@ public class StreamingOperation {
 }
 
 // TODO: Choose a proper default value for client options
+// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
+// so mark it unchecked Sendable
 /// Request-response client configuration options
-public class MqttRequestResponseClientOptions: CStructWithUserData {
+public class MqttRequestResponseClientOptions: CStructWithUserData, @unchecked Sendable{
 
     /// Maximum number of subscriptions that the client will concurrently use for request-response operations. Default to 3.
     public let maxRequestResponseSubscription: Int
@@ -236,7 +245,7 @@ internal class MqttRequestResponseClientCore {
     }
     
     /// create a stream operation, throws CRTError if the creation failed. You would need call open() on the operation to start the stream
-    public func createStream(streamOptions: StreamingOperationOptions) async throws -> StreamingOperation {
+    public func createStream(streamOptions: StreamingOperationOptions) throws -> StreamingOperation {
         // TODO: create streamming operation
         return StreamingOperation()
     }
@@ -288,8 +297,8 @@ public class MqttRequestResponseClient {
     /// - Returns:
     ///     - StreamingOperation
     /// - Throws:CommonRuntimeError.crtError if creation failed
-    public func createStream(streamOptions: StreamingOperationOptions) async throws -> StreamingOperation {
-        return try await clientCore.createStream(streamOptions: streamOptions)
+    public func createStream(streamOptions: StreamingOperationOptions) throws -> StreamingOperation {
+        return try clientCore.createStream(streamOptions: streamOptions)
     }
     
     deinit{
