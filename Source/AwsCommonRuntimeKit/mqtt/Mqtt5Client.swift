@@ -558,8 +558,7 @@ private func subscribeCompletionCallback(suback: UnsafePointer<aws_mqtt5_packet_
     let continuationCore = Unmanaged<ContinuationCore<SubackPacket>>.fromOpaque(complete_ctx!).takeRetainedValue()
 
     guard error_code == AWS_OP_SUCCESS else {
-        return continuationCore.continuation.resume(
-            throwing: CommonRunTimeError.crtError(CRTError(code: error_code)))
+        return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: error_code)))
     }
 
     if let suback {
@@ -574,24 +573,21 @@ private func publishCompletionCallback(packet_type: aws_mqtt5_packet_type,
                                        packet: UnsafeRawPointer?,
                                        error_code: Int32,
                                        complete_ctx: UnsafeMutableRawPointer?) {
-    let continuationCore = Unmanaged<ContinuationCore<PublishResult>>.fromOpaque(complete_ctx!)
-        .takeRetainedValue()
+    let continuationCore = Unmanaged<ContinuationCore<PublishResult>>.fromOpaque(complete_ctx!).takeRetainedValue()
 
     if error_code != AWS_OP_SUCCESS {
-        return continuationCore.continuation.resume(
-            throwing: CommonRunTimeError.crtError(CRTError(code: error_code)))
+        return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: error_code)))
     }
 
     switch packet_type {
-    case AWS_MQTT5_PT_NONE:  // QoS0
+    case AWS_MQTT5_PT_NONE:     // QoS0
         return continuationCore.continuation.resume(returning: PublishResult())
 
-    case AWS_MQTT5_PT_PUBACK:  // QoS1
-        guard
-            let puback = packet?.assumingMemoryBound(
-                to: aws_mqtt5_packet_puback_view.self)
-        else {
-            return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+    case AWS_MQTT5_PT_PUBACK:   // QoS1
+        guard let puback = packet?.assumingMemoryBound(
+                to: aws_mqtt5_packet_puback_view.self) else {
+            return continuationCore.continuation.resume(
+                throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
         }
         let publishResult = PublishResult(puback: PubackPacket(puback))
         return continuationCore.continuation.resume(returning: publishResult)
