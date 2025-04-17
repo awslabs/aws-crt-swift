@@ -174,7 +174,7 @@ public class StreamingOperation {
 // We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
 // so mark it unchecked Sendable
 /// Request-response client configuration options
-public class MqttRequestResponseClientOptions: CStructWithUserData, @unchecked Sendable{
+public class MqttRequestResponseClientOptions: CStructWithUserData, @unchecked Sendable {
 
     /// Maximum number of subscriptions that the client will concurrently use for request-response operations. Default to 3.
     public let maxRequestResponseSubscription: Int
