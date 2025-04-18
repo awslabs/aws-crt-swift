@@ -648,17 +648,15 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
             // We manually setup the websocket transform to avoid recursive reference between provider and test context
             let onWebsocketTransform : OnWebSocketHandshakeIntercept = { httpRequest, completCallback in
-                do
-                {
-                    let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
-                    completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
-                }
-                catch CommonRunTimeError.crtError (let error) {
-                    completCallback(httpRequest, Int32(error.code))
-                }
-                catch
-                {
-                    completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
+                Task {
+                    do {
+                        let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
+                        completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
+                    } catch CommonRunTimeError.crtError (let error) {
+                        completCallback(httpRequest, Int32(error.code))
+                    } catch {
+                        completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
+                    }
                 }
             }
 
@@ -730,17 +728,15 @@ class Mqtt5ClientTests: XCBaseTestCase {
 
         // We manually setup the websocket transform to avoid recursive reference between provider and test context
         let onWebsocketTransform : OnWebSocketHandshakeIntercept = { httpRequest, completCallback in
-            do
-            {
-                let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
-                completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
-            }
-            catch CommonRunTimeError.crtError (let error) {
-                completCallback(httpRequest, Int32(error.code))
-            }
-            catch
-            {
-                completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
+            Task {
+                do {
+                    let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
+                    completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
+                } catch CommonRunTimeError.crtError (let error) {
+                    completCallback(httpRequest, Int32(error.code))
+                } catch {
+                    completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
+                }
             }
         }
 
@@ -850,20 +846,18 @@ class Mqtt5ClientTests: XCBaseTestCase {
                                               omitSessionToken: true)
 
             let onWebsocketTransform : OnWebSocketHandshakeIntercept = { httpRequest, completCallback in
-                do
-                {
-                    let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
-                    completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
-                    print("complete signing")
-                }
-                catch CommonRunTimeError.crtError (let error) {
-                    completCallback(httpRequest, Int32(error.code))
-                    print("signing failed with crterror")
-                }
-                catch
-                {
-                    completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
-                    print("signing failed")
+                Task {
+                    do {
+                        let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
+                        completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
+                        print("complete signing")
+                    } catch CommonRunTimeError.crtError (let error) {
+                        completCallback(httpRequest, Int32(error.code))
+                        print("signing failed with crterror")
+                    } catch {
+                        completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
+                        print("signing failed")
+                    }
                 }
             }
 
