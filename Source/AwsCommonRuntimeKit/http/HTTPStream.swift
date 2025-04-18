@@ -45,7 +45,14 @@ public class HTTPStream {
     /// This method must be overridden in each subclass because this function is specific to each subclass.
     /// For HTTP/1.1 see ``HTTP1Stream/writeChunk(chunk:endOfStream:)``
     /// For HTTP2: see  ``HTTP2Stream/writeChunk(chunk:endOfStream:)``
-    public func writeChunk(chunk: Data, endOfStream: Bool) async throws {
+    public func writeChunk(chunk: IStreamable, endOfStream: Bool) async throws {
+        fatalError("writeChunk is not implemented for HTTPStream base")
+    }
+    
+    /// This method must be overridden in each subclass because this function is specific to each subclass.
+    /// For HTTP/1.1 see ``HTTP1Stream/writeChunk(chunk:endOfStream:)``
+    /// For HTTP2: see  ``HTTP2Stream/writeChunk(chunk:endOfStream:)``
+    public func writeChunk(data: Data, endOfStream: Bool) async throws {
         fatalError("writeChunk is not implemented for HTTPStream base")
     }
     

@@ -6,7 +6,7 @@ import AwsCIo
 import AwsCCal
 
 /// ByteBuffer represents a Data object with a current index and conforms to IStreamable protocol.
-public final class ByteBuffer {
+final class ByteBuffer {
 
     private let data: Data
     private var currentIndex: Data.Index

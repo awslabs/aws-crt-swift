@@ -45,14 +45,26 @@ public class HTTP2Stream: HTTPStream {
     ///   - endOfStream: Set it true to end the stream and prevent any further write.
     ///                  The last frame must be send with the value true.
     /// - Throws: CommonRunTimeError.crtError
-    public override func writeChunk(chunk: Data, endOfStream: Bool) async throws {
+    public override func writeChunk(data: Data, endOfStream: Bool) async throws {
+        try await writeChunk(chunk: ByteBuffer(data: data), endOfStream: endOfStream)
+    }
+    
+    /// manualDataWrites must have been enabled during HTTP2Request creation.
+    /// A write with that has endOfStream set to be true will end the stream and prevent any further write.
+    ///
+    /// - Parameters:
+    ///   - data: Data to write. It can be empty
+    ///   - endOfStream: Set it true to end the stream and prevent any further write.
+    ///                  The last frame must be send with the value true.
+    /// - Throws: CommonRunTimeError.crtError
+    public override func writeChunk(chunk: IStreamable, endOfStream: Bool) async throws {
         var options = aws_http2_stream_write_data_options()
         options.end_stream = endOfStream
         options.on_complete = onWriteComplete
         try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
             let stream = IStreamCore(
-                iStreamable: ByteBuffer(data: chunk))
+                iStreamable: chunk)
             options.data = stream.rawValue
             options.user_data = continuationCore.passRetained()
             guard aws_http2_stream_write_data(

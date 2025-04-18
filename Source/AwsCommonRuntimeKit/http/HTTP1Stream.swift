@@ -20,6 +20,17 @@ public class HTTP1Stream: HTTPStream {
         self.httpConnection = httpConnection
         super.init(rawValue: rawValue, callbackData: callbackData)
     }
+    
+    /// Submit a chunk of data to be sent on an HTTP/1.1 stream.
+    /// The stream must have specified "chunked" in a "transfer-encoding" header and no body.
+    /// activate() must be called before any chunks are submitted.
+    /// - Parameters:
+    ///     - chunk: The chunk to write. If the chunk is empty, it will signify the end of the stream.
+    ///     - endOfStream: Set it true to end the stream and prevent any further write. The last chunk must be send with the value true.
+    /// - Throws: CommonRunTimeError.crtError
+    public override func writeChunk(data: Data, endOfStream: Bool) async throws {
+        try await writeChunk(chunk: ByteBuffer(data: data), endOfStream: endOfStream)
+    }
 
     /// Submit a chunk of data to be sent on an HTTP/1.1 stream.
     /// The stream must have specified "chunked" in a "transfer-encoding" header and no body.
@@ -28,23 +39,24 @@ public class HTTP1Stream: HTTPStream {
     ///     - chunk: The chunk to write. If the chunk is empty, it will signify the end of the stream.
     ///     - endOfStream: Set it true to end the stream and prevent any further write. The last chunk must be send with the value true.
     /// - Throws: CommonRunTimeError.crtError
-    public override func writeChunk(chunk: Data, endOfStream: Bool) async throws {
-        if endOfStream && !chunk.isEmpty {
+    public override func writeChunk(chunk: IStreamable, endOfStream: Bool) async throws {
+        if endOfStream && !chunk.isEndOfStream() {
             /// The HTTP/1.1 does not support writing a chunk and sending the end of the stream simultaneously.
             /// It requires sending an empty chunk at the end to finish the stream.
             /// To maintain consistency with HTTP/2, if there is data and `endOfStream` is true, then send the data and the empty stream in two calls.
             try await writeChunk(chunk: chunk, endOfStream: false)
-            return try await writeChunk(chunk: Data(), endOfStream: true)
+            return try await writeChunk(chunk: ByteBuffer(size: 0), endOfStream: true)
         }
         
         var options = aws_http1_chunk_options()
         options.on_complete = onWriteComplete
+        let chunkLength = try chunk.length()
         return try await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<(), Error>) in
             let continuationCore = ContinuationCore(continuation: continuation)
             let stream = IStreamCore(
-                iStreamable: ByteBuffer(data: chunk))
+                iStreamable: chunk)
             options.chunk_data = stream.rawValue
-            options.chunk_data_size = UInt64(chunk.count)
+            options.chunk_data_size = chunkLength
             options.user_data = continuationCore.passRetained()
             guard aws_http1_stream_write_chunk(
                 rawValue,
