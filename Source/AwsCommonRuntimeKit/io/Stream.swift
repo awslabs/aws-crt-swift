@@ -30,6 +30,8 @@ public protocol IStreamable {
     ///   Otherwise returns the number of bytes read.
     func read(buffer: UnsafeMutableBufferPointer<UInt8>) throws -> Int?
     
+    /// Whether the stream has ended. If the read function returns Nil that will also signify end of stream,
+    /// so if your stream will never know in advance that it's ended and always requires an extra read to know the end, you can always return false from this method.
     func isEndOfStream() -> Bool
 }
 
@@ -117,6 +119,19 @@ extension FileHandle: IStreamable {
     }
     
     public func isEndOfStream() -> Bool {
-        return false
+        do {
+               let currentPosition: UInt64
+               
+               if #available(macOS 11, tvOS 13.4, iOS 13.4, watchOS 6.2, *) {
+                   currentPosition = try offset()
+               } else {
+                   currentPosition = offsetInFile
+               }
+               
+               let totalLength = try length()
+               return currentPosition >= totalLength
+           } catch {
+               return false
+           }
     }
 }
