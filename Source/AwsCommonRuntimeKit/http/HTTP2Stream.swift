@@ -45,8 +45,8 @@ public class HTTP2Stream: HTTPStream {
     ///   - endOfStream: Set it true to end the stream and prevent any further write.
     ///                  The last frame must be send with the value true.
     /// - Throws: CommonRunTimeError.crtError
-    public override func writeChunk(data: Data, endOfStream: Bool) async throws {
-        try await writeChunk(chunk: ByteBuffer(data: data), endOfStream: endOfStream)
+    public override func writeChunk(chunk: Data, endOfStream: Bool) async throws {
+        try await writeChunk(chunk: ByteBuffer(data: chunk), endOfStream: endOfStream)
     }
     
     /// manualDataWrites must have been enabled during HTTP2Request creation.

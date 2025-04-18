@@ -28,8 +28,8 @@ public class HTTP1Stream: HTTPStream {
     ///     - chunk: The chunk to write. If the chunk is empty, it will signify the end of the stream.
     ///     - endOfStream: Set it true to end the stream and prevent any further write. The last chunk must be send with the value true.
     /// - Throws: CommonRunTimeError.crtError
-    public override func writeChunk(data: Data, endOfStream: Bool) async throws {
-        try await writeChunk(chunk: ByteBuffer(data: data), endOfStream: endOfStream)
+    public override func writeChunk(chunk: Data, endOfStream: Bool) async throws {
+        try await writeChunk(chunk: ByteBuffer(data: chunk), endOfStream: endOfStream)
     }
 
     /// Submit a chunk of data to be sent on an HTTP/1.1 stream.
