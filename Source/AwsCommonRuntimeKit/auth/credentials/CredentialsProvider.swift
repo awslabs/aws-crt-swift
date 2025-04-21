@@ -11,7 +11,7 @@ public protocol CredentialsProviding {
 }
 
 /// A pair defining an identity provider and a valid login token sourced from it.
-public struct CognitoLoginPair: CStruct {
+public class CognitoLoginPair: CStruct {
     public var IdentityProviderName: String
     public var IdentityProviderToken: String
     
@@ -19,18 +19,27 @@ public struct CognitoLoginPair: CStruct {
                 identityProviderToken: String) {
         self.IdentityProviderName = identityProviderName
         self.IdentityProviderToken = identityProviderToken
+
+        withByteCursorFromStrings(self.IdentityProviderName, self.IdentityProviderToken) { cNameCursor, cTokenCursor in
+            aws_byte_buf_init_copy_from_cursor(&name_buffer, allocator, cNameCursor)
+            aws_byte_buf_init_copy_from_cursor(&token_buffer, allocator, cTokenCursor)
+        }
     }
     
     typealias RawType = aws_cognito_identity_provider_token_pair
     func withCStruct<Result>(_ body: (aws_cognito_identity_provider_token_pair) -> Result) -> Result {
         var token_pair = aws_cognito_identity_provider_token_pair()
-        
-        return withByteCursorFromStrings(IdentityProviderName,
-                                         IdentityProviderToken) { identityProviderNameCursor, IdentityProviderTokenCursor in
-            token_pair.identity_provider_name = identityProviderNameCursor
-            token_pair.identity_provider_token = IdentityProviderTokenCursor
-            return body(token_pair)
-        }
+        token_pair.identity_provider_name = aws_byte_cursor_from_buf(&self.name_buffer)
+        token_pair.identity_provider_token = aws_byte_cursor_from_buf(&self.token_buffer)
+        return body(token_pair)
+    }
+
+    // We keep a memory of the buffer storage in the class, and release it on destruction
+    private var name_buffer: aws_byte_buf = aws_byte_buf()
+    private var token_buffer: aws_byte_buf = aws_byte_buf()
+    deinit {
+        aws_byte_buf_clean_up(&name_buffer)
+        aws_byte_buf_clean_up(&token_buffer)
     }
 }
 
