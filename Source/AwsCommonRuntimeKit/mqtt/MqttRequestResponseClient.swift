@@ -74,53 +74,83 @@ public struct IncomingPublishEvent: Sendable {
 }
 
 /// Function signature of a SubscriptionStatusEvent event handler
-public typealias SubscriptionStatusEventHandler = @Sendable (SubscriptionStatusEvent) async -> Void
+public typealias SubscriptionStatusEventHandler = @Sendable (SubscriptionStatusEvent) -> Void
 
 /// Function signature of an IncomingPublishEvent event handler
-public typealias IncomingPublishEventHandler = @Sendable (IncomingPublishEvent) async -> Void
+public typealias IncomingPublishEventHandler = @Sendable (IncomingPublishEvent) -> Void
 
 /// Encapsulates a response to an AWS IoT Core MQTT-based service request
-public struct MqttRequestResponseResponse {
+public struct MqttRequestResponseResponse: Sendable {
     let topic: String
     let payload: Data
-    let error: CRTError?
     
-    public init(topic: String, payload: Data, error: CRTError? = nil) {
+    public init(topic: String, payload: Data) {
         self.topic = topic
         self.payload = payload
-        self.error = error
     }
 }
 
+// We can't mutate this class after initialization. Swift can not verify the sendability due to direct use of c pointer,
+// so mark it unchecked Sendable
 /// A response path is a pair of values - MQTT topic and a JSON path - that describe where a response to
 /// an MQTT-based request may arrive.  For a given request type, there may be multiple response paths and each
 /// one is associated with a separate JSON schema for the response body.
-public struct ResponsePath {
+public class ResponsePath: CStruct, @unchecked Sendable {
     let topic: String
     let correlationTokenJsonPath: String
+    
+    init(topic: String, correlationTokenJsonPath: String) {
+        self.topic = topic
+        self.correlationTokenJsonPath = correlationTokenJsonPath
+        
+        withByteCursorFromStrings(self.topic, self.correlationTokenJsonPath) { cTopicCursor, cCorrelationTokenCursor in
+            aws_byte_buf_init_copy_from_cursor(&self.topic_buffer, allocator, cTopicCursor)
+            aws_byte_buf_init_copy_from_cursor(&self.correlation_token_buffer, allocator, cCorrelationTokenCursor)
+        }
+    }
+    
+    typealias RawType = aws_mqtt_request_operation_response_path
+    func withCStruct<Result>(_ body: (aws_mqtt_request_operation_response_path) -> Result) -> Result {
+        var raw_option = aws_mqtt_request_operation_response_path()
+        raw_option.topic = aws_byte_cursor_from_buf(&self.topic_buffer)
+        raw_option.correlation_token_json_path = aws_byte_cursor_from_buf(&self.correlation_token_buffer)
+        return body(raw_option)
+    }
+    
+    // We keep a memory of the buffer storage in the class, and release it on
+    // destruction
+    private var topic_buffer: aws_byte_buf = aws_byte_buf()
+    private var correlation_token_buffer: aws_byte_buf = aws_byte_buf()
+    
+    deinit {
+        aws_byte_buf_clean_up(&topic_buffer)
+        aws_byte_buf_clean_up(&correlation_token_buffer)
+    }
 }
 
 /// Configuration options for request response operation
-public struct RequestResponseOperationOptions: CStruct {
+public struct RequestResponseOperationOptions: CStructWithUserData, Sendable {
     let subscriptionTopicFilters: [String]
     let responsePaths: [ResponsePath]
     let topic: String
     let payload: Data
     let correlationToken: String?
     
-    public init () {
-        // TODO: INIT THE MEMBERS
-        self.subscriptionTopicFilters = []
-        self.responsePaths = []
-        self.topic = ""
-        self.payload = Data()
-        self.correlationToken = nil
+    public init(subscriptionTopicFilters: [String], responsePaths: [ResponsePath], topic: String, payload: Data, correlationToken: String?) {
+        self.subscriptionTopicFilters = subscriptionTopicFilters
+        self.responsePaths = responsePaths
+        self.topic = topic
+        self.payload = payload
+        self.correlationToken = correlationToken
+    }
+    
+    func validateConversionToNative() throws {
     }
 
     typealias RawType = aws_mqtt_request_operation_options
-    func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
+    func withCStruct<Result>(userData: UnsafeMutableRawPointer?, _ body: (RawType) -> Result) -> Result {
         // TODO: convert into aws_mqtt_request_operation_options
-        var options = aws_mqtt_request_operation_options()
+        let options = aws_mqtt_request_operation_options()
         return body(options)
     }
 
@@ -148,10 +178,8 @@ public struct StreamingOperationOptions: CStruct, Sendable {
     
 }
 
-/**
- * A streaming operation is automatically closed (and an MQTT unsubscribe triggered) when its
- * destructor is invoked.
- */
+ /// A streaming operation is automatically closed (and an MQTT unsubscribe triggered) when its
+ // destructor is invoked.
 public class StreamingOperation {
     fileprivate var rawValue: OpaquePointer? // <aws_mqtt_rr_client_operation>?
 
@@ -170,7 +198,6 @@ public class StreamingOperation {
     }
 }
 
-// TODO: Choose a proper default value for client options
 // We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
 // so mark it unchecked Sendable
 /// Request-response client configuration options
@@ -179,13 +206,13 @@ public class MqttRequestResponseClientOptions: CStructWithUserData, @unchecked S
     /// Maximum number of subscriptions that the client will concurrently use for request-response operations. Default to 3.
     public let maxRequestResponseSubscription: Int
     
-    /// Maximum number of subscriptions that the client will concurrently use for streaming operations Default to 0.
+    /// Maximum number of subscriptions that the client will concurrently use for streaming operations Default to 2.
     public let maxStreamingSubscription: Int
     
-    /// Duration, in seconds, that a request-response operation will wait for completion before giving up. Default to 5 seconds.
+    /// Duration, in seconds, that a request-response operation will wait for completion before giving up. Default to 60 seconds.
     public let operationTimeout: TimeInterval
     
-    public init(maxRequestResponseSubscription: Int = 3, maxStreamingSubscription: Int = 2, operationTimeout: TimeInterval = 5) {
+    public init(maxRequestResponseSubscription: Int = 3, maxStreamingSubscription: Int = 2, operationTimeout: TimeInterval = 60) {
         self.maxStreamingSubscription = maxStreamingSubscription
         self.maxRequestResponseSubscription = maxRequestResponseSubscription
         self.operationTimeout = operationTimeout
@@ -221,7 +248,10 @@ internal func MqttRRClientTerminationCallback(_ userData: UnsafeMutableRawPointe
     _ = Unmanaged<MqttRequestResponseClientCore>.fromOpaque(userData!).takeRetainedValue()
 }
 
-internal class MqttRequestResponseClientCore {
+// IMPORTANT: You are responsible for concurrency correctness of MqttRequestResponseClientCore.
+// The rawValue is only modified in `close()` function, and the `close()` function is only called 
+// in MqttRequestResponseClient destructor, in which case there should be no other operations in progress. Therefore, the MqttRequestResponseClientCore should be thread safe.
+internal class MqttRequestResponseClientCore: @unchecked Sendable {
     fileprivate var rawValue: OpaquePointer? // aws_mqtt_request_response_client
     
     internal init(mqttClient: Mqtt5Client, options: MqttRequestResponseClientOptions) throws {
@@ -230,12 +260,11 @@ internal class MqttRequestResponseClientCore {
                 return aws_mqtt_request_response_client_new_from_mqtt5_client(
                     allocator, mqttClient.clientCore.rawValue, optionsPointer)
             }) else {
-            // failed to create client, release the callback core
+            // Failed to create client, release the callback core
             Unmanaged<MqttRequestResponseClientCore>.passUnretained(self).release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
+            }
         self.rawValue = rawValue
-        
     }
     
     /// submit a request responds operation, throws CRTError if the operation failed
