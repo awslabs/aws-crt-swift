@@ -74,34 +74,60 @@ public struct IncomingPublishEvent: Sendable {
 }
 
 /// Function signature of a SubscriptionStatusEvent event handler
-public typealias SubscriptionStatusEventHandler = @Sendable (SubscriptionStatusEvent) async -> Void
+public typealias SubscriptionStatusEventHandler = (SubscriptionStatusEvent) -> Void
 
 /// Function signature of an IncomingPublishEvent event handler
-public typealias IncomingPublishEventHandler = @Sendable (IncomingPublishEvent) async -> Void
+public typealias IncomingPublishEventHandler = (IncomingPublishEvent) -> Void
 
 /// Encapsulates a response to an AWS IoT Core MQTT-based service request
 public struct MqttRequestResponseResponse {
     let topic: String
     let payload: Data
-    let error: CRTError?
     
     public init(topic: String, payload: Data, error: CRTError? = nil) {
         self.topic = topic
         self.payload = payload
-        self.error = error
     }
 }
 
 /// A response path is a pair of values - MQTT topic and a JSON path - that describe where a response to
 /// an MQTT-based request may arrive.  For a given request type, there may be multiple response paths and each
 /// one is associated with a separate JSON schema for the response body.
-public struct ResponsePath {
+public class ResponsePath: CStruct {
     let topic: String
     let correlationTokenJsonPath: String
+    
+    init(topic: String, correlationTokenJsonPath: String) {
+        self.topic = topic
+        self.correlationTokenJsonPath = correlationTokenJsonPath
+        
+        withByteCursorFromStrings(self.topic, self.correlationTokenJsonPath) { cTopicCursor, cCorrelationTokenCursor in
+            aws_byte_buf_init_copy_from_cursor(&self.topic_buffer, allocator, cTopicCursor)
+            aws_byte_buf_init_copy_from_cursor(&self.correlation_token_buffer, allocator, cCorrelationTokenCursor)
+        }
+    }
+    
+    typealias RawType = aws_mqtt_request_operation_response_path
+    func withCStruct<Result>(_ body: (aws_mqtt_request_operation_response_path) -> Result) -> Result {
+        var raw_option = aws_mqtt_request_operation_response_path()
+        raw_option.topic = aws_byte_cursor_from_buf(&self.topic_buffer)
+        raw_option.correlation_token_json_path = aws_byte_cursor_from_buf(&self.correlation_token_buffer)
+        return body(raw_option)
+    }
+    
+    // We keep a memory of the buffer storage in the class, and release it on
+    // destruction
+    private var topic_buffer: aws_byte_buf = aws_byte_buf()
+    private var correlation_token_buffer: aws_byte_buf = aws_byte_buf()
+    
+    deinit {
+        aws_byte_buf_clean_up(&topic_buffer)
+        aws_byte_buf_clean_up(&correlation_token_buffer)
+    }
 }
 
 /// Configuration options for request response operation
-public struct RequestResponseOperationOptions: CStruct {
+public struct RequestResponseOperationOptions: CStructWithUserData {
     let subscriptionTopicFilters: [String]
     let responsePaths: [ResponsePath]
     let topic: String
@@ -115,18 +141,41 @@ public struct RequestResponseOperationOptions: CStruct {
         self.payload = payload
         self.correlationToken = correlationToken
     }
-
-    typealias RawType = aws_mqtt_request_operation_options
-    func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
-        // TODO: convert into aws_mqtt_request_operation_options
-        var options = aws_mqtt_request_operation_options()
-        return body(options)
+    
+    func validateConversionToNative() throws {
     }
-
+    
+    typealias RawType = aws_mqtt_request_operation_options
+    func withCStruct<Result>(userData: UnsafeMutableRawPointer?, _ body: (RawType) -> Result) -> Result {
+        var raw_options = aws_mqtt_request_operation_options()
+        return self.subscriptionTopicFilters.withMutableByteCursorArray { topicsCursor, len in
+            raw_options.subscription_topic_filters = topicsCursor
+            raw_options.subscription_topic_filter_count = len
+            return self.responsePaths.withAWSArrayList { responsePathPointer in
+                raw_options.response_paths = UnsafeMutablePointer<aws_mqtt_request_operation_response_path>(responsePathPointer)
+                raw_options.response_path_count = self.responsePaths.count
+                
+                return withByteCursorFromStrings(self.topic, self.correlationToken) { topicCursor, correlationCursor in
+                    raw_options.publish_topic = topicCursor
+                    raw_options.correlation_token = correlationCursor
+                    
+                    return withAWSByteCursorFromOptionalData(to: self.payload) { cByteCursor in
+                        raw_options.serialized_request = cByteCursor
+                        
+                        if let userData {
+                            raw_options.user_data = userData
+                            raw_options.completion_callback = MqttRROperationCompletionCallback
+                        }
+                        return body(raw_options)
+                    }
+                }
+            }
+        }
+    }
 }
 
 /// Configuration options for streaming operations
-public struct StreamingOperationOptions: CStruct, Sendable {
+public struct StreamingOperationOptions: CStruct {
     let subscriptionStatusEventHandler: SubscriptionStatusEventHandler
     let incomingPublishEventHandler: IncomingPublishEventHandler
     let topicFilter: String
@@ -220,6 +269,24 @@ internal func MqttRRClientTerminationCallback(_ userData: UnsafeMutableRawPointe
     _ = Unmanaged<MqttRequestResponseClientCore>.fromOpaque(userData!).takeRetainedValue()
 }
 
+private func MqttRROperationCompletionCallback(topic: UnsafePointer<aws_byte_cursor>?, payload: UnsafePointer<aws_byte_cursor>?, errorCode: Int32, userData: UnsafeMutableRawPointer?) {
+    guard let userData else {
+        return
+    }
+    let continuationCore = Unmanaged<ContinuationCore<MqttRequestResponseResponse>>.fromOpaque(userData).takeRetainedValue()
+    if errorCode != AWS_OP_SUCCESS {
+        return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+    }
+    
+    if let topic, let payload {
+        let response: MqttRequestResponseResponse = MqttRequestResponseResponse(topic: topic.pointee.toString(),
+                                                                                 payload: Data(bytes: payload.pointee.ptr, count: payload.pointee.len))
+        return continuationCore.continuation.resume(returning: response)
+    }
+    
+    assertionFailure("MqttRROperationCompletionCallback: The topic and paylaod should be set if operation succeed")
+}
+
 internal class MqttRequestResponseClientCore {
     fileprivate var rawValue: OpaquePointer? // aws_mqtt_request_response_client
     
@@ -229,18 +296,26 @@ internal class MqttRequestResponseClientCore {
                 return aws_mqtt_request_response_client_new_from_mqtt5_client(
                     allocator, mqttClient.clientCore.rawValue, optionsPointer)
             }) else {
-            // failed to create client, release the callback core
+            // Failed to create client, release the callback core
             Unmanaged<MqttRequestResponseClientCore>.passUnretained(self).release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
+            }
         self.rawValue = rawValue
-        
     }
     
     /// submit a request responds operation, throws CRTError if the operation failed
     public func submitRequest(operationOptions: RequestResponseOperationOptions) async throws -> MqttRequestResponseResponse {
-        // TODO: sumibt request
-        return MqttRequestResponseResponse(topic: "", payload: Data())
+        try operationOptions.validateConversionToNative()
+        return try await withCheckedThrowingContinuation { continuation in
+            let continuationCore = ContinuationCore<MqttRequestResponseResponse>(continuation: continuation)
+            operationOptions.withCPointer(userData: continuationCore.passRetained(), { optionsPointer in
+                let result = aws_mqtt_request_response_client_submit_request(self.rawValue, optionsPointer)
+                if result != AWS_OP_SUCCESS {
+                   continuationCore.release()
+                   return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+               }
+            })
+        }
     }
     
     /// create a stream operation, throws CRTError if the creation failed. You would need call open() on the operation to start the stream
