@@ -286,7 +286,8 @@ private func MqttRROperationCompletionCallback(topic: UnsafePointer<aws_byte_cur
     
     if let topic, let payload {
         let response: MqttRequestResponseResponse = MqttRequestResponseResponse(topic: topic.pointee.toString(),
-                                                                                 payload: Data(bytes: payload.pointee.ptr, count: payload.pointee.len))
+                                                                                 payload: Data(bytes: payload.pointee.ptr,
+                                                                                               count: payload.pointee.len))
         return continuationCore.continuation.resume(returning: response)
     }
     
