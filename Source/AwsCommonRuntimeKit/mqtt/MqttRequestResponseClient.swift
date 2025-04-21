@@ -74,26 +74,28 @@ public struct IncomingPublishEvent: Sendable {
 }
 
 /// Function signature of a SubscriptionStatusEvent event handler
-public typealias SubscriptionStatusEventHandler = (SubscriptionStatusEvent) -> Void
+public typealias SubscriptionStatusEventHandler = @Sendable (SubscriptionStatusEvent) -> Void
 
 /// Function signature of an IncomingPublishEvent event handler
-public typealias IncomingPublishEventHandler = (IncomingPublishEvent) -> Void
+public typealias IncomingPublishEventHandler = @Sendable (IncomingPublishEvent) -> Void
 
 /// Encapsulates a response to an AWS IoT Core MQTT-based service request
-public struct MqttRequestResponseResponse {
+public struct MqttRequestResponseResponse: Sendable {
     let topic: String
     let payload: Data
     
-    public init(topic: String, payload: Data, error: CRTError? = nil) {
+    public init(topic: String, payload: Data) {
         self.topic = topic
         self.payload = payload
     }
 }
 
+// We can't mutate this class after initialization. Swift can not verify the sendability due to direct use of c pointer,
+// so mark it unchecked Sendable
 /// A response path is a pair of values - MQTT topic and a JSON path - that describe where a response to
 /// an MQTT-based request may arrive.  For a given request type, there may be multiple response paths and each
 /// one is associated with a separate JSON schema for the response body.
-public class ResponsePath: CStruct {
+public class ResponsePath: CStruct, @unchecked Sendable {
     let topic: String
     let correlationTokenJsonPath: String
     
@@ -127,7 +129,7 @@ public class ResponsePath: CStruct {
 }
 
 /// Configuration options for request response operation
-public struct RequestResponseOperationOptions: CStructWithUserData {
+public struct RequestResponseOperationOptions: CStructWithUserData, Sendable {
     let subscriptionTopicFilters: [String]
     let responsePaths: [ResponsePath]
     let topic: String
@@ -196,10 +198,8 @@ public struct StreamingOperationOptions: CStruct {
     
 }
 
-/**
- * A streaming operation is automatically closed (and an MQTT unsubscribe triggered) when its
- * destructor is invoked.
- */
+ /// A streaming operation is automatically closed (and an MQTT unsubscribe triggered) when its
+ /// destructor is invoked.
 public class StreamingOperation {
     fileprivate var rawValue: OpaquePointer? // <aws_mqtt_rr_client_operation>?
 
@@ -218,7 +218,6 @@ public class StreamingOperation {
     }
 }
 
-// TODO: Choose a proper default value for client options
 // We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
 // so mark it unchecked Sendable
 /// Request-response client configuration options
@@ -287,7 +286,10 @@ private func MqttRROperationCompletionCallback(topic: UnsafePointer<aws_byte_cur
     assertionFailure("MqttRROperationCompletionCallback: The topic and paylaod should be set if operation succeed")
 }
 
-internal class MqttRequestResponseClientCore {
+// IMPORTANT: You are responsible for concurrency correctness of MqttRequestResponseClientCore.
+// The rawValue is only modified in `close()` function, and the `close()` function is only called 
+// in MqttRequestResponseClient destructor, in which case there should be no other operations in progress. Therefore, the MqttRequestResponseClientCore should be thread safe.
+internal class MqttRequestResponseClientCore: @unchecked Sendable {
     fileprivate var rawValue: OpaquePointer? // aws_mqtt_request_response_client
     
     internal init(mqttClient: Mqtt5Client, options: MqttRequestResponseClientOptions) throws {
