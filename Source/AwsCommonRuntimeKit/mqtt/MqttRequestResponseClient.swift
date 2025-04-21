@@ -354,9 +354,8 @@ public class MqttRequestResponseClient {
     /// - Returns:return a new MqttRequestResponseClient if success
     ///
     /// - Throws: CommonRuntimeError.crtError if creation failed
-    public static func newFromMqtt5Client(
-        mqtt5Client: Mqtt5Client,
-        options: MqttRequestResponseClientOptions? = nil) throws -> MqttRequestResponseClient {
+    public static func newFromMqtt5Client(mqtt5Client: Mqtt5Client,
+                                          options: MqttRequestResponseClientOptions? = nil) throws -> MqttRequestResponseClient {
             return try MqttRequestResponseClient(mqttClient: mqtt5Client, options: options ?? MqttRequestResponseClientOptions())
     }
     
