@@ -136,7 +136,11 @@ public struct RequestResponseOperationOptions: CStructWithUserData, Sendable {
     let payload: Data
     let correlationToken: String?
     
-    public init(subscriptionTopicFilters: [String], responsePaths: [ResponsePath], topic: String, payload: Data, correlationToken: String?) {
+    public init(subscriptionTopicFilters: [String],
+                responsePaths: [ResponsePath],
+                topic: String,
+                payload: Data,
+                correlationToken: String?) {
         self.subscriptionTopicFilters = subscriptionTopicFilters
         self.responsePaths = responsePaths
         self.topic = topic
@@ -146,7 +150,7 @@ public struct RequestResponseOperationOptions: CStructWithUserData, Sendable {
     
     func validateConversionToNative() throws {
     }
-    
+
     typealias RawType = aws_mqtt_request_operation_options
     func withCStruct<Result>(userData: UnsafeMutableRawPointer?, _ body: (RawType) -> Result) -> Result {
         var raw_options = aws_mqtt_request_operation_options()
@@ -177,7 +181,7 @@ public struct RequestResponseOperationOptions: CStructWithUserData, Sendable {
 }
 
 /// Configuration options for streaming operations
-public struct StreamingOperationOptions: CStruct {
+public struct StreamingOperationOptions: CStruct, Sendable {
     let subscriptionStatusEventHandler: SubscriptionStatusEventHandler
     let incomingPublishEventHandler: IncomingPublishEventHandler
     let topicFilter: String
@@ -268,7 +272,10 @@ internal func MqttRRClientTerminationCallback(_ userData: UnsafeMutableRawPointe
     _ = Unmanaged<MqttRequestResponseClientCore>.fromOpaque(userData!).takeRetainedValue()
 }
 
-private func MqttRROperationCompletionCallback(topic: UnsafePointer<aws_byte_cursor>?, payload: UnsafePointer<aws_byte_cursor>?, errorCode: Int32, userData: UnsafeMutableRawPointer?) {
+private func MqttRROperationCompletionCallback(topic: UnsafePointer<aws_byte_cursor>?,
+                                               payload: UnsafePointer<aws_byte_cursor>?,
+                                               errorCode: Int32,
+                                               userData: UnsafeMutableRawPointer?) {
     guard let userData else {
         return
     }
@@ -286,9 +293,10 @@ private func MqttRROperationCompletionCallback(topic: UnsafePointer<aws_byte_cur
     assertionFailure("MqttRROperationCompletionCallback: The topic and paylaod should be set if operation succeed")
 }
 
-// IMPORTANT: You are responsible for concurrency correctness of MqttRequestResponseClientCore.
-// The rawValue is only modified in `close()` function, and the `close()` function is only called 
-// in MqttRequestResponseClient destructor, in which case there should be no other operations in progress. Therefore, the MqttRequestResponseClientCore should be thread safe.
+// IMPORTANT: You are responsible for ensuring the concurrency correctness of MqttRequestResponseClientCore.
+// The rawValue is only modified within the close() function, which is exclusively called in the MqttRequestResponseClient destructor.
+// At that point, no other operations should be in progress. Therefore, under this usage model, MqttRequestResponseClientCore is
+// expected to be thread-safe.
 internal class MqttRequestResponseClientCore: @unchecked Sendable {
     fileprivate var rawValue: OpaquePointer? // aws_mqtt_request_response_client
     
