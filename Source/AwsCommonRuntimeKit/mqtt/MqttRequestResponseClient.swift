@@ -227,13 +227,13 @@ public class MqttRequestResponseClientOptions: CStructWithUserData, @unchecked S
     /// Maximum number of subscriptions that the client will concurrently use for request-response operations. Default to 3.
     public let maxRequestResponseSubscription: Int
     
-    /// Maximum number of subscriptions that the client will concurrently use for streaming operations Default to 0.
+    /// Maximum number of subscriptions that the client will concurrently use for streaming operations Default to 2.
     public let maxStreamingSubscription: Int
     
-    /// Duration, in seconds, that a request-response operation will wait for completion before giving up. Default to 5 seconds.
+    /// Duration, in seconds, that a request-response operation will wait for completion before giving up. Default to 60 seconds.
     public let operationTimeout: TimeInterval
     
-    public init(maxRequestResponseSubscription: Int = 3, maxStreamingSubscription: Int = 2, operationTimeout: TimeInterval = 5) {
+    public init(maxRequestResponseSubscription: Int = 3, maxStreamingSubscription: Int = 2, operationTimeout: TimeInterval = 60) {
         self.maxStreamingSubscription = maxStreamingSubscription
         self.maxRequestResponseSubscription = maxRequestResponseSubscription
         self.operationTimeout = operationTimeout
