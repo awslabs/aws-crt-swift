@@ -228,8 +228,11 @@ public struct StreamingOperationOptions: CStructWithUserData, Sendable {
 
 internal class StreamingOperationCore {
     fileprivate var rawValue: OpaquePointer? // <aws_mqtt_rr_client_operation>?
-
+    fileprivate let rwlock = ReadWriteLock()
+    fileprivate let options: StreamingOperationOptions
+    
     internal init (streamOptions: StreamingOperationOptions, client: MqttRequestResponseClientCore) throws {
+        self.options = streamOptions
         let rawValue = streamOptions.withCPointer(userData: Unmanaged<StreamingOperationCore>.passRetained(self).toOpaque()) { optionsPointer in
             return aws_mqtt_request_response_client_create_streaming_operation(client.rawValue, optionsPointer)
         }
@@ -241,12 +244,19 @@ internal class StreamingOperationCore {
     
     /// Opens a streaming operation by making the appropriate MQTT subscription with the broker.
     internal func open() {
-        // TODO: open the stream
+        rwlock.read {
+            if let rawValue = self.rawValue {
+                aws_mqtt_rr_client_operation_activate(self.rawValue)
+            }
+        }
     }
     
     /// Closes the operation
     internal func close() {
-        aws_mqtt_rr_client_operation_release(self.rawValue)
+        rwlock.write {
+            aws_mqtt_rr_client_operation_release(self.rawValue)
+            self.rawValue = nil
+        }
     }
 }
 
@@ -254,7 +264,7 @@ internal class StreamingOperationCore {
 public class StreamingOperation {
     fileprivate var operationCore: StreamingOperationCore
     
-    /// The end user should create the operation through MqttRequestResponseClient->createStream()
+    /// The end user should init the operation through MqttRequestResponseClient->createStream()
     fileprivate init(operationCore: StreamingOperationCore) {
         self.operationCore = operationCore
     }
