@@ -16,6 +16,11 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         var correlationToken: String?
         var payload: Data?
         
+        // rr events expectations
+        var subscriptionStatusSuccessExpectation: XCTestExpectation
+        var onSubscriptionStatusUpdate : SubscriptionStatusEventHandler?
+        
+        
         // protocol client context
         var publishReceivedExpectation: XCTestExpectation
         var publishTargetReachedExpectation: XCTestExpectation
@@ -31,11 +36,11 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         var onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
         var onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
         var onWebSocketHandshake: OnWebSocketHandshakeIntercept?
-
         
         init(contextName : String = "MqttClient"){
             self.contextName = contextName
             
+            self.subscriptionStatusSuccessExpectation = XCTestExpectation(description: "Expect streaming operation publish status success.")
             self.publishReceivedExpectation = XCTestExpectation(description: "Expect publish received.")
             self.publishTargetReachedExpectation = XCTestExpectation(description: "Expect publish target reached")
             self.connectionSuccessExpectation = XCTestExpectation(description: "Expect connection Success")
@@ -43,6 +48,12 @@ class Mqtt5RRClientTests: XCBaseTestCase {
             self.disconnectionExpectation = XCTestExpectation(description: "Expect disconnect")
             self.stoppedExpecation = XCTestExpectation(description: "Expect stopped")
             
+            self.onSubscriptionStatusUpdate = { [self] statusEvent in
+                print(contextName + "MqttRRClientTests: onSubscriptionStatusUpdate. EventType: \(statusEvent.event) ErrorCode:\( statusEvent.error!.code)")
+                if statusEvent.event == SubscriptionStatusEventType.established {
+                    self.subscriptionStatusSuccessExpectation.fulfill()
+                }
+            }
             
             self.onPublishReceived = { [self] publishData in
                 if let payloadString = publishData.publishPacket.payloadAsString() {
@@ -314,8 +325,15 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         testContext.cleanup()
     }
 
-    func MqttRequestResponse_ShadowUpdatedStreamOpenCloseSuccess() throws {
+    func testMqttRequestResponse_ShadowUpdatedStreamOpenCloseSuccess() async throws {
+        let testContext = MqttRRTestContext()
+        let rrClient = try await setupRequestResponseClient(testContext: testContext)
+        let streamingOperation = try rrClient.createStream(streamOptions: StreamingOperationOptions(topicFilter: "test/topic",
+                                                                                                    subscriptionStatusCallback: testContext.onSubscriptionStatusUpdate))
         
+        streamingOperation.open()
+        
+        await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
     }
 
     func MqttRequestResponse_ShadowUpdatedStreamClientClosed() throws {

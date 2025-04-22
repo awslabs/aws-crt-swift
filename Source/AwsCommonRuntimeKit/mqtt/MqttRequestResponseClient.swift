@@ -195,7 +195,19 @@ internal func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent: Un
 internal func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aws_rr_streaming_subscription_event_type,
                                                                  _ errorCode: Int32,
                                                                  _ userData: UnsafeMutableRawPointer?) {
-    // TODO: finish subscription status update handler callback
+    guard let userData else {
+        // No userData, directly return
+        return
+    }
+    let operationCore = Unmanaged<StreamingOperationCore>.fromOpaque(userData).takeUnretainedValue()
+    operationCore.rwlock.read {
+        // Only invoke the callback if the streaming operation is not closed.
+        if let rawValue = operationCore.rawValue, let callback = operationCore.options.subscriptionStatusEventHandler {
+            let subStatusEvent = SubscriptionStatusEvent(event: SubscriptionStatusEventType(eventType),
+                                                         error: CRTError(code: Int32(errorCode)))
+            callback(subStatusEvent)
+        }
+    }
 }
 
 /// Configuration options for streaming operations
@@ -226,7 +238,9 @@ public struct StreamingOperationOptions: CStructWithUserData, Sendable {
     }
 }
 
-internal class StreamingOperationCore {
+// IMPORTANT: You are responsible for concurrency correctness of StreamingOperationCore.
+// The rawValue is mutable cross threads and protected by the rwlock.
+internal class StreamingOperationCore: @unchecked Sendable {
     fileprivate var rawValue: OpaquePointer? // <aws_mqtt_rr_client_operation>?
     fileprivate let rwlock = ReadWriteLock()
     fileprivate let options: StreamingOperationOptions
@@ -246,7 +260,7 @@ internal class StreamingOperationCore {
     internal func open() {
         rwlock.read {
             if let rawValue = self.rawValue {
-                aws_mqtt_rr_client_operation_activate(self.rawValue)
+                aws_mqtt_rr_client_operation_activate(rawValue)
             }
         }
     }
