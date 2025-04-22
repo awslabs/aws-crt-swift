@@ -15,9 +15,11 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         var responsePaths: [ResponsePath]?
         var correlationToken: String?
         var payload: Data?
+        var subscriptionStatusEvent: SubscriptionStatusEvent?
         
         // rr events expectations
         var subscriptionStatusSuccessExpectation: XCTestExpectation
+        var subscriptionStatusErrorExpectation: XCTestExpectation
         var onSubscriptionStatusUpdate : SubscriptionStatusEventHandler?
         
         
@@ -41,6 +43,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
             self.contextName = contextName
             
             self.subscriptionStatusSuccessExpectation = XCTestExpectation(description: "Expect streaming operation publish status success.")
+            self.subscriptionStatusErrorExpectation = XCTestExpectation(description: "Expect streaming operation publish status error.")
             self.publishReceivedExpectation = XCTestExpectation(description: "Expect publish received.")
             self.publishTargetReachedExpectation = XCTestExpectation(description: "Expect publish target reached")
             self.connectionSuccessExpectation = XCTestExpectation(description: "Expect connection Success")
@@ -50,8 +53,12 @@ class Mqtt5RRClientTests: XCBaseTestCase {
             
             self.onSubscriptionStatusUpdate = { [self] statusEvent in
                 print(contextName + "MqttRRClientTests: onSubscriptionStatusUpdate. EventType: \(statusEvent.event) ErrorCode:\( statusEvent.error!.code)")
+                self.subscriptionStatusEvent = statusEvent
                 if statusEvent.event == SubscriptionStatusEventType.established {
                     self.subscriptionStatusSuccessExpectation.fulfill()
+                }else
+                {
+                    self.subscriptionStatusErrorExpectation.fulfill()
                 }
             }
             
@@ -336,8 +343,24 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
     }
 
-    func MqttRequestResponse_ShadowUpdatedStreamClientClosed() throws {
+    func testMqttRequestResponse_ShadowUpdatedStreamClientClosed() async throws {
+        let testContext = MqttRRTestContext()
+        var rrClient : MqttRequestResponseClient? = try await setupRequestResponseClient(testContext: testContext)
+        XCTAssertNotNil(rrClient)
+        let streamingOperation = try rrClient!.createStream(streamOptions: StreamingOperationOptions(topicFilter: "test/topic",
+                                                                                                    subscriptionStatusCallback: testContext.onSubscriptionStatusUpdate))
         
+        // open the operation successfully
+        streamingOperation.open()
+        await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
+        
+        // destory the request response client
+        rrClient = nil
+        
+        await awaitExpectation([testContext.subscriptionStatusErrorExpectation], 60)
+        XCTAssertEqual(testContext.subscriptionStatusEvent?.event, SubscriptionStatusEventType.halted)
+        XCTAssertEqual(testContext.subscriptionStatusEvent?.error?.code,
+                       Int32(AWS_ERROR_MQTT_REQUEST_RESPONSE_CLIENT_SHUT_DOWN.rawValue))
     }
 
     func MqttRequestResponse_ShadowUpdatedStreamIncomingPublishSuccess() throws {
