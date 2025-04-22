@@ -180,45 +180,92 @@ public struct RequestResponseOperationOptions: CStructWithUserData, Sendable {
     }
 }
 
+internal func MqttRRStreamingOperationTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
+    // Termination callback. This is triggered when the native object is terminated.
+    // It is safe to release the native operation at this point. `takeRetainedValue()` would release 
+    // the operation reference. ONLY DO IT AFTER YOU NEED RELEASE THE OBJECT
+    _ = Unmanaged<StreamingOperationCore>.fromOpaque(userData!).takeRetainedValue()
+}
+
+internal func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent: UnsafePointer<aws_mqtt_request_response_publish_event>?,
+                                                              _ userData: UnsafeMutableRawPointer?) {
+    // TODO: finish incoming publish handler
+}
+
+internal func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aws_rr_streaming_subscription_event_type,
+                                                                 _ errorCode: Int32,
+                                                                 _ userData: UnsafeMutableRawPointer?) {
+    // TODO: finish subscription status update handler callback
+}
+
 /// Configuration options for streaming operations
-public struct StreamingOperationOptions: CStruct, Sendable {
-    let subscriptionStatusEventHandler: SubscriptionStatusEventHandler
-    let incomingPublishEventHandler: IncomingPublishEventHandler
+public struct StreamingOperationOptions: CStructWithUserData, Sendable {
+    let subscriptionStatusEventHandler: SubscriptionStatusEventHandler?
+    let incomingPublishEventHandler: IncomingPublishEventHandler?
     let topicFilter: String
 
-    public init () {
-        // TODO: INIT THE MEMBERS
-        self.subscriptionStatusEventHandler = {_ in return;}
-        self.incomingPublishEventHandler = {_ in return;}
-        self.topicFilter = ""
+    public init (topicFilter: String,
+                 subscriptionStatusCallback: SubscriptionStatusEventHandler? = nil,
+                 incomingPublishCallback: IncomingPublishEventHandler? = nil) {
+        self.subscriptionStatusEventHandler = subscriptionStatusCallback
+        self.incomingPublishEventHandler = incomingPublishCallback
+        self.topicFilter = topicFilter
     }
 
     typealias RawType = aws_mqtt_streaming_operation_options
-    func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
-        // TODO: convert into aws_mqtt_request_operation_options
-        let options = aws_mqtt_streaming_operation_options()
-        return body(options)
+    func withCStruct<Result>(userData: UnsafeMutableRawPointer?, _ body: (aws_mqtt_streaming_operation_options) -> Result) -> Result {
+        var options = aws_mqtt_streaming_operation_options()
+        options.incoming_publish_callback = MqttRRStreamingOperationIncomingPublishCallback
+        options.subscription_status_callback = MqttRRStreamingOperationSubscriptionStatusCallback
+        options.terminated_callback = MqttRRStreamingOperationTerminationCallback
+        return withByteCursorFromStrings(self.topicFilter) { topicFilterCursor in
+            options.topic_filter = topicFilterCursor
+            options.user_data = userData
+            return body(options)
+        }
     }
-    
 }
 
- /// A streaming operation is automatically closed (and an MQTT unsubscribe triggered) when its
- /// destructor is invoked.
-public class StreamingOperation {
+internal class StreamingOperationCore {
     fileprivate var rawValue: OpaquePointer? // <aws_mqtt_rr_client_operation>?
 
-    public init () {
-        // TODO: INIT THE MEMBERS
-        self.rawValue = nil
+    internal init (streamOptions: StreamingOperationOptions, client: MqttRequestResponseClientCore) throws {
+        let rawValue = streamOptions.withCPointer(userData: Unmanaged<StreamingOperationCore>.passRetained(self).toOpaque()) { optionsPointer in
+            return aws_mqtt_request_response_client_create_streaming_operation(client.rawValue, optionsPointer)
+        }
+        guard let rawValue else {
+            throw CommonRunTimeError.crtError(CRTError(code: aws_last_error()))
+        }
+        self.rawValue = rawValue
+    }
+    
+    /// Opens a streaming operation by making the appropriate MQTT subscription with the broker.
+    internal func open() {
+        // TODO: open the stream
+    }
+    
+    /// Closes the operation
+    internal func close() {
+        aws_mqtt_rr_client_operation_release(self.rawValue)
+    }
+}
+
+/// A streaming operation is automatically closed (and an MQTT unsubscribe triggered) when its destructor is invoked.
+public class StreamingOperation {
+    fileprivate var operationCore: StreamingOperationCore
+    
+    /// The end user should create the operation through MqttRequestResponseClient->createStream()
+    fileprivate init(operationCore: StreamingOperationCore) {
+        self.operationCore = operationCore
     }
     
     /// Opens a streaming operation by making the appropriate MQTT subscription with the broker.
     public func open() {
-        // TODO: open the stream
+        self.operationCore.open()
     }
-
+    
     deinit{
-        // TODO: close the oepration
+        self.operationCore.close()
     }
 }
 
@@ -331,8 +378,8 @@ internal class MqttRequestResponseClientCore: @unchecked Sendable {
     
     /// create a stream operation, throws CRTError if the creation failed. You would need call open() on the operation to start the stream
     public func createStream(streamOptions: StreamingOperationOptions) throws -> StreamingOperation {
-        // TODO: create streamming operation
-        return StreamingOperation()
+        let operationCore = try StreamingOperationCore(streamOptions: streamOptions, client: self)
+        return StreamingOperation(operationCore: operationCore)
     }
     
     /// release the request response client. You must not use the client after call `close()`.
