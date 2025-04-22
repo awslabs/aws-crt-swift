@@ -8,8 +8,8 @@ import AwsCMqtt
 
 class Mqtt5RRClientTests: XCBaseTestCase {
     
-    class MqttRRTestContext {
-        var contextName: String
+    class MqttRRTestContext : @unchecked Sendable {
+        let contextName: String
 
         // rr client context
         var responsePaths: [ResponsePath]?
