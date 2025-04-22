@@ -158,7 +158,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     // setup rr client
     func setupRequestResponseClient(testContext: MqttRRTestContext) async throws -> MqttRequestResponseClient {
         let mqtt5Client = try createMqtt5Client(testContext: testContext)
-        let rrClient = try MqttRequestResponseClient.newFromMqtt5Client(mqtt5Client: mqtt5Client)
+        let rrClient = try MqttRequestResponseClient.newFromMqtt5Client(mqtt5Client: mqtt5Client, options: MqttRequestResponseClientOptions(operationTimeout: 10))
 
         // start the client
         try await startClient(client: mqtt5Client, testContext: testContext)
