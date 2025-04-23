@@ -347,11 +347,12 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         let testContext = MqttRRTestContext()
         var rrClient : MqttRequestResponseClient? = try await setupRequestResponseClient(testContext: testContext)
         XCTAssertNotNil(rrClient)
-        let streamingOperation = try rrClient!.createStream(streamOptions: StreamingOperationOptions(topicFilter: "test/topic",
+        var streamingOperation : StreamingOperation? = try rrClient!.createStream(streamOptions: StreamingOperationOptions(topicFilter: "test/topic",
                                                                                                     subscriptionStatusCallback: testContext.onSubscriptionStatusUpdate))
         
+        XCTAssertNotNil(streamingOperation)
         // open the operation successfully
-        streamingOperation.open()
+        streamingOperation!.open()
         await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
         
         // destory the request response client
@@ -361,6 +362,8 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         XCTAssertEqual(testContext.subscriptionStatusEvent?.event, SubscriptionStatusEventType.halted)
         XCTAssertEqual(testContext.subscriptionStatusEvent?.error?.code,
                        Int32(AWS_ERROR_MQTT_REQUEST_RESPONSE_CLIENT_SHUT_DOWN.rawValue))
+        // TODO: this should be removed. release operation before we exit the test
+        streamingOperation = nil
     }
 
     func MqttRequestResponse_ShadowUpdatedStreamIncomingPublishSuccess() throws {
