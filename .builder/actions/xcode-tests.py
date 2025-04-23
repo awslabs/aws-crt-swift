@@ -9,7 +9,8 @@ class XCodeTests(Builder.Action):
             'xcodebuild',
             '-scheme',
             'aws-crt-swift-Package',
-            '-enableThreadSanitizer YES',
+            '-enableThreadSanitizer',
+            'YES',
             'test',
             '-destination',
             "platform={}".format(destination)
