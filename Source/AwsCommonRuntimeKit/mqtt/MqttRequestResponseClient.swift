@@ -260,7 +260,7 @@ internal class StreamingOperationCore: @unchecked Sendable {
     /// Opens a streaming operation by making the appropriate MQTT subscription with the broker.
     internal func open() {
         pthread_rwlock_wrlock(&self.rwlock)
-        defer{ pthread_rwlock_unlock(&self.rwlock)}
+        defer { pthread_rwlock_unlock(&self.rwlock)}
             if let rawValue = self.rawValue {
                 aws_mqtt_rr_client_operation_activate(rawValue)
             }
@@ -269,15 +269,15 @@ internal class StreamingOperationCore: @unchecked Sendable {
     /// Closes the operation
     internal func close() {
         pthread_rwlock_rdlock(&self.rwlock)
-        defer{ pthread_rwlock_unlock(&self.rwlock)}
+        defer { pthread_rwlock_unlock(&self.rwlock)}
             aws_mqtt_rr_client_operation_release(self.rawValue)
             self.rawValue = nil
     }
 }
 
 /// A streaming operation is automatically closed (and an MQTT unsubscribe triggered) when its destructor is invoked.
-public class StreamingOperation {
-    fileprivate var operationCore: StreamingOperationCore
+public class StreamingOperation: Sendable {
+    fileprivate let operationCore: StreamingOperationCore
     
     /// The end user should init the operation through MqttRequestResponseClient->createStream()
     fileprivate init(operationCore: StreamingOperationCore) {
