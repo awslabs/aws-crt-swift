@@ -9,6 +9,12 @@ class XCodeTests(Builder.Action):
             'xcodebuild',
             '-scheme',
             'aws-crt-swift-Package',
+            '-enableThreadSanitizer',
+            'YES',
+            '-enableAddressSanitizer',
+            'YES',
+            '-enableUndefinedBehaviorSanitizer',
+            'YES',
             'test',
             '-destination',
             "platform={}".format(destination)
