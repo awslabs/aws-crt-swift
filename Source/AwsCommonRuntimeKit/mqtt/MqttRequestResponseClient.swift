@@ -276,7 +276,7 @@ internal class StreamingOperationCore: @unchecked Sendable {
 }
 
 /// A streaming operation is automatically closed (and an MQTT unsubscribe triggered) when its destructor is invoked.
-public class StreamingOperation: Sendable {
+public class StreamingOperation: @unchecked Sendable {
     fileprivate let operationCore: StreamingOperationCore
     
     /// The end user should init the operation through MqttRequestResponseClient->createStream()
