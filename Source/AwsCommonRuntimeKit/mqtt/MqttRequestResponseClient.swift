@@ -200,13 +200,13 @@ internal func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aw
         return
     }
     let operationCore = Unmanaged<StreamingOperationCore>.fromOpaque(userData).takeUnretainedValue()
-    operationCore.rwlock.read {
-        // Only invoke the callback if the streaming operation is not closed.
-        if let _ = operationCore.rawValue, let callback = operationCore.options.subscriptionStatusEventHandler {
-            let subStatusEvent = SubscriptionStatusEvent(event: SubscriptionStatusEventType(eventType),
-                                                         error: CRTError(code: Int32(errorCode)))
-            callback(subStatusEvent)
-        }
+    pthread_rwlock_rdlock(&operationCore.rwlock)
+    defer { pthread_rwlock_unlock(&operationCore.rwlock) }
+    // Only invoke the callback if the streaming operation is not closed.
+    if let _ = operationCore.rawValue, let callback = operationCore.options.subscriptionStatusEventHandler {
+        let subStatusEvent = SubscriptionStatusEvent(event: SubscriptionStatusEventType(eventType),
+                                                     error: CRTError(code: Int32(errorCode)))
+        callback(subStatusEvent)
     }
 }
 
@@ -242,7 +242,7 @@ public struct StreamingOperationOptions: CStructWithUserData, Sendable {
 // The rawValue is mutable cross threads and protected by the rwlock.
 internal class StreamingOperationCore: @unchecked Sendable {
     fileprivate var rawValue: OpaquePointer? // <aws_mqtt_rr_client_operation>?
-    fileprivate let rwlock = ReadWriteLock()
+    fileprivate var rwlock = pthread_rwlock_t()
     fileprivate let options: StreamingOperationOptions
     
     internal init (streamOptions: StreamingOperationOptions, client: MqttRequestResponseClientCore) throws {
@@ -253,24 +253,25 @@ internal class StreamingOperationCore: @unchecked Sendable {
         guard let rawValue else {
             throw CommonRunTimeError.crtError(CRTError(code: aws_last_error()))
         }
+        pthread_rwlock_init(&self.rwlock, nil)
         self.rawValue = rawValue
     }
     
     /// Opens a streaming operation by making the appropriate MQTT subscription with the broker.
     internal func open() {
-        rwlock.read {
+        pthread_rwlock_wrlock(&self.rwlock)
+        defer{ pthread_rwlock_unlock(&self.rwlock)}
             if let rawValue = self.rawValue {
                 aws_mqtt_rr_client_operation_activate(rawValue)
             }
-        }
     }
     
     /// Closes the operation
     internal func close() {
-        rwlock.write {
+        pthread_rwlock_rdlock(&self.rwlock)
+        defer{ pthread_rwlock_unlock(&self.rwlock)}
             aws_mqtt_rr_client_operation_release(self.rawValue)
             self.rawValue = nil
-        }
     }
 }
 
