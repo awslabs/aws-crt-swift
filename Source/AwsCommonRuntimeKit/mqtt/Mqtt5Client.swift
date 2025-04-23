@@ -215,7 +215,7 @@ public final class Mqtt5Client: Sendable {
 internal class Mqtt5ClientCore: @unchecked Sendable {
     // the rawValue is marked as internal to allow rr client to access it
     internal var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
-    fileprivate let rwlock = ReadWriteLock()
+    fileprivate var rwlock = pthread_rwlock_t()
 
     ///////////////////////////////////////
     // user callbacks
@@ -255,6 +255,7 @@ internal class Mqtt5ClientCore: @unchecked Sendable {
             Unmanaged<Mqtt5ClientCore>.passUnretained(self).release()
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
+        pthread_rwlock_init(&rwlock, nil)
         self.rawValue = rawValue
     }
 
@@ -264,16 +265,16 @@ internal class Mqtt5ClientCore: @unchecked Sendable {
     ///
     /// - Throws: CommonRuntimeError.crtError
     public func start() throws {
-        try self.rwlock.read {
-            // Validate close() has not been called on client.
-            guard let rawValue = self.rawValue else {
-                throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_MQTT_CLIENT_CLOSED.rawValue))
-            }
-            let errorCode = aws_mqtt5_client_start(rawValue)
+        pthread_rwlock_wrlock(&self.rwlock)
+        defer { pthread_rwlock_unlock(&self.rwlock) }
+        // Validate close() has not been called on client.
+        guard let rawValue = self.rawValue else {
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_MQTT_CLIENT_CLOSED.rawValue))
+        }
+        let errorCode = aws_mqtt5_client_start(rawValue)
 
-            if errorCode != AWS_OP_SUCCESS {
-                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
-            }
+        if errorCode != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
 
@@ -286,27 +287,27 @@ internal class Mqtt5ClientCore: @unchecked Sendable {
     ///
     /// - Throws: CommonRuntimeError.crtError
     public func stop(disconnectPacket: DisconnectPacket? = nil) throws {
-        try self.rwlock.read {
-            // Validate close() has not been called on client.
-            guard let rawValue = self.rawValue else {
-                throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_MQTT_CLIENT_CLOSED.rawValue))
+        pthread_rwlock_rdlock(&rwlock)
+        defer { pthread_rwlock_unlock(&rwlock) }
+        // Validate close() has not been called on client.
+        guard let rawValue = self.rawValue else {
+            throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_MQTT_CLIENT_CLOSED.rawValue))
+        }
+
+        var errorCode: Int32 = 0
+
+        if let disconnectPacket {
+            try disconnectPacket.validateConversionToNative()
+
+            disconnectPacket.withCPointer { disconnectPointer in
+                errorCode = aws_mqtt5_client_stop(rawValue, disconnectPointer, nil)
             }
+        } else {
+            errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
+        }
 
-            var errorCode: Int32 = 0
-
-            if let disconnectPacket {
-                try disconnectPacket.validateConversionToNative()
-
-                disconnectPacket.withCPointer { disconnectPointer in
-                    errorCode = aws_mqtt5_client_stop(rawValue, disconnectPointer, nil)
-                }
-            } else {
-                errorCode = aws_mqtt5_client_stop(rawValue, nil, nil)
-            }
-
-            if errorCode != AWS_OP_SUCCESS {
-                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
-            }
+        if errorCode != AWS_OP_SUCCESS {
+            throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
         }
     }
 
@@ -327,7 +328,8 @@ internal class Mqtt5ClientCore: @unchecked Sendable {
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = subscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-                self.rwlock.read {
+                pthread_rwlock_rdlock(&rwlock)
+                defer { pthread_rwlock_unlock(&rwlock) }
                     // Validate close() has not been called on client.
                     guard let rawValue = self.rawValue else {
                         continuationCore.release()
@@ -340,7 +342,6 @@ internal class Mqtt5ClientCore: @unchecked Sendable {
                         return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                     }
                 }
-            }
         }
     }
 
@@ -365,7 +366,8 @@ internal class Mqtt5ClientCore: @unchecked Sendable {
                 callbackOptions.completion_callback = publishCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
 
-                self.rwlock.read {
+                pthread_rwlock_rdlock(&rwlock)
+                defer { pthread_rwlock_unlock(&rwlock) }
                     // Validate close() has not been called on client.
                     guard let rawValue = self.rawValue else {
                         continuationCore.release()
@@ -379,7 +381,6 @@ internal class Mqtt5ClientCore: @unchecked Sendable {
                         return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                     }
                 }
-            }
         }
     }
 
@@ -400,18 +401,18 @@ internal class Mqtt5ClientCore: @unchecked Sendable {
                 let continuationCore = ContinuationCore(continuation: continuation)
                 callbackOptions.completion_callback = unsubscribeCompletionCallback
                 callbackOptions.completion_user_data = continuationCore.passRetained()
-                self.rwlock.read {
-                    // Validate close() has not been called on client.
-                    guard let rawValue = self.rawValue else {
-                        continuationCore.release()
-                        return continuation.resume(throwing: CommonRunTimeError.crtError(
-                            CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue, context: "Mqtt client is closed.")))
-                    }
-                    let result = aws_mqtt5_client_unsubscribe(rawValue, unsubscribePacketPointer, &callbackOptions)
-                    guard result == AWS_OP_SUCCESS else {
-                        continuationCore.release()
-                        return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
-                    }
+                pthread_rwlock_rdlock(&rwlock)
+                defer { pthread_rwlock_unlock(&rwlock) }
+                // Validate close() has not been called on client.
+                guard let rawValue = self.rawValue else {
+                    continuationCore.release()
+                    return continuation.resume(throwing: CommonRunTimeError.crtError(
+                        CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue, context: "Mqtt client is closed.")))
+                }
+                let result = aws_mqtt5_client_unsubscribe(rawValue, unsubscribePacketPointer, &callbackOptions)
+                guard result == AWS_OP_SUCCESS else {
+                    continuationCore.release()
+                    return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
                 }
             }
         }
@@ -419,12 +420,16 @@ internal class Mqtt5ClientCore: @unchecked Sendable {
 
     /// Discard all operations and cleanup the client. It is MANDATORY function to call to release the client core.
     public func close() {
-        self.rwlock.write {
-            if let rawValue = self.rawValue {
-                aws_mqtt5_client_release(rawValue)
-                self.rawValue = nil
-            }
+        pthread_rwlock_wrlock(&self.rwlock)
+        defer { pthread_rwlock_unlock(&self.rwlock) }
+        if let rawValue = self.rawValue {
+            aws_mqtt5_client_release(rawValue)
+            self.rawValue = nil
         }
+    }
+    
+    deinit{
+        pthread_rwlock_destroy(&self.rwlock)
     }
 
 }
@@ -440,7 +445,8 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
     let crtError = CRTError(code: lifecycleEvent.pointee.error_code)
 
     // validate the callback flag, if flag is false, return
-    clientCore.rwlock.read {
+    pthread_rwlock_rdlock(&clientCore.rwlock)
+    defer { pthread_rwlock_unlock(&clientCore.rwlock) }
         if clientCore.rawValue == nil { return }
 
         switch lifecycleEvent.pointee.event_type {
@@ -501,7 +507,6 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
         default:
             fatalError("A lifecycle event with an invalid event type was encountered.")
         }
-    }
 }
 
 internal func MqttClientHandlePublishRecieved(
@@ -510,7 +515,8 @@ internal func MqttClientHandlePublishRecieved(
     let clientCore = Unmanaged<Mqtt5ClientCore>.fromOpaque(user_data!).takeUnretainedValue()
 
     // validate the callback flag, if flag is false, return
-    clientCore.rwlock.read {
+        pthread_rwlock_rdlock(&clientCore.rwlock)
+        defer { pthread_rwlock_unlock(&clientCore.rwlock) }
         if clientCore.rawValue == nil { return }
         if let publish {
             let publishPacket = PublishPacket(publish)
@@ -521,7 +527,6 @@ internal func MqttClientHandlePublishRecieved(
         } else {
             fatalError("MqttClientHandlePublishRecieved called with null publish")
         }
-    }
 }
 
 internal func MqttClientWebsocketTransform(
@@ -534,7 +539,8 @@ internal func MqttClientWebsocketTransform(
     let clientCore = Unmanaged<Mqtt5ClientCore>.fromOpaque(user_data!).takeUnretainedValue()
 
     // validate the callback flag, if flag is false, return
-    clientCore.rwlock.read {
+        pthread_rwlock_rdlock(&clientCore.rwlock)
+        defer { pthread_rwlock_unlock(&clientCore.rwlock) }
         if clientCore.rawValue == nil { return }
 
         guard let request else {
@@ -550,7 +556,6 @@ internal func MqttClientWebsocketTransform(
                 await clientCore.onWebsocketInterceptor!(httpRequest, signerTransform)
             }
         }
-    }
 }
 
 internal func MqttClientTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
