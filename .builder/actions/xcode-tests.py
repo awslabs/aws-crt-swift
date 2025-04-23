@@ -9,9 +9,9 @@ class XCodeTests(Builder.Action):
             'xcodebuild',
             '-scheme',
             'aws-crt-swift-Package',
+            '-enableThreadSanitizer YES',
             'test',
             '-destination',
-            "platform={}".format(destination),
-            "-enableThreadSanitizer YES"
+            "platform={}".format(destination)
         ]
         env.shell.exec(commands, check=True)
