@@ -244,9 +244,11 @@ internal class StreamingOperationCore: @unchecked Sendable {
     fileprivate var rawValue: OpaquePointer? // <aws_mqtt_rr_client_operation>?
     fileprivate var rwlock = pthread_rwlock_t()
     fileprivate let options: StreamingOperationOptions
+    fileprivate let event_loop: aws_event_loop?
     
     internal init (streamOptions: StreamingOperationOptions, client: MqttRequestResponseClientCore) throws {
         self.options = streamOptions
+        self.event_loop = aws_mqtt_request_response_client_get_event_loop(client.rawValue).pointee
         let rawValue = streamOptions.withCPointer(userData: Unmanaged<StreamingOperationCore>.passRetained(self).toOpaque()) { optionsPointer in
             return aws_mqtt_request_response_client_create_streaming_operation(client.rawValue, optionsPointer)
         }
