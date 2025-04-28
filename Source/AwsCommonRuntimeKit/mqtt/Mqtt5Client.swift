@@ -119,7 +119,7 @@ public typealias OnLifecycleEventConnectionFailure = @Sendable (LifecycleConnect
 public typealias OnLifecycleEventDisconnection = @Sendable (LifecycleDisconnectData) -> Void
 
 /// Callback for users to invoke upon completion of, presumably asynchronous, OnWebSocketHandshakeIntercept callback's initiated process.
-public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32) -> Void
+public typealias OnWebSocketHandshakeInterceptComplete = @Sendable (HTTPRequestBase, Int32) -> Void
 
 /// Invoked during websocket handshake to give users opportunity to transform an http request for purposes
 /// such as signing/authorization etc... Returning from this function does not continue the websocket
