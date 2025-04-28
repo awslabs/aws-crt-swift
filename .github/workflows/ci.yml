@@ -92,8 +92,8 @@ jobs:
         fetch-depth: 0
     - name: Set Swift version to 6
       run: |
-        sed -i '' 's/swift-tools-version:5\.[0-9][0-9]*/swift-tools-version:6\.0/' Package.swift
-        # verify that substitution was successful 
+        sed -i '' 's/swift-tools-version:4\.[0-9][0-9]*/swift-tools-version:6\.0/' Package.swift
+        # Verify that substitution was successful 
         grep -q 'swift-tools-version:6\.0' Package.swift || (echo "No version 5.x found to update" && exit 1)
         cat Package.swift | head -3
     - name: Build ${{ env.PACKAGE_NAME }} + consumers
