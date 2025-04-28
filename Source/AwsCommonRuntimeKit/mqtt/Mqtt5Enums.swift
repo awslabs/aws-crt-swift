@@ -5,7 +5,7 @@ import AwsCMqtt
 
 /// MQTT message delivery quality of service.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901234>`__ encoding values.
-public enum QoS {
+public enum QoS: Sendable {
 
     /// The message is delivered according to the capabilities of the underlying network. No response is sent by the
     /// receiver and no retry is performed by the sender. The message arrives at the receiver either once or not at all.
@@ -47,7 +47,7 @@ extension QoS {
 
 /// Server return code for connect attempts.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901079>`__ encoding values.
-public enum ConnectReasonCode: Int {
+public enum ConnectReasonCode: Int, Sendable {
 
     /// Returned when the connection is accepted.
     case success = 0
@@ -260,7 +260,7 @@ public enum DisconnectReasonCode: Int {
 
 /// Reason code inside PUBACK packets that indicates the result of the associated PUBLISH request.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901124>`__ encoding values.
-public enum PubackReasonCode: Int {
+public enum PubackReasonCode: Int, Sendable {
 
     /// Returned when the (QoS 1) publish was accepted by the recipient.
     /// May be sent by the client or the server.
@@ -304,7 +304,7 @@ public enum PubackReasonCode: Int {
 /// Reason code inside SUBACK packet payloads.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901178>`__ encoding values.
 /// This will only be sent by the server and not the client.
-public enum SubackReasonCode: Int {
+public enum SubackReasonCode: Int, Sendable {
 
     /// Returned when the subscription was accepted and the maximum QoS sent will be QoS 0.
     case grantedQos0 = 0
@@ -350,7 +350,7 @@ public enum SubackReasonCode: Int {
 /// Reason codes inside UNSUBACK packet payloads that specify the results for each topic filter in the associated
 /// UNSUBSCRIBE packet.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901194>`__ encoding values.
-public enum UnsubackReasonCode: Int {
+public enum UnsubackReasonCode: Int, Sendable {
 
     /// Returned when the unsubscribe was successful and the client is no longer subscribed to the topic filter on the server.
     case success = 0
@@ -474,7 +474,7 @@ extension ClientOperationQueueBehaviorType {
 
 /// Optional property describing a PUBLISH payload's format.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901111>`__ encoding values.
-public enum PayloadFormatIndicator {
+public enum PayloadFormatIndicator: Sendable {
 
     /// The payload is arbitrary binary data
     case bytes
@@ -507,7 +507,7 @@ extension PayloadFormatIndicator {
 /// Configures how retained messages should be handled when subscribing with a topic filter that matches topics with
 /// associated retained messages.
 /// Enum values match `MQTT5 spec <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901169>`_ encoding values.
-public enum RetainHandlingType {
+public enum RetainHandlingType: Sendable {
 
     /// The server should always send all retained messages on topics that match a subscription's filter.
     case sendOnSubscribe
