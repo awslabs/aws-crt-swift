@@ -125,7 +125,7 @@ public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32
 /// such as signing/authorization etc... Returning from this function does not continue the websocket
 /// handshake since some work flows may be asynchronous. To accommodate that, onComplete must be invoked upon
 /// completion of the signing process.
-public typealias OnWebSocketHandshakeIntercept = @Sendable (HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete) -> Void
+public typealias OnWebSocketHandshakeIntercept = @Sendable (HTTPRequest, @escaping @Sendable OnWebSocketHandshakeInterceptComplete) -> Void
 
 // MARK: - Mqtt5 Client
 public final class Mqtt5Client: Sendable {
