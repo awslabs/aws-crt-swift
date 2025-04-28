@@ -7,19 +7,6 @@ public enum EndpointProperty: Sendable, Equatable {
     case string(String)
     indirect case array([EndpointProperty])
     indirect case dictionary([String: EndpointProperty])
-
-//    func toAnyHashable() -> AnyHashable {
-//        switch self {
-//        case .bool(let value):
-//            return AnyHashable(value)
-//        case .string(let value):
-//            return AnyHashable(value)
-//        case .array(let value):
-//            return AnyHashable(value.map { $0.toAnyHashable() })
-//        case .dictionary(let value):
-//            return AnyHashable(value.mapValues { $0.toAnyHashable() })
-//        }
-//    }
 }
 
 /// Decodable conformance
@@ -83,18 +70,6 @@ extension EndpointProperty: Decodable {
         }
     }
 }
-
-//extension Dictionary where Key == String, Value == EndpointProperty {
-//    /// Converts EndpointProperty to a dictionary of `String`: `AnyHashable`
-//    /// - Returns: Dictionary of `String`: `AnyHashable`
-//    func toStringHashableDictionary() -> [String: AnyHashable] {
-//        var dict: [String: AnyHashable] = [:]
-//        for (key, value) in self {
-//            dict[key] = value.toAnyHashable()
-//        }
-//        return dict
-//    }
-//}
 
 /// Coding keys for `EndpointProperty`
 struct EndpointPropertyCodingKeys: CodingKey {
