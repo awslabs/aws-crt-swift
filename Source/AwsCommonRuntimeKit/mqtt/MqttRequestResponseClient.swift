@@ -70,6 +70,15 @@ public struct IncomingPublishEvent: Sendable {
     /// The topic associated with this PUBLISH packet.
     let topic: String
     
+    /// The content type of the payload
+    let contentType: Data
+
+    /// User Property
+    let userProperties: [UserProperty]
+    
+    ///
+    let messageExpiryInterval: TimeInterval
+    
     // TODO: More options for IoT Command changes
 }
 

@@ -16,11 +16,14 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         var correlationToken: String?
         var payload: Data?
         var subscriptionStatusEvent: SubscriptionStatusEvent?
+        var rrPublishEvent: IncomingPublishEvent?
         
         // rr events expectations
         var subscriptionStatusSuccessExpectation: XCTestExpectation
         var subscriptionStatusErrorExpectation: XCTestExpectation
+        var incomingPublishExpectation: XCTestExpectation
         var onSubscriptionStatusUpdate : SubscriptionStatusEventHandler?
+        var onRRIncomingPublish : IncomingPublishEventHandler?
         
         
         // protocol client context
@@ -29,7 +32,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         var connectionSuccessExpectation: XCTestExpectation
         var connectionFailureExpectation: XCTestExpectation
         var disconnectionExpectation: XCTestExpectation
-        var stoppedExpecation: XCTestExpectation
+        var stoppedExpectation: XCTestExpectation
 
         var onPublishReceived: OnPublishReceived?
         var onLifecycleEventStopped: OnLifecycleEventStopped?
@@ -44,12 +47,18 @@ class Mqtt5RRClientTests: XCBaseTestCase {
             
             self.subscriptionStatusSuccessExpectation = XCTestExpectation(description: "Expect streaming operation publish status success.")
             self.subscriptionStatusErrorExpectation = XCTestExpectation(description: "Expect streaming operation publish status error.")
+            self.incomingPublishExpectation = XCTestExpectation(description: "Expect incoming publish event for request response client.")
             self.publishReceivedExpectation = XCTestExpectation(description: "Expect publish received.")
             self.publishTargetReachedExpectation = XCTestExpectation(description: "Expect publish target reached")
             self.connectionSuccessExpectation = XCTestExpectation(description: "Expect connection Success")
             self.connectionFailureExpectation = XCTestExpectation(description: "Expect connection Failure")
             self.disconnectionExpectation = XCTestExpectation(description: "Expect disconnect")
-            self.stoppedExpecation = XCTestExpectation(description: "Expect stopped")
+            self.stoppedExpectation = XCTestExpectation(description: "Expect stopped")
+            
+            self.onRRIncomingPublish = { [self] publishEvent in
+                self.rrPublishEvent = publishEvent
+                self.incomingPublishExpectation.fulfill()
+            }
             
             self.onSubscriptionStatusUpdate = { [self] statusEvent in
                 print(contextName + "MqttRRClientTests: onSubscriptionStatusUpdate. EventType: \(statusEvent.event) ErrorCode:\( statusEvent.error!.code)")
@@ -363,7 +372,30 @@ class Mqtt5RRClientTests: XCBaseTestCase {
                        Int32(AWS_ERROR_MQTT_REQUEST_RESPONSE_CLIENT_SHUT_DOWN.rawValue))
     }
 
-    func MqttRequestResponse_ShadowUpdatedStreamIncomingPublishSuccess() throws {
+    func MqttRequestResponse_ShadowUpdatedStreamIncomingPublishSuccess() async throws {
+        let testContext = MqttRRTestContext()
+        var rrClient : MqttRequestResponseClient? = try await setupRequestResponseClient(testContext: testContext)
+        XCTAssertNotNil(rrClient)
+        let test_topic = UUID().uuidString
+        let streamingOperation = try rrClient!.createStream(streamOptions: StreamingOperationOptions(topicFilter: test_topic,
+                                                                                                     subscriptionStatusCallback:
+                                                                                                        testContext.onSubscriptionStatusUpdate,
+                                                                                                     incomingPublishCallback:
+                                                                                                        testContext.onRRIncomingPublish))
+
+        // open the streaming and wait for subscription success
+        streamingOperation.open()
+        await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
+        // TODO: publish to client
+
+        await awaitExpectation([testContext.incomingPublishExpectation], 60)
         
+        guard let publishEvent = testContext.rrPublishEvent else {
+            return XCTAssertNotNil(testContext.rrPublishEvent)
+        }
+        
+        XCTAssertTrue(publishEvent.topic == test_topic)
+        // XCTAssertTrue(publishEvent.)
+
     }
 }
