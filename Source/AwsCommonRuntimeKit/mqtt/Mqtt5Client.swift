@@ -34,7 +34,7 @@ public class ClientOperationStatistics {
 }
 
 /// Class containing data related to a Publish Received Callback
-public class PublishReceivedData {
+public class PublishReceivedData: @unchecked Sendable {
 
     /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet.
     public let publishPacket: PublishPacket
@@ -51,7 +51,7 @@ public class LifecycleStoppedData { }
 public class LifecycleAttemptingConnectData { }
 
 /// Class containing results of a Connect Success Lifecycle Event.
-public class LifecycleConnectionSuccessData {
+public class LifecycleConnectionSuccessData: @unchecked Sendable {
 
     /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
     public let connackPacket: ConnackPacket
@@ -66,7 +66,7 @@ public class LifecycleConnectionSuccessData {
 }
 
 /// Dataclass containing results of a Connect Failure Lifecycle Event.
-public class LifecycleConnectionFailureData {
+public class LifecycleConnectionFailureData: @unchecked Sendable {
 
     /// Error which caused connection failure.
     public let crtError: CRTError
@@ -81,7 +81,7 @@ public class LifecycleConnectionFailureData {
 }
 
 /// Dataclass containing results of a Disconnect Lifecycle Event
-public class LifecycleDisconnectData {
+public class LifecycleDisconnectData: @unchecked Sendable {
 
     /// Error which caused disconnection.
     public let crtError: CRTError
@@ -119,7 +119,7 @@ public typealias OnLifecycleEventConnectionFailure = @Sendable (LifecycleConnect
 public typealias OnLifecycleEventDisconnection = @Sendable (LifecycleDisconnectData) -> Void
 
 /// Callback for users to invoke upon completion of, presumably asynchronous, OnWebSocketHandshakeIntercept callback's initiated process.
-public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32) -> Void
+public typealias OnWebSocketHandshakeInterceptComplete = @Sendable (HTTPRequestBase, Int32) -> Void
 
 /// Invoked during websocket handshake to give users opportunity to transform an http request for purposes
 /// such as signing/authorization etc... Returning from this function does not continue the websocket
@@ -128,8 +128,8 @@ public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32
 public typealias OnWebSocketHandshakeIntercept = @Sendable (HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete) -> Void
 
 // MARK: - Mqtt5 Client
-public class Mqtt5Client {
-    internal var clientCore: Mqtt5ClientCore
+public final class Mqtt5Client: Sendable {
+    internal let clientCore: Mqtt5ClientCore
 
     /// Creates a Mqtt5Client instance using the provided MqttClientOptions.
     ///
@@ -212,8 +212,10 @@ public class Mqtt5Client {
 
 // MARK: - Internal/Private
 
+// IMPORTANT: You are responsible for concurrency correctness of Mqtt5ClientCore.
+// The rawValue is mutable cross threads and protected by the rwlock.
 /// Mqtt5 Client Core, internal class to handle Mqtt5 Client operations
-public class Mqtt5ClientCore {
+internal class Mqtt5ClientCore: @unchecked Sendable {
     fileprivate var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
     fileprivate let rwlock = ReadWriteLock()
 
@@ -521,6 +523,7 @@ internal func MqttClientWebsocketTransform(
     _ user_data: UnsafeMutableRawPointer?,
     _ complete_fn: (@convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?) -> Void)?,
     _ complete_ctx: UnsafeMutableRawPointer?) {
+    let complete_ctx = SendableRawPointer(pointer: complete_ctx)
 
     let clientCore = Unmanaged<Mqtt5ClientCore>.fromOpaque(user_data!).takeUnretainedValue()
 
@@ -533,7 +536,7 @@ internal func MqttClientWebsocketTransform(
         }
         let httpRequest = HTTPRequest(nativeHttpMessage: request)
         @Sendable func signerTransform(request: HTTPRequestBase, errorCode: Int32) {
-            complete_fn?(request.rawValue, errorCode, complete_ctx)
+            complete_fn?(request.rawValue, errorCode, complete_ctx.pointer)
         }
 
         if clientCore.onWebsocketInterceptor != nil {

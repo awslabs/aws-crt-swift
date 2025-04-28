@@ -28,6 +28,13 @@ class Box<T> {
     }
 }
 
+// We need to share this pointer to C in a task block but Swift compiler complains
+// that Pointer does not conform to Sendable. Wrap the pointer in a @unchecked Sendable block
+// for Swift compiler to stop complaining.
+struct SendableRawPointer: @unchecked Sendable {
+    let pointer: UnsafeMutableRawPointer?
+}
+
 extension String {
 
     func withByteCursor<Result>(_ body: (aws_byte_cursor) -> Result
@@ -194,6 +201,9 @@ extension aws_byte_cursor {
         }
 
         let data = Data(bytesNoCopy: self.ptr, count: self.len, deallocator: .none)
+        // Using non-failable String(decoding:as:) to handle invalid UTF-8 with replacement characters. 
+        // Disable warning as it's a false positive.
+        // swiftlint:disable:next optional_data_string_conversion
         return String(decoding: data, as: UTF8.self)
     }
 

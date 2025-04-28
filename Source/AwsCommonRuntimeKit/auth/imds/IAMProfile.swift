@@ -4,7 +4,7 @@
 import AwsCAuth
 import Foundation
 
-public struct IAMProfile {
+public struct IAMProfile: @unchecked Sendable {
     public let lastUpdated: Date
     public let profileArn: String
     public let profileId: String

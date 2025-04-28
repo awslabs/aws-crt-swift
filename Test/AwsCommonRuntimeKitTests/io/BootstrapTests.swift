@@ -33,6 +33,6 @@ class BootstrapTests: XCBaseTestCase {
               hostResolver: resolver,
               shutdownCallback: shutdownCallback)
     }
-    wait(for: [shutdownWasCalled], timeout: 15)
+    await awaitExpectation([shutdownWasCalled])
   }
 }

@@ -1,14 +1,15 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-import _Concurrency
+import ArgumentParser
 import AwsCommonRuntimeKit
 import Foundation
+import _Concurrency
 
 // swiftlint:disable cyclomatic_complexity function_body_length
-struct Context {
+struct Context: @unchecked Sendable {
     // args
-    public var logLevel: LogLevel = .trace
+    public var logLevel: LogLevel = .error
     public var verb: String = "GET"
     public var caCert: String?
     public var caPath: String?
@@ -27,197 +28,85 @@ struct Context {
 }
 
 @main
-struct Elasticurl {
-    private static let version = "0.1.0"
-    private static var context = Context()
+struct Elasticurl: AsyncParsableCommand {
+    @Option(name: .long, help: "Path to a CA certificate file")
+    var cacert: String?
 
-    static func parseArguments() {
-        let optionString = "a:b:c:e:f:H:d:g:j:l:m:M:GPHiko:t:v:VwWh"
-        let options = [ElasticurlOptions.caCert.rawValue,
-                       ElasticurlOptions.caPath.rawValue,
-                       ElasticurlOptions.cert.rawValue,
-                       ElasticurlOptions.connectTimeout.rawValue,
-                       ElasticurlOptions.data.rawValue,
-                       ElasticurlOptions.dataFile.rawValue,
-                       ElasticurlOptions.get.rawValue,
-                       ElasticurlOptions.head.rawValue,
-                       ElasticurlOptions.header.rawValue,
-                       ElasticurlOptions.help.rawValue,
-                       ElasticurlOptions.http2.rawValue,
-                       ElasticurlOptions.http1_1.rawValue,
-                       ElasticurlOptions.include.rawValue,
-                       ElasticurlOptions.insecure.rawValue,
-                       ElasticurlOptions.key.rawValue,
-                       ElasticurlOptions.method.rawValue,
-                       ElasticurlOptions.output.rawValue,
-                       ElasticurlOptions.post.rawValue,
-                       ElasticurlOptions.signingContext.rawValue,
-                       ElasticurlOptions.signingFunc.rawValue,
-                       ElasticurlOptions.signingLib.rawValue,
-                       ElasticurlOptions.trace.rawValue,
-                       ElasticurlOptions.version.rawValue,
-                       ElasticurlOptions.verbose.rawValue,
-                       ElasticurlOptions.lastOption.rawValue]
+    @Option(name: .long, help: "Path to a directory containing CA files")
+    var capath: String?
 
-        let argumentsDict = CommandLineParser.parseArguments(argc: CommandLine.argc,
-                                                             arguments: CommandLine.unsafeArgv,
-                                                             optionString: optionString, options: options)
+    @Option(name: .long, help: "Path to a PEM encoded certificate to use with mTLS")
+    var cert: String?
 
-        if let caCert = argumentsDict["a"] as? String {
-            context.caCert = caCert
-        }
+    @Option(name: .long, help: "Path to a PEM encoded private key that matches cert")
+    var key: String?
 
-        if let caPath = argumentsDict["b"] as? String {
-            context.caPath = caPath
-        }
+    @Option(name: .long, help: "Time in milliseconds to wait for a connection")
+    var connectTimeout: Int = 3000
 
-        if let certificate = argumentsDict["c"] as? String {
-            context.certificate = certificate
-        }
+    // Options with both short and long forms
+    @Option(
+        name: [.customShort("H"), .long],
+        help: "Line to send as a header in format [header-key]: [header-value]")
+    var header: [String] = []
 
-        if let privateKey = argumentsDict["e"] as? String {
-            context.privateKey = privateKey
-        }
+    @Option(name: [.short, .long], help: "Data to POST or PUT")
+    var data: String?
 
-        if let connectTimeout = argumentsDict["f"] as? Int {
-            context.connectTimeout = connectTimeout
-        }
+    @Option(name: .long, help: "File to read from file and POST or PUT")
+    var dataFile: String?
 
-        if let headers = argumentsDict["H"] as? String {
-            let keyValues = headers.components(separatedBy: ",")
-            for headerKeyValuePair in keyValues {
-                let keyValuePair = headerKeyValuePair.components(separatedBy: ":")
-                let key = keyValuePair[0]
-                let value = keyValuePair[1]
-                context.headers[key] = value
-            }
-        }
+    @Option(name: [.customShort("M"), .long], help: "HTTP Method verb to use for the request")
+    var method: String?
 
-        if let stringData = argumentsDict["d"] as? String {
-            context.data = stringData.data(using: .utf8)
-        }
+    @Flag(name: [.customShort("G"), .long], help: "Uses GET for the verb")
+    var get: Bool = false
 
-        if let dataFilePath = argumentsDict["g"] as? String {
-            guard let url = URL(string: dataFilePath) else {
-                print("path to data file is incorrect or does not exist")
-                exit(-1)
-            }
-            do {
-                context.data = try Data(contentsOf: url)
-            } catch {
-                exit(-1)
-            }
-        }
+    @Flag(name: [.customShort("P"), .long], help: "Uses POST for the verb")
+    var post: Bool = false
 
-        if let method = argumentsDict["M"] as? String {
-            context.verb = method
-        }
+    @Flag(name: [.customShort("I"), .long], help: "Uses HEAD for the verb")
+    var head: Bool = false
 
-        if argumentsDict["G"] != nil {
-            context.verb = "GET"
-        }
+    @Flag(name: [.short, .long], help: "Includes headers in output")
+    var include: Bool = false
 
-        if argumentsDict["P"] != nil {
-            context.verb = "POST"
-        }
+    @Flag(name: [.customShort("k"), .long], help: "Turns off SSL/TLS validation")
+    var insecure: Bool = false
 
-        if argumentsDict["I"] != nil {
-            context.verb = "HEAD"
-        }
+    @Option(name: .long, help: "Path to a shared library with an exported signing function to use")
+    var signingLib: String?
 
-        if argumentsDict["i"] != nil {
-            context.includeHeaders = true
-        }
+    @Option(name: .long, help: "Name of the signing function to use within the signing library")
+    var signingFunc: String?
 
-        if argumentsDict["k"] != nil {
-            context.insecure = true
-        }
+    @Option(
+        name: .long,
+        help: "Key=value pair to pass to the signing function; may be used multiple times")
+    var signingContext: [String] = []
 
-        if let fileName = argumentsDict["o"] as? String {
-            context.outputFileName = fileName
-        }
+    @Option(name: [.short, .long], help: "Dumps content-body to FILE instead of stdout")
+    var output: String?
 
-        if let traceFile = argumentsDict["t"] as? String {
-            context.traceFile = traceFile
-        }
+    @Option(name: [.short, .long], help: "Dumps logs to FILE instead of stderr")
+    var trace: String?
 
-        if let logLevel = argumentsDict["v"] as? String {
-            context.logLevel = LogLevel.fromString(string: logLevel)
-        }
+    @Option(
+        name: [.short, .long],
+        help: "ERROR|INFO|DEBUG|TRACE: log level to configure. Default is ERROR")
+    var verbose: String?
 
-        if argumentsDict["V"] != nil {
-            print("elasticurl \(version)")
-            exit(0)
-        }
+    @Flag(name: .long, help: "HTTP/2 connection required")
+    var http2: Bool = false
 
-        if argumentsDict["W"] != nil {
-            context.alpnList.append("http/1.1")
-        }
+    @Flag(name: .customLong("http1_1"), help: "HTTP/1.1 connection required")
+    var http1_1: Bool = false
 
-        if argumentsDict["w"] != nil {
-            context.alpnList.append("h2")
-        }
+    @Argument(help: "URL to make a request to")
+    var urlString: String
 
-        if argumentsDict["w"] == nil, argumentsDict["W"] == nil {
-            context.alpnList.append("h2")
-            context.alpnList.append("http/1.1")
-        }
-
-        if argumentsDict["h"] != nil {
-            showHelp()
-            exit(0)
-        }
-
-        // make sure a url was given before we do anything else
-        guard let urlString = CommandLine.arguments.last,
-              let url = URL(string: urlString)
-        else {
-            print("Invalid URL: \(CommandLine.arguments.last!)")
-            exit(-1)
-        }
-        context.url = url
-    }
-
-    static func showHelp() {
-        print("usage: elasticurl [options] url")
-        print("url: url to make a request to. The default is a GET request")
-        print("Options:")
-        print("      --cacert FILE: path to a CA certficate file.")
-        print("      --capath PATH: path to a directory containing CA files.")
-        print("  -c, --cert FILE: path to a PEM encoded certificate to use with mTLS")
-        print("      --key FILE: Path to a PEM encoded private key that matches cert.")
-        print("      --connect-timeout INT: time in milliseconds to wait for a connection.")
-        print("  -H, --header LINE: line to send as a header in format [header-key]: [header-value]")
-        print("  -d, --data STRING: Data to POST or PUT")
-        print("      --data-file FILE: File to read from file and POST or PUT")
-        print("  -M, --method STRING: Http Method verb to use for the request")
-        print("  -G, --get: uses GET for the verb.")
-        print("  -P, --post: uses POST for the verb.")
-        print("  -I, --head: uses HEAD for the verb.")
-        print("  -i, --include: includes headers in output.")
-        print("  -k, --insecure: turns off SSL/TLS validation.")
-        print("  -o, --output FILE: dumps content-body to FILE instead of stdout.")
-        print("  -t, --trace FILE: dumps logs to FILE instead of stderr.")
-        print("  -v, --verbose ERROR|INFO|DEBUG|TRACE: log level to configure. Default is none.")
-        print("  -h, --help: Display this message and quit.")
-    }
-
-    static func createOutputFile() {
-        if let fileName = context.outputFileName {
-            let fileManager = FileManager.default
-            let path = FileManager.default.currentDirectoryPath + "/" + fileName
-            fileManager.createFile(atPath: path, contents: nil, attributes: nil)
-            context.outputStream = FileHandle(forWritingAtPath: fileName) ?? FileHandle.standardOutput
-        }
-    }
-
-    static func writeData(data: Data) {
-        context.outputStream.write(data)
-    }
-
-    static func main() async {
-        parseArguments()
-        createOutputFile()
+    func run() async {
+        let context = buildContext()
         if let traceFile = context.traceFile {
             print("enable logging with trace file")
             try? Logger.initialize(target: .filePath(traceFile), level: context.logLevel)
@@ -225,15 +114,102 @@ struct Elasticurl {
             print("enable logging with stdout")
             try? Logger.initialize(target: .standardOutput, level: context.logLevel)
         }
-
-        await run()
+        await Elasticurl.run(context)
     }
 
-    static func run() async {
+    func buildContext() -> Context {
+        var context = Context()
+
+        // Convert command-line args to Context
+        context.caCert = cacert
+        context.caPath = capath
+        context.certificate = cert
+        context.privateKey = key
+        context.connectTimeout = connectTimeout
+        context.includeHeaders = include
+        context.outputFileName = output
+        context.traceFile = trace
+        context.insecure = insecure
+
+        // Process verbose/log level
+        if let verboseLevel = verbose {
+            context.logLevel = LogLevel.fromString(string: verboseLevel)
+        }
+
+        // Process headers
+        for headerString in header {
+            let components = headerString.components(separatedBy: ":")
+            if components.count >= 2 {
+                let key = components[0].trimmingCharacters(in: .whitespaces)
+                let value = components[1...].joined(separator: ":").trimmingCharacters(
+                    in: .whitespaces)
+                context.headers[key] = value
+            }
+        }
+
+        // Process data
+        if let stringData = data {
+            context.data = stringData.data(using: .utf8)
+        } else if let dataFilePath = dataFile {
+            guard let url = URL(string: dataFilePath) else {
+                print("Path to data file is incorrect or does not exist")
+                Foundation.exit(1)
+            }
+            do {
+                context.data = try Data(contentsOf: url)
+            } catch {
+                print("Failed to read data file: \(error)")
+                Foundation.exit(1)
+            }
+        }
+
+        // Determine HTTP verb
+        if let method = method {
+            context.verb = method
+        } else if get {
+            context.verb = "GET"
+        } else if post {
+            context.verb = "POST"
+        } else if head {
+            context.verb = "HEAD"
+        }
+
+        // Set ALPN list
+        if http2 && !http1_1 {
+            context.alpnList = ["h2"]
+        } else if http1_1 && !http2 {
+            context.alpnList = ["http/1.1"]
+        } else {
+            context.alpnList = ["h2", "http/1.1"]
+        }
+
+        // Set URL
+        guard let parsedURL = URL(string: urlString) else {
+            print("Invalid URL: \(urlString)")
+            Foundation.exit(-1)
+        }
+        context.url = parsedURL
+
+        if let fileName = context.outputFileName {
+            let fileManager = FileManager.default
+            let path = FileManager.default.currentDirectoryPath + "/" + fileName
+            fileManager.createFile(atPath: path, contents: nil, attributes: nil)
+            context.outputStream =
+                FileHandle(forWritingAtPath: fileName) ?? FileHandle.standardOutput
+        }
+
+        return context
+    }
+
+    static func writeData(data: Data, context: Context) {
+        context.outputStream.write(data)
+    }
+
+    static func run(_ context: Context) async {
         do {
             guard let host = context.url.host else {
                 print("no proper host was parsed from the url. quitting.")
-                exit(EXIT_FAILURE)
+                Foundation.exit(EXIT_FAILURE)
             }
 
             CommonRuntimeKit.initialize()
@@ -249,10 +225,12 @@ struct Elasticurl {
             tlsConnectionOptions.serverName = host
 
             let elg = try EventLoopGroup(threadCount: 1)
-            let hostResolver = try HostResolver.makeDefault(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30)
+            let hostResolver = try HostResolver.makeDefault(
+                eventLoopGroup: elg, maxHosts: 8, maxTTL: 30)
 
-            let bootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                                                hostResolver: hostResolver)
+            let bootstrap = try ClientBootstrap(
+                eventLoopGroup: elg,
+                hostResolver: hostResolver)
 
             let socketOptions = SocketOptions(socketType: .stream)
 
@@ -272,14 +250,15 @@ struct Elasticurl {
             }
             httpRequest.addHeaders(headers: headers)
 
-            let httpClientOptions = HTTPClientConnectionOptions(clientBootstrap: bootstrap,
-                                                                hostName: context.url.host!,
-                                                                initialWindowSize: Int.max,
-                                                                port: port,
-                                                                proxyOptions: nil,
-                                                                socketOptions: socketOptions,
-                                                                tlsOptions: tlsConnectionOptions,
-                                                                monitoringOptions: nil)
+            let httpClientOptions = HTTPClientConnectionOptions(
+                clientBootstrap: bootstrap,
+                hostName: context.url.host!,
+                initialWindowSize: Int.max,
+                port: port,
+                proxyOptions: nil,
+                socketOptions: socketOptions,
+                tlsOptions: tlsConnectionOptions,
+                monitoringOptions: nil)
 
             let connectionManager = try HTTPClientConnectionManager(options: httpClientOptions)
             let connection = try await connectionManager.acquireConnection()
@@ -291,7 +270,7 @@ struct Elasticurl {
                 }
 
                 let onBody: HTTPRequestOptions.OnIncomingBody = { bodyChunk in
-                    writeData(data: bodyChunk)
+                    writeData(data: bodyChunk, context: context)
                 }
 
                 let onComplete: HTTPRequestOptions.OnStreamComplete = { result in
@@ -305,10 +284,11 @@ struct Elasticurl {
                 }
 
                 do {
-                    let requestOptions = HTTPRequestOptions(request: httpRequest,
-                                                            onResponse: onResponse,
-                                                            onIncomingBody: onBody,
-                                                            onStreamComplete: onComplete)
+                    let requestOptions = HTTPRequestOptions(
+                        request: httpRequest,
+                        onResponse: onResponse,
+                        onIncomingBody: onBody,
+                        onStreamComplete: onComplete)
                     stream = try connection.makeRequest(requestOptions: requestOptions)
                     try stream!.activate()
                 } catch {
@@ -316,11 +296,10 @@ struct Elasticurl {
                 }
             }
 
-            exit(EXIT_SUCCESS)
+            Foundation.exit(EXIT_SUCCESS)
         } catch let err {
-            showHelp()
             print(err)
-            exit(EXIT_FAILURE)
+            Foundation.exit(EXIT_FAILURE)
         }
     }
 }

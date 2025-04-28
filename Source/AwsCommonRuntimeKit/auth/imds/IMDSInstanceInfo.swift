@@ -4,7 +4,7 @@
 import AwsCAuth
 import Foundation
 
-public struct IMDSInstanceInfo {
+public struct IMDSInstanceInfo: @unchecked Sendable {
     public let marketPlaceProductCodes: [String]
     public let availabilityZone: String
     public let privateIp: String
@@ -21,7 +21,8 @@ public struct IMDSInstanceInfo {
     public let region: String
 
     init(instanceInfo: aws_imds_instance_info) {
-        self.marketPlaceProductCodes = instanceInfo.marketplace_product_codes.byteCursorListToStringArray()
+        self.marketPlaceProductCodes = instanceInfo.marketplace_product_codes
+            .byteCursorListToStringArray()
         self.availabilityZone = instanceInfo.availability_zone.toString()
         self.privateIp = instanceInfo.private_ip.toString()
         self.version = instanceInfo.version.toString()

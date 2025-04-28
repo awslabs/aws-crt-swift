@@ -65,7 +65,7 @@ class CredentialsProviderTests: XCBaseTestCase {
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
     func testCreateCredentialsProviderStatic() async throws {
@@ -78,7 +78,7 @@ class CredentialsProviderTests: XCBaseTestCase {
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
     func testCreateCredentialsProviderStaticWithAccountId() async throws {
@@ -94,7 +94,7 @@ class CredentialsProviderTests: XCBaseTestCase {
             assertCredentials(credentials: credentials)
             XCTAssertEqual(accountId, credentials.getAccountId())
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
     func testCredentialsProviderEnvThrow() async {
@@ -105,7 +105,7 @@ class CredentialsProviderTests: XCBaseTestCase {
         } catch {
             exceptionWasThrown.fulfill()
         }
-        wait(for: [exceptionWasThrown], timeout: 15)
+        await awaitExpectation([exceptionWasThrown])
     }
 
     func withEnvironmentCredentialsClosure<T>(closure: () async throws -> T) async rethrows -> T {
@@ -142,7 +142,7 @@ class CredentialsProviderTests: XCBaseTestCase {
             XCTAssertEqual("accessKey", credentials.getAccessKey())
             XCTAssertEqual("secretKey", credentials.getSecret())
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
     func testCreateCredentialsProviderProcess() async throws {
@@ -158,7 +158,7 @@ class CredentialsProviderTests: XCBaseTestCase {
             XCTAssertEqual("SecretAccessKey123", credentials.getSecret())
             XCTAssertEqual("SessionToken123", credentials.getSessionToken())
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
     func testCreateCredentialsProviderSSO() async throws {
@@ -175,7 +175,7 @@ class CredentialsProviderTests: XCBaseTestCase {
             // get credentials will fail in CI due to expired token, so do not assert on credentials.
             _ = try? await provider.getCredentials()
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
     func testCreateCredentialsProviderImds() async throws {
@@ -183,7 +183,7 @@ class CredentialsProviderTests: XCBaseTestCase {
             _ = try CredentialsProvider(source: .imds(bootstrap: getClientBootstrap(),
                     shutdownCallback: getShutdownCallback()))
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
     func testCreateCredentialsProviderCache() async throws {
@@ -197,7 +197,7 @@ class CredentialsProviderTests: XCBaseTestCase {
             XCTAssertNotNil(credentials)
             assertCredentials(credentials: credentials)
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
     func testCreateAWSCredentialsProviderDefaultChain() async throws {
@@ -215,7 +215,7 @@ class CredentialsProviderTests: XCBaseTestCase {
                 assertCredentials(credentials: credentials)
             }
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
 
@@ -242,7 +242,7 @@ class CredentialsProviderTests: XCBaseTestCase {
         } catch {
             exceptionWasThrown.fulfill()
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
     // Http proxy related tests could only run behind vpc to access the proxy
@@ -259,7 +259,7 @@ class CredentialsProviderTests: XCBaseTestCase {
                 environmentVarName: "AWS_TEST_HTTP_PROXY_HOST")
             let httpproxyPort = try getEnvironmentVarOrSkipTest(
                 environmentVarName: "AWS_TEST_HTTP_PROXY_PORT")
-
+            
             let httpProxys = HTTPProxyOptions(
                 hostName: httpproxyHost, port: UInt32(httpproxyPort)!,
                 connectionType: .tunnel)
@@ -269,6 +269,7 @@ class CredentialsProviderTests: XCBaseTestCase {
                     bootstrap: getClientBootstrap(),
                     tlsContext: getTlsContext(), endpoint: cognitoEndpoint,
                     identity: cognitoIdentity,
+                    proxyOptions: httpProxys,
                     shutdownCallback: getShutdownCallback()))
             let credentials = try await provider.getCredentials()
             XCTAssertNotNil(credentials)
@@ -278,7 +279,7 @@ class CredentialsProviderTests: XCBaseTestCase {
         } catch {
             exceptionWasThrown.fulfill()
         }
-        wait(for: [shutdownWasCalled], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 
     func testCreateDestroyStsWebIdentityInvalidEnv() async throws {
@@ -288,7 +289,7 @@ class CredentialsProviderTests: XCBaseTestCase {
                 fileBasedConfiguration: FileBasedConfiguration()))
         )
     }
-    
+
     func testCreateDestroyStsWebIdentity() async throws {
         _ = try! CredentialsProvider(source: .stsWebIdentity(
                 bootstrap: getClientBootstrap(),
@@ -326,6 +327,6 @@ class CredentialsProviderTests: XCBaseTestCase {
         } catch {
             exceptionWasThrown.fulfill()
         }
-        wait(for: [exceptionWasThrown], timeout: 15)
+        await awaitExpectation([shutdownWasCalled])
     }
 }

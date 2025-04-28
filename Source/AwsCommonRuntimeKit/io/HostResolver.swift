@@ -23,8 +23,10 @@ public protocol HostResolverProtocol {
     func purgeCache() async
 }
 
+// Swift cannot verify the sendability due to a pointer, and thread safety is handled in the C layer.
+// So mark it as unchecked Sendable.
 /// CRT Host Resolver which performs async DNS lookups
-public class HostResolver: HostResolverProtocol {
+public class HostResolver: HostResolverProtocol, @unchecked Sendable {
     let rawValue: UnsafeMutablePointer<aws_host_resolver>
     let maxTTL: Int
 

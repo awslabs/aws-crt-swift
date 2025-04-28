@@ -5,7 +5,9 @@ import AwsCHttp
 import AwsCIo
 import Foundation
 
-public class HTTP2ClientConnection: HTTPClientConnection {
+// Swift cannot verify the sendability due to a pointer, and thread safety is handled in the C layer.
+// So mark it as unchecked Sendable.
+public class HTTP2ClientConnection: HTTPClientConnection, @unchecked Sendable {
 
     /// Creates a new http2 stream from the `HTTPRequestOptions` given.
     /// - Parameter requestOptions: An `HTTPRequestOptions` struct containing callbacks on
