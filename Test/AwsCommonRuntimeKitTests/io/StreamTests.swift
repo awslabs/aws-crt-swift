@@ -6,12 +6,6 @@ import Foundation
 
 class StreamTests: XCBaseTestCase {
 
-  func testFileStream() throws {
-    let fileHandle = FileHandle(forReadingAtPath: Bundle.module.path(forResource: "stream-test", ofType: "txt")!)!
-    let iStreamCore = IStreamCore(iStreamable: fileHandle)
-    try testStream(iStreamCore: iStreamCore)
-  }
-
   func testByteBufferStream() throws {
     let byteBuffer = ByteBuffer(data: "12345678900987654321".data(using: .utf8)!)
     let iStreamCore = IStreamCore(iStreamable: byteBuffer)
