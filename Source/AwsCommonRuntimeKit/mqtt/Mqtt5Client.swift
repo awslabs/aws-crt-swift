@@ -1,8 +1,8 @@
 ///  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ///  SPDX-License-Identifier: Apache-2.0.
 
-import AwsCMqtt
 import AwsCIo
+import AwsCMqtt
 import LibNative
 
 // MARK: - Callback Data Classes
@@ -98,31 +98,34 @@ public class LifecycleDisconnectData: @unchecked Sendable {
 // MARK: - Callback typealias definitions
 
 /// Defines signature of the Publish callback
-public typealias OnPublishReceived = (PublishReceivedData) async -> Void
+public typealias OnPublishReceived = @Sendable (PublishReceivedData) -> Void
 
 /// Defines signature of the Lifecycle Event Stopped callback
-public typealias OnLifecycleEventStopped = (LifecycleStoppedData) async -> Void
+public typealias OnLifecycleEventStopped = @Sendable (LifecycleStoppedData) -> Void
 
 /// Defines signature of the Lifecycle Event Attempting Connect callback
-public typealias OnLifecycleEventAttemptingConnect = (LifecycleAttemptingConnectData) async -> Void
+public typealias OnLifecycleEventAttemptingConnect = @Sendable (LifecycleAttemptingConnectData) ->
+    Void
 
 /// Defines signature of the Lifecycle Event Connection Success callback
-public typealias OnLifecycleEventConnectionSuccess = (LifecycleConnectionSuccessData) async -> Void
+public typealias OnLifecycleEventConnectionSuccess = @Sendable (LifecycleConnectionSuccessData) ->
+    Void
 
 /// Defines signature of the Lifecycle Event Connection Failure callback
-public typealias OnLifecycleEventConnectionFailure = (LifecycleConnectionFailureData) async -> Void
+public typealias OnLifecycleEventConnectionFailure = @Sendable (LifecycleConnectionFailureData) ->
+    Void
 
 /// Defines signature of the Lifecycle Event Disconnection callback
-public typealias OnLifecycleEventDisconnection = (LifecycleDisconnectData) async -> Void
+public typealias OnLifecycleEventDisconnection = @Sendable (LifecycleDisconnectData) -> Void
 
 /// Callback for users to invoke upon completion of, presumably asynchronous, OnWebSocketHandshakeIntercept callback's initiated process.
-public typealias OnWebSocketHandshakeInterceptComplete = (HTTPRequestBase, Int32) -> Void
+public typealias OnWebSocketHandshakeInterceptComplete = @Sendable (HTTPRequestBase, Int32) -> Void
 
 /// Invoked during websocket handshake to give users opportunity to transform an http request for purposes
 /// such as signing/authorization etc... Returning from this function does not continue the websocket
 /// handshake since some work flows may be asynchronous. To accommodate that, onComplete must be invoked upon
 /// completion of the signing process.
-public typealias OnWebSocketHandshakeIntercept = (HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete) async -> Void
+public typealias OnWebSocketHandshakeIntercept = @Sendable (HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete) -> Void
 
 // MARK: - Mqtt5 Client
 public final class Mqtt5Client: Sendable {
@@ -239,22 +242,22 @@ internal class Mqtt5ClientCore: @unchecked Sendable {
 
         try clientOptions.validateConversionToNative()
 
-        self.onPublishReceivedCallback = clientOptions.onPublishReceivedFn ?? { (_) in return }
-        self.onLifecycleEventStoppedCallback = clientOptions.onLifecycleEventStoppedFn ?? { (_) in return}
-        self.onLifecycleEventAttemptingConnect = clientOptions.onLifecycleEventAttemptingConnectFn ?? { (_) in return}
-        self.onLifecycleEventConnectionSuccess = clientOptions.onLifecycleEventConnectionSuccessFn ?? { (_) in return}
-        self.onLifecycleEventConnectionFailure = clientOptions.onLifecycleEventConnectionFailureFn ?? { (_) in return}
-        self.onLifecycleEventDisconnection = clientOptions.onLifecycleEventDisconnectionFn ?? { (_) in return}
+        self.onPublishReceivedCallback = clientOptions.onPublishReceivedFn ?? { (_) in }
+        self.onLifecycleEventStoppedCallback = clientOptions.onLifecycleEventStoppedFn ?? { (_) in }
+        self.onLifecycleEventAttemptingConnect = clientOptions.onLifecycleEventAttemptingConnectFn ?? { (_) in }
+        self.onLifecycleEventConnectionSuccess = clientOptions.onLifecycleEventConnectionSuccessFn ?? { (_) in }
+        self.onLifecycleEventConnectionFailure = clientOptions.onLifecycleEventConnectionFailureFn ?? { (_) in }
+        self.onLifecycleEventDisconnection = clientOptions.onLifecycleEventDisconnectionFn ?? { (_) in }
         self.onWebsocketInterceptor = clientOptions.onWebsocketTransform
 
         guard let rawValue = (clientOptions.withCPointer(
             userData: Unmanaged<Mqtt5ClientCore>.passRetained(self).toOpaque()) { optionsPointer in
-                return aws_mqtt5_client_new(allocator.rawValue, optionsPointer)
-            }) else {
-            // failed to create client, release the callback core
-            Unmanaged<Mqtt5ClientCore>.passUnretained(self).release()
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
+                    return aws_mqtt5_client_new(allocator.rawValue, optionsPointer)
+                }) else {
+                    // failed to create client, release the callback core
+                    Unmanaged<Mqtt5ClientCore>.passUnretained(self).release()
+                    throw CommonRunTimeError.crtError(.makeFromLastError())
+                }
         self.rawValue = rawValue
     }
 
@@ -447,9 +450,8 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
         case AWS_MQTT5_CLET_ATTEMPTING_CONNECT:
 
             let lifecycleAttemptingConnectData = LifecycleAttemptingConnectData()
-            Task {
-                await clientCore.onLifecycleEventAttemptingConnect(lifecycleAttemptingConnectData)
-            }
+            clientCore.onLifecycleEventAttemptingConnect(lifecycleAttemptingConnectData)
+
         case AWS_MQTT5_CLET_CONNECTION_SUCCESS:
 
             guard let connackView = lifecycleEvent.pointee.connack_data else {
@@ -464,9 +466,8 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
             let lifecycleConnectionSuccessData = LifecycleConnectionSuccessData(
                 connackPacket: connackPacket,
                 negotiatedSettings: NegotiatedSettings(negotiatedSettings))
-            Task {
-                await clientCore.onLifecycleEventConnectionSuccess(lifecycleConnectionSuccessData)
-            }
+            clientCore.onLifecycleEventConnectionSuccess(lifecycleConnectionSuccessData)
+
         case AWS_MQTT5_CLET_CONNECTION_FAILURE:
 
             var connackPacket: ConnackPacket?
@@ -477,9 +478,8 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
             let lifecycleConnectionFailureData = LifecycleConnectionFailureData(
                 crtError: crtError,
                 connackPacket: connackPacket)
-            Task {
-                await clientCore.onLifecycleEventConnectionFailure(lifecycleConnectionFailureData)
-            }
+            clientCore.onLifecycleEventConnectionFailure(lifecycleConnectionFailureData)
+
         case AWS_MQTT5_CLET_DISCONNECTION:
 
             var disconnectPacket: DisconnectPacket?
@@ -491,13 +491,11 @@ internal func MqttClientHandleLifecycleEvent(_ lifecycleEvent: UnsafePointer<aws
             let lifecycleDisconnectData = LifecycleDisconnectData(
                 crtError: crtError,
                 disconnectPacket: disconnectPacket)
-            Task {
-                await clientCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
-            }
+            clientCore.onLifecycleEventDisconnection(lifecycleDisconnectData)
+
         case AWS_MQTT5_CLET_STOPPED:
-            Task {
-                await clientCore.onLifecycleEventStoppedCallback(LifecycleStoppedData())
-            }
+            clientCore.onLifecycleEventStoppedCallback(LifecycleStoppedData())
+
         default:
             fatalError("A lifecycle event with an invalid event type was encountered.")
         }
@@ -515,9 +513,7 @@ internal func MqttClientHandlePublishRecieved(
         if let publish {
             let publishPacket = PublishPacket(publish)
             let publishReceivedData = PublishReceivedData(publishPacket: publishPacket)
-            Task {
-                await clientCore.onPublishReceivedCallback(publishReceivedData)
-            }
+            clientCore.onPublishReceivedCallback(publishReceivedData)
         } else {
             fatalError("MqttClientHandlePublishRecieved called with null publish")
         }
@@ -546,9 +542,7 @@ internal func MqttClientWebsocketTransform(
         }
 
         if clientCore.onWebsocketInterceptor != nil {
-            Task {
-                await clientCore.onWebsocketInterceptor!(httpRequest, signerTransform)
-            }
+            clientCore.onWebsocketInterceptor!(httpRequest, signerTransform)
         }
     }
 }

@@ -38,7 +38,7 @@ public class HTTP2Stream: HTTPStream, @unchecked Sendable {
             throw CommonRunTimeError.crtError(.makeFromLastError())
         }
     }
-
+    
     /// manualDataWrites must have been enabled during HTTP2Request creation.
     /// A write with that has endOfStream set to be true will end the stream and prevent any further write.
     ///
