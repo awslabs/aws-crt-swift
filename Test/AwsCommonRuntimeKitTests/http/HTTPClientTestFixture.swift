@@ -72,6 +72,9 @@ class HTTPClientTestFixture: XCBaseTestCase {
             let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
             try stream.activate()
             await semaphore.wait()
+            if httpResponse.statusCode != expectedStatus {
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+            }
         }
 
         XCTAssertNil(httpResponse.error)
