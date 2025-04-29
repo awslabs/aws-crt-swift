@@ -71,6 +71,6 @@ extension ByteBuffer: IStreamable {
     }
     
     public func isEndOfStream() -> Bool {
-        return self.currentIndex >= self.data.count
+        self.currentIndex >= self.data.endIndex
     }
 }
