@@ -64,10 +64,8 @@ func convertOptionalUserProperties(count: size_t, userPropertiesPointer: UnsafeP
     return userProperties
 }
 
-// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
-// so mark it unchecked Sendable
 /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet
-public class PublishPacket: CStruct, @unchecked Sendable {
+public final class PublishPacket: CStruct, Sendable {
 
     /// The payload of the publish message in a byte buffer format
     public let payload: Data?
@@ -228,12 +226,10 @@ public class PublishPacket: CStruct, @unchecked Sendable {
     }
 }
 
-// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
-// so mark it unchecked Sendable
 /// Publish result returned by Publish operation.
 /// - Members
 ///   - puback: returned PublishPacket for qos 1 publish; nil for qos 0 packet.
-public class PublishResult: @unchecked Sendable {
+public final class PublishResult: Sendable {
     public let puback: PubackPacket?
 
     public init (puback: PubackPacket? = nil) {
@@ -241,10 +237,8 @@ public class PublishResult: @unchecked Sendable {
     }
 }
 
-// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
-// so mark it unchecked Sendable
 /// "Data model of an `MQTT5 PUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901121>`_ packet
-public class PubackPacket: @unchecked Sendable {
+public final class PubackPacket: Sendable {
 
     /// Success indicator or failure reason for the associated PUBLISH packet.
     public let reasonCode: PubackReasonCode
@@ -334,10 +328,8 @@ public class Subscription: CStruct, @unchecked Sendable {
 
 }
 
-// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
-// so mark it unchecked Sendable
 /// Data model of an `MQTT5 SUBSCRIBE <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901161>`_ packet.
-public class SubscribePacket: CStruct, @unchecked Sendable {
+public final class SubscribePacket: CStruct, Sendable {
 
     /// Array of topic filters that the client wishes to listen to
     public let subscriptions: [Subscription]
@@ -406,10 +398,8 @@ public class SubscribePacket: CStruct, @unchecked Sendable {
     }
 }
 
-// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
-// so mark it unchecked Sendable
 /// Data model of an `MQTT5 SUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901171>`_ packet.
-public class SubackPacket: @unchecked Sendable {
+public final class SubackPacket: Sendable {
 
     /// Array of reason codes indicating the result of each individual subscription entry in the associated SUBSCRIBE packet.
     public let reasonCodes: [SubackReasonCode]
@@ -504,10 +494,8 @@ public class UnsubscribePacket: CStruct, @unchecked Sendable {
     }
 }
 
-// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
-// so mark it unchecked Sendable
 /// Data model of an `MQTT5 UNSUBACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc471483687>`_ packet.
-public class UnsubackPacket: @unchecked Sendable {
+public final class UnsubackPacket: Sendable {
 
     /// Array of reason codes indicating the result of unsubscribing from each individual topic filter entry in the associated UNSUBSCRIBE packet.
     public let reasonCodes: [UnsubackReasonCode]
@@ -618,10 +606,8 @@ public class DisconnectPacket: CStruct, @unchecked Sendable {
     }
 }
 
-// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
-// so mark it unchecked Sendable
 /// Data model of an `MQTT5 CONNACK <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901074>`_ packet.
-public class ConnackPacket: @unchecked Sendable {
+public final class ConnackPacket: Sendable {
 
     /// True if the client rejoined an existing session on the server, false otherwise.
     public let sessionPresent: Bool
