@@ -6,7 +6,7 @@ import XCTest
 class HTTP2ClientConnectionTests: XCBaseTestCase {
 
     let expectedVersion = HTTPVersion.version_2
-    let host = "https://postman-echo.com"
+    let host = "postman-echo.com"
     
     func testGetHTTP2RequestVersion() async throws {
         let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(endpoint: host, alpnList: ["h2","http/1.1"])
@@ -76,7 +76,7 @@ class HTTP2ClientConnectionTests: XCBaseTestCase {
                 method: "GET",
                 endpoint: host,
                 path: "/delete",
-                expectedStatus: 405,
+                expectedStatus: 404,
                 connectionManager: connectionManager,
                 expectedVersion: expectedVersion,
                 requestVersion: .version_2)
@@ -99,7 +99,7 @@ class HTTP2ClientConnectionTests: XCBaseTestCase {
                 method: "GET",
                 endpoint: host,
                 path: "/delete",
-                expectedStatus: 405,
+                expectedStatus: 404,
                 connectionManager: connectionManager,
                 expectedVersion: expectedVersion,
                 requestVersion: .version_1_1)
