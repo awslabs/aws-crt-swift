@@ -82,7 +82,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
 
             self.onLifecycleEventStopped = { [self] _ in
                 print(contextName + " MqttRRClientTests: onLifecycleEventStopped")
-                self.stoppedExpecation.fulfill()
+                self.stoppedExpectation.fulfill()
             }
             
             self.onLifecycleEventAttemptingConnect = { _ in
@@ -161,7 +161,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     // stop client and check for discconnection and stopped lifecycle events
     func stopClient(client: Mqtt5Client, testContext: MqttRRTestContext, disconnectPacket: DisconnectPacket? = nil) async throws -> Void {
         try client.stop(disconnectPacket: disconnectPacket)
-        return await awaitExpectation([testContext.stoppedExpecation], 5)
+        return await awaitExpectation([testContext.stoppedExpectation], 5)
     }
     
     // setup rr client

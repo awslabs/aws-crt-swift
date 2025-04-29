@@ -70,16 +70,16 @@ public struct IncomingPublishEvent: Sendable {
     /// The topic associated with this PUBLISH packet.
     let topic: String
     
-    /// The content type of the payload
-    let contentType: Data
-
-    /// User Property
-    let userProperties: [UserProperty]
-    
-    ///
-    let messageExpiryInterval: TimeInterval
-    
     // TODO: More options for IoT Command changes
+//    /// The content type of the payload
+//    let contentType: Data
+//
+//    /// User Property
+//    let userProperties: [UserProperty]
+//    
+//    ///
+//    let messageExpiryInterval: TimeInterval
+
 }
 
 /// Function signature of a SubscriptionStatusEvent event handler
@@ -199,6 +199,20 @@ internal func MqttRRStreamingOperationTerminationCallback(_ userData: UnsafeMuta
 internal func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent: UnsafePointer<aws_mqtt_request_response_publish_event>?,
                                                               _ userData: UnsafeMutableRawPointer?) {
     // TODO: finish incoming publish handler
+    
+    guard let userData, let publishEvent else {
+        // No userData, directly return
+        return
+    }
+    let operationCore = Unmanaged<StreamingOperationCore>.fromOpaque(userData).takeUnretainedValue()
+    operationCore.rwlock.read {
+        // Only invoke the callback if the streaming operation is not closed.
+        if let _ = operationCore.rawValue, let callback = operationCore.options.incomingPublishEventHandler {
+            let subStatusEvent = IncomingPublishEvent(payload: Data(bytes: publishEvent.pointee.payload.ptr, count: publishEvent.pointee.payload.len), topic: publishEvent.pointee.topic.toString())
+            callback(subStatusEvent)
+        }
+    }
+    
 }
 
 internal func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aws_rr_streaming_subscription_event_type,

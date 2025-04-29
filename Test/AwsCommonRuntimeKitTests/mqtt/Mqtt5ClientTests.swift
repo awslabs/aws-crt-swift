@@ -35,13 +35,13 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) async throws -> Void {
         try client.stop(disconnectPacket: disconnectPacket)
         await awaitExpectation([testContext.disconnectionExpectation], 5)
-        await awaitExpectation([testContext.stoppedExpecation], 5)
+        await awaitExpectation([testContext.stoppedExpectation], 5)
     }
 
     /// stop client and check for stopped lifecycle event
     func stopClient(client: Mqtt5Client, testContext: MqttTestContext) async throws -> Void {
         try client.stop()
-        return await awaitExpectation([testContext.stoppedExpecation], 5)
+        return await awaitExpectation([testContext.stoppedExpectation], 5)
     }
 
     func createClientId() -> String {
@@ -64,7 +64,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
         public let connectionSuccessExpectation: XCTestExpectation
         public let connectionFailureExpectation: XCTestExpectation
         public let disconnectionExpectation: XCTestExpectation
-        public let stoppedExpecation: XCTestExpectation
+        public let stoppedExpectation: XCTestExpectation
 
         public var negotiatedSettings: NegotiatedSettings?
         public var connackPacket: ConnackPacket?
@@ -94,7 +94,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
             self.connectionSuccessExpectation = XCTestExpectation(description: "Expect connection Success")
             self.connectionFailureExpectation = XCTestExpectation(description: "Expect connection Failure")
             self.disconnectionExpectation = XCTestExpectation(description: "Expect disconnect")
-            self.stoppedExpecation = XCTestExpectation(description: "Expect stopped")
+            self.stoppedExpectation = XCTestExpectation(description: "Expect stopped")
 
             self.onPublishReceived = onPublishReceived
             self.onLifecycleEventStopped = onLifecycleEventStopped
@@ -119,7 +119,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
 
             self.onLifecycleEventStopped = onLifecycleEventStopped ?? { _ in
                 print(contextName + " Mqtt5ClientTests: onLifecycleEventStopped")
-                self.stoppedExpecation.fulfill()
+                self.stoppedExpectation.fulfill()
             }
             self.onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect ?? { _ in
                 print(contextName + " Mqtt5ClientTests: onLifecycleEventAttemptingConnect")
