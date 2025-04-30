@@ -108,7 +108,7 @@ public class ResponsePath: CStruct, @unchecked Sendable {
     let topic: String
     let correlationTokenJsonPath: String
     
-    init(topic: String, correlationTokenJsonPath: String) {
+    public init(topic: String, correlationTokenJsonPath: String) {
         self.topic = topic
         self.correlationTokenJsonPath = correlationTokenJsonPath
         
