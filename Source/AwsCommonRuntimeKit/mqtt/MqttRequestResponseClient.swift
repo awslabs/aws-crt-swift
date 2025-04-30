@@ -90,8 +90,8 @@ public typealias IncomingPublishEventHandler = @Sendable (IncomingPublishEvent) 
 
 /// Encapsulates a response to an AWS IoT Core MQTT-based service request
 public struct MqttRequestResponseResponse: Sendable {
-    let topic: String
-    let payload: Data
+    public let topic: String
+    public let payload: Data
     
     public init(topic: String, payload: Data) {
         self.topic = topic
