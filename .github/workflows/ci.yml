@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   lint:
-    runs-on: macos-14 # latest
+    runs-on: macos-15 # latest
     steps:
       - uses: actions/checkout@v3
       - name: Run Swift-Format
