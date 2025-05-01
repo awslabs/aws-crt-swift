@@ -6,7 +6,6 @@ import AwsCommonRuntimeKit
 import Foundation
 import _Concurrency
 
-// swiftlint:disable cyclomatic_complexity function_body_length
 struct Context: @unchecked Sendable {
   // args
   public var logLevel: LogLevel = .error

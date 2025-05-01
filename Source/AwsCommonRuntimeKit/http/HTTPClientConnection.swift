@@ -5,7 +5,6 @@ import AwsCHttp
 import AwsCIo
 import Foundation
 
-// swiftlint:disable force_try
 // Swift cannot verify the sendability due to a pointer, and thread safety is handled in the C layer.
 // So mark it as unchecked Sendable.
 public class HTTPClientConnection: @unchecked Sendable {
