@@ -95,12 +95,13 @@ public class PublishPacket: CStruct, @unchecked Sendable {
   /// Opaque topic string intended to assist with request/response implementations.  Not internally meaningful to MQTT5 or this client.
   public let responseTopic: String?
 
-  /// Opaque binary data used to correlate between publish messages, as a potential method for request-response implementation.  Not internally meaningful to MQTT5.
-  public let correlationData: Data?  // Unicode objects are converted to C Strings using 'utf-8' encoding
-
+  /// Opaque binary data used to correlate between publish messages,
+  /// as a potential method for request-response implementation.  Not internally meaningful to MQTT5.
+  // Unicode objects are converted to C Strings using 'utf-8' encoding
+  public let correlationData: Data?
   /// The subscription identifiers of all the subscriptions this message matched.
-  public let subscriptionIdentifiers: [UInt32]?  // ignore attempts to set but provide in received packets
-
+  // ignore attempts to set but provide in received packets
+  public let subscriptionIdentifiers: [UInt32]?
   /// Property specifying the content type of the payload.  Not internally meaningful to MQTT5.
   public let contentType: String?
 

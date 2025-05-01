@@ -223,7 +223,7 @@ class HTTPTests: XCBaseTestCase {
     connection.close()
     let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(
       method: "GET", endpoint: host, path: getPath)
-    XCTAssertThrowsError(_ = try connection.makeRequest(requestOptions: httpRequestOptions))
+    XCTAssertThrowsError(try connection.makeRequest(requestOptions: httpRequestOptions))
   }
 
   func testConnectionCloseActivateThrow() async throws {

@@ -106,10 +106,8 @@ extension XCTestCase {
   }
 }
 
-/*
- * Async Semaphore compatible with Swift's structured concurrency. Swift complains about the normal sync Semaphore since it's a blocking wait.
- * See: https://forums.swift.org/t/semaphore-alternatives-for-structured-concurrency/59353
- */
+// Async Semaphore compatible with Swift's structured concurrency. Swift complains about the normal sync Semaphore since it's a blocking wait.
+// See: https://forums.swift.org/t/semaphore-alternatives-for-structured-concurrency/59353
 actor TestSemaphore {
   private var count: Int
   private var waiters: [CheckedContinuation<Void, Never>] = []

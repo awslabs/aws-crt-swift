@@ -83,8 +83,8 @@ extension EventStreamHeaderValue {
 
 extension EventStreamHeader: Equatable {
   public static func == (lhs: EventStreamHeader, rhs: EventStreamHeader) -> Bool {
-    if case let EventStreamHeaderValue.timestamp(value1) = lhs.value,
-      case let EventStreamHeaderValue.timestamp(value2) = rhs.value
+    if case EventStreamHeaderValue.timestamp(let value1) = lhs.value,
+      case EventStreamHeaderValue.timestamp(let value2) = rhs.value
     {
       return lhs.name == rhs.name && value1.millisecondsSince1970 == value2.millisecondsSince1970
     }

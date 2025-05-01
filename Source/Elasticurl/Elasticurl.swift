@@ -275,10 +275,10 @@ struct Elasticurl: AsyncParsableCommand {
 
         let onComplete: HTTPRequestOptions.OnStreamComplete = { result in
           switch result {
-          case let .success(status):
+          case .success(let status):
             print("response status:\(status)")
             continuation.resume(returning: ())
-          case let .failure(error):
+          case .failure(let error):
             continuation.resume(throwing: error)
           }
         }

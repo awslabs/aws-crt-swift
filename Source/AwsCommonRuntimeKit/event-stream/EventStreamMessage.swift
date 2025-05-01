@@ -30,8 +30,8 @@ public struct EventStreamMessage {
     else {
       throw CommonRunTimeError.crtError(.makeFromLastError())
     }
-    try headers.forEach {
-      try addHeader(header: $0, rawHeaders: &rawHeaders)
+    for header in headers {
+      try addHeader(header: header, rawHeaders: &rawHeaders)
     }
 
     guard
