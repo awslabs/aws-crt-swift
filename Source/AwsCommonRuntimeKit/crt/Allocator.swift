@@ -53,9 +53,8 @@ final class TracingAllocator: Allocator {
   let rawValue: UnsafeMutablePointer<aws_allocator>
 
   /**
-   Creates an `Allocator` that doesn't track anything.
-  
-   - Parameter allocator: The allocator to be traced.
+   * Creates an `Allocator` that doesn't track anything.
+   * - Parameter allocator: The allocator to be traced.
    */
   convenience init(_ allocator: Allocator) {
     self.init(allocator, level: .none, framesPerStack: 0)
