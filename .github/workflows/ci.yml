@@ -17,6 +17,7 @@ env:
 permissions:
   id-token: write # This is required for requesting the JWT
 
+jobs:
   lint:
     runs-on: macos-14 # latest
     steps:
