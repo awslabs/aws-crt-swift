@@ -33,8 +33,6 @@ jobs:
         image:
           - ubuntu-x64
           - al2-x64
-          # issue to fix centos opened against apple here: https://github.com/apple/swift-docker/issues/258
-          # - centos-x64
     steps:
     - uses: aws-actions/configure-aws-credentials@v4
       with:
