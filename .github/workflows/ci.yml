@@ -18,6 +18,21 @@ permissions:
   id-token: write # This is required for requesting the JWT
 
 jobs:
+
+  # depends on all actions required for a "successful" CI run
+  ci-required-checks:
+    name: Required checks pass
+    runs-on: ubuntu-24.04
+    needs:
+      - lint
+      - linux
+      - macos
+      - macos-swift6
+      - devices
+      - check-submodules
+    steps:
+      - run: exit 0
+
   lint:
     runs-on: ubuntu-24.04
     steps:
