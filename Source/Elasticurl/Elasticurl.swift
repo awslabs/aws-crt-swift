@@ -278,7 +278,7 @@ struct Elasticurl: AsyncParsableCommand {
             print("response status:\(status)")
             continuation.resume(returning: ())
           case .failure(let error):
-            continuation.resume(throwing: error)
+            continuation.resume(throwing: error)   
           }
         }
 
