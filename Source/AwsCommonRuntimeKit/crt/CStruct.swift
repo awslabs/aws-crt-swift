@@ -1,7 +1,8 @@
-import AwsCCommon
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+
 import AwsCIo
+import AwsCCommon
 
 // This file defines the protocols & helper functions for C Structs.
 // Instances implementing this protocol should define RawType as their C Struct.

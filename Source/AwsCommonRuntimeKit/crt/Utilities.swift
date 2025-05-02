@@ -1,11 +1,12 @@
+//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+//  SPDX-License-Identifier: Apache-2.0.
+
+import struct Foundation.Date
+import struct Foundation.TimeInterval
 import AwsCCal
 import LibNative
 
 import struct Foundation.Data
-//  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//  SPDX-License-Identifier: Apache-2.0.
-import struct Foundation.Date
-import struct Foundation.TimeInterval
 
 /// This class is used to add reference counting to stuff that do not support it
 /// like Structs, Closures, and Protocols etc by wrapping it in a Class.

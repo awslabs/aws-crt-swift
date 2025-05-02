@@ -1,8 +1,9 @@
-import AwsCCommon
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+
 import AwsCHttp
 import AwsCIo
+import AwsCCommon
 
 /// Represents a single client request to be sent on a HTTP 1.1 connection
 public class HTTPRequest: HTTPRequestBase, @unchecked Sendable {

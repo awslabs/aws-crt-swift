@@ -1,7 +1,8 @@
-import AwsCCommon
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
+
 import AwsCHttp
+import AwsCCommon
 
 public struct HTTPProxyOptions: CStruct {
   public var authType: HTTPProxyAuthenticationType
