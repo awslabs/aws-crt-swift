@@ -256,9 +256,9 @@ internal func MqttRRStreamingOperationSubscriptionStatusCallback(
 
 /// Configuration options for streaming operations
 public struct StreamingOperationOptions: CStructWithUserData, Sendable {
-    let subscriptionStatusEventHandler: SubscriptionStatusEventHandler?
-    let incomingPublishEventHandler: IncomingPublishEventHandler?
-    let topicFilter: String
+    public let subscriptionStatusEventHandler: SubscriptionStatusEventHandler?
+    public let incomingPublishEventHandler: IncomingPublishEventHandler?
+    public let topicFilter: String
 
     public init(
         topicFilter: String,
