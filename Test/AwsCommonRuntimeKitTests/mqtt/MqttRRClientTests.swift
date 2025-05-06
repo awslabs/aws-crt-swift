@@ -16,7 +16,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         var correlationToken: String?
         var payload: Data?
         var subscriptionStatusEvent: SubscriptionStatusEvent?
-        var rrPublishEvent: IncomingPublishEvent?
+        var rrPublishEvent: [IncomingPublishEvent] = []
         
         // rr events expectations
         var subscriptionStatusSuccessExpectation: XCTestExpectation
@@ -56,17 +56,19 @@ class Mqtt5RRClientTests: XCBaseTestCase {
             self.stoppedExpectation = XCTestExpectation(description: "Expect stopped")
             
             self.onRRIncomingPublish = { [self] publishEvent in
-                self.rrPublishEvent = publishEvent
+                self.rrPublishEvent.append(publishEvent)
                 self.incomingPublishExpectation.fulfill()
             }
             
             self.onSubscriptionStatusUpdate = { [self] statusEvent in
-                print(contextName + "MqttRRClientTests: onSubscriptionStatusUpdate. EventType: \(statusEvent.event) ErrorCode:\( statusEvent.error!.code)")
                 self.subscriptionStatusEvent = statusEvent
+                print(contextName + " MqttRRClientTests: onSubscriptionStatusUpdate. EventType: \(statusEvent.event)")
                 if statusEvent.event == SubscriptionStatusEventType.established {
                     self.subscriptionStatusSuccessExpectation.fulfill()
-                }else
-                {
+                }else{
+                    if let error = statusEvent.error {
+                        print(contextName + " MqttRRClientTests: onSubscriptionStatusUpdate failed with error : (\(error.code)) \(error.name) : \(error.message)")
+                    }
                     self.subscriptionStatusErrorExpectation.fulfill()
                 }
             }
@@ -104,9 +106,10 @@ class Mqtt5RRClientTests: XCBaseTestCase {
             }
         }
         
-        // release the context before exit the test case
+        // make sure cleanup the resources before exit the test caseto
         func cleanup(){
             self.responsePaths = nil
+            self.rrPublishEvent = []
         }
     }
     
@@ -372,30 +375,52 @@ class Mqtt5RRClientTests: XCBaseTestCase {
                        Int32(AWS_ERROR_MQTT_REQUEST_RESPONSE_CLIENT_SHUT_DOWN.rawValue))
     }
 
-    func MqttRequestResponse_ShadowUpdatedStreamIncomingPublishSuccess() async throws {
+    func testMqttRequestResponse_ShadowUpdatedStreamIncomingPublishSuccess() async throws {
         let testContext = MqttRRTestContext()
-        var rrClient : MqttRequestResponseClient? = try await setupRequestResponseClient(testContext: testContext)
+        let mqtt5Client = try createMqtt5Client(testContext: testContext)
+        var rrClient: MqttRequestResponseClient? = try MqttRequestResponseClient.newFromMqtt5Client(mqtt5Client: mqtt5Client, options: MqttRequestResponseClientOptions(operationTimeout: 10))
         XCTAssertNotNil(rrClient)
-        let test_topic = UUID().uuidString
-        let streamingOperation = try rrClient!.createStream(streamOptions: StreamingOperationOptions(topicFilter: test_topic,
-                                                                                                     subscriptionStatusCallback:
+        // start the client
+        try await startClient(client: mqtt5Client, testContext: testContext)
+        let expectedTopic = UUID().uuidString
+        let expectedPayload = "incoming publish".data(using: .utf8)
+        let expectedContentType = "application/json"
+        let expectedTimeInterval = TimeInterval(8)
+        let expectedUserProperties = [UserProperty(name: "property1", value: "value1"),
+                                   UserProperty(name: "property2", value: "value2")]
+        
+        var streamingOperation : StreamingOperation? = try rrClient!.createStream(streamOptions: StreamingOperationOptions(topicFilter: expectedTopic,
+                                                                                                    subscriptionStatusCallback:
                                                                                                         testContext.onSubscriptionStatusUpdate,
-                                                                                                     incomingPublishCallback:
+                                                                                                    incomingPublishCallback:
                                                                                                         testContext.onRRIncomingPublish))
-
         // open the streaming and wait for subscription success
-        streamingOperation.open()
+        streamingOperation!.open()
         await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
-        // TODO: publish to client
-
+        let _ = try await mqtt5Client.publish(publishPacket: PublishPacket(qos: QoS.atLeastOnce,
+                                                                           topic: expectedTopic,
+                                                                           payload: expectedPayload,
+                                                                           messageExpiryInterval: expectedTimeInterval,
+                                                                           contentType: expectedContentType,
+                                                                           userProperties: expectedUserProperties))
+        
         await awaitExpectation([testContext.incomingPublishExpectation], 60)
-        
-        guard let publishEvent = testContext.rrPublishEvent else {
-            return XCTAssertNotNil(testContext.rrPublishEvent)
+                
+        XCTAssertGreaterThan(testContext.rrPublishEvent.count, 0)
+        let publishEvent = testContext.rrPublishEvent[0]
+        XCTAssertTrue(publishEvent.topic == expectedTopic)
+        XCTAssertTrue(publishEvent.payload == expectedPayload)
+        XCTAssertTrue(publishEvent.contentType == expectedContentType)
+        XCTAssertTrue(publishEvent.userProperties.count == expectedUserProperties.count)
+        for (index, element) in publishEvent.userProperties.enumerated() {
+            XCTAssertTrue(element.name == expectedUserProperties[index].name)
+            XCTAssertTrue(element.value == expectedUserProperties[index].value)
         }
+        XCTAssertNotNil(publishEvent.messageExpiryInterval)
         
-        XCTAssertTrue(publishEvent.topic == test_topic)
-        // XCTAssertTrue(publishEvent.)
-
+        streamingOperation = nil
+        rrClient = nil
+        testContext.cleanup()
+        
     }
 }

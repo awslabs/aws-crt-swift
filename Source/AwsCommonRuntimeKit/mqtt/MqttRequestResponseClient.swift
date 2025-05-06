@@ -60,26 +60,35 @@ public struct SubscriptionStatusEvent: Sendable {
     public let error: CRTError?
 }
 
-// TODO: Igor has updated the events for IoT Command. Need update later
 /// An event that describes an incoming publish message received on a streaming operation.
 public struct IncomingPublishEvent: Sendable {
-
-    /// The payload of the publish message in a byte buffer format
-    let payload: Data
 
     /// The topic associated with this PUBLISH packet.
     let topic: String
     
-    // TODO: More options for IoT Command changes
-//    /// The content type of the payload
-//    let contentType: Data
-//
-//    /// User Property
-//    let userProperties: [UserProperty]
-//    
-//    ///
-//    let messageExpiryInterval: TimeInterval
+    /// The payload of the publish message in a byte buffer format
+    let payload: Data
+    
+    /// (Optional) The content type of the payload
+    let contentType: String?
 
+    /// (Optional) User Properties, if the user property is unavaliable, the array is 0
+    let userProperties: [UserProperty]
+    
+    /// (Optional) Some service use this field to specify client-side timeouts.
+    let messageExpiryInterval: TimeInterval?
+    
+    init(_ raw_publish_event: UnsafePointer<aws_mqtt_rr_incoming_publish_event>) {
+        let publish_event = raw_publish_event.pointee
+        
+        self.topic = publish_event.topic.toString()
+        self.payload = Data(bytes: publish_event.payload.ptr, count: publish_event.payload.len)
+        self.messageExpiryInterval = (publish_event.message_expiry_interval_seconds?.pointee).map { TimeInterval($0) }
+        self.contentType = publish_event.content_type?.pointee.toString()
+        self.userProperties = convertOptionalUserProperties(
+            count: publish_event.user_property_count,
+            userPropertiesPointer: publish_event.user_properties)
+    }
 }
 
 /// Function signature of a SubscriptionStatusEvent event handler
@@ -93,9 +102,10 @@ public struct MqttRequestResponseResponse: Sendable {
     public let topic: String
     public let payload: Data
     
-    public init(topic: String, payload: Data) {
-        self.topic = topic
-        self.payload = payload
+    init(_ raw_publish_event: UnsafePointer<aws_mqtt_rr_incoming_publish_event>) {
+        let publish_event = raw_publish_event.pointee
+        self.topic = publish_event.topic.toString()
+        self.payload = Data(bytes: publish_event.payload.ptr, count: publish_event.payload.len)
     }
 }
 
@@ -196,10 +206,8 @@ internal func MqttRRStreamingOperationTerminationCallback(_ userData: UnsafeMuta
     _ = Unmanaged<StreamingOperationCore>.fromOpaque(userData!).takeRetainedValue()
 }
 
-internal func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent: UnsafePointer<aws_mqtt_request_response_publish_event>?,
+internal func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent: UnsafePointer<aws_mqtt_rr_incoming_publish_event>?,
                                                               _ userData: UnsafeMutableRawPointer?) {
-    // TODO: finish incoming publish handler
-    
     guard let userData, let publishEvent else {
         // No userData, directly return
         return
@@ -208,7 +216,7 @@ internal func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent: Un
     operationCore.rwlock.read {
         // Only invoke the callback if the streaming operation is not closed.
         if let _ = operationCore.rawValue, let callback = operationCore.options.incomingPublishEventHandler {
-            let subStatusEvent = IncomingPublishEvent(payload: Data(bytes: publishEvent.pointee.payload.ptr, count: publishEvent.pointee.payload.len), topic: publishEvent.pointee.topic.toString())
+            let subStatusEvent = IncomingPublishEvent(publishEvent)
             callback(subStatusEvent)
         }
     }
@@ -227,7 +235,7 @@ internal func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aw
         // Only invoke the callback if the streaming operation is not closed.
         if let _ = operationCore.rawValue, let callback = operationCore.options.subscriptionStatusEventHandler {
             let subStatusEvent = SubscriptionStatusEvent(event: SubscriptionStatusEventType(eventType),
-                                                         error: CRTError(code: Int32(errorCode)))
+                                                         error: errorCode == 0 ? nil : CRTError(code: Int32(errorCode)))
             callback(subStatusEvent)
         }
     }
@@ -366,8 +374,7 @@ internal func MqttRRClientTerminationCallback(_ userData: UnsafeMutableRawPointe
     _ = Unmanaged<MqttRequestResponseClientCore>.fromOpaque(userData!).takeRetainedValue()
 }
 
-private func MqttRROperationCompletionCallback(topic: UnsafePointer<aws_byte_cursor>?,
-                                               payload: UnsafePointer<aws_byte_cursor>?,
+private func MqttRROperationCompletionCallback(publishEvent: UnsafePointer<aws_mqtt_rr_incoming_publish_event>?,
                                                errorCode: Int32,
                                                userData: UnsafeMutableRawPointer?) {
     guard let userData else {
@@ -378,10 +385,8 @@ private func MqttRROperationCompletionCallback(topic: UnsafePointer<aws_byte_cur
         return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
     }
     
-    if let topic, let payload {
-        let response: MqttRequestResponseResponse = MqttRequestResponseResponse(topic: topic.pointee.toString(),
-                                                                                payload: Data(bytes: payload.pointee.ptr,
-                                                                                              count: payload.pointee.len))
+    if let publishEvent {
+        let response: MqttRequestResponseResponse = MqttRequestResponseResponse(publishEvent)
         return continuationCore.continuation.resume(returning: response)
     }
     
