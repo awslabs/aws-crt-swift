@@ -64,19 +64,19 @@ public struct SubscriptionStatusEvent: Sendable {
 public struct IncomingPublishEvent: Sendable {
 
     /// The topic associated with this PUBLISH packet.
-    let topic: String
+    public let topic: String
     
     /// The payload of the publish message in a byte buffer format
-    let payload: Data
+    public let payload: Data
     
     /// (Optional) The content type of the payload
-    let contentType: String?
+    public let contentType: String?
 
     /// (Optional) User Properties, if the user property is unavaliable, the array is 0
-    let userProperties: [UserProperty]
+    public let userProperties: [UserProperty]
     
     /// (Optional) Some service use this field to specify client-side timeouts.
-    let messageExpiryInterval: TimeInterval?
+    public let messageExpiryInterval: TimeInterval?
     
     init(_ raw_publish_event: UnsafePointer<aws_mqtt_rr_incoming_publish_event>) {
         let publish_event = raw_publish_event.pointee
@@ -199,14 +199,14 @@ public struct RequestResponseOperationOptions: CStructWithUserData, Sendable {
     }
 }
 
-internal func MqttRRStreamingOperationTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
+fileprivate func MqttRRStreamingOperationTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
     // Termination callback. This is triggered when the native object is terminated.
     // It is safe to release the native operation at this point. `takeRetainedValue()` would release 
     // the operation reference. ONLY DO IT AFTER YOU NEED RELEASE THE OBJECT
     _ = Unmanaged<StreamingOperationCore>.fromOpaque(userData!).takeRetainedValue()
 }
 
-internal func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent: UnsafePointer<aws_mqtt_rr_incoming_publish_event>?,
+fileprivate func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent: UnsafePointer<aws_mqtt_rr_incoming_publish_event>?,
                                                               _ userData: UnsafeMutableRawPointer?) {
     guard let userData, let publishEvent else {
         // No userData, directly return
@@ -222,7 +222,7 @@ internal func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent: Un
     }
 }
 
-internal func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aws_rr_streaming_subscription_event_type,
+fileprivate func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aws_rr_streaming_subscription_event_type,
                                                                  _ errorCode: Int32,
                                                                  _ userData: UnsafeMutableRawPointer?) {
     guard let userData else {
@@ -242,9 +242,9 @@ internal func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aw
 
 /// Configuration options for streaming operations
 public struct StreamingOperationOptions: CStructWithUserData, Sendable {
-    let subscriptionStatusEventHandler: SubscriptionStatusEventHandler?
-    let incomingPublishEventHandler: IncomingPublishEventHandler?
-    let topicFilter: String
+    public let subscriptionStatusEventHandler: SubscriptionStatusEventHandler?
+    public let incomingPublishEventHandler: IncomingPublishEventHandler?
+    public let topicFilter: String
 
     public init (topicFilter: String,
                  subscriptionStatusCallback: SubscriptionStatusEventHandler? = nil,
@@ -270,12 +270,12 @@ public struct StreamingOperationOptions: CStructWithUserData, Sendable {
 
 // IMPORTANT: You are responsible for concurrency correctness of StreamingOperationCore.
 // The rawValue is mutable cross threads and protected by the rwlock.
-internal class StreamingOperationCore: @unchecked Sendable {
+fileprivate class StreamingOperationCore: @unchecked Sendable {
     fileprivate var rawValue: OpaquePointer? // <aws_mqtt_rr_client_operation>?
     fileprivate let rwlock = ReadWriteLock()
     fileprivate let options: StreamingOperationOptions
     
-    internal init (streamOptions: StreamingOperationOptions, client: MqttRequestResponseClientCore) throws {
+    fileprivate init (streamOptions: StreamingOperationOptions, client: MqttRequestResponseClientCore) throws {
         self.options = streamOptions
         let rawValue = streamOptions.withCPointer(userData: Unmanaged<StreamingOperationCore>.passRetained(self).toOpaque()) { optionsPointer in
             return aws_mqtt_request_response_client_create_streaming_operation(client.rawValue, optionsPointer)
@@ -287,7 +287,7 @@ internal class StreamingOperationCore: @unchecked Sendable {
     }
     
     /// Opens a streaming operation by making the appropriate MQTT subscription with the broker.
-    internal func open() {
+    fileprivate func open() {
         rwlock.read {
             if let rawValue = self.rawValue {
                 aws_mqtt_rr_client_operation_activate(rawValue)
@@ -296,7 +296,7 @@ internal class StreamingOperationCore: @unchecked Sendable {
     }
     
     /// Closes the operation
-    internal func close() {
+    fileprivate func close() {
         rwlock.write {
             aws_mqtt_rr_client_operation_release(self.rawValue)
             self.rawValue = nil
@@ -455,10 +455,10 @@ public class MqttRequestResponseClient {
     /// - Throws: CommonRuntimeError.crtError if creation failed
     public static func newFromMqtt5Client(mqtt5Client: Mqtt5Client,
                                           options: MqttRequestResponseClientOptions? = nil) throws -> MqttRequestResponseClient {
-            return try MqttRequestResponseClient(mqttClient: mqtt5Client, options: options ?? MqttRequestResponseClientOptions())
+        return try MqttRequestResponseClient(mqttClient: mqtt5Client, options: options ?? MqttRequestResponseClientOptions())
     }
     
-    internal init(mqttClient: Mqtt5Client, options: MqttRequestResponseClientOptions) throws {
+    init(mqttClient: Mqtt5Client, options: MqttRequestResponseClientOptions) throws {
         clientCore = try MqttRequestResponseClientCore(mqttClient: mqttClient, options: options)
     }
     
