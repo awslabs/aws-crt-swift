@@ -49,11 +49,6 @@ public struct SubscriptionStatusEvent: Sendable {
     
     /// An optional error code associated with the event. Only set for SubscriptionLost and SubscriptionHalted.
     public let error: CRTError?
-    
-    init(event: SubscriptionStatusEventType, error: CRTError? ) {
-        self.event = event
-        self.error = error
-    }
 }
 
 /// An event that describes an incoming publish message received on a streaming operation.
