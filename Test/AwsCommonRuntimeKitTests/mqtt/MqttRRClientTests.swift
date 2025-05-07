@@ -8,7 +8,7 @@ import AwsCMqtt
 
 class Mqtt5RRClientTests: XCBaseTestCase {
     
-    final class MqttRRTestContext: Sendable {
+    final class MqttRRTestContext: @unchecked Sendable {
         let contextName: String
         
         // The test context
