@@ -207,7 +207,7 @@ private func MqttRRStreamingOperationTerminationCallback(_ userData: UnsafeMutab
 }
 
 private func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent: UnsafePointer<aws_mqtt_rr_incoming_publish_event>?,
-                                                              _ userData: UnsafeMutableRawPointer?) {
+                                                             _ userData: UnsafeMutableRawPointer?) {
     guard let userData, let publishEvent else {
         // No userData, directly return
         return
@@ -223,8 +223,8 @@ private func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent: Uns
 }
 
 private func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aws_rr_streaming_subscription_event_type,
-                                                                 _ errorCode: Int32,
-                                                                 _ userData: UnsafeMutableRawPointer?) {
+                                                                _ errorCode: Int32,
+                                                                _ userData: UnsafeMutableRawPointer?) {
     guard let userData else {
         // No userData, directly return
         return
@@ -304,13 +304,13 @@ private class StreamingOperationCore: @unchecked Sendable {
     }
 }
 
-/// A streaming operation is automatically closed (and an MQTT unsubscribe triggered) when its destructor is invoked.
+/// The streaming operation, it is automatically closed (and an MQTT unsubscribe triggered) when its destructor is invoked.
 public class StreamingOperation {
     fileprivate var operationCore: StreamingOperationCore
     
-    /// The end user should init the operation through MqttRequestResponseClient->createStream()
-    fileprivate init(operationCore: StreamingOperationCore) {
-        self.operationCore = operationCore
+    /// The end user should only create the operation through MqttRequestResponseClient->createStream()
+    fileprivate init (streamOptions: StreamingOperationOptions, client: MqttRequestResponseClientCore) throws {
+        self.operationCore = try StreamingOperationCore(streamOptions: streamOptions, client: client)
     }
     
     /// Opens a streaming operation by making the appropriate MQTT subscription with the broker.
@@ -429,8 +429,7 @@ internal class MqttRequestResponseClientCore: @unchecked Sendable {
     
     /// create a stream operation, throws CRTError if the creation failed. You would need call open() on the operation to start the stream
     public func createStream(streamOptions: StreamingOperationOptions) throws -> StreamingOperation {
-        let operationCore = try StreamingOperationCore(streamOptions: streamOptions, client: self)
-        return StreamingOperation(operationCore: operationCore)
+        return try StreamingOperation(streamOptions: streamOptions, client: self)
     }
     
     /// release the request response client. You must not use the client after call `close()`.

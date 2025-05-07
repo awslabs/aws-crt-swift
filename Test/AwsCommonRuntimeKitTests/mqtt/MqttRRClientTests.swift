@@ -25,10 +25,10 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         var subscriptionStatusSuccessExpectation: XCTestExpectation
         var subscriptionStatusErrorExpectation: XCTestExpectation
         var incomingPublishExpectation: XCTestExpectation
-        var onSubscriptionStatusUpdate : SubscriptionStatusEventHandler?
-        var onRRIncomingPublish : IncomingPublishEventHandler?
-        
-        
+        var onSubscriptionStatusUpdate: SubscriptionStatusEventHandler?
+        var onRRIncomingPublish: IncomingPublishEventHandler?
+
+
         // protocol client context
         var publishReceivedExpectation: XCTestExpectation
         var publishTargetReachedExpectation: XCTestExpectation
@@ -44,7 +44,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         let onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
         let onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
 
-        init(contextName : String = "MqttClient"){
+        init(contextName: String = "MqttClient") {
             self.contextName = contextName
             
             self.subscriptionStatusSuccessExpectation = XCTestExpectation(description: "Expect streaming operation publish status success.")
@@ -66,7 +66,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
                 publishReceivedExpectation.fulfill()
             }
 
-            self.onLifecycleEventStopped = { [stoppedExpectation=self.stoppedExpectation] _ in
+            self.onLifecycleEventStopped = { [stoppedExpectation = self.stoppedExpectation] _ in
                 print(contextName + " MqttRRClientTests: onLifecycleEventStopped")
                 stoppedExpectation.fulfill()
             }
@@ -102,7 +102,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
                     print(contextName + " MqttRRClientTests: onSubscriptionStatusUpdate. EventType: \(statusEvent.event)")
                     if statusEvent.event == SubscriptionStatusEventType.established {
                         self.subscriptionStatusSuccessExpectation.fulfill()
-                    }else{
+                    } else {
                         if let error = statusEvent.error {
                             print(contextName + " MqttRRClientTests: onSubscriptionStatusUpdate failed with error : (\(error.code)) \(error.name) : \(error.message)")
                         }
@@ -114,7 +114,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         }
         
         // make sure cleanup the resources before exit the test caseto
-        func cleanup(){
+        func cleanup() {
             self.responsePaths = nil
             self.rrPublishEvent = []
         }
@@ -127,7 +127,8 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
         
         let elg = try EventLoopGroup()
-        let resolver = try HostResolver(eventLoopGroup: elg,
+        let resolver = try HostResolver(
+            eventLoopGroup: elg,
             maxHosts: 8,
             maxTTL: 30)
         let clientBootstrap = try ClientBootstrap(
@@ -162,7 +163,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     // MARK: - helper function
     
     // start client and check for connection success
-    func startClient(client: Mqtt5Client, testContext: MqttRRTestContext) async throws{
+    func startClient(client: Mqtt5Client, testContext: MqttRRTestContext) async throws {
         try client.start()
         await awaitExpectation([testContext.connectionSuccessExpectation], 5)
         
@@ -337,7 +338,10 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         let testContext = MqttRRTestContext()
         let rrClient = try await setupRequestResponseClient(testContext: testContext,
                                                             options: MqttRequestResponseClientOptions(operationTimeout: 10))
-        let requestOptions = createRequestResponseGetOptions(testContext: testContext, thingName: "NoSuchThing", withCorrelationToken: false, publishTopic: "wrong/publish/topic")
+        let requestOptions = createRequestResponseGetOptions(testContext: testContext,
+                                                             thingName: "NoSuchThing",
+                                                             withCorrelationToken: false,
+                                                             publishTopic: "wrong/publish/topic")
         var errorCaught = false
         
         do {
@@ -363,7 +367,21 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         
         await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
     }
+    
+    func testMqttRequestResponse_ShadowUpdatedStreamCreationFailed() async throws {
+        let testContext = MqttRRTestContext()
+        let rrClient = try await setupRequestResponseClient(testContext: testContext)
+        
+        do {
+            _ = try rrClient.createStream(streamOptions: StreamingOperationOptions(topicFilter: "",
+                                                                                   subscriptionStatusCallback: testContext.onSubscriptionStatusUpdate))
+            
+        }catch CommonRunTimeError.crtError(let crtError) {
+            XCTAssertTrue(Int32(AWS_ERROR_INVALID_ARGUMENT.rawValue) == crtError.code)
+        }
+    }
 
+    // closing the request-response client should failed the streaming operation
     func testMqttRequestResponse_ShadowUpdatedStreamClientClosed() async throws {
         let testContext = MqttRRTestContext()
         var rrClient : MqttRequestResponseClient? = try await setupRequestResponseClient(testContext: testContext)
@@ -395,14 +413,19 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         let expectedPayload = "incoming publish".data(using: .utf8)
         let expectedContentType = "application/json"
         let expectedTimeInterval = TimeInterval(8)
-        let expectedUserProperties = [UserProperty(name: "property1", value: "value1"),
-                                   UserProperty(name: "property2", value: "value2")]
-        
-        var streamingOperation : StreamingOperation? = try rrClient!.createStream(streamOptions: StreamingOperationOptions(topicFilter: expectedTopic,
-                                                                                                    subscriptionStatusCallback:
-                                                                                                        testContext.onSubscriptionStatusUpdate,
-                                                                                                    incomingPublishCallback:
-                                                                                                        testContext.onRRIncomingPublish))
+        let expectedUserProperties = [
+            UserProperty(name: "property1", value: "value1"),
+            UserProperty(name: "property2", value: "value2"),
+        ]
+
+        var streamingOperation: StreamingOperation? = try rrClient!.createStream(
+            streamOptions:
+                StreamingOperationOptions(
+                    topicFilter: expectedTopic,
+                    subscriptionStatusCallback:
+                        testContext.onSubscriptionStatusUpdate,
+                    incomingPublishCallback:
+                        testContext.onRRIncomingPublish))
         // open the streaming and wait for subscription success
         streamingOperation!.open()
         await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
