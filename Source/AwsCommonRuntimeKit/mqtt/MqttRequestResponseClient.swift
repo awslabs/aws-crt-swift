@@ -101,7 +101,7 @@ public typealias IncomingPublishEventHandler = @Sendable (IncomingPublishEvent) 
 public struct MqttRequestResponseResponse: Sendable {
     public let topic: String
     public let payload: Data
-    
+
     init(_ raw_publish_event: UnsafePointer<aws_mqtt_rr_incoming_publish_event>) {
         let publish_event = raw_publish_event.pointee
         self.topic = publish_event.topic.toString()

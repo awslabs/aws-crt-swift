@@ -478,7 +478,7 @@ public class UnsubscribePacket: CStruct, @unchecked Sendable {
             return userProperties.withAWSArrayList { userPropertyPointer in
                 raw_unsubscribe_view.user_property_count = userProperties.count
                 raw_unsubscribe_view.user_properties =
-                    UnsafePointer<aws_mqtt5_user_property>(userPropertyPointer)
+                UnsafePointer<aws_mqtt5_user_property>(userPropertyPointer)
                 return body(raw_unsubscribe_view)
             }
         }
