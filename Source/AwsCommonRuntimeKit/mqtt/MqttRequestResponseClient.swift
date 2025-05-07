@@ -199,14 +199,14 @@ public struct RequestResponseOperationOptions: CStructWithUserData, Sendable {
     }
 }
 
-fileprivate func MqttRRStreamingOperationTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
+private func MqttRRStreamingOperationTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
     // Termination callback. This is triggered when the native object is terminated.
     // It is safe to release the native operation at this point. `takeRetainedValue()` would release 
     // the operation reference. ONLY DO IT AFTER YOU NEED RELEASE THE OBJECT
     _ = Unmanaged<StreamingOperationCore>.fromOpaque(userData!).takeRetainedValue()
 }
 
-fileprivate func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent: UnsafePointer<aws_mqtt_rr_incoming_publish_event>?,
+private func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent: UnsafePointer<aws_mqtt_rr_incoming_publish_event>?,
                                                               _ userData: UnsafeMutableRawPointer?) {
     guard let userData, let publishEvent else {
         // No userData, directly return
@@ -222,7 +222,7 @@ fileprivate func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent:
     }
 }
 
-fileprivate func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aws_rr_streaming_subscription_event_type,
+private func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aws_rr_streaming_subscription_event_type,
                                                                  _ errorCode: Int32,
                                                                  _ userData: UnsafeMutableRawPointer?) {
     guard let userData else {
@@ -270,7 +270,7 @@ public struct StreamingOperationOptions: CStructWithUserData, Sendable {
 
 // IMPORTANT: You are responsible for concurrency correctness of StreamingOperationCore.
 // The rawValue is mutable cross threads and protected by the rwlock.
-fileprivate class StreamingOperationCore: @unchecked Sendable {
+private class StreamingOperationCore: @unchecked Sendable {
     fileprivate var rawValue: OpaquePointer? // <aws_mqtt_rr_client_operation>?
     fileprivate let rwlock = ReadWriteLock()
     fileprivate let options: StreamingOperationOptions

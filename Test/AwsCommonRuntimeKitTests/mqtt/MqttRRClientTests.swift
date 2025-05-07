@@ -8,12 +8,16 @@ import AwsCMqtt
 
 class Mqtt5RRClientTests: XCBaseTestCase {
     
-    final class MqttRRTestContext: @unchecked Sendable {
+    final class MqttRRTestContext: Sendable {
         let contextName: String
-
+        
+        // The test context
         var responsePaths: [ResponsePath]?
         var correlationToken: String?
         var payload: Data?
+        
+        // the lock is used to protect the data collected from the callbacks
+        let callbackRWLock = ReadWriteLock()
         var subscriptionStatusEvent: SubscriptionStatusEvent?
         var rrPublishEvent: [IncomingPublishEvent] = []
         
@@ -53,24 +57,6 @@ class Mqtt5RRClientTests: XCBaseTestCase {
             self.disconnectionExpectation = XCTestExpectation(description: "Expect disconnect")
             self.stoppedExpectation = XCTestExpectation(description: "Expect stopped")
             
-            self.onRRIncomingPublish = { [self] publishEvent in
-                self.rrPublishEvent.append(publishEvent)
-                self.incomingPublishExpectation.fulfill()
-            }
-            
-            self.onSubscriptionStatusUpdate = { [self] statusEvent in
-                self.subscriptionStatusEvent = statusEvent
-                print(contextName + " MqttRRClientTests: onSubscriptionStatusUpdate. EventType: \(statusEvent.event)")
-                if statusEvent.event == SubscriptionStatusEventType.established {
-                    self.subscriptionStatusSuccessExpectation.fulfill()
-                }else{
-                    if let error = statusEvent.error {
-                        print(contextName + " MqttRRClientTests: onSubscriptionStatusUpdate failed with error : (\(error.code)) \(error.name) : \(error.message)")
-                    }
-                    self.subscriptionStatusErrorExpectation.fulfill()
-                }
-            }
-            
             self.onPublishReceived = { [publishReceivedExpectation = self.publishReceivedExpectation] publishData in
                 if let payloadString = publishData.publishPacket.payloadAsString() {
                     print(contextName + " MqttRRClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos) payload:\'\(payloadString)\'")
@@ -102,6 +88,29 @@ class Mqtt5RRClientTests: XCBaseTestCase {
                 print(contextName + " MqttRRClientTests: onLifecycleEventDisconnection")
                 disconnectionExpectation.fulfill()
             }
+            
+            self.onRRIncomingPublish = { publishEvent in
+                self.callbackRWLock.write {
+                    self.rrPublishEvent.append(publishEvent)
+                    self.incomingPublishExpectation.fulfill()
+                }
+            }
+            
+            self.onSubscriptionStatusUpdate = { [self] statusEvent in
+                self.callbackRWLock.write {
+                    self.subscriptionStatusEvent = statusEvent
+                    print(contextName + " MqttRRClientTests: onSubscriptionStatusUpdate. EventType: \(statusEvent.event)")
+                    if statusEvent.event == SubscriptionStatusEventType.established {
+                        self.subscriptionStatusSuccessExpectation.fulfill()
+                    }else{
+                        if let error = statusEvent.error {
+                            print(contextName + " MqttRRClientTests: onSubscriptionStatusUpdate failed with error : (\(error.code)) \(error.name) : \(error.message)")
+                        }
+                        self.subscriptionStatusErrorExpectation.fulfill()
+                    }
+                }
+            }
+            
         }
         
         // make sure cleanup the resources before exit the test caseto
@@ -416,7 +425,46 @@ class Mqtt5RRClientTests: XCBaseTestCase {
             XCTAssertTrue(element.name == expectedUserProperties[index].name)
             XCTAssertTrue(element.value == expectedUserProperties[index].value)
         }
+        // We can't check for the exact value here as it'll be decremented by the server part.
         XCTAssertNotNil(publishEvent.messageExpiryInterval)
+        
+        streamingOperation = nil
+        rrClient = nil
+        testContext.cleanup()
+        
+    }
+    
+    func testMqttRequestResponse_ShadowUpdatedStreamIncomingPublishNilValue() async throws {
+        let testContext = MqttRRTestContext()
+        let mqtt5Client = try createMqtt5Client(testContext: testContext)
+        var rrClient: MqttRequestResponseClient? = try MqttRequestResponseClient.newFromMqtt5Client(mqtt5Client: mqtt5Client, options: MqttRequestResponseClientOptions(operationTimeout: 10))
+        XCTAssertNotNil(rrClient)
+        // start the client
+        try await startClient(client: mqtt5Client, testContext: testContext)
+        let expectedTopic = UUID().uuidString
+        let expectedPayload = "incoming publish".data(using: .utf8)
+        
+        var streamingOperation : StreamingOperation? = try rrClient!.createStream(streamOptions: StreamingOperationOptions(topicFilter: expectedTopic,
+                                                                                                    subscriptionStatusCallback:
+                                                                                                        testContext.onSubscriptionStatusUpdate,
+                                                                                                    incomingPublishCallback:
+                                                                                                        testContext.onRRIncomingPublish))
+        // open the streaming and wait for subscription success
+        streamingOperation!.open()
+        await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
+        let _ = try await mqtt5Client.publish(publishPacket: PublishPacket(qos: QoS.atLeastOnce,
+                                                                           topic: expectedTopic,
+                                                                           payload: expectedPayload))
+        
+        await awaitExpectation([testContext.incomingPublishExpectation], 60)
+                
+        XCTAssertGreaterThan(testContext.rrPublishEvent.count, 0)
+        let publishEvent = testContext.rrPublishEvent[0]
+        XCTAssertTrue(publishEvent.topic == expectedTopic)
+        XCTAssertTrue(publishEvent.payload == expectedPayload)
+        XCTAssertNil(publishEvent.contentType)
+        XCTAssertTrue(publishEvent.userProperties.count == 0)
+        XCTAssertNil(publishEvent.messageExpiryInterval)
         
         streamingOperation = nil
         rrClient = nil
