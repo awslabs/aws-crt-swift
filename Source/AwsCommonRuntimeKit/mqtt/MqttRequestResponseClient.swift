@@ -4,25 +4,16 @@ import AwsCMqtt
 import LibNative
 import Foundation
 
-/**
- * The type of change to the state of a streaming operation subscription
- */
+/// The type of change to the state of a streaming operation subscription
 public enum SubscriptionStatusEventType: Sendable {
-    /**
-     * The streaming operation is successfully subscribed to its topic (filter)
-     */
+    /// The streaming operation is successfully subscribed to its topic (filter)
     case established
 
-    /**
-     * The streaming operation has temporarily lost its subscription to its topic (filter)
-     */
+    /// The streaming operation has temporarily lost its subscription to its topic (filter)
     case lost
 
-    /**
-     * The streaming operation has entered a terminal state where it has given up trying to subscribe
-     * to its topic (filter).  This is always due to user error (bad topic filter or IoT Core permission
-     * policy).
-     */
+    /// The streaming operation has entered a terminal state where it has given up trying to subscribe
+    /// to its topic (filter).  This is always due to user error (bad topic filter or IoT Core permission policy).
     case halted
 }
 
@@ -58,6 +49,11 @@ public struct SubscriptionStatusEvent: Sendable {
     
     /// An optional error code associated with the event. Only set for SubscriptionLost and SubscriptionHalted.
     public let error: CRTError?
+    
+    init(event: SubscriptionStatusEventType, error: CRTError? ) {
+        self.event = event
+        self.error = error
+    }
 }
 
 /// An event that describes an incoming publish message received on a streaming operation.
@@ -72,12 +68,13 @@ public struct IncomingPublishEvent: Sendable {
     /// (Optional) The content type of the payload
     public let contentType: String?
 
-    /// (Optional) User Properties, if the user property is unavaliable, the array is 0
+    /// (Optional) User Properties, if there is no user property, the array is empty
     public let userProperties: [UserProperty]
     
     /// (Optional) Some service use this field to specify client-side timeouts.
     public let messageExpiryInterval: TimeInterval?
     
+    /// Internal constructor that setup IncomingPublishEvent from native aws_mqtt_rr_incoming_publish_event
     init(_ raw_publish_event: UnsafePointer<aws_mqtt_rr_incoming_publish_event>) {
         let publish_event = raw_publish_event.pointee
         
@@ -97,11 +94,14 @@ public typealias SubscriptionStatusEventHandler = @Sendable (SubscriptionStatusE
 /// Function signature of an IncomingPublishEvent event handler
 public typealias IncomingPublishEventHandler = @Sendable (IncomingPublishEvent) -> Void
 
-/// Encapsulates a response to an AWS IoT Core MQTT-based service request
+/// A response to an AWS IoT Core MQTT-based service request
 public struct MqttRequestResponseResponse: Sendable {
+    /// The MQTT Topic that the response was received on.
     public let topic: String
+    /// Payload of the response that correlates to a submitted request.
     public let payload: Data
 
+    /// Internal constructor that setup MqttRequestResponseResponse from native aws_mqtt_rr_incoming_publish_event
     init(_ raw_publish_event: UnsafePointer<aws_mqtt_rr_incoming_publish_event>) {
         let publish_event = raw_publish_event.pointee
         self.topic = publish_event.topic.toString()
@@ -114,10 +114,17 @@ public struct MqttRequestResponseResponse: Sendable {
 /// A response path is a pair of values - MQTT topic and a JSON path - that describe where a response to
 /// an MQTT-based request may arrive.  For a given request type, there may be multiple response paths and each
 /// one is associated with a separate JSON schema for the response body.
-public class ResponsePath: CStruct, @unchecked Sendable {
+final public class ResponsePath: CStruct, @unchecked Sendable {
+    /// MQTT topic that a response may arrive on.
     let topic: String
+    /// JSON path for finding correlation tokens within payloads that arrive on this path's topic.
     let correlationTokenJsonPath: String
     
+    /// Create a response path
+    ///
+    /// - Parameters:
+    ///     - topic: MQTT topic that a response may arrive on.
+    ///     - correlationTokenJsonPath: JSON path for finding correlation tokens within payloads that arrive on this path's topic.
     public init(topic: String, correlationTokenJsonPath: String) {
         self.topic = topic
         self.correlationTokenJsonPath = correlationTokenJsonPath
@@ -149,12 +156,31 @@ public class ResponsePath: CStruct, @unchecked Sendable {
 
 /// Configuration options for request response operation
 public struct RequestResponseOperationOptions: CStructWithUserData, Sendable {
+    /// Topic filters that should be subscribed to in order to cover all possible response paths.  Sometimes we can use wildcards to
+    /// cut down on the subscriptions needed; sometimes we can't.
     let subscriptionTopicFilters: [String]
+    /// All possible response paths associated with this request type
     let responsePaths: [ResponsePath]
+    /// Topic to publish the request to once response subscriptions have been established.
     let topic: String
+    /// Payload to publish in order to initiate the request
     let payload: Data
+    /// Correlation token embedded in the request that must be found in a response message.  This can be the empty cursor to support certain services
+    /// which don't use correlation tokens.  In this case, the client only allows one request at a time to use the associated subscriptions; no concurrency
+    /// is possible.  There are some optimizations we could make here but for now, they're not worth the complexity.
     let correlationToken: String?
     
+    /// Create a configuration options for request response operation
+    ///
+    /// - Parameters:
+    ///     - subscriptionTopicFilters: Topic filters that should be subscribed to in order to cover all possible response paths.  Sometimes we can use wildcards to cut
+    ///     down on the subscriptions needed; sometimes we can't.
+    ///     - responsePaths: All possible response paths associated with this request type.
+    ///     - topic: Topic to publish the request to once response subscriptions have been established.
+    ///     - payload: Payload to publish in order to initiate the request
+    ///     - correlationToken: Correlation token embedded in the request that must be found in a response message.  This can be the empty cursor to support certain
+    ///     services which don't use correlation tokens.  In this case, the client only allows one request at a time to use the associated subscriptions; no concurrency is
+    ///     possible.  There are some optimizations we could make here but for now, they're not worth the complexity.
     public init(subscriptionTopicFilters: [String],
                 responsePaths: [ResponsePath],
                 topic: String,
@@ -242,9 +268,12 @@ private func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aws
 
 /// Configuration options for streaming operations
 public struct StreamingOperationOptions: CStructWithUserData, Sendable {
-    public let subscriptionStatusEventHandler: SubscriptionStatusEventHandler?
-    public let incomingPublishEventHandler: IncomingPublishEventHandler?
+    /// The MQTT topic that the streaming is "listen" to.
     public let topicFilter: String
+    /// (Optional) The handler function a streaming operation will use for subscription status events.
+    public let subscriptionStatusEventHandler: SubscriptionStatusEventHandler?
+    /// (Optional) The handler function a streaming operation will use for the incoming message
+    public let incomingPublishEventHandler: IncomingPublishEventHandler?
 
     public init (topicFilter: String,
                  subscriptionStatusCallback: SubscriptionStatusEventHandler? = nil,
@@ -270,6 +299,7 @@ public struct StreamingOperationOptions: CStructWithUserData, Sendable {
 
 // IMPORTANT: You are responsible for concurrency correctness of StreamingOperationCore.
 // The rawValue is mutable cross threads and protected by the rwlock.
+/// The internal core of the streaming operation. It helps to handle the aws_mqtt_rr_client_operation termination.
 private class StreamingOperationCore: @unchecked Sendable {
     fileprivate var rawValue: OpaquePointer? // <aws_mqtt_rr_client_operation>?
     fileprivate let rwlock = ReadWriteLock()
@@ -308,7 +338,7 @@ private class StreamingOperationCore: @unchecked Sendable {
 public class StreamingOperation {
     fileprivate var operationCore: StreamingOperationCore
     
-    /// The end user should only create the operation through MqttRequestResponseClient->createStream()
+    /// Constructor. The end user should only create the operation through MqttRequestResponseClient->createStream()
     fileprivate init (streamOptions: StreamingOperationOptions, client: MqttRequestResponseClientCore) throws {
         self.operationCore = try StreamingOperationCore(streamOptions: streamOptions, client: client)
     }
@@ -323,18 +353,23 @@ public class StreamingOperation {
     }
 }
 
-// We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
-// so mark it unchecked Sendable
-/// Request-response client configuration options
-public class MqttRequestResponseClientOptions: CStructWithUserData, @unchecked Sendable {
+/// MQTT-based request-response client configuration options
+final public class MqttRequestResponseClientOptions: CStructWithUserData, Sendable {
 
-    /// Maximum number of subscriptions that the client will concurrently use for request-response operations. Default to 3.
+    /// Maximum number of request-response subscriptions the client allows to be concurrently active at any one point in time. When the client hits this threshold,
+    /// requests will be delayed until earlier requests complete and release their subscriptions.  Each in-progress request will use either 1 or 2 MQTT subscriptions
+    /// until completion.
+    /// Default to 3.
     public let maxRequestResponseSubscription: Int
     
-    /// Maximum number of subscriptions that the client will concurrently use for streaming operations Default to 2.
+    /// Maximum number of concurrent streaming operation subscriptions that the client will allow. Each "unique" (different topic filter) streaming operation will use
+    /// 1 MQTT subscription.  When the client hits this threshold, attempts to open new streaming operations will fail.
+    /// Default to 2.
     public let maxStreamingSubscription: Int
     
-    /// Duration, in seconds, that a request-response operation will wait for completion before giving up. Default to 60 seconds.
+    /// The timeout value, in seconds, for a request-response operation. If a request is not complete by this time interval, the client will complete it as failed.
+    /// This time interval starts the instant the request is submitted to the client.
+    /// Default to 60 seconds.
     public let operationTimeout: TimeInterval
     
     public init(maxRequestResponseSubscription: Int = 3, maxStreamingSubscription: Int = 2, operationTimeout: TimeInterval = 60) {
@@ -366,7 +401,7 @@ public class MqttRequestResponseClientOptions: CStructWithUserData, @unchecked S
     }
 }
 
-internal func MqttRRClientTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
+private func MqttRRClientTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
     // Termination callback. This is triggered when the native client is terminated.
     // It is safe to release the request response client at this point.
     // `takeRetainedValue()` would release the client reference. ONLY DO IT AFTER YOU NEED RELEASE THE CLIENT
@@ -396,10 +431,11 @@ private func MqttRROperationCompletionCallback(publishEvent: UnsafePointer<aws_m
 // The rawValue is only modified within the close() function, which is exclusively called in the MqttRequestResponseClient destructor.
 // At that point, no other operations should be in progress. Therefore, under this usage model, MqttRequestResponseClientCore is
 // expected to be thread-safe.
-internal class MqttRequestResponseClientCore: @unchecked Sendable {
+/// The internal core of the mqtt request response client. It helps to handle the native request response termination.
+private class MqttRequestResponseClientCore: @unchecked Sendable {
     fileprivate var rawValue: OpaquePointer? // aws_mqtt_request_response_client
     
-    internal init(mqttClient: Mqtt5Client, options: MqttRequestResponseClientOptions) throws {
+    fileprivate init(mqttClient: Mqtt5Client, options: MqttRequestResponseClientOptions) throws {
         guard let rawValue = (options.withCPointer(
             userData: Unmanaged<MqttRequestResponseClientCore>.passRetained(self).toOpaque()) { optionsPointer in
                 return aws_mqtt_request_response_client_new_from_mqtt5_client(
@@ -412,8 +448,8 @@ internal class MqttRequestResponseClientCore: @unchecked Sendable {
         self.rawValue = rawValue
     }
     
-    /// submit a request responds operation, throws CRTError if the operation failed
-    public func submitRequest(operationOptions: RequestResponseOperationOptions) async throws -> MqttRequestResponseResponse {
+    /// Submits a request responds operation, throws CRTError if the operation failed
+    fileprivate func submitRequest(operationOptions: RequestResponseOperationOptions) async throws -> MqttRequestResponseResponse {
         try operationOptions.validateConversionToNative()
         return try await withCheckedThrowingContinuation { continuation in
             let continuationCore = ContinuationCore<MqttRequestResponseResponse>(continuation: continuation)
@@ -427,29 +463,30 @@ internal class MqttRequestResponseClientCore: @unchecked Sendable {
         }
     }
     
-    /// create a stream operation, throws CRTError if the creation failed. You would need call open() on the operation to start the stream
-    public func createStream(streamOptions: StreamingOperationOptions) throws -> StreamingOperation {
+    /// Creates a stream operation, throws CRTError if the creation failed. You would need call open() on the operation to start the stream
+    fileprivate func createStream(streamOptions: StreamingOperationOptions) throws -> StreamingOperation {
         return try StreamingOperation(streamOptions: streamOptions, client: self)
     }
     
-    /// release the request response client. You must not use the client after call `close()`.
-    public func close() {
+    /// Releases the request response client. You must not use the client after call `close()`.
+    fileprivate func close() {
         aws_mqtt_request_response_client_release(self.rawValue)
         self.rawValue = nil
     }
     
 }
 
+/// The Mqtt
 public class MqttRequestResponseClient {
     fileprivate var clientCore: MqttRequestResponseClientCore
     
     /// Creates a new request-response client using an MQTT5 client for protocol transport
     ///
     /// - Parameters:
-    ///     - mqtt5Client: protocolClient MQTT client to use for transport
-    ///     - options: request-response client configuration options
+    ///     - mqtt5Client: the MQTT5 client that use for protocol transport
+    ///     - options: request-response client configurations
     ///
-    /// - Returns:return a new MqttRequestResponseClient if success
+    /// - Returns: MqttRequestResponseClient
     ///
     /// - Throws: CommonRuntimeError.crtError if creation failed
     public static func newFromMqtt5Client(mqtt5Client: Mqtt5Client,
@@ -461,23 +498,23 @@ public class MqttRequestResponseClient {
         clientCore = try MqttRequestResponseClientCore(mqttClient: mqttClient, options: options)
     }
     
-    /// Submit a request responds operation, throws CRTError if the operation failed
+    /// Submits a generic request to the request-response client, throws CRTError if the operation failed
     ///
     /// - Parameters:
     ///     - operationOptions: configuration options for request response operation
-    /// - Returns:
-    ///     - MqttRequestResponseResponse
-    /// - Throws:CommonRuntimeError.crtError if submit failed
+    /// - Returns: MqttRequestResponseResponse
+    /// - Throws: CommonRuntimeError.crtError if submit failed
     public func submitRequest(operationOptions: RequestResponseOperationOptions) async throws -> MqttRequestResponseResponse {
         return try await clientCore.submitRequest(operationOptions: operationOptions)
     }
     
-    /// Create a stream operation, throws CRTError if the creation failed. You would need call open() on the operation to start the stream
+    /// Creates a stream operation, throws CRTError if the creation failed. Streaming operations "listen" to a specific kind of service event and invoke handlers every time
+    /// one is received. You would need call open() on the operation to start the stream.
+    ///
     /// - Parameters:
     ///     - streamOptions: Configuration options for streaming operations
-    /// - Returns:
-    ///     - StreamingOperation
-    /// - Throws:CommonRuntimeError.crtError if creation failed
+    /// - Returns: StreamingOperation, you would need call open() on the operation to start the stream
+    /// - Throws: CommonRuntimeError.crtError if creation failed
     public func createStream(streamOptions: StreamingOperationOptions) throws -> StreamingOperation {
         return try clientCore.createStream(streamOptions: streamOptions)
     }
