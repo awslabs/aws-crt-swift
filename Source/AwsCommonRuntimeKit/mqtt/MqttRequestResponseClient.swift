@@ -215,12 +215,11 @@ internal func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent: Un
     let operationCore = Unmanaged<StreamingOperationCore>.fromOpaque(userData).takeUnretainedValue()
     operationCore.rwlock.read {
         // Only invoke the callback if the streaming operation is not closed.
-        if let _ = operationCore.rawValue, let callback = operationCore.options.incomingPublishEventHandler {
+        if operationCore.rawValue != nil, operationCore.options.incomingPublishEventHandler != nil {
             let subStatusEvent = IncomingPublishEvent(publishEvent)
-            callback(subStatusEvent)
+            operationCore.options.incomingPublishEventHandler!(subStatusEvent)
         }
     }
-    
 }
 
 internal func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aws_rr_streaming_subscription_event_type,
@@ -233,10 +232,10 @@ internal func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aw
     let operationCore = Unmanaged<StreamingOperationCore>.fromOpaque(userData).takeUnretainedValue()
     operationCore.rwlock.read {
         // Only invoke the callback if the streaming operation is not closed.
-        if let _ = operationCore.rawValue, let callback = operationCore.options.subscriptionStatusEventHandler {
+        if operationCore.rawValue != nil, operationCore.options.subscriptionStatusEventHandler != nil {
             let subStatusEvent = SubscriptionStatusEvent(event: SubscriptionStatusEventType(eventType),
                                                          error: errorCode == 0 ? nil : CRTError(code: Int32(errorCode)))
-            callback(subStatusEvent)
+            operationCore.options.subscriptionStatusEventHandler!(subStatusEvent)
         }
     }
 }
