@@ -81,12 +81,13 @@ public typealias IncomingPublishEventHandler = @Sendable (IncomingPublishEvent) 
 
 /// Encapsulates a response to an AWS IoT Core MQTT-based service request
 public struct MqttRequestResponseResponse: Sendable {
-    let topic: String
-    let payload: Data
-    
-    public init(topic: String, payload: Data) {
-        self.topic = topic
-        self.payload = payload
+    public let topic: String
+    public let payload: Data
+
+    init(_ raw_publish_event: UnsafePointer<aws_mqtt_rr_incoming_publish_event>) {
+        let publish_event = raw_publish_event.pointee
+        self.topic = publish_event.topic.toString()
+        self.payload = Data(bytes: publish_event.payload.ptr, count: publish_event.payload.len)
     }
 }
 
@@ -99,7 +100,7 @@ public class ResponsePath: CStruct, @unchecked Sendable {
     let topic: String
     let correlationTokenJsonPath: String
     
-    init(topic: String, correlationTokenJsonPath: String) {
+    public init(topic: String, correlationTokenJsonPath: String) {
         self.topic = topic
         self.correlationTokenJsonPath = correlationTokenJsonPath
         
@@ -272,8 +273,7 @@ internal func MqttRRClientTerminationCallback(_ userData: UnsafeMutableRawPointe
     _ = Unmanaged<MqttRequestResponseClientCore>.fromOpaque(userData!).takeRetainedValue()
 }
 
-private func MqttRROperationCompletionCallback(topic: UnsafePointer<aws_byte_cursor>?,
-                                               payload: UnsafePointer<aws_byte_cursor>?,
+private func MqttRROperationCompletionCallback(publishEvent: UnsafePointer<aws_mqtt_rr_incoming_publish_event>?,
                                                errorCode: Int32,
                                                userData: UnsafeMutableRawPointer?) {
     guard let userData else {
@@ -284,10 +284,8 @@ private func MqttRROperationCompletionCallback(topic: UnsafePointer<aws_byte_cur
         return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
     }
     
-    if let topic, let payload {
-        let response: MqttRequestResponseResponse = MqttRequestResponseResponse(topic: topic.pointee.toString(),
-                                                                                payload: Data(bytes: payload.pointee.ptr,
-                                                                                              count: payload.pointee.len))
+    if let publishEvent {
+        let response: MqttRequestResponseResponse = MqttRequestResponseResponse(publishEvent)
         return continuationCore.continuation.resume(returning: response)
     }
     

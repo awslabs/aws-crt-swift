@@ -8,10 +8,9 @@ import AwsCMqtt
 
 class Mqtt5RRClientTests: XCBaseTestCase {
     
-    class MqttRRTestContext {
-        var contextName: String
+    final class MqttRRTestContext: @unchecked Sendable {
+        let contextName: String
 
-        // rr client context
         var responsePaths: [ResponsePath]?
         var correlationToken: String?
         var payload: Data?
@@ -22,17 +21,15 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         var connectionSuccessExpectation: XCTestExpectation
         var connectionFailureExpectation: XCTestExpectation
         var disconnectionExpectation: XCTestExpectation
-        var stoppedExpecation: XCTestExpectation
+        var stoppedExpectation: XCTestExpectation
 
-        var onPublishReceived: OnPublishReceived?
-        var onLifecycleEventStopped: OnLifecycleEventStopped?
-        var onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect?
-        var onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess?
-        var onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
-        var onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
-        var onWebSocketHandshake: OnWebSocketHandshakeIntercept?
+        let onPublishReceived: OnPublishReceived?
+        let onLifecycleEventStopped: OnLifecycleEventStopped?
+        let onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect?
+        let onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess?
+        let onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
+        let onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
 
-        
         init(contextName : String = "MqttClient"){
             self.contextName = contextName
             
@@ -41,39 +38,39 @@ class Mqtt5RRClientTests: XCBaseTestCase {
             self.connectionSuccessExpectation = XCTestExpectation(description: "Expect connection Success")
             self.connectionFailureExpectation = XCTestExpectation(description: "Expect connection Failure")
             self.disconnectionExpectation = XCTestExpectation(description: "Expect disconnect")
-            self.stoppedExpecation = XCTestExpectation(description: "Expect stopped")
+            self.stoppedExpectation = XCTestExpectation(description: "Expect stopped")
             
             
-            self.onPublishReceived = { [self] publishData in
+            self.onPublishReceived = { [publishReceivedExpectation = self.publishReceivedExpectation] publishData in
                 if let payloadString = publishData.publishPacket.payloadAsString() {
                     print(contextName + " MqttRRClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos) payload:\'\(payloadString)\'")
                 } else {
                     print(contextName + " MqttRRClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos)")
                 }
-                self.publishReceivedExpectation.fulfill()
+                publishReceivedExpectation.fulfill()
             }
 
-            self.onLifecycleEventStopped = { [self] _ in
+            self.onLifecycleEventStopped = { [stoppedExpectation=self.stoppedExpectation] _ in
                 print(contextName + " MqttRRClientTests: onLifecycleEventStopped")
-                self.stoppedExpecation.fulfill()
+                stoppedExpectation.fulfill()
             }
             
             self.onLifecycleEventAttemptingConnect = { _ in
                 print(contextName + " MqttRRClientTests: onLifecycleEventAttemptingConnect")
             }
             
-            self.onLifecycleEventConnectionSuccess = { [self] successData in
+            self.onLifecycleEventConnectionSuccess = { [connectionSuccessExpectation = self.connectionSuccessExpectation] successData in
                 print(contextName + " MqttRRClientTests: onLifecycleEventConnectionSuccess")
-                self.connectionSuccessExpectation.fulfill()
+                connectionSuccessExpectation.fulfill()
             }
             
-            self.onLifecycleEventConnectionFailure = { [self] failureData in
+            self.onLifecycleEventConnectionFailure = { [connectionFailureExpectation = self.connectionFailureExpectation] failureData in
                 print(contextName + " MqttRRClientTests: onLifecycleEventConnectionFailure")
-                self.connectionFailureExpectation.fulfill()
+                connectionFailureExpectation.fulfill()
             }
-            self.onLifecycleEventDisconnection = { [self] disconnectionData in
+            self.onLifecycleEventDisconnection = { [disconnectionExpectation = self.disconnectionExpectation] disconnectionData in
                 print(contextName + " MqttRRClientTests: onLifecycleEventDisconnection")
-                self.disconnectionExpectation.fulfill()
+                disconnectionExpectation.fulfill()
             }
         }
         
@@ -134,13 +131,13 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     // stop client and check for discconnection and stopped lifecycle events
     func stopClient(client: Mqtt5Client, testContext: MqttRRTestContext, disconnectPacket: DisconnectPacket? = nil) async throws -> Void {
         try client.stop(disconnectPacket: disconnectPacket)
-        return await awaitExpectation([testContext.stoppedExpecation], 5)
+        return await awaitExpectation([testContext.stoppedExpectation], 5)
     }
     
     // setup rr client
-    func setupRequestResponseClient(testContext: MqttRRTestContext) async throws -> MqttRequestResponseClient {
+    func setupRequestResponseClient(testContext: MqttRRTestContext, options: MqttRequestResponseClientOptions? = nil) async throws -> MqttRequestResponseClient {
         let mqtt5Client = try createMqtt5Client(testContext: testContext)
-        let rrClient = try MqttRequestResponseClient.newFromMqtt5Client(mqtt5Client: mqtt5Client)
+        let rrClient = try MqttRequestResponseClient.newFromMqtt5Client(mqtt5Client: mqtt5Client, options: options)
 
         // start the client
         try await startClient(client: mqtt5Client, testContext: testContext)
@@ -278,7 +275,8 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     
     func testMqttRequestResponse_GetNamedShadowTimeout() async throws{
         let testContext = MqttRRTestContext()
-        let rrClient = try await setupRequestResponseClient(testContext: testContext)
+        let rrClient = try await setupRequestResponseClient(testContext: testContext,
+                                                            options: MqttRequestResponseClientOptions(operationTimeout: 10))
         let requestOptions = createRequestResponseGetOptions(testContext: testContext, thingName: "NoSuchThing", publishTopic: "wrong/publish/topic")
         var errorCaught = false
         
@@ -297,7 +295,8 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     
     func testMqttRequestResponse_GetNamedShadowTimeoutNoCorrelationToken() async throws {
         let testContext = MqttRRTestContext()
-        let rrClient = try await setupRequestResponseClient(testContext: testContext)
+        let rrClient = try await setupRequestResponseClient(testContext: testContext,
+                                                            options: MqttRequestResponseClientOptions(operationTimeout: 10))
         let requestOptions = createRequestResponseGetOptions(testContext: testContext, thingName: "NoSuchThing", withCorrelationToken: false, publishTopic: "wrong/publish/topic")
         var errorCaught = false
         
