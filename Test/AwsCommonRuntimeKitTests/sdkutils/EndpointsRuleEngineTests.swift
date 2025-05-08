@@ -234,16 +234,6 @@ class EndpointsRuleEngineTests: XCBaseTestCase {
             ])
         ])]
         XCTAssertEqual(expectedProperties, properties)
-//        let expectedProperties = [
-//            "authSchemes": [
-//                [
-//                    "name": "sigv4",
-//                    "signingName": "serviceName",
-//                    "signingRegion": "us-west-2"
-//                ]
-//            ]
-//        ]
-//        XCTAssertEqual(expectedProperties, properties)
         let expectedHeaders = [
             "x-amz-region": [
                 "us-west-2"
