@@ -6,8 +6,8 @@ on:
       - 'main'
 
 env:
-  BUILDER_VERSION: bump-swift-5.9
-  BUILDER_SOURCE: channels
+  BUILDER_VERSION: v0.9.81
+  BUILDER_SOURCE: releases
   BUILDER_HOST: https://d19elf31gohf1l.cloudfront.net
   PACKAGE_NAME: aws-crt-swift
   RUN: ${{ github.run_id }}-${{ github.run_number }}
@@ -18,6 +18,21 @@ permissions:
   id-token: write # This is required for requesting the JWT
 
 jobs:
+
+  # depends on all actions required for a "successful" CI run
+  ci-required-checks:
+    name: Required checks pass
+    runs-on: ubuntu-24.04
+    needs:
+      - lint
+      - linux
+      - macos
+      - macos-swift6
+      - devices
+      - check-submodules
+    steps:
+      - run: exit 0
+
   lint:
     runs-on: macos-15 # latest
     steps:
