@@ -20,8 +20,8 @@ extension CStruct {
 }
 
 extension Array where Element: CStruct {
-    /// Convert a CStruct Array into raw c pointer. The function would not do a deep copy of the CStruct element. If you required a deep copy
-    /// make sure to clean up the memory underneath. 
+    /// Convert a CStruct Array into raw c pointer. However, as the conversion made by withCPointer will be unavailable out of 
+    /// the scope, we need to make sure that we have a copy of the underlying memory. 
     func withAWSArrayList<Result>(_ body: (OpaquePointer?) throws -> Result) rethrows -> Result {
         guard capacity != 0 else {
             return try body(nil)
@@ -42,9 +42,11 @@ extension Array where Element: CStruct {
         forEach {
             $0.withCPointer {
                 // `aws_array_list_push_back` will do a memory copy of $0 into array_list, but it would
-                // not do a deep copy there.
+                // not do a deep copy there. For example, if the c struct contains a aws_byte_cursor, it
+                // would only copy the cursor, not the underlying memory it points to, it is possible that
+                // the memory will be unavailable out of the scope.
                 guard aws_array_list_push_back(array_list, $0) == AWS_OP_SUCCESS else {
-                    fatalError("Unable to add user property")
+                    fatalError("Unable to add array element")
                 }
             }
         }
