@@ -79,7 +79,7 @@ private func doRead(_ stream: UnsafeMutablePointer<aws_input_stream>!,
 private func doGetStatus(_ stream: UnsafeMutablePointer<aws_input_stream>!,
                          _ result: UnsafeMutablePointer<aws_stream_status>!) -> Int32 {
     let iStreamCore = Unmanaged<IStreamCore>.fromOpaque(stream.pointee.impl).takeUnretainedValue()
-    if(!iStreamCore.isEndOfStream) {
+    if !iStreamCore.isEndOfStream {
         iStreamCore.isEndOfStream = iStreamCore.iStreamable.isEndOfStream()
     }
     result.pointee = aws_stream_status(is_end_of_stream: iStreamCore.isEndOfStream, is_valid: true)

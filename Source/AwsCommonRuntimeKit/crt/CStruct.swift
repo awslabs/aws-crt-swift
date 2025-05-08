@@ -44,7 +44,7 @@ extension Array where Element: CStruct {
                 // `aws_array_list_push_back` will do a memory copy of $0 into array_list, but it would
                 // not do a deep copy there.
                 guard aws_array_list_push_back(array_list, $0) == AWS_OP_SUCCESS else {
-                    fatalError("Unable to add user property")
+                    fatalError("Unable to add array element")
                 }
             }
         }

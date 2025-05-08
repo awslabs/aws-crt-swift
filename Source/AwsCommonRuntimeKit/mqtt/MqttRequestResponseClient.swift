@@ -81,12 +81,13 @@ public typealias IncomingPublishEventHandler = @Sendable (IncomingPublishEvent) 
 
 /// Encapsulates a response to an AWS IoT Core MQTT-based service request
 public struct MqttRequestResponseResponse: Sendable {
-    let topic: String
-    let payload: Data
-    
-    public init(topic: String, payload: Data) {
-        self.topic = topic
-        self.payload = payload
+    public let topic: String
+    public let payload: Data
+
+    init(_ raw_publish_event: UnsafePointer<aws_mqtt_rr_incoming_publish_event>) {
+        let publish_event = raw_publish_event.pointee
+        self.topic = publish_event.topic.toString()
+        self.payload = Data(bytes: publish_event.payload.ptr, count: publish_event.payload.len)
     }
 }
 
@@ -99,7 +100,7 @@ public class ResponsePath: CStruct, @unchecked Sendable {
     let topic: String
     let correlationTokenJsonPath: String
     
-    init(topic: String, correlationTokenJsonPath: String) {
+    public init(topic: String, correlationTokenJsonPath: String) {
         self.topic = topic
         self.correlationTokenJsonPath = correlationTokenJsonPath
         
@@ -136,7 +137,11 @@ public struct RequestResponseOperationOptions: CStructWithUserData, Sendable {
     let payload: Data
     let correlationToken: String?
     
-    public init(subscriptionTopicFilters: [String], responsePaths: [ResponsePath], topic: String, payload: Data, correlationToken: String?) {
+    public init(subscriptionTopicFilters: [String],
+                responsePaths: [ResponsePath],
+                topic: String,
+                payload: Data,
+                correlationToken: String?) {
         self.subscriptionTopicFilters = subscriptionTopicFilters
         self.responsePaths = responsePaths
         self.topic = topic
@@ -149,11 +154,31 @@ public struct RequestResponseOperationOptions: CStructWithUserData, Sendable {
 
     typealias RawType = aws_mqtt_request_operation_options
     func withCStruct<Result>(userData: UnsafeMutableRawPointer?, _ body: (RawType) -> Result) -> Result {
-        // TODO: convert into aws_mqtt_request_operation_options
-        let options = aws_mqtt_request_operation_options()
-        return body(options)
+        var raw_options = aws_mqtt_request_operation_options()
+        return self.subscriptionTopicFilters.withMutableByteCursorArray { topicsCursor, len in
+            raw_options.subscription_topic_filters = topicsCursor
+            raw_options.subscription_topic_filter_count = len
+            return self.responsePaths.withAWSArrayList { responsePathPointer in
+                raw_options.response_paths = UnsafeMutablePointer<aws_mqtt_request_operation_response_path>(responsePathPointer)
+                raw_options.response_path_count = self.responsePaths.count
+                
+                return withByteCursorFromStrings(self.topic, self.correlationToken) { topicCursor, correlationCursor in
+                    raw_options.publish_topic = topicCursor
+                    raw_options.correlation_token = correlationCursor
+                    
+                    return withAWSByteCursorFromOptionalData(to: self.payload) { cByteCursor in
+                        raw_options.serialized_request = cByteCursor
+                        
+                        if let userData {
+                            raw_options.user_data = userData
+                            raw_options.completion_callback = MqttRROperationCompletionCallback
+                        }
+                        return body(raw_options)
+                    }
+                }
+            }
+        }
     }
-
 }
 
 /// Configuration options for streaming operations
@@ -179,7 +204,7 @@ public struct StreamingOperationOptions: CStruct, Sendable {
 }
 
  /// A streaming operation is automatically closed (and an MQTT unsubscribe triggered) when its
- // destructor is invoked.
+ /// destructor is invoked.
 public class StreamingOperation {
     fileprivate var rawValue: OpaquePointer? // <aws_mqtt_rr_client_operation>?
 
@@ -248,9 +273,29 @@ internal func MqttRRClientTerminationCallback(_ userData: UnsafeMutableRawPointe
     _ = Unmanaged<MqttRequestResponseClientCore>.fromOpaque(userData!).takeRetainedValue()
 }
 
-// IMPORTANT: You are responsible for concurrency correctness of MqttRequestResponseClientCore.
-// The rawValue is only modified in `close()` function, and the `close()` function is only called 
-// in MqttRequestResponseClient destructor, in which case there should be no other operations in progress. Therefore, the MqttRequestResponseClientCore should be thread safe.
+private func MqttRROperationCompletionCallback(publishEvent: UnsafePointer<aws_mqtt_rr_incoming_publish_event>?,
+                                               errorCode: Int32,
+                                               userData: UnsafeMutableRawPointer?) {
+    guard let userData else {
+        return
+    }
+    let continuationCore = Unmanaged<ContinuationCore<MqttRequestResponseResponse>>.fromOpaque(userData).takeRetainedValue()
+    if errorCode != AWS_OP_SUCCESS {
+        return continuationCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+    }
+    
+    if let publishEvent {
+        let response: MqttRequestResponseResponse = MqttRequestResponseResponse(publishEvent)
+        return continuationCore.continuation.resume(returning: response)
+    }
+    
+    assertionFailure("MqttRROperationCompletionCallback: The topic and paylaod should be set if operation succeed")
+}
+
+// IMPORTANT: You are responsible for ensuring the concurrency correctness of MqttRequestResponseClientCore.
+// The rawValue is only modified within the close() function, which is exclusively called in the MqttRequestResponseClient destructor.
+// At that point, no other operations should be in progress. Therefore, under this usage model, MqttRequestResponseClientCore is
+// expected to be thread-safe.
 internal class MqttRequestResponseClientCore: @unchecked Sendable {
     fileprivate var rawValue: OpaquePointer? // aws_mqtt_request_response_client
     
@@ -269,8 +314,17 @@ internal class MqttRequestResponseClientCore: @unchecked Sendable {
     
     /// submit a request responds operation, throws CRTError if the operation failed
     public func submitRequest(operationOptions: RequestResponseOperationOptions) async throws -> MqttRequestResponseResponse {
-        // TODO: sumibt request
-        return MqttRequestResponseResponse(topic: "", payload: Data())
+        try operationOptions.validateConversionToNative()
+        return try await withCheckedThrowingContinuation { continuation in
+            let continuationCore = ContinuationCore<MqttRequestResponseResponse>(continuation: continuation)
+            operationOptions.withCPointer(userData: continuationCore.passRetained(), { optionsPointer in
+                let result = aws_mqtt_request_response_client_submit_request(self.rawValue, optionsPointer)
+                if result != AWS_OP_SUCCESS {
+                   continuationCore.release()
+                   return continuation.resume(throwing: CommonRunTimeError.crtError(CRTError.makeFromLastError()))
+               }
+            })
+        }
     }
     
     /// create a stream operation, throws CRTError if the creation failed. You would need call open() on the operation to start the stream
@@ -299,9 +353,8 @@ public class MqttRequestResponseClient {
     /// - Returns:return a new MqttRequestResponseClient if success
     ///
     /// - Throws: CommonRuntimeError.crtError if creation failed
-    public static func newFromMqtt5Client(
-        mqtt5Client: Mqtt5Client,
-        options: MqttRequestResponseClientOptions? = nil) throws -> MqttRequestResponseClient {
+    public static func newFromMqtt5Client(mqtt5Client: Mqtt5Client,
+                                          options: MqttRequestResponseClientOptions? = nil) throws -> MqttRequestResponseClient {
             return try MqttRequestResponseClient(mqttClient: mqtt5Client, options: options ?? MqttRequestResponseClientOptions())
     }
     
