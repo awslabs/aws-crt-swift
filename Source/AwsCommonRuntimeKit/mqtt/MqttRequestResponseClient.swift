@@ -312,10 +312,12 @@ private class StreamingOperationCore: @unchecked Sendable {
     }
     
     /// Opens a streaming operation by making the appropriate MQTT subscription with the broker.
-    fileprivate func open() {
-        rwlock.read {
+    fileprivate func open() throws {
+        try rwlock.read {
             if let rawValue = self.rawValue {
-                aws_mqtt_rr_client_operation_activate(rawValue)
+                if aws_mqtt_rr_client_operation_activate(rawValue) != AWS_OP_SUCCESS {
+                    throw CommonRunTimeError.crtError(CRTError(code: aws_last_error()))
+                }
             }
         }
     }
@@ -339,8 +341,9 @@ public class StreamingOperation {
     }
     
     /// Opens a streaming operation by making the appropriate MQTT subscription with the broker.
-    public func open() {
-        self.operationCore.open()
+    /// - Throws: CommonRunTimeError
+    public func open() throws {
+        try self.operationCore.open()
     }
     
     deinit{

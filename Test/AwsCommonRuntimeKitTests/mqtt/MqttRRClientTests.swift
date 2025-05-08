@@ -363,7 +363,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         let streamingOperation = try rrClient.createStream(streamOptions: StreamingOperationOptions(topicFilter: "test/topic",
                                                                                                     subscriptionStatusCallback: testContext.onSubscriptionStatusUpdate))
         
-        streamingOperation.open()
+        try streamingOperation.open()
         
         await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
     }
@@ -388,18 +388,21 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         XCTAssertNotNil(rrClient)
         let streamingOperation = try rrClient!.createStream(streamOptions: StreamingOperationOptions(topicFilter: "test/topic",
                                                                                                     subscriptionStatusCallback: testContext.onSubscriptionStatusUpdate))
-        
-        // open the operation successfully
-        streamingOperation.open()
-        await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
-        
-        // destory the request response client
-        rrClient = nil
-        
-        await awaitExpectation([testContext.subscriptionStatusErrorExpectation], 60)
-        XCTAssertEqual(testContext.subscriptionStatusEvent?.event, SubscriptionStatusEventType.halted)
-        XCTAssertEqual(testContext.subscriptionStatusEvent?.error?.code,
-                       Int32(AWS_ERROR_MQTT_REQUEST_RESPONSE_CLIENT_SHUT_DOWN.rawValue))
+        do {
+            // open the operation successfully
+            try streamingOperation.open()
+            await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
+            
+            // destory the request response client
+            rrClient = nil
+            
+            await awaitExpectation([testContext.subscriptionStatusErrorExpectation], 60)
+            XCTAssertEqual(testContext.subscriptionStatusEvent?.event, SubscriptionStatusEventType.halted)
+            XCTAssertEqual(testContext.subscriptionStatusEvent?.error?.code,
+                           Int32(AWS_ERROR_MQTT_REQUEST_RESPONSE_CLIENT_SHUT_DOWN.rawValue))
+        }catch CommonRunTimeError.crtError(let crtError) {
+            XCTFail("Test failed with error \(crtError.name) (\(crtError.code)): \(crtError.message).")
+        }
     }
 
     func testMqttRequestResponse_ShadowUpdatedStreamIncomingPublishSuccess() async throws {
@@ -427,7 +430,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
                     incomingPublishCallback:
                         testContext.onRRIncomingPublish))
         // open the streaming and wait for subscription success
-        streamingOperation!.open()
+        try streamingOperation!.open()
         await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
         let _ = try await mqtt5Client.publish(publishPacket: PublishPacket(qos: QoS.atLeastOnce,
                                                                            topic: expectedTopic,
@@ -473,7 +476,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
                                                                                                     incomingPublishCallback:
                                                                                                         testContext.onRRIncomingPublish))
         // open the streaming and wait for subscription success
-        streamingOperation!.open()
+        try streamingOperation!.open()
         await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
         let _ = try await mqtt5Client.publish(publishPacket: PublishPacket(qos: QoS.atLeastOnce,
                                                                            topic: expectedTopic,
@@ -492,6 +495,25 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         streamingOperation = nil
         rrClient = nil
         testContext.cleanup()
+    }
+    
+    func testMqttRequestResponse_ShadowUpdatedStreamReopenFailed() async throws {
+        let testContext = MqttRRTestContext()
+        let rrClient = try await setupRequestResponseClient(testContext: testContext)
+        let streamingOperation = try rrClient.createStream(streamOptions: StreamingOperationOptions(topicFilter: "test/topic",
+                                                                                                    subscriptionStatusCallback: testContext.onSubscriptionStatusUpdate))
+        var reopenFailed = false;
+        try streamingOperation.open()
+        await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
         
+        do {
+            // reopen the streaming operation
+            try streamingOperation.open()
+        }catch CommonRunTimeError.crtError(let crtError) {
+            reopenFailed = true
+            XCTAssertTrue(crtError.code == AWS_ERROR_MQTT_REUQEST_RESPONSE_STREAM_ALREADY_ACTIVATED.rawValue)
+        }
+        
+        XCTAssertTrue(reopenFailed)
     }
 }
