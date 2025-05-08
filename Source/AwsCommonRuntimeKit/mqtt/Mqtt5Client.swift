@@ -216,7 +216,8 @@ public final class Mqtt5Client: Sendable {
 // The rawValue is mutable cross threads and protected by the rwlock.
 /// Mqtt5 Client Core, internal class to handle Mqtt5 Client operations
 internal class Mqtt5ClientCore: @unchecked Sendable {
-    fileprivate var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
+    // the rawValue is marked as internal to allow rr client to access it
+    internal var rawValue: UnsafeMutablePointer<aws_mqtt5_client>?
     fileprivate let rwlock = ReadWriteLock()
 
     ///////////////////////////////////////
@@ -319,7 +320,8 @@ internal class Mqtt5ClientCore: @unchecked Sendable {
     /// - Returns:
     ///     - `SubackPacket`: return Suback packet if the subscription operation succeeded
     ///
-    /// - Throws: CommonRuntimeError.crtError
+    /// - Throws:
+    ///     - CommonRuntimeError.crtError
     public func subscribe(subscribePacket: SubscribePacket) async throws -> SubackPacket {
 
         return try await withCheckedThrowingContinuation { continuation in
