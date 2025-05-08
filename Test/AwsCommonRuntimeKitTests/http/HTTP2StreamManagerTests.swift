@@ -7,7 +7,8 @@ import XCTest
 class HTT2StreamManagerTests: XCBaseTestCase {
     let endpoint = "d1cz66xoahf9cl.cloudfront.net"; // Use cloudfront for HTTP/2
     let path = "/random_32_byte.data";
-
+    let host = "nghttp2.org"
+    
     func testStreamManagerCreate() throws {
         let tlsContextOptions = TLSContextOptions()
         let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client)
@@ -106,7 +107,7 @@ class HTT2StreamManagerTests: XCBaseTestCase {
     }
 
     func testHTTP2StreamUpload() async throws {
-        let streamManager = try makeStreamManger(host: "nghttp2.org")
+        let streamManager = try makeStreamManger(host: host)
         let semaphore = TestSemaphore(value: 0)
         var httpResponse = HTTPResponse()
         var onCompleteCalled = false
@@ -170,7 +171,7 @@ class HTT2StreamManagerTests: XCBaseTestCase {
     }
 
     func testHTTP2ParallelStreams(count: Int) async throws {
-        let streamManager = try makeStreamManger(host: "nghttp2.org")
+        let streamManager = try makeStreamManger(host: host)
         return await withTaskGroup(of: Void.self) { taskGroup in
             for _ in 1...count {
                 taskGroup.addTask {
