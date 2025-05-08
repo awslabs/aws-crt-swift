@@ -4,34 +4,35 @@
 import AwsCIo
 
 public class TLSSecitemOptions: CStruct {
-    var rawValue: UnsafeMutablePointer<aws_secitem_options>
+  var rawValue: UnsafeMutablePointer<aws_secitem_options>
 
-    public init(
-        certLabel: String? = nil,
-        keyLabel: String? = nil) {
-        
-            self.rawValue = allocator.allocate(capacity: 1)
-            
-            self.rawValue.pointee.cert_label = certLabel?.withByteCursorPointer { certLabelCursorPointer in
-                aws_string_new_from_cursor(
-                    allocator.rawValue,
-                    certLabelCursorPointer)
-            }
-            
-            self.rawValue.pointee.key_label = keyLabel?.withByteCursorPointer { keyLabelCursorPointer in
-                aws_string_new_from_cursor(
-                    allocator.rawValue,
-                    keyLabelCursorPointer)
-            }
+  public init(
+    certLabel: String? = nil,
+    keyLabel: String? = nil
+  ) {
+
+    self.rawValue = allocator.allocate(capacity: 1)
+
+    self.rawValue.pointee.cert_label = certLabel?.withByteCursorPointer { certLabelCursorPointer in
+      aws_string_new_from_cursor(
+        allocator.rawValue,
+        certLabelCursorPointer)
     }
 
-    typealias RawType = aws_secitem_options
-    func withCStruct<Result>(_ body: (aws_secitem_options) -> Result) -> Result {
-        return body(rawValue.pointee)
+    self.rawValue.pointee.key_label = keyLabel?.withByteCursorPointer { keyLabelCursorPointer in
+      aws_string_new_from_cursor(
+        allocator.rawValue,
+        keyLabelCursorPointer)
     }
-    
-    deinit {
-        aws_tls_secitem_options_clean_up(rawValue)
-        allocator.release(rawValue)
-    }
+  }
+
+  typealias RawType = aws_secitem_options
+  func withCStruct<Result>(_ body: (aws_secitem_options) -> Result) -> Result {
+    return body(rawValue.pointee)
+  }
+
+  deinit {
+    aws_tls_secitem_options_clean_up(rawValue)
+    allocator.release(rawValue)
+  }
 }

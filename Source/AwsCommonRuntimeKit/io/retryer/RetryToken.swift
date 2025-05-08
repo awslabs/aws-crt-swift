@@ -7,13 +7,13 @@ import AwsCIo
 // So mark it as unchecked Sendable.
 /// This is just a wrapper for aws_retry_token which user can not create themself but pass around once acquired.
 public class RetryToken: @unchecked Sendable {
-    let rawValue: UnsafeMutablePointer<aws_retry_token>
+  let rawValue: UnsafeMutablePointer<aws_retry_token>
 
-    init(rawValue: UnsafeMutablePointer<aws_retry_token>) {
-        self.rawValue = rawValue
-    }
+  init(rawValue: UnsafeMutablePointer<aws_retry_token>) {
+    self.rawValue = rawValue
+  }
 
-    deinit {
-        aws_retry_token_release(rawValue)
-    }
+  deinit {
+    aws_retry_token_release(rawValue)
+  }
 }

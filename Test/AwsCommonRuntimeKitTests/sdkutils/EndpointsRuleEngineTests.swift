@@ -1,13 +1,14 @@
 ////  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ////  SPDX-License-Identifier: Apache-2.0.
 
-import XCTest
 import Foundation
+import XCTest
+
 @testable import AwsCommonRuntimeKit
 
 class EndpointsRuleEngineTests: XCBaseTestCase {
 
-    let partitions = #"""
+  let partitions = #"""
     {
       "version": "1.1",
       "partitions": [
@@ -111,181 +112,186 @@ class EndpointsRuleEngineTests: XCBaseTestCase {
     }
     """#
 
-    let ruleSet = #"""
+  let ruleSet = #"""
+    {
+      "version": "1.0",
+      "serviceId": "example",
+      "parameters": {
+        "Region": {
+          "type": "string",
+          "builtIn": "AWS::Region",
+          "documentation": "The region to dispatch the request to"
+        }
+      },
+      "rules": [
         {
-          "version": "1.0",
-          "serviceId": "example",
-          "parameters": {
-            "Region": {
-              "type": "string",
-              "builtIn": "AWS::Region",
-              "documentation": "The region to dispatch the request to"
+          "documentation": "rules for when region isSet",
+          "type": "tree",
+          "conditions": [
+            {
+              "fn": "isSet",
+              "argv": [
+                {
+                  "ref": "Region"
+                }
+              ]
             }
-          },
+          ],
           "rules": [
             {
-              "documentation": "rules for when region isSet",
-              "type": "tree",
+              "type": "endpoint",
               "conditions": [
                 {
-                  "fn": "isSet",
+                  "fn": "aws.partition",
                   "argv": [
                     {
                       "ref": "Region"
                     }
-                  ]
+                  ],
+                  "assign": "partitionResult"
                 }
               ],
-              "rules": [
-                {
-                  "type": "endpoint",
-                  "conditions": [
-                    {
-                      "fn": "aws.partition",
-                      "argv": [
-                        {
-                          "ref": "Region"
-                        }
-                      ],
-                      "assign": "partitionResult"
-                    }
+              "endpoint": {
+                "url": "https://example.{Region}.{partitionResult#dnsSuffix}",
+                "headers": {
+                  "x-amz-region": [
+                    "{Region}"
                   ],
-                  "endpoint": {
-                    "url": "https://example.{Region}.{partitionResult#dnsSuffix}",
-                    "headers": {
-                      "x-amz-region": [
-                        "{Region}"
-                      ],
-                      "x-amz-multi": [
-                        "*",
-                        "{Region}"
-                      ]
-                    },
-                    "properties": {
-                      "authSchemes": [
-                        {
-                          "name": "sigv4",
-                          "signingName": "serviceName",
-                          "signingRegion": "{Region}"
-                        }
-                      ]
-                    }
-                  }
+                  "x-amz-multi": [
+                    "*",
+                    "{Region}"
+                  ]
                 },
-                {
-                  "type": "error",
-                  "documentation": "invalid region value",
-                  "conditions": [],
-                  "error": "unable to determine endpoint for region: {Region}"
+                "properties": {
+                  "authSchemes": [
+                    {
+                      "name": "sigv4",
+                      "signingName": "serviceName",
+                      "signingRegion": "{Region}"
+                    }
+                  ]
                 }
-              ]
+              }
             },
             {
-              "type": "endpoint",
-              "documentation": "the single service global endpoint",
-              "conditions": [],
-              "endpoint": {
-                "url": "https://example.amazonaws.com"
-              }
-            }
-          ]
-        }
-        """#
-
-    let errorRuleSet = #"""
-      {
-        "version": "1.0",
-        "serviceId": "example",
-        "parameters": {
-          "Region": {
-            "type": "string",
-            "builtIn": "AWS::Region",
-            "documentation": "The region to dispatch the request to"
-          }
-        },
-        "rules": [
-          {
               "type": "error",
               "documentation": "invalid region value",
               "conditions": [],
-              "error": "unable to determine endpoint for region"
+              "error": "unable to determine endpoint for region: {Region}"
+            }
+          ]
+        },
+        {
+          "type": "endpoint",
+          "documentation": "the single service global endpoint",
+          "conditions": [],
+          "endpoint": {
+            "url": "https://example.amazonaws.com"
           }
-        ]
-      }
-      """#
-
-    func testResolve() throws {
-        let engine = try EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet)
-        let context = try EndpointsRequestContext()
-        try context.add(name: "Region", value: "us-west-2")
-        let resolved = try engine.resolve(context: context)
-        guard case ResolvedEndpoint.endpoint(url: let url,
-                                             headers: let headers,
-                                             properties: let properties) = resolved else {
-            XCTFail("Endpoint resolved to an error")
-            return
         }
-        XCTAssertEqual("https://example.us-west-2.amazonaws.com", url)
-        let expectedProperties: [String: EndpointProperty] = ["authSchemes": .array([
-            .dictionary([
-                "name": .string("sigv4"),
-                "signingName": .string("serviceName"),
-                "signingRegion": .string("us-west-2")
-            ])
-        ])]
-        XCTAssertEqual(expectedProperties, properties)
-        let expectedHeaders = [
-            "x-amz-region": [
-                "us-west-2"
-            ],
-            "x-amz-multi": [
-                "*",
-                "us-west-2"
-            ]
-        ]
-        XCTAssertEqual(expectedHeaders, headers)
+      ]
     }
+    """#
 
-    func testResolveError() throws {
-        let engine = try EndpointsRuleEngine(partitions: partitions, ruleSet: errorRuleSet)
-        let context = try EndpointsRequestContext()
-        let resolved = try engine.resolve(context: context)
-        guard case ResolvedEndpoint.error(message: let error) = resolved else {
-            XCTFail("Endpoint resolved to an endpoint")
-            return
+  let errorRuleSet = #"""
+    {
+      "version": "1.0",
+      "serviceId": "example",
+      "parameters": {
+        "Region": {
+          "type": "string",
+          "builtIn": "AWS::Region",
+          "documentation": "The region to dispatch the request to"
         }
-        XCTAssertEqual(error, "unable to determine endpoint for region")
-    }
-
-    func testRuleSetParsingPerformance() {
-        measure {
-            _ = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet)
+      },
+      "rules": [
+        {
+            "type": "error",
+            "documentation": "invalid region value",
+            "conditions": [],
+            "error": "unable to determine endpoint for region"
         }
+      ]
     }
+    """#
 
-    func testRuleSetEvaluationPerformance() {
-        let engine = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet)
-        let context = try! EndpointsRequestContext()
-        try! context.add(name: "Region", value: "us-west-2")
-        measure {
-            let _ = try! engine.resolve(context: context)
-        }
+  func testResolve() throws {
+    let engine = try EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet)
+    let context = try EndpointsRequestContext()
+    try context.add(name: "Region", value: "us-west-2")
+    let resolved = try engine.resolve(context: context)
+    guard
+      case ResolvedEndpoint.endpoint(
+        url: let url,
+        headers: let headers,
+        properties: let properties) = resolved
+    else {
+      XCTFail("Endpoint resolved to an error")
+      return
     }
+    XCTAssertEqual("https://example.us-west-2.amazonaws.com", url)
+    let expectedProperties: [String: EndpointProperty] = [
+      "authSchemes": .array([
+        .dictionary([
+          "name": .string("sigv4"),
+          "signingName": .string("serviceName"),
+          "signingRegion": .string("us-west-2"),
+        ])
+      ])
+    ]
+    XCTAssertEqual(expectedProperties, properties)
+    let expectedHeaders = [
+      "x-amz-region": [
+        "us-west-2"
+      ],
+      "x-amz-multi": [
+        "*",
+        "us-west-2",
+      ],
+    ]
+    XCTAssertEqual(expectedHeaders, headers)
+  }
 
-    func testResolvePerformance() {
-        measure {
-            let engine = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet)
-            let context = try! EndpointsRequestContext()
-            try! context.add(name: "Region", value: "us-west-2")
-            let _ = try! engine.resolve(context: context)
-        }
+  func testResolveError() throws {
+    let engine = try EndpointsRuleEngine(partitions: partitions, ruleSet: errorRuleSet)
+    let context = try EndpointsRequestContext()
+    let resolved = try engine.resolve(context: context)
+    guard case ResolvedEndpoint.error(message: let error) = resolved else {
+      XCTFail("Endpoint resolved to an endpoint")
+      return
     }
+    XCTAssertEqual(error, "unable to determine endpoint for region")
+  }
 
-    func testRequestContext() {
+  func testRuleSetParsingPerformance() {
+    measure {
+      _ = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet)
+    }
+  }
+
+  func testRuleSetEvaluationPerformance() {
+    let engine = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet)
+    let context = try! EndpointsRequestContext()
+    try! context.add(name: "Region", value: "us-west-2")
+    measure {
+      let _ = try! engine.resolve(context: context)
+    }
+  }
+
+  func testResolvePerformance() {
+    measure {
+      let engine = try! EndpointsRuleEngine(partitions: partitions, ruleSet: ruleSet)
       let context = try! EndpointsRequestContext()
       try! context.add(name: "Region", value: "us-west-2")
-      try! context.add(name: "Boolean", value: true)
-      try! context.add(name: "StringArray", value: ["a", "b"])
-      try! context.add(name: "StringArray", value: [])
+      let _ = try! engine.resolve(context: context)
     }
+  }
+
+  func testRequestContext() {
+    let context = try! EndpointsRequestContext()
+    try! context.add(name: "Region", value: "us-west-2")
+    try! context.add(name: "Boolean", value: true)
+    try! context.add(name: "StringArray", value: ["a", "b"])
+    try! context.add(name: "StringArray", value: [])
+  }
 }

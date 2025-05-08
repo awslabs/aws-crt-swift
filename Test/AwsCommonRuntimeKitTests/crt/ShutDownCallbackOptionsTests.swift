@@ -2,17 +2,18 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import XCTest
+
 @testable import AwsCommonRuntimeKit
 
 class ShutdownCallbackOptionsTests: XCBaseTestCase {
 
-    func testShutdownCallback() async throws {
-        let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
-        do {
-            _ = try EventLoopGroup {
-                shutdownWasCalled.fulfill()
-            }
-        }
-        await awaitExpectation([shutdownWasCalled])
+  func testShutdownCallback() async throws {
+    let shutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
+    do {
+      _ = try EventLoopGroup {
+        shutdownWasCalled.fulfill()
+      }
     }
+    await awaitExpectation([shutdownWasCalled])
+  }
 }

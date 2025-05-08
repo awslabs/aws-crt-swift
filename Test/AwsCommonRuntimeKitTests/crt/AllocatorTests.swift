@@ -1,6 +1,7 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 import XCTest
+
 @testable import AwsCommonRuntimeKit
 
 class TracingAllocatorTests: XCBaseTestCase {
@@ -10,11 +11,11 @@ class TracingAllocatorTests: XCBaseTestCase {
     XCTAssertEqual(allocator.bytes, 0)
     XCTAssertEqual(allocator.count, 0)
 
-    let ptr1: UnsafeMutablePointer<UInt32> =  allocator.allocate(capacity: 5)
+    let ptr1: UnsafeMutablePointer<UInt32> = allocator.allocate(capacity: 5)
     XCTAssertEqual(allocator.bytes, 20)
     XCTAssertEqual(allocator.count, 1)
 
-    let ptr2: UnsafeMutablePointer<UInt8> =  allocator.allocate(capacity: 1_024)
+    let ptr2: UnsafeMutablePointer<UInt8> = allocator.allocate(capacity: 1_024)
     XCTAssertEqual(allocator.bytes, 1_044)
     XCTAssertEqual(allocator.count, 2)
 
