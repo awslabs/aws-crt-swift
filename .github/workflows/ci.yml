@@ -6,7 +6,7 @@ on:
       - 'main'
 
 env:
-  BUILDER_VERSION: v0.9.77
+  BUILDER_VERSION: v0.9.81
   BUILDER_SOURCE: releases
   BUILDER_HOST: https://d19elf31gohf1l.cloudfront.net
   PACKAGE_NAME: aws-crt-swift
@@ -18,6 +18,21 @@ permissions:
   id-token: write # This is required for requesting the JWT
 
 jobs:
+
+  # depends on all actions required for a "successful" CI run
+  ci-required-checks:
+    name: Required checks pass
+    runs-on: ubuntu-24.04
+    needs:
+      - lint
+      - linux
+      - macos
+      - macos-swift6
+      - devices
+      - check-submodules
+    steps:
+      - run: exit 0
+
   lint:
     runs-on: ubuntu-24.04
     steps:
@@ -39,12 +54,12 @@ jobs:
     - uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ env.CRT_CI_ROLE }}
-        aws-region: ${{ env.AWS_DEFAULT_REGION }} 
+        aws-region: ${{ env.AWS_DEFAULT_REGION }}
     - name: Build ${{ env.PACKAGE_NAME }}
       run: |
         aws s3 cp --debug s3://aws-crt-test-stuff/ci/${{ env.BUILDER_VERSION }}/linux-container-ci.sh ./linux-container-ci.sh && chmod a+x ./linux-container-ci.sh
         ./linux-container-ci.sh ${{ env.BUILDER_VERSION }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
-  
+
   macos:
     runs-on: ${{ matrix.runner }}
     env:
@@ -56,15 +71,15 @@ jobs:
       matrix:
         # This matrix runs tests on Mac, on oldest & newest supported Xcodes
         runner:
-          - macos-13 # x64
           - macos-14
-          - macos-13-xlarge
           - macos-14-large #x64
+          - macos-15
+          - macos-15-large # x64
     steps:
     - uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ env.CRT_CI_ROLE }}
-        aws-region: ${{ env.AWS_DEFAULT_REGION }} 
+        aws-region: ${{ env.AWS_DEFAULT_REGION }}
     - name: Build ${{ env.PACKAGE_NAME }} + consumers
       run: |
         python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
@@ -84,7 +99,7 @@ jobs:
     - uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ env.CRT_CI_ROLE }}
-        aws-region: ${{ env.AWS_DEFAULT_REGION }} 
+        aws-region: ${{ env.AWS_DEFAULT_REGION }}
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
@@ -93,7 +108,7 @@ jobs:
     - name: Set Swift version to 6
       run: |
         sed -i '' 's/swift-tools-version:5\.[0-9][0-9]*/swift-tools-version:6\.0/' Package.swift
-        # Verify that substitution was successful 
+        # Verify that substitution was successful
         grep -q 'swift-tools-version:6\.0' Package.swift || (echo "No version 5.x found to update" && exit 1)
     - name: Build ${{ env.PACKAGE_NAME }} + consumers
       run: |
@@ -109,50 +124,41 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # This matrix runs tests on iOS and tvOS on oldest & newest supported Xcodes
+        # This matrix runs tests on iOS and tvOS on oldest & newest supported Xcodes.
+        # Copied from https://github.com/awslabs/aws-sdk-swift/blob/main/.github/workflows/integration-test.yml
         runner:
-          - macos-13 # x64
           - macos-14
-          - macos-13-xlarge
-          - macos-14-large #x64
-        target:
-          [{ os: ios, destination: 'iOS Simulator,OS=16.1,name=iPhone 14'},
-           { os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15'},
-           { os: tvos, destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'},
-           { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'}]
+          - macos-15
         xcode:
-          - Xcode_14.1
           - Xcode_15.2
+          - Xcode_16.1
+        target:
+          [{ os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15'},
+           { os: ios, destination: 'iOS Simulator,OS=18.1,name=iPhone 16'},
+           { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'},
+           { os: tvos, destination: 'tvOS Simulator,OS=18.1,name=Apple TV 4K (3rd generation) (at 1080p)'}]
         exclude:
           # Don't run old macOS with new Xcode
-          - runner: macos-13-xlarge
-            xcode: Xcode_15.2
-          - runner: macos-13
-            xcode: Xcode_15.2
-          - runner: macos-13-xlarge
-            target: { os: ios, destination: 'iOS Simulator,OS=16.1,name=iPhone 14'}
-          - runner: macos-13
-            target: { os: ios, destination: 'iOS Simulator,OS=16.1,name=iPhone 14'}
-          # Don't run new macOS with old Xcode
-          - runner: macos-14-large
-            xcode: Xcode_14.1
           - runner: macos-14
-            xcode: Xcode_14.1
+            xcode: Xcode_16.1
+          # Don't run new macOS with old Xcode
+          - runner: macos-15
+            xcode: Xcode_15.2
           # Don't run old simulators with new Xcode
-          - target: { os: tvos, destination: 'tvOS Simulator,OS=16.1,name=Apple TV 4K (3rd generation) (at 1080p)'}
-            xcode: Xcode_15.2
-          - target: { os: ios, destination: 'iOS Simulator,OS=16.1,name=iPhone 14'}
-            xcode: Xcode_15.2
+          - target: { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)' }
+            xcode: Xcode_16.1
+          - target: { os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15' }
+            xcode: Xcode_16.1
           # Don't run new simulators with old Xcode
-          - target: { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'}
-            xcode: Xcode_14.1
-          - target: { os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15'}
-            xcode: Xcode_14.1
+          - target: { os: tvos, destination: 'tvOS Simulator,OS=18.1,name=Apple TV 4K (3rd generation) (at 1080p)' }
+            xcode: Xcode_15.2
+          - target: { os: ios, destination: 'iOS Simulator,OS=18.1,name=iPhone 16' }
+            xcode: Xcode_15.2
     steps:
     - uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ env.CRT_CI_ROLE }}
-        aws-region: ${{ env.AWS_DEFAULT_REGION }} 
+        aws-region: ${{ env.AWS_DEFAULT_REGION }}
     - name: Build ${{ env.PACKAGE_NAME }} + consumers
       run: |
         python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
@@ -165,7 +171,7 @@ jobs:
     - uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ env.CRT_CI_ROLE }}
-        aws-region: ${{ env.AWS_DEFAULT_REGION }} 
+        aws-region: ${{ env.AWS_DEFAULT_REGION }}
     - name: Checkout Source
       uses: actions/checkout@v4
       with:
