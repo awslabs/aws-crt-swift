@@ -67,7 +67,7 @@ func convertOptionalUserProperties(count: size_t, userPropertiesPointer: UnsafeP
 extension UserProperty: Equatable {
     static public func == (lhs: UserProperty, rhs: UserProperty) -> Bool {
         return lhs.name == rhs.name &&
-        lhs.value == rhs.name
+        lhs.value == rhs.value
     }
 }
 

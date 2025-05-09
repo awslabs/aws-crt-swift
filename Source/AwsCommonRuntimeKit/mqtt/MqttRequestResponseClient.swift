@@ -63,10 +63,10 @@ public struct IncomingPublishEvent: Sendable {
     /// (Optional) The content type of the payload
     public let contentType: String?
 
-    /// (Optional) User Properties, if there is no user property, the array is empty
+    /// (Optional) User Properties, if there is no user property, the array will be empty
     public let userProperties: [UserProperty]
     
-    /// (Optional) Some service use this field to specify client-side timeouts.
+    /// (Optional) Some services use this field to specify client-side timeouts.
     public let messageExpiryInterval: TimeInterval?
     
     /// Internal constructor that setup IncomingPublishEvent from native aws_mqtt_rr_incoming_publish_event
@@ -238,7 +238,7 @@ private func MqttRRStreamingOperationIncomingPublishCallback(_ publishEvent: Uns
         // Only invoke the callback if the streaming operation is not closed.
         if operationCore.rawValue != nil, operationCore.options.incomingPublishEventHandler != nil {
             let subStatusEvent = IncomingPublishEvent(publishEvent)
-            operationCore.options.incomingPublishEventHandler!(subStatusEvent)
+            operationCore.options.incomingPublishEventHandler(subStatusEvent)
         }
     }
 }
@@ -256,7 +256,7 @@ private func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aws
         if operationCore.rawValue != nil, operationCore.options.subscriptionStatusEventHandler != nil {
             let subStatusEvent = SubscriptionStatusEvent(event: SubscriptionStatusEventType(eventType),
                                                          error: errorCode == 0 ? nil : CRTError(code: Int32(errorCode)))
-            operationCore.options.subscriptionStatusEventHandler!(subStatusEvent)
+            operationCore.options.subscriptionStatusEventHandler(subStatusEvent)
         }
     }
 }
@@ -265,14 +265,14 @@ private func MqttRRStreamingOperationSubscriptionStatusCallback(_ eventType: aws
 public struct StreamingOperationOptions: CStructWithUserData, Sendable {
     /// The MQTT topic that the streaming is "listen" to.
     public let topicFilter: String
-    /// (Optional) The handler function a streaming operation will use for subscription status events.
-    public let subscriptionStatusEventHandler: SubscriptionStatusEventHandler?
-    /// (Optional) The handler function a streaming operation will use for the incoming message
-    public let incomingPublishEventHandler: IncomingPublishEventHandler?
+    /// The handler function a streaming operation will use for subscription status events.
+    public let subscriptionStatusEventHandler: SubscriptionStatusEventHandler
+    /// The handler function a streaming operation will use for the incoming message
+    public let incomingPublishEventHandler: IncomingPublishEventHandler
 
     public init (topicFilter: String,
-                 subscriptionStatusCallback: SubscriptionStatusEventHandler? = nil,
-                 incomingPublishCallback: IncomingPublishEventHandler? = nil) {
+                 subscriptionStatusCallback: @escaping SubscriptionStatusEventHandler,
+                 incomingPublishCallback: @escaping IncomingPublishEventHandler) {
         self.subscriptionStatusEventHandler = subscriptionStatusCallback
         self.incomingPublishEventHandler = incomingPublishCallback
         self.topicFilter = topicFilter
@@ -461,12 +461,12 @@ private class MqttRequestResponseClientCore: @unchecked Sendable {
         }
     }
     
-    /// Creates a stream operation, throws CRTError if the creation failed. You would need call open() on the operation to start the stream
+    /// Creates a stream operation, throws CRTError if the creation failed. You will need to call open() on the operation to start the stream
     fileprivate func createStream(streamOptions: StreamingOperationOptions) throws -> StreamingOperation {
         return try StreamingOperation(streamOptions: streamOptions, client: self)
     }
     
-    /// Releases the request response client. You must not use the client after call `close()`.
+    /// Releases the request response client. You must not use the client after calling `close()`.
     fileprivate func close() {
         aws_mqtt_request_response_client_release(self.rawValue)
         self.rawValue = nil
@@ -474,7 +474,7 @@ private class MqttRequestResponseClientCore: @unchecked Sendable {
     
 }
 
-/// The Mqtt
+/// The MqttRequestResponseClient is a client that allows you to send requests and receive responses over MQTT.
 public class MqttRequestResponseClient {
     fileprivate var clientCore: MqttRequestResponseClientCore
     

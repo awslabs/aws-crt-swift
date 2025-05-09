@@ -88,15 +88,15 @@ class Mqtt5RRClientTests: XCBaseTestCase {
                 print(contextName + " MqttRRClientTests: onLifecycleEventDisconnection")
                 disconnectionExpectation.fulfill()
             }
-            
+
             self.onRRIncomingPublish = { publishEvent in
                 self.callbackRWLock.write {
                     self.rrPublishEvent.append(publishEvent)
                     self.incomingPublishExpectation.fulfill()
                 }
             }
-            
-            self.onSubscriptionStatusUpdate = { [self] statusEvent in
+
+            self.onSubscriptionStatusUpdate = { statusEvent in
                 self.callbackRWLock.write {
                     self.subscriptionStatusEvent = statusEvent
                     print(contextName + " MqttRRClientTests: onSubscriptionStatusUpdate. EventType: \(statusEvent.event)")
@@ -113,7 +113,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
             
         }
         
-        // make sure cleanup the resources before exit the test caseto
+        // make sure to cleanup the resources before exit the test case
         func cleanup() {
             self.responsePaths = nil
             self.rrPublishEvent = []
@@ -361,7 +361,8 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         let testContext = MqttRRTestContext()
         let rrClient = try await setupRequestResponseClient(testContext: testContext)
         let streamingOperation = try rrClient.createStream(streamOptions: StreamingOperationOptions(topicFilter: "test/topic",
-                                                                                                    subscriptionStatusCallback: testContext.onSubscriptionStatusUpdate))
+                                                                                                    subscriptionStatusCallback: testContext.onSubscriptionStatusUpdate!,
+                                                                                                    incomingPublishCallback: {_ in }))
         
         try streamingOperation.open()
         
@@ -374,7 +375,8 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         
         do {
             _ = try rrClient.createStream(streamOptions: StreamingOperationOptions(topicFilter: "",
-                                                                                   subscriptionStatusCallback: testContext.onSubscriptionStatusUpdate))
+                                                                                   subscriptionStatusCallback: { _ in },
+                                                                                   incomingPublishCallback: {_ in }))
             
         }catch CommonRunTimeError.crtError(let crtError) {
             XCTAssertTrue(Int32(AWS_ERROR_INVALID_ARGUMENT.rawValue) == crtError.code)
@@ -387,7 +389,8 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         var rrClient : MqttRequestResponseClient? = try await setupRequestResponseClient(testContext: testContext)
         XCTAssertNotNil(rrClient)
         let streamingOperation = try rrClient!.createStream(streamOptions: StreamingOperationOptions(topicFilter: "test/topic",
-                                                                                                    subscriptionStatusCallback: testContext.onSubscriptionStatusUpdate))
+                                                                                                     subscriptionStatusCallback: testContext.onSubscriptionStatusUpdate!,
+                                                                                                     incomingPublishCallback: {_ in }))
         do {
             // open the operation successfully
             try streamingOperation.open()
@@ -426,9 +429,9 @@ class Mqtt5RRClientTests: XCBaseTestCase {
                 StreamingOperationOptions(
                     topicFilter: expectedTopic,
                     subscriptionStatusCallback:
-                        testContext.onSubscriptionStatusUpdate,
+                        testContext.onSubscriptionStatusUpdate!,
                     incomingPublishCallback:
-                        testContext.onRRIncomingPublish))
+                        testContext.onRRIncomingPublish!))
         // open the streaming and wait for subscription success
         try streamingOperation!.open()
         await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
@@ -448,8 +451,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         XCTAssertTrue(publishEvent.contentType == expectedContentType)
         XCTAssertTrue(publishEvent.userProperties.count == expectedUserProperties.count)
         for (index, element) in publishEvent.userProperties.enumerated() {
-            XCTAssertTrue(element.name == expectedUserProperties[index].name)
-            XCTAssertTrue(element.value == expectedUserProperties[index].value)
+            XCTAssertTrue(element == expectedUserProperties[index])
         }
         // We can't check for the exact value here as it'll be decremented by the server part.
         XCTAssertNotNil(publishEvent.messageExpiryInterval)
@@ -472,9 +474,9 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         
         var streamingOperation : StreamingOperation? = try rrClient!.createStream(streamOptions: StreamingOperationOptions(topicFilter: expectedTopic,
                                                                                                     subscriptionStatusCallback:
-                                                                                                        testContext.onSubscriptionStatusUpdate,
+                                                                                                        testContext.onSubscriptionStatusUpdate!,
                                                                                                     incomingPublishCallback:
-                                                                                                        testContext.onRRIncomingPublish))
+                                                                                                        testContext.onRRIncomingPublish!))
         // open the streaming and wait for subscription success
         try streamingOperation!.open()
         await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
@@ -501,7 +503,8 @@ class Mqtt5RRClientTests: XCBaseTestCase {
         let testContext = MqttRRTestContext()
         let rrClient = try await setupRequestResponseClient(testContext: testContext)
         let streamingOperation = try rrClient.createStream(streamOptions: StreamingOperationOptions(topicFilter: "test/topic",
-                                                                                                    subscriptionStatusCallback: testContext.onSubscriptionStatusUpdate))
+                                                                                                    subscriptionStatusCallback: testContext.onSubscriptionStatusUpdate!,
+                                                                                                    incomingPublishCallback: { _ in }))
         var reopenFailed = false;
         try streamingOperation.open()
         await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
