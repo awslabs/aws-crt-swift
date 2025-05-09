@@ -552,8 +552,34 @@ extension CredentialsProvider.Source {
     ///
     /// If both relative uri and absolute uri are set, relative uri has higher priority.
     /// Token is used in auth header but only for absolute uri.
-    /// While above information is used in request only, endpoint info is needed when creating ecs provider to initiate the connection
-    /// manager, more specifically, host and http scheme (tls or not) from endpoint are needed.
+    ///
+    ///  - Parameters:
+    ///    - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials
+    ///    - tlsContext: Client TLS context to use when querying STS web identity provider.
+    ///                  If set, port 443 is used. If NULL, port 80 is used.
+    ///   - shutdownCallback:  (Optional) shutdown callback
+    /// - Returns: `CredentialsProvider`
+    /// - Throws: CommonRuntimeError.crtError
+    public static func `ecsEnvironment`(bootstrap: ClientBootstrap,
+                                        tlsContext: TLSContext,
+                                        shutdownCallback: ShutdownCallback? = nil) -> Self {
+        Self {
+            let shutdownCallbackCore = ShutdownCallbackCore(shutdownCallback)
+            var ecsOptions = aws_credentials_provider_ecs_environment_options()
+            ecsOptions.tls_ctx = tlsContext.rawValue
+            ecsOptions.bootstrap = bootstrap.rawValue
+            ecsOptions.shutdown_options = shutdownCallbackCore.getRetainedCredentialProviderShutdownOptions()
+
+            guard let provider: UnsafeMutablePointer<aws_credentials_provider> =
+                    aws_credentials_provider_new_ecs_from_environment(allocator.rawValue, &ecsOptions) else {
+                shutdownCallbackCore.release()
+                throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+            }
+            return provider
+        }
+    }
+    
+    /// Credential Provider that sources credentials from ECS container metadata
     ///  - Parameters:
     ///    - bootstrap: Connection bootstrap to use for any network connections made while sourcing credentials
     ///    - tlsContext: (Optional) Client TLS context to use when querying STS web identity provider.
