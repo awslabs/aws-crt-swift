@@ -53,4 +53,3 @@ public enum StreamSeekType: UInt32 {
     /// Seek the stream from End.
     case end = 2
 }
-
