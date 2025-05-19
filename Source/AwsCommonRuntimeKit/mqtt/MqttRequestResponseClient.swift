@@ -80,7 +80,7 @@ public typealias SubscriptionStatusEventHandler = @Sendable (SubscriptionStatusE
 public typealias IncomingPublishEventHandler = @Sendable (IncomingPublishEvent) -> Void
 
 /// Encapsulates a response to an AWS IoT Core MQTT-based service request
-public struct MqttRequestResponseResponse: Sendable {
+public struct MqttRequestResponse: Sendable {
   let topic: String
   let payload: Data
 
@@ -288,10 +288,10 @@ internal class MqttRequestResponseClientCore: @unchecked Sendable {
 
   /// submit a request responds operation, throws CRTError if the operation failed
   public func submitRequest(operationOptions: RequestResponseOperationOptions) async throws
-    -> MqttRequestResponseResponse
+    -> MqttRequestResponse
   {
     // TODO: sumibt request
-    return MqttRequestResponseResponse(topic: "", payload: Data())
+    return MqttRequestResponse(topic: "", payload: Data())
   }
 
   /// create a stream operation, throws CRTError if the creation failed. You would need call open() on the operation to start the stream
@@ -336,11 +336,10 @@ public class MqttRequestResponseClient {
   ///
   /// - Parameters:
   ///     - operationOptions: configuration options for request response operation
-  /// - Returns:
-  ///     - MqttRequestResponseResponse
-  /// - Throws:CommonRuntimeError.crtError if submit failed
+  /// - Returns: MqttRequestResponse
+  /// - Throws: CommonRuntimeError.crtError if submit failed
   public func submitRequest(operationOptions: RequestResponseOperationOptions) async throws
-    -> MqttRequestResponseResponse
+    -> MqttRequestResponse
   {
     return try await clientCore.submitRequest(operationOptions: operationOptions)
   }
