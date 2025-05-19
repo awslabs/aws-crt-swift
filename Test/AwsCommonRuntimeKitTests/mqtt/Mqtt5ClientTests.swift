@@ -33,18 +33,20 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
 
   }
 
-    /// stop client and check for discconnection and stopped lifecycle events
-    func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) async throws -> Void {
-        try client.stop(disconnectPacket: disconnectPacket)
-        await awaitExpectation([testContext.disconnectionExpectation], 5)
-        await awaitExpectation([testContext.stoppedExpectation], 5)
-    }
+  /// stop client and check for discconnection and stopped lifecycle events
+  func disconnectClientCleanup(
+    client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil
+  ) async throws -> Void {
+    try client.stop(disconnectPacket: disconnectPacket)
+    await awaitExpectation([testContext.disconnectionExpectation], 5)
+    await awaitExpectation([testContext.stoppedExpectation], 5)
+  }
 
-    /// stop client and check for stopped lifecycle event
-    func stopClient(client: Mqtt5Client, testContext: MqttTestContext) async throws -> Void {
-        try client.stop()
-        return await awaitExpectation([testContext.stoppedExpectation], 5)
-    }
+  /// stop client and check for stopped lifecycle event
+  func stopClient(client: Mqtt5Client, testContext: MqttTestContext) async throws -> Void {
+    try client.stop()
+    return await awaitExpectation([testContext.stoppedExpectation], 5)
+  }
 
   func createClientId() -> String {
     return "test-aws-crt-swift-unit-" + UUID().uuidString
@@ -61,12 +63,12 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     public var onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
     public var onWebSocketHandshake: OnWebSocketHandshakeIntercept?
 
-        public let publishReceivedExpectation: XCTestExpectation
-        public let publishTargetReachedExpectation: XCTestExpectation
-        public let connectionSuccessExpectation: XCTestExpectation
-        public let connectionFailureExpectation: XCTestExpectation
-        public let disconnectionExpectation: XCTestExpectation
-        public let stoppedExpectation: XCTestExpectation
+    public let publishReceivedExpectation: XCTestExpectation
+    public let publishTargetReachedExpectation: XCTestExpectation
+    public let connectionSuccessExpectation: XCTestExpectation
+    public let connectionFailureExpectation: XCTestExpectation
+    public let disconnectionExpectation: XCTestExpectation
+    public let stoppedExpectation: XCTestExpectation
 
     public var negotiatedSettings: NegotiatedSettings?
     public var connackPacket: ConnackPacket?
@@ -89,16 +91,18 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
 
       self.contextName = contextName
 
-            self.publishTarget = publishTarget
-            self.publishCount = 0
+      self.publishTarget = publishTarget
+      self.publishCount = 0
 
-            
-            self.publishReceivedExpectation = XCTestExpectation(description: "Expect publish received.")
-            self.publishTargetReachedExpectation = XCTestExpectation(description: "Expect publish target reached")
-            self.connectionSuccessExpectation = XCTestExpectation(description: "Expect connection Success")
-            self.connectionFailureExpectation = XCTestExpectation(description: "Expect connection Failure")
-            self.disconnectionExpectation = XCTestExpectation(description: "Expect disconnect")
-            self.stoppedExpectation = XCTestExpectation(description: "Expect stopped")
+      self.publishReceivedExpectation = XCTestExpectation(description: "Expect publish received.")
+      self.publishTargetReachedExpectation = XCTestExpectation(
+        description: "Expect publish target reached")
+      self.connectionSuccessExpectation = XCTestExpectation(
+        description: "Expect connection Success")
+      self.connectionFailureExpectation = XCTestExpectation(
+        description: "Expect connection Failure")
+      self.disconnectionExpectation = XCTestExpectation(description: "Expect disconnect")
+      self.stoppedExpectation = XCTestExpectation(description: "Expect stopped")
 
       self.onPublishReceived = onPublishReceived
       self.onLifecycleEventStopped = onLifecycleEventStopped
@@ -128,30 +132,35 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
           }
         }
 
-            self.onLifecycleEventStopped = onLifecycleEventStopped ?? { _ in
-                print(contextName + " Mqtt5ClientTests: onLifecycleEventStopped")
-                self.stoppedExpectation.fulfill()
-            }
-            self.onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect ?? { _ in
-                print(contextName + " Mqtt5ClientTests: onLifecycleEventAttemptingConnect")
-            }
-            self.onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess ?? { successData in
-                print(contextName + " Mqtt5ClientTests: onLifecycleEventConnectionSuccess")
-                self.negotiatedSettings = successData.negotiatedSettings
-                self.connackPacket = successData.connackPacket
-                self.connectionSuccessExpectation.fulfill()
-            }
-            self.onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure ?? { failureData in
-                print(contextName + " Mqtt5ClientTests: onLifecycleEventConnectionFailure")
-                self.lifecycleConnectionFailureData = failureData
-                self.connectionFailureExpectation.fulfill()
-            }
-            self.onLifecycleEventDisconnection = onLifecycleEventDisconnection ?? { disconnectionData in
-                print(contextName + " Mqtt5ClientTests: onLifecycleEventDisconnection")
-                self.lifecycleDisconnectionData = disconnectionData
-                self.disconnectionExpectation.fulfill()
-            }
-         }
+      self.onLifecycleEventStopped =
+        onLifecycleEventStopped ?? { _ in
+          print(contextName + " Mqtt5ClientTests: onLifecycleEventStopped")
+          self.stoppedExpectation.fulfill()
+        }
+      self.onLifecycleEventAttemptingConnect =
+        onLifecycleEventAttemptingConnect ?? { _ in
+          print(contextName + " Mqtt5ClientTests: onLifecycleEventAttemptingConnect")
+        }
+      self.onLifecycleEventConnectionSuccess =
+        onLifecycleEventConnectionSuccess ?? { successData in
+          print(contextName + " Mqtt5ClientTests: onLifecycleEventConnectionSuccess")
+          self.negotiatedSettings = successData.negotiatedSettings
+          self.connackPacket = successData.connackPacket
+          self.connectionSuccessExpectation.fulfill()
+        }
+      self.onLifecycleEventConnectionFailure =
+        onLifecycleEventConnectionFailure ?? { failureData in
+          print(contextName + " Mqtt5ClientTests: onLifecycleEventConnectionFailure")
+          self.lifecycleConnectionFailureData = failureData
+          self.connectionFailureExpectation.fulfill()
+        }
+      self.onLifecycleEventDisconnection =
+        onLifecycleEventDisconnection ?? { disconnectionData in
+          print(contextName + " Mqtt5ClientTests: onLifecycleEventDisconnection")
+          self.lifecycleDisconnectionData = disconnectionData
+          self.disconnectionExpectation.fulfill()
+        }
+    }
 
     /// Setup a simple websocket transform function
     /// - `isSuccess`: True, complete the handshake with success

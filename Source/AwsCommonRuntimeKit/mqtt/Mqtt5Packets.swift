@@ -488,11 +488,13 @@ public class UnsubscribePacket: CStruct, @unchecked Sendable {
   /// Array of MQTT5 user properties included with the packet.
   public let userProperties: [UserProperty]
 
-    public init (topicFilters: [String],
-                 userProperties: [UserProperty] = []) {
-        self.topicFilters = topicFilters
-        self.userProperties = userProperties
-    }
+  public init(
+    topicFilters: [String],
+    userProperties: [UserProperty] = []
+  ) {
+    self.topicFilters = topicFilters
+    self.userProperties = userProperties
+  }
 
   // Allow an UnsubscribePacket to be created directly using a single topic filter
   public convenience init(
@@ -502,20 +504,20 @@ public class UnsubscribePacket: CStruct, @unchecked Sendable {
     self.init(topicFilters: [topicFilter], userProperties: userProperties)
   }
 
-    typealias RawType = aws_mqtt5_packet_unsubscribe_view
-    func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
-        var raw_unsubscribe_view = aws_mqtt5_packet_unsubscribe_view()
-        return self.topicFilters.withByteCursorArray { byteCusorArray, len in
-            raw_unsubscribe_view.topic_filters = byteCusorArray
-            raw_unsubscribe_view.topic_filter_count = len
-            return userProperties.withAWSArrayList { userPropertyPointer in
-                raw_unsubscribe_view.user_property_count = userProperties.count
-                raw_unsubscribe_view.user_properties =
-                UnsafePointer<aws_mqtt5_user_property>(userPropertyPointer)
-                return body(raw_unsubscribe_view)
-            }
-        }
+  typealias RawType = aws_mqtt5_packet_unsubscribe_view
+  func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
+    var raw_unsubscribe_view = aws_mqtt5_packet_unsubscribe_view()
+    return self.topicFilters.withByteCursorArray { byteCusorArray, len in
+      raw_unsubscribe_view.topic_filters = byteCusorArray
+      raw_unsubscribe_view.topic_filter_count = len
+      return userProperties.withAWSArrayList { userPropertyPointer in
+        raw_unsubscribe_view.user_property_count = userProperties.count
+        raw_unsubscribe_view.user_properties =
+          UnsafePointer<aws_mqtt5_user_property>(userPropertyPointer)
+        return body(raw_unsubscribe_view)
+      }
     }
+  }
 }
 
 // We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
