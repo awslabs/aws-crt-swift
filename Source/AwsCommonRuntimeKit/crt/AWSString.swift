@@ -3,23 +3,23 @@
 import AwsCCommon
 
 final class AWSString {
-    let rawValue: UnsafeMutablePointer<aws_string>
+  let rawValue: UnsafeMutablePointer<aws_string>
 
-    init(_ str: String) {
-        self.rawValue = aws_string_new_from_array(allocator.rawValue, str, str.utf8.count)
-    }
+  init(_ str: String) {
+    self.rawValue = aws_string_new_from_array(allocator.rawValue, str, str.utf8.count)
+  }
 
-    var count: Int {
-        return self.rawValue.pointee.len
-    }
+  var count: Int {
+    return self.rawValue.pointee.len
+  }
 
-    deinit {
-        aws_string_destroy(self.rawValue)
-    }
+  deinit {
+    aws_string_destroy(self.rawValue)
+  }
 }
 
 extension String {
-    init?(awsString: UnsafePointer<aws_string>, encoding: String.Encoding = .utf8) {
-        self.init(cString: aws_string_c_str(awsString), encoding: encoding)
-    }
+  init?(awsString: UnsafePointer<aws_string>, encoding: String.Encoding = .utf8) {
+    self.init(cString: aws_string_c_str(awsString), encoding: encoding)
+  }
 }
