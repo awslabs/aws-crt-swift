@@ -76,6 +76,13 @@ func callCFunctionWithCallback() {
   c_function_with_callback(options);
   /* swift will now keep the userData alive until it is released in the callback */
 }
+
+private func callbackFromC(userData: UnsafeMutableRawPointer!) {
+  ...
+  /* release will decrement the ref count and allow the user_data to be destroyed */
+  Unmanaged<SwiftObjectCore>.fromOpaque(userData).release()
+}
+
 /* DO NOT DO THIS */
 func callCFunctionWithCallback() {
   /* Retain will increment the ref count */
@@ -83,11 +90,7 @@ func callCFunctionWithCallback() {
   c_function_with_callback(COptionsStruct(callback: callbackFromC, userData: &userData));
   /* user_data will be destroyed here and C will have a dangling pointer to it */
 }
-private func callbackFromC(userData: UnsafeMutableRawPointer!) {
-  ...
-  /* release will decrement the ref count and allow the user_data to be destroyed */
-  Unmanaged<SwiftObjectCore>.fromOpaque(userData).release()
-}
+
 ```
 # Utility functions
 Take a look at the [Utilities.swift](https://github.com/awslabs/aws-crt-swift/blob/main/Source/AwsCommonRuntimeKit/crt/Utilities.swift) and [CStruct.swift](https://github.com/awslabs/aws-crt-swift/blob/main/Source/AwsCommonRuntimeKit/crt/CStruct.swift) for the available utility functions. In general, prefer defining utility functions like these to avoid boiler-plate code everywhere in the code. In these files, you will find a lot of utility functions to convert between Swift<->C objects which are needed at many places. 
