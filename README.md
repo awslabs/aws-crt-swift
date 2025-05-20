@@ -27,6 +27,7 @@ swift format --in-place --recursive .
 
 ### Contributor's Guide
 **Required Reading:**
+- [Development Guide](docs/dev_guide.md)
 - [Peril of the Ampersand](https://developer.apple.com/forums/thread/674633)
 - [Unmanaged](https://www.mikeash.com/pyblog/friday-qa-2017-08-11-swiftunmanaged.html)
 - [Automatic Reference Counting](https://docs.swift.org/swift-book/LanguageGuide/AutomaticReferenceCounting.html)
