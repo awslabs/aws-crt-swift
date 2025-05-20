@@ -1,5 +1,6 @@
 # Memory Management / Pointers
-For inter-op with C, there are three memory management techniques. These are described below in order of preference. 
+For inter-op with C, there are three memory management techniques. These are described below in order of preference.
+
 ### 1. Ampersand
 Read the [Peril Of the Ampersand](https://developer.apple.com/forums/thread/674633) guide for this technique. The sharp edge of this technique is that the pointer is only valid for one function call only.
 ```Swift
@@ -16,6 +17,7 @@ var optionPointer = &options;
 ...
 let creds = aws_credentials_new_with_options(allocator.rawValue, optionPointer)
 ```
+
 ### 2. Closures
 If you need pointers that last more than a single line, you can use closure functions like [withUnsafePointer](https://developer.apple.com/documentation/swift/withunsafepointer(to:_:)-35wrn) which will give you a pointer valid inside the closure. The native Swift functions will give you a pointer for one variable at a time and if you have N variables, you will end up with N nested closures. To solve this, we have helper functions in [Utilities.swift](https://github.com/awslabs/aws-crt-swift/blob/main/Source/AwsCommonRuntimeKit/crt/Utilities.swift) with the naming scheme `with*` to have different util functions for different use-cases. The idea was to contain the boiler-plate complexity to a single class so that we can have nicer code in the rest of the places.
 
@@ -63,6 +65,7 @@ var rawValue: UnsafeMutablePointer<aws_secitem_options> = allocator.allocate(cap
 /* rawValue is valid until release is called */
 allocator.release(rawValue)
 ```
+
 # Manual Reference Count Management
 Swift automatically manages ref-count of all objects and deallocates them when they go out of scope. Normally, you don't need to do anything fancy or think about memory management apart from resource cycles which can lead to deadlocks and objects never getting cleaned up. However, sometimes you need to acquire a reference to a Swift object so that Swift keeps it alive until C is done using it. You can checkout [ShutdownCallback](https://github.com/awslabs/aws-crt-swift/blob/main/Source/AwsCommonRuntimeKit/crt/ShutdownCallbackCore.swift) class to see an example of this pattern. 
 ```swift
@@ -92,6 +95,7 @@ func callCFunctionWithCallback() {
 }
 
 ```
+
 # Utility functions
 Take a look at the [Utilities.swift](https://github.com/awslabs/aws-crt-swift/blob/main/Source/AwsCommonRuntimeKit/crt/Utilities.swift) and [CStruct.swift](https://github.com/awslabs/aws-crt-swift/blob/main/Source/AwsCommonRuntimeKit/crt/CStruct.swift) for the available utility functions. In general, prefer defining utility functions like these to avoid boiler-plate code everywhere in the code. In these files, you will find a lot of utility functions to convert between Swift<->C objects which are needed at many places. 
 
