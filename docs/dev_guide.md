@@ -17,11 +17,11 @@ var optionPointer = &options;
 let creds = aws_credentials_new_with_options(allocator.rawValue, optionPointer)
 ```
 ### 2. Closures
-If you need pointers that last more than a single line, you can use helper closure functions like [withUnsafePointer](https://developer.apple.com/documentation/swift/withunsafepointer(to:_:)-35wrn) which will give you a pointer valid inside the closure. The native Swift functions will give you a pointer for one variable at a time and if you have N variables, you will end up with N nested closures. To solve this, we have helper functions in [Utilities.swift](https://github.com/awslabs/aws-crt-swift/blob/main/Source/AwsCommonRuntimeKit/crt/Utilities.swift) with the naming scheme `with*` to have different util functions for different use-cases. The idea was to contain the boiler-plate complexity to a single class so that we can have nicer code in the rest of the places.
+If you need pointers that last more than a single line, you can use closure functions like [withUnsafePointer](https://developer.apple.com/documentation/swift/withunsafepointer(to:_:)-35wrn) which will give you a pointer valid inside the closure. The native Swift functions will give you a pointer for one variable at a time and if you have N variables, you will end up with N nested closures. To solve this, we have helper functions in [Utilities.swift](https://github.com/awslabs/aws-crt-swift/blob/main/Source/AwsCommonRuntimeKit/crt/Utilities.swift) with the naming scheme `with*` to have different util functions for different use-cases. The idea was to contain the boiler-plate complexity to a single class so that we can have nicer code in the rest of the places.
+
 ```Swift
 /* DO THIS */
- guard
-let provider: UnsafeMutablePointer<aws_credentials_provider> =
+guard let provider: UnsafeMutablePointer<aws_credentials_provider> =
   withByteCursorFromStrings(
     thingName,
     roleAlias,
@@ -43,8 +43,8 @@ let provider: UnsafeMutablePointer<aws_credentials_provider> =
       }
     })
 else {
-shutdownCallbackCore.release()
-throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+  shutdownCallbackCore.release()
+  throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
 }
 
 /* DO NOT DO THIS */
@@ -90,7 +90,7 @@ private func callbackFromC(userData: UnsafeMutableRawPointer!) {
 }
 ```
 # Utility functions
-Take a look at the [Utilities.swift](https://github.com/awslabs/aws-crt-swift/blob/main/Source/AwsCommonRuntimeKit/crt/Utilities.swift) and [CStruct.swift](https://github.com/awslabs/aws-crt-swift/blob/main/Source/AwsCommonRuntimeKit/crt/CStruct.swift) for the available utility functions. In general, prefer defining utility functions like these to avoid boiler-plate code everywhere in the code. In these classes, you will find a lot of utility functions to convert between Swift<->C Objects which are needed at many places. 
+Take a look at the [Utilities.swift](https://github.com/awslabs/aws-crt-swift/blob/main/Source/AwsCommonRuntimeKit/crt/Utilities.swift) and [CStruct.swift](https://github.com/awslabs/aws-crt-swift/blob/main/Source/AwsCommonRuntimeKit/crt/CStruct.swift) for the available utility functions. In general, prefer defining utility functions like these to avoid boiler-plate code everywhere in the code. In these files, you will find a lot of utility functions to convert between Swift<->C objects which are needed at many places. 
 
 # Error handling
 Unfortunately, Swift's error handling is not great. Swift's error handling design is an enum and adding new cases to enums is a breaking change. We don't want people to have giant switch blocks where they have to handle each error independently or break people when new errors are added. For this reason, the design pattern is to just always throw a [CRTError](https://github.com/awslabs/aws-crt-swift/blob/main/Source/AwsCommonRuntimeKit/crt/CommonRuntimeError.swift) struct as the error. You should not add any new cases to CommonRuntimeError enum unless really necessary.
