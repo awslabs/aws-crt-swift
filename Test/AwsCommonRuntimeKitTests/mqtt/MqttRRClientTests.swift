@@ -8,23 +8,27 @@ import AwsCMqtt
 
 class Mqtt5RRClientTests: XCBaseTestCase {
 
-  struct MqttRRTestContext {
-    var contextName: String
+  final class MqttRRTestContext: @unchecked Sendable {
+    let contextName: String
 
+    var responsePaths: [ResponsePath]?
+    var correlationToken: String?
+    var payload: Data?
+
+    // protocol client context
     var publishReceivedExpectation: XCTestExpectation
     var publishTargetReachedExpectation: XCTestExpectation
     var connectionSuccessExpectation: XCTestExpectation
     var connectionFailureExpectation: XCTestExpectation
     var disconnectionExpectation: XCTestExpectation
-    var stoppedExpecation: XCTestExpectation
+    var stoppedExpectation: XCTestExpectation
 
-    var onPublishReceived: OnPublishReceived?
-    var onLifecycleEventStopped: OnLifecycleEventStopped?
-    var onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect?
-    var onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess?
-    var onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
-    var onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
-    var onWebSocketHandshake: OnWebSocketHandshakeIntercept?
+    let onPublishReceived: OnPublishReceived?
+    let onLifecycleEventStopped: OnLifecycleEventStopped?
+    let onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect?
+    let onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess?
+    let onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
+    let onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
 
     init(contextName: String = "MqttClient") {
       self.contextName = contextName
@@ -37,9 +41,10 @@ class Mqtt5RRClientTests: XCBaseTestCase {
       self.connectionFailureExpectation = XCTestExpectation(
         description: "Expect connection Failure")
       self.disconnectionExpectation = XCTestExpectation(description: "Expect disconnect")
-      self.stoppedExpecation = XCTestExpectation(description: "Expect stopped")
+      self.stoppedExpectation = XCTestExpectation(description: "Expect stopped")
 
-      self.onPublishReceived = { [self] publishData in
+      self.onPublishReceived = {
+        [publishReceivedExpectation = self.publishReceivedExpectation] publishData in
         if let payloadString = publishData.publishPacket.payloadAsString() {
           print(
             contextName
@@ -51,31 +56,39 @@ class Mqtt5RRClientTests: XCBaseTestCase {
               + " MqttRRClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos)"
           )
         }
-        self.publishReceivedExpectation.fulfill()
+        publishReceivedExpectation.fulfill()
       }
 
-      self.onLifecycleEventStopped = { [self] _ in
+      self.onLifecycleEventStopped = { [stoppedExpectation = self.stoppedExpectation] _ in
         print(contextName + " MqttRRClientTests: onLifecycleEventStopped")
-        self.stoppedExpecation.fulfill()
+        stoppedExpectation.fulfill()
       }
 
       self.onLifecycleEventAttemptingConnect = { _ in
         print(contextName + " MqttRRClientTests: onLifecycleEventAttemptingConnect")
       }
 
-      self.onLifecycleEventConnectionSuccess = { [self] successData in
+      self.onLifecycleEventConnectionSuccess = {
+        [connectionSuccessExpectation = self.connectionSuccessExpectation] successData in
         print(contextName + " MqttRRClientTests: onLifecycleEventConnectionSuccess")
-        self.connectionSuccessExpectation.fulfill()
+        connectionSuccessExpectation.fulfill()
       }
 
-      self.onLifecycleEventConnectionFailure = { [self] failureData in
+      self.onLifecycleEventConnectionFailure = {
+        [connectionFailureExpectation = self.connectionFailureExpectation] failureData in
         print(contextName + " MqttRRClientTests: onLifecycleEventConnectionFailure")
-        self.connectionFailureExpectation.fulfill()
+        connectionFailureExpectation.fulfill()
       }
-      self.onLifecycleEventDisconnection = { [self] disconnectionData in
+      self.onLifecycleEventDisconnection = {
+        [disconnectionExpectation = self.disconnectionExpectation] disconnectionData in
         print(contextName + " MqttRRClientTests: onLifecycleEventDisconnection")
-        self.disconnectionExpectation.fulfill()
+        disconnectionExpectation.fulfill()
       }
+    }
+
+    // release the context before exit the test case
+    func cleanup() {
+      self.responsePaths = nil
     }
   }
 
@@ -122,57 +135,225 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     return mqtt5Client
   }
 
-  /// start client and check for connection success
+  // MARK: - helper function
+
+  // start client and check for connection success
   func startClient(client: Mqtt5Client, testContext: MqttRRTestContext) async throws {
     try client.start()
     await awaitExpectation([testContext.connectionSuccessExpectation], 5)
 
   }
 
-  /// stop client and check for discconnection and stopped lifecycle events
+  // stop client and check for discconnection and stopped lifecycle events
   func stopClient(
     client: Mqtt5Client, testContext: MqttRRTestContext, disconnectPacket: DisconnectPacket? = nil
   ) async throws -> Void {
     try client.stop(disconnectPacket: disconnectPacket)
-    return await awaitExpectation([testContext.stoppedExpecation], 5)
+    return await awaitExpectation([testContext.stoppedExpectation], 5)
   }
+
+  // setup rr client
+  func setupRequestResponseClient(
+    testContext: MqttRRTestContext, options: MqttRequestResponseClientOptions? = nil
+  ) async throws -> MqttRequestResponseClient {
+    let mqtt5Client = try createMqtt5Client(testContext: testContext)
+    let rrClient = try MqttRequestResponseClient.newFromMqtt5Client(
+      mqtt5Client: mqtt5Client, options: options)
+
+    // start the client
+    try await startClient(client: mqtt5Client, testContext: testContext)
+    return rrClient
+  }
+
+  // create a get rr request
+  func createRequestResponseGetOptions(
+    testContext: MqttRRTestContext, shadowName: String = UUID().uuidString, thingName: String,
+    withCorrelationToken: Bool = true, publishTopic: String? = nil
+  ) -> RequestResponseOperationOptions {
+    let subscriptionTopicFilter = "$aws/things/\(thingName)/shadow/name/\(shadowName)/get/+"
+    let acceptedTopic = "$aws/things/\(thingName)/shadow/name/\(shadowName)/get/accepted"
+    let rejectedTopic = "$aws/things/\(thingName)/shadow/name/\(shadowName)/get/rejected"
+    let publishTopic = publishTopic ?? "$aws/things/\(thingName)/shadow/name/\(shadowName)/get"
+
+    var payload = String("{}").data(using: .utf8)
+    var correlationTokenPath = ""
+    var correlationToken: String?
+
+    if (withCorrelationToken) {
+      correlationToken = UUID().uuidString
+      correlationTokenPath = "clientToken"
+      payload = String("{\"\(correlationTokenPath)\":\"\(correlationToken!)\"}").data(using: .utf8)
+    }
+
+    let responsePaths: [ResponsePath] = [
+      ResponsePath(topic: acceptedTopic, correlationTokenJsonPath: correlationTokenPath),
+      ResponsePath(topic: rejectedTopic, correlationTokenJsonPath: correlationTokenPath),
+    ]
+
+    testContext.responsePaths = responsePaths
+    testContext.correlationToken = correlationToken
+
+    return RequestResponseOperationOptions(
+      subscriptionTopicFilters: [subscriptionTopicFilter], responsePaths: responsePaths,
+      topic: publishTopic, payload: payload!, correlationToken: correlationToken)
+  }
+
+  // create an update rr request
+  func createRequestResponseUpdateOptions(
+    testContext: MqttRRTestContext, shadowName: String = UUID().uuidString, thingName: String,
+    withCorrelationToken: Bool = true
+  ) -> RequestResponseOperationOptions {
+    let acceptedTopic = "$aws/things/\(thingName)/shadow/name/\(shadowName)/update/accepted"
+    let rejectedTopic = "$aws/things/\(thingName)/shadow/name/\(shadowName)/update/rejected"
+    let publishTopic = "$aws/things/\(thingName)/shadow/name/\(shadowName)/update"
+    let subscriptionTopicFilters = [acceptedTopic, rejectedTopic]
+
+    var correlationTokenPath = ""
+    var correlationToken: String?
+
+    let stateToken = UUID().uuidString
+    let desiredState = "{\"magic\":\"\(stateToken)\"}"
+    var payload = "{\"state\":{\"desired\":\(desiredState)}}".data(using: .utf8)
+
+    if (withCorrelationToken) {
+      correlationToken = UUID().uuidString
+      correlationTokenPath = "clientToken"
+      payload = String(
+        "{\"\(correlationTokenPath)\":\"\(correlationToken!)\", \"state\":{\"desired\":\(desiredState)}}"
+      ).data(using: .utf8)
+    }
+
+    let responsePaths: [ResponsePath] = [
+      ResponsePath(topic: acceptedTopic, correlationTokenJsonPath: correlationTokenPath),
+      ResponsePath(topic: rejectedTopic, correlationTokenJsonPath: correlationTokenPath),
+    ]
+
+    testContext.responsePaths = responsePaths
+    testContext.correlationToken = correlationToken
+
+    return RequestResponseOperationOptions(
+      subscriptionTopicFilters: subscriptionTopicFilters, responsePaths: responsePaths,
+      topic: publishTopic, payload: payload!, correlationToken: correlationToken)
+  }
+
+  // MARK: - request response client tests
 
   func testMqttRequestResponse_CreateDestroy() async throws {
     let testContext = MqttRRTestContext()
-    let client = try createMqtt5Client(testContext: testContext)
-    let _ = try MqttRequestResponseClient.newFromMqtt5Client(mqtt5Client: client)
+    let mqtt5Client = try createMqtt5Client(testContext: testContext)
+    let _ = try MqttRequestResponseClient.newFromMqtt5Client(mqtt5Client: mqtt5Client)
   }
 
-  func testMqttRequestResponse_GetNamedShadowSuccessRejected() throws {
+  func testMqttRequestResponse_GetNamedShadowSuccessRejected() async throws {
+    let testContext = MqttRRTestContext()
+    let rrClient = try await setupRequestResponseClient(testContext: testContext)
+    let requestOptions = createRequestResponseGetOptions(
+      testContext: testContext, thingName: "NoSuchThing")
+    let response = try await rrClient.submitRequest(operationOptions: requestOptions);
 
+    XCTAssertEqual(response.topic, testContext.responsePaths![1].topic)
+    if let paylaodString = String(data: response.payload, encoding: .utf8) {
+      XCTAssertTrue(paylaodString.contains("No shadow exists with name"))
+    } else {
+      XCTFail("MqttRequestResponse: Invalid Payload.")
+    }
+
+    // cleanup
+    testContext.cleanup()
   }
 
-  func MqttRequestResponse_GetNamedShadowSuccessRejectedNoCorrelationToken() throws {
+  func testMqttRequestResponse_GetNamedShadowSuccessRejectedNoCorrelationToken() async throws {
+    let testContext = MqttRRTestContext()
+    let rrClient = try await setupRequestResponseClient(testContext: testContext)
+    let requestOptions = createRequestResponseGetOptions(
+      testContext: testContext, thingName: "NoSuchThing", withCorrelationToken: false)
 
+    let response = try await rrClient.submitRequest(operationOptions: requestOptions);
+
+    XCTAssertEqual(response.topic, testContext.responsePaths![1].topic)
+    if let paylaodString = String(data: response.payload, encoding: .utf8) {
+      XCTAssertTrue(paylaodString.contains("No shadow exists with name"))
+    } else {
+      XCTFail("MqttRequestResponse: Invalid Payload.")
+    }
+    testContext.cleanup()
   }
 
-  func MqttRequestResponse_UpdateNamedShadowSuccessAccepted() throws {
+  func testMqttRequestResponse_UpdateNamedShadowSuccessAccepted() async throws {
+    let testContext = MqttRRTestContext()
+    let rrClient = try await setupRequestResponseClient(testContext: testContext)
+    let requestOptions = createRequestResponseUpdateOptions(
+      testContext: testContext, thingName: "NoSuchThing")
 
+    let response = try await rrClient.submitRequest(operationOptions: requestOptions);
+
+    XCTAssertEqual(response.topic, testContext.responsePaths![0].topic)
+    if let paylaodString = String(data: response.payload, encoding: .utf8) {
+      XCTAssertTrue(paylaodString.lengthOfBytes(using: .utf8) > 0)
+    } else {
+      XCTFail("MqttRequestResponse: Invalid Payload.")
+    }
+    testContext.cleanup()
   }
 
-  func MqttRequestResponse_UpdateNamedShadowSuccessAcceptedNoCorrelationToken() throws {
+  func testMqttRequestResponse_UpdateNamedShadowSuccessAcceptedNoCorrelationToken() async throws {
+    let testContext = MqttRRTestContext()
+    let rrClient = try await setupRequestResponseClient(testContext: testContext)
+    let requestOptions = createRequestResponseUpdateOptions(
+      testContext: testContext, thingName: "NoSuchThing", withCorrelationToken: false)
 
+    let response = try await rrClient.submitRequest(operationOptions: requestOptions);
+
+    XCTAssertEqual(response.topic, testContext.responsePaths![0].topic)
+    if let paylaodString = String(data: response.payload, encoding: .utf8) {
+      XCTAssertTrue(paylaodString.lengthOfBytes(using: .utf8) > 0)
+    } else {
+      XCTFail("MqttRequestResponse: Invalid Payload.")
+    }
+    testContext.cleanup()
   }
 
-  func MqttRequestResponse_GetNamedShadowTimeout() throws {
+  func testMqttRequestResponse_GetNamedShadowTimeout() async throws {
+    let testContext = MqttRRTestContext()
+    let rrClient = try await setupRequestResponseClient(
+      testContext: testContext,
+      options: MqttRequestResponseClientOptions(operationTimeout: 10))
+    let requestOptions = createRequestResponseGetOptions(
+      testContext: testContext, thingName: "NoSuchThing", publishTopic: "wrong/publish/topic")
+    var errorCaught = false
 
+    do {
+      let _ = try await rrClient.submitRequest(operationOptions: requestOptions);
+    } catch CommonRunTimeError.crtError(let crtError) {
+      XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT_REQUEST_RESPONSE_TIMEOUT.rawValue))
+      errorCaught = true
+    }
+
+    XCTAssertTrue(errorCaught)
+    // cleanup
+    testContext.cleanup()
   }
 
-  func MqttRequestResponse_GetNamedShadowTimeoutNoCorrelationToken() throws {
+  func testMqttRequestResponse_GetNamedShadowTimeoutNoCorrelationToken() async throws {
+    let testContext = MqttRRTestContext()
+    let rrClient = try await setupRequestResponseClient(
+      testContext: testContext,
+      options: MqttRequestResponseClientOptions(operationTimeout: 10))
+    let requestOptions = createRequestResponseGetOptions(
+      testContext: testContext, thingName: "NoSuchThing", withCorrelationToken: false,
+      publishTopic: "wrong/publish/topic")
+    var errorCaught = false
 
-  }
+    do {
+      let _ = try await rrClient.submitRequest(operationOptions: requestOptions);
+    } catch CommonRunTimeError.crtError(let crtError) {
+      XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT_REQUEST_RESPONSE_TIMEOUT.rawValue))
+      errorCaught = true
+    }
 
-  func MqttRequestResponse_GetNamedShadowFailureOnClose() throws {
-
-  }
-
-  func MqttRequestResponse_GetNamedShadowFailureOnCloseNoCorrelationToken() throws {
-
+    XCTAssertTrue(errorCaught)
+    // cleanup
+    testContext.cleanup()
   }
 
   func MqttRequestResponse_ShadowUpdatedStreamOpenCloseSuccess() throws {
