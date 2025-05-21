@@ -92,13 +92,13 @@ public typealias SubscriptionStatusEventHandler = @Sendable (SubscriptionStatusE
 public typealias IncomingPublishEventHandler = @Sendable (IncomingPublishEvent) -> Void
 
 /// A response to an AWS IoT Core MQTT-based service request
-public struct MqttRequestResponseResponse: Sendable {
+public struct MqttRequestResponse: Sendable {
   /// The MQTT Topic that the response was received on.
   public let topic: String
   /// Payload of the response that correlates to a submitted request.
   public let payload: Data
 
-  /// Internal constructor that setup MqttRequestResponseResponse from native aws_mqtt_rr_incoming_publish_event
+  /// Internal constructor that setup MqttRequestResponse from native aws_mqtt_rr_incoming_publish_event
   init(_ raw_publish_event: UnsafePointer<aws_mqtt_rr_incoming_publish_event>) {
     let publish_event = raw_publish_event.pointee
     self.topic = publish_event.topic.toString()
@@ -448,7 +448,7 @@ private func MqttRROperationCompletionCallback(
   guard let userData else {
     return
   }
-  let continuationCore = Unmanaged<ContinuationCore<MqttRequestResponseResponse>>.fromOpaque(
+  let continuationCore = Unmanaged<ContinuationCore<MqttRequestResponse>>.fromOpaque(
     userData
   ).takeRetainedValue()
   if errorCode != AWS_OP_SUCCESS {
@@ -457,7 +457,7 @@ private func MqttRROperationCompletionCallback(
   }
 
   if let publishEvent {
-    let response: MqttRequestResponseResponse = MqttRequestResponseResponse(publishEvent)
+    let response: MqttRequestResponse = MqttRequestResponse(publishEvent)
     return continuationCore.continuation.resume(returning: response)
   }
 
@@ -492,11 +492,11 @@ private class MqttRequestResponseClientCore: @unchecked Sendable {
 
   /// Submits a request responds operation, throws CRTError if the operation failed
   fileprivate func submitRequest(operationOptions: RequestResponseOperationOptions) async throws
-    -> MqttRequestResponseResponse
+    -> MqttRequestResponse
   {
     try operationOptions.validateConversionToNative()
     return try await withCheckedThrowingContinuation { continuation in
-      let continuationCore = ContinuationCore<MqttRequestResponseResponse>(
+      let continuationCore = ContinuationCore<MqttRequestResponse>(
         continuation: continuation)
       operationOptions.withCPointer(
         userData: continuationCore.passRetained(),
@@ -556,10 +556,10 @@ public class MqttRequestResponseClient {
   ///
   /// - Parameters:
   ///     - operationOptions: configuration options for request response operation
-  /// - Returns: MqttRequestResponseResponse
+  /// - Returns: MqttRequestResponse
   /// - Throws: CommonRuntimeError.crtError if submit failed
   public func submitRequest(operationOptions: RequestResponseOperationOptions) async throws
-    -> MqttRequestResponseResponse
+    -> MqttRequestResponse
   {
     return try await clientCore.submitRequest(operationOptions: operationOptions)
   }
