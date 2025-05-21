@@ -255,7 +255,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     if let paylaodString = String(data: response.payload, encoding: .utf8) {
       XCTAssertTrue(paylaodString.contains("No shadow exists with name"))
     } else {
-      XCTFail("MqttRequestResponseResponse: Invalid Payload.")
+      XCTFail("MqttRequestResponse: Invalid Payload.")
     }
 
     // cleanup
@@ -274,7 +274,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     if let paylaodString = String(data: response.payload, encoding: .utf8) {
       XCTAssertTrue(paylaodString.contains("No shadow exists with name"))
     } else {
-      XCTFail("MqttRequestResponseResponse: Invalid Payload.")
+      XCTFail("MqttRequestResponse: Invalid Payload.")
     }
     testContext.cleanup()
   }
@@ -291,7 +291,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     if let paylaodString = String(data: response.payload, encoding: .utf8) {
       XCTAssertTrue(paylaodString.lengthOfBytes(using: .utf8) > 0)
     } else {
-      XCTFail("MqttRequestResponseResponse: Invalid Payload.")
+      XCTFail("MqttRequestResponse: Invalid Payload.")
     }
     testContext.cleanup()
   }
@@ -308,7 +308,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     if let paylaodString = String(data: response.payload, encoding: .utf8) {
       XCTAssertTrue(paylaodString.lengthOfBytes(using: .utf8) > 0)
     } else {
-      XCTFail("MqttRequestResponseResponse: Invalid Payload.")
+      XCTFail("MqttRequestResponse: Invalid Payload.")
     }
     testContext.cleanup()
   }

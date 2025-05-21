@@ -401,7 +401,7 @@ public class MqttRequestResponseClient {
   /// - Parameters:
   ///     - operationOptions: configuration options for request response operation
   /// - Returns:
-  ///     - MqttRequestResponseResponse
+  ///     - MqttRequestResponse
   /// - Throws:CommonRuntimeError.crtError if submit failed
   public func submitRequest(operationOptions: RequestResponseOperationOptions) async throws
     -> MqttRequestResponse
