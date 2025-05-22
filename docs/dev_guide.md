@@ -88,7 +88,6 @@ private func callbackFromC(userData: UnsafeMutableRawPointer!) {
 
 /* DO NOT DO THIS */
 func callCFunctionWithCallback() {
-  /* Retain will increment the ref count */
   let userData = SwiftObjectCore()
   c_function_with_callback(COptionsStruct(callback: callbackFromC, userData: &userData));
   /* user_data will be destroyed here and C will have a dangling pointer to it */
