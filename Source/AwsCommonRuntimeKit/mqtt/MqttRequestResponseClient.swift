@@ -250,8 +250,8 @@ private func MqttRRStreamingOperationIncomingPublishCallback(
   operationCore.rwlock.read {
     // Only invoke the callback if the streaming operation is not closed.
     if operationCore.rawValue != nil, operationCore.options.incomingPublishEventHandler != nil {
-      let subStatusEvent = IncomingPublishEvent(publishEvent)
-      operationCore.options.incomingPublishEventHandler(subStatusEvent)
+      let incomingPublishEvent = IncomingPublishEvent(publishEvent)
+      operationCore.options.incomingPublishEventHandler(incomingPublishEvent)
     }
   }
 }
