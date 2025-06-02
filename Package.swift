@@ -65,7 +65,7 @@ let cSettingsCommon: [CSetting] = [
 /// aws-c-cal
 //////////////////////////////////////////////////////////////////////
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
-#if os(Linux)
+#if os(Linux) || os(Android)
   packageTargets.append(
     .systemLibrary(
       name: "LibCrypto",
@@ -92,7 +92,7 @@ var awsCCalPlatformExcludes =
   awsCCalPlatformExcludes.append("source/darwin")
   awsCCalPlatformExcludes.append("source/unix")
   awsCCalPlatformExcludes.append("source/shared/lccrypto_common.c")
-#elseif os(Linux)
+#elseif os(Linux) || os(Android)
   awsCCalPlatformExcludes.append("source/windows")
   awsCCalPlatformExcludes.append("source/darwin")
 #else  // macOS, iOS, watchOS, tvOS
@@ -104,7 +104,7 @@ var awsCCalPlatformExcludes =
 //////////////////////////////////////////////////////////////////////
 /// s2n-tls
 //////////////////////////////////////////////////////////////////////
-#if os(Linux)
+#if os(Linux) || os(Android)
   let s2nExcludes = [
     "bin", "codebuild", "coverage", "docker-images",
     "docs", "lib",
@@ -148,7 +148,7 @@ var awsCIoPlatformExcludes =
   ] + excludesFromAll
 var cSettingsIO = cSettings
 
-#if os(Linux)
+#if os(Linux) || os(Android)
   ioDependencies.append("S2N_TLS")
   cSettingsIO.append(.define("USE_S2N"))
 #endif
@@ -160,7 +160,7 @@ var cSettingsIO = cSettings
   awsCIoPlatformExcludes.append("source/darwin")
   cSettingsIO.append(.define("AWS_ENABLE_IO_COMPLETION_PORTS"))
   swiftTestSettings.append(.define("AWS_ENABLE_IO_COMPLETION_PORTS"))
-#elseif os(Linux)
+#elseif os(Linux) || os(Android)
   awsCIoPlatformExcludes.append("source/windows")
   awsCIoPlatformExcludes.append("source/bsd")
   awsCIoPlatformExcludes.append("source/darwin")
