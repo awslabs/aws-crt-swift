@@ -158,7 +158,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
   ) async throws -> MqttRequestResponseClient {
     let mqtt5Client = try createMqtt5Client(testContext: testContext)
     let rrClient = try MqttRequestResponseClient.newFromMqtt5Client(
-      mqtt5Client: mqtt5Client, options: options)
+        mqtt5Client: mqtt5Client, options: options ?? MqttRequestResponseClientOptions(maxRequestResponseSubscription: 3,maxStreamingSubscription: 2,operationTimeout: 60))
 
     // start the client
     try await startClient(client: mqtt5Client, testContext: testContext)
@@ -240,8 +240,11 @@ class Mqtt5RRClientTests: XCBaseTestCase {
 
   func testMqttRequestResponse_CreateDestroy() async throws {
     let testContext = MqttRRTestContext()
-    let mqtt5Client = try createMqtt5Client(testContext: testContext)
-    let _ = try MqttRequestResponseClient.newFromMqtt5Client(mqtt5Client: mqtt5Client)
+    let client = try createMqtt5Client(testContext: testContext)
+    let _ = try MqttRequestResponseClient.newFromMqtt5Client(
+      mqtt5Client: client,
+      options: MqttRequestResponseClientOptions(
+        maxRequestResponseSubscription: 3, maxStreamingSubscription: 2, operationTimeout: 60))
   }
 
   func testMqttRequestResponse_GetNamedShadowSuccessRejected() async throws {
@@ -317,7 +320,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     let testContext = MqttRRTestContext()
     let rrClient = try await setupRequestResponseClient(
       testContext: testContext,
-      options: MqttRequestResponseClientOptions(operationTimeout: 10))
+      options: MqttRequestResponseClientOptions(maxRequestResponseSubscription: 3, maxStreamingSubscription: 2, operationTimeout: 10))
     let requestOptions = createRequestResponseGetOptions(
       testContext: testContext, thingName: "NoSuchThing", publishTopic: "wrong/publish/topic")
     var errorCaught = false
@@ -338,7 +341,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     let testContext = MqttRRTestContext()
     let rrClient = try await setupRequestResponseClient(
       testContext: testContext,
-      options: MqttRequestResponseClientOptions(operationTimeout: 10))
+      options: MqttRequestResponseClientOptions(maxRequestResponseSubscription: 3, maxStreamingSubscription: 2, operationTimeout: 10))
     let requestOptions = createRequestResponseGetOptions(
       testContext: testContext, thingName: "NoSuchThing", withCorrelationToken: false,
       publishTopic: "wrong/publish/topic")
