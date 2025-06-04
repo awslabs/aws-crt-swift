@@ -384,22 +384,19 @@ final public class MqttRequestResponseClientOptions: CStructWithUserData, Sendab
   /// Maximum number of request-response subscriptions the client allows to be concurrently active at any one point in time. When the client hits this threshold,
   /// requests will be delayed until earlier requests complete and release their subscriptions.  Each in-progress request will use either 1 or 2 MQTT subscriptions
   /// until completion.
-  /// Default to 3.
   public let maxRequestResponseSubscription: Int
 
   /// Maximum number of concurrent streaming operation subscriptions that the client will allow. Each "unique" (different topic filter) streaming operation will use
   /// 1 MQTT subscription.  When the client hits this threshold, attempts to open new streaming operations will fail.
-  /// Default to 2.
   public let maxStreamingSubscription: Int
 
   /// The timeout value, in seconds, for a request-response operation. If a request is not complete by this time interval, the client will complete it as failed.
   /// This time interval starts the instant the request is submitted to the client.
-  /// Default to 60 seconds.
   public let operationTimeout: TimeInterval
 
   public init(
-    maxRequestResponseSubscription: Int = 3, maxStreamingSubscription: Int = 2,
-    operationTimeout: TimeInterval = 60
+    maxRequestResponseSubscription: Int, maxStreamingSubscription: Int,
+    operationTimeout: TimeInterval
   ) {
     self.maxStreamingSubscription = maxStreamingSubscription
     self.maxRequestResponseSubscription = maxRequestResponseSubscription
@@ -542,10 +539,10 @@ public class MqttRequestResponseClient {
   /// - Throws: CommonRuntimeError.crtError if creation failed
   public static func newFromMqtt5Client(
     mqtt5Client: Mqtt5Client,
-    options: MqttRequestResponseClientOptions? = nil
+    options: MqttRequestResponseClientOptions
   ) throws -> MqttRequestResponseClient {
     return try MqttRequestResponseClient(
-      mqttClient: mqtt5Client, options: options ?? MqttRequestResponseClientOptions())
+      mqttClient: mqtt5Client, options: options)
   }
 
   init(mqttClient: Mqtt5Client, options: MqttRequestResponseClientOptions) throws {
