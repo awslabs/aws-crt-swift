@@ -476,7 +476,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
   func testMqttRequestResponse_ShadowUpdatedStreamIncomingPublishSuccess() async throws {
     let testContext = MqttRRTestContext()
     let mqtt5Client = try createMqtt5Client(testContext: testContext)
-    var rrClient: MqttRequestResponseClient? = try MqttRequestResponseClient.newFromMqtt5Client(
+    var rrClient: MqttRequestResponseClient? = try MqttRequestResponseClient(
       mqtt5Client: mqtt5Client,
       options: MqttRequestResponseClientOptions(
         maxRequestResponseSubscription: 3, maxStreamingSubscription: 2, operationTimeout: 10))
@@ -535,7 +535,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
   func testMqttRequestResponse_ShadowUpdatedStreamIncomingPublishNilValue() async throws {
     let testContext = MqttRRTestContext()
     let mqtt5Client = try createMqtt5Client(testContext: testContext)
-    var rrClient: MqttRequestResponseClient? = try MqttRequestResponseClient.newFromMqtt5Client(
+    var rrClient: MqttRequestResponseClient? = try MqttRequestResponseClient(
       mqtt5Client: mqtt5Client,
       options: MqttRequestResponseClientOptions(
         maxRequestResponseSubscription: 3, maxStreamingSubscription: 2, operationTimeout: 10))

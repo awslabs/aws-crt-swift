@@ -57,19 +57,19 @@ public struct IncomingPublishEvent: Sendable {
   /// The topic associated with this PUBLISH packet.
   public let topic: String
 
-  /// The payload of the publish message in a byte buffer format
+  /// The raw bytes of the publish message payload.
   public let payload: Data
 
   /// (Optional) The content type of the payload
   public let contentType: String?
 
-  /// (Optional) User Properties, if there is no user property, the array will be empty
+  /// (Optional) User Properties, if there is no user property, the array will be an empty array.
   public let userProperties: [UserProperty]
 
   /// (Optional) Some services use this field to specify client-side timeouts.
   public let messageExpiryInterval: TimeInterval?
 
-  /// Internal constructor that setup IncomingPublishEvent from native aws_mqtt_rr_incoming_publish_event
+  /// internal constructor that initializes an IncomingPublishEvent from a native aws_mqtt_rr_incoming_publish_event
   init(_ raw_publish_event: UnsafePointer<aws_mqtt_rr_incoming_publish_event>) {
     let publish_event = raw_publish_event.pointee
 
@@ -98,7 +98,7 @@ public struct MqttRequestResponse: Sendable {
   /// Payload of the response that correlates to a submitted request.
   public let payload: Data
 
-  /// Internal constructor that setup MqttRequestResponse from native aws_mqtt_rr_incoming_publish_event
+  /// internal constructor that initializes an IncomingPublishEvent from a native aws_mqtt_rr_incoming_publish_event
   init(_ raw_publish_event: UnsafePointer<aws_mqtt_rr_incoming_publish_event>) {
     let publish_event = raw_publish_event.pointee
     self.topic = publish_event.topic.toString()
@@ -106,7 +106,7 @@ public struct MqttRequestResponse: Sendable {
   }
 }
 
-// We can't mutate this class after initialization. Swift can not verify the sendability due to direct use of c pointer,
+// We can't mutate this class after initialization. Swift can not verify the sendable due to direct use of c pointer,
 // so mark it unchecked Sendable
 /// A response path is a pair of values - MQTT topic and a JSON path - that describe where a response to
 /// an MQTT-based request may arrive.  For a given request type, there may be multiple response paths and each
@@ -233,8 +233,7 @@ public struct RequestResponseOperationOptions: CStructWithUserData, Sendable {
 
 private func MqttRRStreamingOperationTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
   // Termination callback. This is triggered when the native object is terminated.
-  // It is safe to release the native operation at this point. `takeRetainedValue()` would release
-  // the operation reference. ONLY DO IT AFTER YOU NEED RELEASE THE OBJECT
+  // `takeRetainedValue()` will release the operation reference. IT SHOULD ONLY BE CALLED AFTER YOU RELEASE THE CLIENT`
   _ = Unmanaged<StreamingOperationCore>.fromOpaque(userData!).takeRetainedValue()
 }
 
@@ -279,11 +278,11 @@ private func MqttRRStreamingOperationSubscriptionStatusCallback(
 
 /// Configuration options for streaming operations
 public struct StreamingOperationOptions: CStructWithUserData, Sendable {
-  /// The MQTT topic that the streaming is "listen" to.
+  /// The MQTT topic that the streaming operation is "listening" to
   public let topicFilter: String
   /// The handler function a streaming operation will use for subscription status events.
   public let subscriptionStatusEventHandler: SubscriptionStatusEventHandler
-  /// The handler function a streaming operation will use for the incoming message
+  /// The handler function a streaming operation will use for the incoming messages
   public let incomingPublishEventHandler: IncomingPublishEventHandler
 
   public init(
