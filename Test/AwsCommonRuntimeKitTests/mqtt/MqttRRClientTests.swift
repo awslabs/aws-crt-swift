@@ -205,7 +205,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     testContext: MqttRRTestContext, options: MqttRequestResponseClientOptions? = nil
   ) async throws -> MqttRequestResponseClient {
     let mqtt5Client = try createMqtt5Client(testContext: testContext)
-    let rrClient = try MqttRequestResponseClient.newFromMqtt5Client(
+    let rrClient = try MqttRequestResponseClient(
       mqtt5Client: mqtt5Client,
       options: options
         ?? MqttRequestResponseClientOptions(
@@ -292,7 +292,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
   func testMqttRequestResponse_CreateDestroy() async throws {
     let testContext = MqttRRTestContext()
     let client = try createMqtt5Client(testContext: testContext)
-    let _ = try MqttRequestResponseClient.newFromMqtt5Client(
+    let _ = try MqttRequestResponseClient(
       mqtt5Client: client,
       options: MqttRequestResponseClientOptions(
         maxRequestResponseSubscription: 3, maxStreamingSubscription: 2, operationTimeout: 60))
