@@ -140,7 +140,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
   func testMqttRequestResponse_CreateDestroy() async throws {
     let testContext = MqttRRTestContext()
     let client = try createMqtt5Client(testContext: testContext)
-    let _ = try MqttRequestResponseClient.newFromMqtt5Client(
+    let _ = try MqttRequestResponseClient(
       mqtt5Client: client,
       options: MqttRequestResponseClientOptions(
         maxRequestResponseSubscription: 3, maxStreamingSubscription: 2, operationTimeout: 60))
