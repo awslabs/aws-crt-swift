@@ -285,7 +285,7 @@ public class MqttRequestResponseClientOptions: CStructWithUserData, @unchecked S
 internal func MqttRRClientTerminationCallback(_ userData: UnsafeMutableRawPointer?) {
   // Termination callback. This is triggered when the native client is terminated.
   // It is safe to release the request response client at this point.
-  // `takeRetainedValue()` would release the client reference. ONLY DO IT AFTER YOU NEED RELEASE THE CLIENT
+  // `takeRetainedValue()` will release the client reference. IT SHOULD ONLY BE CALLED AFTER YOU RELEASE THE CLIENT.
   _ = Unmanaged<MqttRequestResponseClientCore>.fromOpaque(userData!).takeRetainedValue()
 }
 
@@ -313,10 +313,10 @@ private func MqttRROperationCompletionCallback(
     "MqttRROperationCompletionCallback: The topic and paylaod should be set if operation succeed")
 }
 
-// IMPORTANT: You are responsible for ensuring the concurrency correctness of MqttRequestResponseClientCore.
-// The rawValue is only modified within the close() function, which is exclusively called in the MqttRequestResponseClient destructor.
-// At that point, no other operations should be in progress. Therefore, under this usage model, MqttRequestResponseClientCore is
-// expected to be thread-safe.
+// IMPORTANT: You are responsible for concurrency correctness of MqttRequestResponseClientCore.
+// rawValue is only modified by the close() function, which is called exclusively in the
+// MqttRequestResponseClient destructor. At that point, no operations should be in progress.
+// Therefore, MqttRequestResponseClientCore can be considered thread-safe.
 internal class MqttRequestResponseClientCore: @unchecked Sendable {
   fileprivate var rawValue: OpaquePointer?  // aws_mqtt_request_response_client
 
@@ -358,13 +358,13 @@ internal class MqttRequestResponseClientCore: @unchecked Sendable {
     }
   }
 
-  /// create a stream operation, throws CRTError if the creation failed. You would need call open() on the operation to start the stream
+  /// create a stream operation, throws CRTError if the creation failed. open() must be called on the operation to start the stream.
   public func createStream(streamOptions: StreamingOperationOptions) throws -> StreamingOperation {
     // TODO: create streamming operation
     return StreamingOperation()
   }
 
-  /// release the request response client. You must not use the client after call `close()`.
+  /// release the request response client. You must not use the client after calling `close()`.
   public func close() {
     aws_mqtt_request_response_client_release(self.rawValue)
     self.rawValue = nil
@@ -378,22 +378,12 @@ public class MqttRequestResponseClient {
   /// Creates a new request-response client using an MQTT5 client for protocol transport
   ///
   /// - Parameters:
-  ///     - mqtt5Client: protocolClient MQTT client to use for transport
+  ///     - mqtt5Client: MQTT5 client that the request-response client should use as transport
   ///     - options: request-response client configuration options
   ///
-  /// - Returns:return a new MqttRequestResponseClient if success
-  ///
   /// - Throws: CommonRuntimeError.crtError if creation failed
-  public static func newFromMqtt5Client(
-    mqtt5Client: Mqtt5Client,
-    options: MqttRequestResponseClientOptions
-  ) throws -> MqttRequestResponseClient {
-    return try MqttRequestResponseClient(
-      mqttClient: mqtt5Client, options: options)
-  }
-
-  internal init(mqttClient: Mqtt5Client, options: MqttRequestResponseClientOptions) throws {
-    clientCore = try MqttRequestResponseClientCore(mqttClient: mqttClient, options: options)
+  public init(mqtt5Client: Mqtt5Client, options: MqttRequestResponseClientOptions) throws {
+    clientCore = try MqttRequestResponseClientCore(mqttClient: mqtt5Client, options: options)
   }
 
   /// Submit a request responds operation, throws CRTError if the operation failed
