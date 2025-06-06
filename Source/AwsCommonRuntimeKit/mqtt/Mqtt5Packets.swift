@@ -66,6 +66,12 @@ func convertOptionalUserProperties(
   return userProperties
 }
 
+extension UserProperty: Equatable {
+  static public func == (lhs: UserProperty, rhs: UserProperty) -> Bool {
+    return lhs.name == rhs.name && lhs.value == rhs.value
+  }
+}
+
 // We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
 // so mark it unchecked Sendable
 /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet
