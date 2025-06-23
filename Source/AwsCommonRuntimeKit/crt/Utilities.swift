@@ -481,4 +481,19 @@ extension Array where Element == String {
       return body(cursorsPtr.baseAddress!, len)
     }
   }
+
+  func withMutableByteCursorArray<R>(_ body: (UnsafeMutablePointer<aws_byte_cursor>, Int) -> R) -> R
+  {
+    let len = self.count
+    let cStrings = self.map { strdup($0) }
+    var cursors = cStrings.map { aws_byte_cursor_from_c_str($0) }
+
+    defer {
+      cStrings.forEach { free($0) }
+    }
+
+    return cursors.withUnsafeMutableBufferPointer { cursorsPtr in
+      return body(cursorsPtr.baseAddress!, len)
+    }
+  }
 }
