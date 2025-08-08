@@ -16,7 +16,7 @@ enum CanaryTestError: Error {
   case InvalidArgument
 }
 
-class Mqtt5CanaryTestContext {
+class Mqtt5CanaryTestContext: @unchecked Sendable {
   var mqtt5Clients: [Mqtt5CanaryClient] = []
   var statistic: Mqtt5CanaryStatistic
 
@@ -40,7 +40,7 @@ class Mqtt5CanaryTestContext {
       try await mqtt5CanaryOperationStart(clientIndex: index)
     case Mqtt5CanaryOperation.STOP:
       try await mqtt5CanaryOperationStop(clientIndex: index)
-    case Mqtt5CanaryOperation.SUBSSCRIBE:
+    case Mqtt5CanaryOperation.SUBSCRIBE:
       try await mqtt5CanaryOperationSubscribe(clientIndex: index)
     case Mqtt5CanaryOperation.UNSUBSCRIBE:
       if (mqtt5Clients[index].subscriptionCount > 0) {
@@ -50,7 +50,7 @@ class Mqtt5CanaryTestContext {
         // If there is topic subscribed, fallthrough to UNSUBSSCRIBE_BAD operation
         fallthrough
       }
-    case Mqtt5CanaryOperation.UNSUBSSCRIBE_BAD:
+    case Mqtt5CanaryOperation.UNSUBSCRIBE_BAD:
       try await mqtt5CanaryOperationUnsubscribe(clientIndex: index)
     case Mqtt5CanaryOperation.PUBLISH_QOS0:
       try await mqtt5CanaryOperationPublish(clientIndex: index, qos: QoS.atMostOnce)
@@ -308,9 +308,9 @@ enum Mqtt5CanaryOperation: Int {
   case START
   case STOP
   case DESTROY
-  case SUBSSCRIBE
+  case SUBSCRIBE
   case UNSUBSCRIBE
-  case UNSUBSSCRIBE_BAD
+  case UNSUBSCRIBE_BAD
   case PUBLISH_QOS0
   case PUBLISH_QOS1
   case PUBLISH_TO_SUBSCRIBED_TOPIC_QOS0
@@ -320,14 +320,16 @@ enum Mqtt5CanaryOperation: Int {
   case OPERATION_COUNT
 }
 
-struct Mqtt5CanaryTestOptions {
+// This struct holds the canary options
+// Adjustification of "@uncheck Sendable": The memebers in this struct will not be modified once setup.
+struct Mqtt5CanaryTestOptions: @unchecked Sendable {
   // Client options
   let shared_topic: String
   var elg: EventLoopGroup
   var boostrap: ClientBootstrap
   var tlsctx: TLSContext? = nil
   // Test options
-  var tpsSleepTime: UInt64
+  let tpsSleepTime: UInt64
   var onWebsocketTransform: OnWebSocketHandshakeIntercept? = nil
   var operationDistribution: [Mqtt5CanaryOperation] = []
 
@@ -378,9 +380,9 @@ struct Mqtt5CanaryTestOptions {
 func Mqtt5CanaryOperationDistributionSetup(_ distributionDataSet: inout [Mqtt5CanaryOperation]) {
   let operationDistribution = [
     (Mqtt5CanaryOperation.STOP, 1),
-    (Mqtt5CanaryOperation.SUBSSCRIBE, 200),
+    (Mqtt5CanaryOperation.SUBSCRIBE, 200),
     (Mqtt5CanaryOperation.UNSUBSCRIBE, 200),
-    (Mqtt5CanaryOperation.UNSUBSSCRIBE_BAD, 100),
+    (Mqtt5CanaryOperation.UNSUBSCRIBE_BAD, 100),
     (Mqtt5CanaryOperation.PUBLISH_QOS0, 300),
     (Mqtt5CanaryOperation.PUBLISH_QOS1, 150),
     (Mqtt5CanaryOperation.PUBLISH_TO_SUBSCRIBED_TOPIC_QOS0, 100),
@@ -397,7 +399,7 @@ func Mqtt5CanaryOperationDistributionSetup(_ distributionDataSet: inout [Mqtt5Ca
 
 }
 
-func Mqtt5CanaryTestRunIteration(
+@Sendable func Mqtt5CanaryTestRunIteration(
   _ context: Mqtt5CanaryTestContext, _ options: Mqtt5CanaryTestOptions
 ) async throws -> Void {
   let operationIndex = Int.random(in: 0..<options.operationDistribution.count)
