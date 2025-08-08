@@ -14,6 +14,7 @@ var package = Package(
   products: [
     .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
     .executable(name: "Elasticurl", targets: ["Elasticurl"]),
+    .executable(name: "Mqtt5Canary", targets: ["Mqtt5Canary"]),
   ],
   dependencies: [
     // Arugment Parser Dependency for ElasticCurl
@@ -370,6 +371,14 @@ packageTargets.append(contentsOf: [
       .product(name: "ArgumentParser", package: "swift-argument-parser"),
     ],
     path: "Source/Elasticurl"
+  ),
+  .executableTarget(
+    name: "Mqtt5Canary",
+    dependencies: [
+      "AwsCommonRuntimeKit",
+      .product(name: "ArgumentParser", package: "swift-argument-parser"),
+    ],
+    path: "Source/Canary/Mqtt5Canary"
   ),
 ])
 package.targets = packageTargets
