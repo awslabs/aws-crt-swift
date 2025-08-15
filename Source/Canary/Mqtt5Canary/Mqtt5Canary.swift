@@ -528,7 +528,8 @@ struct Mqtt5Canary: AsyncParsableCommand {
     let endTime = startTime.addingTimeInterval(TimeInterval(self.seconds))
 
     while Date() < endTime {
-      Task {
+      let iterationStartTime = Date()
+      Task{
         try await Mqtt5CanaryTestRunIteration(context, testOptions)
       }
 
@@ -537,7 +538,7 @@ struct Mqtt5Canary: AsyncParsableCommand {
       if testOptions.tpsSleepTime > SLEEP_OVERHEAD_NS {
         try await Task.sleep(nanoseconds: testOptions.tpsSleepTime - SLEEP_OVERHEAD_NS)
       }
-      let targetTime = Date().addingTimeInterval(
+      let targetTime = iterationStartTime.addingTimeInterval(
         TimeInterval(testOptions.tpsSleepTime / ONE_NANO_SECOND))
       while Date() < targetTime {
         // Busy-wait for precision sleep
