@@ -17,7 +17,7 @@ enum CanaryTestError: Error {
 }
 
 class Mqtt5CanaryTestContext: @unchecked Sendable {
-  var mqtt5CanaryClients: [Mqtt5CanaryClient] = []
+    var mqtt5CanaryClients: [String: Mqtt5CanaryClient] = [:]
   var statistic: Mqtt5CanaryStatistic
 
   init() {
@@ -25,52 +25,91 @@ class Mqtt5CanaryTestContext: @unchecked Sendable {
   }
 
   /// Setup Test Context
-  func appendCanaryClient(client: Mqtt5CanaryClient) {
-    mqtt5CanaryClients.append(client)
+  func appendCanaryClient(clientId: String, client: Mqtt5CanaryClient) {
+    mqtt5CanaryClients[clientId] = client
   }
 
-  func setClientConnection(index: Int, connected: Bool) {
-    mqtt5CanaryClients[index].setConnected(connected: connected)
+  func setClientConnection(clientId: String, connected: Bool) throws {
+      guard let client = mqtt5CanaryClients[clientId] else {
+          throw CanaryTestError.InvalidArgument
+      }
+      client.setConnected(connected: connected)
   }
+    
+    func getCanaryClient(_ index: Int) throws -> Mqtt5CanaryClient{
+        let index = mqtt5CanaryClients.index(mqtt5CanaryClients.startIndex, offsetBy: index)
+        let key = mqtt5CanaryClients.keys[index]
+        guard let result = mqtt5CanaryClients[key] else{
+            throw CanaryTestError.InvalidArgument
+        }
+        return result
+    }
+    
+    func createClient(testOptions: Mqtt5CanaryTestOptions
+    ) async throws {
+      let clientId = "Mqtt5CanaryTest-" + UUID().uuidString
+      let connectionOption = MqttConnectOptions(clientId: clientId)
+      let clientOption = MqttClientOptions(
+        hostName: testOptions.endpoint, port: testOptions.port, bootstrap: testOptions.boostrap,
+        tlsCtx: testOptions.tlsctx,
+        onWebsocketTransform: testOptions.onWebsocketTransform,
+        connectOptions: connectionOption,
+        onLifecycleEventStoppedFn: { _ in
+            if let client = self.mqtt5CanaryClients[clientId] {
+                client.setConnected(connected: false)
+            }
+        },
+        onLifecycleEventConnectionSuccessFn: { _ in
+            if let client = self.mqtt5CanaryClients[clientId] {
+                client.setConnected(connected: true)
+            }
+        },
+        onLifecycleEventConnectionFailureFn: { _ in
+            if let client = self.mqtt5CanaryClients[clientId] {
+                client.setConnected(connected: false)
+            }
+        },
+        onLifecycleEventDisconnectionFn: { _ in
+            if let client = self.mqtt5CanaryClients[clientId] {
+                client.setConnected(connected: false)
+            }
+        }
+      )
+      let client = try Mqtt5Client(clientOptions: clientOption)
+      let canaryClient = Mqtt5CanaryClient(
+        client: client, clientId: clientId, sharedTopic: testOptions.shared_topic)
+        appendCanaryClient(clientId: clientId, client: canaryClient)
+    }
 
   /// Client Operation Help Function
-  func mqtt5CanaryRunOperation(_ operation: Mqtt5CanaryOperation, _ index: Int) async throws {
+  func mqtt5CanaryRunOperation(_ operation: Mqtt5CanaryOperation, _ index: Int, _ options: Mqtt5CanaryTestOptions) async throws {
     switch operation {
-    case Mqtt5CanaryOperation.START:
-      try await mqtt5CanaryOperationStart(clientIndex: index)
     case Mqtt5CanaryOperation.STOP:
       try await mqtt5CanaryOperationStop(clientIndex: index)
     case Mqtt5CanaryOperation.SUBSCRIBE:
       try await mqtt5CanaryOperationSubscribe(clientIndex: index)
     case Mqtt5CanaryOperation.UNSUBSCRIBE:
-      if (mqtt5CanaryClients[index].subscriptionCount > 0) {
-        try await mqtt5CanaryOperationUnsubscribe(
-          clientIndex: index, testTopic: mqtt5CanaryClients[index].getUnsubscribedTopic())
-      } else {
-        // If there is topic subscribed, fallthrough to UNSUBSSCRIBE_BAD operation
-        fallthrough
-      }
-    case Mqtt5CanaryOperation.UNSUBSCRIBE_BAD:
       try await mqtt5CanaryOperationUnsubscribe(clientIndex: index)
+    case Mqtt5CanaryOperation.UNSUBSCRIBE_BAD:
+      try await mqtt5CanaryOperationUnsubscribeBad(clientIndex: index)
     case Mqtt5CanaryOperation.PUBLISH_QOS0:
-      try await mqtt5CanaryOperationPublish(clientIndex: index, qos: QoS.atMostOnce)
+      try await mqtt5CanaryOperationPublishUnsubscribed(clientIndex: index, qos: QoS.atMostOnce)
     case Mqtt5CanaryOperation.PUBLISH_QOS1:
-      try await mqtt5CanaryOperationPublish(clientIndex: index, qos: QoS.atLeastOnce)
+      try await mqtt5CanaryOperationPublishUnsubscribed(clientIndex: index, qos: QoS.atLeastOnce)
     case Mqtt5CanaryOperation.PUBLISH_TO_SUBSCRIBED_TOPIC_QOS0:
       try await mqtt5CanaryOperationPublish(
-        clientIndex: index, topic: mqtt5CanaryClients[index].getSubscribedTopic(),
-        qos: QoS.atMostOnce)
+        clientIndex: index, qos: QoS.atMostOnce)
     case Mqtt5CanaryOperation.PUBLISH_TO_SUBSCRIBED_TOPIC_QOS1:
       try await mqtt5CanaryOperationPublish(
-        clientIndex: index, topic: mqtt5CanaryClients[index].getSubscribedTopic(),
-        qos: QoS.atLeastOnce)
+        clientIndex: index, qos: QoS.atLeastOnce)
     case Mqtt5CanaryOperation.PUBLISH_TO_SHARED_TOPIC_QOS0:
-      try await mqtt5CanaryOperationPublish(
-        clientIndex: index, topic: mqtt5CanaryClients[index].shared_topic, qos: QoS.atMostOnce)
+      try await mqtt5CanaryOperationPublishShared(
+        clientIndex: index, qos: QoS.atMostOnce)
     case Mqtt5CanaryOperation.PUBLISH_TO_SHARED_TOPIC_QOS1:
-      try await mqtt5CanaryOperationPublish(
-        clientIndex: index, topic: mqtt5CanaryClients[index].shared_topic, qos: QoS.atLeastOnce)
-
+      try await mqtt5CanaryOperationPublishShared(
+        clientIndex: index, qos: QoS.atLeastOnce)
+    case Mqtt5CanaryOperation.DESTROY_AND_CREAT:
+        try await mqtt5CanaryOperationDestroyAndCreate(clientIndex: index, option: options)
     case Mqtt5CanaryOperation.NULL:
       fallthrough
     case Mqtt5CanaryOperation.OPERATION_COUNT:
@@ -81,28 +120,39 @@ class Mqtt5CanaryTestContext: @unchecked Sendable {
 
   /// Client Operations
   func mqtt5CanaryOperationStart(clientIndex: Int) async throws {
-    if !mqtt5CanaryClients[clientIndex].is_connected {
+    let canaryClient = try getCanaryClient(clientIndex)
+    if !canaryClient.is_connected {
       await statistic.incrementTotalOperation()
-      try mqtt5CanaryClients[clientIndex].client.start()
+        try canaryClient.client!.start()
     }
   }
+    
+func mqtt5CanaryOperationStart(canaryClient: Mqtt5CanaryClient) async throws {
+  if !canaryClient.is_connected {
+    await statistic.incrementTotalOperation()
+      try canaryClient.client!.start()
+  }
+}
+    
+    
 
   func mqtt5CanaryOperationStop(clientIndex: Int) async throws {
-    if mqtt5CanaryClients[clientIndex].is_connected {
+      let canaryClient = try getCanaryClient(clientIndex)
+    if !canaryClient.is_connected {
       await statistic.incrementTotalOperation()
-      try mqtt5CanaryClients[clientIndex].client.stop()
+      try canaryClient.client!.stop()
       // clean up the subscription count
-      mqtt5CanaryClients[clientIndex].subscriptionCount = 0
+        canaryClient.subscriptionCount = 0
     }
   }
 
   func mqtt5CanaryOperationSubscribe(clientIndex: Int) async throws {
-    if !mqtt5CanaryClients[clientIndex].is_connected {
+    let canaryClient = try getCanaryClient(clientIndex)
+    if !canaryClient.is_connected {
       return try await mqtt5CanaryOperationStart(clientIndex: clientIndex)
     }
 
     do {
-      let canaryClient = mqtt5CanaryClients[clientIndex]
       let sub = Subscription(topicFilter: canaryClient.getNextSubTopic(), qos: QoS.atLeastOnce)
       var subscriptions = [sub]
 
@@ -115,7 +165,7 @@ class Mqtt5CanaryTestContext: @unchecked Sendable {
           Subscription(topicFilter: canaryClient.shared_topic, qos: QoS.atLeastOnce))
       }
 
-      let suback = try await canaryClient.client.subscribe(
+      let suback = try await canaryClient.client!.subscribe(
         subscribePacket: SubscribePacket(subscriptions: subscriptions))
 
       if suback.reasonCodes[0] == SubackReasonCode.grantedQos1 {
@@ -127,22 +177,31 @@ class Mqtt5CanaryTestContext: @unchecked Sendable {
       await self.statistic.incrementSubscribeFailed()
     }
   }
+    
+    func mqtt5CanaryOperationUnsubscribe(clientIndex: Int) async throws{
+        let canaryClient = try getCanaryClient(clientIndex)
+        try await mqtt5CanaryOperationUnsubscribe(canaryClient: canaryClient, testTopic: canaryClient.getUnsubscribedTopic())
+    }
+    
+    func mqtt5CanaryOperationUnsubscribeBad(clientIndex: Int) async throws{
+        let canaryClient = try getCanaryClient(clientIndex)
+        try await mqtt5CanaryOperationUnsubscribe(canaryClient: canaryClient)
+    }
 
   func mqtt5CanaryOperationUnsubscribe(
-    clientIndex: Int, testTopic: String = UNSUBSCRIBED_TEST_TOPIC
+    canaryClient: Mqtt5CanaryClient, testTopic: String = UNSUBSCRIBED_TEST_TOPIC
   ) async throws {
-    if !mqtt5CanaryClients[clientIndex].is_connected {
-      return try await mqtt5CanaryOperationStart(clientIndex: clientIndex)
+    if !canaryClient.is_connected {
+      return try await mqtt5CanaryOperationStart(canaryClient: canaryClient)
     }
 
     do {
-      let canaryClient = mqtt5CanaryClients[clientIndex]
       let unsub = UnsubscribePacket(topicFilter: testTopic)
 
       await self.statistic.incrementUnsubscribeAttempts()
       await self.statistic.incrementTotalOperation()
 
-      let unsubAck = try await canaryClient.client.unsubscribe(unsubscribePacket: unsub)
+      let unsubAck = try await canaryClient.client!.unsubscribe(unsubscribePacket: unsub)
 
       if unsubAck.reasonCodes[0] == UnsubackReasonCode.success {
         await self.statistic.incrementUnsubscribeSucceed()
@@ -154,20 +213,34 @@ class Mqtt5CanaryTestContext: @unchecked Sendable {
     }
   }
 
-  func mqtt5CanaryOperationPublish(
-    clientIndex: Int, topic: String = UNSUBSCRIBED_TEST_TOPIC, qos: QoS
-  ) async throws {
-    if !mqtt5CanaryClients[clientIndex].is_connected {
-      return try await mqtt5CanaryOperationStart(clientIndex: clientIndex)
+    func mqtt5CanaryOperationPublish(clientIndex: Int, qos: QoS) async throws{
+        let canaryClient = try getCanaryClient(clientIndex)
+        try await mqtt5CanaryOperationPublish(canaryClient: canaryClient, topic: canaryClient.getNextSubTopic(), qos: qos)
+    }
+    
+    func mqtt5CanaryOperationPublishUnsubscribed(clientIndex: Int, qos: QoS) async throws{
+        let canaryClient = try getCanaryClient(clientIndex)
+        try await mqtt5CanaryOperationPublish(canaryClient: canaryClient, qos: qos)
+    }
+    
+    func mqtt5CanaryOperationPublishShared(clientIndex: Int, qos: QoS) async throws{
+        let canaryClient = try getCanaryClient(clientIndex)
+        try await mqtt5CanaryOperationPublish(canaryClient: canaryClient, topic: canaryClient.shared_topic, qos: qos)
     }
 
+    
+  func mqtt5CanaryOperationPublish(
+    canaryClient: Mqtt5CanaryClient, topic: String = UNSUBSCRIBED_TEST_TOPIC, qos: QoS
+  ) async throws {
+    if !canaryClient.is_connected {
+      return try await mqtt5CanaryOperationStart(canaryClient: canaryClient)
+    }
     do {
-      let canaryClient = mqtt5CanaryClients[clientIndex]
       let pub = PublishPacket(qos: qos, topic: topic)
 
       await self.statistic.incrementPublishAttempts()
       await self.statistic.incrementTotalOperation()
-      let puback = try await canaryClient.client.publish(publishPacket: pub)
+      let puback = try await canaryClient.client!.publish(publishPacket: pub)
 
       if qos == QoS.atMostOnce || puback.puback?.reasonCode == PubackReasonCode.success
         || puback.puback?.reasonCode == PubackReasonCode.noMatchingSubscribers
@@ -180,11 +253,29 @@ class Mqtt5CanaryTestContext: @unchecked Sendable {
       await self.statistic.incrementPublishFailed()
     }
   }
+    
+    func mqtt5CanaryOperationCreation(option: Mqtt5CanaryTestOptions) async throws {
+        if mqtt5CanaryClients.count < option.clientCount {
+            try await createClient(testOptions: option)
+        }
+    }
+    
+    func mqtt5CanaryOperationDestroyAndCreate(clientIndex: Int, option: Mqtt5CanaryTestOptions) async throws{
+        // If there is one client left
+        if mqtt5CanaryClients.count > 1 {
+            let canaryClient = try getCanaryClient(clientIndex)
+            try canaryClient.client!.stop()
+            await statistic.incrementTotalOperation()
+            canaryClient.client = nil
+            mqtt5CanaryClients.remove(at: mqtt5CanaryClients.index(mqtt5CanaryClients.startIndex, offsetBy: clientIndex))
+            try await mqtt5CanaryOperationCreation(option: option)
+        }
+    }
 
 }
 
 class Mqtt5CanaryClient {
-  fileprivate let client: Mqtt5Client
+  fileprivate var client: Mqtt5Client?
   fileprivate let clientId: String
   fileprivate let shared_topic: String
   fileprivate var subscriptionCount: Int = 0
@@ -305,7 +396,7 @@ actor Mqtt5CanaryStatistic {
 
 enum Mqtt5CanaryOperation: Int {
   case NULL = 0
-  case START
+  case DESTROY_AND_CREAT
   case STOP
   case SUBSCRIBE
   case UNSUBSCRIBE
@@ -320,10 +411,13 @@ enum Mqtt5CanaryOperation: Int {
 }
 
 // This struct holds the canary options
-// Adjustification of "@uncheck Sendable": The memebers in this struct will not be modified once setup.
+// Justification of "@unchecked Sendable": The members in this struct will not be modified once setup.
 struct Mqtt5CanaryTestOptions: @unchecked Sendable {
   // Client options
   let shared_topic: String
+  let endpoint: String
+  let port: UInt32
+  let clientCount: Int
   var elg: EventLoopGroup
   var boostrap: ClientBootstrap
   var tlsctx: TLSContext? = nil
@@ -334,7 +428,10 @@ struct Mqtt5CanaryTestOptions: @unchecked Sendable {
 
   init(testApp: Mqtt5Canary) throws {
     shared_topic = "shared_topic_" + UUID().uuidString
+    self.endpoint = testApp.endpoint
+    self.port = testApp.port
     self.tpsSleepTime = testApp.tps > 0 ? (UInt64(ONE_NANO_SECOND / testApp.tps)) : 0
+      self.clientCount = testApp.clients
     // Initialize elg first
     self.elg = try EventLoopGroup(threadCount: testApp.threads)
     let resolver = try HostResolver(
@@ -378,6 +475,7 @@ struct Mqtt5CanaryTestOptions: @unchecked Sendable {
 
 func Mqtt5CanaryOperationDistributionSetup(_ distributionDataSet: inout [Mqtt5CanaryOperation]) {
   let operationDistribution = [
+    (Mqtt5CanaryOperation.DESTROY_AND_CREAT, 10),
     (Mqtt5CanaryOperation.STOP, 1),
     (Mqtt5CanaryOperation.SUBSCRIBE, 200),
     (Mqtt5CanaryOperation.UNSUBSCRIBE, 200),
@@ -404,7 +502,7 @@ func Mqtt5CanaryOperationDistributionSetup(_ distributionDataSet: inout [Mqtt5Ca
   let operationIndex = Int.random(in: 0..<options.operationDistribution.count)
   let clientIndex = Int.random(in: 0..<context.mqtt5CanaryClients.count)
   try await context.mqtt5CanaryRunOperation(
-    options.operationDistribution[operationIndex], clientIndex)
+    options.operationDistribution[operationIndex], clientIndex, options)
 }
 
 @main
@@ -474,35 +572,6 @@ struct Mqtt5Canary: AsyncParsableCommand {
 
   }
 
-  mutating func createClient(
-    context: Mqtt5CanaryTestContext, index: Int, testOptions: Mqtt5CanaryTestOptions
-  ) async throws {
-    let clientId = "Mqtt5CanaryTest-" + UUID().uuidString
-    let connectionOption = MqttConnectOptions(clientId: clientId)
-    let clientOption = MqttClientOptions(
-      hostName: self.endpoint, port: self.port, bootstrap: testOptions.boostrap,
-      tlsCtx: testOptions.tlsctx,
-      onWebsocketTransform: testOptions.onWebsocketTransform,
-      connectOptions: connectionOption,
-      onLifecycleEventStoppedFn: { _ in
-        context.setClientConnection(index: index, connected: false)
-      },
-      onLifecycleEventConnectionSuccessFn: { _ in
-        context.setClientConnection(index: index, connected: true)
-      },
-      onLifecycleEventConnectionFailureFn: { _ in
-        context.setClientConnection(index: index, connected: false)
-      },
-      onLifecycleEventDisconnectionFn: { _ in
-        context.setClientConnection(index: index, connected: false)
-      }
-    )
-    let client = try Mqtt5Client(clientOptions: clientOption)
-    let canaryClient = Mqtt5CanaryClient(
-      client: client, clientId: clientId, sharedTopic: testOptions.shared_topic)
-    context.appendCanaryClient(client: canaryClient)
-  }
-
   mutating func run() async throws {
     CommonRuntimeKit.initialize()
     // Enable logging
@@ -519,8 +588,8 @@ struct Mqtt5Canary: AsyncParsableCommand {
     let testOptions = try Mqtt5CanaryTestOptions(testApp: self)
     // Setup test clients
     let context: Mqtt5CanaryTestContext = Mqtt5CanaryTestContext()
-    for index: Int in 0..<self.clients {
-      try await createClient(context: context, index: index, testOptions: testOptions)
+    for _ : Int in 0..<self.clients {
+        try await context.createClient(testOptions: testOptions)
     }
 
     // Main Test iteration
@@ -547,7 +616,7 @@ struct Mqtt5Canary: AsyncParsableCommand {
 
     // Close and clean up the clients
     for index: Int in 0..<self.clients {
-      try await context.mqtt5CanaryRunOperation(Mqtt5CanaryOperation.STOP, index)
+      try await context.mqtt5CanaryRunOperation(Mqtt5CanaryOperation.STOP, index, testOptions)
     }
 
     // Print final statistics
