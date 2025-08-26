@@ -37,8 +37,8 @@ command_parser.add_argument("--ticket_category", type=str, default="AWS",
                             help="(OPTIONAL, default=AWS) The category to register the ticket under")
 command_parser.add_argument("--ticket_type", type=str, default="SDKs and Tools",
                             help="(OPTIONAL, default='SDKs and Tools') The type to register the ticket under")
-command_parser.add_argument("--ticket_item", type=str, default="IoT SDK for CPP",
-                            help="(OPTIONAL, default='IoT SDK for CPP') The item to register the ticket under")
+command_parser.add_argument("--ticket_item", type=str, default="IoT SDK for SWIFT",
+                            help="(OPTIONAL, default='IoT SDK for SWIFT') The item to register the ticket under")
 command_parser.add_argument("--ticket_group", type=str, default="AWS IoT Device SDK",
                             help="(OPTIONAL, default='AWS IoT Device SDK') The group to register the ticket under")
 command_parser.add_argument("--dependencies", type=str, default="",
