@@ -267,7 +267,7 @@ private func MqttRRStreamingOperationSubscriptionStatusCallback(
   let operationCore = Unmanaged<StreamingOperationCore>.fromOpaque(userData).takeUnretainedValue()
   operationCore.rwlock.read {
     // Only invoke the callback if the streaming operation is not closed.
-    if operationCore.rawValue != nil{
+    if operationCore.rawValue != nil {
       let subStatusEvent = SubscriptionStatusEvent(
         event: SubscriptionStatusEventType(eventType),
         error: errorCode == 0 ? nil : CRTError(code: Int32(errorCode)))

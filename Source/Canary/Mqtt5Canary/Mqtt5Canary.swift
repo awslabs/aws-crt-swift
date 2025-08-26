@@ -6,8 +6,7 @@ import AwsCommonRuntimeKit
 import Foundation
 import _Concurrency
 
-let ONE_NANO_SECOND: UInt64 = 1_000_000_000
-let SLEEP_OVERHEAD_NS: UInt64 = 2_000_000  // 2ms overhead
+let ONE_NANO_SECOND: Double = 1_000_000_000
 let UNSUBSCRIBED_TEST_TOPIC = "SwiftCanary/Unsubscribed/" + UUID().uuidString
 
 typealias OnMqtt5CanaryTestFunction = (Mqtt5CanaryTestContext) -> Void
@@ -428,7 +427,7 @@ struct Mqtt5CanaryTestOptions: @unchecked Sendable {
   var boostrap: ClientBootstrap
   var tlsctx: TLSContext? = nil
   // Test options
-  let tpsSleepTime: UInt64
+  let tpsSleepTime: UInt32
   var onWebsocketTransform: OnWebSocketHandshakeIntercept? = nil
   var operationDistribution: [Mqtt5CanaryOperation] = []
 
@@ -436,7 +435,7 @@ struct Mqtt5CanaryTestOptions: @unchecked Sendable {
     shared_topic = "shared_topic_" + UUID().uuidString
     self.endpoint = testApp.endpoint
     self.port = testApp.port
-    self.tpsSleepTime = testApp.tps > 0 ? (UInt64(ONE_NANO_SECOND / testApp.tps)) : 0
+    self.tpsSleepTime = testApp.tps > 0 ? (UInt32)(ONE_NANO_SECOND / Double(testApp.tps)) : 0
     self.clientCount = testApp.clients
     // Initialize elg first
     self.elg = try EventLoopGroup(threadCount: testApp.threads)
@@ -604,20 +603,16 @@ struct Mqtt5Canary: AsyncParsableCommand {
 
     while Date() < endTime {
       let iterationStartTime = Date()
+      let targetTime = iterationStartTime.addingTimeInterval(
+        TimeInterval(Double(testOptions.tpsSleepTime) / ONE_NANO_SECOND))
       Task {
         try await Mqtt5CanaryTestRunIteration(context, testOptions)
       }
 
-      // Task.sleep always sleeps longer than requested due to system overhead. For more precise timing...
-      // we use a busy waiting...
-      if testOptions.tpsSleepTime > SLEEP_OVERHEAD_NS {
-        try await Task.sleep(nanoseconds: testOptions.tpsSleepTime - SLEEP_OVERHEAD_NS)
-      }
-      let targetTime = iterationStartTime.addingTimeInterval(
-        TimeInterval(testOptions.tpsSleepTime / ONE_NANO_SECOND))
       while Date() < targetTime {
         // Busy-wait for precision sleep
       }
+
     }
 
     // Close and clean up the clients
