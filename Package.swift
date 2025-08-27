@@ -173,12 +173,15 @@ var cSettingsIO = cSettings
   awsCIoPlatformExcludes.append("source/s2n")
   cSettingsIO.append(.define("__APPLE__"))
   cSettingsIO.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
-  // DEBUG: force to use secitem for testing on macos
-  cSettingsIO.append(.define("AWS_USE_SECITEM"))
+  cSettingsIO.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
+  cSettingsIO.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
   swiftTestSettings.append(.define("__APPLE__"))
   swiftTestSettings.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
-  swiftTestSettings.append(.define("AWS_USE_SECITEM"))
+  swiftTestSettings.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
+  swiftTestSettings.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
 #endif
+
+
 
 //////////////////////////////////////////////////////////////////////
 /// aws-c-checksums
