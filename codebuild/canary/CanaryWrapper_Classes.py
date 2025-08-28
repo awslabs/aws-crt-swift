@@ -336,6 +336,7 @@ class DataSnapshot():
             return
 
         try:
+            # TODO: Currently we are using 
             self.cloudwatch_client.put_metric_alarm(
                 AlarmName=metric.metric_alarm_name,
                 AlarmDescription=metric.metric_alarm_description,
@@ -851,7 +852,7 @@ class SnapshotMonitor():
                         ticket_reason="New metric(s) went into alarm",
                         ticket_allow_duplicates=True,
                         ticket_category="AWS",
-                        ticket_item="IoT SDK for CPP",
+                        ticket_item=self.data_snapshot.ticket_item,
                         ticket_group="AWS IoT Device SDK",
                         ticket_type="SDKs and Tools",
                         ticket_severity=4)
@@ -1086,174 +1087,6 @@ class ApplicationMonitor():
         else:
             print(message, flush=True)
 
-# ================================================================================
-
-
-class S3Monitor():
-
-    def __init__(self, s3_bucket_name, s3_file_name, s3_file_name_in_zip, canary_local_application_path, data_snapshot) -> None:
-        self.s3_client = None
-        self.s3_current_object_version_id = None
-        self.s3_current_object_last_modified = None
-        self.s3_bucket_name = s3_bucket_name
-        self.s3_file_name = s3_file_name
-        self.s3_file_name_only_path, self.s3_file_name_only_extension = os.path.splitext(
-            s3_file_name)
-        self.data_snapshot = data_snapshot
-
-        self.canary_local_application_path = canary_local_application_path
-
-        self.s3_file_name_in_zip = s3_file_name_in_zip
-        self.s3_file_name_in_zip_only_path = None
-        self.s3_file_name_in_zip_only_extension = None
-        if (self.s3_file_name_in_zip != None):
-            self.s3_file_name_in_zip_only_path, self.s3_file_name_in_zip_only_extension = os.path.splitext(
-                s3_file_name_in_zip)
-
-        self.s3_file_needs_replacing = False
-
-        self.had_internal_error = False
-        self.error_due_to_credentials = False
-        self.internal_error_reason = ""
-
-        # Check for valid credentials
-        # ==================
-        try:
-            tmp_sts_client = boto3.client('sts')
-            tmp_sts_client.get_caller_identity()
-        except Exception as e:
-            self.print_message(
-                "[S3Monitor] ERROR - (S3 Check) AWS credentials are NOT valid!")
-            self.had_internal_error = True
-            self.error_due_to_credentials = True
-            self.internal_error_reason = "AWS credentials are NOT valid!"
-            return
-        # ==================
-
-        try:
-            self.s3_client = boto3.client("s3")
-        except Exception as e:
-            self.print_message(
-                "[S3Monitor] ERROR - (S3 Check) Could not make S3 client")
-            self.had_internal_error = True
-            self.internal_error_reason = "Could not make S3 client for S3 Monitor"
-            return
-
-    def check_for_file_change(self):
-        try:
-            version_check_response = self.s3_client.list_object_versions(
-                Bucket=self.s3_bucket_name,
-                Prefix=self.s3_file_name_only_path)
-            if "Versions" in version_check_response:
-                for version in version_check_response["Versions"]:
-                    if (version["IsLatest"] == True):
-                        if (version["VersionId"] != self.s3_current_object_version_id or
-                                version["LastModified"] != self.s3_current_object_last_modified):
-
-                            self.print_message(
-                                "[S3Monitor] Found new version of Canary/Application in S3!")
-                            self.print_message(
-                                "[S3Monitor] Changing running Canary/Application to new one...")
-
-                            # Will be checked by thread to trigger replacing the file
-                            self.s3_file_needs_replacing = True
-
-                            self.s3_current_object_version_id = version["VersionId"]
-                            self.s3_current_object_last_modified = version["LastModified"]
-                            return
-
-        except Exception as e:
-            self.print_message(
-                "[S3Monitor] ERROR - Could not check for new version of file in S3 due to exception!")
-            self.print_message("[S3Monitor] Exception: " + str(e))
-            self.had_internal_error = True
-            self.internal_error_reason = "Could not check for S3 file due to exception in S3 client"
-
-    def replace_current_file_for_new_file(self):
-        try:
-            self.print_message("[S3Monitor] Making directory...")
-            if not os.path.exists("tmp"):
-                os.makedirs("tmp")
-        except Exception as e:
-            self.print_message(
-                "[S3Monitor] ERROR - could not make tmp directory to place S3 file into!")
-            self.had_internal_error = True
-            self.internal_error_reason = "Could not make TMP folder for S3 file download"
-            return
-
-        # Download the file
-        new_file_path = "tmp/new_file" + self.s3_file_name_only_extension
-        try:
-            self.print_message("[S3Monitor] Downloading file...")
-            s3_resource = boto3.resource("s3")
-            s3_resource.meta.client.download_file(
-                self.s3_bucket_name, self.s3_file_name, new_file_path)
-        except Exception as e:
-            self.print_message(
-                "[S3Monitor] ERROR - could not download latest S3 file into TMP folder!")
-            self.had_internal_error = True
-            self.internal_error_reason = "Could not download latest S3 file into TMP folder"
-            return
-
-        # Is it a zip file?
-        if (self.s3_file_name_in_zip != None):
-            self.print_message(
-                "[S3Monitor] New file is zip file. Unzipping...")
-            # Unzip it!
-            with zipfile.ZipFile(new_file_path, 'r') as zip_file:
-                zip_file.extractall("tmp/new_file_zip")
-                new_file_path = "tmp/new_file_zip/" + self.s3_file_name_in_zip_only_path + \
-                    self.s3_file_name_in_zip_only_extension
-
-        try:
-            # is there a file already present there?
-            if os.path.exists(self.canary_local_application_path) == True:
-                os.remove(self.canary_local_application_path)
-
-            self.print_message("[S3Monitor] Moving file...")
-            os.replace(new_file_path, self.canary_local_application_path)
-            self.print_message("[S3Monitor] Getting execution rights...")
-            os.system("chmod u+x " + self.canary_local_application_path)
-
-        except Exception as e:
-            self.print_message(
-                "[S3Monitor] ERROR - could not move file into local application path due to exception!")
-            self.print_message("[S3Monitor] Exception: " + str(e))
-            self.had_internal_error = True
-            self.internal_error_reason = "Could not move file into local application path"
-            return
-
-        self.print_message(
-            "[S3Monitor] New file downloaded and moved into correct location!")
-        self.s3_file_needs_replacing = False
-
-    def stop_monitoring(self):
-        # Stub - just added for consistency
-        pass
-
-    def start_monitoring(self):
-        # Stub - just added for consistency
-        pass
-
-    def restart_monitoring(self):
-        # Stub - just added for consistency
-        pass
-
-    def cleanup_monitor(self):
-        # Stub - just added for consistency
-        pass
-
-    def monitor_loop_function(self, time_passed=30):
-        self.check_for_file_change()
-
-    def print_message(self, message):
-        if (self.data_snapshot != None):
-            self.data_snapshot.print_message(message)
-        else:
-            print(message, flush=True)
-
-# ================================================================================
-
 
 # Cuts a ticket to SIM using a temporary Cloudwatch metric that is quickly created, triggered, and destroyed.
 # Can be called in any thread - creates its own Cloudwatch client and any data it needs is passed in.
@@ -1266,13 +1099,13 @@ def cut_ticket_using_cloudwatch(
         ticket_severity=5,
         ticket_category="AWS",
         ticket_type="SDKs and Tools",
-        ticket_item="IoT SDK for CPP",
+        ticket_item="IoT SDK for Swift",
         ticket_group="AWS IoT Device SDK",
         ticket_allow_duplicates=False,
         git_repo_name="REPO NAME",
         git_hash="HASH",
         git_hash_as_namespace=False,
-        git_fixed_namespace_text="mqtt5_canary",
+        git_fixed_namespace_text="mqtt5_swift_canary",
         cloudwatch_region="us-east-1"):
 
     git_metric_namespace = ""
@@ -1352,29 +1185,3 @@ def cut_ticket_using_cloudwatch(
 
     print("Finished cutting ticket via Cloudwatch!", flush=True)
     return
-
-# A helper function that gets the majority of the ticket information from the arguments result from argparser.
-
-
-def cut_ticket_using_cloudwatch_from_args(
-        ticket_description="",
-        ticket_reason="",
-        ticket_severity=6,
-        arguments=None):
-
-    # Do not cut a ticket for a severity of 6+
-    if (ticket_severity >= 6):
-        return
-
-    cut_ticket_using_cloudwatch(
-        ticket_description=ticket_description,
-        ticket_reason=ticket_reason,
-        ticket_severity=ticket_severity,
-        ticket_category=arguments.ticket_category,
-        ticket_type=arguments.ticket_type,
-        ticket_item=arguments.ticket_item,
-        ticket_group=arguments.ticket_group,
-        ticket_allow_duplicates=False,
-        git_repo_name=arguments.git_repo_name,
-        git_hash=arguments.git_hash,
-        git_hash_as_namespace=arguments.git_hash_as_namespace)

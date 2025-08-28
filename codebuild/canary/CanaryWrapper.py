@@ -55,6 +55,8 @@ if (command_parser_arguments.output_log_filepath == "None"):
 if (command_parser_arguments.snapshot_wait_time <= 0):
     command_parser_arguments.snapshot_wait_time = 60
 
+CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE = "mqtt5_swift_canary"
+
 # Deal with possibly empty values in semi-critical commands/arguments
 if (command_parser_arguments.canary_executable == ""):
     print("ERROR - required canary_executable is empty!", flush=True)
@@ -97,7 +99,7 @@ data_snapshot = DataSnapshot(
     git_repo_name=command_parser_arguments.git_repo_name,
     datetime_string=datetime_string,
     git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
-    git_fixed_namespace_text="mqtt5_canary",
+    git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
     output_log_filepath="output.txt",
     output_to_console=command_parser_arguments.output_to_console,
     cloudwatch_region="us-east-1",
@@ -120,9 +122,6 @@ data_snapshot.register_metric(
     new_metric_name="total_cpu_usage",
     new_metric_function=get_metric_total_cpu_usage,
     new_metric_unit="Percent",
-    new_metric_alarm_threshold=70,
-    new_metric_reports_to_skip=1,
-    new_metric_alarm_severity=5,
     is_percent=True)
 data_snapshot.register_metric(
     new_metric_name="total_memory_usage_value",
@@ -132,9 +131,11 @@ data_snapshot.register_metric(
     new_metric_name="total_memory_usage_percent",
     new_metric_function=get_metric_total_memory_usage_percent,
     new_metric_unit="Percent",
-    new_metric_alarm_threshold=70,
-    new_metric_reports_to_skip=0,
-    new_metric_alarm_severity=5,
+    # TODO: The alarm is disabled for now. Currently we use a static value of 70% memory usage, 
+    # but ideally we should monitor the delta change over time. 
+    # new_metric_alarm_threshold=70,
+    # new_metric_reports_to_skip=0,
+    # new_metric_alarm_severity=5,
     is_percent=True)
 
 # Print diagnosis information
@@ -242,7 +243,7 @@ def application_thread():
                     git_repo_name=command_parser_arguments.git_repo_name,
                     git_hash=command_parser_arguments.git_hash,
                     git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
-                    git_fixed_namespace_text="mqtt5_canary",
+                    git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
                     cloudwatch_region="us-east-1",
                     ticket_description="Snapshot monitor stopped due to internal error! Reason info: " +
                     snapshot_monitor.internal_error_reason,
@@ -272,7 +273,7 @@ def application_thread():
                         git_repo_name=command_parser_arguments.git_repo_name,
                         git_hash=command_parser_arguments.git_hash,
                         git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
-                        git_fixed_namespace_text="mqtt5_canary",
+                        git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
                         cloudwatch_region="us-east-1",
                         ticket_description="The Short Running Canary exited with a non-zero exit code! This likely means something in the canary failed.",
                         ticket_reason="The Short Running Canary exited with a non-zero exit code",
@@ -297,7 +298,7 @@ def application_thread():
                 git_repo_name=command_parser_arguments.git_repo_name,
                 git_hash=command_parser_arguments.git_hash,
                 git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
-                git_fixed_namespace_text="mqtt5_canary",
+                git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
                 cloudwatch_region="us-east-1",
                 ticket_description="The Short Running Canary stopped for an unknown reason!",
                 ticket_reason="The Short Running Canary stopped for unknown reason",
