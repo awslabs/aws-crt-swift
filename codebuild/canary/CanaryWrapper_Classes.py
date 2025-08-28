@@ -336,7 +336,6 @@ class DataSnapshot():
             return
 
         try:
-            # TODO: Currently we are using 
             self.cloudwatch_client.put_metric_alarm(
                 AlarmName=metric.metric_alarm_name,
                 AlarmDescription=metric.metric_alarm_description,
