@@ -514,7 +514,7 @@ func Mqtt5CanaryOperationDistributionSetup(_ distributionDataSet: inout [Mqtt5Ca
   _ context: Mqtt5CanaryTestContext, _ options: Mqtt5CanaryTestOptions
 ) async throws -> Void {
   let operationIndex = Int.random(in: 0..<options.operationDistribution.count)
-  let clientIndex = await Int.random(in: 0..<context.mqtt5CanaryClients.count)
+  let clientIndex = Int.random(in: 0..<context.mqtt5CanaryClients.count)
   try await context.mqtt5CanaryRunOperation(
     options.operationDistribution[operationIndex], clientIndex, options)
 }
