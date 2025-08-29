@@ -28,12 +28,12 @@ actor Mqtt5CanaryTestContext {
     mqtt5CanaryClients[clientId] = client
   }
 
-//  func setClientConnection(clientId: String, connected: Bool) throws {
-//    guard let client = mqtt5CanaryClients[clientId] else {
-//      throw CanaryTestError.InvalidArgument
-//    }
-//    client.setConnected(connected: connected)
-//  }
+  //  func setClientConnection(clientId: String, connected: Bool) throws {
+  //    guard let client = mqtt5CanaryClients[clientId] else {
+  //      throw CanaryTestError.InvalidArgument
+  //    }
+  //    client.setConnected(connected: connected)
+  //  }
 
   func getCanaryClient(_ index: Int) throws -> Mqtt5CanaryClient {
     let index = mqtt5CanaryClients.index(mqtt5CanaryClients.startIndex, offsetBy: index)
@@ -59,6 +59,7 @@ actor Mqtt5CanaryTestContext {
     let canaryClient = Mqtt5CanaryClient(
       client: client, clientId: clientId, sharedTopic: testOptions.shared_topic)
     appendCanaryClient(clientId: clientId, client: canaryClient)
+    try await mqtt5CanaryOperationStart(canaryClient: canaryClient)
   }
 
   /// Client Operation Help Function
@@ -104,25 +105,25 @@ actor Mqtt5CanaryTestContext {
   func mqtt5CanaryOperationStart(clientIndex: Int) async throws {
     let canaryClient = try getCanaryClient(clientIndex)
     //if !canaryClient.is_connected {
-      await statistic.incrementTotalOperation()
-      try canaryClient.client!.start()
+    await statistic.incrementTotalOperation()
+    try canaryClient.client!.start()
     //}
   }
 
   func mqtt5CanaryOperationStart(canaryClient: Mqtt5CanaryClient) async throws {
     //if !canaryClient.is_connected {
-      await statistic.incrementTotalOperation()
-      try canaryClient.client!.start()
+    await statistic.incrementTotalOperation()
+    try canaryClient.client!.start()
     //}
   }
 
   func mqtt5CanaryOperationStop(clientIndex: Int) async throws {
     let canaryClient = try getCanaryClient(clientIndex)
     //if !canaryClient.is_connected {
-      await statistic.incrementTotalOperation()
-      try canaryClient.client!.stop()
-      // clean up the subscription count
-      canaryClient.subscriptionCount = 0
+    await statistic.incrementTotalOperation()
+    try canaryClient.client!.stop()
+    // clean up the subscription count
+    canaryClient.subscriptionCount = 0
     //}
   }
 
@@ -288,9 +289,9 @@ class Mqtt5CanaryClient {
     return topic
   }
 
-//  func setConnected(connected: Bool) {
-//    self.is_connected = connected
-//  }
+  //  func setConnected(connected: Bool) {
+  //    self.is_connected = connected
+  //  }
 
 }
 
