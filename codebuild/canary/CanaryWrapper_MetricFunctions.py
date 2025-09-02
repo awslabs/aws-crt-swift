@@ -33,7 +33,7 @@ def get_metric_total_memory_usage_value(psutil_process: psutil.Process):
         if (psutil_process == None):
             print("ERROR - No psutil.process passed! Cannot gather metric!", flush=True)
             return None
-        return psutil.virtual_memory()[3]
+        return psutil_process.memory_info().rss
     except Exception as e:
         print("ERROR - exception occurred gathering metrics!")
         print("Exception: " + str(e), flush=True)
@@ -45,7 +45,7 @@ def get_metric_total_memory_usage_percent(psutil_process: psutil.Process):
         if (psutil_process == None):
             print("ERROR - No psutil.process passed! Cannot gather metric!", flush=True)
             return None
-        return psutil.virtual_memory()[2]
+        return psutil_process.memory_info().rss / psutil.virtual_memory().total * 100.0
     except Exception as e:
         print("ERROR - exception occurred gathering metrics!")
         print("Exception: " + str(e), flush=True)
