@@ -132,14 +132,27 @@ actor Mqtt5CanaryTestContext {
     let canaryClient = try getCanaryClient(clientIndex)
     if await canaryClient.getConnected() == false {
       await statistic.incrementTotalOperation()
-      try await canaryClient.client!.start()
+      if let _client = await canaryClient.client {
+        // Client already exists, just start it
+        try _client.start()
+      } else {
+        // Client does not exist, create a new one
+        throw CanaryTestError.InvalidArgument
+      }
+
     }
   }
 
   func mqtt5CanaryOperationStart(canaryClient: Mqtt5CanaryClient) async throws {
     if await !canaryClient.getConnected() {
       await statistic.incrementTotalOperation()
-      try await canaryClient.client!.start()
+      if let _client = await canaryClient.client {
+        // Client already exists, just start it
+        try _client.start()
+      } else {
+        // Client does not exist, create a new one
+        throw CanaryTestError.InvalidArgument
+      }
     }
   }
 
@@ -147,7 +160,11 @@ actor Mqtt5CanaryTestContext {
     let canaryClient = try getCanaryClient(clientIndex)
     if await !canaryClient.getConnected() {
       await statistic.incrementTotalOperation()
-      try await canaryClient.client!.stop()
+      if let _client = await canaryClient.client {
+        try _client.stop()
+      } else {
+        throw CanaryTestError.InvalidArgument
+      }
     }
   }
 
@@ -157,30 +174,34 @@ actor Mqtt5CanaryTestContext {
       return try await mqtt5CanaryOperationStart(clientIndex: clientIndex)
     }
 
-    do {
-      let sub = Subscription(
-        topicFilter: await canaryClient.getNextSubTopic(), qos: QoS.atLeastOnce)
-      var subscriptions = [sub]
+    let sub = Subscription(
+      topicFilter: await canaryClient.getNextSubTopic(), qos: QoS.atLeastOnce)
+    var subscriptions = [sub]
 
-      await self.statistic.incrementSubscribeAttempts()
-      await self.statistic.incrementTotalOperation()
+    // If this is the first subscription of the client, subscribe to the shared topic
+    if (await canaryClient.subscriptionCount == 1) {
+      subscriptions.append(
+        Subscription(topicFilter: canaryClient.shared_topic, qos: QoS.atLeastOnce))
+    }
 
-      // If this is the first subscription of the client, subscribe to the shared topic
-      if (await canaryClient.subscriptionCount == 1) {
-        subscriptions.append(
-          Subscription(topicFilter: canaryClient.shared_topic, qos: QoS.atLeastOnce))
-      }
+    if let _client = await canaryClient.client {
+      do {
+        let suback = try await _client.subscribe(
+          subscribePacket: SubscribePacket(subscriptions: subscriptions))
 
-      let suback = try await canaryClient.client!.subscribe(
-        subscribePacket: SubscribePacket(subscriptions: subscriptions))
+        await self.statistic.incrementSubscribeAttempts()
+        await self.statistic.incrementTotalOperation()
 
-      if suback.reasonCodes[0] == SubackReasonCode.grantedQos1 {
-        await self.statistic.incrementSubscribeSucceed()
-      } else {
+        if suback.reasonCodes[0] == SubackReasonCode.grantedQos1 {
+          await self.statistic.incrementSubscribeSucceed()
+        } else {
+          await self.statistic.incrementSubscribeFailed()
+        }
+      } catch {
         await self.statistic.incrementSubscribeFailed()
       }
-    } catch {
-      await self.statistic.incrementSubscribeFailed()
+    } else {
+      throw CanaryTestError.InvalidArgument
     }
   }
 
@@ -202,21 +223,24 @@ actor Mqtt5CanaryTestContext {
       return try await mqtt5CanaryOperationStart(canaryClient: canaryClient)
     }
 
-    do {
-      let unsub = UnsubscribePacket(topicFilter: testTopic)
+    let unsub = UnsubscribePacket(topicFilter: testTopic)
 
-      await self.statistic.incrementUnsubscribeAttempts()
-      await self.statistic.incrementTotalOperation()
+    if let _client = await canaryClient.client {
+      do {
+        let unsubAck = try await _client.unsubscribe(unsubscribePacket: unsub)
+        await self.statistic.incrementUnsubscribeAttempts()
+        await self.statistic.incrementTotalOperation()
 
-      let unsubAck = try await canaryClient.client!.unsubscribe(unsubscribePacket: unsub)
-
-      if unsubAck.reasonCodes[0] == UnsubackReasonCode.success {
-        await self.statistic.incrementUnsubscribeSucceed()
-      } else {
+        if unsubAck.reasonCodes[0] == UnsubackReasonCode.success {
+          await self.statistic.incrementUnsubscribeSucceed()
+        } else {
+          await self.statistic.incrementUnsubscribeFailed()
+        }
+      } catch {
         await self.statistic.incrementUnsubscribeFailed()
       }
-    } catch {
-      await self.statistic.incrementUnsubscribeFailed()
+    } else {
+      throw CanaryTestError.InvalidArgument
     }
   }
 
@@ -243,22 +267,26 @@ actor Mqtt5CanaryTestContext {
     if await !canaryClient.getConnected() {
       return try await mqtt5CanaryOperationStart(canaryClient: canaryClient)
     }
-    do {
-      let pub = PublishPacket(qos: qos, topic: topic)
+    let pub = PublishPacket(qos: qos, topic: topic)
 
-      await self.statistic.incrementPublishAttempts()
-      await self.statistic.incrementTotalOperation()
-      let puback = try await canaryClient.client!.publish(publishPacket: pub)
+    if let _client = await canaryClient.client {
+      do {
+        let puback = try await _client.publish(publishPacket: pub)
+        await self.statistic.incrementPublishAttempts()
+        await self.statistic.incrementTotalOperation()
 
-      if qos == QoS.atMostOnce || puback.puback?.reasonCode == PubackReasonCode.success
-        || puback.puback?.reasonCode == PubackReasonCode.noMatchingSubscribers
-      {
-        await self.statistic.incrementPublishSucceed()
-      } else {
+        if qos == QoS.atMostOnce || puback.puback?.reasonCode == PubackReasonCode.success
+          || puback.puback?.reasonCode == PubackReasonCode.noMatchingSubscribers
+        {
+          await self.statistic.incrementPublishSucceed()
+        } else {
+          await self.statistic.incrementPublishFailed()
+        }
+      } catch {
         await self.statistic.incrementPublishFailed()
       }
-    } catch {
-      await self.statistic.incrementPublishFailed()
+    } else {
+      throw CanaryTestError.InvalidArgument
     }
   }
 
@@ -274,7 +302,11 @@ actor Mqtt5CanaryTestContext {
     // If there is one client left
     if mqtt5CanaryClients.count > 1 {
       let canaryClient = try getCanaryClient(clientIndex)
-      try await canaryClient.client!.stop()
+      if let _client = await canaryClient.client {
+        try _client.stop()
+      } else {
+        throw CanaryTestError.InvalidArgument
+      }
       await statistic.incrementTotalOperation()
       await canaryClient.resetClient()
       mqtt5CanaryClients.remove(
