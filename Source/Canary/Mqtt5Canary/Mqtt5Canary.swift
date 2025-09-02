@@ -28,9 +28,9 @@ actor Mqtt5CanaryTestContext {
     mqtt5CanaryClients[clientId] = client
   }
 
-  func setClientConnection(clientId: String, connected: Bool) async {
+  func setClientConnection(clientId: String, connected: Bool) async throws {
     guard let client = mqtt5CanaryClients[clientId] else {
-      return
+      throw CanaryTestError.InvalidArgument
     }
     await client.setConnected(connected: connected)
   }
@@ -496,6 +496,7 @@ struct Mqtt5CanaryTestOptions: @unchecked Sendable {
 func Mqtt5CanaryOperationDistributionSetup(_ distributionDataSet: inout [Mqtt5CanaryOperation]) {
   let operationDistribution = [
     (Mqtt5CanaryOperation.DESTROY_AND_CREATE, 10),
+    (Mqtt5CanaryOperation.STOP, 1),
     (Mqtt5CanaryOperation.SUBSCRIBE, 200),
     (Mqtt5CanaryOperation.UNSUBSCRIBE, 200),
     (Mqtt5CanaryOperation.UNSUBSCRIBE_BAD, 50),
