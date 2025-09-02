@@ -63,22 +63,22 @@ actor Mqtt5CanaryTestContext {
       connectOptions: connectionOption,
       onLifecycleEventStoppedFn: { _ in
         Task {
-          await self.setClientConnection(clientId: clientId, connected: false)
+          try await self.setClientConnection(clientId: clientId, connected: false)
         }
       },
       onLifecycleEventConnectionSuccessFn: { _ in
         Task {
-          await self.setClientConnection(clientId: clientId, connected: true)
+          try await self.setClientConnection(clientId: clientId, connected: true)
         }
       },
       onLifecycleEventConnectionFailureFn: { _ in
         Task {
-          await self.setClientConnection(clientId: clientId, connected: false)
+          try await self.setClientConnection(clientId: clientId, connected: false)
         }
       },
       onLifecycleEventDisconnectionFn: { _ in
         Task {
-          await self.setClientConnection(clientId: clientId, connected: false)
+          try await self.setClientConnection(clientId: clientId, connected: false)
         }
       }
     )
