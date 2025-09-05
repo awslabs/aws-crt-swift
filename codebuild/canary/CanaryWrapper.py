@@ -24,13 +24,14 @@ command_parser.add_argument("--git_repo_name", type=str, required=True,
 command_parser.add_argument("--git_hash_as_namespace", type=bool, default=False,
                             help="(OPTIONAL, default=False) If true, the git hash will be used as the name of the Cloudwatch namespace")
 command_parser.add_argument("--output_log_filepath", type=str, default="output.log",
-                            help="(OPTIONAL, default=output.log) The file to output log info to. Set to 'None' to disable")
+                            help="(OPTIONAL, default=output.log) The file to output log info to. If set, the output file will be uploaded to S3.")
 command_parser.add_argument("--output_to_console", type=bool, default=True,
                             help="(OPTIONAL, default=True) If true, info will be output to the console")
 command_parser.add_argument("--cloudwatch_region", type=str, default="us-east-1",
-                            help="(OPTIONAL, default=us-east-1) The AWS region for Cloudwatch")
+                            help="(OPTIONAL, default=us-east-1) The canary AWS region for Cloudwatch")
 command_parser.add_argument("--s3_bucket_name", type=str, default="canary-wrapper-folder",
-                            help="(OPTIONAL, default=canary-wrapper-folder) The name of the S3 bucket where success logs will be stored")
+                            help="(OPTIONAL, default=canary-wrapper-folder) The name of the S3 bucket where the output logs will be stored. The output_log_filepath must \
+                                be set to be uploaded.")
 command_parser.add_argument("--snapshot_wait_time", type=int, default=600,
                             help="(OPTIONAL, default=600) The number of seconds between gathering and sending snapshot reports")
 command_parser.add_argument("--ticket_category", type=str, default="AWS",
@@ -53,11 +54,14 @@ command_parser_arguments = command_parser.parse_args()
 if (command_parser_arguments.output_log_filepath == "None"):
     command_parser_arguments.output_log_filepath = None
 if (command_parser_arguments.snapshot_wait_time <= 0):
-    command_parser_arguments.snapshot_wait_time = 60
+    command_parser_arguments.snapshot_wait_time = 600
 
+# This is the specific namespace for CRT-SWIFT. Codebuild jobs run on macos fleets does not have metrics support,
+# we must track all metrics on cloudwatch. Therefore, we use a specific namespace for all CRT-SWIFT canaries to make
+# it easy to distinct from other metrics.
 CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE = "mqtt5_swift_canary"
 
-# Deal with possibly empty values in semi-critical commands/arguments
+# Deal with possibly empty values in critical commands/arguments
 if (command_parser_arguments.canary_executable == ""):
     print("ERROR - required canary_executable is empty!", flush=True)
     exit(1)  # cannot run without a canary executable
@@ -67,25 +71,6 @@ if (command_parser_arguments.git_hash == ""):
 if (command_parser_arguments.git_repo_name == ""):
     print("ERROR - required git_repo_name is empty!", flush=True)
     exit(1)  # cannot run without git repo name
-if (command_parser_arguments.git_hash_as_namespace is not True and command_parser_arguments.git_hash_as_namespace is not False):
-    command_parser_arguments.git_hash_as_namespace = False
-if (command_parser_arguments.output_log_filepath == ""):
-    command_parser_arguments.output_log_filepath = None
-if (command_parser_arguments.output_to_console != True and command_parser_arguments.output_to_console != False):
-    command_parser_arguments.output_to_console = True
-if (command_parser_arguments.cloudwatch_region == ""):
-    command_parser_arguments.cloudwatch_region = "us-east-1"
-if (command_parser_arguments.s3_bucket_name == ""):
-    command_parser_arguments.s3_bucket_name = "canary-wrapper-folder"
-if (command_parser_arguments.ticket_category == ""):
-    command_parser_arguments.ticket_category = "AWS"
-if (command_parser_arguments.ticket_type == ""):
-    command_parser_arguments.ticket_type = "SDKs and Tools"
-if (command_parser_arguments.ticket_item == ""):
-    command_parser_arguments.ticket_item = "IoT SDK for Swift"
-if (command_parser_arguments.ticket_group == ""):
-    command_parser_arguments.ticket_group = "AWS IoT Device SDK"
-
 
 # ================================================================================
 
@@ -100,7 +85,7 @@ data_snapshot = DataSnapshot(
     datetime_string=datetime_string,
     git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
     git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
-    output_log_filepath="output.txt",
+    output_log_filepath=command_parser_arguments.output_log_filepath,
     output_to_console=command_parser_arguments.output_to_console,
     cloudwatch_region="us-east-1",
     cloudwatch_make_dashboard=False,
@@ -131,11 +116,11 @@ data_snapshot.register_metric(
     new_metric_name="total_memory_usage_percent",
     new_metric_function=get_metric_total_memory_usage_percent,
     new_metric_unit="Percent",
-    # TODO: The alarm is disabled for now. Currently we use a static value of 70% memory usage, 
-    # but ideally we should monitor the delta change over time. 
-    # new_metric_alarm_threshold=70,
-    # new_metric_reports_to_skip=0,
-    # new_metric_alarm_severity=5,
+    # TODO: The alarm is disabled for now. Currently we use a static value of 70% memory usage,
+    # but ideally we should monitor the delta change over time.
+    new_metric_alarm_threshold=70,
+    new_metric_reports_to_skip=0,
+    new_metric_alarm_severity=5,
     is_percent=True)
 
 # Print diagnosis information
@@ -170,21 +155,14 @@ if (application_monitor.error_has_occurred == True):
 # For tracking if we stopped due to a metric alarm
 stopped_due_to_metric_alarm = False
 
-execution_sleep_time = 30
+execution_sleep_time = 1
 
 
 def execution_loop():
     while True:
         snapshot_monitor.monitor_loop_function(
-            time_passed=execution_sleep_time, psutil_process=application_monitor.application_process_psutil)
-        application_monitor.monitor_loop_function(
-            time_passed=execution_sleep_time)
-
-        # Did a metric go into alarm?
-        if (snapshot_monitor.has_cut_ticket == True):
-            # Set that we had an 'internal error' so we go down the right code path
-            snapshot_monitor.had_internal_error = True
-            break
+            psutil_process=application_monitor.application_process_psutil)
+        application_monitor.monitor_loop_function()
 
         # If an error has occurred or otherwise this thread needs to stop, then break the loop
         if (application_monitor.error_has_occurred == True or snapshot_monitor.had_internal_error == True):

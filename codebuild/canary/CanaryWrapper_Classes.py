@@ -132,12 +132,12 @@ class DataSnapshot():
         self.metric_report_number = 0
         self.metric_report_non_zero_count = 4
 
-        # Needed so we can initialize Cloudwatch alarms, etc, outside of the init function
-        # but before we start sending data.
-        # This boolean tracks whether we have done the post-initialization prior to sending the first report.
-        self.perform_final_initialization = True
+        # Used to track if we initialize Cloudwatch alarms, etc.
+        # Make sure we initialized the cloud watch alarms prior to sending the first metrics report.
+        self.cloudwatch_initialization = False
 
         # Watched by the thread creating the snapshot. Will cause the thread(s) to abort and return an error.
+        # These are for internal errors, for example: failed to fetch credentials, failed to setup metrics, and so on. This does not mean the canary failed or had error.
         self.abort_due_to_internal_error = False
         self.abort_due_to_internal_error_reason = ""
         self.abort_due_to_internal_error_due_to_credentials = False
@@ -160,8 +160,7 @@ class DataSnapshot():
         self.s3_client = None
         self.s3_bucket_upload_on_complete = s3_bucket_upload_on_complete
 
-        self.output_to_file_filepath = output_log_filepath
-        self.output_to_file = False
+        self.output_filepath = output_log_filepath
         self.output_file = None
         self.output_to_console = output_to_console
 
@@ -254,12 +253,8 @@ class DataSnapshot():
 
         # File output (logs) related stuff
         # ==================
-        if (not output_log_filepath is None):
-            self.output_to_file = True
-            self.output_file = open(self.output_to_file_filepath, "w")
-        else:
-            self.output_to_file = False
-            self.output_file = None
+        if (self.output_filepath is not None):
+            self.output_file = open(self.output_filepath, "w")
         # ==================
 
         self.print_message("[DataSnapshot] Data snapshot created!")
@@ -267,15 +262,14 @@ class DataSnapshot():
     # Cleans the class - closing any files, removing alarms, and sending data to S3.
     # Should be called at the end when you are totally finished shadowing metrics
     def cleanup(self, error_occurred=False):
-        if (self.s3_bucket_upload_on_complete == True):
-            self.export_result_to_s3_bucket(
-                copy_output_log=True, log_is_error=error_occurred)
-
         self._cleanup_cloudwatch_alarms()
         if (self.cloudwatch_make_dashboard == True):
             self._cleanup_cloudwatch_dashboard()
 
         self.print_message("[DataSnapshot] Data snapshot cleaned!")
+
+        if (self.s3_bucket_upload_on_complete == True):
+            self.export_result_to_s3_bucket(log_is_error=error_occurred)
 
         if (self.output_file is not None):
             self.output_file.close()
@@ -283,8 +277,7 @@ class DataSnapshot():
 
     # Utility function for printing messages
     def print_message(self, message):
-        if self.output_to_file == True:
-            self.output_file.write(message + "\n")
+        self.output_file.write(message + "\n")
         if self.output_to_console == True:
             print(message, flush=True)
 
@@ -424,9 +417,9 @@ class DataSnapshot():
         return return_result
 
     # Exports a file with the same name as the commit Git hash to an S3 bucket in a folder with the Git repo name.
-    # By default, this file will only contain the Git hash.
-    # If copy_output_log is true, then the output log will be copied into this file, which may be useful for debugging.
-    def export_result_to_s3_bucket(self, copy_output_log=False, log_is_error=False):
+    # The function will upload the output log to s3, if there is no output log, then it will just upload a file with
+    # the Git hash as the name
+    def export_result_to_s3_bucket(self, log_is_error=False):
         if (self.s3_client is None):
             self.print_message(
                 "[DataSnapshot] ERROR - No S3 client initialized! Cannot send log to S3")
@@ -434,61 +427,46 @@ class DataSnapshot():
             self.abort_due_to_internal_error_reason = "S3 client not initialized and therefore cannot send log to S3"
             return
 
-        s3_file = open(self.git_hash + ".log", "w")
-        s3_file.write(self.git_hash)
+        is_s3_file_created = False
+        s3_upload_log_file_path = self.output_filepath
+        if (s3_upload_log_file_path is None):
+            s3_upload_log_file_path = self.git_hash + ".log"
 
         # Might be useful for debugging?
-        if (copy_output_log == True and self.output_to_file == True):
-            # Are we still writing? If so, then we need to close the file first so everything is written to it
-            is_output_file_open_previously = False
-            if (self.output_file != None):
-                self.output_file.close()
-                is_output_file_open_previously = True
-            self.output_file = open(self.output_to_file_filepath, "r")
-
-            s3_file.write("\n\nOUTPUT LOG\n")
-            s3_file.write(
-                "==========================================================================================\n")
-            output_file_lines = self.output_file.readlines()
-            for line in output_file_lines:
-                s3_file.write(line)
-
-            self.output_file.close()
-
-            # If we were writing to the output previously, then we need to open in RW mode so we can continue to write to it
-            if (is_output_file_open_previously == True):
-                self.output_to_file = open(self.output_to_file_filepath, "a")
-
-        s3_file.close()
+        if (self.output_file != None):
+            # Are we writing to output file? If so, then we do flush so everything is written to it
+            self.output_file.flush()
+        else:
+            s3_file = open(s3_upload_log_file_path, "w")
+            s3_file.write(self.git_hash)
+            s3_file.close()
+            is_s3_file_created = True
 
         # Upload to S3
         try:
-            if (log_is_error == False):
-                if (self.datetime_string == None):
-                    self.s3_client.upload_file(
-                        self.git_hash + ".log", self.s3_bucket_name, self.git_repo_name + "/" + self.git_hash + ".log")
-                else:
-                    self.s3_client.upload_file(self.git_hash + ".log", self.s3_bucket_name,
-                                               self.git_repo_name + "/" + self.datetime_string + "/" + self.git_hash + ".log")
+            s3_path = None
+            if (self.datetime_string == None):
+                s3_path = self.git_repo_name + "/" + self.git_hash + ".log"
             else:
-                if (self.datetime_string == None):
-                    self.s3_client.upload_file(self.git_hash + ".log", self.s3_bucket_name,
-                                               self.git_repo_name + "/Failed_Logs/" + self.git_hash + ".log")
-                else:
-                    self.s3_client.upload_file(self.git_hash + ".log", self.s3_bucket_name, self.git_repo_name +
-                                               "/Failed_Logs/" + self.datetime_string + "/" + self.git_hash + ".log")
+                s3_path = self.git_repo_name + "/" + \
+                    self.datetime_string + "/" + self.git_hash + ".log"
+
+            self.s3_client.upload_file(
+                s3_upload_log_file_path, self.s3_bucket_name, s3_path)
+
             self.print_message("[DataSnapshot] Uploaded to S3!")
+
         except Exception as e:
             self.print_message(
                 "[DataSnapshot] ERROR - could not upload to S3 due to exception!")
             self.print_message("[DataSnapshot] Exception: " + str(e))
             self.abort_due_to_internal_error = True
             self.abort_due_to_internal_error_reason = "S3 client had exception and therefore could not upload log!"
-            os.remove(self.git_hash + ".log")
-            return
 
-        # Delete the file when finished
-        os.remove(self.git_hash + ".log")
+        if is_s3_file_created == True:
+            os.remove(s3_upload_log_file_path)
+
+        return
 
     # Sends an email via a special lambda. The payload has to contain a message and a subject
     # * (REQUIRED) message is the message you want to send in the body of the email
@@ -621,8 +599,8 @@ class DataSnapshot():
         self.print_message("")
 
     # Sends all registered metrics to Cloudwatch.
-    # Does NOT need to called on loop. Call post_metrics on loop to send all the metrics as expected.
-    # This is just the Cloudwatch part of that loop.
+    # The function is called in post_metrics() to send the metrics. You should call post_metrics() for the monitor loop,
+    # instead of using this function directly
     def export_metrics_cloudwatch(self):
         if (self.cloudwatch_client == None):
             self.print_message(
@@ -660,8 +638,8 @@ class DataSnapshot():
     # Call this at a set interval to post the metrics to Cloudwatch, etc.
     # This is the function you want to call repeatedly after you have everything setup.
     def post_metrics(self, psutil_process: psutil.Process):
-        if (self.perform_final_initialization == True):
-            self.perform_final_initialization = False
+        if (self.cloudwatch_initialization == False):
+            self.cloudwatch_initialization = True
             self._init_cloudwatch_pre_first_run()
 
         # Update the metric values internally
@@ -766,9 +744,9 @@ class SnapshotMonitor():
             self.data_snapshot.cleanup()
             return
 
-        # How long to wait before posting a metric
-        self.metric_post_timer = 0
+        # Metric posting timer
         self.metric_post_timer_time = wrapper_metrics_wait_time
+        self.next_metric_post_time = time.time() + wrapper_metrics_wait_time
 
     def register_metric(self, new_metric_name, new_metric_function, new_metric_unit="None", new_metric_alarm_threshold=None,
                         new_metric_reports_to_skip=0, new_metric_alarm_severity=6):
@@ -856,6 +834,8 @@ class SnapshotMonitor():
                         ticket_type="SDKs and Tools",
                         ticket_severity=4)
                     self.has_cut_ticket = True
+                    self.had_internal_error = True
+                    self.internal_error_reason = "Metric(s) went into alarm state. Ticket cut."
 
             # Cache the new alarms and the old alarms
             self.cloudwatch_current_alarms_triggered = old_alarms_still_active + new_alarms
@@ -863,50 +843,39 @@ class SnapshotMonitor():
         else:
             self.cloudwatch_current_alarms_triggered.clear()
 
-    def monitor_loop_function(self, psutil_process: psutil.Process, time_passed=30):
-        # Check for internal errors
-        if (self.data_snapshot.abort_due_to_internal_error == True):
-            self.had_internal_error = True
-            self.internal_error_reason = "Data Snapshot internal error: " + \
-                self.data_snapshot.abort_due_to_internal_error_reason
+    def monitor_loop_function(self, psutil_process: psutil.Process):
+        if self.had_internal_error:
             return
 
+        # Check for data snapshot errors
+        if self.data_snapshot.abort_due_to_internal_error:
+            self.had_internal_error = True
+            self.internal_error_reason = f"Data Snapshot error: {self.data_snapshot.abort_due_to_internal_error_reason}"
+            return
+
+        # Check alarms first
         try:
-            # Poll the metric alarms
-            if (self.had_internal_error == False):
-                # Get a report of all the alarms that might have been set to an alarm state
-                triggered_alarms = self.data_snapshot.get_cloudwatch_alarm_results()
-                self.check_alarms_for_new_alarms(triggered_alarms)
+            triggered_alarms = self.data_snapshot.get_cloudwatch_alarm_results()
+            self.check_alarms_for_new_alarms(triggered_alarms)
         except Exception as e:
             self.print_message(
-                "[SnaptshotMonitor] ERROR - exception occurred checking metric alarms!")
-            self.print_message(
-                "[SnaptshotMonitor] (Likely session credentials expired)")
+                f"[SnapshotMonitor] ERROR checking alarms: {str(e)}")
             self.had_internal_error = True
-            self.internal_error_reason = "Exception occurred checking metric alarms! Likely session credentials expired"
+            self.internal_error_reason = f"Alarm check failed: {str(e)}"
             return
 
-        if (self.metric_post_timer <= 0):
-            if (self.had_internal_error == False):
-                try:
-                    self.data_snapshot.post_metrics(psutil_process)
-                except Exception as e:
-                    self.print_message(
-                        "[SnaptshotMonitor] ERROR - exception occurred posting metrics!")
-                    self.print_message(
-                        "[SnaptshotMonitor] (Likely session credentials expired)")
-
-                    print(e, flush=True)
-
-                    self.had_internal_error = True
-                    self.internal_error_reason = "Exception occurred posting metrics! Likely session credentials expired"
-                    return
-
-            # reset the timer
-            self.metric_post_timer += self.metric_post_timer_time
-
-        # Gather and post the metrics
-        self.metric_post_timer -= time_passed
+        current_time = time.time()
+        if current_time >= self.next_metric_post_time:
+            # Post metrics
+            try:
+                self.data_snapshot.post_metrics(psutil_process)
+                self.next_metric_post_time = current_time + self.metric_post_timer_time
+            except Exception as e:
+                self.print_message(
+                    f"[SnapshotMonitor] ERROR posting metrics: {str(e)}")
+                self.had_internal_error = True
+                self.internal_error_reason = f"Metric posting failed: {str(e)}"
+                return
 
     def send_email(self, email_body, email_subject_text_append=None):
         if (email_subject_text_append != None):
@@ -1031,7 +1000,7 @@ class ApplicationMonitor():
                 self.print_message(stdout_file.read())
             os.remove(self.stdout_file_path)
 
-    def monitor_loop_function(self, time_passed=30):
+    def monitor_loop_function(self):
         if (self.application_process != None):
 
             application_process_return_code = None

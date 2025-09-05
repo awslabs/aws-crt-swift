@@ -1,35 +1,35 @@
 version: 0.2
 env:
-  variables:
-    CANARY_DURATION: 25200 # 7 hours
-    CANARY_THREADS: 3
-    CANARY_TPS: 50
-    CANARY_CLIENT_COUNT: 10
-    CANARY_LOG_FILE: 'canary_log.txt'
-    CANARY_LOG_LEVEL: 'ERROR'
-    PACKAGE_NAME: 'aws-crt-swift'
-    CANARY_SERVER_ARN: Mqtt5MosquittoSever
-    CANARY_BUILD_S3_DST: mqtt5-canary/s3
-    CODEBUILD_TICKET_ITEM: "IoT SDK for Swift"
+    variables:
+        CANARY_DURATION: 25200  # 7 hours
+        CANARY_THREADS: 3
+        CANARY_TPS: 50
+        CANARY_CLIENT_COUNT: 10
+        # Log is print to standardOutput, and CanaryWrapper will grab the data from out and upload to S3
+        CANARY_LOG_LEVEL: 'ERROR'
+        PACKAGE_NAME: 'aws-crt-swift'
+        CANARY_SERVER_ARN: Mqtt5MosquittoSever
+        CANARY_BUILD_S3_DST: mqtt5-canary/s3
+        CODEBUILD_TICKET_ITEM: "IoT SDK for Swift"
 phases:
-  install:
-    commands:
-      - git submodule update --init --recursive
-      # Install necessary lib for canary wrapper
-      - python3 -m venv canary_venv
-      - source canary_venv/bin/activate
-      - python3 -m pip install psutil
-      - python3 -m pip install boto3
-  build:
-    commands:
-      - echo Build started on `date`
-      # Get secrets needed
-      - export S3_DST=$(aws secretsmanager get-secret-value --secret-id "$CANARY_BUILD_S3_DST" --query "SecretString" | cut -f2,3 -d":" | sed -e 's/[\\\"\}]//g')
-      - export GIT_HASH=$(git rev-parse HEAD)
-      # Get the endpoint, certificate, and key for connecting to IoT Core
-      - export ENDPOINT=$(aws secretsmanager get-secret-value --secret-id ${CANARY_SERVER_ARN} --query "SecretString" | cut -f2 -d":" | sed -e 's/[\\\"\}]//g')
-      # Run the Canary
-      - python3 codebuild/canary/CanaryWrapper.py --canary_executable swift --canary_arguments "run Mqtt5Canary --endpoint ${ENDPOINT} --seconds ${CANARY_DURATION} --tps ${CANARY_TPS} --threads ${CANARY_THREADS} -c ${CANARY_CLIENT_COUNT} --verbose ${CANARY_LOG_LEVEL} --log-file ${CANARY_LOG_FILE}" --git_hash ${GIT_HASH} --git_repo_name $PACKAGE_NAME --codebuild_log_path $CODEBUILD_LOG_PATH --ticket_item "${CODEBUILD_TICKET_ITEM}"
-  post_build:
-    commands:
-      - echo Build completed on `date`
+    install:
+        commands:
+            - git submodule update - -init - -recursive
+            # Install necessary lib for canary wrapper
+            - python3 - m venv canary_venv
+            - source canary_venv/bin/activate
+            - python3 - m pip install psutil
+            - python3 - m pip install boto3
+    build:
+        commands:
+            - echo Build started on `date`
+            # Get secrets needed
+            - export S3_DST = $(aws secretsmanager get-secret-value - -secret-id "$CANARY_BUILD_S3_DST" - -query "SecretString" | cut - f2, 3 - d":" | sed - e 's/[\\\"\}]//g')
+            - export GIT_HASH = $(git rev-parse HEAD)
+            # Get the endpoint, certificate, and key for connecting to IoT Core
+            - export ENDPOINT = $(aws secretsmanager get-secret-value - -secret-id ${CANARY_SERVER_ARN} - -query "SecretString" | cut - f2 - d":" | sed - e 's/[\\\"\}]//g')
+            # Run the Canary
+            - python3 codebuild/canary/CanaryWrapper.py - -canary_executable swift - -canary_arguments "run Mqtt5Canary --endpoint ${ENDPOINT} --seconds ${CANARY_DURATION} --tps ${CANARY_TPS} --threads ${CANARY_THREADS} -c ${CANARY_CLIENT_COUNT} --verbose ${CANARY_LOG_LEVEL}" - -git_hash ${GIT_HASH} - -git_repo_name $PACKAGE_NAME - -codebuild_log_path $CODEBUILD_LOG_PATH - -ticket_item "${CODEBUILD_TICKET_ITEM}"
+    post_build:
+        commands:
+            - echo Build completed on `date`
