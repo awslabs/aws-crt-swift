@@ -47,8 +47,6 @@ command_parser.add_argument("--dependencies", type=str, default="",
         Current expected format is '(name or path);(hash);(next name or path);(hash);(etc...)'.")
 command_parser.add_argument("--lambda_name", type=str, default="iot-send-email-lambda",
                             help="(OPTIONAL, default='CanarySendEmailLambda') The name of the Lambda used to send emails")
-command_parser.add_argument("--codebuild_log_path", type=str, default="",
-                            help="The CODEBUILD_LOG_PATH environment variable. Leave blank to ignore")
 command_parser_arguments = command_parser.parse_args()
 
 if (command_parser_arguments.output_log_filepath == "None"):
@@ -306,9 +304,6 @@ def application_thread():
     if (wrapper_error_occurred == True):
         finished_email_body += "Failed_Logs/"
     finished_email_body += command_parser_arguments.git_hash + ".log"
-    if (command_parser_arguments.codebuild_log_path != ""):
-        print("\n Codebuild log path: " +
-              command_parser_arguments.codebuild_log_path + "\n")
 
     # Send the finish email
     if (send_finished_email == True):
