@@ -290,8 +290,6 @@ def application_thread():
     finished_email_body += "?region=" + command_parser_arguments.cloudwatch_region
     finished_email_body += "&prefix=" + \
         command_parser_arguments.git_repo_name + "/" + datetime_string + "/"
-    if (wrapper_error_occurred == True):
-        finished_email_body += "Failed_Logs/"
     finished_email_body += command_parser_arguments.git_hash + ".log"
 
     # Send the finish email
