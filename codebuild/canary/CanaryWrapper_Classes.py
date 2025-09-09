@@ -132,12 +132,12 @@ class DataSnapshot():
         self.metric_report_number = 0
         self.metric_report_non_zero_count = 4
 
-        # Needed so we can initialize Cloudwatch alarms, etc, outside of the init function
-        # but before we start sending data.
-        # This boolean tracks whether we have done the post-initialization prior to sending the first report.
-        self.perform_final_initialization = True
+        # Used to track if we initialize Cloudwatch alarms, etc.
+        # Make sure we initialized the cloud watch alarms prior to sending the first metrics report.
+        self.cloudwatch_initialization = False
 
         # Watched by the thread creating the snapshot. Will cause the thread(s) to abort and return an error.
+        # These are for internal errors, for example: failed to fetch credentials, failed to setup metrics, and so on. This does not mean the canary failed or had error.
         self.abort_due_to_internal_error = False
         self.abort_due_to_internal_error_reason = ""
         self.abort_due_to_internal_error_due_to_credentials = False
@@ -160,8 +160,7 @@ class DataSnapshot():
         self.s3_client = None
         self.s3_bucket_upload_on_complete = s3_bucket_upload_on_complete
 
-        self.output_to_file_filepath = output_log_filepath
-        self.output_to_file = False
+        self.output_filepath = output_log_filepath
         self.output_file = None
         self.output_to_console = output_to_console
 
@@ -254,12 +253,8 @@ class DataSnapshot():
 
         # File output (logs) related stuff
         # ==================
-        if (not output_log_filepath is None):
-            self.output_to_file = True
-            self.output_file = open(self.output_to_file_filepath, "w")
-        else:
-            self.output_to_file = False
-            self.output_file = None
+        if (self.output_filepath is not None):
+            self.output_file = open(self.output_filepath, "w")
         # ==================
 
         self.print_message("[DataSnapshot] Data snapshot created!")
@@ -267,15 +262,14 @@ class DataSnapshot():
     # Cleans the class - closing any files, removing alarms, and sending data to S3.
     # Should be called at the end when you are totally finished shadowing metrics
     def cleanup(self, error_occurred=False):
-        if (self.s3_bucket_upload_on_complete == True):
-            self.export_result_to_s3_bucket(
-                copy_output_log=True, log_is_error=error_occurred)
-
         self._cleanup_cloudwatch_alarms()
         if (self.cloudwatch_make_dashboard == True):
             self._cleanup_cloudwatch_dashboard()
 
         self.print_message("[DataSnapshot] Data snapshot cleaned!")
+
+        if (self.s3_bucket_upload_on_complete == True):
+            self.export_result_to_s3_bucket(log_is_error=error_occurred)
 
         if (self.output_file is not None):
             self.output_file.close()
@@ -283,8 +277,7 @@ class DataSnapshot():
 
     # Utility function for printing messages
     def print_message(self, message):
-        if self.output_to_file == True:
-            self.output_file.write(message + "\n")
+        self.output_file.write(message + "\n")
         if self.output_to_console == True:
             print(message, flush=True)
 
@@ -397,11 +390,8 @@ class DataSnapshot():
         tmp = None
         for metric in self.metrics:
             tmp = self._check_cloudwatch_alarm_state_metric(metric)
-            if (tmp[1] != None):
-                # Do not cut a ticket for the "Alive_Alarm" that we use to check if the Canary is running
-                if ("Alive_Alarm" in tmp[1] == False):
-                    if (tmp[0] != True):
-                        return_result_list.append(tmp)
+            if (tmp[0] == False):
+                return_result_list.append(tmp)
 
         return return_result_list
 
@@ -424,9 +414,9 @@ class DataSnapshot():
         return return_result
 
     # Exports a file with the same name as the commit Git hash to an S3 bucket in a folder with the Git repo name.
-    # By default, this file will only contain the Git hash.
-    # If copy_output_log is true, then the output log will be copied into this file, which may be useful for debugging.
-    def export_result_to_s3_bucket(self, copy_output_log=False, log_is_error=False):
+    # The function will upload the output log to s3, if there is no output log, then it will just upload a file with
+    # the Git hash as the name
+    def export_result_to_s3_bucket(self, log_is_error=False):
         if (self.s3_client is None):
             self.print_message(
                 "[DataSnapshot] ERROR - No S3 client initialized! Cannot send log to S3")
@@ -434,61 +424,46 @@ class DataSnapshot():
             self.abort_due_to_internal_error_reason = "S3 client not initialized and therefore cannot send log to S3"
             return
 
-        s3_file = open(self.git_hash + ".log", "w")
-        s3_file.write(self.git_hash)
+        is_s3_file_created = False
+        s3_upload_log_file_path = self.output_filepath
+        if (s3_upload_log_file_path is None):
+            s3_upload_log_file_path = self.git_hash + ".log"
 
         # Might be useful for debugging?
-        if (copy_output_log == True and self.output_to_file == True):
-            # Are we still writing? If so, then we need to close the file first so everything is written to it
-            is_output_file_open_previously = False
-            if (self.output_file != None):
-                self.output_file.close()
-                is_output_file_open_previously = True
-            self.output_file = open(self.output_to_file_filepath, "r")
-
-            s3_file.write("\n\nOUTPUT LOG\n")
-            s3_file.write(
-                "==========================================================================================\n")
-            output_file_lines = self.output_file.readlines()
-            for line in output_file_lines:
-                s3_file.write(line)
-
-            self.output_file.close()
-
-            # If we were writing to the output previously, then we need to open in RW mode so we can continue to write to it
-            if (is_output_file_open_previously == True):
-                self.output_to_file = open(self.output_to_file_filepath, "a")
-
-        s3_file.close()
+        if (self.output_file != None):
+            # Are we writing to output file? If so, then we do flush so everything is written to it
+            self.output_file.flush()
+        else:
+            s3_file = open(s3_upload_log_file_path, "w")
+            s3_file.write(self.git_hash)
+            s3_file.close()
+            is_s3_file_created = True
 
         # Upload to S3
         try:
-            if (log_is_error == False):
-                if (self.datetime_string == None):
-                    self.s3_client.upload_file(
-                        self.git_hash + ".log", self.s3_bucket_name, self.git_repo_name + "/" + self.git_hash + ".log")
-                else:
-                    self.s3_client.upload_file(self.git_hash + ".log", self.s3_bucket_name,
-                                               self.git_repo_name + "/" + self.datetime_string + "/" + self.git_hash + ".log")
+            s3_path = None
+            if (self.datetime_string == None):
+                s3_path = self.git_repo_name + "/" + self.git_hash + ".log"
             else:
-                if (self.datetime_string == None):
-                    self.s3_client.upload_file(self.git_hash + ".log", self.s3_bucket_name,
-                                               self.git_repo_name + "/Failed_Logs/" + self.git_hash + ".log")
-                else:
-                    self.s3_client.upload_file(self.git_hash + ".log", self.s3_bucket_name, self.git_repo_name +
-                                               "/Failed_Logs/" + self.datetime_string + "/" + self.git_hash + ".log")
+                s3_path = self.git_repo_name + "/" + \
+                    self.datetime_string + "/" + self.git_hash + ".log"
+
+            self.s3_client.upload_file(
+                s3_upload_log_file_path, self.s3_bucket_name, s3_path)
+
             self.print_message("[DataSnapshot] Uploaded to S3!")
+
         except Exception as e:
             self.print_message(
                 "[DataSnapshot] ERROR - could not upload to S3 due to exception!")
             self.print_message("[DataSnapshot] Exception: " + str(e))
             self.abort_due_to_internal_error = True
             self.abort_due_to_internal_error_reason = "S3 client had exception and therefore could not upload log!"
-            os.remove(self.git_hash + ".log")
-            return
 
-        # Delete the file when finished
-        os.remove(self.git_hash + ".log")
+        if is_s3_file_created == True:
+            os.remove(s3_upload_log_file_path)
+
+        return
 
     # Sends an email via a special lambda. The payload has to contain a message and a subject
     # * (REQUIRED) message is the message you want to send in the body of the email
@@ -621,8 +596,8 @@ class DataSnapshot():
         self.print_message("")
 
     # Sends all registered metrics to Cloudwatch.
-    # Does NOT need to called on loop. Call post_metrics on loop to send all the metrics as expected.
-    # This is just the Cloudwatch part of that loop.
+    # The function is called in post_metrics() to send the metrics. You should call post_metrics() for the monitor loop,
+    # instead of using this function directly
     def export_metrics_cloudwatch(self):
         if (self.cloudwatch_client == None):
             self.print_message(
@@ -660,8 +635,8 @@ class DataSnapshot():
     # Call this at a set interval to post the metrics to Cloudwatch, etc.
     # This is the function you want to call repeatedly after you have everything setup.
     def post_metrics(self, psutil_process: psutil.Process):
-        if (self.perform_final_initialization == True):
-            self.perform_final_initialization = False
+        if (self.cloudwatch_initialization == False):
+            self.cloudwatch_initialization = True
             self._init_cloudwatch_pre_first_run()
 
         # Update the metric values internally
@@ -742,13 +717,14 @@ class DataSnapshot():
 
 
 class SnapshotMonitor():
-    def __init__(self, wrapper_data_snapshot, wrapper_metrics_wait_time) -> None:
+    def __init__(self, wrapper_data_snapshot, wrapper_metrics_wait_time, ticketing) -> None:
 
         self.data_snapshot = wrapper_data_snapshot
         self.had_internal_error = False
         self.error_due_to_credentials = False
         self.internal_error_reason = ""
         self.error_due_to_alarm = False
+        self.ticketing = ticketing
 
         self.can_cut_ticket = False
         self.has_cut_ticket = False
@@ -766,9 +742,9 @@ class SnapshotMonitor():
             self.data_snapshot.cleanup()
             return
 
-        # How long to wait before posting a metric
-        self.metric_post_timer = 0
+        # Metric posting timer
         self.metric_post_timer_time = wrapper_metrics_wait_time
+        self.next_metric_post_time = time.time() + wrapper_metrics_wait_time
 
     def register_metric(self, new_metric_name, new_metric_function, new_metric_unit="None", new_metric_alarm_threshold=None,
                         new_metric_reports_to_skip=0, new_metric_alarm_severity=6):
@@ -797,10 +773,12 @@ class SnapshotMonitor():
         self.data_snapshot.output_diagnosis_information(
             dependencies_list=dependencies)
 
+    # Validate if there are any new alarms that have been triggered since the last check,
+    # if there is a new alarm, then cut a ticket if allowed.
     def check_alarms_for_new_alarms(self, triggered_alarms):
 
         if len(triggered_alarms) > 0:
-            self.data_snapshot.print_message(
+            self.print_message(
                 "WARNING - One or more alarms are in state of ALARM")
 
             old_alarms_still_active = []
@@ -817,7 +795,6 @@ class SnapshotMonitor():
                     if (old_alarm_name == triggered_alarm[1]):
                         new_alarm_found = False
                         old_alarms_still_active.append(triggered_alarm[1])
-
                         new_alarm_ticket_description += "* (STILL IN ALARM) " + \
                             triggered_alarm[1] + "\n"
                         new_alarm_ticket_description += "\tSeverity: " + \
@@ -840,22 +817,15 @@ class SnapshotMonitor():
 
             if len(new_alarms) > 0:
                 if (self.can_cut_ticket == True):
-                    cut_ticket_using_cloudwatch(
-                        git_repo_name=self.data_snapshot.git_repo_name,
-                        git_hash=self.data_snapshot.git_hash,
-                        git_hash_as_namespace=False,
-                        git_fixed_namespace_text=self.data_snapshot.git_fixed_namespace_text,
-                        cloudwatch_region="us-east-1",
+                    self.ticketing.cut_ticket_using_cloudwatch(
                         ticket_description="New metric(s) went into alarm for the Canary! Metrics in alarm: " + str(
-                            new_alarms),
+                            new_alarm_ticket_description),
                         ticket_reason="New metric(s) went into alarm",
                         ticket_allow_duplicates=True,
-                        ticket_category="AWS",
-                        ticket_item=self.data_snapshot.ticket_item,
-                        ticket_group="AWS IoT Device SDK",
-                        ticket_type="SDKs and Tools",
-                        ticket_severity=4)
+                        ticket_severity=new_alarms_highest_severity)
                     self.has_cut_ticket = True
+                    self.had_internal_error = True
+                    self.internal_error_reason = "Metric(s) went into alarm state. Ticket cut."
 
             # Cache the new alarms and the old alarms
             self.cloudwatch_current_alarms_triggered = old_alarms_still_active + new_alarms
@@ -863,50 +833,39 @@ class SnapshotMonitor():
         else:
             self.cloudwatch_current_alarms_triggered.clear()
 
-    def monitor_loop_function(self, psutil_process: psutil.Process, time_passed=30):
-        # Check for internal errors
-        if (self.data_snapshot.abort_due_to_internal_error == True):
-            self.had_internal_error = True
-            self.internal_error_reason = "Data Snapshot internal error: " + \
-                self.data_snapshot.abort_due_to_internal_error_reason
+    def monitor_loop_function(self, psutil_process: psutil.Process):
+        if self.had_internal_error:
             return
 
+        # Check for data snapshot errors
+        if self.data_snapshot.abort_due_to_internal_error:
+            self.had_internal_error = True
+            self.internal_error_reason = f"Data Snapshot error: {self.data_snapshot.abort_due_to_internal_error_reason}"
+            return
+
+        # Check alarms first
         try:
-            # Poll the metric alarms
-            if (self.had_internal_error == False):
-                # Get a report of all the alarms that might have been set to an alarm state
-                triggered_alarms = self.data_snapshot.get_cloudwatch_alarm_results()
-                self.check_alarms_for_new_alarms(triggered_alarms)
+            triggered_alarms = self.data_snapshot.get_cloudwatch_alarm_results()
+            self.check_alarms_for_new_alarms(triggered_alarms)
         except Exception as e:
             self.print_message(
-                "[SnaptshotMonitor] ERROR - exception occurred checking metric alarms!")
-            self.print_message(
-                "[SnaptshotMonitor] (Likely session credentials expired)")
+                f"[SnapshotMonitor] ERROR checking alarms: {str(e)}")
             self.had_internal_error = True
-            self.internal_error_reason = "Exception occurred checking metric alarms! Likely session credentials expired"
+            self.internal_error_reason = f"Alarm check failed: {str(e)}"
             return
 
-        if (self.metric_post_timer <= 0):
-            if (self.had_internal_error == False):
-                try:
-                    self.data_snapshot.post_metrics(psutil_process)
-                except Exception as e:
-                    self.print_message(
-                        "[SnaptshotMonitor] ERROR - exception occurred posting metrics!")
-                    self.print_message(
-                        "[SnaptshotMonitor] (Likely session credentials expired)")
-
-                    print(e, flush=True)
-
-                    self.had_internal_error = True
-                    self.internal_error_reason = "Exception occurred posting metrics! Likely session credentials expired"
-                    return
-
-            # reset the timer
-            self.metric_post_timer += self.metric_post_timer_time
-
-        # Gather and post the metrics
-        self.metric_post_timer -= time_passed
+        current_time = time.time()
+        if current_time >= self.next_metric_post_time:
+            # Post metrics
+            try:
+                self.data_snapshot.post_metrics(psutil_process)
+                self.next_metric_post_time = current_time + self.metric_post_timer_time
+            except Exception as e:
+                self.print_message(
+                    f"[SnapshotMonitor] ERROR posting metrics: {str(e)}")
+                self.had_internal_error = True
+                self.internal_error_reason = f"Metric posting failed: {str(e)}"
+                return
 
     def send_email(self, email_body, email_subject_text_append=None):
         if (email_subject_text_append != None):
@@ -1031,7 +990,7 @@ class ApplicationMonitor():
                 self.print_message(stdout_file.read())
             os.remove(self.stdout_file_path)
 
-    def monitor_loop_function(self, time_passed=30):
+    def monitor_loop_function(self):
         if (self.application_process != None):
 
             application_process_return_code = None
@@ -1087,100 +1046,114 @@ class ApplicationMonitor():
             print(message, flush=True)
 
 
-# Cuts a ticket to SIM using a temporary Cloudwatch metric that is quickly created, triggered, and destroyed.
+# The class used to cut tickets to SIM using a temporary Cloudwatch metric that is quickly created, triggered,
+# and destroyed the cloudwatch alarm afterwards.
 # Can be called in any thread - creates its own Cloudwatch client and any data it needs is passed in.
 #
 # See (https://w.amazon.com/bin/view/CloudWatchAlarms/Internal/CloudWatchAlarmsSIMTicketing) for more details
 # on how the alarm is sent using Cloudwatch.
-def cut_ticket_using_cloudwatch(
-        ticket_description="Description here!",
-        ticket_reason="Reason here!",
-        ticket_severity=5,
-        ticket_category="AWS",
-        ticket_type="SDKs and Tools",
-        ticket_item="IoT SDK for Swift",
-        ticket_group="AWS IoT Device SDK",
-        ticket_allow_duplicates=False,
-        git_repo_name="REPO NAME",
-        git_hash="HASH",
-        git_hash_as_namespace=False,
-        git_fixed_namespace_text="mqtt5_swift_canary",
-        cloudwatch_region="us-east-1"):
+#
+# We cut the ticket use a temporary "faked" Cloudwatch alarm, so we dont mess the alarm across the canary runs.
+# If we used the actual metrics alarm, then the alarm might be in the ALARM state from previous runs and would
+# not reflect the current state of the canary.
+class CloudwatchTicketing():
+    def __init__(self,
+                 git_repo_name,
+                 git_hash,
+                 git_hash_as_namespace,
+                 git_fixed_namespace_text,
+                 ticket_category,
+                 ticket_type,
+                 ticket_item,
+                 ticket_group,
+                 cloudwatch_region):
+        self.ticket_category = ticket_category
+        self.ticket_type = ticket_type
+        self.ticket_item = ticket_item
+        self.ticket_group = ticket_group
+        self.cloudwatch_region = cloudwatch_region
 
-    git_metric_namespace = ""
-    if (git_hash_as_namespace == False):
-        git_metric_namespace = git_fixed_namespace_text
-    else:
-        git_namespace_prepend_text = git_repo_name + "-" + git_hash
-        git_metric_namespace = git_namespace_prepend_text
+        self.cloudwatch_regiongit_metric_namespace = ""
+        if (git_hash_as_namespace == False):
+            self.git_metric_namespace = git_fixed_namespace_text
+        else:
+            git_namespace_prepend_text = git_repo_name + "-" + git_hash
+            self.git_metric_namespace = git_namespace_prepend_text
 
-    try:
-        cloudwatch_client = boto3.client('cloudwatch', cloudwatch_region)
-        ticket_alarm_name = git_repo_name + "-" + git_hash + "-AUTO-TICKET"
-    except Exception as e:
-        print("ERROR - could not create Cloudwatch client to make ticket metric alarm due to exception!")
-        print("Exception: " + str(e), flush=True)
+        self.ticket_alarm_name = git_repo_name + "-" + git_hash + "-AUTO-TICKET"
+        self.new_metric_dimensions = []
+        if (git_hash_as_namespace == False):
+            git_namespace_prepend_text = git_repo_name + "-" + git_hash
+            self.new_metric_dimensions.append(
+                {"Name": git_namespace_prepend_text, "Value": self.ticket_alarm_name})
+        else:
+            self.new_metric_dimensions.append(
+                {"Name": "System_Metrics", "Value": self.ticket_alarm_name})
+
+    def cut_ticket_using_cloudwatch(self,
+                                    ticket_description,
+                                    ticket_reason,
+                                    ticket_severity=5,
+                                    ticket_allow_duplicates=False):
+        try:
+            cloudwatch_client = boto3.client(
+                'cloudwatch', self.cloudwatch_region)
+        except Exception as e:
+            print(
+                "ERROR - could not create Cloudwatch client to make ticket metric alarm due to exception!")
+            print("Exception: " + str(e), flush=True)
+            return
+
+        ticket_arn = f"arn:aws:cloudwatch::cwa-internal:ticket:{ticket_severity}:{self.ticket_category}:{self.ticket_type}:{self.ticket_item}:{self.ticket_group}:"
+        if (ticket_allow_duplicates == True):
+            # use "DO-NOT-DEDUPE" so we can run the same commit again and it will cut another ticket.
+            ticket_arn += "DO-NOT-DEDUPE"
+        # In the ticket ARN, all spaces need to be replaced with +
+        ticket_arn = ticket_arn.replace(" ", "+")
+
+        ticket_alarm_description = f"AUTO CUT CANARY WRAPPER TICKET\n\nREASON: {ticket_reason}\n\nDESCRIPTION: {ticket_description}\n\n Checkout https://w.amazon.com/bin/view/AWS/DeveloperResources/AWSSDKsAndTools/IoTDeviceSDK-main/IoTSDK-engineering/EC2-MQTT-Canary/#HHandleShortRunningCanaryAlarms\n\n"
+
+        # Register a metric alarm so it can auto-cut a ticket for us
+        try:
+            cloudwatch_client.put_metric_alarm(
+                AlarmName=self.ticket_alarm_name,
+                AlarmDescription=ticket_alarm_description,
+                MetricName=self.ticket_alarm_name,
+                Namespace=self.git_metric_namespace,
+                Statistic="Maximum",
+                Dimensions=self.new_metric_dimensions,
+                Period=60,  # How long (in seconds) is an evaluation period?
+                EvaluationPeriods=1,  # How many periods does it need to be invalid for?
+                DatapointsToAlarm=1,  # How many data points need to be invalid?
+                Threshold=1,
+                ComparisonOperator="GreaterThanOrEqualToThreshold",
+                # The data above does not really matter - it just needs to be valid input data.
+                # This is the part that tells Cloudwatch to cut the ticket
+                AlarmActions=[ticket_arn]
+            )
+        except Exception as e:
+            print("ERROR - could not create ticket metric alarm due to exception!")
+            print("Exception: " + str(e), flush=True)
+            return
+
+        # Trigger the alarm so it cuts the ticket
+        try:
+            cloudwatch_client.set_alarm_state(
+                AlarmName=self.ticket_alarm_name,
+                StateValue="ALARM",
+                StateReason="AUTO TICKET CUT")
+        except Exception as e:
+            print("ERROR - could not cut ticket due to exception!")
+            print("Exception: " + str(e), flush=True)
+            return
+
+        print("Waiting for ticket metric to trigger...", flush=True)
+        # Wait a little bit (2 seconds)...
+        time.sleep(2)
+
+        # Remove the metric
+        print("Removing ticket metric...", flush=True)
+        cloudwatch_client.delete_alarms(AlarmNames=[self.ticket_alarm_name])
+
+        print("Finished cutting ticket via Cloudwatch!", flush=True)
         return
-
-    new_metric_dimensions = []
-    if (git_hash_as_namespace == False):
-        git_namespace_prepend_text = git_repo_name + "-" + git_hash
-        new_metric_dimensions.append(
-            {"Name": git_namespace_prepend_text, "Value": ticket_alarm_name})
-    else:
-        new_metric_dimensions.append(
-            {"Name": "System_Metrics", "Value": ticket_alarm_name})
-
-    ticket_arn = f"arn:aws:cloudwatch::cwa-internal:ticket:{ticket_severity}:{ticket_category}:{ticket_type}:{ticket_item}:{ticket_group}:"
-    if (ticket_allow_duplicates == True):
-        # use "DO-NOT-DEDUPE" so we can run the same commit again and it will cut another ticket.
-        ticket_arn += "DO-NOT-DEDUPE"
-    # In the ticket ARN, all spaces need to be replaced with +
-    ticket_arn = ticket_arn.replace(" ", "+")
-
-    ticket_alarm_description = f"AUTO CUT CANARY WRAPPER TICKET\n\nREASON: {ticket_reason}\n\nDESCRIPTION: {ticket_description}\n\n"
-
-    # Register a metric alarm so it can auto-cut a ticket for us
-    try:
-        cloudwatch_client.put_metric_alarm(
-            AlarmName=ticket_alarm_name,
-            AlarmDescription=ticket_alarm_description,
-            MetricName=ticket_alarm_name,
-            Namespace=git_metric_namespace,
-            Statistic="Maximum",
-            Dimensions=new_metric_dimensions,
-            Period=60,  # How long (in seconds) is an evaluation period?
-            EvaluationPeriods=1,  # How many periods does it need to be invalid for?
-            DatapointsToAlarm=1,  # How many data points need to be invalid?
-            Threshold=1,
-            ComparisonOperator="GreaterThanOrEqualToThreshold",
-            # The data above does not really matter - it just needs to be valid input data.
-            # This is the part that tells Cloudwatch to cut the ticket
-            AlarmActions=[ticket_arn]
-        )
-    except Exception as e:
-        print("ERROR - could not create ticket metric alarm due to exception!")
-        print("Exception: " + str(e), flush=True)
-        return
-
-    # Trigger the alarm so it cuts the ticket
-    try:
-        cloudwatch_client.set_alarm_state(
-            AlarmName=ticket_alarm_name,
-            StateValue="ALARM",
-            StateReason="AUTO TICKET CUT")
-    except Exception as e:
-        print("ERROR - could not cut ticket due to exception!")
-        print("Exception: " + str(e), flush=True)
-        return
-
-    print("Waiting for ticket metric to trigger...", flush=True)
-    # Wait a little bit (2 seconds)...
-    time.sleep(2)
-
-    # Remove the metric
-    print("Removing ticket metric...", flush=True)
-    cloudwatch_client.delete_alarms(AlarmNames=[ticket_alarm_name])
-
-    print("Finished cutting ticket via Cloudwatch!", flush=True)
-    return

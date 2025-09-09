@@ -24,13 +24,14 @@ command_parser.add_argument("--git_repo_name", type=str, required=True,
 command_parser.add_argument("--git_hash_as_namespace", type=bool, default=False,
                             help="(OPTIONAL, default=False) If true, the git hash will be used as the name of the Cloudwatch namespace")
 command_parser.add_argument("--output_log_filepath", type=str, default="output.log",
-                            help="(OPTIONAL, default=output.log) The file to output log info to. Set to 'None' to disable")
+                            help="(OPTIONAL, default=output.log) The file to output log info to. If set, the output file will be uploaded to S3.")
 command_parser.add_argument("--output_to_console", type=bool, default=True,
                             help="(OPTIONAL, default=True) If true, info will be output to the console")
 command_parser.add_argument("--cloudwatch_region", type=str, default="us-east-1",
-                            help="(OPTIONAL, default=us-east-1) The AWS region for Cloudwatch")
+                            help="(OPTIONAL, default=us-east-1) The canary AWS region for Cloudwatch")
 command_parser.add_argument("--s3_bucket_name", type=str, default="canary-wrapper-folder",
-                            help="(OPTIONAL, default=canary-wrapper-folder) The name of the S3 bucket where success logs will be stored")
+                            help="(OPTIONAL, default=canary-wrapper-folder) The name of the S3 bucket where the output logs will be stored. The output_log_filepath must \
+                                be set to be uploaded.")
 command_parser.add_argument("--snapshot_wait_time", type=int, default=600,
                             help="(OPTIONAL, default=600) The number of seconds between gathering and sending snapshot reports")
 command_parser.add_argument("--ticket_category", type=str, default="AWS",
@@ -46,18 +47,19 @@ command_parser.add_argument("--dependencies", type=str, default="",
         Current expected format is '(name or path);(hash);(next name or path);(hash);(etc...)'.")
 command_parser.add_argument("--lambda_name", type=str, default="iot-send-email-lambda",
                             help="(OPTIONAL, default='CanarySendEmailLambda') The name of the Lambda used to send emails")
-command_parser.add_argument("--codebuild_log_path", type=str, default="",
-                            help="The CODEBUILD_LOG_PATH environment variable. Leave blank to ignore")
 command_parser_arguments = command_parser.parse_args()
 
 if (command_parser_arguments.output_log_filepath == "None"):
     command_parser_arguments.output_log_filepath = None
 if (command_parser_arguments.snapshot_wait_time <= 0):
-    command_parser_arguments.snapshot_wait_time = 60
+    command_parser_arguments.snapshot_wait_time = 600
 
+# This is the specific namespace for CRT-SWIFT. Codebuild jobs run on macos fleets does not have metrics support,
+# we must track all metrics on cloudwatch. Therefore, we use a specific namespace for all CRT-SWIFT canaries to make
+# it easy to distinct from other metrics.
 CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE = "mqtt5_swift_canary"
 
-# Deal with possibly empty values in semi-critical commands/arguments
+# Deal with possibly empty values in critical commands/arguments
 if (command_parser_arguments.canary_executable == ""):
     print("ERROR - required canary_executable is empty!", flush=True)
     exit(1)  # cannot run without a canary executable
@@ -67,29 +69,11 @@ if (command_parser_arguments.git_hash == ""):
 if (command_parser_arguments.git_repo_name == ""):
     print("ERROR - required git_repo_name is empty!", flush=True)
     exit(1)  # cannot run without git repo name
-if (command_parser_arguments.git_hash_as_namespace is not True and command_parser_arguments.git_hash_as_namespace is not False):
-    command_parser_arguments.git_hash_as_namespace = False
-if (command_parser_arguments.output_log_filepath == ""):
-    command_parser_arguments.output_log_filepath = None
-if (command_parser_arguments.output_to_console != True and command_parser_arguments.output_to_console != False):
-    command_parser_arguments.output_to_console = True
-if (command_parser_arguments.cloudwatch_region == ""):
-    command_parser_arguments.cloudwatch_region = "us-east-1"
-if (command_parser_arguments.s3_bucket_name == ""):
-    command_parser_arguments.s3_bucket_name = "canary-wrapper-folder"
-if (command_parser_arguments.ticket_category == ""):
-    command_parser_arguments.ticket_category = "AWS"
-if (command_parser_arguments.ticket_type == ""):
-    command_parser_arguments.ticket_type = "SDKs and Tools"
-if (command_parser_arguments.ticket_item == ""):
-    command_parser_arguments.ticket_item = "IoT SDK for Swift"
-if (command_parser_arguments.ticket_group == ""):
-    command_parser_arguments.ticket_group = "AWS IoT Device SDK"
-
 
 # ================================================================================
 
-datetime_now = datetime.datetime.now()
+# Use UTC time for easier tracking across timezones
+datetime_now = datetime.datetime.now(datetime.timezone.utc)
 datetime_string = datetime_now.strftime("%d-%m-%Y/%H-%M-%S")
 print("Datetime string is: " + datetime_string, flush=True)
 
@@ -100,16 +84,29 @@ data_snapshot = DataSnapshot(
     datetime_string=datetime_string,
     git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
     git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
-    output_log_filepath="output.txt",
+    output_log_filepath=command_parser_arguments.output_log_filepath,
     output_to_console=command_parser_arguments.output_to_console,
     cloudwatch_region="us-east-1",
     cloudwatch_make_dashboard=False,
+    # We tear down the alarms to avoid alarm affect the next run
     cloudwatch_teardown_alarms_on_complete=True,
     cloudwatch_teardown_dashboard_on_complete=True,
     s3_bucket_name=command_parser_arguments.s3_bucket_name,
     s3_bucket_upload_on_complete=True,
     lambda_name=command_parser_arguments.lambda_name,
     metric_frequency=command_parser_arguments.snapshot_wait_time)
+
+ticketing = CloudwatchTicketing(
+    git_repo_name=command_parser_arguments.git_repo_name,
+    git_hash=command_parser_arguments.git_hash,
+    git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
+    git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
+    cloudwatch_region="us-east-1",
+    ticket_category=command_parser_arguments.ticket_category,
+    ticket_item=command_parser_arguments.ticket_item,
+    ticket_group=command_parser_arguments.ticket_group,
+    ticket_type=command_parser_arguments.ticket_type,
+)
 
 # Make sure nothing failed
 if (data_snapshot.abort_due_to_internal_error == True):
@@ -131,11 +128,11 @@ data_snapshot.register_metric(
     new_metric_name="total_memory_usage_percent",
     new_metric_function=get_metric_total_memory_usage_percent,
     new_metric_unit="Percent",
-    # TODO: The alarm is disabled for now. Currently we use a static value of 70% memory usage, 
-    # but ideally we should monitor the delta change over time. 
-    # new_metric_alarm_threshold=70,
-    # new_metric_reports_to_skip=0,
-    # new_metric_alarm_severity=5,
+    # TODO: The alarm is disabled for now. Currently we use a static value of 70% memory usage,
+    # but ideally we should monitor the delta change over time.
+    new_metric_alarm_threshold=70,
+    new_metric_reports_to_skip=0,
+    new_metric_alarm_severity=5,
     is_percent=True)
 
 # Print diagnosis information
@@ -145,7 +142,8 @@ data_snapshot.output_diagnosis_information(
 # Make the snapshot (metrics) monitor
 snapshot_monitor = SnapshotMonitor(
     wrapper_data_snapshot=data_snapshot,
-    wrapper_metrics_wait_time=command_parser_arguments.snapshot_wait_time)
+    wrapper_metrics_wait_time=command_parser_arguments.snapshot_wait_time,
+    ticketing=ticketing)
 
 # Make sure nothing failed
 if (snapshot_monitor.had_internal_error == True):
@@ -170,21 +168,14 @@ if (application_monitor.error_has_occurred == True):
 # For tracking if we stopped due to a metric alarm
 stopped_due_to_metric_alarm = False
 
-execution_sleep_time = 30
+execution_sleep_time = 1
 
 
 def execution_loop():
     while True:
         snapshot_monitor.monitor_loop_function(
-            time_passed=execution_sleep_time, psutil_process=application_monitor.application_process_psutil)
-        application_monitor.monitor_loop_function(
-            time_passed=execution_sleep_time)
-
-        # Did a metric go into alarm?
-        if (snapshot_monitor.has_cut_ticket == True):
-            # Set that we had an 'internal error' so we go down the right code path
-            snapshot_monitor.had_internal_error = True
-            break
+            psutil_process=application_monitor.application_process_psutil)
+        application_monitor.monitor_loop_function()
 
         # If an error has occurred or otherwise this thread needs to stop, then break the loop
         if (application_monitor.error_has_occurred == True or snapshot_monitor.had_internal_error == True):
@@ -239,20 +230,11 @@ def application_thread():
             else:
                 print(
                     "ERROR - Snapshot monitor stopped due to internal error!", flush=True)
-                cut_ticket_using_cloudwatch(
-                    git_repo_name=command_parser_arguments.git_repo_name,
-                    git_hash=command_parser_arguments.git_hash,
-                    git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
-                    git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
-                    cloudwatch_region="us-east-1",
+                ticketing.cut_ticket_using_cloudwatch(
                     ticket_description="Snapshot monitor stopped due to internal error! Reason info: " +
                     snapshot_monitor.internal_error_reason,
                     ticket_reason="Snapshot monitor stopped due to internal error",
                     ticket_allow_duplicates=True,
-                    ticket_category=command_parser_arguments.ticket_category,
-                    ticket_item=command_parser_arguments.ticket_item,
-                    ticket_group=command_parser_arguments.ticket_group,
-                    ticket_type=command_parser_arguments.ticket_type,
                     ticket_severity=4)
                 wrapper_error_occurred = True
                 finished_email_body += "Failure due to Snapshot monitor stopping due to an internal error."
@@ -269,19 +251,11 @@ def application_thread():
             else:
                 # Is the error something in the canary failed?
                 if (application_monitor.error_code != 0):
-                    cut_ticket_using_cloudwatch(
-                        git_repo_name=command_parser_arguments.git_repo_name,
-                        git_hash=command_parser_arguments.git_hash,
-                        git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
-                        git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
+                    ticketing.cut_ticket_using_cloudwatch(
                         cloudwatch_region="us-east-1",
                         ticket_description="The Short Running Canary exited with a non-zero exit code! This likely means something in the canary failed.",
                         ticket_reason="The Short Running Canary exited with a non-zero exit code",
                         ticket_allow_duplicates=True,
-                        ticket_category=command_parser_arguments.ticket_category,
-                        ticket_item=command_parser_arguments.ticket_item,
-                        ticket_group=command_parser_arguments.ticket_group,
-                        ticket_type=command_parser_arguments.ticket_type,
                         ticket_severity=4)
                     wrapper_error_occurred = True
                     finished_email_body += "Failure due to MQTT5 application exiting with a non-zero exit code! This means something in the Canary application itself failed"
@@ -294,19 +268,10 @@ def application_thread():
         else:
             print(
                 "ERROR - Short Running Canary stopped due to unknown reason!", flush=True)
-            cut_ticket_using_cloudwatch(
-                git_repo_name=command_parser_arguments.git_repo_name,
-                git_hash=command_parser_arguments.git_hash,
-                git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
-                git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
-                cloudwatch_region="us-east-1",
+            ticketing.cut_ticket_using_cloudwatch(
                 ticket_description="The Short Running Canary stopped for an unknown reason!",
                 ticket_reason="The Short Running Canary stopped for unknown reason",
                 ticket_allow_duplicates=True,
-                ticket_category=command_parser_arguments.ticket_category,
-                ticket_item=command_parser_arguments.ticket_item,
-                ticket_group=command_parser_arguments.ticket_group,
-                ticket_type=command_parser_arguments.ticket_type,
                 ticket_severity=4)
             wrapper_error_occurred = True
             finished_email_body += "Failure due to unknown reason! This shouldn't happen and means something has gone wrong!"
@@ -328,9 +293,6 @@ def application_thread():
     if (wrapper_error_occurred == True):
         finished_email_body += "Failed_Logs/"
     finished_email_body += command_parser_arguments.git_hash + ".log"
-    if (command_parser_arguments.codebuild_log_path != ""):
-        print("\n Codebuild log path: " +
-              command_parser_arguments.codebuild_log_path + "\n")
 
     # Send the finish email
     if (send_finished_email == True):

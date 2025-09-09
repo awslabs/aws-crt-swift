@@ -5,8 +5,7 @@ env:
     CANARY_THREADS: 3
     CANARY_TPS: 50
     CANARY_CLIENT_COUNT: 10
-    CANARY_LOG_FILE: 'canary_log.txt'
-    CANARY_LOG_LEVEL: 'ERROR'
+    CANARY_LOG_LEVEL: 'ERROR' # Log is print to standardOutput, and CanaryWrapper will grab the data from out and upload to S3
     PACKAGE_NAME: 'aws-crt-swift'
     CANARY_SERVER_ARN: Mqtt5MosquittoSever
     CANARY_BUILD_S3_DST: mqtt5-canary/s3
@@ -33,7 +32,7 @@ phases:
         cSettingsIO.append(.define("AWS_USE_APPLE_NETWORK_FRAMEWORK"))
         ' Package.swift
       # Run the Canary
-      - python3 codebuild/canary/CanaryWrapper.py --canary_executable swift --canary_arguments "run Mqtt5Canary --endpoint ${ENDPOINT} --seconds ${CANARY_DURATION} --tps ${CANARY_TPS} --threads ${CANARY_THREADS} -c ${CANARY_CLIENT_COUNT} --verbose ${CANARY_LOG_LEVEL} --log-file ${CANARY_LOG_FILE}" --git_hash ${GIT_HASH} --git_repo_name $PACKAGE_NAME --codebuild_log_path $CODEBUILD_LOG_PATH --ticket_item "${CODEBUILD_TICKET_ITEM}"
+      - python3 codebuild/canary/CanaryWrapper.py --canary_executable swift --canary_arguments "run Mqtt5Canary --endpoint ${ENDPOINT} --seconds ${CANARY_DURATION} --tps ${CANARY_TPS} --threads ${CANARY_THREADS} -c ${CANARY_CLIENT_COUNT} --verbose ${CANARY_LOG_LEVEL}" --git_hash ${GIT_HASH} --git_repo_name $PACKAGE_NAME --ticket_item "${CODEBUILD_TICKET_ITEM}"
   post_build:
     commands:
       - echo Build completed on `date`
