@@ -390,11 +390,8 @@ class DataSnapshot():
         tmp = None
         for metric in self.metrics:
             tmp = self._check_cloudwatch_alarm_state_metric(metric)
-            if (tmp[1] != None):
-                # Do not cut a ticket for the "Alive_Alarm" that we use to check if the Canary is running
-                if ("Alive_Alarm" in tmp[1] == False):
-                    if (tmp[0] != True):
-                        return_result_list.append(tmp)
+            if (tmp[0] == False):
+                return_result_list.append(tmp)
 
         return return_result_list
 
@@ -720,13 +717,14 @@ class DataSnapshot():
 
 
 class SnapshotMonitor():
-    def __init__(self, wrapper_data_snapshot, wrapper_metrics_wait_time) -> None:
+    def __init__(self, wrapper_data_snapshot, wrapper_metrics_wait_time, ticketing) -> None:
 
         self.data_snapshot = wrapper_data_snapshot
         self.had_internal_error = False
         self.error_due_to_credentials = False
         self.internal_error_reason = ""
         self.error_due_to_alarm = False
+        self.ticketing = ticketing
 
         self.can_cut_ticket = False
         self.has_cut_ticket = False
@@ -775,10 +773,12 @@ class SnapshotMonitor():
         self.data_snapshot.output_diagnosis_information(
             dependencies_list=dependencies)
 
+    # Validate if there are any new alarms that have been triggered since the last check,
+    # if there is a new alarm, then cut a ticket if allowed.
     def check_alarms_for_new_alarms(self, triggered_alarms):
 
         if len(triggered_alarms) > 0:
-            self.data_snapshot.print_message(
+            self.print_message(
                 "WARNING - One or more alarms are in state of ALARM")
 
             old_alarms_still_active = []
@@ -795,7 +795,6 @@ class SnapshotMonitor():
                     if (old_alarm_name == triggered_alarm[1]):
                         new_alarm_found = False
                         old_alarms_still_active.append(triggered_alarm[1])
-
                         new_alarm_ticket_description += "* (STILL IN ALARM) " + \
                             triggered_alarm[1] + "\n"
                         new_alarm_ticket_description += "\tSeverity: " + \
@@ -818,21 +817,12 @@ class SnapshotMonitor():
 
             if len(new_alarms) > 0:
                 if (self.can_cut_ticket == True):
-                    cut_ticket_using_cloudwatch(
-                        git_repo_name=self.data_snapshot.git_repo_name,
-                        git_hash=self.data_snapshot.git_hash,
-                        git_hash_as_namespace=False,
-                        git_fixed_namespace_text=self.data_snapshot.git_fixed_namespace_text,
-                        cloudwatch_region="us-east-1",
+                    self.ticketing.cut_ticket_using_cloudwatch(
                         ticket_description="New metric(s) went into alarm for the Canary! Metrics in alarm: " + str(
-                            new_alarms),
+                            new_alarm_ticket_description),
                         ticket_reason="New metric(s) went into alarm",
                         ticket_allow_duplicates=True,
-                        ticket_category="AWS",
-                        ticket_item=self.data_snapshot.ticket_item,
-                        ticket_group="AWS IoT Device SDK",
-                        ticket_type="SDKs and Tools",
-                        ticket_severity=4)
+                        ticket_severity=new_alarms_highest_severity)
                     self.has_cut_ticket = True
                     self.had_internal_error = True
                     self.internal_error_reason = "Metric(s) went into alarm state. Ticket cut."
@@ -1056,100 +1046,114 @@ class ApplicationMonitor():
             print(message, flush=True)
 
 
-# Cuts a ticket to SIM using a temporary Cloudwatch metric that is quickly created, triggered, and destroyed.
+# The class used to cut tickets to SIM using a temporary Cloudwatch metric that is quickly created, triggered,
+# and destroyed the cloudwatch alarm afterwards.
 # Can be called in any thread - creates its own Cloudwatch client and any data it needs is passed in.
 #
 # See (https://w.amazon.com/bin/view/CloudWatchAlarms/Internal/CloudWatchAlarmsSIMTicketing) for more details
 # on how the alarm is sent using Cloudwatch.
-def cut_ticket_using_cloudwatch(
-        ticket_description="Description here!",
-        ticket_reason="Reason here!",
-        ticket_severity=5,
-        ticket_category="AWS",
-        ticket_type="SDKs and Tools",
-        ticket_item="IoT SDK for Swift",
-        ticket_group="AWS IoT Device SDK",
-        ticket_allow_duplicates=False,
-        git_repo_name="REPO NAME",
-        git_hash="HASH",
-        git_hash_as_namespace=False,
-        git_fixed_namespace_text="mqtt5_swift_canary",
-        cloudwatch_region="us-east-1"):
+#
+# We cut the ticket use a temporary "faked" Cloudwatch alarm, so we dont mess the alarm across the canary runs.
+# If we used the actual metrics alarm, then the alarm might be in the ALARM state from previous runs and would
+# not reflect the current state of the canary.
+class CloudwatchTicketing():
+    def __init__(self,
+                 git_repo_name,
+                 git_hash,
+                 git_hash_as_namespace,
+                 git_fixed_namespace_text,
+                 ticket_category,
+                 ticket_type,
+                 ticket_item,
+                 ticket_group,
+                 cloudwatch_region):
+        self.ticket_category = ticket_category
+        self.ticket_type = ticket_type
+        self.ticket_item = ticket_item
+        self.ticket_group = ticket_group
+        self.cloudwatch_region = cloudwatch_region
 
-    git_metric_namespace = ""
-    if (git_hash_as_namespace == False):
-        git_metric_namespace = git_fixed_namespace_text
-    else:
-        git_namespace_prepend_text = git_repo_name + "-" + git_hash
-        git_metric_namespace = git_namespace_prepend_text
+        self.cloudwatch_regiongit_metric_namespace = ""
+        if (git_hash_as_namespace == False):
+            self.git_metric_namespace = git_fixed_namespace_text
+        else:
+            git_namespace_prepend_text = git_repo_name + "-" + git_hash
+            self.git_metric_namespace = git_namespace_prepend_text
 
-    try:
-        cloudwatch_client = boto3.client('cloudwatch', cloudwatch_region)
-        ticket_alarm_name = git_repo_name + "-" + git_hash + "-AUTO-TICKET"
-    except Exception as e:
-        print("ERROR - could not create Cloudwatch client to make ticket metric alarm due to exception!")
-        print("Exception: " + str(e), flush=True)
+        self.ticket_alarm_name = git_repo_name + "-" + git_hash + "-AUTO-TICKET"
+        self.new_metric_dimensions = []
+        if (git_hash_as_namespace == False):
+            git_namespace_prepend_text = git_repo_name + "-" + git_hash
+            self.new_metric_dimensions.append(
+                {"Name": git_namespace_prepend_text, "Value": self.ticket_alarm_name})
+        else:
+            self.new_metric_dimensions.append(
+                {"Name": "System_Metrics", "Value": self.ticket_alarm_name})
+
+    def cut_ticket_using_cloudwatch(self,
+                                    ticket_description,
+                                    ticket_reason,
+                                    ticket_severity=5,
+                                    ticket_allow_duplicates=False):
+        try:
+            cloudwatch_client = boto3.client(
+                'cloudwatch', self.cloudwatch_region)
+        except Exception as e:
+            print(
+                "ERROR - could not create Cloudwatch client to make ticket metric alarm due to exception!")
+            print("Exception: " + str(e), flush=True)
+            return
+
+        ticket_arn = f"arn:aws:cloudwatch::cwa-internal:ticket:{ticket_severity}:{self.ticket_category}:{self.ticket_type}:{self.ticket_item}:{self.ticket_group}:"
+        if (ticket_allow_duplicates == True):
+            # use "DO-NOT-DEDUPE" so we can run the same commit again and it will cut another ticket.
+            ticket_arn += "DO-NOT-DEDUPE"
+        # In the ticket ARN, all spaces need to be replaced with +
+        ticket_arn = ticket_arn.replace(" ", "+")
+
+        ticket_alarm_description = f"AUTO CUT CANARY WRAPPER TICKET\n\nREASON: {ticket_reason}\n\nDESCRIPTION: {ticket_description}\n\n Checkout https://w.amazon.com/bin/view/AWS/DeveloperResources/AWSSDKsAndTools/IoTDeviceSDK-main/IoTSDK-engineering/EC2-MQTT-Canary/#HHandleShortRunningCanaryAlarms\n\n"
+
+        # Register a metric alarm so it can auto-cut a ticket for us
+        try:
+            cloudwatch_client.put_metric_alarm(
+                AlarmName=self.ticket_alarm_name,
+                AlarmDescription=ticket_alarm_description,
+                MetricName=self.ticket_alarm_name,
+                Namespace=self.git_metric_namespace,
+                Statistic="Maximum",
+                Dimensions=self.new_metric_dimensions,
+                Period=60,  # How long (in seconds) is an evaluation period?
+                EvaluationPeriods=1,  # How many periods does it need to be invalid for?
+                DatapointsToAlarm=1,  # How many data points need to be invalid?
+                Threshold=1,
+                ComparisonOperator="GreaterThanOrEqualToThreshold",
+                # The data above does not really matter - it just needs to be valid input data.
+                # This is the part that tells Cloudwatch to cut the ticket
+                AlarmActions=[ticket_arn]
+            )
+        except Exception as e:
+            print("ERROR - could not create ticket metric alarm due to exception!")
+            print("Exception: " + str(e), flush=True)
+            return
+
+        # Trigger the alarm so it cuts the ticket
+        try:
+            cloudwatch_client.set_alarm_state(
+                AlarmName=self.ticket_alarm_name,
+                StateValue="ALARM",
+                StateReason="AUTO TICKET CUT")
+        except Exception as e:
+            print("ERROR - could not cut ticket due to exception!")
+            print("Exception: " + str(e), flush=True)
+            return
+
+        print("Waiting for ticket metric to trigger...", flush=True)
+        # Wait a little bit (2 seconds)...
+        time.sleep(2)
+
+        # Remove the metric
+        print("Removing ticket metric...", flush=True)
+        cloudwatch_client.delete_alarms(AlarmNames=[self.ticket_alarm_name])
+
+        print("Finished cutting ticket via Cloudwatch!", flush=True)
         return
-
-    new_metric_dimensions = []
-    if (git_hash_as_namespace == False):
-        git_namespace_prepend_text = git_repo_name + "-" + git_hash
-        new_metric_dimensions.append(
-            {"Name": git_namespace_prepend_text, "Value": ticket_alarm_name})
-    else:
-        new_metric_dimensions.append(
-            {"Name": "System_Metrics", "Value": ticket_alarm_name})
-
-    ticket_arn = f"arn:aws:cloudwatch::cwa-internal:ticket:{ticket_severity}:{ticket_category}:{ticket_type}:{ticket_item}:{ticket_group}:"
-    if (ticket_allow_duplicates == True):
-        # use "DO-NOT-DEDUPE" so we can run the same commit again and it will cut another ticket.
-        ticket_arn += "DO-NOT-DEDUPE"
-    # In the ticket ARN, all spaces need to be replaced with +
-    ticket_arn = ticket_arn.replace(" ", "+")
-
-    ticket_alarm_description = f"AUTO CUT CANARY WRAPPER TICKET\n\nREASON: {ticket_reason}\n\nDESCRIPTION: {ticket_description}\n\n"
-
-    # Register a metric alarm so it can auto-cut a ticket for us
-    try:
-        cloudwatch_client.put_metric_alarm(
-            AlarmName=ticket_alarm_name,
-            AlarmDescription=ticket_alarm_description,
-            MetricName=ticket_alarm_name,
-            Namespace=git_metric_namespace,
-            Statistic="Maximum",
-            Dimensions=new_metric_dimensions,
-            Period=60,  # How long (in seconds) is an evaluation period?
-            EvaluationPeriods=1,  # How many periods does it need to be invalid for?
-            DatapointsToAlarm=1,  # How many data points need to be invalid?
-            Threshold=1,
-            ComparisonOperator="GreaterThanOrEqualToThreshold",
-            # The data above does not really matter - it just needs to be valid input data.
-            # This is the part that tells Cloudwatch to cut the ticket
-            AlarmActions=[ticket_arn]
-        )
-    except Exception as e:
-        print("ERROR - could not create ticket metric alarm due to exception!")
-        print("Exception: " + str(e), flush=True)
-        return
-
-    # Trigger the alarm so it cuts the ticket
-    try:
-        cloudwatch_client.set_alarm_state(
-            AlarmName=ticket_alarm_name,
-            StateValue="ALARM",
-            StateReason="AUTO TICKET CUT")
-    except Exception as e:
-        print("ERROR - could not cut ticket due to exception!")
-        print("Exception: " + str(e), flush=True)
-        return
-
-    print("Waiting for ticket metric to trigger...", flush=True)
-    # Wait a little bit (2 seconds)...
-    time.sleep(2)
-
-    # Remove the metric
-    print("Removing ticket metric...", flush=True)
-    cloudwatch_client.delete_alarms(AlarmNames=[ticket_alarm_name])
-
-    print("Finished cutting ticket via Cloudwatch!", flush=True)
-    return

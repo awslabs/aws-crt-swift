@@ -72,7 +72,8 @@ if (command_parser_arguments.git_repo_name == ""):
 
 # ================================================================================
 
-datetime_now = datetime.datetime.now()
+# Use UTC time for easier tracking across timezones
+datetime_now = datetime.datetime.now(datetime.timezone.utc)
 datetime_string = datetime_now.strftime("%d-%m-%Y/%H-%M-%S")
 print("Datetime string is: " + datetime_string, flush=True)
 
@@ -87,12 +88,25 @@ data_snapshot = DataSnapshot(
     output_to_console=command_parser_arguments.output_to_console,
     cloudwatch_region="us-east-1",
     cloudwatch_make_dashboard=False,
+    # We tear down the alarms to avoid alarm affect the next run
     cloudwatch_teardown_alarms_on_complete=True,
     cloudwatch_teardown_dashboard_on_complete=True,
     s3_bucket_name=command_parser_arguments.s3_bucket_name,
     s3_bucket_upload_on_complete=True,
     lambda_name=command_parser_arguments.lambda_name,
     metric_frequency=command_parser_arguments.snapshot_wait_time)
+
+ticketing = CloudwatchTicketing(
+    git_repo_name=command_parser_arguments.git_repo_name,
+    git_hash=command_parser_arguments.git_hash,
+    git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
+    git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
+    cloudwatch_region="us-east-1",
+    ticket_category=command_parser_arguments.ticket_category,
+    ticket_item=command_parser_arguments.ticket_item,
+    ticket_group=command_parser_arguments.ticket_group,
+    ticket_type=command_parser_arguments.ticket_type,
+)
 
 # Make sure nothing failed
 if (data_snapshot.abort_due_to_internal_error == True):
@@ -128,7 +142,8 @@ data_snapshot.output_diagnosis_information(
 # Make the snapshot (metrics) monitor
 snapshot_monitor = SnapshotMonitor(
     wrapper_data_snapshot=data_snapshot,
-    wrapper_metrics_wait_time=command_parser_arguments.snapshot_wait_time)
+    wrapper_metrics_wait_time=command_parser_arguments.snapshot_wait_time,
+    ticketing=ticketing)
 
 # Make sure nothing failed
 if (snapshot_monitor.had_internal_error == True):
@@ -215,20 +230,11 @@ def application_thread():
             else:
                 print(
                     "ERROR - Snapshot monitor stopped due to internal error!", flush=True)
-                cut_ticket_using_cloudwatch(
-                    git_repo_name=command_parser_arguments.git_repo_name,
-                    git_hash=command_parser_arguments.git_hash,
-                    git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
-                    git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
-                    cloudwatch_region="us-east-1",
+                ticketing.cut_ticket_using_cloudwatch(
                     ticket_description="Snapshot monitor stopped due to internal error! Reason info: " +
                     snapshot_monitor.internal_error_reason,
                     ticket_reason="Snapshot monitor stopped due to internal error",
                     ticket_allow_duplicates=True,
-                    ticket_category=command_parser_arguments.ticket_category,
-                    ticket_item=command_parser_arguments.ticket_item,
-                    ticket_group=command_parser_arguments.ticket_group,
-                    ticket_type=command_parser_arguments.ticket_type,
                     ticket_severity=4)
                 wrapper_error_occurred = True
                 finished_email_body += "Failure due to Snapshot monitor stopping due to an internal error."
@@ -245,19 +251,11 @@ def application_thread():
             else:
                 # Is the error something in the canary failed?
                 if (application_monitor.error_code != 0):
-                    cut_ticket_using_cloudwatch(
-                        git_repo_name=command_parser_arguments.git_repo_name,
-                        git_hash=command_parser_arguments.git_hash,
-                        git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
-                        git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
+                    ticketing.cut_ticket_using_cloudwatch(
                         cloudwatch_region="us-east-1",
                         ticket_description="The Short Running Canary exited with a non-zero exit code! This likely means something in the canary failed.",
                         ticket_reason="The Short Running Canary exited with a non-zero exit code",
                         ticket_allow_duplicates=True,
-                        ticket_category=command_parser_arguments.ticket_category,
-                        ticket_item=command_parser_arguments.ticket_item,
-                        ticket_group=command_parser_arguments.ticket_group,
-                        ticket_type=command_parser_arguments.ticket_type,
                         ticket_severity=4)
                     wrapper_error_occurred = True
                     finished_email_body += "Failure due to MQTT5 application exiting with a non-zero exit code! This means something in the Canary application itself failed"
@@ -270,19 +268,10 @@ def application_thread():
         else:
             print(
                 "ERROR - Short Running Canary stopped due to unknown reason!", flush=True)
-            cut_ticket_using_cloudwatch(
-                git_repo_name=command_parser_arguments.git_repo_name,
-                git_hash=command_parser_arguments.git_hash,
-                git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
-                git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
-                cloudwatch_region="us-east-1",
+            ticketing.cut_ticket_using_cloudwatch(
                 ticket_description="The Short Running Canary stopped for an unknown reason!",
                 ticket_reason="The Short Running Canary stopped for unknown reason",
                 ticket_allow_duplicates=True,
-                ticket_category=command_parser_arguments.ticket_category,
-                ticket_item=command_parser_arguments.ticket_item,
-                ticket_group=command_parser_arguments.ticket_group,
-                ticket_type=command_parser_arguments.ticket_type,
                 ticket_severity=4)
             wrapper_error_occurred = True
             finished_email_body += "Failure due to unknown reason! This shouldn't happen and means something has gone wrong!"
