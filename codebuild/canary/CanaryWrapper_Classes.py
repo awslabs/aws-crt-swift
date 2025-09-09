@@ -1111,7 +1111,7 @@ class CloudwatchTicketing():
         # In the ticket ARN, all spaces need to be replaced with +
         ticket_arn = ticket_arn.replace(" ", "+")
 
-        ticket_alarm_description = f"AUTO CUT CANARY WRAPPER TICKET\n\nREASON: {ticket_reason}\n\nDESCRIPTION: {ticket_description}\n\n Checkout https://w.amazon.com/bin/view/AWS/DeveloperResources/AWSSDKsAndTools/IoTDeviceSDK-main/IoTSDK-engineering/EC2-MQTT-Canary/#HHandleShortRunningCanaryAlarms\n\n"
+        ticket_alarm_description = f"AUTO CUT CANARY WRAPPER TICKET\n\nREASON: {ticket_reason}\n\nDESCRIPTION: {ticket_description}\n\n"
 
         # Register a metric alarm so it can auto-cut a ticket for us
         try:
