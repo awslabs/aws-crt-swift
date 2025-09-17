@@ -13,6 +13,9 @@ typealias OnMqtt5CanaryTestFunction = (Mqtt5CanaryTestContext) -> Void
 
 enum CanaryTestError: Error {
   case InvalidArgument
+  case InvalidOperation
+  case ClientNotFound  // Could not find client using the client id/index
+  case ClientIsInvalid  // Internal Mqtt5 client is invalid, the client might be destroyed
 }
 
 actor Mqtt5CanaryTestContext {
@@ -30,7 +33,7 @@ actor Mqtt5CanaryTestContext {
 
   func setClientConnection(clientId: String, connected: Bool) async throws {
     guard let client = mqtt5CanaryClients[clientId] else {
-      throw CanaryTestError.InvalidArgument
+      throw CanaryTestError.ClientNotFound
     }
     await client.setConnected(connected: connected)
   }
@@ -39,14 +42,14 @@ actor Mqtt5CanaryTestContext {
     let index = mqtt5CanaryClients.index(mqtt5CanaryClients.startIndex, offsetBy: index)
     let key = mqtt5CanaryClients.keys[index]
     guard let result = mqtt5CanaryClients[key] else {
-      throw CanaryTestError.InvalidArgument
+      throw CanaryTestError.ClientNotFound
     }
     return result
   }
 
   func getCanaryClient(_ clientId: String) throws -> Mqtt5CanaryClient {
     guard let result = mqtt5CanaryClients[clientId] else {
-      throw CanaryTestError.InvalidArgument
+      throw CanaryTestError.ClientNotFound
     }
     return result
   }
@@ -122,7 +125,7 @@ actor Mqtt5CanaryTestContext {
     case Mqtt5CanaryOperation.NULL:
       fallthrough
     case Mqtt5CanaryOperation.OPERATION_COUNT:
-      throw CanaryTestError.InvalidArgument
+      throw CanaryTestError.InvalidOperation
     }
 
   }
@@ -137,7 +140,7 @@ actor Mqtt5CanaryTestContext {
         try _client.start()
       } else {
         // Client does not exist, create a new one
-        throw CanaryTestError.InvalidArgument
+        throw CanaryTestError.ClientIsInvalid
       }
 
     }
@@ -151,7 +154,7 @@ actor Mqtt5CanaryTestContext {
         try _client.start()
       } else {
         // Client does not exist, create a new one
-        throw CanaryTestError.InvalidArgument
+        throw CanaryTestError.ClientIsInvalid
       }
     }
   }
@@ -163,7 +166,7 @@ actor Mqtt5CanaryTestContext {
       if let _client = await canaryClient.client {
         try _client.stop()
       } else {
-        throw CanaryTestError.InvalidArgument
+        throw CanaryTestError.ClientIsInvalid
       }
     }
   }
@@ -201,7 +204,7 @@ actor Mqtt5CanaryTestContext {
         await self.statistic.incrementSubscribeFailed()
       }
     } else {
-      throw CanaryTestError.InvalidArgument
+      throw CanaryTestError.ClientIsInvalid
     }
   }
 
@@ -240,7 +243,7 @@ actor Mqtt5CanaryTestContext {
         await self.statistic.incrementUnsubscribeFailed()
       }
     } else {
-      throw CanaryTestError.InvalidArgument
+      throw CanaryTestError.ClientIsInvalid
     }
   }
 
@@ -286,7 +289,7 @@ actor Mqtt5CanaryTestContext {
         await self.statistic.incrementPublishFailed()
       }
     } else {
-      throw CanaryTestError.InvalidArgument
+      throw CanaryTestError.ClientIsInvalid
     }
   }
 
@@ -305,7 +308,7 @@ actor Mqtt5CanaryTestContext {
       if let _client = await canaryClient.client {
         try _client.stop()
       } else {
-        throw CanaryTestError.InvalidArgument
+        throw CanaryTestError.ClientIsInvalid
       }
       await statistic.incrementTotalOperation()
       await canaryClient.resetClient()

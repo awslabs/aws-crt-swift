@@ -25,7 +25,7 @@ phases:
       # Get the endpoint, certificate, and key for connecting to IoT Core
       - export ENDPOINT=$(aws secretsmanager get-secret-value --secret-id ${CANARY_SERVER_ARN} --query "SecretString" | cut -f2 -d":" | sed -e 's/[\\\"\}]//g')
       # Run the Canary
-      - python3 codebuild/canary/CanaryWrapper.py --canary_executable swift --canary_arguments "run Mqtt5Canary --endpoint ${ENDPOINT} --seconds ${CANARY_DURATION} --tps ${CANARY_TPS} --threads ${CANARY_THREADS} -c ${CANARY_CLIENT_COUNT} --verbose ${CANARY_LOG_LEVEL}" --git_hash ${GIT_HASH} --git_repo_name $PACKAGE_NAME --ticket_item "${CODEBUILD_TICKET_ITEM}""
+      - python3 codebuild/canary/CanaryWrapper.py --canary_executable swift --canary_arguments "run Mqtt5Canary --endpoint ${ENDPOINT} --seconds ${CANARY_DURATION} --tps ${CANARY_TPS} --threads ${CANARY_THREADS} -c ${CANARY_CLIENT_COUNT} --verbose ${CANARY_LOG_LEVEL}" --git_hash ${GIT_HASH} --git_repo_name $PACKAGE_NAME --ticket_item "${CODEBUILD_TICKET_ITEM}"
   post_build:
     commands:
       - echo Build completed on `date`

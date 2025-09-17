@@ -59,17 +59,6 @@ if (command_parser_arguments.snapshot_wait_time <= 0):
 # it easy to distinct from other metrics.
 CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE = "mqtt5_swift_canary"
 
-# Deal with possibly empty values in critical commands/arguments
-if (command_parser_arguments.canary_executable == ""):
-    print("ERROR - required canary_executable is empty!", flush=True)
-    exit(1)  # cannot run without a canary executable
-if (command_parser_arguments.git_hash == ""):
-    print("ERROR - required git_hash is empty!", flush=True)
-    exit(1)  # cannot run without git hash
-if (command_parser_arguments.git_repo_name == ""):
-    print("ERROR - required git_repo_name is empty!", flush=True)
-    exit(1)  # cannot run without git repo name
-
 # ================================================================================
 
 # Use UTC time for easier tracking across timezones
@@ -128,8 +117,6 @@ data_snapshot.register_metric(
     new_metric_name="total_memory_usage_percent",
     new_metric_function=get_metric_total_memory_usage_percent,
     new_metric_unit="Percent",
-    # TODO: The alarm is disabled for now. Currently we use a static value of 70% memory usage,
-    # but ideally we should monitor the delta change over time.
     new_metric_alarm_threshold=70,
     new_metric_reports_to_skip=0,
     new_metric_alarm_severity=5,

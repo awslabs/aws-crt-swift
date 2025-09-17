@@ -1032,9 +1032,6 @@ class ApplicationMonitor():
                         self.error_has_occurred = True
                         self.error_reason = "Canary Application Finished"
                         self.error_code = 0
-            else:
-                self.print_message(
-                    "[ApplicationMonitor] Monitor application is still running...")
 
     def cleanup_monitor(self, error_occurred=False):
         pass
