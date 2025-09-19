@@ -1,0 +1,40 @@
+version: 0.2
+env:
+  shell: bash
+  variables:
+    CANARY_DURATION: 25200 # 7 hours
+    CANARY_THREADS: 3
+    CANARY_TPS: 50
+    CANARY_CLIENT_COUNT: 10
+    PACKAGE_NAME: 'aws-crt-swift'
+    CANARY_SERVER_ARN: Mqtt5MosquittoSever
+    CODEBUILD_TICKET_ITEM: "IoT SDK for Swift"
+phases:
+  install:
+    commands:
+      - git submodule update --init --recursive
+      # install cmake for codebuild environment.
+      - add-apt-repository ppa:ubuntu-toolchain-r/test
+      - apt-get update -y
+      # Install necessary lib for canary wrapper
+      - sudo apt-get install gcc python3-dev tar -y -f
+      - sudo apt-get install pip -y -f
+      - python3 -m pip install psutil
+      - python3 -m pip install boto3
+      # Install Swift
+      - curl -O https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz
+      - tar zxf swiftly-$(uname -m).tar.gz
+      - ./swiftly init --quiet-shell-followup
+      - . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
+      - hash -r
+  build:
+    commands:
+      - echo Build started on `date`
+      - export GIT_HASH=$(git rev-parse HEAD)
+      # Get the endpoint, certificate, and key for connecting to IoT Core
+      - export ENDPOINT=$(aws secretsmanager get-secret-value --secret-id ${CANARY_SERVER_ARN} --query "SecretString" | cut -f2 -d":" | sed -e 's/[\\\"\}]//g')
+      # Run the Canary
+      - python3 codebuild/canary/CanaryWrapper.py --canary_executable swift --canary_arguments "run Mqtt5Canary --endpoint ${ENDPOINT} --seconds ${CANARY_DURATION} --tps ${CANARY_TPS} --threads ${CANARY_THREADS} -c ${CANARY_CLIENT_COUNT}" --git_hash ${GIT_HASH} --git_repo_name $PACKAGE_NAME --ticket_item "${CODEBUILD_TICKET_ITEM}"
+  post_build:
+    commands:
+      - echo Build completed on `date`

@@ -6,17 +6,19 @@ import AwsCommonRuntimeKit
 import Foundation
 import _Concurrency
 
-let ONE_NANO_SECOND: UInt64 = 1_000_000_000
-let SLEEP_OVERHEAD_NS: UInt64 = 2_000_000  // 2ms overhead
+let ONE_NANO_SECOND: Double = 1_000_000_000
 let UNSUBSCRIBED_TEST_TOPIC = "SwiftCanary/Unsubscribed/" + UUID().uuidString
 
 typealias OnMqtt5CanaryTestFunction = (Mqtt5CanaryTestContext) -> Void
 
 enum CanaryTestError: Error {
   case InvalidArgument
+  case InvalidOperation
+  case ClientNotFound  // Could not find client using the client id/index
+  case ClientIsInvalid  // Internal Mqtt5 client is invalid, the client might be destroyed
 }
 
-class Mqtt5CanaryTestContext: @unchecked Sendable {
+actor Mqtt5CanaryTestContext {
   var mqtt5CanaryClients: [String: Mqtt5CanaryClient] = [:]
   var statistic: Mqtt5CanaryStatistic
 
@@ -29,18 +31,22 @@ class Mqtt5CanaryTestContext: @unchecked Sendable {
     mqtt5CanaryClients[clientId] = client
   }
 
-  func setClientConnection(clientId: String, connected: Bool) throws {
+  func setClientConnection(clientId: String, connected: Bool) async throws {
     guard let client = mqtt5CanaryClients[clientId] else {
-      throw CanaryTestError.InvalidArgument
+      throw CanaryTestError.ClientNotFound
     }
-    client.setConnected(connected: connected)
+    await client.setConnected(connected: connected)
   }
 
-  func getCanaryClient(_ index: Int) throws -> Mqtt5CanaryClient {
-    let index = mqtt5CanaryClients.index(mqtt5CanaryClients.startIndex, offsetBy: index)
-    let key = mqtt5CanaryClients.keys[index]
-    guard let result = mqtt5CanaryClients[key] else {
-      throw CanaryTestError.InvalidArgument
+  func getCanaryIdFromIndex(_ index: Int) throws -> String {
+    let clientindex = mqtt5CanaryClients.index(mqtt5CanaryClients.startIndex, offsetBy: index)
+    let key = mqtt5CanaryClients.keys[clientindex]
+    return key;
+  }
+
+  func getCanaryClient(_ clientId: String) throws -> Mqtt5CanaryClient {
+    guard let result = mqtt5CanaryClients[clientId] else {
+      throw CanaryTestError.ClientNotFound
     }
     return result
   }
@@ -56,23 +62,23 @@ class Mqtt5CanaryTestContext: @unchecked Sendable {
       onWebsocketTransform: testOptions.onWebsocketTransform,
       connectOptions: connectionOption,
       onLifecycleEventStoppedFn: { _ in
-        if let client = self.mqtt5CanaryClients[clientId] {
-          client.setConnected(connected: false)
+        Task {
+          try await self.setClientConnection(clientId: clientId, connected: false)
         }
       },
       onLifecycleEventConnectionSuccessFn: { _ in
-        if let client = self.mqtt5CanaryClients[clientId] {
-          client.setConnected(connected: true)
+        Task {
+          try await self.setClientConnection(clientId: clientId, connected: true)
         }
       },
       onLifecycleEventConnectionFailureFn: { _ in
-        if let client = self.mqtt5CanaryClients[clientId] {
-          client.setConnected(connected: false)
+        Task {
+          try await self.setClientConnection(clientId: clientId, connected: false)
         }
       },
       onLifecycleEventDisconnectionFn: { _ in
-        if let client = self.mqtt5CanaryClients[clientId] {
-          client.setConnected(connected: false)
+        Task {
+          try await self.setClientConnection(clientId: clientId, connected: false)
         }
       }
     )
@@ -86,148 +92,173 @@ class Mqtt5CanaryTestContext: @unchecked Sendable {
   func mqtt5CanaryRunOperation(
     _ operation: Mqtt5CanaryOperation, _ index: Int, _ options: Mqtt5CanaryTestOptions
   ) async throws {
+
+    let clientId = try getCanaryIdFromIndex(index)
     switch operation {
     case Mqtt5CanaryOperation.STOP:
-      try await mqtt5CanaryOperationStop(clientIndex: index)
+      try await mqtt5CanaryOperationStop(clientId: clientId)
     case Mqtt5CanaryOperation.SUBSCRIBE:
-      try await mqtt5CanaryOperationSubscribe(clientIndex: index)
+      try await mqtt5CanaryOperationSubscribe(clientId: clientId)
     case Mqtt5CanaryOperation.UNSUBSCRIBE:
-      try await mqtt5CanaryOperationUnsubscribe(clientIndex: index)
+      try await mqtt5CanaryOperationUnsubscribe(clientId: clientId)
     case Mqtt5CanaryOperation.UNSUBSCRIBE_BAD:
-      try await mqtt5CanaryOperationUnsubscribeBad(clientIndex: index)
+      try await mqtt5CanaryOperationUnsubscribeBad(clientId: clientId)
     case Mqtt5CanaryOperation.PUBLISH_QOS0:
-      try await mqtt5CanaryOperationPublishUnsubscribed(clientIndex: index, qos: QoS.atMostOnce)
+      try await mqtt5CanaryOperationPublishUnsubscribed(clientId: clientId, qos: QoS.atMostOnce)
     case Mqtt5CanaryOperation.PUBLISH_QOS1:
-      try await mqtt5CanaryOperationPublishUnsubscribed(clientIndex: index, qos: QoS.atLeastOnce)
+      try await mqtt5CanaryOperationPublishUnsubscribed(clientId: clientId, qos: QoS.atLeastOnce)
     case Mqtt5CanaryOperation.PUBLISH_TO_SUBSCRIBED_TOPIC_QOS0:
       try await mqtt5CanaryOperationPublish(
-        clientIndex: index, qos: QoS.atMostOnce)
+        clientId: clientId, qos: QoS.atMostOnce)
     case Mqtt5CanaryOperation.PUBLISH_TO_SUBSCRIBED_TOPIC_QOS1:
       try await mqtt5CanaryOperationPublish(
-        clientIndex: index, qos: QoS.atLeastOnce)
+        clientId: clientId, qos: QoS.atLeastOnce)
     case Mqtt5CanaryOperation.PUBLISH_TO_SHARED_TOPIC_QOS0:
       try await mqtt5CanaryOperationPublishShared(
-        clientIndex: index, qos: QoS.atMostOnce)
+        clientId: clientId, qos: QoS.atMostOnce)
     case Mqtt5CanaryOperation.PUBLISH_TO_SHARED_TOPIC_QOS1:
       try await mqtt5CanaryOperationPublishShared(
-        clientIndex: index, qos: QoS.atLeastOnce)
+        clientId: clientId, qos: QoS.atLeastOnce)
     case Mqtt5CanaryOperation.DESTROY_AND_CREATE:
-      try await mqtt5CanaryOperationDestroyAndCreate(clientIndex: index, option: options)
+      try await mqtt5CanaryOperationDestroyAndCreate(clientId: clientId, option: options)
     case Mqtt5CanaryOperation.NULL:
       fallthrough
     case Mqtt5CanaryOperation.OPERATION_COUNT:
-      throw CanaryTestError.InvalidArgument
+      throw CanaryTestError.InvalidOperation
     }
 
   }
 
   /// Client Operations
-  func mqtt5CanaryOperationStart(clientIndex: Int) async throws {
-    let canaryClient = try getCanaryClient(clientIndex)
-    if !canaryClient.is_connected {
+  func mqtt5CanaryOperationStart(clientId: String) async throws {
+    let canaryClient = try getCanaryClient(clientId)
+    if await canaryClient.getConnected() == false {
       await statistic.incrementTotalOperation()
-      try canaryClient.client!.start()
+      if let _client = await canaryClient.client {
+        // Client already exists, just start it
+        try _client.start()
+      } else {
+        // Client does not exist, create a new one
+        throw CanaryTestError.ClientIsInvalid
+      }
+
     }
   }
 
   func mqtt5CanaryOperationStart(canaryClient: Mqtt5CanaryClient) async throws {
-    if !canaryClient.is_connected {
+    if await !canaryClient.getConnected() {
       await statistic.incrementTotalOperation()
-      try canaryClient.client!.start()
-    }
-  }
-
-  func mqtt5CanaryOperationStop(clientIndex: Int) async throws {
-    let canaryClient = try getCanaryClient(clientIndex)
-    if !canaryClient.is_connected {
-      await statistic.incrementTotalOperation()
-      try canaryClient.client!.stop()
-      // clean up the subscription count
-      canaryClient.subscriptionCount = 0
-    }
-  }
-
-  func mqtt5CanaryOperationSubscribe(clientIndex: Int) async throws {
-    let canaryClient = try getCanaryClient(clientIndex)
-    if !canaryClient.is_connected {
-      return try await mqtt5CanaryOperationStart(clientIndex: clientIndex)
-    }
-
-    do {
-      let sub = Subscription(topicFilter: canaryClient.getNextSubTopic(), qos: QoS.atLeastOnce)
-      var subscriptions = [sub]
-
-      await self.statistic.incrementSubscribeAttempts()
-      await self.statistic.incrementTotalOperation()
-
-      // If this is the first subscription of the client, subscribe to the shared topic
-      if (canaryClient.subscriptionCount == 1) {
-        subscriptions.append(
-          Subscription(topicFilter: canaryClient.shared_topic, qos: QoS.atLeastOnce))
-      }
-
-      let suback = try await canaryClient.client!.subscribe(
-        subscribePacket: SubscribePacket(subscriptions: subscriptions))
-
-      if suback.reasonCodes[0] == SubackReasonCode.grantedQos1 {
-        await self.statistic.incrementSubscribeSucceed()
+      if let _client = await canaryClient.client {
+        // Client already exists, just start it
+        try _client.start()
       } else {
+        // Client does not exist, create a new one
+        throw CanaryTestError.ClientIsInvalid
+      }
+    }
+  }
+
+  func mqtt5CanaryOperationStop(clientId: String) async throws {
+    let canaryClient = try getCanaryClient(clientId)
+    if await !canaryClient.getConnected() {
+      await statistic.incrementTotalOperation()
+      if let _client = await canaryClient.client {
+        try _client.stop()
+      } else {
+        throw CanaryTestError.ClientIsInvalid
+      }
+    }
+  }
+
+  func mqtt5CanaryOperationSubscribe(clientId: String) async throws {
+    let canaryClient = try getCanaryClient(clientId)
+    if await !canaryClient.getConnected() {
+      return try await mqtt5CanaryOperationStart(clientId: clientId)
+    }
+
+    let sub = Subscription(
+      topicFilter: await canaryClient.getNextSubTopic(), qos: QoS.atLeastOnce)
+    var subscriptions = [sub]
+
+    // If this is the first subscription of the client, subscribe to the shared topic
+    if (await canaryClient.subscriptionCount == 1) {
+      subscriptions.append(
+        Subscription(topicFilter: canaryClient.shared_topic, qos: QoS.atLeastOnce))
+    }
+
+    if let _client = await canaryClient.client {
+      do {
+        let suback = try await _client.subscribe(
+          subscribePacket: SubscribePacket(subscriptions: subscriptions))
+
+        await self.statistic.incrementSubscribeAttempts()
+        await self.statistic.incrementTotalOperation()
+
+        if suback.reasonCodes[0] == SubackReasonCode.grantedQos1 {
+          await self.statistic.incrementSubscribeSucceed()
+        } else {
+          await self.statistic.incrementSubscribeFailed()
+        }
+      } catch {
         await self.statistic.incrementSubscribeFailed()
       }
-    } catch {
-      await self.statistic.incrementSubscribeFailed()
+    } else {
+      throw CanaryTestError.ClientIsInvalid
     }
   }
 
-  func mqtt5CanaryOperationUnsubscribe(clientIndex: Int) async throws {
-    let canaryClient = try getCanaryClient(clientIndex)
+  func mqtt5CanaryOperationUnsubscribe(clientId: String) async throws {
+    let canaryClient = try getCanaryClient(clientId)
     try await mqtt5CanaryOperationUnsubscribe(
-      canaryClient: canaryClient, testTopic: canaryClient.getUnsubscribedTopic())
+      canaryClient: canaryClient, testTopic: await canaryClient.getUnsubscribedTopic())
   }
 
-  func mqtt5CanaryOperationUnsubscribeBad(clientIndex: Int) async throws {
-    let canaryClient = try getCanaryClient(clientIndex)
+  func mqtt5CanaryOperationUnsubscribeBad(clientId: String) async throws {
+    let canaryClient = try getCanaryClient(clientId)
     try await mqtt5CanaryOperationUnsubscribe(canaryClient: canaryClient)
   }
 
   func mqtt5CanaryOperationUnsubscribe(
     canaryClient: Mqtt5CanaryClient, testTopic: String = UNSUBSCRIBED_TEST_TOPIC
   ) async throws {
-    if !canaryClient.is_connected {
+    if await !canaryClient.getConnected() {
       return try await mqtt5CanaryOperationStart(canaryClient: canaryClient)
     }
 
-    do {
-      let unsub = UnsubscribePacket(topicFilter: testTopic)
+    let unsub = UnsubscribePacket(topicFilter: testTopic)
 
-      await self.statistic.incrementUnsubscribeAttempts()
-      await self.statistic.incrementTotalOperation()
+    if let _client = await canaryClient.client {
+      do {
+        let unsubAck = try await _client.unsubscribe(unsubscribePacket: unsub)
+        await self.statistic.incrementUnsubscribeAttempts()
+        await self.statistic.incrementTotalOperation()
 
-      let unsubAck = try await canaryClient.client!.unsubscribe(unsubscribePacket: unsub)
-
-      if unsubAck.reasonCodes[0] == UnsubackReasonCode.success {
-        await self.statistic.incrementUnsubscribeSucceed()
-      } else {
+        if unsubAck.reasonCodes[0] == UnsubackReasonCode.success {
+          await self.statistic.incrementUnsubscribeSucceed()
+        } else {
+          await self.statistic.incrementUnsubscribeFailed()
+        }
+      } catch {
         await self.statistic.incrementUnsubscribeFailed()
       }
-    } catch {
-      await self.statistic.incrementUnsubscribeFailed()
+    } else {
+      throw CanaryTestError.ClientIsInvalid
     }
   }
 
-  func mqtt5CanaryOperationPublish(clientIndex: Int, qos: QoS) async throws {
-    let canaryClient = try getCanaryClient(clientIndex)
+  func mqtt5CanaryOperationPublish(clientId: String, qos: QoS) async throws {
+    let canaryClient = try getCanaryClient(clientId)
     try await mqtt5CanaryOperationPublish(
-      canaryClient: canaryClient, topic: canaryClient.getSubscribedTopic(), qos: qos)
+      canaryClient: canaryClient, topic: await canaryClient.getSubscribedTopic(), qos: qos)
   }
 
-  func mqtt5CanaryOperationPublishUnsubscribed(clientIndex: Int, qos: QoS) async throws {
-    let canaryClient = try getCanaryClient(clientIndex)
+  func mqtt5CanaryOperationPublishUnsubscribed(clientId: String, qos: QoS) async throws {
+    let canaryClient = try getCanaryClient(clientId)
     try await mqtt5CanaryOperationPublish(canaryClient: canaryClient, qos: qos)
   }
 
-  func mqtt5CanaryOperationPublishShared(clientIndex: Int, qos: QoS) async throws {
-    let canaryClient = try getCanaryClient(clientIndex)
+  func mqtt5CanaryOperationPublishShared(clientId: String, qos: QoS) async throws {
+    let canaryClient = try getCanaryClient(clientId)
     try await mqtt5CanaryOperationPublish(
       canaryClient: canaryClient, topic: canaryClient.shared_topic, qos: qos)
   }
@@ -235,25 +266,29 @@ class Mqtt5CanaryTestContext: @unchecked Sendable {
   func mqtt5CanaryOperationPublish(
     canaryClient: Mqtt5CanaryClient, topic: String = UNSUBSCRIBED_TEST_TOPIC, qos: QoS
   ) async throws {
-    if !canaryClient.is_connected {
+    if await !canaryClient.getConnected() {
       return try await mqtt5CanaryOperationStart(canaryClient: canaryClient)
     }
-    do {
-      let pub = PublishPacket(qos: qos, topic: topic)
+    let pub = PublishPacket(qos: qos, topic: topic)
 
-      await self.statistic.incrementPublishAttempts()
-      await self.statistic.incrementTotalOperation()
-      let puback = try await canaryClient.client!.publish(publishPacket: pub)
+    if let _client = await canaryClient.client {
+      do {
+        let puback = try await _client.publish(publishPacket: pub)
+        await self.statistic.incrementPublishAttempts()
+        await self.statistic.incrementTotalOperation()
 
-      if qos == QoS.atMostOnce || puback.puback?.reasonCode == PubackReasonCode.success
-        || puback.puback?.reasonCode == PubackReasonCode.noMatchingSubscribers
-      {
-        await self.statistic.incrementPublishSucceed()
-      } else {
+        if qos == QoS.atMostOnce || puback.puback?.reasonCode == PubackReasonCode.success
+          || puback.puback?.reasonCode == PubackReasonCode.noMatchingSubscribers
+        {
+          await self.statistic.incrementPublishSucceed()
+        } else {
+          await self.statistic.incrementPublishFailed()
+        }
+      } catch {
         await self.statistic.incrementPublishFailed()
       }
-    } catch {
-      await self.statistic.incrementPublishFailed()
+    } else {
+      throw CanaryTestError.ClientIsInvalid
     }
   }
 
@@ -263,24 +298,27 @@ class Mqtt5CanaryTestContext: @unchecked Sendable {
     }
   }
 
-  func mqtt5CanaryOperationDestroyAndCreate(clientIndex: Int, option: Mqtt5CanaryTestOptions)
+  func mqtt5CanaryOperationDestroyAndCreate(clientId: String, option: Mqtt5CanaryTestOptions)
     async throws
   {
     // If there is one client left
     if mqtt5CanaryClients.count > 1 {
-      let canaryClient = try getCanaryClient(clientIndex)
-      try canaryClient.client!.stop()
+      let canaryClient = try getCanaryClient(clientId)
+      if let _client = await canaryClient.client {
+        try _client.stop()
+      } else {
+        throw CanaryTestError.ClientIsInvalid
+      }
       await statistic.incrementTotalOperation()
-      canaryClient.client = nil
-      mqtt5CanaryClients.remove(
-        at: mqtt5CanaryClients.index(mqtt5CanaryClients.startIndex, offsetBy: clientIndex))
+      await canaryClient.resetClient()
+      mqtt5CanaryClients.removeValue(forKey: clientId)
       try await mqtt5CanaryOperationCreation(option: option)
     }
   }
 
 }
 
-class Mqtt5CanaryClient {
+actor Mqtt5CanaryClient {
   fileprivate var client: Mqtt5Client?
   fileprivate let clientId: String
   fileprivate let shared_topic: String
@@ -295,15 +333,15 @@ class Mqtt5CanaryClient {
 
   func getNextSubTopic() -> String {
     self.subscriptionCount += 1
-    return self.clientId + "_" + String(self.subscriptionCount);
+    return self.clientId + "_" + String(self.subscriptionCount)
   }
 
   func getSubscribedTopic() -> String {
-    return self.clientId + "_" + String(self.subscriptionCount);
+    return self.clientId + "_" + String(self.subscriptionCount)
   }
 
   func getUnsubscribedTopic() -> String {
-    let topic = self.clientId + "_" + String(self.subscriptionCount);
+    let topic = self.clientId + "_" + String(self.subscriptionCount)
     if (self.subscriptionCount > 0) {
       self.subscriptionCount -= 1
     }
@@ -312,6 +350,15 @@ class Mqtt5CanaryClient {
 
   func setConnected(connected: Bool) {
     self.is_connected = connected
+  }
+
+  func getConnected() -> Bool {
+    return self.is_connected
+  }
+
+  func resetClient() {
+    self.client = nil
+    self.subscriptionCount = 0
   }
 
 }
@@ -428,7 +475,7 @@ struct Mqtt5CanaryTestOptions: @unchecked Sendable {
   var boostrap: ClientBootstrap
   var tlsctx: TLSContext? = nil
   // Test options
-  let tpsSleepTime: UInt64
+  let tpsSleepTime: UInt32
   var onWebsocketTransform: OnWebSocketHandshakeIntercept? = nil
   var operationDistribution: [Mqtt5CanaryOperation] = []
 
@@ -436,7 +483,7 @@ struct Mqtt5CanaryTestOptions: @unchecked Sendable {
     shared_topic = "shared_topic_" + UUID().uuidString
     self.endpoint = testApp.endpoint
     self.port = testApp.port
-    self.tpsSleepTime = testApp.tps > 0 ? (UInt64(ONE_NANO_SECOND / testApp.tps)) : 0
+    self.tpsSleepTime = testApp.tps > 0 ? (UInt32)(ONE_NANO_SECOND / Double(testApp.tps)) : 0
     self.clientCount = testApp.clients
     // Initialize elg first
     self.elg = try EventLoopGroup(threadCount: testApp.threads)
@@ -506,7 +553,7 @@ func Mqtt5CanaryOperationDistributionSetup(_ distributionDataSet: inout [Mqtt5Ca
   _ context: Mqtt5CanaryTestContext, _ options: Mqtt5CanaryTestOptions
 ) async throws -> Void {
   let operationIndex = Int.random(in: 0..<options.operationDistribution.count)
-  let clientIndex = Int.random(in: 0..<context.mqtt5CanaryClients.count)
+  let clientIndex = await Int.random(in: 0..<context.mqtt5CanaryClients.count)
   try await context.mqtt5CanaryRunOperation(
     options.operationDistribution[operationIndex], clientIndex, options)
 }
@@ -604,20 +651,16 @@ struct Mqtt5Canary: AsyncParsableCommand {
 
     while Date() < endTime {
       let iterationStartTime = Date()
+      let targetTime = iterationStartTime.addingTimeInterval(
+        TimeInterval(Double(testOptions.tpsSleepTime) / ONE_NANO_SECOND))
       Task {
         try await Mqtt5CanaryTestRunIteration(context, testOptions)
       }
 
-      // Task.sleep always sleeps longer than requested due to system overhead. For more precise timing...
-      // we use a busy waiting...
-      if testOptions.tpsSleepTime > SLEEP_OVERHEAD_NS {
-        try await Task.sleep(nanoseconds: testOptions.tpsSleepTime - SLEEP_OVERHEAD_NS)
-      }
-      let targetTime = iterationStartTime.addingTimeInterval(
-        TimeInterval(testOptions.tpsSleepTime / ONE_NANO_SECOND))
       while Date() < targetTime {
         // Busy-wait for precision sleep
       }
+
     }
 
     // Close and clean up the clients
