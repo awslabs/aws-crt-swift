@@ -106,15 +106,18 @@ public typealias OnPublishReceived = @Sendable (PublishReceivedData) -> Void
 public typealias OnLifecycleEventStopped = @Sendable (LifecycleStoppedData) -> Void
 
 /// Defines signature of the Lifecycle Event Attempting Connect callback
-public typealias OnLifecycleEventAttemptingConnect = @Sendable (LifecycleAttemptingConnectData) ->
+public typealias OnLifecycleEventAttemptingConnect =
+  @Sendable (LifecycleAttemptingConnectData) ->
   Void
 
 /// Defines signature of the Lifecycle Event Connection Success callback
-public typealias OnLifecycleEventConnectionSuccess = @Sendable (LifecycleConnectionSuccessData) ->
+public typealias OnLifecycleEventConnectionSuccess =
+  @Sendable (LifecycleConnectionSuccessData) ->
   Void
 
 /// Defines signature of the Lifecycle Event Connection Failure callback
-public typealias OnLifecycleEventConnectionFailure = @Sendable (LifecycleConnectionFailureData) ->
+public typealias OnLifecycleEventConnectionFailure =
+  @Sendable (LifecycleConnectionFailureData) ->
   Void
 
 /// Defines signature of the Lifecycle Event Disconnection callback
@@ -127,9 +130,10 @@ public typealias OnWebSocketHandshakeInterceptComplete = @Sendable (HTTPRequestB
 /// such as signing/authorization etc... Returning from this function does not continue the websocket
 /// handshake since some work flows may be asynchronous. To accommodate that, onComplete must be invoked upon
 /// completion of the signing process.
-public typealias OnWebSocketHandshakeIntercept = @Sendable (
-  HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete
-) -> Void
+public typealias OnWebSocketHandshakeIntercept =
+  @Sendable (
+    HTTPRequest, @escaping OnWebSocketHandshakeInterceptComplete
+  ) -> Void
 
 // MARK: - Mqtt5 Client
 public final class Mqtt5Client: Sendable {
