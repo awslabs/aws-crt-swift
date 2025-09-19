@@ -205,6 +205,8 @@ class DataSnapshot():
                 git_namespace_prepend_text = self.git_repo_name + \
                     "/" + self.datetime_string + "-" + self.git_hash
             self.git_metric_namespace = git_namespace_prepend_text
+            self.print_message(
+                f"[DataSnapshot] INFO - setup datetime string {self.datetime_string}.")
         # ==================
 
         # Cloudwatch related stuff
@@ -312,7 +314,7 @@ class DataSnapshot():
                 DashboardName=self.cloudwatch_dashboard_name,
                 DashboardBody=new_dashboard_body_json)
             self.print_message(
-                "[DataSnapshot] Added Cloudwatch dashboard successfully")
+                f"[DataSnapshot] Added Cloudwatch dashboard {self.cloudwatch_dashboard_name} successfully")
         except Exception as e:
             self.print_message(
                 "[DataSnapshot] ERROR - Cloudwatch client could not make dashboard due to exception!")
