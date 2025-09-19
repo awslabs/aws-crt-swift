@@ -110,7 +110,6 @@ class DataSnapshot():
     def __init__(self,
                  git_hash=None,
                  git_repo_name=None,
-                 git_hash_as_namespace=False,
                  git_fixed_namespace_text="mqtt5_canary",
                  datetime_string=None,
                  output_log_filepath=None,
@@ -144,7 +143,6 @@ class DataSnapshot():
 
         self.git_hash = None
         self.git_repo_name = None
-        self.git_hash_as_namespace = git_hash_as_namespace
         self.git_fixed_namespace_text = git_fixed_namespace_text
         self.git_metric_namespace = None
 
@@ -196,19 +194,15 @@ class DataSnapshot():
         self.git_hash = git_hash
         self.git_repo_name = git_repo_name
 
-        if (self.git_hash_as_namespace == False):
-            self.git_metric_namespace = self.git_fixed_namespace_text
-        else:
-            if (self.datetime_string == None):
-                git_namespace_prepend_text = self.git_repo_name + "-" + self.git_hash
-            else:
-                git_namespace_prepend_text = self.git_repo_name + \
-                    "/" + self.datetime_string + "-" + self.git_hash
-            self.git_metric_namespace = git_namespace_prepend_text
-            self.print_message(
-                f"[DataSnapshot] INFO - setup datetime string {self.datetime_string}.")
-        # ==================
+        self.git_metric_namespace = self.git_fixed_namespace_text
 
+        if (self.datetime_string == None):
+            self.metrics_namespace_dimension = self.git_repo_name + "-" + self.git_hash
+        else:
+            self.metrics_namespace_dimension = self.git_repo_name + \
+                "/" + self.datetime_string + "-" + self.git_hash
+
+        # ==================
         # Cloudwatch related stuff
         # ==================
         try:
@@ -503,14 +497,8 @@ class DataSnapshot():
                         new_metric_alarm_threshold=None, new_metric_reports_to_skip=0, new_metric_alarm_severity=6, is_percent=False):
 
         new_metric_dimensions = []
-
-        if (self.git_hash_as_namespace == False):
-            git_namespace_prepend_text = self.git_repo_name + "-" + self.git_hash
-            new_metric_dimensions.append(
-                {"Name": git_namespace_prepend_text, "Value": new_metric_name})
-        else:
-            new_metric_dimensions.append(
-                {"Name": "System_Metrics", "Value": new_metric_name})
+        new_metric_dimensions.append(
+            {"Name": self.metrics_namespace_dimension, "Value": new_metric_name})
 
         new_metric = DataSnapshot_Metric(
             metric_name=new_metric_name,
@@ -531,11 +519,7 @@ class DataSnapshot():
     def register_dashboard_widget(self, new_widget_name, metrics_to_add=[], new_widget_period=60):
 
         # We need to know what metric dimension to get the metric(s) from
-        metric_dimension_string = ""
-        if (self.git_hash_as_namespace == False):
-            metric_dimension_string = self.git_repo_name + "-" + self.git_hash
-        else:
-            metric_dimension_string = "System_Metrics"
+        metric_dimension_string = self.git_repo_name + "-" + self.git_hash
 
         widget = self._find_cloudwatch_widget(name=new_widget_name)
         if (widget == None):
@@ -1059,7 +1043,6 @@ class CloudwatchTicketing():
     def __init__(self,
                  git_repo_name,
                  git_hash,
-                 git_hash_as_namespace,
                  git_fixed_namespace_text,
                  ticket_category,
                  ticket_type,
@@ -1072,22 +1055,12 @@ class CloudwatchTicketing():
         self.ticket_group = ticket_group
         self.cloudwatch_region = cloudwatch_region
 
-        self.cloudwatch_regiongit_metric_namespace = ""
-        if (git_hash_as_namespace == False):
-            self.git_metric_namespace = git_fixed_namespace_text
-        else:
-            git_namespace_prepend_text = git_repo_name + "-" + git_hash
-            self.git_metric_namespace = git_namespace_prepend_text
+        self.git_metric_namespace = git_fixed_namespace_text
 
         self.ticket_alarm_name = git_repo_name + "-" + git_hash + "-AUTO-TICKET"
         self.new_metric_dimensions = []
-        if (git_hash_as_namespace == False):
-            git_namespace_prepend_text = git_repo_name + "-" + git_hash
-            self.new_metric_dimensions.append(
-                {"Name": git_namespace_prepend_text, "Value": self.ticket_alarm_name})
-        else:
-            self.new_metric_dimensions.append(
-                {"Name": "System_Metrics", "Value": self.ticket_alarm_name})
+        self.new_metric_dimensions.append(
+            {"Name": "System_Metrics", "Value": self.ticket_alarm_name})
 
     def cut_ticket_using_cloudwatch(self,
                                     ticket_description,

@@ -21,8 +21,6 @@ command_parser.add_argument("--git_hash", type=str, required=True,
                             help="The Git commit hash that we are running the canary with")
 command_parser.add_argument("--git_repo_name", type=str, required=True,
                             help="The name of the Git repository")
-command_parser.add_argument("--git_hash_as_namespace", type=bool, default=False,
-                            help="(OPTIONAL, default=False) If true, the git hash will be used as the name of the Cloudwatch namespace")
 command_parser.add_argument("--output_log_filepath", type=str, default="output.log",
                             help="(OPTIONAL, default=output.log) The file to output log info to. If set, the output file will be uploaded to S3.")
 command_parser.add_argument("--output_to_console", type=bool, default=True,
@@ -71,7 +69,6 @@ data_snapshot = DataSnapshot(
     git_hash=command_parser_arguments.git_hash,
     git_repo_name=command_parser_arguments.git_repo_name,
     datetime_string=datetime_string,
-    git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
     git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
     output_log_filepath=command_parser_arguments.output_log_filepath,
     output_to_console=command_parser_arguments.output_to_console,
@@ -88,7 +85,6 @@ data_snapshot = DataSnapshot(
 ticketing = CloudwatchTicketing(
     git_repo_name=command_parser_arguments.git_repo_name,
     git_hash=command_parser_arguments.git_hash,
-    git_hash_as_namespace=command_parser_arguments.git_hash_as_namespace,
     git_fixed_namespace_text=CRT_SWIFT_FIXED_CLOUDWATCH_NAMESPACE,
     cloudwatch_region="us-east-1",
     ticket_category=command_parser_arguments.ticket_category,
