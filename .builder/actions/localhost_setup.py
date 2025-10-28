@@ -16,7 +16,7 @@ class LocalhostSetup(Builder.Action):
                 " The localhost integration tests will fail if you run them.", file=sys.stderr)
             return
         
-        server_dir = f"{env.root_dir}/crt/aws-c-http/tests/mock_server"
+        server_dir = f"{env.root_dir}/aws-common-runtime/aws-c-http/tests/mock_server"
         
         p1 = subprocess.Popen([python, "h2tls_mock_server.py"], cwd=server_dir)
         p2 = subprocess.Popen([python, "h2non_tls_server.py"], cwd=server_dir)
