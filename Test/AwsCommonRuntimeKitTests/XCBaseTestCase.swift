@@ -69,6 +69,12 @@ extension XCTestCase {
     #endif
   }
 
+  func skipIfLocalhostUnavailable() throws {
+    guard let _ = ProcessInfo.processInfo.environment["aws.crt.localhost"] else {
+      throw XCTSkip("Localhost server has not been started.")
+    }
+  }
+
   func awaitExpectationResult(_ expectations: [XCTestExpectation], _ timeout: TimeInterval = 5)
     async -> XCTWaiter.Result
   {

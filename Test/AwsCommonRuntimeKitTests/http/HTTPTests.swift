@@ -8,8 +8,8 @@ import XCTest
 @testable import AwsCommonRuntimeKit
 
 class HTTPTests: XCBaseTestCase {
-  let host = "postman-echo.com"
-  let getPath = "/get"
+  let host = "localhost"
+  let getPath = "/"
 
   func testGetHTTPSRequest() async throws {
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
@@ -17,22 +17,32 @@ class HTTPTests: XCBaseTestCase {
     _ = try await HTTPClientTestFixture.sendHTTPRequest(
       method: "GET", endpoint: host, path: getPath, connectionManager: connectionManager)
     _ = try await HTTPClientTestFixture.sendHTTPRequest(
-      method: "GET", endpoint: host, path: "/delete", expectedStatus: 404,
+      method: "GET", endpoint: host, path: "/404", expectedStatus: 404,
       connectionManager: connectionManager)
   }
 
   func testGetHTTPSRequestWithUtf8Header() async throws {
-    let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, ssh: true, port: 443)
-    let utf8Header = HTTPHeader(name: "TestHeader", value: "TestValueWithEmoji🤯")
-    let headers = try await HTTPClientTestFixture.sendHTTPRequest(
-      method: "GET", endpoint: host,
-      path: "/response-headers?\(utf8Header.name)=\(utf8Header.value)",
-      connectionManager: connectionManager
-    ).headers
-    XCTAssertTrue(
-      headers.contains(where: { $0.name == utf8Header.name && $0.value == utf8Header.value }))
-  }
+    let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
+    let utf8Header = HTTPHeader(name: "testheader", value: "TestValueWithEmoji🤯")
+    
+    let semaphore = TestSemaphore(value: 0)
+    var httpResponse = HTTPResponse()
+    
+    let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(
+        method: "GET",
+        endpoint: host,
+        path: "/",
+        response: &httpResponse,
+        semaphore: semaphore,
+        headers: [utf8Header])
+    
+    let connection = try await connectionManager.acquireConnection()
+    let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
+    try stream.activate()
+    await semaphore.wait()
+    
+    XCTAssertTrue(httpResponse.headers.contains(where: { $0.name == "Echo-" + utf8Header.name && $0.value == utf8Header.value }))
+}
 
   func testGetHTTPRequest() async throws {
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(

@@ -49,5 +49,12 @@
         "swift test"
       ]
     }
+  },
+  "variants": {
+    "localhost": {
+      "+test_env": {
+        "aws.crt.localhost": true
+      }
+    }
   }
 }
