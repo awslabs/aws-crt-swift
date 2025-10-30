@@ -20,6 +20,7 @@ class HTTPTests: XCBaseTestCase {
   }
 
   func testGetHTTPSRequest() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
       endpoint: host, ssh: true, port: httpsPort)
     _ = try await HTTPClientTestFixture.sendHTTPRequest(
@@ -30,6 +31,7 @@ class HTTPTests: XCBaseTestCase {
   }
 
   func testGetHTTPSRequestWithUtf8Header() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(endpoint: host, ssh: true, port: httpsPort)
     let utf8Header = HTTPHeader(name: "testheader", value: "TestValueWithEmoji🤯")
     
@@ -53,6 +55,7 @@ class HTTPTests: XCBaseTestCase {
 }
 
   func testGetHTTPRequest() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
       endpoint: host, ssh: false, port: httpPort)
     _ = try await HTTPClientTestFixture.sendHTTPRequest(
@@ -60,6 +63,7 @@ class HTTPTests: XCBaseTestCase {
   }
 
   func testPutHTTPRequest() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
       endpoint: host, ssh: true, port: httpsPort)
     let response = try await HTTPClientTestFixture.sendHTTPRequest(
@@ -78,8 +82,9 @@ class HTTPTests: XCBaseTestCase {
   }
 
   func testHTTPChunkTransferEncoding() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, alpnList: ["http/1.1"])
+      endpoint: host, port: httpsPort, alpnList: ["http/1.1"])
     let semaphore = TestSemaphore(value: 0)
     var httpResponse = HTTPResponse()
     var onCompleteCalled = false
@@ -126,8 +131,9 @@ class HTTPTests: XCBaseTestCase {
   }
 
   func testHTTPChunkTransferEncodingWithDataInLastChunk() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, alpnList: ["http/1.1"])
+      endpoint: host, port: httpsPort, alpnList: ["http/1.1"])
     let semaphore = TestSemaphore(value: 0)
     var httpResponse = HTTPResponse()
     var onCompleteCalled = false
@@ -175,6 +181,7 @@ class HTTPTests: XCBaseTestCase {
   }
 
   func testHTTPStreamIsReleasedIfNotActivated() async throws {
+    try skipIfLocalhostUnavailable()
     do {
       let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(
         method: "GET", endpoint: host, path: getPath)
@@ -188,6 +195,7 @@ class HTTPTests: XCBaseTestCase {
   }
 
   func testStreamLivesUntilComplete() async throws {
+    try skipIfLocalhostUnavailable()
     let semaphore = TestSemaphore(value: 0)
     do {
       let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(
@@ -202,6 +210,7 @@ class HTTPTests: XCBaseTestCase {
   }
 
   func testManagerLivesUntilComplete() async throws {
+    try skipIfLocalhostUnavailable()
     var connection: HTTPClientConnection! = nil
     let semaphore = TestSemaphore(value: 0)
 
@@ -218,6 +227,7 @@ class HTTPTests: XCBaseTestCase {
   }
 
   func testConnectionLivesUntilComplete() async throws {
+    try skipIfLocalhostUnavailable()
     var stream: HTTPStream! = nil
 
     let semaphore = TestSemaphore(value: 0)
@@ -235,6 +245,7 @@ class HTTPTests: XCBaseTestCase {
   }
 
   func testConnectionCloseThrow() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
       endpoint: host, ssh: true, port: httpsPort)
     let connection = try await connectionManager.acquireConnection()
@@ -245,6 +256,7 @@ class HTTPTests: XCBaseTestCase {
   }
 
   func testConnectionCloseActivateThrow() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
       endpoint: host, ssh: true, port: httpsPort)
     let connection = try await connectionManager.acquireConnection()
@@ -256,6 +268,7 @@ class HTTPTests: XCBaseTestCase {
   }
 
   func testConnectionCloseIsIdempotent() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
       endpoint: host, ssh: true, port: httpsPort)
     let connection = try await connectionManager.acquireConnection()

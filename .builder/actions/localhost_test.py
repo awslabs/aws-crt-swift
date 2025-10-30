@@ -47,6 +47,6 @@ class LocalhostTest(Builder.Action):
         self.start(env)
         env.shell.setenv('AWS_CRT_MEMORY_TRACING', '2')
 
-        if os.system("swift test"):
+        if os.system("swift test --filter 'HTTPTests|HTTP2ClientConnectionTests'"):
             # Failed
             actions.append("exit 1")
