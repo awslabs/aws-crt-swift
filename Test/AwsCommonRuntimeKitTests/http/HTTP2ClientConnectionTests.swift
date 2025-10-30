@@ -14,7 +14,7 @@ class HTTP2ClientConnectionTests: XCBaseTestCase {
     try skipIfLocalhostUnavailable()
     try? Logger.initialize(target: LogTarget.standardOutput, level: LogLevel.trace)
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-        endpoint: host, port: port, alpnList: ["h2", "http/1.1"])
+      endpoint: host, port: port, alpnList: ["h2", "http/1.1"])
     let connection = try await connectionManager.acquireConnection()
     XCTAssertEqual(connection.httpVersion, HTTPVersion.version_2)
   }

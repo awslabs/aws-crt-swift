@@ -10,7 +10,7 @@ import XCTest
 class HTTPTests: XCBaseTestCase {
   let host = "localhost"
   let getPath = "/"
-  
+
   // Use mock server ports when running localhost tests
   var httpPort: Int {
     ProcessInfo.processInfo.environment["aws.crt.localhost"] != nil ? 8081 : 80
@@ -32,27 +32,31 @@ class HTTPTests: XCBaseTestCase {
 
   func testGetHTTPSRequestWithUtf8Header() async throws {
     try skipIfLocalhostUnavailable()
-    let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(endpoint: host, ssh: true, port: httpsPort)
+    let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
+      endpoint: host, ssh: true, port: httpsPort)
     let utf8Header = HTTPHeader(name: "testheader", value: "TestValueWithEmoji🤯")
-    
+
     let semaphore = TestSemaphore(value: 0)
     var httpResponse = HTTPResponse()
-    
+
     let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(
-        method: "GET",
-        endpoint: host,
-        path: "/",
-        response: &httpResponse,
-        semaphore: semaphore,
-        headers: [utf8Header])
-    
+      method: "GET",
+      endpoint: host,
+      path: "/",
+      response: &httpResponse,
+      semaphore: semaphore,
+      headers: [utf8Header])
+
     let connection = try await connectionManager.acquireConnection()
     let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
     try stream.activate()
     await semaphore.wait()
-    
-    XCTAssertTrue(httpResponse.headers.contains(where: { $0.name == "Echo-" + utf8Header.name && $0.value == utf8Header.value }))
-}
+
+    XCTAssertTrue(
+      httpResponse.headers.contains(where: {
+        $0.name == "Echo-" + utf8Header.name && $0.value == utf8Header.value
+      }))
+  }
 
   func testGetHTTPRequest() async throws {
     try skipIfLocalhostUnavailable()
