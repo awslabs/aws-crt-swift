@@ -52,7 +52,7 @@
   },
   "variants": {
     "localhost": {
-      "+build_steps": ["localhost-setup"],
+      "!test_steps": ["localhost-test"],
       "+test_env": {
         "aws.crt.localhost": true
       }

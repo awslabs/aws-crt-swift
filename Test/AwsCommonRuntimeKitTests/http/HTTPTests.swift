@@ -10,10 +10,18 @@ import XCTest
 class HTTPTests: XCBaseTestCase {
   let host = "localhost"
   let getPath = "/"
+  
+  // Use mock server ports when running localhost tests
+  var httpPort: Int {
+    ProcessInfo.processInfo.environment["aws.crt.localhost"] != nil ? 8081 : 80
+  }
+  var httpsPort: Int {
+    ProcessInfo.processInfo.environment["aws.crt.localhost"] != nil ? 8082 : 443
+  }
 
   func testGetHTTPSRequest() async throws {
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, ssh: true, port: 443)
+      endpoint: host, ssh: true, port: httpsPort)
     _ = try await HTTPClientTestFixture.sendHTTPRequest(
       method: "GET", endpoint: host, path: getPath, connectionManager: connectionManager)
     _ = try await HTTPClientTestFixture.sendHTTPRequest(
@@ -22,7 +30,7 @@ class HTTPTests: XCBaseTestCase {
   }
 
   func testGetHTTPSRequestWithUtf8Header() async throws {
-    let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(endpoint: host, ssh: true, port: 443)
+    let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(endpoint: host, ssh: true, port: httpsPort)
     let utf8Header = HTTPHeader(name: "testheader", value: "TestValueWithEmoji🤯")
     
     let semaphore = TestSemaphore(value: 0)
@@ -46,14 +54,14 @@ class HTTPTests: XCBaseTestCase {
 
   func testGetHTTPRequest() async throws {
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, ssh: false, port: 80)
+      endpoint: host, ssh: false, port: httpPort)
     _ = try await HTTPClientTestFixture.sendHTTPRequest(
       method: "GET", endpoint: host, path: getPath, connectionManager: connectionManager)
   }
 
   func testPutHTTPRequest() async throws {
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, ssh: true, port: 443)
+      endpoint: host, ssh: true, port: httpsPort)
     let response = try await HTTPClientTestFixture.sendHTTPRequest(
       method: "PUT",
       endpoint: host,
@@ -171,7 +179,7 @@ class HTTPTests: XCBaseTestCase {
       let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(
         method: "GET", endpoint: host, path: getPath)
       let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-        endpoint: host, ssh: true, port: 443)
+        endpoint: host, ssh: true, port: httpsPort)
       let connection = try await connectionManager.acquireConnection()
       _ = try connection.makeRequest(requestOptions: httpRequestOptions)
     } catch let err {
@@ -185,7 +193,7 @@ class HTTPTests: XCBaseTestCase {
       let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(
         method: "GET", endpoint: host, path: getPath, semaphore: semaphore)
       let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-        endpoint: host, ssh: true, port: 443)
+        endpoint: host, ssh: true, port: httpsPort)
       let connection = try await connectionManager.acquireConnection()
       let stream = try connection.makeRequest(requestOptions: httpRequestOptions)
       try stream.activate()
@@ -199,7 +207,7 @@ class HTTPTests: XCBaseTestCase {
 
     do {
       let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-        endpoint: host, ssh: true, port: 443)
+        endpoint: host, ssh: true, port: httpsPort)
       connection = try await connectionManager.acquireConnection()
     }
     let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(
@@ -216,7 +224,7 @@ class HTTPTests: XCBaseTestCase {
 
     do {
       let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-        endpoint: host, ssh: true, port: 443)
+        endpoint: host, ssh: true, port: httpsPort)
       let connection = try await connectionManager.acquireConnection()
       let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(
         method: "GET", endpoint: host, path: getPath, semaphore: semaphore)
@@ -228,7 +236,7 @@ class HTTPTests: XCBaseTestCase {
 
   func testConnectionCloseThrow() async throws {
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, ssh: true, port: 443)
+      endpoint: host, ssh: true, port: httpsPort)
     let connection = try await connectionManager.acquireConnection()
     connection.close()
     let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(
@@ -238,7 +246,7 @@ class HTTPTests: XCBaseTestCase {
 
   func testConnectionCloseActivateThrow() async throws {
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, ssh: true, port: 443)
+      endpoint: host, ssh: true, port: httpsPort)
     let connection = try await connectionManager.acquireConnection()
     let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(
       method: "GET", endpoint: host, path: getPath)
@@ -249,7 +257,7 @@ class HTTPTests: XCBaseTestCase {
 
   func testConnectionCloseIsIdempotent() async throws {
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, ssh: true, port: 443)
+      endpoint: host, ssh: true, port: httpsPort)
     let connection = try await connectionManager.acquireConnection()
     let httpRequestOptions = try HTTPClientTestFixture.getHTTPRequestOptions(
       method: "GET", endpoint: host, path: getPath)
