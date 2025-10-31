@@ -28,7 +28,10 @@ class LocalhostTest(Builder.Action):
         
         p1 = subprocess.Popen([python, "h2tls_mock_server.py"], cwd=server_dir)
         p2 = subprocess.Popen([python, "h2non_tls_server.py"], cwd=server_dir)
-        p3 = subprocess.Popen(['HTTP_PORT=8091', 'HTTP_PORT=8092', python, "h11mock_server.py"], cwd=server_dir)
+        env = os.environ.copy()
+        env['HTTP_PORT'] = 8091
+        env['HTTPS_PORT'] = 8092
+        p3 = subprocess.Popen([python, "h11mock_server.py"], cwd=server_dir, env=env)
         
         # Wait for servers to be ready
         ports = [3443, 3280, 8092, 8091]
