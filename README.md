@@ -36,11 +36,13 @@ cd aws-common-runtime/aws-c-http/tests/mockserver
 # install dependencies
 python -m pip install h11 h2 trio
 # for http/1.1 server
-python h11mock_server.py
+HTTP_PORT=8091 HTTPS_PORT=8092 python h11mock_server.py
 # for http/2 non tls server
 python h2non_tls_server.py
-# for http/2 tls server
+# for http/2 tls server. 
 python h2tls_mock_server.py
+# enable localhost env variable for tests to detect localhost server.
+export AWS_CRT_LOCALHOST=true
 ```
 
 ### Contributor's Guide

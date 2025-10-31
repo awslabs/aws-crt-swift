@@ -96,7 +96,7 @@ extension XCTestCase {
       wait(for: expectations, timeout: timeout)
     #endif
   }
-  
+
   func skipIfPlatformDoesntSupportTLS() throws {
     // Skipped for secitem support as the unit tests requires enetitlement setup to have acces to
     // the data protection keychain.
