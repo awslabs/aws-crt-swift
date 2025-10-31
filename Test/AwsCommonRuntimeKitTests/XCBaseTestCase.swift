@@ -69,8 +69,9 @@ extension XCTestCase {
     #endif
   }
 
+  // Look into README to run localhost server tests and how to startup the local server.
   func skipIfLocalhostUnavailable() throws {
-    guard let _ = ProcessInfo.processInfo.environment["aws.crt.localhost"] else {
+    guard let _ = ProcessInfo.processInfo.environment["AWS_CRT_LOCALHOST"] else {
       throw XCTSkip("Localhost server has not been started.")
     }
   }

@@ -25,6 +25,24 @@ To format the code:
 swift format --in-place --recursive .
 ```
 
+## Testing
+
+Running Localhost tests:
+Localhost tests are run using mock servers from aws-c-http. Use the following instructions from root to run the localhost.
+Tests that use localhost within swift: HTTPTests, HTTP2ClientConnectionTests
+
+```sh
+cd aws-common-runtime/aws-c-http/tests/mockserver
+# install dependencies
+python -m pip install h11 h2 trio
+# for http/1.1 server
+python h11mock_server.py
+# for http/2 non tls server
+python h2non_tls_server.py
+# for http/2 tls server
+python h2tls_mock_server.py
+```
+
 ### Contributor's Guide
 **Required Reading:**
 - [Development Guide](docs/dev_guide.md)
