@@ -33,7 +33,7 @@ class LocalhostTest(Builder.Action):
         env['HTTPS_PORT'] = '8092'
         p3 = subprocess.Popen([python, "h11mock_server.py"], cwd=server_dir, env=env)
         
-        # Wait for servers to be ready
+        # Wait for servers to be ready, more information about mock servers on README.md
         ports = [3443, 3280, 8092, 8091]
         for port in ports:
             for attempt in range(30):

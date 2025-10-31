@@ -45,6 +45,21 @@ python h2tls_mock_server.py
 export AWS_CRT_LOCALHOST=true
 ```
 
+We use 4 different ports for running mock servers:
+- 3280 and 3443 for HTTP/2 (without TLS and with TLS respectively)
+- 8091 and 8092 for HTTP/1.1 (without TLS and with TLS respectively)
+
+To use different ports for HTTP/1.1 server, initialize with different values for HTTP_PORT and HTTPS_PORT. 
+Also, change the following lines in HTTPTests.swift.
+```swift
+  var httpPort: Int {
+    ProcessInfo.processInfo.environment["AWS_CRT_LOCALHOST"] != nil ? 8091 : 80
+  }
+  var httpsPort: Int {
+    ProcessInfo.processInfo.environment["AWS_CRT_LOCALHOST"] != nil ? 8092 : 443
+  }
+```
+
 ### Contributor's Guide
 **Required Reading:**
 - [Development Guide](docs/dev_guide.md)

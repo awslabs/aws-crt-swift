@@ -11,7 +11,7 @@ class HTTPTests: XCBaseTestCase {
   let host = "localhost"
   let getPath = "/"
 
-  // Use mock server ports when running localhost tests
+  // Use mock server ports when running localhost tests, more information on README.md
   var httpPort: Int {
     ProcessInfo.processInfo.environment["AWS_CRT_LOCALHOST"] != nil ? 8091 : 80
   }
