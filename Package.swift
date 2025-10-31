@@ -57,6 +57,9 @@ awsCCommonPlatformExcludes.append("source/arch/arm")
 #if !os(Windows)
   awsCCommonPlatformExcludes.append("source/windows")
 #endif
+#if !os(Linux)
+  awsCCommonPlatformExcludes.append("source/linux")
+#endif
 let cSettingsCommon: [CSetting] = [
   .headerSearchPath("source/external/libcbor"),
   .define("DEBUG_BUILD", .when(configuration: .debug)),
