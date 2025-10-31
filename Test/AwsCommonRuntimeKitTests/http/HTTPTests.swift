@@ -13,10 +13,10 @@ class HTTPTests: XCBaseTestCase {
 
   // Use mock server ports when running localhost tests
   var httpPort: Int {
-    ProcessInfo.processInfo.environment["aws.crt.localhost"] != nil ? 8081 : 80
+    ProcessInfo.processInfo.environment["AWS_CRT_LOCALHOST"] != nil ? 8081 : 80
   }
   var httpsPort: Int {
-    ProcessInfo.processInfo.environment["aws.crt.localhost"] != nil ? 8082 : 443
+    ProcessInfo.processInfo.environment["AWS_CRT_LOCALHOST"] != nil ? 8082 : 443
   }
 
   func testGetHTTPSRequest() async throws {
