@@ -58,23 +58,25 @@ public class ECKeyPair {
     var sCur = aws_byte_cursor()
 
     return try signature.withUnsafeBytes { signaturePointer -> ECKeyPair.ECRawSignature in
-        let signatureCursor = aws_byte_cursor_from_array(
-            signaturePointer.baseAddress,
-            signature.count
-        )
+      let signatureCursor = aws_byte_cursor_from_array(
+        signaturePointer.baseAddress,
+        signature.count
+      )
 
-        guard aws_ecc_decode_signature_der_to_raw(
-            allocator.rawValue,
-            signatureCursor,
-            &rCur,
-            &sCur
-        ) == AWS_OP_SUCCESS else {
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
+      guard
+        aws_ecc_decode_signature_der_to_raw(
+          allocator.rawValue,
+          signatureCursor,
+          &rCur,
+          &sCur
+        ) == AWS_OP_SUCCESS
+      else {
+        throw CommonRunTimeError.crtError(.makeFromLastError())
+      }
 
-        let rData = Data(bytes: rCur.ptr, count: rCur.len)
-        let sData = Data(bytes: sCur.ptr, count: sCur.len)
-        return ECKeyPair.ECRawSignature(r: rData, s: sData)
+      let rData = Data(bytes: rCur.ptr, count: rCur.len)
+      let sData = Data(bytes: sCur.ptr, count: sCur.len)
+      return ECKeyPair.ECRawSignature(r: rData, s: sData)
     }
   }
 

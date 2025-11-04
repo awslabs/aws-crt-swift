@@ -42,9 +42,9 @@ class ECTests: XCBaseTestCase {
     let sha256 = try input.data(using: .utf8)!.computeSHA256()
 
     let sec1Key = """
-        MHcCAQEEIHjt7c+VnkIkN6RW7QgZPFNLb/9AZEhqSYYMtwrlLb3WoAoGCCqGSM49AwEHoUQDQgAEv2F
-        jRpMtADMZ4zoZxshV9chEkembgzZnXSUNe+DA8dKqXN/7qTcZjYJHKIi+Rn88zUGqCJo3DWF/X+ufVf
-        dU2g==
+      MHcCAQEEIHjt7c+VnkIkN6RW7QgZPFNLb/9AZEhqSYYMtwrlLb3WoAoGCCqGSM49AwEHoUQDQgAEv2F\
+      jRpMtADMZ4zoZxshV9chEkembgzZnXSUNe+DA8dKqXN/7qTcZjYJHKIi+Rn88zUGqCJo3DWF/X+ufVf\
+      dU2g==
       """
 
     guard let keyData = Data(base64Encoded: sec1Key) else {
