@@ -56,19 +56,25 @@ public class ECKeyPair {
   static public func decodeDerEcSignature(signature: Data) throws -> ECKeyPair.ECRawSignature {
     var rCur = aws_byte_cursor()
     var sCur = aws_byte_cursor()
-    return try signature.withUnsafeBytes { signaturePointer in
-      let signatureCursor = aws_byte_cursor_from_array(
-        signaturePointer.baseAddress, signature.count)
-      guard
-        aws_ecc_decode_signature_der_to_raw(
-          allocator.rawValue,
-          signatureCursor, &rCur, &sCur) == AWS_OP_SUCCESS
-      else {
-        throw CommonRunTimeError.crtError(.makeFromLastError())
-      }
-      let rData = Data(bytes: rCur.ptr, count: rCur.len)
-      let sData = Data(bytes: sCur.ptr, count: sCur.len)
-      return ECKeyPair.ECRawSignature(r: rData, s: sData)
+
+    return try signature.withUnsafeBytes { signaturePointer -> ECKeyPair.ECRawSignature in
+        let signatureCursor = aws_byte_cursor_from_array(
+            signaturePointer.baseAddress,
+            signature.count
+        )
+
+        guard aws_ecc_decode_signature_der_to_raw(
+            allocator.rawValue,
+            signatureCursor,
+            &rCur,
+            &sCur
+        ) == AWS_OP_SUCCESS else {
+            throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+
+        let rData = Data(bytes: rCur.ptr, count: rCur.len)
+        let sData = Data(bytes: sCur.ptr, count: sCur.len)
+        return ECKeyPair.ECRawSignature(r: rData, s: sData)
     }
   }
 
@@ -81,6 +87,7 @@ public class ECKeyPair {
 
         let bufferSize = signature.r.count + signature.s.count + 32
         var bufferData = Data(count: bufferSize)
+        var newBufferSize = 0
         try bufferData.withUnsafeMutableBytes { bufferPointer in
           var buffer = aws_byte_buf_from_empty_array(bufferPointer.baseAddress, bufferSize)
           guard
@@ -90,7 +97,9 @@ public class ECKeyPair {
           else {
             throw CommonRunTimeError.crtError(.makeFromLastError())
           }
+          newBufferSize = buffer.len
         }
+        bufferData.count = newBufferSize
         return bufferData
       }
     }
@@ -110,7 +119,7 @@ public class ECKeyPair {
     return bufferData
   }
 
-  public func get_public_coords() throws -> ECKeyPair.ECPublicCoords {
+  public func getPublicCoords() throws -> ECKeyPair.ECPublicCoords {
     var xCoord = aws_byte_cursor()
     var yCoord = aws_byte_cursor()
     aws_ecc_key_pair_get_public_key(rawValue, &xCoord, &yCoord)
@@ -123,6 +132,7 @@ public class ECKeyPair {
   public func sign(digest: Data) throws -> Data {
     let bufferSize = aws_ecc_key_pair_signature_length(rawValue)
     var bufferData = Data(count: bufferSize)
+    var newBufferSize = 0
     try digest.withUnsafeBytes { bufferPointer in
       var byteCursor = aws_byte_cursor_from_array(bufferPointer.baseAddress, digest.count)
       try bufferData.withUnsafeMutableBytes { bufferPointer in
@@ -130,8 +140,10 @@ public class ECKeyPair {
         guard aws_ecc_key_pair_sign_message(rawValue, &byteCursor, &buffer) == AWS_OP_SUCCESS else {
           throw CommonRunTimeError.crtError(.makeFromLastError())
         }
+        newBufferSize = buffer.len
       }
     }
+    bufferData.count = newBufferSize
     return bufferData
   }
 
