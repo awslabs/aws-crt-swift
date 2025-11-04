@@ -7,19 +7,23 @@ import XCTest
 class HTTP2ClientConnectionTests: XCBaseTestCase {
 
   let expectedVersion = HTTPVersion.version_2
-  let host = "postman-echo.com"
+  let host = "localhost"
+  let port: Int = 3443
 
   func testGetHTTP2RequestVersion() async throws {
+    try skipIfLocalhostUnavailable()
+    try? Logger.initialize(target: LogTarget.standardOutput, level: LogLevel.trace)
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, alpnList: ["h2", "http/1.1"])
+      endpoint: host, port: port, alpnList: ["h2", "http/1.1"])
     let connection = try await connectionManager.acquireConnection()
     XCTAssertEqual(connection.httpVersion, HTTPVersion.version_2)
   }
 
   // Test that the binding works not the actual functionality. C part has tests for functionality
   func testHTTP2UpdateSetting() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, alpnList: ["h2", "http/1.1"])
+      endpoint: host, port: port, alpnList: ["h2", "http/1.1"])
     let connection = try await connectionManager.acquireConnection()
     if let connection = connection as? HTTP2ClientConnection {
       try await connection.updateSetting(setting: HTTP2Settings(enablePush: false))
@@ -30,8 +34,9 @@ class HTTP2ClientConnectionTests: XCBaseTestCase {
 
   // Test that the binding works not the actual functionality. C part has tests for functionality
   func testHTTP2UpdateSettingEmpty() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, alpnList: ["h2", "http/1.1"])
+      endpoint: host, port: port, alpnList: ["h2", "http/1.1"])
     let connection = try await connectionManager.acquireConnection()
     if let connection = connection as? HTTP2ClientConnection {
       try await connection.updateSetting(setting: HTTP2Settings())
@@ -42,8 +47,9 @@ class HTTP2ClientConnectionTests: XCBaseTestCase {
 
   // Test that the binding works not the actual functionality. C part has tests for functionality
   func testHTTP2SendPing() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, alpnList: ["h2", "http/1.1"])
+      endpoint: host, port: port, alpnList: ["h2", "http/1.1"])
     let connection = try await connectionManager.acquireConnection()
     if let connection = connection as? HTTP2ClientConnection {
       var time = try await connection.sendPing()
@@ -57,8 +63,9 @@ class HTTP2ClientConnectionTests: XCBaseTestCase {
 
   // Test that the binding works not the actual functionality. C part has tests for functionality
   func testHTTP2SendGoAway() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, alpnList: ["h2", "http/1.1"])
+      endpoint: host, port: port, alpnList: ["h2", "http/1.1"])
     let connection = try await connectionManager.acquireConnection()
     if let connection = connection as? HTTP2ClientConnection {
       connection.sendGoAway(error: .internalError, allowMoreStreams: false)
@@ -68,12 +75,13 @@ class HTTP2ClientConnectionTests: XCBaseTestCase {
   }
 
   func testGetHttpsRequest() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, alpnList: ["h2", "http/1.1"])
+      endpoint: host, port: port, alpnList: ["h2", "http/1.1"])
     let response = try await HTTPClientTestFixture.sendHTTPRequest(
       method: "GET",
       endpoint: host,
-      path: "/get",
+      path: "/echo",
       connectionManager: connectionManager,
       expectedVersion: expectedVersion,
       requestVersion: .version_2)
@@ -91,12 +99,13 @@ class HTTP2ClientConnectionTests: XCBaseTestCase {
   }
 
   func testGetHttpsRequestWithHTTP1_1Request() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: host, alpnList: ["h2", "http/1.1"])
+      endpoint: host, port: port, alpnList: ["h2", "http/1.1"])
     let response = try await HTTPClientTestFixture.sendHTTPRequest(
       method: "GET",
       endpoint: host,
-      path: "/get",
+      path: "/echo",
       connectionManager: connectionManager,
       expectedVersion: expectedVersion,
       requestVersion: .version_1_1)

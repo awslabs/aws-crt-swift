@@ -25,6 +25,41 @@ To format the code:
 swift format --in-place --recursive .
 ```
 
+## Testing
+
+Running Localhost tests:
+Localhost tests are run using mock servers from aws-c-http. Use the following instructions from root to run the localhost.
+Tests that use localhost within swift: HTTPTests, HTTP2ClientConnectionTests
+
+```sh
+cd aws-common-runtime/aws-c-http/tests/mockserver
+# install dependencies
+python -m pip install h11 h2 trio
+# for http/1.1 server
+HTTP_PORT=8091 HTTPS_PORT=8092 python h11mock_server.py
+# for http/2 non tls server
+python h2non_tls_server.py
+# for http/2 tls server. 
+python h2tls_mock_server.py
+# enable localhost env variable for tests to detect localhost server.
+export AWS_CRT_LOCALHOST=true
+```
+
+We use 4 different ports for running mock servers:
+- 3280 and 3443 for HTTP/2 (without TLS and with TLS respectively)
+- 8091 and 8092 for HTTP/1.1 (without TLS and with TLS respectively)
+
+To use different ports for HTTP/1.1 server, initialize with different values for HTTP_PORT and HTTPS_PORT. 
+Also, change the following lines in HTTPTests.swift.
+```swift
+  var httpPort: Int {
+    ProcessInfo.processInfo.environment["AWS_CRT_LOCALHOST"] != nil ? 8091 : 80
+  }
+  var httpsPort: Int {
+    ProcessInfo.processInfo.environment["AWS_CRT_LOCALHOST"] != nil ? 8092 : 443
+  }
+```
+
 ### Contributor's Guide
 **Required Reading:**
 - [Development Guide](docs/dev_guide.md)

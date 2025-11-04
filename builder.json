@@ -49,5 +49,10 @@
         "swift test"
       ]
     }
+  },
+  "variants": {
+    "localhost": {
+      "!test_steps": ["localhost-test"]
+    }
   }
 }
