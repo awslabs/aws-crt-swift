@@ -31,7 +31,7 @@ public class ECKeyPair {
   }
 
   /// Generates new ECKeyPair for the specified algo
-  static func generate(algorithm: ECAlgorithm) throws -> ECKeyPair {
+  static public func generate(algorithm: ECAlgorithm) throws -> ECKeyPair {
     guard
       let rawValue = aws_ecc_key_pair_new_generate_random(
         allocator.rawValue, aws_ecc_curve_name(algorithm.rawValue))
@@ -43,7 +43,7 @@ public class ECKeyPair {
 
   /// Load ECKeyPair from der representation.
   /// data must be raw der bytes. i.e. strip base64 if coming from pem
-  static func fromDer(data: Data) throws -> ECKeyPair {
+  static public func fromDer(data: Data) throws -> ECKeyPair {
     try data.withUnsafeBytes { dataPointer in
       var dataCur = aws_byte_cursor_from_array(dataPointer.baseAddress, data.count)
       guard
