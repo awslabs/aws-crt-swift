@@ -108,7 +108,7 @@ public class ECKeyPair {
             allocator.rawValue,
             signatureCur,
             &outBuf,
-            &padTo
+            padTo
           ) == AWS_OP_SUCCESS
         else {
           throw CommonRunTimeError.crtError(.makeFromLastError())
