@@ -93,7 +93,11 @@ public class ECKeyPair {
         signature.count
       )
 
-      let bufferSize = signature.r.count + signature.s.count + 32
+      if padTo > 256 {
+        throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_INVALID_ARGUMENT.rawValue))
+      }
+
+      let bufferSize = padTo * 2
       var outData = Data(count: bufferSize)
       var newBufferSize = 0
 
