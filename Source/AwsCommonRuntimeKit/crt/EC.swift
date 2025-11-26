@@ -83,6 +83,40 @@ public class ECKeyPair {
     }
   }
 
+  /// Decode der ec signature into padded R || S
+  /// both R and S are first padded and then concatenated
+  static public func decodeDerEcSignatureToPaddedPair(signature: Data, padTo: Int) throws -> Data {
+
+    return try signature.withUnsafeBytes { signaturePointer -> Data in
+      let signatureCur = aws_byte_cursor_from_array(
+        signaturePointer.baseAddress,
+        signature.count
+      )
+
+      let bufferSize = signature.r.count + signature.s.count + 32
+      var outData = Data(count: bufferSize)
+      var newBufferSize = 0
+
+      try outData.withUnsafeMutableBytes { outPointer in
+        var outBuf = aws_byte_buf_from_empty_array(outPointer.baseAddress, bufferSize)
+        guard
+          aws_ecc_decode_signature_der_to_raw_padded(
+            allocator.rawValue,
+            signatureCur,
+            &outBuf,
+            &padTo
+          ) == AWS_OP_SUCCESS
+        else {
+          throw CommonRunTimeError.crtError(.makeFromLastError())
+        }
+        newBufferSize = outBuf.len
+      }
+
+      outData.count = newBufferSize
+      return outData
+    }
+  }
+
   /// Encode raw ec signature into der format
   static public func encodeRawECSignature(signature: ECKeyPair.ECRawSignature) throws -> Data {
     return try signature.r.withUnsafeBytes { rPointer in
