@@ -173,13 +173,12 @@ var cSettingsIO = cSettings
 #else  // macOS, iOS, watchOS, tvOS
   awsCIoPlatformExcludes.append("source/windows")
   awsCIoPlatformExcludes.append("source/linux")
+  awsCIoPlatformExcludes.append("source/bsd")
   awsCIoPlatformExcludes.append("source/s2n")
   cSettingsIO.append(.define("__APPLE__"))
   cSettingsIO.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
-  cSettingsIO.append(.define("AWS_USE_SECITEM"))
   swiftTestSettings.append(.define("__APPLE__"))
   swiftTestSettings.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
-  swiftTestSettings.append(.define("AWS_USE_SECITEM"))
 #endif
 
 //////////////////////////////////////////////////////////////////////
