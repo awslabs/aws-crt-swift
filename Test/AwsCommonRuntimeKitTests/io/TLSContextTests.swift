@@ -28,7 +28,7 @@ class TLSContextTests: XCBaseTestCase {
     }
   #endif
 
-  #if os(macOS) || os(Linux)
+  #if os(Linux)
     func testCreateTlsContextWithData() throws {
 
       let certPath = try getEnvironmentVarOrSkipTest(
@@ -47,7 +47,7 @@ class TLSContextTests: XCBaseTestCase {
     }
   #endif
 
-  #if AWS_USE_SECITEM
+  #if os(macOS) || os(iOS)
     func testCreateTlsContextWithSecitemOptions() throws {
       try skipIfPlatformDoesntSupportTLS()
       let certPath = try getEnvironmentVarOrSkipTest(
