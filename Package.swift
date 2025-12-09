@@ -173,7 +173,6 @@ var cSettingsIO = cSettings
 #else  // macOS, iOS, watchOS, tvOS
   awsCIoPlatformExcludes.append("source/windows")
   awsCIoPlatformExcludes.append("source/linux")
-  awsCIoPlatformExcludes.append("source/bsd")
   awsCIoPlatformExcludes.append("source/s2n")
   cSettingsIO.append(.define("__APPLE__"))
   cSettingsIO.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
