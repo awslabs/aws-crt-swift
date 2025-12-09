@@ -28,7 +28,7 @@ class TLSContextTests: XCBaseTestCase {
     }
   #endif
 
-  #if os(Linux)
+  #if os(macOS) || os(Linux)
     func testCreateTlsContextWithData() throws {
 
       let certPath = try getEnvironmentVarOrSkipTest(
