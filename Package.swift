@@ -59,6 +59,8 @@ awsCCommonPlatformExcludes.append("source/arch/arm")
 #endif
 #if !os(Linux)
   awsCCommonPlatformExcludes.append("source/linux")
+#else
+  awsCCommonPlatformExcludes.append("source/platform_fallback_stubs/file_direct_io.c")
 #endif
 let cSettingsCommon: [CSetting] = [
   .headerSearchPath("source/external/libcbor"),
