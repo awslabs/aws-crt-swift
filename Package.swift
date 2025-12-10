@@ -88,7 +88,6 @@ var awsCCalPlatformExcludes =
   [
     "bin",
     "include/aws/cal/private",
-    "source/shared/ed25519.c",
     "CODE_OF_CONDUCT.md",
     "ecdsa-fuzz-corpus/windows/p256_sig_corpus.txt",
     "ecdsa-fuzz-corpus/darwin/p256_sig_corpus.txt",
