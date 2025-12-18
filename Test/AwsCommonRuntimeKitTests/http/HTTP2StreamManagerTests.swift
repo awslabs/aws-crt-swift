@@ -90,7 +90,6 @@ class HTTP2StreamManagerTests: XCBaseTestCase {
       hostResolver: hostResolver)
 
     let socketOptions = SocketOptions(socketType: .stream)
-    let port = UInt32(443)
     let streamManager = try HTTP2StreamManager(
       options: HTTP2StreamManagerOptions(
         clientBootstrap: bootstrap,
