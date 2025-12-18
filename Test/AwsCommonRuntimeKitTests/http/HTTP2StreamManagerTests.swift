@@ -76,6 +76,7 @@ class HTTP2StreamManagerTests: XCBaseTestCase {
   func makeStreamManger(host: String, port: Int = 443) throws -> HTTP2StreamManager {
     let tlsContextOptions = TLSContextOptions()
     tlsContextOptions.setAlpnList(["h2"])
+    tlsContextOptions.setVerifyPeer(false)
     let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client)
 
     var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext)

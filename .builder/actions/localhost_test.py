@@ -49,12 +49,15 @@ class LocalhostTest(Builder.Action):
     def run(self, env):
         self.start(env)
         env.shell.setenv('AWS_CRT_MEMORY_TRACING', '2')
+        actions = []
 
         if os.system("env AWS_CRT_LOCALHOST=true swift test --filter 'HTTPTests|HTTP2ClientConnectionTests|HTTP2StreamManagerTests'"):
             # Failed
-            sys.exit(1)
+            actions.append("exit 1")
         
         # kill servers
         env.shell.exec("pkill", "-f", "h2tls_mock_server.py")
         env.shell.exec("pkill", "-f", "h2non_tls_server.py")
         env.shell.exec("pkill", "-f", "h11mock_server.py")
+
+        return Builder.Script(actions, name='localhost-test')
