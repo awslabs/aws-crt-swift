@@ -19,8 +19,9 @@ var package = Package(
   dependencies: [
     // Arugment Parser Dependency for ElasticCurl
     .package(
-      url: "https://github.com/apple/swift-argument-parser.git", .upToNextMajor(from: "1.5.0"))
-  ]
+      url: "https://github.com/apple/swift-argument-parser.git", from: "1.2.0")
+  ],
+
 )
 
 let cSettings: [CSetting] = [
@@ -371,10 +372,7 @@ packageTargets.append(contentsOf: [
       "AwsCommonRuntimeKit",
       .product(name: "ArgumentParser", package: "swift-argument-parser"),
     ],
-    path: "Source/Elasticurl",
-    swiftSettings: [
-      .enableExperimentalFeature("AccessLevelOnImport")
-    ]
+    path: "Source/Elasticurl"
   ),
   .executableTarget(
     name: "Mqtt5Canary",
@@ -382,10 +380,7 @@ packageTargets.append(contentsOf: [
       "AwsCommonRuntimeKit",
       .product(name: "ArgumentParser", package: "swift-argument-parser"),
     ],
-    path: "Source/Canary/Mqtt5Canary",
-    swiftSettings: [
-      .enableExperimentalFeature("AccessLevelOnImport")
-    ]
+    path: "Source/Canary/Mqtt5Canary"
   ),
 ])
 package.targets = packageTargets
