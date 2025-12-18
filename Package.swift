@@ -20,8 +20,7 @@ var package = Package(
     // Arugment Parser Dependency for ElasticCurl
     .package(
       url: "https://github.com/apple/swift-argument-parser.git", from: "1.2.0")
-  ],
-
+  ]
 )
 
 let cSettings: [CSetting] = [
