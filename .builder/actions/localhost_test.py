@@ -52,7 +52,7 @@ class LocalhostTest(Builder.Action):
 
         if os.system("env AWS_CRT_LOCALHOST=true swift test --filter 'HTTPTests|HTTP2ClientConnectionTests|HTTP2StreamManagerTests'"):
             # Failed
-            actions.append("exit 1")
+            sys.exit(1)
         
         # kill servers
         env.shell.exec("pkill", "-f", "h2tls_mock_server.py")
