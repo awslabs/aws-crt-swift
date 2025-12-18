@@ -371,7 +371,10 @@ packageTargets.append(contentsOf: [
       "AwsCommonRuntimeKit",
       .product(name: "ArgumentParser", package: "swift-argument-parser"),
     ],
-    path: "Source/Elasticurl"
+    path: "Source/Elasticurl",
+    swiftSettings: [
+      .enableExperimentalFeature("AccessLevelOnImport")
+    ]
   ),
   .executableTarget(
     name: "Mqtt5Canary",
@@ -379,7 +382,10 @@ packageTargets.append(contentsOf: [
       "AwsCommonRuntimeKit",
       .product(name: "ArgumentParser", package: "swift-argument-parser"),
     ],
-    path: "Source/Canary/Mqtt5Canary"
+    path: "Source/Canary/Mqtt5Canary",
+    swiftSettings: [
+      .enableExperimentalFeature("AccessLevelOnImport")
+    ]
   ),
 ])
 package.targets = packageTargets
