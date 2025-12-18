@@ -112,6 +112,7 @@ class HTTP2StreamManagerTests: XCBaseTestCase {
   }
 
   func testHTTP2StreamUpload() async throws {
+    try skipIfLocalhostUnavailable()
     let streamManager = try makeStreamManger(host: host)
     let semaphore = TestSemaphore(value: 0)
     var httpResponse = HTTPResponse()
