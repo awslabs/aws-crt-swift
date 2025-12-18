@@ -19,7 +19,7 @@ var package = Package(
   dependencies: [
     // Arugment Parser Dependency for ElasticCurl
     .package(
-      url: "https://github.com/apple/swift-argument-parser.git", exact: "1.0.3")
+      url: "https://github.com/apple/swift-argument-parser.git", exact: "1.2.3")
   ]
 )
 
