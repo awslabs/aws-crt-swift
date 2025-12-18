@@ -9,6 +9,7 @@ class HTTP2StreamManagerTests: XCBaseTestCase {
   let endpoint = "d1cz66xoahf9cl.cloudfront.net"  // Use cloudfront for HTTP/2
   let path = "/random_32_byte.data"
   let host = "localhost"
+  let port = 3443
 
   func testStreamManagerCreate() throws {
     let tlsContextOptions = TLSContextOptions()
@@ -113,7 +114,7 @@ class HTTP2StreamManagerTests: XCBaseTestCase {
 
   func testHTTP2StreamUpload() async throws {
     try skipIfLocalhostUnavailable()
-    let streamManager = try makeStreamManger(host: host)
+    let streamManager = try makeStreamManger(host: host, port: port)
     let semaphore = TestSemaphore(value: 0)
     var httpResponse = HTTPResponse()
     var onCompleteCalled = false
@@ -179,7 +180,7 @@ class HTTP2StreamManagerTests: XCBaseTestCase {
   }
 
   func testHTTP2ParallelStreams(count: Int) async throws {
-    let streamManager = try makeStreamManger(host: host)
+    let streamManager = try makeStreamManger(host: host, port: port)
     return await withTaskGroup(of: Void.self) { taskGroup in
       for _ in 1...count {
         taskGroup.addTask {
