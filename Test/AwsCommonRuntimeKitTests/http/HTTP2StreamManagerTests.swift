@@ -5,7 +5,7 @@ import XCTest
 
 @testable import AwsCommonRuntimeKit
 
-class HTT2StreamManagerTests: XCBaseTestCase {
+class HTTP2StreamManagerTests: XCBaseTestCase {
   let endpoint = "d1cz66xoahf9cl.cloudfront.net"  // Use cloudfront for HTTP/2
   let path = "/random_32_byte.data"
   let host = "localhost"
@@ -161,6 +161,7 @@ class HTT2StreamManagerTests: XCBaseTestCase {
 
   // Test that the binding works not the actual functionality. C part has tests for functionality
   func testHTTP2StreamReset() async throws {
+    try skipIfLocalhostUnavailable()
     let streamManager = try makeStreamManger(host: endpoint)
     let http2RequestOptions = try HTTPClientTestFixture.getHTTP2RequestOptions(
       method: "PUT",
