@@ -17,9 +17,17 @@ public enum CBORType: Equatable {
   case bytes(_ value: Data)
   /// Text type for utf-8 encoded strings
   case text(_ value: String)
-  /// Array type
+  /// Array start (definite length).
+  ///
+  /// It is up to the caller to add the correct number of elements to the array.
+  case array_start(_ value: Int)
+  /// Array type (rolled-up variant)
   case array(_ value: [CBORType])
-  /// Map type
+  /// Map start (definite length)
+  ///
+  /// It is up to the caller to add the correct number of key-value pairs to the array.
+  case map_start(_ value: Int)
+  /// Map type (rolled-up variant)
   case map(_ value: [String: CBORType])
   /// Date type. It will be encoded as epoch-based time.
   /// There might be some precision loss if this is encoded as an integer and
@@ -96,7 +104,8 @@ public class CBOREncoder {
       aws_cbor_encoder_write_float(self.rawValue, date.timeIntervalSince1970)
     case .tag(let tag):
       aws_cbor_encoder_write_tag(self.rawValue, tag)
-
+    case .array_start(let count):
+      aws_cbor_encoder_write_array_start(self.rawValue, count)
     case .array(let values):
       do {
         aws_cbor_encoder_write_array_start(self.rawValue, values.count)
@@ -104,6 +113,8 @@ public class CBOREncoder {
           encode(value)
         }
       }
+    case .map_start(let count):
+      aws_cbor_encoder_write_map_start(self.rawValue, count)
     case .map(let values):
       do {
         aws_cbor_encoder_write_map_start(self.rawValue, values.count)
@@ -137,8 +148,17 @@ public class CBORDecoder {
   var rawValue: OpaquePointer
   // Keep a reference to data to make it outlive the decoder
   let data: [UInt8]
+  /// Determines whether to "roll up" collections.
+  ///
+  /// When `true` (the default), definite & indefinite maps & collections are rolled-up into a
+  /// `.map([String: CBORType])` or `.array([CBORType])` element before being returned.
+  ///
+  /// When set to `false`, maps & collections are returned to the caller in their original sequence of CBOR
+  /// events.  It is up to the caller to pull the correct number of elements for a definite collection, and to check
+  /// for `indef_break` to detect the end of an indefinite collection.
+  let rollupCollections: Bool
 
-  public init(data: [UInt8]) throws {
+  public init(data: [UInt8], rollupCollections: Bool = true) throws {
     self.data = data
     let count = self.data.count
     let rawValue = self.data.withUnsafeBytes {
@@ -149,6 +169,7 @@ public class CBORDecoder {
       throw CommonRunTimeError.crtError(.makeFromLastError())
     }
     self.rawValue = rawValue
+    self.rollupCollections = rollupCollections
   }
 
   /// Returns true if there is any data left to decode.
@@ -159,10 +180,7 @@ public class CBORDecoder {
   /// Decodes and returns the next value. If there is no value, this function will throw an error.
   /// You must call `hasNext()` before calling this function.
   public func popNext() throws -> CBORType {
-    var cbor_type: aws_cbor_type = AWS_CBOR_TYPE_UNKNOWN
-    guard aws_cbor_decoder_peek_type(self.rawValue, &cbor_type) == AWS_OP_SUCCESS else {
-      throw CommonRunTimeError.crtError(.makeFromLastError())
-    }
+    let cbor_type = try peekAtNextElement()
 
     switch cbor_type {
     case AWS_CBOR_TYPE_UINT:
@@ -182,18 +200,34 @@ public class CBORDecoder {
     case AWS_CBOR_TYPE_TAG:
       return try decodeTag()
     case AWS_CBOR_TYPE_ARRAY_START:
-      return try decodeDefiniteArray()
+      if rollupCollections {
+        return try decodeDefiniteArray()
+      } else {
+        return try decodeDefiniteArrayStart()
+      }
     case AWS_CBOR_TYPE_MAP_START:
-      return try decodeDefiniteMap()
+      if rollupCollections {
+        return try decodeDefiniteMap()
+      } else {
+        return try decodeDefiniteMapStart()
+      }
     case AWS_CBOR_TYPE_UNDEFINED:
       return try decodeUndefined()
     case AWS_CBOR_TYPE_BREAK:
       return try decodeBreak()
 
     case AWS_CBOR_TYPE_INDEF_ARRAY_START:
-      return try decodeIndefiniteArray()
+      if rollupCollections {
+        return try decodeIndefiniteArray()
+      } else {
+        return try decodeIndefiniteArrayStart()
+      }
     case AWS_CBOR_TYPE_INDEF_MAP_START:
-      return try decodeIndefiniteMap()
+      if rollupCollections {
+        return try decodeIndefiniteMap()
+      } else {
+        return try decodeIndefiniteMapStart()
+      }
     case AWS_CBOR_TYPE_INDEF_BYTES_START:
       return try decodeIndefiniteBytes()
     case AWS_CBOR_TYPE_INDEF_TEXT_START:
@@ -202,6 +236,22 @@ public class CBORDecoder {
     default:
       throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
     }
+  }
+  
+  /// Checks if the next element on the decoder is `null`.
+  ///
+  /// The next element is left as-is in the decoder, whether it is `null` or not.
+  /// - Returns: `true` if the next CBOR element is `null`, return `false` otherwise.
+  public func isNull() throws -> Bool {
+    try peekAtNextElement() == AWS_CBOR_TYPE_NULL
+  }
+
+  private func peekAtNextElement() throws -> aws_cbor_type {
+    var cbor_type: aws_cbor_type = AWS_CBOR_TYPE_UNKNOWN
+    guard aws_cbor_decoder_peek_type(self.rawValue, &cbor_type) == AWS_OP_SUCCESS else {
+      throw CommonRunTimeError.crtError(.makeFromLastError())
+    }
+    return cbor_type
   }
 
   // Decoding helper methods for definite and simple types
@@ -295,29 +345,41 @@ public class CBORDecoder {
     }
   }
 
-  private func decodeDefiniteArray() throws -> CBORType {
-    var length: UInt64 = 0
-    guard aws_cbor_decoder_pop_next_array_start(self.rawValue, &length) == AWS_OP_SUCCESS else {
+  private func decodeDefiniteArrayStart() throws -> CBORType {
+    var count: UInt64 = 0
+    guard aws_cbor_decoder_pop_next_array_start(self.rawValue, &count) == AWS_OP_SUCCESS else {
       throw CommonRunTimeError.crtError(.makeFromLastError())
+    }
+    return .array_start(Int(count))
+  }
+
+  private func decodeDefiniteArray() throws -> CBORType {
+    guard case .array_start(let count) = try decodeDefiniteArrayStart() else {
+      throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
     }
 
     var array: [CBORType] = []
-    for _ in 0..<length {
+    for _ in 0..<count {
       array.append(try popNext())
     }
     return .array(array)
   }
 
-  private func decodeDefiniteMap() throws -> CBORType {
-    var out_value: UInt64 = 0
-    guard
-      aws_cbor_decoder_pop_next_map_start(self.rawValue, &out_value)
-        == AWS_OP_SUCCESS
+  private func decodeDefiniteMapStart() throws -> CBORType {
+    var count: UInt64 = 0
+    guard aws_cbor_decoder_pop_next_map_start(self.rawValue, &count) == AWS_OP_SUCCESS
     else {
       throw CommonRunTimeError.crtError(.makeFromLastError())
     }
+    return .map_start(Int(count))
+  }
+
+  private func decodeDefiniteMap() throws -> CBORType {
+    guard case .map_start(let count) = try decodeDefiniteMapStart() else {
+      throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
+    }
     var map: [String: CBORType] = [:]
-    for _ in 0..<out_value {
+    for _ in 0..<count {
       let key = try popNext()
       if case .text(let key) = key {
         map[key] = try popNext()
@@ -337,10 +399,15 @@ public class CBORDecoder {
     return .indef_break
   }
 
-  private func decodeIndefiniteArray() throws -> CBORType {
+  private func decodeIndefiniteArrayStart() throws -> CBORType {
     guard aws_cbor_decoder_consume_next_single_element(self.rawValue) == AWS_OP_SUCCESS else {
       throw CommonRunTimeError.crtError(.makeFromLastError())
     }
+    return .indef_array_start
+  }
+
+  private func decodeIndefiniteArray() throws -> CBORType {
+    _ = try decodeIndefiniteArrayStart()
     var array: [CBORType] = []
     while true {
       let cbor_type = try popNext()
@@ -353,10 +420,15 @@ public class CBORDecoder {
     return .array(array)
   }
 
-  private func decodeIndefiniteMap() throws -> CBORType {
+  private func decodeIndefiniteMapStart() throws -> CBORType {
     guard aws_cbor_decoder_consume_next_single_element(self.rawValue) == AWS_OP_SUCCESS else {
       throw CommonRunTimeError.crtError(.makeFromLastError())
     }
+    return .indef_map_start
+  }
+
+  private func decodeIndefiniteMap() throws -> CBORType {
+    _ = try decodeIndefiniteMapStart()
     var map: [String: CBORType] = [:]
     while true {
       let keyVal = try popNext()
