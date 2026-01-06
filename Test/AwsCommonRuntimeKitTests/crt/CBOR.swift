@@ -8,53 +8,51 @@ import XCTest
 
 class CBORTests: XCBaseTestCase {
 
-  // Used in both tests below
-  let values_to_encode: [CBORType] = [
-    // simple types
-    .uint(100),
-    .uint(UInt64.min),
-    .uint(UInt64.max),
-    .int(-100),
-    .int(Int64.min),
-    .int(Int64.max),
-    .double(10.59),
-    .double(10.0),
-    .bool(true),
-    .null,
-    .undefined,
-    // test tag
-    .tag(0),
-    .uint(100),
-    // test that tag 1 is decoded as date
-    .tag(1),
-    .double(Date(timeIntervalSince1970: 10.5).timeIntervalSince1970),
-    .date(Date(timeIntervalSince1970: 20.5)),
-    // complex types
-    .array([.int(-100), .uint(1000)]),
-    .map(["key": .uint(100), "key2": .int(-100)]),
-    .bytes("hello".data(using: .utf8)!),
-    .text("hello"),
-    // indef types
-    .indef_array_start,
-    .uint(100),
-    .int(-100),
-    .indef_break,
-    .indef_map_start,
-    .text("key1"),
-    .uint(100),
-    .text("key2"),
-    .int(-100),
-    .indef_break,
-    .indef_text_start,
-    .text("hello"),
-    .indef_break,
-    .indef_bytes_start,
-    .bytes(Data([0x01, 0x02, 0x03])),  // First chunk of bytes
-    .bytes(Data([0x04, 0x05])),  // Second chunk of bytes
-    .indef_break,
-  ]
-
   func testCBOR() async throws {
+    let values_to_encode: [CBORType] = [
+      // simple types
+      .uint(100),
+      .uint(UInt64.min),
+      .uint(UInt64.max),
+      .int(-100),
+      .int(Int64.min),
+      .int(Int64.max),
+      .double(10.59),
+      .double(10.0),
+      .bool(true),
+      .null,
+      .undefined,
+      // test tag
+      .tag(0),
+      .uint(100),
+      // test that tag 1 is decoded as date
+      .tag(1),
+      .double(Date(timeIntervalSince1970: 10.5).timeIntervalSince1970),
+      .date(Date(timeIntervalSince1970: 20.5)),
+      // complex types
+      .array([.int(-100), .uint(1000)]),
+      .map(["key": .uint(100), "key2": .int(-100)]),
+      .bytes("hello".data(using: .utf8)!),
+      .text("hello"),
+      // indef types
+      .indef_array_start,
+      .uint(100),
+      .int(-100),
+      .indef_break,
+      .indef_map_start,
+      .text("key1"),
+      .uint(100),
+      .text("key2"),
+      .int(-100),
+      .indef_break,
+      .indef_text_start,
+      .text("hello"),
+      .indef_break,
+      .indef_bytes_start,
+      .bytes(Data([0x01, 0x02, 0x03])),  // First chunk of bytes
+      .bytes(Data([0x04, 0x05])),  // Second chunk of bytes
+      .indef_break,
+    ]
     let expected_decoded_values: [CBORType] = [
       // simple types
       .uint(100),
@@ -107,6 +105,57 @@ class CBORTests: XCBaseTestCase {
   }
 
   func testCBORNoRollup() async throws {
+    // Used in both tests below
+    let values_to_encode: [CBORType] = [
+      // simple types
+      .uint(100),
+      .uint(UInt64.min),
+      .uint(UInt64.max),
+      .int(-100),
+      .int(Int64.min),
+      .int(Int64.max),
+      .double(10.59),
+      .double(10.0),
+      .bool(true),
+      .null,
+      .undefined,
+      // test tag
+      .tag(0),
+      .uint(100),
+      // test that tag 1 is decoded as date
+      .tag(1),
+      .double(Date(timeIntervalSince1970: 10.5).timeIntervalSince1970),
+      .date(Date(timeIntervalSince1970: 20.5)),
+      // complex types
+      .array_start(2),
+      .int(-100),
+      .uint(1000),
+      .map_start(2),
+      .text("key"),
+      .uint(100),
+      .text("key2"),
+      .int(-100),
+      .bytes("hello".data(using: .utf8)!),
+      .text("hello"),
+      // indef types
+      .indef_array_start,
+      .uint(100),
+      .int(-100),
+      .indef_break,
+      .indef_map_start,
+      .text("key1"),
+      .uint(100),
+      .text("key2"),
+      .int(-100),
+      .indef_break,
+      .indef_text_start,
+      .text("hello"),
+      .indef_break,
+      .indef_bytes_start,
+      .bytes(Data([0x01, 0x02, 0x03])),  // First chunk of bytes
+      .bytes(Data([0x04, 0x05])),  // Second chunk of bytes
+      .indef_break,
+    ]
     let expected_decoded_values: [CBORType] = [
       // simple types
       .uint(100),

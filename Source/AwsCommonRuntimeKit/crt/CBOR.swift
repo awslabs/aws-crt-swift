@@ -237,7 +237,7 @@ public class CBORDecoder {
       throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
     }
   }
-  
+
   /// Checks if the next element on the decoder is `null`.
   ///
   /// The next element is left as-is in the decoder, whether it is `null` or not.
