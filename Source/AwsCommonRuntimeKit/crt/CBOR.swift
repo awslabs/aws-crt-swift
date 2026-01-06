@@ -25,7 +25,7 @@ public enum CBORType: Equatable {
   case array(_ value: [CBORType])
   /// Map start (definite length)
   ///
-  /// It is up to the caller to add the correct number of key-value pairs to the array.
+  /// It is up to the caller to add the correct number of key-value pairs to the map.
   case map_start(_ value: Int)
   /// Map type (rolled-up variant)
   case map(_ value: [String: CBORType])
