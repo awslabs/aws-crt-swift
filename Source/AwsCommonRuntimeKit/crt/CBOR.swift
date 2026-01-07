@@ -241,9 +241,17 @@ public class CBORDecoder {
   /// Checks if the next element on the decoder is `null`.
   ///
   /// The next element is left as-is in the decoder, whether it is `null` or not.
-  /// - Returns: `true` if the next CBOR element is `null`, return `false` otherwise.
+  /// - Returns: `true` if the next CBOR element is `null`, `false` otherwise.
   public func isNull() throws -> Bool {
     try peekAtNextElement() == AWS_CBOR_TYPE_NULL
+  }
+
+  /// Checks if the next element on the decoder is an indefinite break.
+  ///
+  /// The next element is left as-is in the decoder, whether it is an indefinite break or not.
+  /// - Returns: `true` if the next CBOR element is an indefinite break, `false` otherwise.
+  public func isIndefBreak() throws -> Bool {
+    try peekAtNextElement() == AWS_CBOR_TYPE_BREAK
   }
 
   private func peekAtNextElement() throws -> aws_cbor_type {

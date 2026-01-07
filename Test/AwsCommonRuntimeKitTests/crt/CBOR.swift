@@ -224,17 +224,49 @@ class CBORTests: XCBaseTestCase {
 
   func test_isNull_trueCase() throws {
     let encoder = try! CBOREncoder()
-    encoder.encode(.null)
+    let element = CBORType.null
+    encoder.encode(element)
 
     let decoder = try CBORDecoder(data: encoder.getEncoded())
     XCTAssertTrue(try decoder.isNull())
+
+    let next = try decoder.popNext()
+    XCTAssertEqual(next, element)
   }
 
   func test_isNull_falseCase() throws {
     let encoder = try! CBOREncoder()
-    encoder.encode(.int(123))
+    let element = CBORType.uint(123)
+    encoder.encode(element)
 
     let decoder = try CBORDecoder(data: encoder.getEncoded())
     XCTAssertFalse(try decoder.isNull())
+
+    let next = try decoder.popNext()
+    XCTAssertEqual(next, element)
+  }
+
+  func test_isIndefBreak_trueCase() throws {
+    let encoder = try! CBOREncoder()
+    let element = CBORType.indef_break
+    encoder.encode(element)
+
+    let decoder = try CBORDecoder(data: encoder.getEncoded())
+    XCTAssertTrue(try decoder.isIndefBreak())
+
+    let next = try decoder.popNext()
+    XCTAssertEqual(next, element)
+  }
+
+  func test_isIndefBreak_falseCase() throws {
+    let encoder = try! CBOREncoder()
+    let element = CBORType.uint(456)
+    encoder.encode(element)
+
+    let decoder = try CBORDecoder(data: encoder.getEncoded())
+    XCTAssertFalse(try decoder.isIndefBreak())
+
+    let next = try decoder.popNext()
+    XCTAssertEqual(next, element)
   }
 }
