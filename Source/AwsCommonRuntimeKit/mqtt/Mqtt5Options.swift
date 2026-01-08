@@ -293,7 +293,7 @@ public class MqttClientOptions: CStructWithUserData {
   /// Callback for Lifecycle Event Disconnection.
   public let onLifecycleEventDisconnectionFn: OnLifecycleEventDisconnection?
 
-  public let metrics : AwsIoTSDKMetrics?
+  public let metrics: AwsIoTSDKMetrics?
 
   public init(
     hostName: String,
