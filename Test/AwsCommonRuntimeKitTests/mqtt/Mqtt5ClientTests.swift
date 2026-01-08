@@ -407,13 +407,14 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let connectOptions = MqttConnectOptions(
       clientId: createClientId(),
       username: inputUsername,
-      password: inputPassword.data(using: .utf8)
+      password: inputPassword.data(using: .utf8),
     )
 
     let clientOptions = MqttClientOptions(
       hostName: inputHost,
       port: UInt32(inputPort)!,
-      connectOptions: connectOptions)
+      connectOptions: connectOptions,
+      enableMetrics: false)
 
     let testContext = MqttTestContext()
     let client = try createClient(clientOptions: clientOptions, testContext: testContext)
@@ -619,7 +620,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let clientOptions = MqttClientOptions(
       hostName: inputHost,
       port: UInt32(inputPort)!,
-      connectOptions: connectOptions)
+      connectOptions: connectOptions,
+      enableMetrics: false)
 
     let testContext = MqttTestContext()
     testContext.withWebsocketTransform(isSuccess: true)
