@@ -207,7 +207,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
         onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
         onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
         onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
-        onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
+        onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection,
+        enableMetrics: clientOptions.enableMetrics)
     } else {
       let elg = try EventLoopGroup()
       let resolver = try HostResolver(
