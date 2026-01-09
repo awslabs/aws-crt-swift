@@ -407,8 +407,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let connectOptions = MqttConnectOptions(
       clientId: createClientId(),
       username: inputUsername,
-      password: inputPassword.data(using: .utf8),
-    )
+      password: inputPassword.data(using: .utf8))
 
     let clientOptions = MqttClientOptions(
       hostName: inputHost,
