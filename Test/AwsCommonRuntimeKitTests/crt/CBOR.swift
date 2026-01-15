@@ -104,4 +104,169 @@ class CBORTests: XCBaseTestCase {
     XCTAssertFalse(decoder.hasNext())
   }
 
+  func testCBORNoRollup() async throws {
+    // Used in both tests below
+    let values_to_encode: [CBORType] = [
+      // simple types
+      .uint(100),
+      .uint(UInt64.min),
+      .uint(UInt64.max),
+      .int(-100),
+      .int(Int64.min),
+      .int(Int64.max),
+      .double(10.59),
+      .double(10.0),
+      .bool(true),
+      .null,
+      .undefined,
+      // test tag
+      .tag(0),
+      .uint(100),
+      // test that tag 1 is decoded as date
+      .tag(1),
+      .double(Date(timeIntervalSince1970: 10.5).timeIntervalSince1970),
+      .date(Date(timeIntervalSince1970: 20.5)),
+      // complex types
+      .array_start(2),
+      .int(-100),
+      .uint(1000),
+      .map_start(2),
+      .text("key"),
+      .uint(100),
+      .text("key2"),
+      .int(-100),
+      .bytes("hello".data(using: .utf8)!),
+      .text("hello"),
+      // indef types
+      .indef_array_start,
+      .uint(100),
+      .int(-100),
+      .indef_break,
+      .indef_map_start,
+      .text("key1"),
+      .uint(100),
+      .text("key2"),
+      .int(-100),
+      .indef_break,
+      .indef_text_start,
+      .text("hello"),
+      .indef_break,
+      .indef_bytes_start,
+      .bytes(Data([0x01, 0x02, 0x03])),  // First chunk of bytes
+      .bytes(Data([0x04, 0x05])),  // Second chunk of bytes
+      .indef_break,
+    ]
+    let expected_decoded_values: [CBORType] = [
+      // simple types
+      .uint(100),
+      .uint(UInt64.min),
+      .uint(UInt64.max),
+      .int(-100),
+      .int(Int64.min),
+      .uint(UInt64(Int64.max)),
+      .double(10.59),
+      .uint(10),
+      .bool(true),
+      .null,
+      .undefined,
+      // test tag
+      .tag(0),
+      .uint(100),
+      // test that tag 1 is decoded as date
+      .date(Date(timeIntervalSince1970: 10.5)),
+      .date(Date(timeIntervalSince1970: 20.5)),
+      // complex types
+      .array_start(2),
+      .int(-100),
+      .uint(1000),
+      .map_start(2),
+      .text("key"),
+      .uint(100),
+      .text("key2"),
+      .int(-100),
+      .bytes("hello".data(using: .utf8)!),
+      .text("hello"),
+      // indef types
+      .indef_array_start,
+      .uint(100),
+      .int(-100),
+      .indef_break,
+      .indef_map_start,
+      .text("key1"),
+      .uint(100),
+      .text("key2"),
+      .int(-100),
+      .indef_break,
+      .text("hello"),
+      .bytes(Data([0x01, 0x02, 0x03, 0x04, 0x05])),
+    ]
+
+    // encode the values. Drop the encoder to verify lifetime semantics.
+    var encoded: [UInt8] = []
+    do {
+      let encoder = try! CBOREncoder()
+      for value in values_to_encode {
+        encoder.encode(value)
+      }
+      encoded = encoder.getEncoded()
+    }
+
+    // decode the values using the rollupCollections: false option on the
+    // decoder to prevent maps & arrays from being "rolled up"
+    let decoder = try! CBORDecoder(data: encoded, rollupCollections: false)
+    for expected in expected_decoded_values {
+      XCTAssertTrue(decoder.hasNext())
+      let actual = try! decoder.popNext()
+      XCTAssertEqual(actual, expected)
+    }
+    XCTAssertFalse(decoder.hasNext())
+  }
+
+  func test_isNull_trueCase() throws {
+    let encoder = try! CBOREncoder()
+    let element = CBORType.null
+    encoder.encode(element)
+
+    let decoder = try CBORDecoder(data: encoder.getEncoded())
+    XCTAssertTrue(try decoder.isNull())
+
+    let next = try decoder.popNext()
+    XCTAssertEqual(next, element)
+  }
+
+  func test_isNull_falseCase() throws {
+    let encoder = try! CBOREncoder()
+    let element = CBORType.uint(123)
+    encoder.encode(element)
+
+    let decoder = try CBORDecoder(data: encoder.getEncoded())
+    XCTAssertFalse(try decoder.isNull())
+
+    let next = try decoder.popNext()
+    XCTAssertEqual(next, element)
+  }
+
+  func test_isIndefBreak_trueCase() throws {
+    let encoder = try! CBOREncoder()
+    let element = CBORType.indef_break
+    encoder.encode(element)
+
+    let decoder = try CBORDecoder(data: encoder.getEncoded())
+    XCTAssertTrue(try decoder.isIndefBreak())
+
+    let next = try decoder.popNext()
+    XCTAssertEqual(next, element)
+  }
+
+  func test_isIndefBreak_falseCase() throws {
+    let encoder = try! CBOREncoder()
+    let element = CBORType.uint(456)
+    encoder.encode(element)
+
+    let decoder = try CBORDecoder(data: encoder.getEncoded())
+    XCTAssertFalse(try decoder.isIndefBreak())
+
+    let next = try decoder.popNext()
+    XCTAssertEqual(next, element)
+  }
 }
