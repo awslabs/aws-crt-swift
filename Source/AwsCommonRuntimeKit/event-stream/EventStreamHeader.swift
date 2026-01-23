@@ -36,6 +36,11 @@ public enum EventStreamHeaderValue: Equatable {
   /// It will lose the sub-millisecond precision during encoding.
   case timestamp(value: Date)
   case uuid(value: UUID)
+  /// Unknown event stream header value. This case indicates that the SDK
+  /// received an unknown EventStreamHeaderValue. If you encounter this case,
+  /// it usually means there are updates in the SDK. Update your app accordingly
+  /// if possible.
+  case sdkUnknown(Swift.String)
 }
 
 extension EventStreamHeaderValue {
@@ -75,7 +80,7 @@ extension EventStreamHeaderValue {
       let uuid = UUID(uuid: rawValue.pointee.header_value.static_val)
       value = .uuid(value: uuid)
     default:
-      fatalError("Unexpected header value type found.")
+      value = .sdkUnknown("\(rawValue)")
     }
     return value
   }

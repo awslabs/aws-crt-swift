@@ -15,6 +15,10 @@ public enum SubscriptionStatusEventType: Sendable {
   /// The streaming operation has entered a terminal state where it has given up trying to subscribe
   /// to its topic (filter).  This is always due to user error (bad topic filter or IoT Core permission policy).
   case halted
+
+  /// The streaming operation state is unknown. If you encounter this case it usually indicates there is SDK/API
+  /// changes, update your app/SDK if possible.
+  case sdkUnknown(Swift.String)
 }
 
 extension SubscriptionStatusEventType {
@@ -24,6 +28,7 @@ extension SubscriptionStatusEventType {
     case .established: return ARRSSET_SUBSCRIPTION_ESTABLISHED
     case .lost: return ARRSSET_SUBSCRIPTION_LOST
     case .halted: return ARRSSET_SUBSCRIPTION_HALTED
+    case let .sdkUnknown(s): fatalError("Unknown Subscription Status Event Type: \(s)")
     }
   }
 
@@ -37,7 +42,7 @@ extension SubscriptionStatusEventType {
     case ARRSSET_SUBSCRIPTION_HALTED:
       self = .halted
     default:
-      fatalError("Unknown Susbscription Event Type")
+      self = .sdkUnknown("\(cEnum.rawValue)")
     }
   }
 }

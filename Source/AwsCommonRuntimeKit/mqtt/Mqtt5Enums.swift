@@ -18,6 +18,11 @@ public enum QoS: Sendable {
   /// Note that this client does not currently support QoS 2 as of (March 2024)
   case exactlyOnce
 
+  /// An unknown QoS value. Do not use this case directly.
+  /// This case indicates that the SDK received an unknown QoS value. If you encounter this case,
+  /// it usually means there are changes in the SDK. Update your app accordingly if possible.
+  case sdkUnknown(Swift.String)
+
 }
 
 extension QoS {
@@ -27,6 +32,7 @@ extension QoS {
     case .atMostOnce: return AWS_MQTT5_QOS_AT_MOST_ONCE
     case .atLeastOnce: return AWS_MQTT5_QOS_AT_LEAST_ONCE
     case .exactlyOnce: return AWS_MQTT5_QOS_EXACTLY_ONCE
+    case let .sdkUnknown(s): fatalError("Unknown QoS value: \(s)")
     }
   }
 
@@ -40,7 +46,7 @@ extension QoS {
     case AWS_MQTT5_QOS_EXACTLY_ONCE:
       self = .exactlyOnce
     default:
-      fatalError("Unknown QoS Value")
+      self = .sdkUnknown("\(cEnum.rawValue)")
     }
   }
 }
@@ -481,6 +487,9 @@ public enum PayloadFormatIndicator: Sendable {
 
   /// The payload is a well-formed utf-8 string value.
   case utf8
+
+  /// Unknown type
+  case sdkUnknown(Swift.String)
 }
 
 extension PayloadFormatIndicator {
@@ -488,6 +497,7 @@ extension PayloadFormatIndicator {
     switch self {
     case .bytes: return AWS_MQTT5_PFI_BYTES
     case .utf8: return AWS_MQTT5_PFI_UTF8
+    case let .sdkUnknown(s): fatalError("Unknown PayloadFormatIndicator Type: \(s)")
     }
   }
 
@@ -499,7 +509,7 @@ extension PayloadFormatIndicator {
     case AWS_MQTT5_PFI_UTF8:
       self = .utf8
     default:
-      fatalError("Unknown QoS Value")
+      self = .sdkUnknown("\(cEnum.rawValue)")
     }
   }
 }
