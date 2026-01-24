@@ -69,6 +69,13 @@ extension XCTestCase {
     #endif
   }
 
+  // Look into README to run localhost server tests and how to startup the local server.
+  func skipIfLocalhostUnavailable() throws {
+    guard let _ = ProcessInfo.processInfo.environment["AWS_CRT_LOCALHOST"] else {
+      throw XCTSkip("Localhost server has not been started.")
+    }
+  }
+
   func awaitExpectationResult(_ expectations: [XCTestExpectation], _ timeout: TimeInterval = 5)
     async -> XCTWaiter.Result
   {
@@ -89,6 +96,7 @@ extension XCTestCase {
       wait(for: expectations, timeout: timeout)
     #endif
   }
+
   func skipIfPlatformDoesntSupportTLS() throws {
     // Skipped for secitem support as the unit tests requires enetitlement setup to have acces to
     // the data protection keychain.

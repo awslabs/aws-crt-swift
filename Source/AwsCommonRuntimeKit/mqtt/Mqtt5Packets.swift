@@ -66,6 +66,12 @@ func convertOptionalUserProperties(
   return userProperties
 }
 
+extension UserProperty: Equatable {
+  static public func == (lhs: UserProperty, rhs: UserProperty) -> Bool {
+    return lhs.name == rhs.name && lhs.value == rhs.value
+  }
+}
+
 // We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
 // so mark it unchecked Sendable
 /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet
@@ -494,7 +500,6 @@ public class UnsubscribePacket: CStruct, @unchecked Sendable {
   ) {
     self.topicFilters = topicFilters
     self.userProperties = userProperties
-    rawTopicFilters = convertTopicFilters(self.topicFilters)
   }
 
   // Allow an UnsubscribePacket to be created directly using a single topic filter
@@ -508,40 +513,15 @@ public class UnsubscribePacket: CStruct, @unchecked Sendable {
   typealias RawType = aws_mqtt5_packet_unsubscribe_view
   func withCStruct<Result>(_ body: (RawType) -> Result) -> Result {
     var raw_unsubscribe_view = aws_mqtt5_packet_unsubscribe_view()
-    raw_unsubscribe_view.topic_filters = UnsafePointer(rawTopicFilters)
-    raw_unsubscribe_view.topic_filter_count = topicFilters.count
-    return userProperties.withAWSArrayList { userPropertyPointer in
-      raw_unsubscribe_view.user_property_count = userProperties.count
-      raw_unsubscribe_view.user_properties =
-        UnsafePointer<aws_mqtt5_user_property>(userPropertyPointer)
-      return body(raw_unsubscribe_view)
-    }
-  }
-
-  func convertTopicFilters(_ topicFilters: [String]) -> UnsafeMutablePointer<aws_byte_cursor>? {
-    let cArray = UnsafeMutablePointer<aws_byte_cursor>.allocate(capacity: topicFilters.count)
-
-    for (index, string) in topicFilters.enumerated() {
-      let data = Data(string.utf8)
-      let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: data.count)
-      data.copyBytes(to: buffer, count: data.count)
-
-      cArray[index] = aws_byte_cursor(len: data.count, ptr: buffer)
-    }
-
-    return cArray
-  }
-
-  /// storage of topic filter Strings converted into native c aws_byte_cursor pointer
-  private var rawTopicFilters: UnsafeMutablePointer<aws_byte_cursor>?
-
-  deinit {
-    /// Clean up memory of converted topic filter Strings
-    if let filters = rawTopicFilters {
-      for i in 0..<topicFilters.count {
-        filters[i].ptr.deallocate()
+    return self.topicFilters.withByteCursorArray { byteCusorArray, len in
+      raw_unsubscribe_view.topic_filters = byteCusorArray
+      raw_unsubscribe_view.topic_filter_count = len
+      return userProperties.withAWSArrayList { userPropertyPointer in
+        raw_unsubscribe_view.user_property_count = userProperties.count
+        raw_unsubscribe_view.user_properties =
+          UnsafePointer<aws_mqtt5_user_property>(userPropertyPointer)
+        return body(raw_unsubscribe_view)
       }
-      filters.deallocate()
     }
   }
 }

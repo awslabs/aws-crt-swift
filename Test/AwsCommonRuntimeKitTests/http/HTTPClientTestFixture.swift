@@ -136,6 +136,7 @@ class HTTPClientTestFixture: XCBaseTestCase {
   ) async throws -> HTTPClientConnectionManager {
     let tlsContextOptions = TLSContextOptions()
     tlsContextOptions.setAlpnList(alpnList)
+    tlsContextOptions.setVerifyPeer(false)
     let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client)
     var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext)
     tlsConnectionOptions.serverName = endpoint

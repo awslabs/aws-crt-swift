@@ -14,11 +14,12 @@ var package = Package(
   products: [
     .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
     .executable(name: "Elasticurl", targets: ["Elasticurl"]),
+    .executable(name: "Mqtt5Canary", targets: ["Mqtt5Canary"]),
   ],
   dependencies: [
     // Arugment Parser Dependency for ElasticCurl
     .package(
-      url: "https://github.com/apple/swift-argument-parser.git", .upToNextMajor(from: "1.5.0"))
+      url: "https://github.com/apple/swift-argument-parser.git", exact: "1.2.3")
   ]
 )
 
@@ -55,6 +56,11 @@ awsCCommonPlatformExcludes.append("source/arch/intel")
 awsCCommonPlatformExcludes.append("source/arch/arm")
 #if !os(Windows)
   awsCCommonPlatformExcludes.append("source/windows")
+#endif
+#if !os(Linux)
+  awsCCommonPlatformExcludes.append("source/linux")
+#else
+  awsCCommonPlatformExcludes.append("source/platform_fallback_stubs/file_direct_io.c")
 #endif
 let cSettingsCommon: [CSetting] = [
   .headerSearchPath("source/external/libcbor"),
@@ -370,6 +376,14 @@ packageTargets.append(contentsOf: [
       .product(name: "ArgumentParser", package: "swift-argument-parser"),
     ],
     path: "Source/Elasticurl"
+  ),
+  .executableTarget(
+    name: "Mqtt5Canary",
+    dependencies: [
+      "AwsCommonRuntimeKit",
+      .product(name: "ArgumentParser", package: "swift-argument-parser"),
+    ],
+    path: "Source/Canary/Mqtt5Canary"
   ),
 ])
 package.targets = packageTargets
