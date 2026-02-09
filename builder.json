@@ -45,7 +45,7 @@
       "+test_steps": [
         "cd Test/Elasticurl",
         "swift build -c release",
-        "integ_test.sh"
+        "../../integ_test.sh"
       ]
     },
     "linux":{
