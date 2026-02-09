@@ -54,9 +54,9 @@ phases:
       - cd Test/Canary/Mqtt5Canary
       # pull and copy canary scripts
       - git clone git@github.com:awslabs/aws-crt-canaries.git
-      - cp aws-crt-canaries/source/mqtt5/*.py codebuild/canary	
+      - cp aws-crt-canaries/source/mqtt5/*.py .
       # Run the Canary
-      - python3 codebuild/canary/CanaryWrapper.py --canary_executable swift --canary_arguments "run Mqtt5Canary --endpoint ${ENDPOINT} --seconds ${CANARY_DURATION} --tps ${CANARY_TPS} --threads ${CANARY_THREADS} -c ${CANARY_CLIENT_COUNT} --verbose ${CANARY_LOG_LEVEL}" --git_hash ${GIT_HASH} --git_repo_name $PACKAGE_NAME --ticket_item "${CODEBUILD_TICKET_ITEM}" --cloudwatch_namespace mqtt5_swift_canary
+      - python3 CanaryWrapper.py --canary_executable swift --canary_arguments "run Mqtt5Canary --endpoint ${ENDPOINT} --seconds ${CANARY_DURATION} --tps ${CANARY_TPS} --threads ${CANARY_THREADS} -c ${CANARY_CLIENT_COUNT} --verbose ${CANARY_LOG_LEVEL}" --git_hash ${GIT_HASH} --git_repo_name $PACKAGE_NAME --ticket_item "${CODEBUILD_TICKET_ITEM}" --cloudwatch_namespace mqtt5_swift_canary
   post_build:
     commands:
       - echo Build completed on `date`
