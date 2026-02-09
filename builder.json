@@ -26,24 +26,24 @@
     "ios": {
       "!build_steps": [
         "xcodebuild -list",
-        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=iOS'"
+        "xcodebuild -scheme aws-crt-swift -destination 'generic/platform=iOS'"
       ]
     },
     "tvos": {
       "!build_steps": [
         "xcodebuild -list",
-        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=tvOS'"
+        "xcodebuild -scheme aws-crt-swift -destination 'generic/platform=tvOS'"
       ]
     },
     "watchos": {
       "!build_steps": [
         "xcodebuild -list",
-        "xcodebuild -scheme AwsCommonRuntimeKit -destination 'generic/platform=watchOS'"
+        "xcodebuild -scheme aws-crt-swift -destination 'generic/platform=watchOS'"
       ]
     },
     "macos": {
       "+test_steps": [
-        "cd Test/Elasticurl && swift build ",
+        "cd Test/Elasticurl && swift build -c release",
         "integ_test.sh"
       ]
     },
