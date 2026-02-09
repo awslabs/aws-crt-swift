@@ -25,27 +25,22 @@
   "targets": {
     "ios": {
       "!build_steps": [
-        "xcodebuild -list",
         "xcodebuild -scheme aws-crt-swift -destination 'generic/platform=iOS'"
       ]
     },
     "tvos": {
       "!build_steps": [
-        "xcodebuild -list",
         "xcodebuild -scheme aws-crt-swift -destination 'generic/platform=tvOS'"
       ]
     },
     "watchos": {
       "!build_steps": [
-        "xcodebuild -list",
         "xcodebuild -scheme aws-crt-swift -destination 'generic/platform=watchOS'"
       ]
     },
     "macos": {
       "+test_steps": [
         "cd Test/Elasticurl && swift build -c release",
-        "pwd",
-        "ls",
         "./integ_test.sh"
       ]
     },
