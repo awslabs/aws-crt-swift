@@ -56,6 +56,7 @@ phases:
       - export GIT_HASH=$(git rev-parse HEAD)
       # Get the endpoint, certificate, and key for connecting to IoT Core
       - export ENDPOINT=$(aws secretsmanager get-secret-value --secret-id ${CANARY_SERVER_ARN} --query "SecretString" | cut -f2 -d":" | sed -e 's/[\\\"\}]//g')
+      - cd Test/Canary/Mqtt5Canary
       # pull and copy canary scripts
       - git clone git@github.com:awslabs/aws-crt-canaries.git
       - cp aws-crt-canaries/source/mqtt5/*.py codebuild/canary

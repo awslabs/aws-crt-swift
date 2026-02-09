@@ -40,7 +40,9 @@
     },
     "macos": {
       "+test_steps": [
-        "./integ_test.sh"
+        "cd Test/Elasticurl/",
+        "swift build -c release",
+        "../../integ_test.sh"
       ]
     },
     "linux":{

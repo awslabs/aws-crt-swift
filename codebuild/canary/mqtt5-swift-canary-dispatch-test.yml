@@ -51,6 +51,7 @@ phases:
         sed -i '' '177i\
         cSettingsIO.append(.define("AWS_USE_APPLE_NETWORK_FRAMEWORK"))
         ' Package.swift
+      - cd Test/Canary/Mqtt5Canary
       # pull and copy canary scripts
       - git clone git@github.com:awslabs/aws-crt-canaries.git
       - cp aws-crt-canaries/source/mqtt5/*.py codebuild/canary	
