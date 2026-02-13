@@ -205,9 +205,9 @@ public class MqttConnectOptions: CStruct {
 public class AwsIoTSDKMetrics: CStruct {
   public let libraryName: String = "IoTDeviceSDK/Swift"
 
-  typealias RawType = aws_mqtt_iot_sdk_metrics
-  func withCStruct<Result>(_ body: (aws_mqtt_iot_sdk_metrics) -> Result) -> Result {
-    var raw_metrics = aws_mqtt_iot_sdk_metrics()
+  typealias RawType = aws_mqtt_iot_metrics
+  func withCStruct<Result>(_ body: (aws_mqtt_iot_metrics) -> Result) -> Result {
+    var raw_metrics = aws_mqtt_iot_metrics()
     return libraryName.withByteCursor { hostNameByteCursor in
       raw_metrics.library_name = hostNameByteCursor
       return body(raw_metrics)
