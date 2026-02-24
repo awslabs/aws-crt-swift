@@ -153,6 +153,7 @@ var awsCIoPlatformExcludes =
     "source/pkcs11/v2.40",
   ] + excludesFromAll
 var cSettingsIO = cSettings
+var cSettingsHttp = cSettings
 
 #if os(Linux)
   ioDependencies.append("S2N_TLS")
@@ -180,6 +181,7 @@ var cSettingsIO = cSettings
   cSettingsIO.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
   cSettingsIO.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
   cSettingsIO.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
+  cSettingsHttp.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
   swiftTestSettings.append(.define("__APPLE__"))
   swiftTestSettings.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
   swiftTestSettings.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
@@ -306,7 +308,7 @@ packageTargets.append(contentsOf: [
     dependencies: ["AwsCCompression", "AwsCIo", "AwsCCal", "AwsCCommon"],
     path: "aws-common-runtime/aws-c-http",
     exclude: awsCHttpPlatformExcludes,
-    cSettings: cSettings
+    cSettings: cSettingsHttp
   ),
   .target(
     name: "AwsCAuth",
