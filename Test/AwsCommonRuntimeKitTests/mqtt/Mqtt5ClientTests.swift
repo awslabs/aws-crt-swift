@@ -512,20 +512,16 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
   }
 
   /*
-   * [ConnDC-UC5-1] HttpProxy options failed on iOS
+   * [ConnDC-UC5-1] HttpProxy options failed with Apple Network Framework
    */
   func testMqtt5HttpProxyFailedOnApple() async throws {
-    #if !os(iOS) && !os(tvOS)
-      throw XCTSkip("Http proxy config should only fail on iOS or tvOS")
+    #if AWS_USE_SECITEM
+      throw XCTSkip("Http proxy config should only fail on Apple Network Framework")
     #endif
-    let inputHost = try getEnvironmentVarOrSkipTest(
-      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
-    let inputPort = try getEnvironmentVarOrSkipTest(
-      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
-    let inputProxyHost = try getEnvironmentVarOrSkipTest(
-      environmentVarName: "AWS_TEST_MQTT5_PROXY_HOST")
-    let inputProxyPort = try getEnvironmentVarOrSkipTest(
-      environmentVarName: "AWS_TEST_MQTT5_PROXY_PORT")
+    let inputHost = "dummy_host"
+    let inputPort: UInt32 = 1
+    let inputProxyHost = "dummy_host"
+    let inputProxyPort: UInt32 = 1
 
     let tlsOptions = TLSContextOptions()
     tlsOptions.setVerifyPeer(false)
@@ -533,12 +529,12 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
 
     let httpProxyOptions = HTTPProxyOptions(
       hostName: inputProxyHost,
-      port: UInt32(inputProxyPort)!,
+      port: inputProxyPort,
       connectionType: HTTPProxyConnectionType.tunnel)
 
     let clientOptions = MqttClientOptions(
       hostName: inputHost,
-      port: UInt32(inputPort)!,
+      port: inputPort,
       tlsCtx: tlsContext,
       httpProxyOptions: httpProxyOptions)
 
