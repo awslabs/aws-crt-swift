@@ -78,6 +78,21 @@ class HTTPProxyTests: XCBaseTestCase {
     try await doProxyTest(type: ProxyTestType.tunnelingHTTPS, authType: .basic)
   }
 
+  func testHttpProxyFailureOnApple() async throws {
+    #if !os(iOS) && !os(tvOS)
+      throw XCTSkip("Http proxy config should only fail on iOS or tvOS")
+    #endif
+    try skipIfEnvironmentNotSetup()
+    var expectionThrow = false
+    do {
+      try await doProxyTest(type: ProxyTestType.forwarding, authType: .none)
+    } catch {
+      expectionThrow = true
+      XCTAssertEqual(aws_last_error(), Int32(AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
+    }
+    XCTAssertTrue(expectionThrow)
+  }
+
   enum ProxyTestType: CaseIterable {
     case forwarding
     case tunnelingHTTP

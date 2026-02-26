@@ -512,6 +512,54 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
   }
 
   /*
+   * [ConnDC-UC5-1] HttpProxy options failed on iOS
+   */
+  func testMqtt5HttpProxyFailedOnApple() async throws {
+    #if !os(iOS) && !os(tvOS)
+      throw XCTSkip("Http proxy config should only fail on iOS or tvOS")
+    #endif
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+    let inputProxyHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_PROXY_HOST")
+    let inputProxyPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_PROXY_PORT")
+
+    let tlsOptions = TLSContextOptions()
+    tlsOptions.setVerifyPeer(false)
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let httpProxyOptions = HTTPProxyOptions(
+      hostName: inputProxyHost,
+      port: UInt32(inputProxyPort)!,
+      connectionType: HTTPProxyConnectionType.tunnel)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!,
+      tlsCtx: tlsContext,
+      httpProxyOptions: httpProxyOptions)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+
+    try client.start()
+    await awaitExpectation([testContext.connectionFailureExpectation], 5)
+
+    if let failureData = testContext.lifecycleConnectionFailureData {
+      XCTAssertEqual(failureData.crtError.code, Int32(AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
+    } else {
+      XCTFail("lifecycleConnectionFailureData Missing")
+      return
+    }
+
+    try await stopClient(client: client, testContext: testContext)
+
+  }
+
+  /*
    * [ConnDC-UC6] Direct Connection with all options set
    */
   func testMqtt5DirectConnectMaximum() async throws {
