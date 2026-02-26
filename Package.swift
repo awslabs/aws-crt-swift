@@ -12,14 +12,7 @@ var package = Package(
   name: "aws-crt-swift",
   platforms: [.iOS(.v13), .macOS(.v10_15), .tvOS(.v13), .watchOS(.v6)],
   products: [
-    .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
-    .executable(name: "Elasticurl", targets: ["Elasticurl"]),
-    .executable(name: "Mqtt5Canary", targets: ["Mqtt5Canary"]),
-  ],
-  dependencies: [
-    // Arugment Parser Dependency for ElasticCurl
-    .package(
-      url: "https://github.com/apple/swift-argument-parser.git", exact: "1.2.3")
+    .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"])
   ]
 )
 
@@ -370,22 +363,6 @@ packageTargets.append(contentsOf: [
       .process("Resources")
     ],
     swiftSettings: swiftTestSettings
-  ),
-  .executableTarget(
-    name: "Elasticurl",
-    dependencies: [
-      "AwsCommonRuntimeKit",
-      .product(name: "ArgumentParser", package: "swift-argument-parser"),
-    ],
-    path: "Source/Elasticurl"
-  ),
-  .executableTarget(
-    name: "Mqtt5Canary",
-    dependencies: [
-      "AwsCommonRuntimeKit",
-      .product(name: "ArgumentParser", package: "swift-argument-parser"),
-    ],
-    path: "Source/Canary/Mqtt5Canary"
   ),
 ])
 package.targets = packageTargets
