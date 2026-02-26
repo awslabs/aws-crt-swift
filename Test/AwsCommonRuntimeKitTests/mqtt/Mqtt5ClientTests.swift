@@ -515,7 +515,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
    * [ConnDC-UC5-1] HttpProxy options failed with Apple Network Framework
    */
   func testMqtt5HttpProxyFailedOnApple() async throws {
-    #if AWS_USE_SECITEM
+    #if !AWS_USE_SECITEM
       throw XCTSkip("Http proxy config should only fail on Apple Network Framework")
     #endif
     let inputHost = "dummy_host"
