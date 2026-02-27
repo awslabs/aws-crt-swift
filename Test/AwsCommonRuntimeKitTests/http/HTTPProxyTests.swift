@@ -229,7 +229,7 @@ class HTTPProxyTests: XCBaseTestCase {
       if (isUseSecitem()) {
         XCTAssertEqual(aws_last_error(), Int32(AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
       } else {
-        // Http proxy should not fail on Apple network framework
+        // Http proxy should not fail if not using secitem
         XCTAssert(false)
       }
     }
