@@ -18,10 +18,9 @@ var package = Package(
 
 let cSettings: [CSetting] = [
   .define("DEBUG_BUILD", .when(configuration: .debug)),
-  // Disable Intel VTune tracing API here since aws-crt-swift doesn't use CMake
   .define("INTEL_NO_ITTNOTIFY_API"),
-  // Don't use APIs forbidden by App Stores (e.g. non-public system APIs)
   .define("AWS_APPSTORE_SAFE"),
+  .define("__ANDROID__", .when(platforms: [.android])),
 ]
 
 /// Store any defines that will be used by Swift Tests in swiftTestSettings
@@ -31,7 +30,15 @@ var swiftTestSettings: [SwiftSetting] = []
 /// Configure C targets.
 /// Note: We can not use unsafe flags because SwiftPM makes the target ineligible for use by other packages.
 ///       We are also not using any architecture based conditionals due to lack of proper cross compilation support.
-/// Configure aws-c-common
+///
+/// Platform-specific source files are handled via wrapper targets (*_Platform, *_Android)
+/// that use C preprocessor guards (#ifdef __APPLE__, #ifdef __linux__, etc.) to conditionally
+/// include the correct source files. This avoids relying on #if os() in Package.swift, which
+/// evaluates on the HOST platform and breaks cross-compilation scenarios.
+//////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////
+// MARK: - aws-c-common
 //////////////////////////////////////////////////////////////////////
 var awsCCommonPlatformExcludes =
   [
@@ -55,132 +62,120 @@ awsCCommonPlatformExcludes.append("source/arch/arm")
 #else
   awsCCommonPlatformExcludes.append("source/platform_fallback_stubs/file_direct_io.c")
 #endif
+
 let cSettingsCommon: [CSetting] = [
   .headerSearchPath("source/external/libcbor"),
   .define("DEBUG_BUILD", .when(configuration: .debug)),
+  .define("__ANDROID__", .when(platforms: [.android])),
 ]
 
 //////////////////////////////////////////////////////////////////////
-/// aws-c-cal
+// MARK: - aws-c-cal
+//
+// Platform sources (source/darwin, source/unix, source/windows) are
+// excluded from the main target and compiled via AwsCCal_Platform
+// wrapper target using preprocessor guards.
 //////////////////////////////////////////////////////////////////////
-var calDependencies: [Target.Dependency] = ["AwsCCommon"]
-#if os(Linux) || os(Android)
-  packageTargets.append(
-    .systemLibrary(
-      name: "LibCrypto",
-      pkgConfig: "libcrypto",
-      providers: [
-        .apt(["openssl libssl-dev"]),
-        .yum(["openssl openssl-devel"]),
-      ]
-    ))
-  calDependencies.append("LibCrypto")
-#endif
+let awsCCalPlatformExcludes = [
+  "bin",
+  "include/aws/cal/private",
+  "source/shared/ed25519.c",
+  "source/shared/lccrypto_common.c",
+  "CODE_OF_CONDUCT.md",
+  "ecdsa-fuzz-corpus/windows/p256_sig_corpus.txt",
+  "ecdsa-fuzz-corpus/darwin/p256_sig_corpus.txt",
+  "source/darwin",
+  "source/unix",
+  "source/windows",
+] + excludesFromAll
 
-var awsCCalPlatformExcludes =
-  [
-    "bin",
-    "include/aws/cal/private",
-    "source/shared/ed25519.c",
-    "CODE_OF_CONDUCT.md",
-    "ecdsa-fuzz-corpus/windows/p256_sig_corpus.txt",
-    "ecdsa-fuzz-corpus/darwin/p256_sig_corpus.txt",
-  ] + excludesFromAll
+var calDependencies: [Target.Dependency] = [
+  "AwsCCommon",
+  "AwsCCal_Platform",
+  .target(name: "LibCrypto", condition: .when(platforms: [.linux, .android])),
+]
 
-#if os(Windows)
-  awsCCalPlatformExcludes.append("source/darwin")
-  awsCCalPlatformExcludes.append("source/unix")
-  awsCCalPlatformExcludes.append("source/shared/lccrypto_common.c")
-#elseif os(Linux) || os(Android)
-  awsCCalPlatformExcludes.append("source/windows")
-  awsCCalPlatformExcludes.append("source/darwin")
-#else  // macOS, iOS, watchOS, tvOS
-  awsCCalPlatformExcludes.append("source/windows")
-  awsCCalPlatformExcludes.append("source/unix")
-  awsCCalPlatformExcludes.append("source/shared/lccrypto_common.c")
-#endif
+packageTargets.append(
+  .systemLibrary(
+    name: "LibCrypto",
+    pkgConfig: "libcrypto",
+    providers: [
+      .apt(["openssl libssl-dev"]),
+      .yum(["openssl openssl-devel"]),
+    ]
+  )
+)
 
 //////////////////////////////////////////////////////////////////////
-/// s2n-tls
+// MARK: - s2n-tls
 //////////////////////////////////////////////////////////////////////
-#if os(Linux) || os(Android)
-  let s2nExcludes = [
-    "bin", "codebuild", "coverage", "docker-images",
-    "docs", "lib",
-    "libcrypto-build", "scram",
-    "s2n.mk", "Makefile", "stuffer/Makefile", "crypto/Makefile",
-    "tls/Makefile", "utils/Makefile", "error/Makefile", "tls/extensions/Makefile",
-    "scripts/", "codebuild", "bindings/rust", "VERSIONING.rst", "tests",
-    "cmake/s2n-config.cmake", "CMakeLists.txt", "README.md", "cmake", "NOTICE", "LICENSE",
-  ]
-  packageTargets.append(
-    .target(
-      name: "S2N_TLS",
-      dependencies: ["LibCrypto"],
-      path: "aws-common-runtime/s2n",
-      exclude: s2nExcludes,
-      publicHeadersPath: "api",
-      cSettings: [
-        .headerSearchPath("./"),
-        .define("S2N_NO_PQ"),
-        // This is a hack to get around the fact that S2N uses the compiler option `-include`
-        // to include `s2n_prelude.h` in all .c files. Since SwiftPM doesn't support compiler flags,
-        // we manually define the macros from `s2n_prelude.h`. When SwiftPM supports compiler flags
-        // or building packages using CMake, this hack should be removed.
-        // We are not defining `S2N_API` because we don't need to expose any symbols from S2N in crt-swift.
-        .define("_S2N_PRELUDE_INCLUDED"),
-        .define("S2N_BUILD_RELEASE"),
-        .define("_FORTIFY_SOURCE", to: "2"),
-        .define("POSIX_C_SOURCE", to: "200809L"),
-      ]
-    ))
-#endif
+let s2nExcludes = [
+  "bin", "codebuild", "coverage",
+  "docs", "lib", "scram", "nix", "compliance",
+  "s2n.mk", "stuffer/Makefile", "crypto/Makefile",
+  "utils/Makefile", "error/Makefile",
+  "scripts", "bindings", "VERSIONING.rst", "tests",
+  "cmake/s2n-config.cmake", "CMakeLists.txt", "README.md", "cmake", "NOTICE", "LICENSE",
+  "flake.lock", "flake.nix",
+]
+packageTargets.append(
+  .target(
+    name: "S2N_TLS",
+    dependencies: ["LibCrypto"],
+    path: "aws-common-runtime/s2n",
+    exclude: s2nExcludes,
+    publicHeadersPath: "api",
+    cSettings: [
+      .headerSearchPath("./"),
+      .define("S2N_NO_PQ"),
+      .define("_S2N_PRELUDE_INCLUDED"),
+      .define("S2N_BUILD_RELEASE"),
+      .define("_FORTIFY_SOURCE", to: "2"),
+      .define("POSIX_C_SOURCE", to: "200809L"),
+      .define("__ANDROID__", .when(platforms: [.android])),
+    ]
+  )
+)
 
 //////////////////////////////////////////////////////////////////////
-/// aws-c-io
+// MARK: - aws-c-io
+//
+// Platform sources (source/darwin, source/bsd, source/linux, source/s2n,
+// source/windows) are excluded from the main target and compiled via
+// AwsCIo_Platform wrapper target using preprocessor guards.
+// source/posix is kept in the main target (used on macOS, Linux, and Android).
 //////////////////////////////////////////////////////////////////////
-var ioDependencies: [Target.Dependency] = ["AwsCCommon", "AwsCCal"]
-var awsCIoPlatformExcludes =
-  [
-    "docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11.md",
-    "source/pkcs11/v2.40",
-  ] + excludesFromAll
-var cSettingsIO = cSettings
+let awsCIoPlatformExcludes = [
+  "docs", "CODE_OF_CONDUCT.md", "codebuild", "PKCS11.md",
+  "source/pkcs11/v2.40",
+  "source/darwin",
+  "source/bsd",
+  "source/linux",
+  "source/s2n",
+  "source/windows",
+] + excludesFromAll
 
-#if os(Linux) || os(Android)
-  ioDependencies.append("S2N_TLS")
-  cSettingsIO.append(.define("USE_S2N"))
-#endif
+var cSettingsIO: [CSetting] = cSettings + [
+  .define("AWS_ENABLE_DISPATCH_QUEUE", .when(platforms: [.macOS, .iOS, .tvOS, .watchOS, .visionOS])),
+  .define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])),
+  .define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])),
+  .define("AWS_ENABLE_EPOLL", .when(platforms: [.linux, .android])),
+  .define("USE_S2N", .when(platforms: [.linux, .android])),
+]
 
-#if os(Windows)
-  awsCIoPlatformExcludes.append("source/posix")
-  awsCIoPlatformExcludes.append("source/linux")
-  awsCIoPlatformExcludes.append("source/s2n")
-  awsCIoPlatformExcludes.append("source/darwin")
-  cSettingsIO.append(.define("AWS_ENABLE_IO_COMPLETION_PORTS"))
-  swiftTestSettings.append(.define("AWS_ENABLE_IO_COMPLETION_PORTS"))
-#elseif os(Linux) || os(Android)
-  awsCIoPlatformExcludes.append("source/windows")
-  awsCIoPlatformExcludes.append("source/bsd")
-  awsCIoPlatformExcludes.append("source/darwin")
-  cSettingsIO.append(.define("AWS_ENABLE_EPOLL"))
-  swiftTestSettings.append(.define("AWS_ENABLE_EPOLL"))
-#else  // macOS, iOS, watchOS, tvOS
-  awsCIoPlatformExcludes.append("source/windows")
-  awsCIoPlatformExcludes.append("source/linux")
-  awsCIoPlatformExcludes.append("source/s2n")
-  cSettingsIO.append(.define("__APPLE__"))
-  cSettingsIO.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
-  cSettingsIO.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
-  cSettingsIO.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
-  swiftTestSettings.append(.define("__APPLE__"))
-  swiftTestSettings.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
-  swiftTestSettings.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
-  swiftTestSettings.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
-#endif
+var ioDependencies: [Target.Dependency] = [
+  "AwsCCommon",
+  "AwsCCal",
+  "AwsCIo_Platform",
+  .target(name: "S2N_TLS", condition: .when(platforms: [.linux, .android])),
+]
+
+swiftTestSettings.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
+swiftTestSettings.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
+swiftTestSettings.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
 
 //////////////////////////////////////////////////////////////////////
-/// aws-c-checksums
+// MARK: - aws-c-checksums
 //////////////////////////////////////////////////////////////////////
 var awsCChecksumsExcludes = [
   "bin",
@@ -261,10 +256,40 @@ packageTargets.append(contentsOf: [
   ),
   .target(
     name: "AwsCCommon",
-    dependencies: ["AwsCPlatformConfig"],
+    dependencies: [
+        "AwsCPlatformConfig",
+        "AwsCCommon_Platform",
+    ],
     path: "aws-common-runtime/aws-c-common",
     exclude: awsCCommonPlatformExcludes,
     cSettings: cSettingsCommon
+  ),
+  .target(
+    name: "AwsCCommon_Platform",
+    dependencies: ["AwsCPlatformConfig"],
+    path: "aws-common-runtime/aws-c-common-platform",
+    publicHeadersPath: "include",
+    cSettings: [
+      .headerSearchPath("../aws-c-common/include"),
+      .define("DEBUG_BUILD", .when(configuration: .debug)),
+      .define("__ANDROID__", .when(platforms: [.android])),
+    ]
+  ),
+  .target(
+    name: "AwsCCal_Platform",
+    dependencies: [
+      "AwsCCommon",
+      .target(name: "LibCrypto", condition: .when(platforms: [.linux, .android])),
+    ],
+    path: "aws-common-runtime/aws-c-cal-platform",
+    publicHeadersPath: "include",
+    cSettings: [
+      .headerSearchPath("../aws-c-cal/include"),
+      .define("DEBUG_BUILD", .when(configuration: .debug)),
+      .define("INTEL_NO_ITTNOTIFY_API"),
+      .define("AWS_APPSTORE_SAFE"),
+      .define("__ANDROID__", .when(platforms: [.android])),
+    ]
   ),
   .target(
     name: "AwsCSdkUtils",
@@ -279,6 +304,29 @@ packageTargets.append(contentsOf: [
     path: "aws-common-runtime/aws-c-cal",
     exclude: awsCCalPlatformExcludes,
     cSettings: cSettings
+  ),
+  .target(
+    name: "AwsCIo_Platform",
+    dependencies: [
+      "AwsCCommon",
+      "AwsCCal",
+      .target(name: "S2N_TLS", condition: .when(platforms: [.linux, .android])),
+    ],
+    path: "aws-common-runtime/aws-c-io-platform",
+    publicHeadersPath: "include",
+    cSettings: [
+      .headerSearchPath("../aws-c-io/include"),
+      .headerSearchPath("../s2n/api"),
+      .define("DEBUG_BUILD", .when(configuration: .debug)),
+      .define("INTEL_NO_ITTNOTIFY_API"),
+      .define("AWS_APPSTORE_SAFE"),
+      .define("AWS_ENABLE_DISPATCH_QUEUE", .when(platforms: [.macOS, .iOS, .tvOS, .watchOS, .visionOS])),
+      .define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])),
+      .define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])),
+      .define("AWS_ENABLE_EPOLL", .when(platforms: [.linux, .android])),
+      .define("USE_S2N", .when(platforms: [.linux, .android])),
+      .define("__ANDROID__", .when(platforms: [.android])),
+    ]
   ),
   .target(
     name: "AwsCIo",
