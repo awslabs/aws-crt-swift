@@ -559,6 +559,50 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
   }
 
   /*
+   * [ConnDC-UC5-1] HttpProxy options failed with Apple Network Framework
+   */
+  func testMqtt5HttpProxyFailedOnApple() async throws {
+    #if !AWS_USE_SECITEM
+      throw XCTSkip("Http proxy config should only fail on Apple Network Framework")
+    #endif
+    let inputHost = "dummy_host"
+    let inputPort: UInt32 = 1
+    let inputProxyHost = "dummy_host"
+    let inputProxyPort: UInt32 = 1
+
+    let tlsOptions = TLSContextOptions()
+    tlsOptions.setVerifyPeer(false)
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let httpProxyOptions = HTTPProxyOptions(
+      hostName: inputProxyHost,
+      port: inputProxyPort,
+      connectionType: HTTPProxyConnectionType.tunnel)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: inputPort,
+      tlsCtx: tlsContext,
+      httpProxyOptions: httpProxyOptions)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+
+    try client.start()
+    await awaitExpectation([testContext.connectionFailureExpectation], 5)
+
+    if let failureData = testContext.lifecycleConnectionFailureData {
+      XCTAssertEqual(failureData.crtError.code, Int32(AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
+    } else {
+      XCTFail("lifecycleConnectionFailureData Missing")
+      return
+    }
+
+    try await stopClient(client: client, testContext: testContext)
+
+  }
+
+  /*
    * [ConnDC-UC6] Direct Connection with all options set
    */
   func testMqtt5DirectConnectMaximum() async throws {
