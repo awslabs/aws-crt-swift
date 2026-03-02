@@ -174,6 +174,8 @@ var cSettingsHttp = cSettings
   cSettingsIO.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
   cSettingsIO.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
   cSettingsIO.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
+  // Http proxy is not supported with AWS_USE_SECITEM. Currently, we only support Apple Network Framework
+  // on iOS, and tvOS.
   cSettingsHttp.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
   swiftTestSettings.append(.define("__APPLE__"))
   swiftTestSettings.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
