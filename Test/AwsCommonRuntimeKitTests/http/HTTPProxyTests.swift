@@ -78,6 +78,19 @@ class HTTPProxyTests: XCBaseTestCase {
     try await doProxyTest(type: ProxyTestType.tunnelingHTTPS, authType: .basic)
   }
 
+  /*
+  ** As Apple Network Framework does not support http proxy, the http proxy tests
+  ** should failed with platform not supported error. Adjust the tests to catch error
+  ** with Secitem enabled.
+  */
+  func isUseSecitem() -> Bool {
+    #if AWS_USE_SECITEM
+      return true
+    #else
+      return false
+    #endif
+  }
+
   enum ProxyTestType: CaseIterable {
     case forwarding
     case tunnelingHTTP
@@ -88,6 +101,9 @@ class HTTPProxyTests: XCBaseTestCase {
   }
 
   func skipIfEnvironmentNotSetup() throws {
+    if isUseSecitem() {
+      return
+    }
     guard HTTPProxyHost != nil,
       HTTPProxyPort != nil,
       HTTPSProxyHost != nil,
@@ -124,6 +140,10 @@ class HTTPProxyTests: XCBaseTestCase {
   }
 
   func getProxyHost(type: ProxyTestType, authType: HTTPProxyAuthenticationType) -> String {
+
+    if isUseSecitem() {
+      return "test_host"
+    }
     if authType == HTTPProxyAuthenticationType.basic {
       return HTTPProxyBasicHost!
     }
@@ -134,6 +154,10 @@ class HTTPProxyTests: XCBaseTestCase {
   }
 
   func getProxyPort(type: ProxyTestType, authType: HTTPProxyAuthenticationType) -> String {
+    if isUseSecitem() {
+      return "1"
+    }
+
     if authType == HTTPProxyAuthenticationType.basic {
       return HTTPProxyBasicPort!
     }
@@ -173,8 +197,8 @@ class HTTPProxyTests: XCBaseTestCase {
       hostName: getProxyHost(type: type, authType: authType),
       port: UInt32(getProxyPort(type: type, authType: authType))!,
       authType: authType,
-      basicAuthUsername: HTTPProxyBasicAuthUsername,
-      basicAuthPassword: HTTPProxyBasicAuthPassword,
+      basicAuthUsername: isUseSecitem() ? "" : HTTPProxyBasicAuthUsername,
+      basicAuthPassword: isUseSecitem() ? "" : HTTPProxyBasicAuthPassword,
       tlsOptions: try getTLSOptions(type: type),
       connectionType: getConnectionType(type: type))
   }
@@ -195,8 +219,24 @@ class HTTPProxyTests: XCBaseTestCase {
       port: port,
       alpnList: ["http/1.1"],
       proxyOptions: proxyOptions)
-    _ = try await HTTPClientTestFixture.sendHTTPRequest(
-      method: "GET", endpoint: uri, connectionManager: manager)
+
+    var exceptionThrow = false
+    do {
+      _ = try await HTTPClientTestFixture.sendHTTPRequest(
+        method: "GET", endpoint: uri, connectionManager: manager)
+    } catch {
+      exceptionThrow = true
+      if (isUseSecitem()) {
+        XCTAssertEqual(aws_last_error(), Int32(AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
+      } else {
+        // Http proxy should not fail if not using secitem
+        XCTAssert(false)
+      }
+    }
+
+    if isUseSecitem() {
+      XCTAssertTrue(exceptionThrow)
+    }
   }
 
 }
