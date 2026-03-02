@@ -423,6 +423,52 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
   }
 
   /*
+   * [Metrics-UC2-B] Direct Connection with Basic Auth - Metrics Disabled (should succeed)
+   *
+   * When metrics are disabled, the username is not modified and basic authentication
+   * works correctly.
+   */
+  func testMqtt5DirectConnectBasicAuthMetricsDisabled() async throws {
+
+    let inputUsername = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_USERNAME")
+    let inputPassword = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_PASSWORD")
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_PORT")
+
+    let connectOptions = MqttConnectOptions(
+      clientId: createClientId(),
+      username: inputUsername,
+      password: inputPassword.data(using: .utf8))
+
+    // Metrics enabled
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!,
+      connectOptions: connectOptions,
+      enableMetrics: true)
+
+    let testContext: Mqtt5ClientTests.MqttTestContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+
+    try client.start()
+    // The connection should fail with metrics in username
+    await awaitExpectation([testContext.connectionFailureExpectation], 5)
+
+    if let failureData = testContext.lifecycleConnectionFailureData {
+      XCTAssertEqual(failureData.crtError.code, Int32(AWS_ERROR_MQTT_PROTOCOL_ERROR.rawValue))
+    } else {
+      XCTFail("lifecycleConnectionFailureData Missing")
+      return
+    }
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*
    * [ConnDC-UC3] Direct Connection with TLS
    */
   func testMqtt5DirectConnectWithTLS() async throws {
