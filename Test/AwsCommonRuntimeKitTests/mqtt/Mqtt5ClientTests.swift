@@ -459,7 +459,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     await awaitExpectation([testContext.connectionFailureExpectation], 5)
 
     if let failureData = testContext.lifecycleConnectionFailureData {
-      XCTAssertEqual(failureData.crtError.code, Int32(AWS_ERROR_MQTT5_CONNACK_CONNECTION_REFUSED.rawValue))
+      XCTAssertEqual(
+        failureData.crtError.code, Int32(AWS_ERROR_MQTT5_CONNACK_CONNECTION_REFUSED.rawValue))
     } else {
       XCTFail("lifecycleConnectionFailureData Missing")
       return
