@@ -12,14 +12,7 @@ var package = Package(
   name: "aws-crt-swift",
   platforms: [.iOS(.v13), .macOS(.v10_15), .tvOS(.v13), .watchOS(.v6)],
   products: [
-    .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"]),
-    .executable(name: "Elasticurl", targets: ["Elasticurl"]),
-    .executable(name: "Mqtt5Canary", targets: ["Mqtt5Canary"]),
-  ],
-  dependencies: [
-    // Arugment Parser Dependency for ElasticCurl
-    .package(
-      url: "https://github.com/apple/swift-argument-parser.git", exact: "1.2.3")
+    .library(name: "AwsCommonRuntimeKit", targets: ["AwsCommonRuntimeKit"])
   ]
 )
 
@@ -153,6 +146,7 @@ var awsCIoPlatformExcludes =
     "source/pkcs11/v2.40",
   ] + excludesFromAll
 var cSettingsIO = cSettings
+var cSettingsHttp = cSettings
 
 #if os(Linux)
   ioDependencies.append("S2N_TLS")
@@ -178,8 +172,15 @@ var cSettingsIO = cSettings
   awsCIoPlatformExcludes.append("source/s2n")
   cSettingsIO.append(.define("__APPLE__"))
   cSettingsIO.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
+  cSettingsIO.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
+  cSettingsIO.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
+  // Http proxy is not supported with AWS_USE_SECITEM. Currently, we only support Apple Network Framework
+  // on iOS, and tvOS.
+  cSettingsHttp.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
   swiftTestSettings.append(.define("__APPLE__"))
   swiftTestSettings.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
+  swiftTestSettings.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
+  swiftTestSettings.append(.define("AWS_ENABLE_KQUEUE", .when(platforms: [.macOS])))
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -302,7 +303,7 @@ packageTargets.append(contentsOf: [
     dependencies: ["AwsCCompression", "AwsCIo", "AwsCCal", "AwsCCommon"],
     path: "aws-common-runtime/aws-c-http",
     exclude: awsCHttpPlatformExcludes,
-    cSettings: cSettings
+    cSettings: cSettingsHttp
   ),
   .target(
     name: "AwsCAuth",
@@ -364,22 +365,6 @@ packageTargets.append(contentsOf: [
       .process("Resources")
     ],
     swiftSettings: swiftTestSettings
-  ),
-  .executableTarget(
-    name: "Elasticurl",
-    dependencies: [
-      "AwsCommonRuntimeKit",
-      .product(name: "ArgumentParser", package: "swift-argument-parser"),
-    ],
-    path: "Source/Elasticurl"
-  ),
-  .executableTarget(
-    name: "Mqtt5Canary",
-    dependencies: [
-      "AwsCommonRuntimeKit",
-      .product(name: "ArgumentParser", package: "swift-argument-parser"),
-    ],
-    path: "Source/Canary/Mqtt5Canary"
   ),
 ])
 package.targets = packageTargets
