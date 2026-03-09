@@ -41,8 +41,23 @@ public class PublishReceivedData: @unchecked Sendable {
   /// Data model of an `MQTT5 PUBLISH <https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901100>`_ packet.
   public let publishPacket: PublishPacket
 
-  public init(publishPacket: PublishPacket) {
+  /// Call this closure within the `onPublishReceived` callback to take manual control of the PUBACK
+  /// for this QoS 1 message, preventing the client from automatically sending a PUBACK.
+  ///
+  /// Returns a `PubackControlHandle` that can be passed to `Mqtt5Client.invokePuback(_:)` at any
+  /// later time to send the PUBACK to the broker.
+  ///
+  /// - Important: This closure must be called within the `onPublishReceived` callback. Calling it
+  ///   after the callback returns will return `nil`.
+  /// - Note: Only relevant for QoS 1 messages. For QoS 0 messages this will return `nil`.
+  public let acquirePubackControl: (() -> PubackControlHandle?)?
+
+  public init(
+    publishPacket: PublishPacket,
+    acquirePubackControl: (() -> PubackControlHandle?)? = nil
+  ) {
     self.publishPacket = publishPacket
+    self.acquirePubackControl = acquirePubackControl
   }
 }
 
@@ -205,6 +220,20 @@ public final class Mqtt5Client: Sendable {
   /// - Throws: CommonRuntimeError.crtError
   public func unsubscribe(unsubscribePacket: UnsubscribePacket) async throws -> UnsubackPacket {
     return try await clientCore.unsubscribe(unsubscribePacket: unsubscribePacket)
+  }
+
+  /// Sends a PUBACK packet for a QoS 1 PUBLISH that was previously acquired for manual control.
+  ///
+  /// To use manual PUBACK control, call `publishReceivedData.acquirePubackControl?()` within the
+  /// `onPublishReceived` callback to obtain a `PubackControlHandle`. Then call this method at any
+  /// later time to send the PUBACK to the broker.
+  ///
+  /// - Parameters:
+  ///     - pubackControlHandle: An opaque handle obtained from `acquirePubackControl()`.
+  ///
+  /// - Throws: CommonRuntimeError.crtError
+  public func invokePuback(_ pubackControlHandle: PubackControlHandle) throws {
+    try clientCore.invokePuback(pubackControlHandle)
   }
 
   /// Force the client to discard all operations and cleanup the client.
@@ -444,6 +473,24 @@ internal class Mqtt5ClientCore: @unchecked Sendable {
     }
   }
 
+  /// Sends a PUBACK packet for a QoS 1 PUBLISH that was previously acquired for manual control.
+  ///
+  /// - Parameters:
+  ///     - pubackControlHandle: An opaque handle obtained from `acquirePubackControl()`.
+  ///
+  /// - Throws: CommonRuntimeError.crtError
+  public func invokePuback(_ pubackControlHandle: PubackControlHandle) throws {
+    try self.rwlock.read {
+      guard let rawValue = self.rawValue else {
+        throw CommonRunTimeError.crtError(CRTError(code: AWS_CRT_SWIFT_MQTT_CLIENT_CLOSED.rawValue))
+      }
+      let errorCode = aws_mqtt5_client_invoke_puback(rawValue, pubackControlHandle.controlId, nil)
+      if errorCode != AWS_OP_SUCCESS {
+        throw CommonRunTimeError.crtError(CRTError.makeFromLastError())
+      }
+    }
+  }
+
   /// Discard all operations and cleanup the client. It is MANDATORY function to call to release the client core.
   public func close() {
     self.rwlock.write {
@@ -542,13 +589,31 @@ internal func MqttClientHandlePublishRecieved(
   // validate the callback flag, if flag is false, return
   clientCore.rwlock.read {
     if clientCore.rawValue == nil { return }
-    if let publish {
-      let publishPacket = PublishPacket(publish)
-      let publishReceivedData = PublishReceivedData(publishPacket: publishPacket)
-      clientCore.onPublishReceivedCallback(publishReceivedData)
-    } else {
+    guard let publish else {
       fatalError("MqttClientHandlePublishRecieved called with null publish")
     }
+
+    let publishPacket = PublishPacket(publish)
+
+    // Build the acquirePubackControl closure only for QoS 1 messages.
+    // The closure captures the raw client pointer and the publish view pointer,
+    // both of which are valid only during this callback invocation.
+    let rawClient = clientCore.rawValue
+    let acquirePubackControl: (() -> PubackControlHandle?)?
+    if publishPacket.qos == .atLeastOnce {
+      acquirePubackControl = {
+        guard let client = rawClient else { return nil }
+        let controlId = aws_mqtt5_client_acquire_puback(client, publish)
+        return PubackControlHandle(controlId: controlId)
+      }
+    } else {
+      acquirePubackControl = nil
+    }
+
+    let publishReceivedData = PublishReceivedData(
+      publishPacket: publishPacket,
+      acquirePubackControl: acquirePubackControl)
+    clientCore.onPublishReceivedCallback(publishReceivedData)
   }
 }
 

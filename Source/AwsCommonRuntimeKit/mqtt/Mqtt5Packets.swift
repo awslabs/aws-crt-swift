@@ -253,6 +253,20 @@ public class PublishPacket: CStruct, @unchecked Sendable {
   }
 }
 
+/// Opaque handle representing manual control over a QoS 1 PUBACK for a received PUBLISH packet.
+///
+/// Obtained by calling `acquirePubackControl()` within the `onPublishReceived` callback.
+/// Pass this handle to `Mqtt5Client.invokePuback(_:)` at any later time to send the PUBACK.
+///
+/// Important: `acquirePubackControl()` MUST be called within the `onPublishReceived` callback.
+public class PubackControlHandle: @unchecked Sendable {
+  internal let controlId: UInt64
+
+  internal init(controlId: UInt64) {
+    self.controlId = controlId
+  }
+}
+
 // We can't mutate this class after initialization. Swift can not verify the sendability due to the class is non-final,
 // so mark it unchecked Sendable
 /// Publish result returned by Publish operation.
