@@ -290,6 +290,12 @@ var cSettingsIO: [CSetting] = cSettings + [
   .define("USE_S2N", .when(platforms: [.linux, .android])),
 ]
 
+var cSettingsHttp: [CSetting] = cSettings + [
+  // Http proxy is not supported with AWS_USE_SECITEM. Currently, we only support Apple Network Framework
+  // on iOS, and tvOS.
+  .define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])),
+]
+
 var ioDependencies: [Target.Dependency] = [
   "AwsCCommon",
   "AwsCCal",
@@ -513,7 +519,7 @@ packageTargets.append(contentsOf: [
     dependencies: ["AwsCCompression", "AwsCIo", "AwsCCal", "AwsCCommon"],
     path: "aws-common-runtime/aws-c-http",
     exclude: awsCHttpPlatformExcludes,
-    cSettings: cSettings
+    cSettings: cSettingsHttp
   ),
   .target(
     name: "AwsCAuth",

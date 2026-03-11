@@ -5,10 +5,11 @@ import XCTest
 
 @testable import AwsCommonRuntimeKit
 
-class HTT2StreamManagerTests: XCBaseTestCase {
+class HTTP2StreamManagerTests: XCBaseTestCase {
   let endpoint = "d1cz66xoahf9cl.cloudfront.net"  // Use cloudfront for HTTP/2
   let path = "/random_32_byte.data"
-  let host = "nghttp2.org"
+  let host = "localhost"
+  let port = 3443
 
   func testStreamManagerCreate() throws {
     let tlsContextOptions = TLSContextOptions()
@@ -26,7 +27,7 @@ class HTT2StreamManagerTests: XCBaseTestCase {
       hostName: endpoint,
       port: port,
       maxConnections: 30,
-      proxyOptions: HTTPProxyOptions(hostName: "localhost", port: 80),
+      proxyOptions: HTTPProxyOptions(hostName: host, port: 80),
       proxyEnvSettings: HTTPProxyEnvSettings(proxyConnectionType: HTTPProxyConnectionType.forward),
       socketOptions: SocketOptions(socketType: .stream),
       tlsOptions: tlsConnectionOptions,
@@ -75,6 +76,7 @@ class HTT2StreamManagerTests: XCBaseTestCase {
   func makeStreamManger(host: String, port: Int = 443) throws -> HTTP2StreamManager {
     let tlsContextOptions = TLSContextOptions()
     tlsContextOptions.setAlpnList(["h2"])
+    tlsContextOptions.setVerifyPeer(false)
     let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client)
 
     var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext)
@@ -89,7 +91,6 @@ class HTT2StreamManagerTests: XCBaseTestCase {
       hostResolver: hostResolver)
 
     let socketOptions = SocketOptions(socketType: .stream)
-    let port = UInt32(443)
     let streamManager = try HTTP2StreamManager(
       options: HTTP2StreamManagerOptions(
         clientBootstrap: bootstrap,
@@ -112,15 +113,16 @@ class HTT2StreamManagerTests: XCBaseTestCase {
   }
 
   func testHTTP2StreamUpload() async throws {
-    let streamManager = try makeStreamManger(host: host)
+    try skipIfLocalhostUnavailable()
+    let streamManager = try makeStreamManger(host: host, port: port)
     let semaphore = TestSemaphore(value: 0)
     var httpResponse = HTTPResponse()
     var onCompleteCalled = false
     let testBody = "testBody"
     let http2RequestOptions = try HTTPClientTestFixture.getHTTP2RequestOptions(
       method: "PUT",
-      path: "/httpbin/put",
-      authority: "nghttp2.org",
+      path: "/echo",
+      authority: host,
       body: testBody,
       response: &httpResponse,
       semaphore: semaphore,
@@ -150,38 +152,40 @@ class HTT2StreamManagerTests: XCBaseTestCase {
     XCTAssertNil(httpResponse.error)
     XCTAssertEqual(httpResponse.statusCode, 200)
 
-    // Parse json body
+    // Parse json body - localhost echo server returns {"body": "...", "bytes": N}
     struct Response: Codable {
-      let data: String
+      let body: String
     }
 
     let body: Response = try! JSONDecoder().decode(Response.self, from: httpResponse.body)
-    XCTAssertEqual(body.data, testBody + HTTPClientTestFixture.TEST_DOC_LINE)
+    XCTAssertEqual(body.body, testBody + HTTPClientTestFixture.TEST_DOC_LINE)
   }
 
   // Test that the binding works not the actual functionality. C part has tests for functionality
   func testHTTP2StreamReset() async throws {
+    try skipIfLocalhostUnavailable()
     let streamManager = try makeStreamManger(host: endpoint)
     let http2RequestOptions = try HTTPClientTestFixture.getHTTP2RequestOptions(
       method: "PUT",
-      path: "/httpbin/put",
-      authority: "nghttp2.org")
+      path: "/echo",
+      authority: host)
 
     let stream = try await streamManager.acquireStream(requestOptions: http2RequestOptions)
     try stream.resetStream(error: HTTP2Error.internalError)
   }
 
   func testHTTP2ParallelStreams() async throws {
+    try skipIfLocalhostUnavailable()
     try await testHTTP2ParallelStreams(count: 10)
   }
 
   func testHTTP2ParallelStreams(count: Int) async throws {
-    let streamManager = try makeStreamManger(host: host)
+    let streamManager = try makeStreamManger(host: host, port: port)
     return await withTaskGroup(of: Void.self) { taskGroup in
       for _ in 1...count {
         taskGroup.addTask {
           _ = try! await HTTPClientTestFixture.sendHTTP2Request(
-            method: "GET", path: "/httpbin/get", authority: "nghttp2.org",
+            method: "GET", path: "/echo", authority: "localhost",
             streamManager: streamManager)
         }
       }

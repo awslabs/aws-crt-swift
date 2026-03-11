@@ -155,16 +155,17 @@ class HTTP2ClientConnectionTests: XCBaseTestCase {
   }
 
   func testHTTP2StreamUpload() async throws {
+    try skipIfLocalhostUnavailable()
     let connectionManager = try await HTTPClientTestFixture.getHttpConnectionManager(
-      endpoint: "nghttp2.org", alpnList: ["h2"])
+      endpoint: host, port: port, alpnList: ["h2"])
     let semaphore = TestSemaphore(value: 0)
     var httpResponse = HTTPResponse()
     var onCompleteCalled = false
     let testBody = "testBody"
     let http2RequestOptions = try HTTPClientTestFixture.getHTTP2RequestOptions(
       method: "PUT",
-      path: "/httpbin/put",
-      authority: "nghttp2.org",
+      path: "/echo",
+      authority: host,
       body: testBody,
       response: &httpResponse,
       semaphore: semaphore,
@@ -192,12 +193,12 @@ class HTTP2ClientConnectionTests: XCBaseTestCase {
     XCTAssertNil(httpResponse.error)
     XCTAssertEqual(httpResponse.statusCode, 200)
 
-    // Parse json body
+    // Parse json body - localhost echo server returns {"body": "...", "bytes": N}
     struct Response: Codable {
-      let data: String
+      let body: String
     }
 
     let body: Response = try! JSONDecoder().decode(Response.self, from: httpResponse.body)
-    XCTAssertEqual(body.data, testBody + HTTPClientTestFixture.TEST_DOC_LINE)
+    XCTAssertEqual(body.body, testBody + HTTPClientTestFixture.TEST_DOC_LINE)
   }
 }
