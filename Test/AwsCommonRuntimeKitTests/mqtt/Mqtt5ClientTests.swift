@@ -2029,6 +2029,487 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
   }
 
   /*===============================================================
+                   MANUAL PUBACK TESTS
+  =================================================================*/
+  /*
+  * [ManualPuback-UC1] Hold PUBACK and verify broker re-delivers the message
+  */
+  func testMqtt5ManualPubackHold() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+    let topic = "test/MQTT5_ManualPuback_Swift_" + clientId
+    let payload = UUID().uuidString
+    let payloadData = payload.data(using: .utf8)!
+
+    // Semaphore/continuation to signal first delivery and re-delivery
+    let firstDeliverySemaphore = TestSemaphore(value: 0)
+    let redeliverySemaphore = TestSemaphore(value: 0)
+
+    // Shared mutable state protected by actor semantics via TestSemaphore ordering
+    actor DeliveryState {
+      var firstDeliveryPayload: Data? = nil
+      var redeliveryPayload: Data? = nil
+      var pubackHandle: PubackControlHandle? = nil
+      var firstDelivered = false
+
+      func setFirstDelivery(payload: Data, handle: PubackControlHandle?) {
+        firstDeliveryPayload = payload
+        pubackHandle = handle
+        firstDelivered = true
+      }
+
+      func setRedelivery(payload: Data) {
+        redeliveryPayload = payload
+      }
+    }
+    let state = DeliveryState()
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      let receivedPayload = publishData.publishPacket.payload ?? Data()
+      Task {
+        let isFirst = await !state.firstDelivered
+        if isFirst {
+          // First delivery: acquire manual PUBACK control to hold the PUBACK
+          let handle = publishData.acquirePubackControl?()
+          await state.setFirstDelivery(payload: receivedPayload, handle: handle)
+          await firstDeliverySemaphore.signal()
+        } else {
+          // Second delivery: broker re-sent because no PUBACK was received
+          await state.setRedelivery(payload: receivedPayload)
+          await redeliverySemaphore.signal()
+        }
+      }
+    }
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions)
+
+    let testContext = MqttTestContext(
+      contextName: "ManualPubackHold",
+      onPublishReceived: onPublishReceived)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    // Subscribe to the topic with QoS 1
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
+    }
+
+    // Publish a QoS 1 message with a unique UUID payload
+    let publishPacket = PublishPacket(
+      qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
+    let publishResult = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+    XCTAssertNotNil(publishResult.puback, "Expected puback for QoS 1 publish")
+
+    // Wait for the first delivery
+    await firstDeliverySemaphore.wait()
+    let firstPayload = await state.firstDeliveryPayload
+    XCTAssertEqual(firstPayload, payloadData, "First delivery payload should match")
+    let pubackHandle = await state.pubackHandle
+    XCTAssertNotNil(pubackHandle, "acquirePubackControl() should have returned a handle")
+
+    // Wait up to 60 seconds for the broker to re-deliver the message (no PUBACK was sent)
+    let redeliveryReceived = await withTaskGroup(of: Bool.self) { group in
+      group.addTask {
+        await redeliverySemaphore.wait()
+        return true
+      }
+      group.addTask {
+        try? await Task.sleep(nanoseconds: 60_000_000_000)
+        return false
+      }
+      let result = await group.next()!
+      group.cancelAll()
+      return result
+    }
+    XCTAssertTrue(redeliveryReceived, "Broker should re-deliver the message when PUBACK is held")
+
+    let redeliveredPayload = await state.redeliveryPayload
+    XCTAssertEqual(redeliveredPayload, payloadData, "Re-delivered payload should match original")
+
+    // Release the held PUBACK now that we've confirmed re-delivery
+    if let handle = pubackHandle {
+      try client.invokePuback(handle)
+    }
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*
+  * [ManualPuback-UC2] Acquire and immediately invoke PUBACK, verify no re-delivery
+  */
+  func testMqtt5ManualPubackInvoke() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+    let topic = "test/MQTT5_ManualPuback_Swift_" + clientId
+    let payload = UUID().uuidString
+    let payloadData = payload.data(using: .utf8)!
+
+    let firstDeliverySemaphore = TestSemaphore(value: 0)
+    let unexpectedRedeliverySemaphore = TestSemaphore(value: 0)
+
+    actor DeliveryState {
+      var firstDelivered = false
+      var pubackHandle: PubackControlHandle? = nil
+
+      func setFirstDelivered(handle: PubackControlHandle?) {
+        firstDelivered = true
+        pubackHandle = handle
+      }
+    }
+    let state = DeliveryState()
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      let receivedPayload = publishData.publishPacket.payload ?? Data()
+      Task {
+        let isFirst = await !state.firstDelivered
+        if isFirst {
+          // First delivery: acquire manual PUBACK control
+          let handle = publishData.acquirePubackControl?()
+          await state.setFirstDelivered(handle: handle)
+          await firstDeliverySemaphore.signal()
+        } else if receivedPayload == payloadData {
+          // A second delivery of the same payload means the broker re-sent — should NOT happen
+          await unexpectedRedeliverySemaphore.signal()
+        }
+      }
+    }
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions)
+
+    let testContext = MqttTestContext(
+      contextName: "ManualPubackInvoke",
+      onPublishReceived: onPublishReceived)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    // Subscribe to the topic with QoS 1
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
+    }
+
+    // Publish a QoS 1 message with a unique UUID payload
+    let publishPacket = PublishPacket(
+      qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
+    let publishResult = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+    XCTAssertNotNil(publishResult.puback, "Expected puback for QoS 1 publish")
+
+    // Wait for the first delivery
+    await firstDeliverySemaphore.wait()
+    let pubackHandle = await state.pubackHandle
+    XCTAssertNotNil(pubackHandle, "acquirePubackControl() should have returned a handle")
+
+    // Immediately invoke the PUBACK using the acquired handle
+    if let handle = pubackHandle {
+      try client.invokePuback(handle)
+    }
+
+    // Wait 60 seconds and confirm the broker does NOT re-deliver the message
+    let redelivered = await withTaskGroup(of: Bool.self) { group in
+      group.addTask {
+        await unexpectedRedeliverySemaphore.wait()
+        return true
+      }
+      group.addTask {
+        try? await Task.sleep(nanoseconds: 60_000_000_000)
+        return false
+      }
+      let result = await group.next()!
+      group.cancelAll()
+      return result
+    }
+    XCTAssertFalse(
+      redelivered,
+      "Broker should NOT re-deliver the message after invokePuback() was called")
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*
+  * [ManualPuback-UC3] Calling acquirePubackControl() twice on the same QoS 1 PUBLISH returns nil
+  */
+  func testMqtt5ManualPubackAcquireDoubleCallReturnsNil() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+    let topic = "test/MQTT5_Binding_Swift_" + clientId
+    let payload = UUID().uuidString
+    let payloadData = payload.data(using: .utf8)!
+
+    // "double_call_returned_nil" means the second call returned nil as expected
+    // "no_error" means the second call unexpectedly returned a non-nil handle
+    // "first_call_failed" means the first call failed unexpectedly
+    actor DoubleCallResult {
+      var result: String = ""
+      func set(_ value: String) { result = value }
+    }
+    let doubleCallResult = DoubleCallResult()
+    let callbackDoneSemaphore = TestSemaphore(value: 0)
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      Task {
+        // First call should succeed and return a non-nil handle
+        guard let firstHandle = publishData.acquirePubackControl?() else {
+          await doubleCallResult.set("first_call_failed")
+          await callbackDoneSemaphore.signal()
+          return
+        }
+        _ = firstHandle  // suppress unused warning
+
+        // Second call on the same message should return nil (already acquired)
+        let secondHandle = publishData.acquirePubackControl?()
+        if secondHandle == nil {
+          await doubleCallResult.set("double_call_returned_nil")
+        } else {
+          await doubleCallResult.set("no_error")
+        }
+        await callbackDoneSemaphore.signal()
+      }
+    }
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions)
+
+    let testContext = MqttTestContext(
+      contextName: "ManualPubackDoubleCall",
+      onPublishReceived: onPublishReceived)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
+    }
+
+    let publishPacket = PublishPacket(
+      qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+
+    await callbackDoneSemaphore.wait()
+    let result = await doubleCallResult.result
+    XCTAssertEqual(
+      result, "double_call_returned_nil",
+      "Expected second acquirePubackControl() call to return nil, got: \(result)")
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*
+  * [ManualPuback-UC4] Calling acquirePubackControl() after the callback returns also returns nil
+  */
+  func testMqtt5ManualPubackAcquirePostCallbackReturnsNil() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+    let topic = "test/MQTT5_Binding_Swift_" + clientId
+    let payload = UUID().uuidString
+    let payloadData = payload.data(using: .utf8)!
+
+    let callbackDoneSemaphore = TestSemaphore(value: 0)
+
+    // Capture the acquirePubackControl closure to call it after the callback returns
+    actor SavedAcquireFn {
+      var fn: (() -> PubackControlHandle?)? = nil
+      func set(_ value: (() -> PubackControlHandle?)?) { fn = value }
+    }
+    let savedAcquireFn = SavedAcquireFn()
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      Task {
+        // Save the closure but do NOT call it within the callback
+        await savedAcquireFn.set(publishData.acquirePubackControl)
+        await callbackDoneSemaphore.signal()
+        // Callback returns here — acquirePubackControl should now return nil if called
+      }
+    }
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions)
+
+    let testContext = MqttTestContext(
+      contextName: "ManualPubackPostCallback",
+      onPublishReceived: onPublishReceived)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
+    }
+
+    let publishPacket = PublishPacket(
+      qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+
+    // Wait for the callback to complete
+    await callbackDoneSemaphore.wait()
+
+    // Give the callback Task a moment to fully return before we call acquirePubackControl
+    try await Task.sleep(nanoseconds: 100_000_000)  // 100ms
+
+    // Now call acquirePubackControl() after the callback has returned — should return nil
+    let acquireFn = await savedAcquireFn.fn
+    XCTAssertNotNil(acquireFn, "acquirePubackControl closure should have been saved")
+    let lateHandle = acquireFn?()
+    XCTAssertNil(
+      lateHandle,
+      "acquirePubackControl() should return nil when called after the callback has returned")
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*
+  * [ManualPuback-UC5] acquirePubackControl is nil for QoS 0 messages
+  */
+  func testMqtt5ManualPubackQoS0AcquireIsNil() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+    let topic = "test/MQTT5_Binding_Swift_" + clientId
+    let payload = UUID().uuidString
+    let payloadData = payload.data(using: .utf8)!
+
+    let callbackDoneSemaphore = TestSemaphore(value: 0)
+
+    actor AcquireResult {
+      // nil means acquirePubackControl property itself was nil (expected for QoS 0)
+      // non-nil means it was unexpectedly present
+      var acquirePropertyWasNil: Bool = false
+      func set(_ value: Bool) { acquirePropertyWasNil = value }
+    }
+    let acquireResult = AcquireResult()
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      Task {
+        // For QoS 0, acquirePubackControl should be nil
+        await acquireResult.set(publishData.acquirePubackControl == nil)
+        await callbackDoneSemaphore.signal()
+      }
+    }
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions)
+
+    let testContext = MqttTestContext(
+      contextName: "ManualPubackQoS0",
+      onPublishReceived: onPublishReceived)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    // Subscribe with QoS 1
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
+    }
+
+    // Publish at QoS 0 — there is no PUBACK involved
+    let publishPacket = PublishPacket(
+      qos: QoS.atMostOnce, topic: topic, payload: payloadData)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+
+    await callbackDoneSemaphore.wait()
+    let wasNil = await acquireResult.acquirePropertyWasNil
+    XCTAssertTrue(wasNil, "acquirePubackControl should be nil for QoS 0 messages")
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*===============================================================
                    RETAIN TESTS
   =================================================================*/
   /*

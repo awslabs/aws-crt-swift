@@ -44,12 +44,12 @@ public class PublishReceivedData: @unchecked Sendable {
   /// Call this closure within the `onPublishReceived` callback to take manual control of the PUBACK
   /// for this QoS 1 message, preventing the client from automatically sending a PUBACK.
   ///
-  /// Returns a `PubackControlHandle` that can be passed to `Mqtt5Client.invokePuback(_:)` at any
-  /// later time to send the PUBACK to the broker.
+  /// Returns a `PubackControlHandle` that can be passed to `Mqtt5Client.invokePuback(_:)` to send
+  /// the PUBACK to the broker.
   ///
-  /// - Important: This closure must be called within the `onPublishReceived` callback. Calling it
+  /// IMPORTANT: This closure must be called within the `onPublishReceived` callback. Calling it
   ///   after the callback returns will return `nil`.
-  /// - Note: Only relevant for QoS 1 messages. For QoS 0 messages this will return `nil`.
+  /// Note: Only relevant for QoS 1 messages. For QoS 0 messages this will return `nil`.
   public let acquirePubackControl: (() -> PubackControlHandle?)?
 
   public init(
