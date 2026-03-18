@@ -2,7 +2,8 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import ArgumentParser
-import AwsCommonRuntimeKit
+@testable import AwsCommonRuntimeKit
+import AwsCCommon
 import Foundation
 import _Concurrency
 
@@ -626,6 +627,10 @@ struct Mqtt5Canary: AsyncParsableCommand {
   }
 
   mutating func run() async throws {
+    // Setup tracing allocator BEFORE CommonRuntimeKit.initialize()
+    let tracingAllocator = TracingAllocator(tracingBytesOf: allocator)
+    allocator = tracingAllocator.rawValue
+
     CommonRuntimeKit.initialize()
     // Enable logging
     let logLevel = LogLevel.fromString(string: self.verbose)
@@ -648,6 +653,8 @@ struct Mqtt5Canary: AsyncParsableCommand {
     // Main Test iteration
     let startTime = Date()
     let endTime = startTime.addingTimeInterval(TimeInterval(self.seconds))
+    var lastMemoryPrintTime = startTime
+    let memoryPrintInterval: TimeInterval = 600  // Fixed 10 minutes interval
 
     while Date() < endTime {
       let iterationStartTime = Date()
@@ -655,6 +662,13 @@ struct Mqtt5Canary: AsyncParsableCommand {
         TimeInterval(Double(testOptions.tpsSleepTime) / ONE_NANO_SECOND))
       Task {
         try await Mqtt5CanaryTestRunIteration(context, testOptions)
+      }
+
+      // Print memory usage at fixed 10-minute intervals
+      if Date().timeIntervalSince(lastMemoryPrintTime) >= memoryPrintInterval {
+        let currentBytes = tracingAllocator.bytes
+        print("[Allocator Memory] \(currentBytes) bytes")
+        lastMemoryPrintTime = Date()
       }
 
       while Date() < targetTime {
@@ -672,6 +686,7 @@ struct Mqtt5Canary: AsyncParsableCommand {
     let actualDuration = Date().timeIntervalSince(startTime)
     await context.statistic.printStatistics(duration: actualDuration)
 
+    CommonRuntimeKit.cleanUp()
   }
 
 }
