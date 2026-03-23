@@ -685,8 +685,6 @@ struct Mqtt5Canary: AsyncParsableCommand {
     // Print final statistics
     let actualDuration = Date().timeIntervalSince(startTime)
     await context.statistic.printStatistics(duration: actualDuration)
-
-    CommonRuntimeKit.cleanUp()
   }
 
 }
