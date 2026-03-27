@@ -630,8 +630,8 @@ internal func MqttClientHandlePublishRecieved(
 
     // For QoS 1 messages, we eagerly acquire the publish acknowledgement control ID from native
     // BEFORE invoking the user callback. The control ID is acquired up front, then the user is
-    // given a closure (acquirePublishAcknowledgement) to "take" the handle within the callback. 
-    // After the callback returns, if the user did not take control, the publish acknowledgement 
+    // given a closure (acquirePublishAcknowledgement) to "take" the handle within the callback.
+    // After the callback returns, if the user did not take control, the publish acknowledgement
     // is sent automatically.
     var publishAcknowledgementId: UInt64 = 0
     var handleBox: PublishAcknowledgementHandleBox? = nil

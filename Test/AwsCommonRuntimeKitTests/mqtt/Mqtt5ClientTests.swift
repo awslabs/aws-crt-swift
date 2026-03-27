@@ -2062,12 +2062,12 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     actor DeliveryState {
       var firstDeliveryPayload: Data? = nil
       var redeliveryPayload: Data? = nil
-      var pubackHandle: PubackControlHandle? = nil
+      var publishAcknowledgementHandle: PublishAcknowledgementHandle? = nil
       var firstDelivered = false
 
-      func setFirstDelivery(payload: Data, handle: PubackControlHandle?) {
+      func setFirstDelivery(payload: Data, handle: PublishAcknowledgementHandle?) {
         firstDeliveryPayload = payload
-        pubackHandle = handle
+        publishAcknowledgementHandle = handle
         firstDelivered = true
       }
 
@@ -2082,12 +2082,12 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       Task {
         let isFirst = await !state.firstDelivered
         if isFirst {
-          // First delivery: acquire manual PUBACK control to hold the PUBACK
-          let handle = publishData.acquirePubackControl?()
+          // First delivery: acquire manual publish acknowledgement control to hold the acknowledgement
+          let handle = publishData.acquirePublishAcknowledgement?()
           await state.setFirstDelivery(payload: receivedPayload, handle: handle)
           await firstDeliverySemaphore.signal()
         } else {
-          // Second delivery: broker re-sent because no PUBACK was received
+          // Second delivery: broker re-sent because no publish acknowledgement was received
           await state.setRedelivery(payload: receivedPayload)
           await redeliverySemaphore.signal()
         }
@@ -2125,8 +2125,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     await firstDeliverySemaphore.wait()
     let firstPayload = await state.firstDeliveryPayload
     XCTAssertEqual(firstPayload, payloadData, "First delivery payload should match")
-    let pubackHandle = await state.pubackHandle
-    XCTAssertNotNil(pubackHandle, "acquirePubackControl() should have returned a handle")
+    let publishAcknowledgementHandle = await state.publishAcknowledgementHandle
+    XCTAssertNotNil(publishAcknowledgementHandle, "acquirePublishAcknowledgement() should have returned a handle")
 
     // Wait up to 60 seconds for the broker to re-deliver the message (no PUBACK was sent)
     let redeliveryReceived = await withTaskGroup(of: Bool.self) { group in
@@ -2148,8 +2148,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     XCTAssertEqual(redeliveredPayload, payloadData, "Re-delivered payload should match original")
 
     // Release the held PUBACK now that we've confirmed re-delivery
-    if let handle = pubackHandle {
-      try client.invokePuback(handle)
+    if let handle = publishAcknowledgementHandle {
+      try client.invokePublishAcknowledgement(handle)
     }
 
     try await stopClient(client: client, testContext: testContext)
@@ -2183,11 +2183,11 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
 
     actor DeliveryState {
       var firstDelivered = false
-      var pubackHandle: PubackControlHandle? = nil
+      var publishAcknowledgementHandle: PublishAcknowledgementHandle? = nil
 
-      func setFirstDelivered(handle: PubackControlHandle?) {
+      func setFirstDelivered(handle: PublishAcknowledgementHandle?) {
         firstDelivered = true
-        pubackHandle = handle
+        publishAcknowledgementHandle = handle
       }
     }
     let state = DeliveryState()
@@ -2198,7 +2198,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
         let isFirst = await !state.firstDelivered
         if isFirst {
           // First delivery: acquire manual PUBACK control
-          let handle = publishData.acquirePubackControl?()
+          let handle = publishData.acquirePublishAcknowledgement?()
           await state.setFirstDelivered(handle: handle)
           await firstDeliverySemaphore.signal()
         } else if receivedPayload == payloadData {
@@ -2237,12 +2237,12 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
 
     // Wait for the first delivery
     await firstDeliverySemaphore.wait()
-    let pubackHandle = await state.pubackHandle
-    XCTAssertNotNil(pubackHandle, "acquirePubackControl() should have returned a handle")
+    let publishAcknowledgementHandle = await state.publishAcknowledgementHandle
+    XCTAssertNotNil(publishAcknowledgementHandle, "acquirePublishAcknowledgement() should have returned a handle")
 
     // Immediately invoke the PUBACK using the acquired handle
-    if let handle = pubackHandle {
-      try client.invokePuback(handle)
+    if let handle = publishAcknowledgementHandle {
+      try client.invokePublishAcknowledgement(handle)
     }
 
     // Wait 60 seconds and confirm the broker does NOT re-deliver the message
@@ -2261,13 +2261,13 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     }
     XCTAssertFalse(
       redelivered,
-      "Broker should NOT re-deliver the message after invokePuback() was called")
+      "Broker should NOT re-deliver the message after invokePublishAcknowledgement() was called")
 
     try await stopClient(client: client, testContext: testContext)
   }
 
   /*
-  * [ManualPuback-UC3] Calling acquirePubackControl() twice on the same QoS 1 PUBLISH returns nil
+  * [ManualPuback-UC3] Calling acquirePublishAcknowledgement() twice on the same QoS 1 PUBLISH returns nil
   */
   func testMqtt5ManualPubackAcquireDoubleCallReturnsNil() async throws {
     try skipIfPlatformDoesntSupportTLS()
@@ -2302,7 +2302,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let onPublishReceived: OnPublishReceived = { publishData in
       Task {
         // First call should succeed and return a non-nil handle
-        guard let firstHandle = publishData.acquirePubackControl?() else {
+        guard let firstHandle = publishData.acquirePublishAcknowledgement?() else {
           await doubleCallResult.set("first_call_failed")
           await callbackDoneSemaphore.signal()
           return
@@ -2310,7 +2310,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
         _ = firstHandle  // suppress unused warning
 
         // Second call on the same message should return nil (already acquired)
-        let secondHandle = publishData.acquirePubackControl?()
+        let secondHandle = publishData.acquirePublishAcknowledgement?()
         if secondHandle == nil {
           await doubleCallResult.set("double_call_returned_nil")
         } else {
@@ -2348,13 +2348,13 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let result = await doubleCallResult.result
     XCTAssertEqual(
       result, "double_call_returned_nil",
-      "Expected second acquirePubackControl() call to return nil, got: \(result)")
+      "Expected second acquirePublishAcknowledgement() call to return nil, got: \(result)")
 
     try await stopClient(client: client, testContext: testContext)
   }
 
   /*
-  * [ManualPuback-UC4] Calling acquirePubackControl() after the callback returns also returns nil
+  * [ManualPuback-UC4] Calling acquirePublishAcknowledgement() after the callback returns also returns nil
   */
   func testMqtt5ManualPubackAcquirePostCallbackReturnsNil() async throws {
     try skipIfPlatformDoesntSupportTLS()
@@ -2378,19 +2378,19 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
 
     let callbackDoneSemaphore = TestSemaphore(value: 0)
 
-    // Capture the acquirePubackControl closure to call it after the callback returns
+    // Capture the acquirePublishAcknowledgement closure to call it after the callback returns
     actor SavedAcquireFn {
-      var fn: (() -> PubackControlHandle?)? = nil
-      func set(_ value: (() -> PubackControlHandle?)?) { fn = value }
+      var fn: (() -> PublishAcknowledgementHandle?)? = nil
+      func set(_ value: (() -> PublishAcknowledgementHandle?)?) { fn = value }
     }
     let savedAcquireFn = SavedAcquireFn()
 
     let onPublishReceived: OnPublishReceived = { publishData in
       Task {
         // Save the closure but do NOT call it within the callback
-        await savedAcquireFn.set(publishData.acquirePubackControl)
+        await savedAcquireFn.set(publishData.acquirePublishAcknowledgement)
         await callbackDoneSemaphore.signal()
-        // Callback returns here — acquirePubackControl should now return nil if called
+        // Callback returns here — acquirePublishAcknowledgement should now return nil if called
       }
     }
 
@@ -2421,22 +2421,22 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     // Wait for the callback to complete
     await callbackDoneSemaphore.wait()
 
-    // Give the callback Task a moment to fully return before we call acquirePubackControl
+    // Give the callback Task a moment to fully return before we call acquirePublishAcknowledgement
     try await Task.sleep(nanoseconds: 100_000_000)  // 100ms
 
-    // Now call acquirePubackControl() after the callback has returned — should return nil
+    // Now call acquirePublishAcknowledgement() after the callback has returned — should return nil
     let acquireFn = await savedAcquireFn.fn
-    XCTAssertNotNil(acquireFn, "acquirePubackControl closure should have been saved")
+    XCTAssertNotNil(acquireFn, "acquirePublishAcknowledgement closure should have been saved")
     let lateHandle = acquireFn?()
     XCTAssertNil(
       lateHandle,
-      "acquirePubackControl() should return nil when called after the callback has returned")
+      "acquirePublishAcknowledgement() should return nil when called after the callback has returned")
 
     try await stopClient(client: client, testContext: testContext)
   }
 
   /*
-  * [ManualPuback-UC5] acquirePubackControl is nil for QoS 0 messages
+  * [ManualPuback-UC5] acquirePublishAcknowledgement is nil for QoS 0 messages
   */
   func testMqtt5ManualPubackQoS0AcquireIsNil() async throws {
     try skipIfPlatformDoesntSupportTLS()
@@ -2461,7 +2461,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let callbackDoneSemaphore = TestSemaphore(value: 0)
 
     actor AcquireResult {
-      // nil means acquirePubackControl property itself was nil (expected for QoS 0)
+      // nil means acquirePublishAcknowledgement property itself was nil (expected for QoS 0)
       // non-nil means it was unexpectedly present
       var acquirePropertyWasNil: Bool = false
       func set(_ value: Bool) { acquirePropertyWasNil = value }
@@ -2470,8 +2470,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
 
     let onPublishReceived: OnPublishReceived = { publishData in
       Task {
-        // For QoS 0, acquirePubackControl should be nil
-        await acquireResult.set(publishData.acquirePubackControl == nil)
+        // For QoS 0, acquirePublishAcknowledgement should be nil
+        await acquireResult.set(publishData.acquirePublishAcknowledgement == nil)
         await callbackDoneSemaphore.signal()
       }
     }
@@ -2504,7 +2504,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
 
     await callbackDoneSemaphore.wait()
     let wasNil = await acquireResult.acquirePropertyWasNil
-    XCTAssertTrue(wasNil, "acquirePubackControl should be nil for QoS 0 messages")
+    XCTAssertTrue(wasNil, "acquirePublishAcknowledgement should be nil for QoS 0 messages")
 
     try await stopClient(client: client, testContext: testContext)
   }
@@ -2639,32 +2639,32 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
   }
 
   /*===============================================================
-                   BINDING CLEANUP TESTS
+                   MANUAL PUBACK TESTS
   =================================================================*/
-  /*
-  * [BCT-UC1] Start Without Stop
-  */
-  func testStartWithoutStop() async throws {
-    let inputHost = try getEnvironmentVarOrSkipTest(
-      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-    let inputPort = try getEnvironmentVarOrSkipTest(
-      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
-
-    let clientOptions = MqttClientOptions(
-      hostName: inputHost,
-      port: UInt32(inputPort)!)
-
-    let testContext = MqttTestContext()
-    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-    try await connectClient(client: client, testContext: testContext)
-  }
 
   /*
-  * [BCT-UC2] Offline Operations
-  */
-  func testOfflineOperations() async throws {
+   * [ManualPuback-UC1] Hold PUBACK and verify broker re-delivers the message.
+   * Subscribe QoS 1, publish a QoS 1 message with a unique UUID payload.
+   * Acquire manual PUBACK control within the callback (holding the PUBACK).
+   * Wait up to 60 seconds for the broker to re-deliver the message.
+   * Assert the re-delivered payload matches the original, then invoke the PUBACK.
+   */
+  func testMqtt5ManualPubackHold() async throws {
+    try skipIfPlatformDoesntSupportTLS()
     let inputHost = try getEnvironmentVarOrSkipTest(
-      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey)
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+    let topic = "test/MQTT5_ManualPuback_Swift_" + 
     let inputPort = try getEnvironmentVarOrSkipTest(
       environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
 
