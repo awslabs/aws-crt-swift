@@ -2239,7 +2239,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     // Wait for the first delivery
     await firstDeliverySemaphore.wait()
     let publishAcknowledgementHandle = await state.publishAcknowledgementHandle
-    XCTAssertNotNil(publishAcknowledgementHandle,
+    XCTAssertNotNil(
+      publishAcknowledgementHandle,
       "acquirePublishAcknowledgement() should have returned a handle")
 
     // Immediately invoke the PUBACK using the acquired handle
