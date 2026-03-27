@@ -253,13 +253,16 @@ public class PublishPacket: CStruct, @unchecked Sendable {
   }
 }
 
-/// Opaque handle representing manual control over a QoS 1 PUBACK for a received PUBLISH packet.
+/// Opaque handle representing manual control over a QoS 1 publish acknowledgement for a received
+/// PUBLISH packet.
 ///
-/// Obtained by calling `acquirePubackControl()` within the `onPublishReceived` callback.
-/// Pass this handle to `Mqtt5Client.invokePuback(_:)` at any later time to send the PUBACK.
+/// Obtained by calling `acquirePublishAcknowledgement()` within the `onPublishReceived` callback.
+/// Pass this handle to `Mqtt5Client.invokePublishAcknowledgement(_:)` at any later time to send
+/// the publish acknowledgement.
 ///
-/// Important: `acquirePubackControl()` MUST be called within the `onPublishReceived` callback.
-public class PubackControlHandle: @unchecked Sendable {
+/// Important: `acquirePublishAcknowledgement()` MUST be called within the `onPublishReceived`
+/// callback.
+public class PublishAcknowledgementHandle: @unchecked Sendable {
   internal let controlId: UInt64
 
   internal init(controlId: UInt64) {
