@@ -52,11 +52,11 @@ public class PublishReceivedData: @unchecked Sendable {
   /// IMPORTANT: This closure must be called within the `onPublishReceived` callback. Calling it
   /// after the callback returns will return `nil`.
   /// Note: Only relevant for QoS 1 messages. For QoS 0 messages this will be `nil`.
-  public let acquirePublishAcknowledgement: (() -> PublishAcknowledgementHandle?)?
+  public let acquirePublishAcknowledgement: (@Sendable () -> PublishAcknowledgementHandle?)?
 
   public init(
     publishPacket: PublishPacket,
-    acquirePublishAcknowledgement: (() -> PublishAcknowledgementHandle?)? = nil
+    acquirePublishAcknowledgement: (@Sendable () -> PublishAcknowledgementHandle?)? = nil
   ) {
     self.publishPacket = publishPacket
     self.acquirePublishAcknowledgement = acquirePublishAcknowledgement
@@ -635,7 +635,7 @@ internal func MqttClientHandlePublishRecieved(
     // is sent automatically.
     var publishAcknowledgementId: UInt64 = 0
     var handleBox: PublishAcknowledgementHandleBox? = nil
-    var acquirePublishAcknowledgement: (() -> PublishAcknowledgementHandle?)? = nil
+    var acquirePublishAcknowledgement: (@Sendable () -> PublishAcknowledgementHandle?)? = nil
 
     if publishPacket.qos == .atLeastOnce, let rawValue = clientCore.rawValue {
       // Eagerly acquire the publish acknowledgement control ID before invoking the user callback.

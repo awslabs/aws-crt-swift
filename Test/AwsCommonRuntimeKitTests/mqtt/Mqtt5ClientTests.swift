@@ -2126,7 +2126,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let firstPayload = await state.firstDeliveryPayload
     XCTAssertEqual(firstPayload, payloadData, "First delivery payload should match")
     let publishAcknowledgementHandle = await state.publishAcknowledgementHandle
-    XCTAssertNotNil(publishAcknowledgementHandle, "acquirePublishAcknowledgement() should have returned a handle")
+    XCTAssertNotNil(publishAcknowledgementHandle,
+      "acquirePublishAcknowledgement() should have returned a handle")
 
     // Wait up to 60 seconds for the broker to re-deliver the message (no PUBACK was sent)
     let redeliveryReceived = await withTaskGroup(of: Bool.self) { group in
@@ -2238,7 +2239,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     // Wait for the first delivery
     await firstDeliverySemaphore.wait()
     let publishAcknowledgementHandle = await state.publishAcknowledgementHandle
-    XCTAssertNotNil(publishAcknowledgementHandle, "acquirePublishAcknowledgement() should have returned a handle")
+    XCTAssertNotNil(publishAcknowledgementHandle, 
+      "acquirePublishAcknowledgement() should have returned a handle")
 
     // Immediately invoke the PUBACK using the acquired handle
     if let handle = publishAcknowledgementHandle {
@@ -2380,8 +2382,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
 
     // Capture the acquirePublishAcknowledgement closure to call it after the callback returns
     actor SavedAcquireFn {
-      var fn: (() -> PublishAcknowledgementHandle?)? = nil
-      func set(_ value: (() -> PublishAcknowledgementHandle?)?) { fn = value }
+      var fn: (@Sendable () -> PublishAcknowledgementHandle?)? = nil
+      func set(_ value: (@Sendable () -> PublishAcknowledgementHandle?)?) { fn = value }
     }
     let savedAcquireFn = SavedAcquireFn()
 
@@ -2430,7 +2432,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let lateHandle = acquireFn?()
     XCTAssertNil(
       lateHandle,
-      "acquirePublishAcknowledgement() should return nil when called after the callback has returned")
+      "acquirePublishAcknowledgement() should return nil after the callback has returned"
+    )
 
     try await stopClient(client: client, testContext: testContext)
   }
