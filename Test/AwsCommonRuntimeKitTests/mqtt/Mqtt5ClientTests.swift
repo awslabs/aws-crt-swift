@@ -2126,8 +2126,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let firstPayload = await state.firstDeliveryPayload
     XCTAssertEqual(firstPayload, payloadData, "First delivery payload should match")
     let publishAcknowledgementHandle = await state.publishAcknowledgementHandle
-    XCTAssertNotNil(publishAcknowledgementHandle,
-      "acquirePublishAcknowledgement() should have returned a handle")
+    XCTAssertNotNil(
+      publishAcknowledgementHandle, "acquirePublishAcknowledgement() should have returned a handle")
 
     // Wait up to 60 seconds for the broker to re-deliver the message (no PUBACK was sent)
     let redeliveryReceived = await withTaskGroup(of: Bool.self) { group in
@@ -2239,7 +2239,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     // Wait for the first delivery
     await firstDeliverySemaphore.wait()
     let publishAcknowledgementHandle = await state.publishAcknowledgementHandle
-    XCTAssertNotNil(publishAcknowledgementHandle, 
+    XCTAssertNotNil(publishAcknowledgementHandle,
       "acquirePublishAcknowledgement() should have returned a handle")
 
     // Immediately invoke the PUBACK using the acquired handle
