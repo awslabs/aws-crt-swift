@@ -2350,8 +2350,14 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     }
 
     let callbackCompleted = await withTaskGroup(of: Bool.self) { group in
-      group.addTask { await callbackDoneSemaphore.wait(); return true }
-      group.addTask { try? await Task.sleep(nanoseconds: 10_000_000_000); return false }
+      group.addTask {
+        await callbackDoneSemaphore.wait();
+        return true
+      }
+      group.addTask {
+        try? await Task.sleep(nanoseconds: 10_000_000_000);
+        return false
+      }
       let completed = await group.next()!
       group.cancelAll()
       return completed
@@ -2433,8 +2439,14 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
 
     // Wait for the callback to complete (with timeout to prevent hanging in CI)
     let callbackCompleted = await withTaskGroup(of: Bool.self) { group in
-      group.addTask { await callbackDoneSemaphore.wait(); return true }
-      group.addTask { try? await Task.sleep(nanoseconds: 10_000_000_000); return false }
+      group.addTask {
+        await callbackDoneSemaphore.wait();
+        return true
+      }
+      group.addTask {
+        try? await Task.sleep(nanoseconds: 10_000_000_000);
+        return false
+      }
       let completed = await group.next()!
       group.cancelAll()
       return completed
@@ -2524,8 +2536,14 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     }
 
     let callbackCompleted = await withTaskGroup(of: Bool.self) { group in
-      group.addTask { await callbackDoneSemaphore.wait(); return true }
-      group.addTask { try? await Task.sleep(nanoseconds: 10_000_000_000); return false }
+      group.addTask { 
+        await callbackDoneSemaphore.wait();
+        return true
+      }
+      group.addTask {
+        try? await Task.sleep(nanoseconds: 10_000_000_000);
+        return false 
+      }
       let completed = await group.next()!
       group.cancelAll()
       return completed
