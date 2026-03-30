@@ -2061,8 +2061,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       hostName: inputHost,
       port: UInt32(8883),
       tlsCtx: tlsContext,
-      connectOptions: connectOptions,
-      onPublishReceived: )
+      connectOptions: connectOptions)
 
     // holds the publishAcknowledgementHandle from a publish packet
     var publishAcknowledgementHandle: PublishAcknowledgementHandle? = nil
