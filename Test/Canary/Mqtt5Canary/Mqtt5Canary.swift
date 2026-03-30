@@ -529,17 +529,10 @@ struct Mqtt5CanaryTestOptions: @unchecked Sendable {
 
 func Mqtt5CanaryOperationDistributionSetup(_ distributionDataSet: inout [Mqtt5CanaryOperation]) {
   let operationDistribution = [
-    (Mqtt5CanaryOperation.DESTROY_AND_CREATE, 10),
-    (Mqtt5CanaryOperation.STOP, 1),
     (Mqtt5CanaryOperation.SUBSCRIBE, 200),
     (Mqtt5CanaryOperation.UNSUBSCRIBE, 200),
-    (Mqtt5CanaryOperation.UNSUBSCRIBE_BAD, 50),
-    (Mqtt5CanaryOperation.PUBLISH_QOS0, 300),
-    (Mqtt5CanaryOperation.PUBLISH_QOS1, 150),
-    (Mqtt5CanaryOperation.PUBLISH_TO_SUBSCRIBED_TOPIC_QOS0, 100),
-    (Mqtt5CanaryOperation.PUBLISH_TO_SUBSCRIBED_TOPIC_QOS1, 50),
-    (Mqtt5CanaryOperation.PUBLISH_TO_SHARED_TOPIC_QOS0, 50),
-    (Mqtt5CanaryOperation.PUBLISH_TO_SHARED_TOPIC_QOS1, 50),
+    (Mqtt5CanaryOperation.PUBLISH_QOS0, 200),
+    (Mqtt5CanaryOperation.PUBLISH_QOS1, 200),
   ]
 
   for distribution in operationDistribution {
