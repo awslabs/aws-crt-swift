@@ -2536,13 +2536,13 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     }
 
     let callbackCompleted = await withTaskGroup(of: Bool.self) { group in
-      group.addTask { 
+      group.addTask {
         await callbackDoneSemaphore.wait();
         return true
       }
       group.addTask {
         try? await Task.sleep(nanoseconds: 10_000_000_000);
-        return false 
+        return false
       }
       let completed = await group.next()!
       group.cancelAll()
