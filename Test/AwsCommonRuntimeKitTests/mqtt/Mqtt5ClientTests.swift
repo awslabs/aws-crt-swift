@@ -2079,11 +2079,12 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
 
     let onPublishReceived: OnPublishReceived = { publishData in
       let receivedPayload = publishData.publishPacket.payload ?? Data()
+      // Acquire the handle synchronously within the callback before the callback returns
+      let handle = publishData.acquirePublishAcknowledgement?()
       Task {
         let isFirst = await !state.firstDelivered
         if isFirst {
-          // First delivery: acquire manual publish acknowledgement control to hold the acknowledgement
-          let handle = publishData.acquirePublishAcknowledgement?()
+          // First delivery: hold the acknowledgement by keeping the handle
           await state.setFirstDelivery(payload: receivedPayload, handle: handle)
           await firstDeliverySemaphore.signal()
         } else {
@@ -2195,11 +2196,12 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
 
     let onPublishReceived: OnPublishReceived = { publishData in
       let receivedPayload = publishData.publishPacket.payload ?? Data()
+      // Acquire the handle synchronously within the callback before the callback returns
+      let handle = publishData.acquirePublishAcknowledgement?()
       Task {
         let isFirst = await !state.firstDelivered
         if isFirst {
           // First delivery: acquire manual PUBACK control
-          let handle = publishData.acquirePublishAcknowledgement?()
           await state.setFirstDelivered(handle: handle)
           await firstDeliverySemaphore.signal()
         } else if receivedPayload == payloadData {
@@ -2303,17 +2305,17 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let callbackDoneSemaphore = TestSemaphore(value: 0)
 
     let onPublishReceived: OnPublishReceived = { publishData in
+      // Both acquire calls must be made synchronously within the callback (before it returns),
+      // as required by the acquirePublishAcknowledgement contract.
+      let firstHandle = publishData.acquirePublishAcknowledgement?()
+      let secondHandle = publishData.acquirePublishAcknowledgement?()
       Task {
-        // First call should succeed and return a non-nil handle
-        guard let firstHandle = publishData.acquirePublishAcknowledgement?() else {
+        guard firstHandle != nil else {
           await doubleCallResult.set("first_call_failed")
           await callbackDoneSemaphore.signal()
           return
         }
-        _ = firstHandle  // suppress unused warning
-
         // Second call on the same message should return nil (already acquired)
-        let secondHandle = publishData.acquirePublishAcknowledgement?()
         if secondHandle == nil {
           await doubleCallResult.set("double_call_returned_nil")
         } else {
@@ -2347,7 +2349,15 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       try await client.publish(publishPacket: publishPacket)
     }
 
-    await callbackDoneSemaphore.wait()
+    let callbackCompleted = await withTaskGroup(of: Bool.self) { group in
+      group.addTask { await callbackDoneSemaphore.wait(); return true }
+      group.addTask { try? await Task.sleep(nanoseconds: 10_000_000_000); return false }
+      let completed = await group.next()!
+      group.cancelAll()
+      return completed
+    }
+    XCTAssertTrue(callbackCompleted, "Timed out waiting for publish callback to complete")
+
     let result = await doubleCallResult.result
     XCTAssertEqual(
       result, "double_call_returned_nil",
@@ -2421,8 +2431,15 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       try await client.publish(publishPacket: publishPacket)
     }
 
-    // Wait for the callback to complete
-    await callbackDoneSemaphore.wait()
+    // Wait for the callback to complete (with timeout to prevent hanging in CI)
+    let callbackCompleted = await withTaskGroup(of: Bool.self) { group in
+      group.addTask { await callbackDoneSemaphore.wait(); return true }
+      group.addTask { try? await Task.sleep(nanoseconds: 10_000_000_000); return false }
+      let completed = await group.next()!
+      group.cancelAll()
+      return completed
+    }
+    XCTAssertTrue(callbackCompleted, "Timed out waiting for publish callback to complete")
 
     // Give the callback Task a moment to fully return before we call acquirePublishAcknowledgement
     try await Task.sleep(nanoseconds: 100_000_000)  // 100ms
@@ -2506,7 +2523,15 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       try await client.publish(publishPacket: publishPacket)
     }
 
-    await callbackDoneSemaphore.wait()
+    let callbackCompleted = await withTaskGroup(of: Bool.self) { group in
+      group.addTask { await callbackDoneSemaphore.wait(); return true }
+      group.addTask { try? await Task.sleep(nanoseconds: 10_000_000_000); return false }
+      let completed = await group.next()!
+      group.cancelAll()
+      return completed
+    }
+    XCTAssertTrue(callbackCompleted, "Timed out waiting for publish callback to complete")
+
     let wasNil = await acquireResult.acquirePropertyWasNil
     XCTAssertTrue(wasNil, "acquirePublishAcknowledgement should be nil for QoS 0 messages")
 
