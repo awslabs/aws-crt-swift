@@ -659,7 +659,7 @@ internal func MqttClientHandlePublishRecieved(
     // After the callback returns, check whether the user took control of the publish
     // acknowledgement. If the handle is still in the box, auto-invoke the
     // publish acknowledgement.
-    if publishAcknowledgementId != 0, let box = handleBox, let handle = box.take(),
+    if publishAcknowledgementId != 0, let box = handleBox, box.take() != nil,
       let rawValue = clientCore.rawValue
     {
       aws_mqtt5_client_invoke_publish_acknowledgement(rawValue, publishAcknowledgementId, nil)
