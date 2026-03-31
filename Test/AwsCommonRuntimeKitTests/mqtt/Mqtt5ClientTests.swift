@@ -56,8 +56,6 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     public var contextName: String
 
     public var onPublishReceived: OnPublishReceived?
-    // called at the end of a onPublishReceived callback if present
-    public var onPublishFinal: OnPublishReceived?
     public var onLifecycleEventStopped: OnLifecycleEventStopped?
     public var onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect?
     public var onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess?
@@ -132,9 +130,6 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
           if self.publishCount == self.publishTarget {
             self.publishTargetReachedExpectation.fulfill()
           }
-
-          // call the onPublishFinal if it's been set
-          self.onPublishFinal?(publishData)
         }
 
       self.onLifecycleEventStopped =
@@ -2055,6 +2050,59 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
 
     let clientId = createClientId()
+    let topic = "test/MQTT5_ManualPuback_Swift_" + clientId
+    let payloadData = "Hello World".data(using: .utf8)!
+
+    // Expectations: first delivery and re-delivery (broker re-drives when PUBACK is not sent).
+    let publishReceivedExpectation = XCTestExpectation(
+      description: "First publish delivery received")
+    let publishReceivedTwiceExpectation = XCTestExpectation(
+      description: "Second publish delivery received (re-driven publish after held PUBACK)")
+
+    // Actor-protected state to hold the publishAcknowledgementHandle and count.
+    // The handle is acquired synchronously in the callback (before it returns).
+    actor AcknowledgementState {
+      var handle: PublishAcknowledgementHandle? = nil
+      var deliveryCount: Int = 0
+      func set(_ h: PublishAcknowledgementHandle?) { handle = h }
+      func incrementDeliveryCount() -> Int {
+        deliveryCount += 1
+        return deliveryCount
+      }
+    }
+    let ackState = AcknowledgementState()
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      // Acquire the handle synchronously within the callback.
+      let h = publishData.acquirePublishAcknowledgement?()
+
+      if let payloadString = publishData.publishPacket.payloadAsString() {
+        print(
+          "ManualPubackHold Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)"
+            + " payload:'\(payloadString)'")
+      } else {
+        print(
+          "ManualPubackHold Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)")
+      }
+
+      // Task for fulfilling expectations and keeping count can be scheduled without being
+      // blocking. It's updating and using the protected actor ackState
+      Task {
+        let count = await ackState.incrementDeliveryCount()
+        if count == 1 {
+          // First delivery: store the handle (holding the PUBACK) and signal.
+          await ackState.set(h)
+          publishReceivedExpectation.fulfill()
+        } else if count == 2 {
+          // Second delivery: broker re-sent because no PUBACK was received.
+          publishReceivedTwiceExpectation.fulfill()
+        }
+      }
+    }
 
     let connectOptions = MqttConnectOptions(clientId: clientId)
     let clientOptions = MqttClientOptions(
@@ -2063,153 +2111,48 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       tlsCtx: tlsContext,
       connectOptions: connectOptions)
 
-    // holds the publishAcknowledgementHandle from a publish packet
-    var publishAcknowledgementHandle: PublishAcknowledgementHandle? = nil
-
-    // To be called at end of publish received
-    let onPublishReceivedFinal: OnPublishReceived = { publishData in
-      print("Acquiring publish acknowledgement")
-        publishAcknowledgementHandle = publishData.acquirePublishAcknowledgement?()
-    }
-
-    let testContext = MqttTestContext()
-    testContext.onPublishFinal = onPublishReceivedFinal
-
+    let testContext = MqttTestContext(
+      contextName: "ManualPubackHold",
+      onPublishReceived: onPublishReceived)
     let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-    try await connectClient(client: client, testContext: testContext);
-    
-    let topic = "test/MQTT5_ManualPuback_Swift_" + clientId
+    try await connectClient(client: client, testContext: testContext)
+
+    // Subscribe to the topic with QoS 1
     let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
-    let subackPacket: SubackPacket =
-      try await withTimeout(
-        client: client, seconds: 2,
-        operation: {
-          try await client.subscribe(subscribePacket: subscribePacket)
-        })
-    print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
-
-    let publishPacket = PublishPacket(
-      qos: QoS.atLeastOnce, topic: topic, payload: "Hello World".data(using: .utf8))
-    let publishResult: PublishResult =
-      try await withTimeout(
-        client: client, seconds: 2,
-        operation: {
-          try await client.publish(publishPacket: publishPacket)
-        })
-
-    if let puback = publishResult.puback {
-      print("PubackPacket received with result \(puback.reasonCode)")
-    } else {
-      XCTFail("PublishResult missing.")
-      return
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
     }
 
-    await awaitExpectation([testContext.publishReceivedExpectation], 5)
+    // Publish a QoS 1 message
+    let publishPacket = PublishPacket(
+      qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
+    let publishResult = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+    XCTAssertNotNil(publishResult.puback, "Expected puback for QoS 1 publish")
 
-    // need to wait on a republish to come in
-  
+    // Wait for the first delivery (PUBACK is held — not sent to broker)
+    await awaitExpectation([publishReceivedExpectation], 5)
 
-    // // Semaphore/continuation to signal first delivery and re-delivery
-    // let firstDeliverySemaphore = TestSemaphore(value: 0)
-    // let redeliverySemaphore = TestSemaphore(value: 0)
+    // After the expectation is fulfilled, the handle should be set with the control.
+    let publishAcknowledgementHandle = await ackState.handle
+    XCTAssertNotNil(
+      publishAcknowledgementHandle,
+      "acquirePublishAcknowledgement() should have returned a handle on first delivery")
 
-    // // Shared mutable state protected by actor semantics via TestSemaphore ordering
-    // actor DeliveryState {
-    //   var firstDeliveryPayload: Data? = nil
-    //   var redeliveryPayload: Data? = nil
-    //   var publishAcknowledgementHandle: PublishAcknowledgementHandle? = nil
-    //   var firstDelivered = false
+    // Wait up to 35 seconds for the broker to re-drive the publish for unacknowledged
+    // QoS 1 publish
+    let redeliveryResult = await awaitExpectationResult([publishReceivedTwiceExpectation], 35)
+    XCTAssertEqual(
+      redeliveryResult, .completed,
+      "Broker should re-deliver the message when PUBACK is held")
 
-    //   func setFirstDelivery(payload: Data, handle: PublishAcknowledgementHandle?) {
-    //     firstDeliveryPayload = payload
-    //     publishAcknowledgementHandle = handle
-    //     firstDelivered = true
-    //   }
+    // Release the held PUBACK now that re-delivery has been confirmed
+    if let handle = publishAcknowledgementHandle {
+      try client.invokePublishAcknowledgement(handle)
+    }
 
-    //   func setRedelivery(payload: Data) {
-    //     redeliveryPayload = payload
-    //   }
-    // }
-    // let state = DeliveryState()
-
-    // let onPublishReceived: OnPublishReceived = { publishData in
-    //   let receivedPayload = publishData.publishPacket.payload ?? Data()
-    //   // Acquire the handle synchronously within the callback before the callback returns
-    //   let handle = publishData.acquirePublishAcknowledgement?()
-    //   Task {
-    //     let isFirst = await !state.firstDelivered
-    //     if isFirst {
-    //       // First delivery: hold the acknowledgement by keeping the handle
-    //       await state.setFirstDelivery(payload: receivedPayload, handle: handle)
-    //       await firstDeliverySemaphore.signal()
-    //     } else {
-    //       // Second delivery: broker re-sent because no publish acknowledgement was received
-    //       await state.setRedelivery(payload: receivedPayload)
-    //       await redeliverySemaphore.signal()
-    //     }
-    //   }
-    // }
-
-    // let connectOptions = MqttConnectOptions(clientId: clientId)
-    // let clientOptions = MqttClientOptions(
-    //   hostName: inputHost,
-    //   port: UInt32(8883),
-    //   tlsCtx: tlsContext,
-    //   connectOptions: connectOptions)
-
-    // let testContext = MqttTestContext(
-    //   contextName: "ManualPubackHold",
-    //   onPublishReceived: onPublishReceived)
-    // let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-    // try await connectClient(client: client, testContext: testContext)
-
-    // // Subscribe to the topic with QoS 1
-    // let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
-    // _ = try await withTimeout(client: client, seconds: 5) {
-    //   try await client.subscribe(subscribePacket: subscribePacket)
-    // }
-
-    // // Publish a QoS 1 message with a unique UUID payload
-    // let publishPacket = PublishPacket(
-    //   qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
-    // let publishResult = try await withTimeout(client: client, seconds: 5) {
-    //   try await client.publish(publishPacket: publishPacket)
-    // }
-    // XCTAssertNotNil(publishResult.puback, "Expected puback for QoS 1 publish")
-
-    // // Wait for the first delivery
-    // await firstDeliverySemaphore.wait()
-    // let firstPayload = await state.firstDeliveryPayload
-    // XCTAssertEqual(firstPayload, payloadData, "First delivery payload should match")
-    // let publishAcknowledgementHandle = await state.publishAcknowledgementHandle
-    // XCTAssertNotNil(
-    //   publishAcknowledgementHandle, "acquirePublishAcknowledgement() should have returned a handle")
-
-    // // Wait up to 60 seconds for the broker to re-deliver the message (no PUBACK was sent)
-    // let redeliveryReceived = await withTaskGroup(of: Bool.self) { group in
-    //   group.addTask {
-    //     await redeliverySemaphore.wait()
-    //     return true
-    //   }
-    //   group.addTask {
-    //     try? await Task.sleep(nanoseconds: 60_000_000_000)
-    //     return false
-    //   }
-    //   let result = await group.next()!
-    //   group.cancelAll()
-    //   return result
-    // }
-    // XCTAssertTrue(redeliveryReceived, "Broker should re-deliver the message when PUBACK is held")
-
-    // let redeliveredPayload = await state.redeliveryPayload
-    // XCTAssertEqual(redeliveredPayload, payloadData, "Re-delivered payload should match original")
-
-    // // Release the held PUBACK now that we've confirmed re-delivery
-    // if let handle = publishAcknowledgementHandle {
-    //   try client.invokePublishAcknowledgement(handle)
-    // }
-
-    // try await stopClient(client: client, testContext: testContext)
+    try await stopClient(client: client, testContext: testContext)
   }
 
   // /*
