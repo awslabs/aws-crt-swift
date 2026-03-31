@@ -2271,20 +2271,293 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     try await stopClient(client: client, testContext: testContext)
   }
 
-  // /*
-  // * [ManualPuback-UC3] Calling acquirePublishAcknowledgement() twice on the same QoS 1 PUBLISH returns nil
-  // */
-  // func testMqtt5ManualPubackAcquireDoubleCallReturnsNil() async throws {
+  /*
+  * [ManualPuback-UC3] Calling acquirePublishAcknowledgement() twice on the same QoS 1 PUBLISH returns nil
+  */
+  func testMqtt5ManualPubackAcquireDoubleCallReturnsNil() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
 
-  // /*
-  // * [ManualPuback-UC4] Calling acquirePublishAcknowledgement() after the callback returns also returns nil
-  // */
-  // func testMqtt5ManualPubackAcquirePostCallbackReturnsNil() async throws {
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
 
-  // /*
-  // * [ManualPuback-UC5] acquirePublishAcknowledgement is nil for QoS 0 messages
-  // */
-  
+    let clientId = createClientId()
+    let topic = "test/MQTT5_ManualPuback_Swift_" + clientId
+    let payloadData = "Hello World".data(using: .utf8)!
+
+    // Expectation: callback completes with both acquire calls made.
+    let callbackDoneExpectation = XCTestExpectation(
+      description: "Publish callback completed both acquire calls")
+
+    // Actor-protected state to record the results of the two acquire calls.
+    actor DoubleCallResult {
+      var firstHandleNonNil: Bool = false
+      var secondHandleNil: Bool = false
+      func set(firstNonNil: Bool, secondNil: Bool) {
+        firstHandleNonNil = firstNonNil
+        secondHandleNil = secondNil
+      }
+    }
+    let result = DoubleCallResult()
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      // Both acquire calls must be made synchronously within the callback.
+      let firstHandle = publishData.acquirePublishAcknowledgement?()
+      let secondHandle = publishData.acquirePublishAcknowledgement?()
+
+      if let payloadString = publishData.publishPacket.payloadAsString() {
+        print(
+          "ManualPubackDoubleCall Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)"
+            + " payload:'\(payloadString)'")
+      }
+
+      Task {
+        await result.set(
+          firstNonNil: firstHandle != nil,
+          secondNil: secondHandle == nil)
+        callbackDoneExpectation.fulfill()
+      }
+    }
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions)
+
+    let testContext = MqttTestContext(
+      contextName: "ManualPubackDoubleCall",
+      onPublishReceived: onPublishReceived)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    // Subscribe to the topic with QoS 1
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
+    }
+
+    // Publish a QoS 1 message
+    let publishPacket = PublishPacket(
+      qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+
+    // Wait for the callback to complete both acquire calls
+    let callbackResult = await awaitExpectationResult([callbackDoneExpectation], 10)
+    XCTAssertEqual(callbackResult, .completed, "Timed out waiting for publish callback to complete")
+
+    let firstNonNil = await result.firstHandleNonNil
+    let secondNil = await result.secondHandleNil
+    XCTAssertTrue(
+      firstNonNil,
+      "First call to acquirePublishAcknowledgement() should return a non-nil handle")
+    XCTAssertTrue(
+      secondNil,
+      "Second call to acquirePublishAcknowledgement() on the same message should return nil")
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*
+  * [ManualPuback-UC4] Calling acquirePublishAcknowledgement() after the callback returns also returns nil
+  */
+  func testMqtt5ManualPubackAcquirePostCallbackReturnsNil() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+    let topic = "test/MQTT5_ManualPuback_Swift_" + clientId
+    let payloadData = "Hello World".data(using: .utf8)!
+
+    // Expectation: callback has returned.
+    let callbackDoneExpectation = XCTestExpectation(
+      description: "Publish callback has returned")
+
+    // Save the acquirePublishAcknowledgement closure so we can call it after the callback returns.
+    // The closure is saved synchronously in the callback body.
+    actor SavedAcquireFn {
+      var fn: (@Sendable () -> PublishAcknowledgementHandle?)? = nil
+      func set(_ value: (@Sendable () -> PublishAcknowledgementHandle?)?) { fn = value }
+    }
+    let savedAcquireFn = SavedAcquireFn()
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      // Save the closure synchronously but do NOT call it.
+      // The closure itself becomes invalid once the callback returns.
+      let acquireFn = publishData.acquirePublishAcknowledgement
+
+      if let payloadString = publishData.publishPacket.payloadAsString() {
+        print(
+          "ManualPubackPostCallback Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)"
+            + " payload:'\(payloadString)'")
+      }
+
+      Task {
+        await savedAcquireFn.set(acquireFn)
+        callbackDoneExpectation.fulfill()
+        // Callback has now returned, acquirePublishAcknowledgement should return nil if called
+      }
+    }
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions)
+
+    let testContext = MqttTestContext(
+      contextName: "ManualPubackPostCallback",
+      onPublishReceived: onPublishReceived)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    // Subscribe to the topic with QoS 1
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
+    }
+
+    // Publish a QoS 1 message
+    let publishPacket = PublishPacket(
+      qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+
+    // Wait for the callback to complete
+    let callbackResult = await awaitExpectationResult([callbackDoneExpectation], 10)
+    XCTAssertEqual(callbackResult, .completed, "Timed out waiting for publish callback to complete")
+
+    // Give the callback Task a moment to fully return before calling acquirePublishAcknowledgement
+    try await Task.sleep(nanoseconds: 100_000_000)  // 100ms
+
+    // Now call acquirePublishAcknowledgement() after the callback has returned
+    let acquireFn = await savedAcquireFn.fn
+    XCTAssertNotNil(acquireFn, "acquirePublishAcknowledgement closure should have been saved")
+    let lateHandle = acquireFn?()
+    XCTAssertNil(
+      lateHandle,
+      "acquirePublishAcknowledgement() should return nil after the callback has returned")
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*
+  * [ManualPuback-UC5] acquirePublishAcknowledgement is nil for QoS 0 messages
+  */
+  func testMqtt5ManualPubackQoS0AcquireIsNil() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+    let topic = "test/MQTT5_ManualPuback_Swift_" + clientId
+    let payloadData = "Hello World".data(using: .utf8)!
+
+    // Expectation: callback completes.
+    let callbackDoneExpectation = XCTestExpectation(
+      description: "Publish callback completed")
+
+    // Actor-protected state to record whether acquirePublishAcknowledgement was nil.
+    actor AcquireResult {
+      var acquirePropertyWasNil: Bool = false
+      func set(_ value: Bool) { acquirePropertyWasNil = value }
+    }
+    let acquireResult = AcquireResult()
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      // For QoS 0, acquirePublishAcknowledgement should be nil.
+      let isNil = publishData.acquirePublishAcknowledgement == nil
+
+      if let payloadString = publishData.publishPacket.payloadAsString() {
+        print(
+          "ManualPubackQoS0 Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)"
+            + " payload:'\(payloadString)'")
+      }
+
+      Task {
+        await acquireResult.set(isNil)
+        callbackDoneExpectation.fulfill()
+      }
+    }
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions)
+
+    let testContext = MqttTestContext(
+      contextName: "ManualPubackQoS0",
+      onPublishReceived: onPublishReceived)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    // Subscribe with QoS 1 (so the broker delivers at QoS 0 downgraded from our sub)
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
+    }
+
+    // Publish at QoS 0 — there is no PUBACK involved
+    let publishPacket = PublishPacket(
+      qos: QoS.atMostOnce, topic: topic, payload: payloadData)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+
+    // Wait for the callback to complete (with timeout to prevent hanging)
+    let callbackResult = await awaitExpectationResult([callbackDoneExpectation], 10)
+    XCTAssertEqual(callbackResult, .completed, "Timed out waiting for publish callback to complete")
+
+    let wasNil = await acquireResult.acquirePropertyWasNil
+    XCTAssertTrue(
+      wasNil,
+      "acquirePublishAcknowledgement should be nil for QoS 0 messages")
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
   /*===============================================================
                    RETAIN TESTS
   =================================================================*/
