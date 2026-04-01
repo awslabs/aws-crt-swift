@@ -270,7 +270,10 @@ actor Mqtt5CanaryTestContext {
     if await !canaryClient.getConnected() {
       return try await mqtt5CanaryOperationStart(canaryClient: canaryClient)
     }
-    let pub = PublishPacket(qos: qos, topic: topic)
+    // Generate random payload with size between 0 and 64KB (65536 bytes)
+    let payloadSize = Int.random(in: 0...65536)
+    let payloadData = Data((0..<payloadSize).map { _ in UInt8.random(in: 0...255) })
+    let pub = PublishPacket(qos: qos, topic: topic, payload: payloadData)
 
     if let _client = await canaryClient.client {
       do {
