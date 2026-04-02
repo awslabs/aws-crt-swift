@@ -425,19 +425,16 @@ actor Mqtt5CanaryStatistic {
     self.unsubFailed += 1;
   }
 
-  func printStatistics(duration: TimeInterval) {
+  func printStatistics() {
     let subscribeSuccessRate =
       subscribeAttempt > 0 ? Double(subscribeSucceed) / Double(subscribeAttempt) * 100 : 0
     let publishSuccessRate =
       publishAttempt > 0 ? Double(publishSucceed) / Double(publishAttempt) * 100 : 0
     let unsubscribeSuccessRate =
       unsubAttempt > 0 ? Double(unsubSucceed) / Double(unsubAttempt) * 100 : 0
-    let totalTPS = duration > 0 ? Double(totalOperation) / duration : 0
 
     print("=== MQTT5 Canary Test Statistics ===")
-    print("Test Duration: \(String(format: "%.2f", duration)) seconds")
     print("Total Operations: \(totalOperation)")
-    print("Total TPS: \(String(format: "%.2f", totalTPS))")
     print(
       "Subscribe - Attempts: \(subscribeAttempt), Success: \(subscribeSucceed), Failed: \(subscribeFailed), Success Rate: \(String(format: "%.2f", subscribeSuccessRate))%"
     )
@@ -679,8 +676,7 @@ struct Mqtt5Canary: AsyncParsableCommand {
     }
 
     // Print final statistics
-    let actualDuration = Date().timeIntervalSince(startTime)
-    await context.statistic.printStatistics(duration: actualDuration)
+    await context.statistic.printStatistics()
   }
 
 }
