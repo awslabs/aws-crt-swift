@@ -201,15 +201,15 @@ public class MqttConnectOptions: CStruct {
   }
 }
 
-/// Configuration for the creation of MQTT5 clients
-public class AwsIoTSDKMetrics: CStruct {
+/// Configuration for the AWS IoT Metrics, including SDK name, version, and platforms.
+private class AwsIoTSDKMetrics: CStruct {
   public let libraryName: String = "IoTDeviceSDK/Swift"
 
   typealias RawType = aws_mqtt_iot_metrics
   func withCStruct<Result>(_ body: (aws_mqtt_iot_metrics) -> Result) -> Result {
     var raw_metrics = aws_mqtt_iot_metrics()
-    return libraryName.withByteCursor { hostNameByteCursor in
-      raw_metrics.library_name = hostNameByteCursor
+    return libraryName.withByteCursor { libraryNameByteCursor in
+      raw_metrics.library_name = libraryNameByteCursor
       return body(raw_metrics)
     }
   }
