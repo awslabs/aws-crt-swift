@@ -2,8 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import ArgumentParser
-@testable import AwsCommonRuntimeKit
-import AwsCCommon
+import AwsCommonRuntimeKit
 import Foundation
 import _Concurrency
 
@@ -425,16 +424,19 @@ actor Mqtt5CanaryStatistic {
     self.unsubFailed += 1;
   }
 
-  func printStatistics() {
+  func printStatistics(duration: TimeInterval) {
     let subscribeSuccessRate =
       subscribeAttempt > 0 ? Double(subscribeSucceed) / Double(subscribeAttempt) * 100 : 0
     let publishSuccessRate =
       publishAttempt > 0 ? Double(publishSucceed) / Double(publishAttempt) * 100 : 0
     let unsubscribeSuccessRate =
       unsubAttempt > 0 ? Double(unsubSucceed) / Double(unsubAttempt) * 100 : 0
+    let totalTPS = duration > 0 ? Double(totalOperation) / duration : 0
 
     print("=== MQTT5 Canary Test Statistics ===")
+    print("Test Duration: \(String(format: "%.2f", duration)) seconds")
     print("Total Operations: \(totalOperation)")
+    print("Total TPS: \(String(format: "%.2f", totalTPS))")
     print(
       "Subscribe - Attempts: \(subscribeAttempt), Success: \(subscribeSucceed), Failed: \(subscribeFailed), Success Rate: \(String(format: "%.2f", subscribeSuccessRate))%"
     )
@@ -529,18 +531,12 @@ struct Mqtt5CanaryTestOptions: @unchecked Sendable {
 
 func Mqtt5CanaryOperationDistributionSetup(_ distributionDataSet: inout [Mqtt5CanaryOperation]) {
   let operationDistribution = [
+    (Mqtt5CanaryOperation.DESTROY_AND_CREATE, 10),
     (Mqtt5CanaryOperation.STOP, 1),
     (Mqtt5CanaryOperation.SUBSCRIBE, 200),
     (Mqtt5CanaryOperation.UNSUBSCRIBE, 200),
     (Mqtt5CanaryOperation.PUBLISH_QOS0, 200),
     (Mqtt5CanaryOperation.PUBLISH_QOS1, 200),
-    (Mqtt5CanaryOperation.UNSUBSCRIBE_BAD, 50),
-    (Mqtt5CanaryOperation.PUBLISH_QOS0, 300),
-    (Mqtt5CanaryOperation.PUBLISH_QOS1, 150),
-    (Mqtt5CanaryOperation.PUBLISH_TO_SUBSCRIBED_TOPIC_QOS0, 100),
-    (Mqtt5CanaryOperation.PUBLISH_TO_SUBSCRIBED_TOPIC_QOS1, 50),
-    (Mqtt5CanaryOperation.PUBLISH_TO_SHARED_TOPIC_QOS0, 50),
-    (Mqtt5CanaryOperation.PUBLISH_TO_SHARED_TOPIC_QOS1, 50),
   ]
 
   for distribution in operationDistribution {
@@ -684,7 +680,9 @@ struct Mqtt5Canary: AsyncParsableCommand {
     }
 
     // Print final statistics
-    await context.statistic.printStatistics()
+    let actualDuration = Date().timeIntervalSince(startTime)
+    await context.statistic.printStatistics(duration: actualDuration)
+
   }
 
 }
