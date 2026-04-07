@@ -2,7 +2,7 @@
 //  SPDX-License-Identifier: Apache-2.0.
 
 import ArgumentParser
-import AwsCommonRuntimeKit
+@testable import AwsCommonRuntimeKit
 import Foundation
 import _Concurrency
 
