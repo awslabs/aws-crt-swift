@@ -641,7 +641,7 @@ internal func MqttClientHandlePublishRecieved(
     if publishPacket.qos == .atLeastOnce {
       // Eagerly acquire the publish acknowledgement control ID before invoking the user callback.
       publishAcknowledgementId = aws_mqtt5_client_acquire_publish_acknowledgement(
-        rawValue, publish)
+        clientCore.rawValue, publish)
 
       if publishAcknowledgementId != 0 {
         let box = PublishAcknowledgementHandleBox(
