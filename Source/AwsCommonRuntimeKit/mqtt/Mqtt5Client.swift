@@ -3,6 +3,7 @@
 
 import AwsCIo
 import AwsCMqtt
+import Foundation
 import LibNative
 
 // MARK: - Callback Data Classes
@@ -597,6 +598,7 @@ internal func MqttClientHandleLifecycleEvent(
 /// The first call to `take()` returns the handle and clears the box. subsequent calls return `nil`.
 private final class PublishAcknowledgementHandleBox: @unchecked Sendable {
   private var handle: PublishAcknowledgementHandle?
+  private let lock = NSLock()
 
   init(_ handle: PublishAcknowledgementHandle) {
     self.handle = handle
@@ -604,6 +606,8 @@ private final class PublishAcknowledgementHandleBox: @unchecked Sendable {
 
   /// Removes and returns the handle if it has not yet been taken, otherwise returns `nil`.
   func take() -> PublishAcknowledgementHandle? {
+    lock.lock()
+    defer { lock.unlock() }
     guard let h = handle else { return nil }
     handle = nil
     return h
@@ -634,7 +638,7 @@ internal func MqttClientHandlePublishRecieved(
     var handleBox: PublishAcknowledgementHandleBox? = nil
     var acquirePublishAcknowledgement: (@Sendable () -> PublishAcknowledgementHandle?)? = nil
 
-    if publishPacket.qos == .atLeastOnce, let rawValue = clientCore.rawValue {
+    if publishPacket.qos == .atLeastOnce {
       // Eagerly acquire the publish acknowledgement control ID before invoking the user callback.
       publishAcknowledgementId = aws_mqtt5_client_acquire_publish_acknowledgement(
         rawValue, publish)
