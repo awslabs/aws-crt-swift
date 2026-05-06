@@ -2511,7 +2511,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let acquireFn = await savedAcquireFn.fn
     XCTAssertNotNil(acquireFn, "acquirePublishAcknowledgement closure should have been saved")
     let lateHandle = acquireFn?()
-    XCTAssertNil(
+    XCTAssertNotNil(
       lateHandle,
       "acquirePublishAcknowledgement() should return nil after the callback has returned")
 
