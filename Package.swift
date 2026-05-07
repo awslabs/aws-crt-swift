@@ -117,13 +117,14 @@ var awsCCalPlatformExcludes =
   packageTargets.append(
     .target(
       name: "S2N_TLS",
-      dependencies: ["LibCrypto"],
+      dependencies: [.target(name: "LibCrypto", condition: .when(platforms: [.macOS, .linux]))],
       path: "aws-common-runtime/s2n",
       exclude: s2nExcludes,
       publicHeadersPath: "api",
       cSettings: [
         .headerSearchPath("./"),
         .define("S2N_NO_PQ"),
+        .define("OPENSSL_SUPPRESS_DEPRECATED"),
         // This is a hack to get around the fact that S2N uses the compiler option `-include`
         // to include `s2n_prelude.h` in all .c files. Since SwiftPM doesn't support compiler flags,
         // we manually define the macros from `s2n_prelude.h`. When SwiftPM supports compiler flags
@@ -149,9 +150,12 @@ var awsCIoPlatformExcludes =
 var cSettingsIO = cSettings
 var cSettingsHttp = cSettings
 
-#if os(Linux) || os(macOS)
+#if os(Linux)
   ioDependencies.append("S2N_TLS")
   cSettingsIO.append(.define("USE_S2N"))
+#elseif os(macOS)
+  ioDependencies.append(.target(name: "S2N_TLS", condition: .when(platforms: [.macOS])))
+  cSettingsIO.append(.define("USE_S2N", .when(platforms: [.macOS])))
 #endif
 
 #if os(Windows)
