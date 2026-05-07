@@ -64,7 +64,7 @@ let cSettingsCommon: [CSetting] = [
 /// aws-c-cal
 //////////////////////////////////////////////////////////////////////
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
-#if os(Linux)
+#if os(Linux) || os(macOS)
   packageTargets.append(
     .systemLibrary(
       name: "LibCrypto",
@@ -72,6 +72,7 @@ var calDependencies: [Target.Dependency] = ["AwsCCommon"]
       providers: [
         .apt(["openssl libssl-dev"]),
         .yum(["openssl openssl-devel"]),
+        .brew(["openssl"]),
       ]
     ))
   calDependencies.append("LibCrypto")
@@ -103,7 +104,7 @@ var awsCCalPlatformExcludes =
 //////////////////////////////////////////////////////////////////////
 /// s2n-tls
 //////////////////////////////////////////////////////////////////////
-#if os(Linux)
+#if os(Linux) || os(macOS)
   let s2nExcludes = [
     "bin", "codebuild", "coverage", "docker-images",
     "docs", "lib",
@@ -148,7 +149,7 @@ var awsCIoPlatformExcludes =
 var cSettingsIO = cSettings
 var cSettingsHttp = cSettings
 
-#if os(Linux)
+#if os(Linux) || os(macOS)
   ioDependencies.append("S2N_TLS")
   cSettingsIO.append(.define("USE_S2N"))
 #endif
@@ -169,7 +170,9 @@ var cSettingsHttp = cSettings
 #else  // macOS, iOS, watchOS, tvOS
   awsCIoPlatformExcludes.append("source/windows")
   awsCIoPlatformExcludes.append("source/linux")
-  awsCIoPlatformExcludes.append("source/s2n")
+  #if !os(macOS)
+    awsCIoPlatformExcludes.append("source/s2n")
+  #endif
   cSettingsIO.append(.define("__APPLE__"))
   cSettingsIO.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
   cSettingsIO.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
