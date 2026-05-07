@@ -64,7 +64,7 @@ let cSettingsCommon: [CSetting] = [
 /// aws-c-cal
 //////////////////////////////////////////////////////////////////////
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
-#if os(Linux) || os(macOS)
+#if os(Linux)
   packageTargets.append(
     .systemLibrary(
       name: "LibCrypto",
@@ -72,10 +72,19 @@ var calDependencies: [Target.Dependency] = ["AwsCCommon"]
       providers: [
         .apt(["openssl libssl-dev"]),
         .yum(["openssl openssl-devel"]),
-        .brew(["openssl"]),
       ]
     ))
   calDependencies.append("LibCrypto")
+#elseif os(macOS)
+  packageTargets.append(
+    .systemLibrary(
+      name: "LibCrypto",
+      pkgConfig: "libcrypto",
+      providers: [
+        .brew(["openssl"]),
+      ]
+    ))
+  calDependencies.append(.target(name: "LibCrypto", condition: .when(platforms: [.macOS])))
 #endif
 
 var awsCCalPlatformExcludes =
