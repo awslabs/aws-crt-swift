@@ -81,7 +81,7 @@ var calDependencies: [Target.Dependency] = ["AwsCCommon"]
       name: "LibCrypto",
       pkgConfig: "libcrypto",
       providers: [
-        .brew(["openssl"]),
+        .brew(["openssl"])
       ]
     ))
   calDependencies.append(.target(name: "LibCrypto", condition: .when(platforms: [.macOS])))
