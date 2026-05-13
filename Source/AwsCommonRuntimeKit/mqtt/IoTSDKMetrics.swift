@@ -207,47 +207,37 @@ struct IoTSDKMetricsEncoder {
     // Determine the library name: use user-provided or default
     let libraryName = options.metrics?.libraryName
 
-    let finalMetrics = IoTDeviceSDKMetrics(libraryName: libraryName)
+    let resultMetrics = IoTDeviceSDKMetrics(libraryName: libraryName)
 
     // CRTVersion: not modifiable by user, automatically set
-    finalMetrics.metadata["CRTVersion"] = CommonRuntimeKit.CRTVersion
+    resultMetrics.metadata["CRTVersion"] = CommonRuntimeKit.CRTVersion
 
     // Get CRT feature list from options
     let crtFeatureList = getEncodedFeatureList(from: options)
+    var userFeatureString: String = ""
 
-    // Check if user provided metrics with metadata
-    if let userMetrics = options.metrics, !userMetrics.metadata.isEmpty {
-      let userMetricsVersion = userMetrics.metadata["IoTSDKMetricsVersion"]
-      let userFeature = userMetrics.metadata["IoTSDKFeature"]
+    if let userMetadata = options.metrics?.metadata {
 
-      // Only merge if version matches; otherwise use CRT features directly
-      if let versionString = userMetricsVersion,
-        let userVersion = Int(versionString),
-        userVersion == ioTSDKMetricsFeatureVersion,
-        let userFeatureValue = userFeature,
-        !userFeatureValue.isEmpty
+      if let userFeatureVersion = userMetadata["IoTSDKMetricsVersion"],
+        Int(userFeatureVersion) == ioTSDKMetricsFeatureVersion,
+        let userFeature = userMetadata["IoTSDKFeature"]
       {
-        finalMetrics.metadata["IoTSDKFeature"] = mergeFeatureLists(
-          crtFeatures: crtFeatureList, userFeatures: userFeatureValue)
-      } else {
-        finalMetrics.metadata["IoTSDKFeature"] = mergeFeatureLists(
-          crtFeatures: crtFeatureList, userFeatures: "")
+        userFeatureString = userFeature
       }
 
-      // Copy other user metadata (excluding IoTSDKFeature, IoTSDKMetricsVersion, CRTVersion)
-      for (key, value) in userMetrics.metadata
+      for (key, value) in userMetadata
       where key != "IoTSDKFeature" && key != "IoTSDKMetricsVersion" && key != "CRTVersion" {
-        finalMetrics.metadata[key] = value
+        resultMetrics.metadata[key] = value
       }
-    } else {
-      finalMetrics.metadata["IoTSDKFeature"] = mergeFeatureLists(
-        crtFeatures: crtFeatureList, userFeatures: "")
     }
 
-    // Always add the current metrics version
-    finalMetrics.metadata["IoTSDKMetricsVersion"] = String(ioTSDKMetricsFeatureVersion)
+    resultMetrics.metadata["IoTSDKFeature"] = mergeFeatureLists(
+      crtFeatures: crtFeatureList, userFeatures: userFeatureString)
 
-    return finalMetrics
+    // Always add the current metrics version
+    resultMetrics.metadata["IoTSDKMetricsVersion"] = String(ioTSDKMetricsFeatureVersion)
+
+    return resultMetrics
   }
 
   /// Merges CRT features with user-provided features.
@@ -255,11 +245,43 @@ struct IoTSDKMetricsEncoder {
   ///
   /// - Parameters:
   ///   - crtFeatures: The CRT-generated feature list string
-  ///   - userFeatures: The user-provided feature list string
+  ///   - userFeatures: The user-provided feature list string (can be "(A/A,B/B)" or "A/A,B/B")
   /// - Returns: The merged feature list string
   private static func mergeFeatureLists(crtFeatures: String, userFeatures: String) -> String {
-    // TODO: Merge crtFeatures and user Features, returned merged final string
-    return "()"
+
+    // Strip parentheses from user features if present
+    var cleanedUserFeatures = userFeatures
+    if cleanedUserFeatures.hasPrefix("(") && cleanedUserFeatures.hasSuffix(")") {
+      cleanedUserFeatures = String(cleanedUserFeatures.dropFirst().dropLast())
+    }
+    var cleanedCrtFeatures = crtFeatures
+    if cleanedCrtFeatures.hasPrefix("(") && cleanedCrtFeatures.hasSuffix(")") {
+      cleanedCrtFeatures = String(cleanedCrtFeatures.dropFirst().dropLast())
+    }
+
+    // Parse CRT features into a dictionary
+    var featureDict: [Character: Character] = [:]
+    for feature in cleanedCrtFeatures.split(separator: ",") {
+      let parts = feature.split(separator: "/")
+      if parts.count == 2, let featureId = parts[0].first, let value = parts[1].first {
+        featureDict[featureId] = value
+      }
+    }
+
+    // Parse user features and merge (user features take precedence)
+    for feature in cleanedUserFeatures.split(separator: ",") {
+      let parts = feature.split(separator: "/")
+      if parts.count == 2, let featureId = parts[0].first, let value = parts[1].first {
+        featureDict[featureId] = value
+      }
+    }
+
+    // Convert back to string, sorted by feature ID
+    let sortedFeatures = featureDict.keys.sorted().map { featureId in
+      "\(featureId)/\(featureDict[featureId]!)"
+    }
+
+    return "(" + sortedFeatures.joined(separator: ",") + ")"
   }
 
   /// Generates the encoded feature list string for metrics directly from MqttClientOptions.
