@@ -97,7 +97,6 @@ enum MetricsHttpProxyTypeValue {
   static let https: Character = "B"
 }
 
-
 // MARK: - Extension mappings from existing enums to metrics values (Package-Private)
 // Note: Default values return nil to be omitted from the encoded feature list (minimizes payload size)
 // Values: A=first option, B=second option, C=third option, etc.
@@ -242,7 +241,7 @@ struct IoTSDKMetricsEncoder {
       }
     } else {
       finalMetrics.metadata["IoTSDKFeature"] = mergeFeatureLists(
-          crtFeatures: crtFeatureList, userFeatures: "")
+        crtFeatures: crtFeatureList, userFeatures: "")
     }
 
     // Always add the current metrics version
@@ -308,11 +307,13 @@ struct IoTSDKMetricsEncoder {
     // H: http_proxy_type - Determine based on whether proxy uses TLS
     if let proxyOptions = options.httpProxyOptions {
       // If the proxy has TLS options configured, it's HTTPS; otherwise HTTP
-      let proxyType = proxyOptions.tlsOptions != nil ? MetricsHttpProxyTypeValue.https : MetricsHttpProxyTypeValue.http
+      let proxyType =
+        proxyOptions.tlsOptions != nil
+        ? MetricsHttpProxyTypeValue.https : MetricsHttpProxyTypeValue.http
       features.append("\(MetricsFeatureId.httpProxyType)/\(proxyType)")
     }
 
-    // I: certificate_source - Would need to be tracked from TLS context setup. This is set at a IoT SDK level, 
+    // I: certificate_source - Would need to be tracked from TLS context setup. This is set at a IoT SDK level,
     // not directly available in MqttClientOptions
 
     // J: tls_cipher_preference - CRT Swift current doesn't have cipher preference support, leave it out for now

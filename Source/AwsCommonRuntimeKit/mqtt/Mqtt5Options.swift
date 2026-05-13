@@ -201,7 +201,6 @@ public class MqttConnectOptions: CStruct {
   }
 }
 
-
 /// Configuration for the creation of MQTT5 clients
 public class MqttClientOptions: CStructWithUserData {
   /// Host name of the MQTT server to connect to.
