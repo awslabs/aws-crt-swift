@@ -231,7 +231,8 @@ struct IoTSDKMetricsEncoder {
         finalMetrics.metadata["IoTSDKFeature"] = mergeFeatureLists(
           crtFeatures: crtFeatureList, userFeatures: userFeatureValue)
       } else {
-        finalMetrics.metadata["IoTSDKFeature"] = crtFeatureList
+        finalMetrics.metadata["IoTSDKFeature"] = mergeFeatureLists(
+          crtFeatures: crtFeatureList, userFeatures: "")
       }
 
       // Copy other user metadata (excluding IoTSDKFeature, IoTSDKMetricsVersion, CRTVersion)
@@ -240,7 +241,8 @@ struct IoTSDKMetricsEncoder {
         finalMetrics.metadata[key] = value
       }
     } else {
-      finalMetrics.metadata["IoTSDKFeature"] = crtFeatureList
+      finalMetrics.metadata["IoTSDKFeature"] = mergeFeatureLists(
+          crtFeatures: crtFeatureList, userFeatures: "")
     }
 
     // Always add the current metrics version
@@ -257,29 +259,8 @@ struct IoTSDKMetricsEncoder {
   ///   - userFeatures: The user-provided feature list string
   /// - Returns: The merged feature list string
   private static func mergeFeatureLists(crtFeatures: String, userFeatures: String) -> String {
-    // Parse CRT features into a dictionary
-    var featureDict: [Character: Character] = [:]
-    for feature in crtFeatures.split(separator: ",") {
-      let parts = feature.split(separator: "/")
-      if parts.count == 2, let featureId = parts[0].first, let value = parts[1].first {
-        featureDict[featureId] = value
-      }
-    }
-
-    // Parse user features and merge (user features take precedence)
-    for feature in userFeatures.split(separator: ",") {
-      let parts = feature.split(separator: "/")
-      if parts.count == 2, let featureId = parts[0].first, let value = parts[1].first {
-        featureDict[featureId] = value
-      }
-    }
-
-    // Convert back to string, sorted by feature ID
-    let sortedFeatures = featureDict.keys.sorted().map { featureId in
-      "\(featureId)/\(featureDict[featureId]!)"
-    }
-
-    return sortedFeatures.joined(separator: ",")
+    // TODO: Merge crtFeatures and user Features, returned merged final string
+    return "()"
   }
 
   /// Generates the encoded feature list string for metrics directly from MqttClientOptions.
@@ -331,18 +312,18 @@ struct IoTSDKMetricsEncoder {
       features.append("\(MetricsFeatureId.httpProxyType)/\(proxyType)")
     }
 
-    // I: certificate_source - Would need to be tracked from TLS context setup
-    // This is typically set at a higher SDK level, not directly available in MqttClientOptions
+    // I: certificate_source - Would need to be tracked from TLS context setup. This is set at a IoT SDK level, 
+    // not directly available in MqttClientOptions
 
-    // J: tls_cipher_preference - Not directly accessible from TLSContext
+    // J: tls_cipher_preference - CRT Swift current doesn't have cipher preference support, leave it out for now
 
-    // K: minimum_tls_version - Not directly accessible from TLSContext
-    // The minimum TLS version is set on TLSContextOptions but not stored/accessible from TLSContext
+    // K: minimum_tls_version - The minimum TLS version is set on TLSContextOptions but not stored/accessible from TLSContext,
+    // will track from IoT SDK level
 
     return features.joined(separator: ",")
   }
 
-  /// Detects the socket implementation based on platform.
+  /// Help function to determine the socket implementation based on platform.
   private static func detectSocketImplementation() -> Character {
     #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
       return MetricsSocketImplementationValue.appleNetworkFramework
