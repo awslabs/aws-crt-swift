@@ -201,20 +201,6 @@ public class MqttConnectOptions: CStruct {
   }
 }
 
-/// Configuration for the AWS IoT Metrics, including SDK name, version, and platforms.
-private class AwsIoTSDKMetrics: CStruct {
-  public let libraryName: String = "IoTDeviceSDK/Swift"
-
-  typealias RawType = aws_mqtt_iot_metrics
-  func withCStruct<Result>(_ body: (aws_mqtt_iot_metrics) -> Result) -> Result {
-    var raw_metrics = aws_mqtt_iot_metrics()
-    return libraryName.withByteCursor { libraryNameByteCursor in
-      raw_metrics.library_name = libraryNameByteCursor
-      return body(raw_metrics)
-    }
-  }
-
-}
 
 /// Configuration for the creation of MQTT5 clients
 public class MqttClientOptions: CStructWithUserData {
@@ -294,10 +280,11 @@ public class MqttClientOptions: CStructWithUserData {
   public let onLifecycleEventDisconnectionFn: OnLifecycleEventDisconnection?
 
   /// Enable AWS IoT Metrics, including SDK name, version, and platform. Default to True.
-  public let enableMetrics: Bool
+  public let disableMetrics: Bool
 
-  /// AWS IoT Metrics. This is internally set only.
-  private let metrics: AwsIoTSDKMetrics?
+  /// AWS IoT SDK Metrics configuration. If disableMetrics is false/not set and this is nil, default metrics will be used.
+  /// Users can provide custom metrics to override the default behavior.
+  public let metrics: IoTDeviceSDKMetrics?
 
   public init(
     hostName: String,
@@ -325,7 +312,8 @@ public class MqttClientOptions: CStructWithUserData {
     onLifecycleEventConnectionSuccessFn: OnLifecycleEventConnectionSuccess? = nil,
     onLifecycleEventConnectionFailureFn: OnLifecycleEventConnectionFailure? = nil,
     onLifecycleEventDisconnectionFn: OnLifecycleEventDisconnection? = nil,
-    enableMetrics: Bool = true
+    disableMetrics: Bool? = false,
+    metrics: IoTDeviceSDKMetrics? = nil
   ) {
 
     self.hostName = hostName
@@ -369,8 +357,8 @@ public class MqttClientOptions: CStructWithUserData {
     self.onLifecycleEventConnectionSuccessFn = onLifecycleEventConnectionSuccessFn
     self.onLifecycleEventConnectionFailureFn = onLifecycleEventConnectionFailureFn
     self.onLifecycleEventDisconnectionFn = onLifecycleEventDisconnectionFn
-    self.enableMetrics = enableMetrics
-    self.metrics = enableMetrics ? AwsIoTSDKMetrics() : nil
+    self.disableMetrics = disableMetrics ?? false
+    self.metrics = metrics
   }
 
   func validateConversionToNative() throws {
@@ -437,6 +425,9 @@ public class MqttClientOptions: CStructWithUserData {
   func withCStruct<Result>(
     userData: UnsafeMutableRawPointer?, _ body: (aws_mqtt5_client_options) -> Result
   ) -> Result {
+
+    var finalMetrics = IoTSDKMetricsEncoder.createMetrics(from: self)
+
     var raw_options = aws_mqtt5_client_options()
 
     raw_options.port = self.port
@@ -500,7 +491,7 @@ public class MqttClientOptions: CStructWithUserData {
       tls_options,
       self.httpProxyOptions,
       self.topicAliasingOptions,
-      self.metrics,
+      finalMetrics,
       connnectOptions
     ) {
       socketOptionsCPointer,
