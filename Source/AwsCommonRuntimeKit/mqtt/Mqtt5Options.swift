@@ -425,7 +425,8 @@ public class MqttClientOptions: CStructWithUserData {
     userData: UnsafeMutableRawPointer?, _ body: (aws_mqtt5_client_options) -> Result
   ) -> Result {
 
-    let finalMetrics : IoTDeviceSDKMetrics? = self.disableMetrics ? nil : IoTSDKMetricsEncoder.createMetrics(from: self)
+    let finalMetrics: IoTDeviceSDKMetrics? =
+      self.disableMetrics ? nil : IoTSDKMetricsEncoder.createMetrics(from: self)
 
     var raw_options = aws_mqtt5_client_options()
 
