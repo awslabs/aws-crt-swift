@@ -44,11 +44,11 @@ class IoTSDKMetricsTests: XCBaseTestCase {
     let encoded = IoTSDKMetricsEncoder.getEncodedFeatureList(from: options)
 
     // Verify each NON-DEFAULT feature is present with new ID/Value format
-    XCTAssertTrue(encoded.contains("A/C"))  // retry_jitter_mode = DECORRELATED (non-default)
-    XCTAssertTrue(encoded.contains("B/C"))  // session_behavior = REJOIN_ALWAYS (non-default)
-    XCTAssertTrue(encoded.contains("C/C"))  // offline_queue_behavior = FAIL_ALL_ON_DISCONNECT (non-default)
-    XCTAssertTrue(encoded.contains("D/B"))  // outbound_topic_alias_behavior = LRU (non-default)
-    XCTAssertTrue(encoded.contains("E/A"))  // inbound_topic_alias_behavior = ENABLED (non-default)
+    XCTAssertTrue(encoded.contains("A/C"))  // retry_jitter_mode = DECORRELATED
+    XCTAssertTrue(encoded.contains("B/C"))  // session_behavior = REJOIN_ALWAYS
+    XCTAssertTrue(encoded.contains("C/C"))  // offline_queue_behavior = FAIL_ALL_ON_DISCONNECT
+    XCTAssertTrue(encoded.contains("D/B"))  // outbound_topic_alias_behavior = LRU
+    XCTAssertTrue(encoded.contains("E/A"))  // inbound_topic_alias_behavior = ENABLED
     XCTAssertTrue(encoded.contains("F/5"))  // protocol_version = MQTT5
 
     // Verify the format is comma-separated
