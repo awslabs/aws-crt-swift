@@ -1,0 +1,90 @@
+name: Update Version on Release
+
+# This workflow automatically updates the CRTVersion in CommonRuntimeKit.swift when a new release is created.
+# It extracts the version from the tag (e.g., v0.61.0 -> 0.61.0), updates the source file,
+# and moves the tag to point to the new commit with the updated version.
+
+on:
+  release:
+    types: [published]  # Triggers when a release is published via GitHub UI
+
+permissions:
+  contents: write  # Required to push commits and tags
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main  # Checkout main branch to apply the version update
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          # Remove the 'v' prefix to get the version
+          VERSION=${TAG_NAME#v}
+          echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION from tag: $TAG_NAME"
+
+      - name: Update CRTVersion in CommonRuntimeKit.swift
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          VERSION_FILE="Source/AwsCommonRuntimeKit/CommonRuntimeKit.swift"
+          
+          # Update the CRTVersion in CommonRuntimeKit.swift
+          sed -i "s/public static let CRTVersion = \".*\"/public static let CRTVersion = \"$VERSION\"/" "$VERSION_FILE"
+          
+          # Verify the update
+          echo "Updated $VERSION_FILE:"
+          cat "$VERSION_FILE"
+          
+          # Check if the version was actually updated
+          if grep -q "public static let CRTVersion = \"$VERSION\"" "$VERSION_FILE"; then
+            echo "✅ CRTVersion successfully updated to $VERSION"
+          else
+            echo "❌ Failed to update CRTVersion"
+            exit 1
+          fi
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if git diff --quiet; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes detected (version may already be up to date)"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected"
+            git diff
+          fi
+
+      - name: Commit version update and move tag
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          TAG_NAME="${{ steps.get_version.outputs.tag }}"
+          
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Commit the version update
+          git add Source/AwsCommonRuntimeKit/CommonRuntimeKit.swift
+          git commit -m "chore: update CRTVersion to $VERSION"
+          
+          # Push the commit to main
+          git push origin main
+          
+          # Delete the old tag (both locally and remotely)
+          git tag -d "$TAG_NAME"
+          git push origin --delete "$TAG_NAME"
+          
+          # Create a new tag pointing to the new commit with the updated version
+          git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
+          git push origin "$TAG_NAME"
+          
+          echo "✅ CRTVersion updated to $VERSION and tag $TAG_NAME moved to new commit"
