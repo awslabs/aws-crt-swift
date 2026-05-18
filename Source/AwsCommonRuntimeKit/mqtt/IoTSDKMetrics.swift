@@ -387,8 +387,13 @@ struct IoTSDKMetricsEncoder {
 
     // J: tls_cipher_preference - CRT Swift current doesn't have cipher preference support, leave it out for now
 
-    // K: minimum_tls_version - The minimum TLS version is set on TLSContextOptions but not stored/accessible from TLSContext,
-    // will track from IoT SDK level
+    // K: minimum_tls_version - Get from TLSContext if available
+    if let tlsCtx = options.tlsCtx,
+      let minTlsVersion = tlsCtx.minimumTLSVersion,
+      let metricsValue = minTlsVersion.metricsValue
+    {
+      features.append("\(MetricsFeatureId.minimumTlsVersion)/\(metricsValue)")
+    }
 
     return features.joined(separator: ",")
   }
