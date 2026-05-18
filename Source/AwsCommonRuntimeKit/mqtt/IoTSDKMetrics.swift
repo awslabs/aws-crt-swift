@@ -1,8 +1,49 @@
 ///  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ///  SPDX-License-Identifier: Apache-2.0.
 
+import AwsCCommon
 import AwsCMqtt
 import Foundation
+
+// MARK: - Metadata Entry
+
+/// A key-value pair for IoT SDK metrics metadata.
+/// This class is used internally to convert Swift dictionary entries to C structures.
+class MetadataEntry: CStruct, @unchecked Sendable {
+
+  /// Metadata key
+  let key: String
+
+  /// Metadata value
+  let value: String
+
+  init(key: String, value: String) {
+    self.key = key
+    self.value = value
+
+    withByteCursorFromStrings(self.key, self.value) { cKeyCursor, cValueCursor in
+      aws_byte_buf_init_copy_from_cursor(&keyBuffer, allocator, cKeyCursor)
+      aws_byte_buf_init_copy_from_cursor(&valueBuffer, allocator, cValueCursor)
+    }
+  }
+
+  typealias RawType = aws_mqtt_metadata_entry
+  func withCStruct<Result>(_ body: (aws_mqtt_metadata_entry) -> Result) -> Result {
+    var rawEntry = aws_mqtt_metadata_entry()
+    rawEntry.key = aws_byte_cursor_from_buf(&keyBuffer)
+    rawEntry.value = aws_byte_cursor_from_buf(&valueBuffer)
+    return body(rawEntry)
+  }
+
+  // Keep memory of the buffer storage in the class, and release it on destruction
+  private var keyBuffer: aws_byte_buf = aws_byte_buf()
+  private var valueBuffer: aws_byte_buf = aws_byte_buf()
+
+  deinit {
+    aws_byte_buf_clean_up(&keyBuffer)
+    aws_byte_buf_clean_up(&valueBuffer)
+  }
+}
 
 // MARK: - IoT Device SDK Metrics
 
@@ -45,13 +86,19 @@ public class IoTDeviceSDKMetrics: CStruct {
 
   typealias RawType = aws_mqtt_iot_metrics
   func withCStruct<Result>(_ body: (aws_mqtt_iot_metrics) -> Result) -> Result {
-
-    // TODO: need further support for metadata field
-    // Convert metadata dictionary to array of aws_mqtt_metadata_entry
     var raw_metrics = aws_mqtt_iot_metrics()
+
+    // Convert metadata dictionary to array of MetadataEntry
+    let metadataEntries = metadata.map { MetadataEntry(key: $0.key, value: $0.value) }
+
     return libraryName.withByteCursor { libraryNameByteCursor in
       raw_metrics.library_name = libraryNameByteCursor
-      return body(raw_metrics)
+
+      return metadataEntries.withAWSArrayList { metadataPointer in
+        raw_metrics.metadata_count = metadataEntries.count
+        raw_metrics.metadata_entries = UnsafePointer<aws_mqtt_metadata_entry>(metadataPointer)
+        return body(raw_metrics)
+      }
     }
   }
 }
