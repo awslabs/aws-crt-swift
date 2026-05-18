@@ -291,24 +291,14 @@ struct IoTSDKMetricsEncoder {
   /// User features take precedence for the same feature ID.
   ///
   /// - Parameters:
-  ///   - crtFeatures: The CRT-generated feature list string
-  ///   - userFeatures: The user-provided feature list string (can be "(A/A,B/B)" or "A/A,B/B")
+  ///   - crtFeatures: The CRT-generated feature list string (e.g., "A/A,B/B")
+  ///   - userFeatures: The user-provided feature list string (e.g., "L/A,M/B")
   /// - Returns: The merged feature list string
   private static func mergeFeatureLists(crtFeatures: String, userFeatures: String) -> String {
 
-    // Strip parentheses from user features if present
-    var cleanedUserFeatures = userFeatures
-    if cleanedUserFeatures.hasPrefix("(") && cleanedUserFeatures.hasSuffix(")") {
-      cleanedUserFeatures = String(cleanedUserFeatures.dropFirst().dropLast())
-    }
-    var cleanedCrtFeatures = crtFeatures
-    if cleanedCrtFeatures.hasPrefix("(") && cleanedCrtFeatures.hasSuffix(")") {
-      cleanedCrtFeatures = String(cleanedCrtFeatures.dropFirst().dropLast())
-    }
-
     // Parse CRT features into a dictionary
     var featureDict: [Character: Character] = [:]
-    for feature in cleanedCrtFeatures.split(separator: ",") {
+    for feature in crtFeatures.split(separator: ",") {
       let parts = feature.split(separator: "/")
       if parts.count == 2, let featureId = parts[0].first, let value = parts[1].first {
         featureDict[featureId] = value
@@ -316,7 +306,7 @@ struct IoTSDKMetricsEncoder {
     }
 
     // Parse user features and merge (user features take precedence)
-    for feature in cleanedUserFeatures.split(separator: ",") {
+    for feature in userFeatures.split(separator: ",") {
       let parts = feature.split(separator: "/")
       if parts.count == 2, let featureId = parts[0].first, let value = parts[1].first {
         featureDict[featureId] = value
@@ -328,7 +318,7 @@ struct IoTSDKMetricsEncoder {
       "\(featureId)/\(featureDict[featureId]!)"
     }
 
-    return "(" + sortedFeatures.joined(separator: ",") + ")"
+    return sortedFeatures.joined(separator: ",")
   }
 
   /// Generates the encoded feature list string for metrics directly from MqttClientOptions.

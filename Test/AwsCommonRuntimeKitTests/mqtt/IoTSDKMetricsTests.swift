@@ -83,7 +83,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
   func testCreateMetricsWithUserFeaturesMerged() {
     let customMetrics = IoTDeviceSDKMetrics(libraryName: "CustomSDK/Test")
     customMetrics.metadata["IoTSDKMetricsVersion"] = "1"
-    customMetrics.metadata["IoTSDKFeature"] = "(L/A,M/B)"  // Custom features with parentheses
+    customMetrics.metadata["IoTSDKFeature"] = "L/A,M/B"  // Custom features
 
     let options = MqttClientOptions(
       hostName: "test.example.com",
