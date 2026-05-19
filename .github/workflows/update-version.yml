@@ -38,7 +38,7 @@ jobs:
 
       - name: Update CRTVersion in CommonRuntimeKit.swift
         run: |
-          VERSION="${{ steps.get_info.outputs.version }}"
+          VERSION="${{ steps.get_version.outputs.version }}"
           VERSION_FILE="Source/AwsCommonRuntimeKit/CommonRuntimeKit.swift"
           
           # Update the CRTVersion in CommonRuntimeKit.swift
