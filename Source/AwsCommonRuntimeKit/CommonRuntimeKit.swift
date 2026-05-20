@@ -7,6 +7,9 @@ import LibNative
 /// `CommonRuntimeKit.initialize` must be called before using any other functionality.
 public struct CommonRuntimeKit {
 
+  /// The current version of the AWS Common Runtime Kit.
+  public static let CRTVersion = "0.0.0"
+
   /// Initializes the library.
   /// Must be called before using any other functionality.
   public static func initialize() {
