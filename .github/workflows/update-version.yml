@@ -9,8 +9,8 @@ on:
   release:
     types: [published]  # Triggers when a release is published via GitHub UI
 
-permissions:
-  contents: write  # Required to push commits and tags
+env:
+  GH_TOKEN: ${{ secrets.BOT_PAT }}
 
 jobs:
   update-version:
@@ -19,6 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.BOT_PAT }}  # Use BOT_PAT for push permissions
           ref: main  # Checkout main branch to apply the version update
           fetch-depth: 0
 
