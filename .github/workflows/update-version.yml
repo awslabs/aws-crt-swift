@@ -78,8 +78,8 @@ jobs:
           VERSION="${{ steps.get_version.outputs.version }}"
           TAG_NAME="${{ steps.get_version.outputs.tag }}"
           
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "aws-sdk-common-runtime@amazon.com"
+          git config --local user.name "GitHub Actions"
           
           # Commit the version update
           git add Source/AwsCommonRuntimeKit/CommonRuntimeKit.swift
