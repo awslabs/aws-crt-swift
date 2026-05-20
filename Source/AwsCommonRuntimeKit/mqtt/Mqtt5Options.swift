@@ -278,7 +278,7 @@ public class MqttClientOptions: CStructWithUserData {
   /// Callback for Lifecycle Event Disconnection.
   public let onLifecycleEventDisconnectionFn: OnLifecycleEventDisconnection?
 
-  /// Enable AWS IoT Metrics, including SDK name, version, and platform. Default to True.
+  /// Disable AWS IoT Metrics, including SDK name, version, and platform. Default to True.
   public let disableMetrics: Bool
 
   /// AWS IoT SDK Metrics configuration. If disableMetrics is false/not set and this is nil, default metrics will be used.
