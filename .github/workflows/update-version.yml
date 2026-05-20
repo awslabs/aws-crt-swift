@@ -9,6 +9,9 @@ on:
   release:
     types: [published]  # Triggers when a release is published via GitHub UI
 
+permissions:
+  contents: read  # Set minimal permissions for GITHUB_TOKEN (BOT_PAT handles write operations)
+
 env:
   GH_TOKEN: ${{ secrets.BOT_PAT }}
 
