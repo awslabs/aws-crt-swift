@@ -186,7 +186,8 @@ public class CBORDecoder {
   /// You must call `hasNext()` before calling this function.
   public func popNext() throws -> CBORType {
     guard currentDepth < CBORDecoder.maxDepth else {
-      throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_RESOURCE_LIMIT_EXCEEDED.rawValue))
+      throw CommonRunTimeError.crtError(
+        CRTError(code: AWS_ERROR_CBOR_RESOURCE_LIMIT_EXCEEDED.rawValue))
     }
     currentDepth += 1
     defer { currentDepth -= 1 }
