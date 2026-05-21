@@ -8,6 +8,9 @@ import struct Foundation.Data
 public class TLSContextOptions: CStruct {
   private var rawValue: UnsafeMutablePointer<aws_tls_ctx_options>
 
+  /// track minimum tls version set by user
+  public private(set) var minimumTLSVersion: TLSVersion?
+
   public static func makeDefault() -> TLSContextOptions {
     TLSContextOptions()
   }
@@ -175,6 +178,7 @@ public class TLSContextOptions: CStruct {
   }
 
   public func setMinimumTLSVersion(_ tlsVersion: TLSVersion) {
+    self.minimumTLSVersion = tlsVersion
     aws_tls_ctx_options_set_minimum_tls_version(
       rawValue, aws_tls_versions(rawValue: tlsVersion.rawValue))
   }
