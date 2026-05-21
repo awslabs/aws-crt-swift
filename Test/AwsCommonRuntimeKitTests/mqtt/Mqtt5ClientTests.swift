@@ -208,7 +208,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
         onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
         onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
         onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection,
-        enableMetrics: clientOptions.enableMetrics)
+        disableMetrics: clientOptions.disableMetrics)
     } else {
       let elg = try EventLoopGroup()
       let resolver = try HostResolver(
@@ -414,7 +414,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       hostName: inputHost,
       port: UInt32(inputPort)!,
       connectOptions: connectOptions,
-      enableMetrics: false)
+      disableMetrics: true)
 
     let testContext = MqttTestContext()
     let client = try createClient(clientOptions: clientOptions, testContext: testContext)
@@ -444,12 +444,12 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       username: inputUsername,
       password: inputPassword.data(using: .utf8))
 
-    // Metrics enabled
+    // Metrics enabled (disableMetrics: false)
     let clientOptions = MqttClientOptions(
       hostName: inputHost,
       port: UInt32(inputPort)!,
       connectOptions: connectOptions,
-      enableMetrics: true)
+      disableMetrics: false)
 
     let testContext: Mqtt5ClientTests.MqttTestContext = MqttTestContext()
     let client = try createClient(clientOptions: clientOptions, testContext: testContext)
@@ -712,7 +712,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       hostName: inputHost,
       port: UInt32(inputPort)!,
       connectOptions: connectOptions,
-      enableMetrics: false)
+      disableMetrics: true)
 
     let testContext = MqttTestContext()
     testContext.withWebsocketTransform(isSuccess: true)
