@@ -84,6 +84,8 @@ var calDependencies: [Target.Dependency] = ["AwsCCommon"]
         .brew(["openssl"])
       ]
     ))
+  // Platform condition is needed for cross-compilation: when building on macOS for iOS/tvOS, this ensures LibCrypto
+  // won't be added as a dependency.
   calDependencies.append(.target(name: "LibCrypto", condition: .when(platforms: [.macOS])))
 #endif
 
@@ -126,16 +128,16 @@ var awsCCalPlatformExcludes =
   packageTargets.append(
     .target(
       name: "S2N_TLS",
-      dependencies: [.target(name: "LibCrypto", condition: .when(platforms: [.macOS, .linux]))],
+      dependencies: ["LibCrypto"],
       path: "aws-common-runtime/s2n",
       exclude: s2nExcludes,
       publicHeadersPath: "api",
       cSettings: [
         .headerSearchPath("./"),
         .define("S2N_NO_PQ"),
-        // CMake config in s2n-tls disables deprecation warnings. Since we use SwiftPM to build dependencies, which
-        // doesn't use CMake configuration, deprecations are treated as compilation errors. Fortunately, all deprecated
-        // declarations come from OpenSSL, and it's possible to suppress them with this flag.
+        // When building s2n-tls with CMake, the deprecation warnings are disabled by default. Since we use SwiftPM
+        // to build dependencies (which doesn't use CMake configuration), deprecations are treated as compilation
+        // errors. However, all deprecated declarations come from OpenSSL, so we can suppress them with this flag.
         .define("OPENSSL_SUPPRESS_DEPRECATED"),
         // This is a hack to get around the fact that S2N uses the compiler option `-include`
         // to include `s2n_prelude.h` in all .c files. Since SwiftPM doesn't support compiler flags,
@@ -166,6 +168,8 @@ var cSettingsHttp = cSettings
   ioDependencies.append("S2N_TLS")
   cSettingsIO.append(.define("USE_S2N"))
 #elseif os(macOS)
+  // Platform condition is needed for cross-compilation: when building on macOS for iOS/tvOS, this ensures s2n-tls
+  // won't be added as a dependency.
   ioDependencies.append(.target(name: "S2N_TLS", condition: .when(platforms: [.macOS])))
   cSettingsIO.append(.define("USE_S2N", .when(platforms: [.macOS])))
 #endif
