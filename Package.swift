@@ -126,13 +126,16 @@ var awsCCalPlatformExcludes =
   packageTargets.append(
     .target(
       name: "S2N_TLS",
-      dependencies: [.target(name: "LibCrypto", condition: .when(platforms: [.macOS, .linux]))],
+      dependencies: ["LibCrypto"],
       path: "aws-common-runtime/s2n",
       exclude: s2nExcludes,
       publicHeadersPath: "api",
       cSettings: [
         .headerSearchPath("./"),
         .define("S2N_NO_PQ"),
+        // CMake config in s2n-tls disables deprecation warnings. Since we use SwiftPM to build dependencies, which
+        // doesn't use CMake configuration, deprecations are treated as compilation errors. Fortunately, all deprecated
+        // declarations come from OpenSSL, and it's possible to suppress them with this flag.
         .define("OPENSSL_SUPPRESS_DEPRECATED"),
         // This is a hack to get around the fact that S2N uses the compiler option `-include`
         // to include `s2n_prelude.h` in all .c files. Since SwiftPM doesn't support compiler flags,
