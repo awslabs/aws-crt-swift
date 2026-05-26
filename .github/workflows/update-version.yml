@@ -10,21 +10,52 @@ on:
     types: [published]  # Triggers when a release is published via GitHub UI
 
 permissions:
-  contents: read  # Set minimal permissions for GITHUB_TOKEN (BOT_PAT handles write operations)
+  id-token: write   # Required for OIDC authentication with AWS
+  contents: read    # Required to checkout repository
 
 env:
+  AWS_REGION: us-east-1
   GH_TOKEN: ${{ secrets.BOT_PAT }}
 
 jobs:
   update-version:
     runs-on: ubuntu-latest
     steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CRT_CI_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Retrieve deploy key and setup SSH
+        run: |
+          # Retrieve the private key from Secrets Manager
+          DEPLOY_KEY=$(aws secretsmanager get-secret-value --secret-id aws-crt-bot/deploy-key/privatekey --query SecretString --output text)
+
+          # Set up SSH configuration
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          # Add GitHub to known hosts to avoid host verification prompt
+          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
+          # Configure SSH to use the key for GitHub
+          cat > ~/.ssh/config << EOF
+            Host github.com
+              HostName github.com
+              User git
+              IdentityFile ~/.ssh/deploy_key
+            EOF
+          chmod 600 ~/.ssh/config
+
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.BOT_PAT }}  # Use BOT_PAT for push permissions
-          ref: main  # Checkout main branch to apply the version update
-          fetch-depth: 0
+
+      - name: Configure git to use SSH with deploy key
+        run: |
+          # Set remote URL to use SSH
+          git remote set-url origin git@github.com:${{ github.repository }}.git
 
       - name: Extract version from tag
         id: get_version
@@ -83,7 +114,7 @@ jobs:
           TAG_NAME="${{ steps.get_version.outputs.tag }}"
           
           git config --local user.email "aws-sdk-common-runtime@amazon.com"
-          git config --local user.name "GitHub Actions"
+          git config --local user.name "aws-crt-bot"
           
           # Commit the version update
           git add Source/AwsCommonRuntimeKit/CommonRuntimeKit.swift
