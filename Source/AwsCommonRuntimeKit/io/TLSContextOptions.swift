@@ -9,7 +9,7 @@ public class TLSContextOptions: CStruct {
   private var rawValue: UnsafeMutablePointer<aws_tls_ctx_options>
 
   /// track minimum tls version set by user
-  public private(set) var minimumTLSVersion: TLSVersion?
+  internal var minimumTLSVersion: TLSVersion?
 
   public static func makeDefault() -> TLSContextOptions {
     TLSContextOptions()

@@ -7,7 +7,7 @@ public class TLSContext {
   var rawValue: UnsafeMutablePointer<aws_tls_ctx>
 
   /// The minimum TLS version that was configured, if any. Used for metrics tracking.
-  public let minimumTLSVersion: TLSVersion?
+  internal let minimumTLSVersion: TLSVersion?
 
   public init(options: TLSContextOptions, mode: TLSMode) throws {
     self.minimumTLSVersion = options.minimumTLSVersion
