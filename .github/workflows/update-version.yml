@@ -34,7 +34,6 @@ jobs:
 
           # Set up SSH configuration
           mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
           echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
@@ -42,19 +41,16 @@ jobs:
           ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
           # Configure SSH to use the key for GitHub
-          cat > ~/.ssh/config << 'EOF'
-          Host github.com
-            HostName github.com
-            User git
-            IdentityFile ~/.ssh/deploy_key
-          EOF
+          cat > ~/.ssh/config << EOF
+            Host github.com
+              HostName github.com
+              User git
+              IdentityFile ~/.ssh/deploy_key
+            EOF
           chmod 600 ~/.ssh/config
 
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-tags: true
 
       - name: Configure git to use SSH with deploy key
         run: |
