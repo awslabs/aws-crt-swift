@@ -2,6 +2,7 @@ import AwsCAuth
 import AwsCEventStream
 import AwsCMqtt
 import LibNative
+import Foundation
 
 /// Initializes the library.
 /// `CommonRuntimeKit.initialize` must be called before using any other functionality.
@@ -9,10 +10,14 @@ public struct CommonRuntimeKit {
 
   /// The current version of the AWS Common Runtime Kit.
   public static let CRTVersion = "0.0.0"
+  private static let lock = NSLock()
 
   /// Initializes the library.
   /// Must be called before using any other functionality.
   public static func initialize() {
+    lock.lock()
+    defer { lock.unlock() }
+
     aws_auth_library_init(allocator.rawValue)
     aws_event_stream_library_init(allocator.rawValue)
     aws_mqtt_library_init(allocator.rawValue)
