@@ -15,6 +15,7 @@ permissions:
 
 env:
   AWS_REGION: us-east-1
+  GH_TOKEN: ${{ secrets.BOT_PAT }}
 
 jobs:
   update-version:
@@ -106,14 +107,14 @@ jobs:
           VERSION="${{ steps.get_version.outputs.version }}"
           TAG_NAME="${{ steps.get_version.outputs.tag }}"
 
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "aws-sdk-common-runtime@amazon.com"
+          git config --local user.name "aws-crt-bot"
 
-          # Commit the version update directly on main
+          # Commit the version update
           git add Source/AwsCommonRuntimeKit/CommonRuntimeKit.swift
           git commit -m "chore: update CRTVersion to $VERSION"
 
-          # Push directly to main
+          # Push the commit to main
           git push origin main
 
           echo "Pushed version update to main"
