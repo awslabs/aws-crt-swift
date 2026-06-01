@@ -314,11 +314,11 @@ struct IoTSDKMetricsEncoder {
     }
 
     // Convert back to string, sorted by feature ID
-    let sortedFeatures = featureDict.keys.sorted().map { featureId in
+    let features = featureDict.keys.map { featureId in
       "\(featureId)/\(featureDict[featureId]!)"
     }
 
-    return sortedFeatures.joined(separator: ",")
+    return features.joined(separator: ",")
   }
 
   /// Generates the encoded feature list string for metrics directly from MqttClientOptions.
