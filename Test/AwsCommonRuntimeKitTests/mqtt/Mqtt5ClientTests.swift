@@ -529,6 +529,9 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
    */
   func testMqtt5DirectConnectWithMutualTLS13() async throws {
     try skipIfPlatformDoesntSupportTLS()
+    #if os(Linux) || os(macOS)
+      throw XCTSkip("TLS 1.3 is not supported on this platform (s2n requires CMake build)")
+    #endif
     let inputHost = try getEnvironmentVarOrSkipTest(
       environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_TLS13_HOST")
     let inputCert = try getEnvironmentVarOrSkipTest(
@@ -549,22 +552,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
 
     let testContext = MqttTestContext()
     let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-
-    let expectFailure: Bool
-    #if os(macOS)
-      expectFailure = ProcessInfo.processInfo.environment["AWS_CRT_USE_NON_FIPS_TLS_13"] == nil
-    #else
-      expectFailure = false
-    #endif
-
-    if expectFailure {
-      try client.start()
-      await awaitExpectation([testContext.connectionFailureExpectation], 5)
-      try await stopClient(client: client, testContext: testContext)
-    } else {
-      try await connectClient(client: client, testContext: testContext)
-      try await disconnectClientCleanup(client: client, testContext: testContext)
-    }
+    try await connectClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client, testContext: testContext)
   }
 
   /*
