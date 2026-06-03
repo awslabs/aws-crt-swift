@@ -54,6 +54,12 @@
   "variants": {
     "localhost": {
       "!test_steps": ["localhost-test"]
+    },
+    "macos-s2n": {
+      "!test_steps":[
+        "crt-ci-prep",
+        "swift test"
+      ]
     }
   }
 }

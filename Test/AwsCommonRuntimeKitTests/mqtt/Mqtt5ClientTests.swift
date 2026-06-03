@@ -525,6 +525,38 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
   }
 
   /*
+   * [ConnDC-UC4-1] Direct Connection with mutual TLS to a TLS 1.3-only host
+   */
+  func testMqtt5DirectConnectWithMutualTLS13() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    #if os(Linux) || os(macOS)
+      throw XCTSkip("TLS 1.3 is not supported on this platform (s2n requires CMake build)")
+    #endif
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_TLS13_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
    * [ConnDC-UC5] Direct Connection with HttpProxy options and TLS
    */
   func testMqtt5DirectConnectWithHttpProxy() async throws {
