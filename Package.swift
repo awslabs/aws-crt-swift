@@ -75,18 +75,6 @@ var calDependencies: [Target.Dependency] = ["AwsCCommon"]
       ]
     ))
   calDependencies.append("LibCrypto")
-#elseif os(macOS)
-  packageTargets.append(
-    .systemLibrary(
-      name: "LibCrypto",
-      pkgConfig: "libcrypto",
-      providers: [
-        .brew(["openssl"])
-      ]
-    ))
-  // Platform condition is needed for cross-compilation: when building on macOS for iOS/tvOS, this ensures LibCrypto
-  // won't be added as a dependency.
-  calDependencies.append(.target(name: "LibCrypto", condition: .when(platforms: [.macOS])))
 #endif
 
 var awsCCalPlatformExcludes =
@@ -115,7 +103,7 @@ var awsCCalPlatformExcludes =
 //////////////////////////////////////////////////////////////////////
 /// s2n-tls
 //////////////////////////////////////////////////////////////////////
-#if os(Linux) || os(macOS)
+#if os(Linux)
   let s2nExcludes = [
     "bin", "codebuild", "coverage", "docker-images",
     "docs", "lib",
@@ -135,10 +123,6 @@ var awsCCalPlatformExcludes =
       cSettings: [
         .headerSearchPath("./"),
         .define("S2N_NO_PQ"),
-        // When building s2n-tls with CMake, the deprecation warnings are disabled by default. Since we use SwiftPM
-        // to build dependencies (which doesn't use CMake configuration), deprecations are treated as compilation
-        // errors. However, all deprecated declarations come from OpenSSL, so we can suppress them with this flag.
-        .define("OPENSSL_SUPPRESS_DEPRECATED"),
         // This is a hack to get around the fact that S2N uses the compiler option `-include`
         // to include `s2n_prelude.h` in all .c files. Since SwiftPM doesn't support compiler flags,
         // we manually define the macros from `s2n_prelude.h`. When SwiftPM supports compiler flags
@@ -167,11 +151,6 @@ var cSettingsHttp = cSettings
 #if os(Linux)
   ioDependencies.append("S2N_TLS")
   cSettingsIO.append(.define("USE_S2N"))
-#elseif os(macOS)
-  // Platform condition is needed for cross-compilation: when building on macOS for iOS/tvOS, this ensures s2n-tls
-  // won't be added as a dependency.
-  ioDependencies.append(.target(name: "S2N_TLS", condition: .when(platforms: [.macOS])))
-  cSettingsIO.append(.define("USE_S2N", .when(platforms: [.macOS])))
 #endif
 
 #if os(Windows)
@@ -190,9 +169,7 @@ var cSettingsHttp = cSettings
 #else  // macOS, iOS, watchOS, tvOS
   awsCIoPlatformExcludes.append("source/windows")
   awsCIoPlatformExcludes.append("source/linux")
-  #if !os(macOS)
-    awsCIoPlatformExcludes.append("source/s2n")
-  #endif
+  awsCIoPlatformExcludes.append("source/s2n")
   cSettingsIO.append(.define("__APPLE__"))
   cSettingsIO.append(.define("AWS_ENABLE_DISPATCH_QUEUE"))
   cSettingsIO.append(.define("AWS_USE_SECITEM", .when(platforms: [.iOS, .tvOS])))
