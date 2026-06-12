@@ -56,6 +56,51 @@ class IoTSDKMetricsTests: XCBaseTestCase {
     XCTAssertGreaterThanOrEqual(features.count, 6)
   }
 
+  func testCertificateSourceFromTLSContextOptions() throws {
+    // makeDefault() -> no certificate source -> TLSContext has nil certificateSource
+    // -> I/ is absent from the encoded feature list
+    let defaultTLSOptions = TLSContextOptions.makeDefault()
+    let defaultTLSCtx = try TLSContext(options: defaultTLSOptions, mode: .client)
+    let optionsWithDefaultTLS = MqttClientOptions(
+      hostName: "test.example.com",
+      port: 8883,
+      tlsCtx: defaultTLSCtx
+    )
+    XCTAssertFalse(
+      IoTSDKMetricsEncoder.getEncodedFeatureList(from: optionsWithDefaultTLS).contains("I/"))
+
+    // For each CertificateSource type, set it on TLSContextOptions, create a TLSContext,
+    // pass it to MqttClientOptions, and verify the correct I/X appears in the feature list.
+    // In production, certificateSource is set automatically by the factory methods:
+    //   makeMTLS(certificatePath:) / makeMTLS(certificateData:) -> .certificateFiles
+    //   makeMTLS(pkcs12Path:)                                   -> .pkcs12File
+    //   PKCS#11, Windows cert store, Java KeyStore are set by higher-level SDK layers.
+    let allCases: [(CertificateSource, String)] = [
+      (.certificateFiles, "I/A"),
+      (.pkcs11, "I/B"),
+      (.windowsCertStore, "I/C"),
+      (.javaKeystore, "I/D"),
+      (.pkcs12File, "I/E"),
+    ]
+
+    for (source, expectedFeature) in allCases {
+      let tlsOptions = TLSContextOptions.makeDefault()
+      tlsOptions.certificateSource = source
+
+      let tlsCtx = try TLSContext(options: tlsOptions, mode: .client)
+      let mqttOptions = MqttClientOptions(
+        hostName: "test.example.com",
+        port: 8883,
+        tlsCtx: tlsCtx
+      )
+      let encoded = IoTSDKMetricsEncoder.getEncodedFeatureList(from: mqttOptions)
+      XCTAssertTrue(
+        encoded.contains(expectedFeature),
+        "Feature list should contain \(expectedFeature) for certificateSource \(source), got: \(encoded)"
+      )
+    }
+  }
+
   // MARK: - createMetrics Tests
 
   func testCreateMetricsWithDefaultOptions() {
@@ -78,99 +123,6 @@ class IoTSDKMetricsTests: XCBaseTestCase {
     XCTAssertTrue(featureList!.contains("F/5"))  // MQTT5
 
     XCTAssertEqual(metrics.metadata["IoTSDKMetricsVersion"], "1")
-  }
-
-  func testCreateMetricsWithUserFeaturesMerged() {
-    let customMetrics = IoTDeviceSDKMetrics(libraryName: "CustomSDK/Test")
-    customMetrics.metadata["IoTSDKMetricsVersion"] = "1"
-    customMetrics.metadata["IoTSDKFeature"] = "L/A,M/B"  // Custom features
-
-    let options = MqttClientOptions(
-      hostName: "test.example.com",
-      port: 8883,
-      sessionBehavior: .clean,
-      metrics: customMetrics
-    )
-
-    let metrics = IoTSDKMetricsEncoder.createMetrics(from: options)
-
-    // Should use custom library name
-    XCTAssertEqual(metrics.libraryName, "CustomSDK/Test")
-
-    // Should have merged features
-    let featureList = metrics.metadata["IoTSDKFeature"]
-    XCTAssertNotNil(featureList)
-
-    // Should contain CRT features (F/5, G/C, B/A)
-    XCTAssertTrue(featureList!.contains("F/5"))  // MQTT5
-    XCTAssertTrue(featureList!.contains("B/A"))  // session_behavior = CLEAN
-
-    // Should contain user features
-    XCTAssertTrue(featureList!.contains("L/A"))
-    XCTAssertTrue(featureList!.contains("M/B"))
-  }
-
-  func testCreateMetricsWithVersionMismatch() {
-    // User provides features with wrong version - should only use CRT features
-    var customMetrics = IoTDeviceSDKMetrics(libraryName: "CustomSDK/Test")
-    customMetrics.metadata["IoTSDKMetricsVersion"] = "999"  // Wrong version
-    customMetrics.metadata["IoTSDKFeature"] = "L/A,M/B"  // Custom features
-
-    let options = MqttClientOptions(
-      hostName: "test.example.com",
-      port: 8883,
-      sessionBehavior: .clean,
-      metrics: customMetrics
-    )
-
-    let metrics = IoTSDKMetricsEncoder.createMetrics(from: options)
-
-    // Should NOT contain user features due to version mismatch
-    let featureList = metrics.metadata["IoTSDKFeature"]
-    XCTAssertNotNil(featureList)
-
-    // Should contain CRT features
-    XCTAssertTrue(featureList!.contains("F/5"))  // MQTT5
-
-    // Should NOT contain user features
-    XCTAssertFalse(featureList!.contains("L/A"))
-    XCTAssertFalse(featureList!.contains("M/B"))
-  }
-
-  func testCreateMetricsCRTVersionNotModifiable() {
-    // User tries to set CRTVersion - should be overwritten
-    var customMetrics = IoTDeviceSDKMetrics(libraryName: "CustomSDK/Test")
-    customMetrics.metadata["CRTVersion"] = "user-version"
-
-    let options = MqttClientOptions(
-      hostName: "test.example.com",
-      port: 8883,
-      metrics: customMetrics
-    )
-
-    let metrics = IoTSDKMetricsEncoder.createMetrics(from: options)
-
-    // CRTVersion should be the library's version, not user's
-    XCTAssertEqual(metrics.metadata["CRTVersion"], CommonRuntimeKit.CRTVersion)
-  }
-
-  func testCreateMetricsPreservesOtherUserMetadata() {
-    // User provides other metadata that should be preserved
-    var customMetrics = IoTDeviceSDKMetrics(libraryName: "CustomSDK/Test")
-    customMetrics.metadata["CustomKey1"] = "CustomValue1"
-    customMetrics.metadata["CustomKey2"] = "CustomValue2"
-
-    let options = MqttClientOptions(
-      hostName: "test.example.com",
-      port: 8883,
-      metrics: customMetrics
-    )
-
-    let metrics = IoTSDKMetricsEncoder.createMetrics(from: options)
-
-    // Custom metadata should be preserved
-    XCTAssertEqual(metrics.metadata["CustomKey1"], "CustomValue1")
-    XCTAssertEqual(metrics.metadata["CustomKey2"], "CustomValue2")
   }
 
 }
