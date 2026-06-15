@@ -48,30 +48,29 @@ class MetadataEntry: CStruct, @unchecked Sendable {
 // MARK: - IoT Device SDK Metrics
 
 /// Configuration for the AWS IoT Device SDK Metrics.
-/// This structure is used internally to pass metrics configuration through the CRT to aws-c-mqtt.
+/// This structure is used to pass metrics configuration from the SDK layer through the CRT to aws-c-mqtt.
 ///
 /// The metrics will be appended to the MQTT CONNECT packet's username field.
-/// This type is internal and not accessible to external libraries.
-class IoTDeviceSDKMetrics: CStruct {
+public class IoTDeviceSDKMetrics: CStruct {
   /// The library name identifier for the SDK (e.g., "IoTDeviceSDK/Swift")
   /// This maps to the SDK attribute in the username field.
-  let libraryName: String
+  public let libraryName: String
 
   /// Metadata dictionary for key-value pairs.
-  var metadata: [String: String]
+  public var metadata: [String: String]
 
   /// Default library name for Swift SDK
   private static let defaultLibraryName = "IoTDeviceSDK/Swift"
 
   /// Creates a new IoTDeviceSDKMetrics instance with default library name
-  init() {
+  public init() {
     self.libraryName = IoTDeviceSDKMetrics.defaultLibraryName
     self.metadata = [:]
   }
 
   /// Creates a new IoTDeviceSDKMetrics instance with a custom library name
   /// - Parameter libraryName: The library name to use for metrics (nil uses default)
-  init(libraryName: String?) {
+  public init(libraryName: String?) {
     self.libraryName = libraryName ?? IoTDeviceSDKMetrics.defaultLibraryName
     self.metadata = [:]
   }
@@ -80,7 +79,7 @@ class IoTDeviceSDKMetrics: CStruct {
   /// - Parameters:
   ///   - libraryName: The library name to use for metrics
   ///   - metadata: Dictionary of metadata key-value pairs
-  init(libraryName: String, metadata: [String: String]) {
+  public init(libraryName: String, metadata: [String: String]) {
     self.libraryName = libraryName
     self.metadata = metadata
   }
@@ -276,6 +275,40 @@ struct IoTSDKMetricsEncoder {
     resultMetrics.metadata["IoTSDKMetricsVersion"] = String(ioTSDKMetricsFeatureVersion)
 
     return resultMetrics
+  }
+
+  /// Merges CRT features with user-provided features.
+  /// User features take precedence for the same feature ID.
+  ///
+  /// - Parameters:
+  ///   - crtFeatures: The CRT-generated feature list string (e.g., "A/A,B/B")
+  ///   - userFeatures: The user-provided feature list string (e.g., "L/A,M/B")
+  /// - Returns: The merged feature list string
+  private static func mergeFeatureLists(crtFeatures: String, userFeatures: String) -> String {
+
+    // Parse CRT features into a dictionary
+    var featureDict: [Character: Character] = [:]
+    for feature in crtFeatures.split(separator: ",") {
+      let parts = feature.split(separator: "/")
+      if parts.count == 2, let featureId = parts[0].first, let value = parts[1].first {
+        featureDict[featureId] = value
+      }
+    }
+
+    // Parse user features and merge (user features take precedence)
+    for feature in userFeatures.split(separator: ",") {
+      let parts = feature.split(separator: "/")
+      if parts.count == 2, let featureId = parts[0].first, let value = parts[1].first {
+        featureDict[featureId] = value
+      }
+    }
+
+    // Convert back to string, sorted by feature ID
+    let features = featureDict.keys.map { featureId in
+      "\(featureId)/\(featureDict[featureId]!)"
+    }
+
+    return features.joined(separator: ",")
   }
 
   /// Generates the encoded feature list string for metrics directly from MqttClientOptions.

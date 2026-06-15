@@ -278,8 +278,12 @@ public class MqttClientOptions: CStructWithUserData {
   /// Callback for Lifecycle Event Disconnection.
   public let onLifecycleEventDisconnectionFn: OnLifecycleEventDisconnection?
 
-  /// Disable AWS IoT Metrics. When true, no metrics will be appended to the MQTT CONNECT username field. Defaults to false.
+  /// Disable AWS IoT Metrics, including SDK name, version, and platform. Default to True.
   public let disableMetrics: Bool
+
+  /// AWS IoT SDK Metrics configuration. If disableMetrics is false/not set and this is nil, default metrics will be used.
+  /// Users can provide custom metrics to override the default behavior.
+  public let metrics: IoTDeviceSDKMetrics?
 
   public init(
     hostName: String,
@@ -307,7 +311,8 @@ public class MqttClientOptions: CStructWithUserData {
     onLifecycleEventConnectionSuccessFn: OnLifecycleEventConnectionSuccess? = nil,
     onLifecycleEventConnectionFailureFn: OnLifecycleEventConnectionFailure? = nil,
     onLifecycleEventDisconnectionFn: OnLifecycleEventDisconnection? = nil,
-    disableMetrics: Bool? = false
+    disableMetrics: Bool? = false,
+    metrics: IoTDeviceSDKMetrics? = nil
   ) {
 
     self.hostName = hostName
@@ -352,6 +357,7 @@ public class MqttClientOptions: CStructWithUserData {
     self.onLifecycleEventConnectionFailureFn = onLifecycleEventConnectionFailureFn
     self.onLifecycleEventDisconnectionFn = onLifecycleEventDisconnectionFn
     self.disableMetrics = disableMetrics ?? false
+    self.metrics = metrics
   }
 
   func validateConversionToNative() throws {
