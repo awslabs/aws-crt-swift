@@ -253,25 +253,48 @@ let ioTSDKMetricsFeatureVersion: Int = 1
 /// Note: This struct is package-private and not accessible to external libraries.
 struct IoTSDKMetricsEncoder {
 
-  /// Creates the IoTDeviceSDKMetrics from MqttClientOptions.
-  /// This function automatically sets all metrics fields:
-  /// - libraryName: set to default SDK Name
-  /// - Metadata - CRTVersion: automatically set to CRT version
-  /// - Metadata - IoTSDKFeature: automatically derived from client options
-  /// - Metadata - IoTSDKMetricsVersion: automatically set to current metrics version
+  /// Creates the final IoTDeviceSDKMetrics from MqttClientOptions.
+  /// This function sets the metrics according to the following rules:
+  /// - libraryName: set to default SDK Name. If the libraryName field is set from options.metrics, overwrite the default value
+  /// - Metadata - CRTVersion: not modifiable by user, automatically set to CRT version
+  /// - Metadata - IoTSDKMetricsVersion: If set by options.metrics, validates whether the metrics version
+  ///   matches the library's metrics version and processes IoTSDKFeature
+  /// - Metadata - IoTSDKFeature: merge the CRT feature and the input feature if the metrics version matches
   ///
   /// - Parameter options: The MqttClientOptions to extract features from
-  /// - Returns: The IoTDeviceSDKMetrics with all metadata set
+  /// - Returns: The final IoTDeviceSDKMetrics with all metadata set
   static func createMetrics(from options: MqttClientOptions) -> IoTDeviceSDKMetrics {
-    let resultMetrics = IoTDeviceSDKMetrics()
+    // Determine the library name: use user-provided or default
+    let libraryName = options.metrics?.libraryName
 
-    // CRTVersion: automatically set, not modifiable
+    let resultMetrics = IoTDeviceSDKMetrics(libraryName: libraryName)
+
+    // CRTVersion: not modifiable by user, automatically set
     resultMetrics.metadata["CRTVersion"] = CommonRuntimeKit.CRTVersion
 
-    // IoTSDKFeature: automatically derived from client options
-    resultMetrics.metadata["IoTSDKFeature"] = getEncodedFeatureList(from: options)
+    // Get CRT feature list from options
+    let crtFeatureList = getEncodedFeatureList(from: options)
+    var userFeatureString: String = ""
 
-    // IoTSDKMetricsVersion: always set to current version
+    if let userMetadata = options.metrics?.metadata {
+
+      if let userFeatureVersion = userMetadata["IoTSDKMetricsVersion"],
+        Int(userFeatureVersion) == ioTSDKMetricsFeatureVersion,
+        let userFeature = userMetadata["IoTSDKFeature"]
+      {
+        userFeatureString = userFeature
+      }
+
+      for (key, value) in userMetadata
+      where key != "IoTSDKFeature" && key != "IoTSDKMetricsVersion" && key != "CRTVersion" {
+        resultMetrics.metadata[key] = value
+      }
+    }
+
+    resultMetrics.metadata["IoTSDKFeature"] = mergeFeatureLists(
+      crtFeatures: crtFeatureList, userFeatures: userFeatureString)
+
+    // Always add the current metrics version
     resultMetrics.metadata["IoTSDKMetricsVersion"] = String(ioTSDKMetricsFeatureVersion)
 
     return resultMetrics
