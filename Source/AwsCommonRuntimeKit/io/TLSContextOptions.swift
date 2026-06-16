@@ -230,17 +230,10 @@ public enum TLSVersion: UInt32 {
 // MARK: - Certificate Source (Package-Private)
 
 /// The source of the TLS certificate used for authentication.
-/// This value is tracked in IoT SDK metrics as feature ID "I".
-/// This type is package-private and not accessible to external libraries.
+
 enum CertificateSource {
   /// Certificate and private key loaded from PEM files
   case certificateFiles
-  /// Certificate managed via PKCS#11 hardware security module
-  case pkcs11
-  /// Certificate stored in the Windows certificate store
-  case windowsCertStore
-  /// Certificate stored in a Java KeyStore
-  case javaKeystore
   /// Certificate loaded from a PKCS#12 (.p12) file
   case pkcs12File
 }

@@ -214,12 +214,13 @@ extension InboundTopicAliasBehaviorType {
 
 extension CertificateSource {
   /// Converts to metrics value character for IoT SDK metrics feature ID "I".
+  /// Note: The following options are not used in this SDK but are reserved for other SDKs:
+  ///   - pkcs11: "B"
+  ///   - windowsCertStore: "C"
+  ///   - javaKeystore: "D"
   internal var metricsValue: Character {
     switch self {
     case .certificateFiles: return "A"
-    case .pkcs11: return "B"
-    case .windowsCertStore: return "C"
-    case .javaKeystore: return "D"
     case .pkcs12File: return "E"
     }
   }

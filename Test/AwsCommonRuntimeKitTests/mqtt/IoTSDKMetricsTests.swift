@@ -71,15 +71,11 @@ class IoTSDKMetricsTests: XCBaseTestCase {
 
     // For each CertificateSource type, set it on TLSContextOptions, create a TLSContext,
     // pass it to MqttClientOptions, and verify the correct I/X appears in the feature list.
-    // In production, certificateSource is set automatically by the factory methods:
+    // In production, certificateSource should be set automatically by the factory methods:
     //   makeMTLS(certificatePath:) / makeMTLS(certificateData:) -> .certificateFiles
     //   makeMTLS(pkcs12Path:)                                   -> .pkcs12File
-    //   PKCS#11, Windows cert store, Java KeyStore are set by higher-level SDK layers.
     let allCases: [(CertificateSource, String)] = [
       (.certificateFiles, "I/A"),
-      (.pkcs11, "I/B"),
-      (.windowsCertStore, "I/C"),
-      (.javaKeystore, "I/D"),
       (.pkcs12File, "I/E"),
     ]
 
