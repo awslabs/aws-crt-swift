@@ -56,6 +56,47 @@ class IoTSDKMetricsTests: XCBaseTestCase {
     XCTAssertGreaterThanOrEqual(features.count, 6)
   }
 
+  func testCertificateSourceFromTLSContextOptions() throws {
+    // makeDefault() -> no certificate source -> TLSContext has nil certificateSource
+    // -> I/ is absent from the encoded feature list
+    let defaultTLSOptions = TLSContextOptions.makeDefault()
+    let defaultTLSCtx = try TLSContext(options: defaultTLSOptions, mode: .client)
+    let optionsWithDefaultTLS = MqttClientOptions(
+      hostName: "test.example.com",
+      port: 8883,
+      tlsCtx: defaultTLSCtx
+    )
+    XCTAssertFalse(
+      IoTSDKMetricsEncoder.getEncodedFeatureList(from: optionsWithDefaultTLS).contains("I/"))
+
+    // For each CertificateSource type, set it on TLSContextOptions, create a TLSContext,
+    // pass it to MqttClientOptions, and verify the correct I/X appears in the feature list.
+    // In production, certificateSource should be set automatically by the factory methods:
+    //   makeMTLS(certificatePath:) / makeMTLS(certificateData:) -> .certificateFiles
+    //   makeMTLS(pkcs12Path:)                                   -> .pkcs12File
+    let allCases: [(CertificateSource, String)] = [
+      (.certificateFiles, "I/A"),
+      (.pkcs12File, "I/E"),
+    ]
+
+    for (source, expectedFeature) in allCases {
+      let tlsOptions = TLSContextOptions.makeDefault()
+      tlsOptions.certificateSource = source
+
+      let tlsCtx = try TLSContext(options: tlsOptions, mode: .client)
+      let mqttOptions = MqttClientOptions(
+        hostName: "test.example.com",
+        port: 8883,
+        tlsCtx: tlsCtx
+      )
+      let encoded = IoTSDKMetricsEncoder.getEncodedFeatureList(from: mqttOptions)
+      XCTAssertTrue(
+        encoded.contains(expectedFeature),
+        "Feature list should contain \(expectedFeature) for certificateSource \(source), got: \(encoded)"
+      )
+    }
+  }
+
   // MARK: - createMetrics Tests
 
   func testCreateMetricsWithDefaultOptions() {
