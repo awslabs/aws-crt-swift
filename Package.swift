@@ -424,6 +424,43 @@ var awsCCalPlatformExcludes =
     "scripts/", "codebuild", "bindings/rust", "VERSIONING.rst", "tests",
     "cmake/s2n-config.cmake", "CMakeLists.txt", "README.md", "cmake", "NOTICE", "LICENSE",
   ]
+  var s2nCSettings: [CSetting] = [
+    .headerSearchPath("./"),
+    .define("S2N_NO_PQ"),
+    .define("_S2N_PRELUDE_INCLUDED"),
+    .define("S2N_BUILD_RELEASE"),
+    .define("_FORTIFY_SOURCE", to: "2"),
+    .define("POSIX_C_SOURCE", to: "200809L"),
+    // aws-lc feature defines (verified by compiling probes against aws-lc v1.73.0)
+    .define("S2N_LIBCRYPTO_SUPPORTS_HKDF"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_EVP_MD_CTX_SET_PKEY_CTX"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_RSA_PSS_SIGNING"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_EVP_MD5_SHA1_HASH"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_EVP_RC4"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_EVP_AEAD_TLS"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_EVP_KEM"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_MLKEM"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_MLDSA"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_CUSTOM_OID"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_FLAG_NO_CHECK_TIME"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_GET0_CHAIN"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_PRIVATE_RAND"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_PUBLIC_RAND"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_SHAKE"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_X509_STORE_LIST"),
+    .define("S2N_LIBCRYPTO_SUPPORTS_EC_KEY_CHECK_FIPS"),
+    .define("S2N_LIBCRYPTO_SANITY_PROBE"),
+    // Compiler/OS feature probes
+    .define("S2N_FALL_THROUGH_SUPPORTED"),
+    .define("S2N_DIAGNOSTICS_POP_SUPPORTED"),
+    .define("S2N_DIAGNOSTICS_PUSH_SUPPORTED"),
+    .define("S2N_ATOMIC_SUPPORTED"),
+    .define("S2N_CLOEXEC_SUPPORTED"),
+    .define("S2N_CLOEXEC_XOPEN_SUPPORTED"),
+  ]
+  #if arch(x86_64)
+    s2nCSettings.append(.define("S2N_CPUID_AVAILABLE"))
+  #endif
   packageTargets.append(
     .target(
       name: "S2N_TLS",
@@ -431,36 +468,7 @@ var awsCCalPlatformExcludes =
       path: "aws-common-runtime/s2n",
       exclude: s2nExcludes,
       publicHeadersPath: "api",
-      cSettings: [
-        .headerSearchPath("./"),
-        .define("S2N_NO_PQ"),
-        .define("_S2N_PRELUDE_INCLUDED"),
-        .define("S2N_BUILD_RELEASE"),
-        .define("_FORTIFY_SOURCE", to: "2"),
-        .define("POSIX_C_SOURCE", to: "200809L"),
-        // aws-lc feature defines (determined by feature probes against aws-lc headers)
-        .define("S2N_LIBCRYPTO_SUPPORTS_HKDF"),
-        .define("S2N_LIBCRYPTO_SUPPORTS_EVP_MD_CTX_SET_PKEY_CTX"),
-        .define("S2N_LIBCRYPTO_SUPPORTS_RSA_PSS_SIGNING"),
-        .define("S2N_LIBCRYPTO_SUPPORTS_EVP_MD5_SHA1_HASH"),
-        .define("S2N_LIBCRYPTO_SUPPORTS_EVP_RC4"),
-        .define("S2N_LIBCRYPTO_SUPPORTS_EVP_AEAD_TLS"),
-        .define("S2N_LIBCRYPTO_SUPPORTS_CUSTOM_OID"),
-        .define("S2N_LIBCRYPTO_SUPPORTS_FLAG_NO_CHECK_TIME"),
-        .define("S2N_LIBCRYPTO_SUPPORTS_GET0_CHAIN"),
-        .define("S2N_LIBCRYPTO_SUPPORTS_PRIVATE_RAND"),
-        .define("S2N_LIBCRYPTO_SUPPORTS_PUBLIC_RAND"),
-        .define("S2N_LIBCRYPTO_SUPPORTS_SHAKE"),
-        .define("S2N_LIBCRYPTO_SUPPORTS_X509_STORE_LIST"),
-        .define("S2N_LIBCRYPTO_SUPPORTS_EC_KEY_CHECK_FIPS"),
-        // Compiler/OS feature probes
-        .define("S2N_FALL_THROUGH_SUPPORTED"),
-        .define("S2N_DIAGNOSTICS_POP_SUPPORTED"),
-        .define("S2N_DIAGNOSTICS_PUSH_SUPPORTED"),
-        .define("S2N_ATOMIC_SUPPORTED"),
-        .define("S2N_CPUID_AVAILABLE"),
-        .define("S2N_LIBCRYPTO_SANITY_PROBE"),
-      ]
+      cSettings: s2nCSettings
     ))
 #endif
 
