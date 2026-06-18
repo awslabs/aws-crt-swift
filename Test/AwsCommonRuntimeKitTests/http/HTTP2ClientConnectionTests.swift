@@ -201,4 +201,37 @@ class HTTP2ClientConnectionTests: XCBaseTestCase {
     let body: Response = try! JSONDecoder().decode(Response.self, from: httpResponse.body)
     XCTAssertEqual(body.body, testBody + HTTPClientTestFixture.TEST_DOC_LINE)
   }
+
+  func testHTTP2DownloadWithTLS13() async throws {
+    let tlsContextOptions = TLSContextOptions()
+    tlsContextOptions.setAlpnList(["h2", "http/1.1"])
+    tlsContextOptions.setMinimumTLSVersion(.TLSv1_3)
+    tlsContextOptions.setVerifyPeer(false)
+    let tlsContext = try TLSContext(options: tlsContextOptions, mode: .client)
+    var tlsConnectionOptions = TLSConnectionOptions(context: tlsContext)
+    tlsConnectionOptions.serverName = "d1cz66xoahf9cl.cloudfront.net"
+
+    let elg = try EventLoopGroup(threadCount: 1)
+    let hostResolver = try HostResolver(eventLoopGroup: elg, maxHosts: 8, maxTTL: 30)
+    let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: hostResolver)
+
+    let httpClientOptions = HTTPClientConnectionOptions(
+      clientBootstrap: bootstrap,
+      hostName: "d1cz66xoahf9cl.cloudfront.net",
+      port: 443,
+      socketOptions: SocketOptions(socketType: .stream),
+      tlsOptions: tlsConnectionOptions)
+    let connectionManager = try HTTPClientConnectionManager(options: httpClientOptions)
+    let response = try await HTTPClientTestFixture.sendHTTPRequest(
+      method: "GET",
+      endpoint: "d1cz66xoahf9cl.cloudfront.net",
+      path: "/http_test_doc.txt",
+      connectionManager: connectionManager,
+      expectedVersion: expectedVersion,
+      requestVersion: .version_2)
+    let actualSha = try response.body.computeSHA256()
+    XCTAssertEqual(
+      actualSha.encodeToHexString().uppercased(),
+      "C7FDB5314B9742467B16BD5EA2F8012190B5E2C44A005F7984F89AAB58219534")
+  }
 }
