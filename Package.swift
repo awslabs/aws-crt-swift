@@ -228,8 +228,6 @@ let cSettingsCommon: [CSetting] = [
     "third_party/s2n-bignum/s2n-bignum-imported/x86_att/p521/Makefile",
     "third_party/s2n-bignum/s2n-bignum-imported/x86_att/curve25519/Makefile",
     "third_party/s2n-bignum/s2n-bignum-imported/x86_att/sha3/Makefile",
-    "third_party/s2n-bignum/s2n-bignum-imported/x86_att/fastmul/Makefile",
-    "third_party/s2n-bignum/s2n-bignum-imported/x86_att/generic/Makefile",
   ]
 
   // Exclude wrong architecture assembly (no preprocessor guards)
@@ -240,8 +238,6 @@ let cSettingsCommon: [CSetting] = [
       "third_party/s2n-bignum/s2n-bignum-imported/x86_att/p521/",
       "third_party/s2n-bignum/s2n-bignum-imported/x86_att/curve25519/",
       "third_party/s2n-bignum/s2n-bignum-imported/x86_att/sha3/",
-      "third_party/s2n-bignum/s2n-bignum-imported/x86_att/fastmul/",
-      "third_party/s2n-bignum/s2n-bignum-imported/x86_att/generic/",
     ])
   #elseif arch(x86_64)
     awsLcExcludes.append(contentsOf: [
@@ -258,13 +254,13 @@ let cSettingsCommon: [CSetting] = [
     ])
   #else
     awsLcExcludes.append(contentsOf: [
+      // x86_64 s2n-bignum
       "third_party/s2n-bignum/s2n-bignum-imported/x86_att/p256/",
       "third_party/s2n-bignum/s2n-bignum-imported/x86_att/p384/",
       "third_party/s2n-bignum/s2n-bignum-imported/x86_att/p521/",
       "third_party/s2n-bignum/s2n-bignum-imported/x86_att/curve25519/",
       "third_party/s2n-bignum/s2n-bignum-imported/x86_att/sha3/",
-      "third_party/s2n-bignum/s2n-bignum-imported/x86_att/fastmul/",
-      "third_party/s2n-bignum/s2n-bignum-imported/x86_att/generic/",
+      // aarch64 s2n-bignum
       "third_party/s2n-bignum/s2n-bignum-imported/arm/p256/",
       "third_party/s2n-bignum/s2n-bignum-imported/arm/p384/",
       "third_party/s2n-bignum/s2n-bignum-imported/arm/p521/",
@@ -346,14 +342,13 @@ let cSettingsCommon: [CSetting] = [
         "generated-src/ios-aarch64/crypto/",
         // AES-XTS assembly (aarch64 only)
         "third_party/s2n-bignum/s2n-bignum-to-be-imported/arm/aes/",
-        // s2n-bignum assembly (wrong arch excluded above)
+        // x86_64 s2n-bignum (wrong arch excluded above)
         "third_party/s2n-bignum/s2n-bignum-imported/x86_att/p256/",
         "third_party/s2n-bignum/s2n-bignum-imported/x86_att/p384/",
         "third_party/s2n-bignum/s2n-bignum-imported/x86_att/p521/",
         "third_party/s2n-bignum/s2n-bignum-imported/x86_att/curve25519/",
         "third_party/s2n-bignum/s2n-bignum-imported/x86_att/sha3/",
-        "third_party/s2n-bignum/s2n-bignum-imported/x86_att/fastmul/",
-        "third_party/s2n-bignum/s2n-bignum-imported/x86_att/generic/",
+        // aarch64 s2n-bignum (wrong arch excluded above)
         "third_party/s2n-bignum/s2n-bignum-imported/arm/p256/",
         "third_party/s2n-bignum/s2n-bignum-imported/arm/p384/",
         "third_party/s2n-bignum/s2n-bignum-imported/arm/p521/",
