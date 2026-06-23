@@ -203,6 +203,13 @@ class HTTP2ClientConnectionTests: XCBaseTestCase {
   }
 
   func testHTTP2DownloadWithTLS13() async throws {
+    #if os(macOS)
+      guard ProcessInfo.processInfo.environment["AWS_CRT_USE_NON_FIPS_TLS_13"] != nil else {
+        throw XCTSkip("TLS 1.3 test requires s2n (set AWS_CRT_USE_NON_FIPS_TLS_13=1)")
+      }
+    #elseif !os(Linux)
+      throw XCTSkip("TLS 1.3 test requires s2n (not available on this platform)")
+    #endif
     let tlsContextOptions = TLSContextOptions()
     tlsContextOptions.setAlpnList(["h2", "http/1.1"])
     tlsContextOptions.setMinimumTLSVersion(.TLSv1_3)
