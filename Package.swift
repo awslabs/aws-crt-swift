@@ -457,7 +457,7 @@ var awsCCalPlatformExcludes =
   packageTargets.append(
     .target(
       name: "S2N_TLS",
-      dependencies: ["AwsLc"],
+      dependencies: [.target(name: "AwsLc", condition: .when(platforms: [.macOS, .linux]))],
       path: "aws-common-runtime/s2n",
       exclude: s2nExcludes,
       publicHeadersPath: "api",
