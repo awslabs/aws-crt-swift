@@ -273,6 +273,21 @@ let cSettingsCommon: [CSetting] = [
     ])
   #endif
 
+  var awsLcCSettings: [CSetting] = [
+    .define("BORINGSSL_IMPLEMENTATION"),
+    .define("MLK_CONFIG_NO_ASM"),
+    .define("DISABLE_CPU_JITTER_ENTROPY"),
+    .headerSearchPath("crypto/"),
+    .headerSearchPath("crypto/fipsmodule/"),
+    .headerSearchPath("crypto/fipsmodule/cpucap/"),
+    .headerSearchPath("third_party/s2n-bignum/"),
+    .headerSearchPath("third_party/s2n-bignum/s2n-bignum-imported/include/"),
+    .headerSearchPath("crypto/fipsmodule/ml_kem/"),
+  ]
+  #if !arch(arm64) && !arch(x86_64)
+    awsLcCSettings.append(.define("OPENSSL_NO_ASM"))
+  #endif
+
   packageTargets.append(
     .target(
       name: "AwsLc",
@@ -358,17 +373,7 @@ let cSettingsCommon: [CSetting] = [
         "third_party/s2n-bignum/s2n-bignum-imported/arm/generic/",
       ],
       publicHeadersPath: "include",
-      cSettings: [
-        .define("BORINGSSL_IMPLEMENTATION"),
-        .define("MLK_CONFIG_NO_ASM"),
-        .define("DISABLE_CPU_JITTER_ENTROPY"),
-        .headerSearchPath("crypto/"),
-        .headerSearchPath("crypto/fipsmodule/"),
-        .headerSearchPath("crypto/fipsmodule/cpucap/"),
-        .headerSearchPath("third_party/s2n-bignum/"),
-        .headerSearchPath("third_party/s2n-bignum/s2n-bignum-imported/include/"),
-        .headerSearchPath("crypto/fipsmodule/ml_kem/"),
-      ]
+      cSettings: awsLcCSettings
     ))
 
 #endif
@@ -378,7 +383,7 @@ let cSettingsCommon: [CSetting] = [
 //////////////////////////////////////////////////////////////////////
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
 #if os(Linux) || os(macOS)
-  calDependencies.append("AwsLc")
+  calDependencies.append(.target(name: "AwsLc", condition: .when(platforms: [.macOS, .linux])))
 #endif
 
 var awsCCalPlatformExcludes =
@@ -456,8 +461,8 @@ var awsCCalPlatformExcludes =
   #endif
   packageTargets.append(
     .target(
-      name: "S2N_TLS",
-      dependencies: [.target(name: "AwsLc", condition: .when(platforms: [.macOS, .linux]))],
+      name: "AwsS2n",
+      dependencies: ["AwsLc"],
       path: "aws-common-runtime/s2n",
       exclude: s2nExcludes,
       publicHeadersPath: "api",
@@ -478,8 +483,9 @@ var cSettingsIO = cSettings
 var cSettingsHttp = cSettings
 
 #if os(Linux) || os(macOS)
-  ioDependencies.append("S2N_TLS")
-  cSettingsIO.append(.define("USE_S2N"))
+  ioDependencies.append(
+    .target(name: "AwsS2n", condition: .when(platforms: [.macOS, .linux])))
+  cSettingsIO.append(.define("USE_S2N", .when(platforms: [.macOS, .linux])))
 #endif
 
 #if os(Windows)
