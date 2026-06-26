@@ -60,6 +60,25 @@ jobs:
         aws s3 cp --debug s3://aws-crt-test-stuff/ci/${{ env.BUILDER_VERSION }}/linux-container-ci.sh ./linux-container-ci.sh && chmod a+x ./linux-container-ci.sh
         ./linux-container-ci.sh ${{ env.BUILDER_VERSION }} aws-crt-swift-5-${{ matrix.image }} build -p ${{ env.PACKAGE_NAME }}
 
+  linux-android:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ env.CRT_CI_ROLE }}
+        aws-region: ${{ env.AWS_DEFAULT_REGION }}
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: true
+        fetch-depth: 0
+    - name: "Test Swift Package on Android"
+      uses: skiptools/swift-android-action@v2
+      with:
+          # Ubuntu runners low on space causes the emulator to fail to install
+        free-disk-space: true
+        run-tests: false
+
   macos:
     runs-on: ${{ matrix.runner }}
     env:
