@@ -278,6 +278,13 @@ public class MqttClientOptions: CStructWithUserData {
   /// Callback for Lifecycle Event Disconnection.
   public let onLifecycleEventDisconnectionFn: OnLifecycleEventDisconnection?
 
+  /// Disable AWS IoT Metrics, including SDK name, version, and platform. Default to True.
+  public let disableMetrics: Bool
+
+  /// AWS IoT SDK Metrics configuration. If disableMetrics is false/not set and this is nil, default metrics will be used.
+  /// Users can provide custom metrics to override the default behavior.
+  public let metrics: IoTDeviceSDKMetrics?
+
   public init(
     hostName: String,
     port: UInt32,
@@ -303,7 +310,9 @@ public class MqttClientOptions: CStructWithUserData {
     onLifecycleEventAttemptingConnectFn: OnLifecycleEventAttemptingConnect? = nil,
     onLifecycleEventConnectionSuccessFn: OnLifecycleEventConnectionSuccess? = nil,
     onLifecycleEventConnectionFailureFn: OnLifecycleEventConnectionFailure? = nil,
-    onLifecycleEventDisconnectionFn: OnLifecycleEventDisconnection? = nil
+    onLifecycleEventDisconnectionFn: OnLifecycleEventDisconnection? = nil,
+    disableMetrics: Bool? = false,
+    metrics: IoTDeviceSDKMetrics? = nil
   ) {
 
     self.hostName = hostName
@@ -347,6 +356,8 @@ public class MqttClientOptions: CStructWithUserData {
     self.onLifecycleEventConnectionSuccessFn = onLifecycleEventConnectionSuccessFn
     self.onLifecycleEventConnectionFailureFn = onLifecycleEventConnectionFailureFn
     self.onLifecycleEventDisconnectionFn = onLifecycleEventDisconnectionFn
+    self.disableMetrics = disableMetrics ?? false
+    self.metrics = metrics
   }
 
   func validateConversionToNative() throws {
@@ -413,6 +424,10 @@ public class MqttClientOptions: CStructWithUserData {
   func withCStruct<Result>(
     userData: UnsafeMutableRawPointer?, _ body: (aws_mqtt5_client_options) -> Result
   ) -> Result {
+
+    let finalMetrics: IoTDeviceSDKMetrics? =
+      self.disableMetrics ? nil : IoTSDKMetricsEncoder.createMetrics(from: self)
+
     var raw_options = aws_mqtt5_client_options()
 
     raw_options.port = self.port
@@ -476,12 +491,14 @@ public class MqttClientOptions: CStructWithUserData {
       tls_options,
       self.httpProxyOptions,
       self.topicAliasingOptions,
+      finalMetrics,
       connnectOptions
     ) {
       socketOptionsCPointer,
       tlsOptionsCPointer,
       httpProxyOptionsCPointer,
       topicAliasingOptionsCPointer,
+      metricsCPointer,
       connectOptionsCPointer in
 
       raw_options.socket_options = socketOptionsCPointer
@@ -489,6 +506,7 @@ public class MqttClientOptions: CStructWithUserData {
       raw_options.http_proxy_options = httpProxyOptionsCPointer
       raw_options.topic_aliasing_options = topicAliasingOptionsCPointer
       raw_options.connect_options = connectOptionsCPointer
+      raw_options.metrics = metricsCPointer
 
       guard let userData else {
         // directly return

@@ -158,6 +158,11 @@ public class CBORDecoder {
   /// for `indef_break` to detect the end of an indefinite collection.
   let rollupCollections: Bool
 
+  /// Maximum nesting depth for recursive decoding to prevent stack exhaustion
+  private static let maxDepth = 128
+  /// Current nesting depth
+  private var currentDepth = 0
+
   public init(data: [UInt8], rollupCollections: Bool = true) throws {
     self.data = data
     let count = self.data.count
@@ -172,14 +177,21 @@ public class CBORDecoder {
     self.rollupCollections = rollupCollections
   }
 
-  /// Returns true if there is any data left to decode.
+  /// Returns true if there is any data left to consume.
   public func hasNext() -> Bool {
-    aws_cbor_decoder_get_remaining_length(self.rawValue) != 0
+    aws_cbor_decoder_get_unconsumed_length(self.rawValue) != 0
   }
 
   /// Decodes and returns the next value. If there is no value, this function will throw an error.
   /// You must call `hasNext()` before calling this function.
   public func popNext() throws -> CBORType {
+    guard currentDepth < CBORDecoder.maxDepth else {
+      throw CommonRunTimeError.crtError(
+        CRTError(code: AWS_ERROR_CBOR_RESOURCE_LIMIT_EXCEEDED.rawValue))
+    }
+    currentDepth += 1
+    defer { currentDepth -= 1 }
+
     let cbor_type = try peekAtNextElement()
 
     switch cbor_type {

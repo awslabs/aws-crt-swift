@@ -269,4 +269,17 @@ class CBORTests: XCBaseTestCase {
     let next = try decoder.popNext()
     XCTAssertEqual(next, element)
   }
+
+  func test_depthLimit_rejectsDeepNesting() throws {
+    // 129 nested arrays of length 1: [[[...[1]...]]]
+    // Each 0x81 = definite array of 1 element
+    var data: [UInt8] = Array(repeating: 0x81, count: 129)
+    data.append(0x01)  // innermost value: uint 1
+
+    let decoder = try CBORDecoder(data: data)
+    XCTAssertThrowsError(try decoder.popNext()) { error in
+      // Should fail due to depth limit exceeded
+      XCTAssertTrue(error is CommonRunTimeError)
+    }
+  }
 }
