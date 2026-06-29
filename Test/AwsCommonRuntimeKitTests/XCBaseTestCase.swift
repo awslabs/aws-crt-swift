@@ -52,7 +52,7 @@ extension XCTestCase {
   }
 
   func skipIfLinux() throws {
-    #if os(Linux)
+    #if os(Linux) || os(Android)
       throw XCTSkip("Skipping test on linux")
     #endif
   }
