@@ -53,7 +53,7 @@ public class EndpointsRuleEngine {
   /// - Parameter context: The request context to use for endpoint resolution
   /// - Returns: The resolved endpoint
   public func resolve(context: EndpointsRequestContext) throws -> ResolvedEndpoint {
-    var resolvedEndpoint: OpaquePointer! = nil
+    var resolvedEndpoint: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>! = nil
     guard
       aws_endpoints_rule_engine_resolve(rawValue, context.rawValue, &resolvedEndpoint)
         == AWS_OP_SUCCESS
@@ -79,7 +79,7 @@ public class EndpointsRuleEngine {
 
   /// Get the URL of the resolved endpoint
   /// - Returns: The URL of the resolved endpoint
-  func getURL(rawValue: OpaquePointer) throws -> String {
+  func getURL(rawValue: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>) throws -> String {
     var url = aws_byte_cursor()
     guard aws_endpoints_resolved_endpoint_get_url(rawValue, &url) == AWS_OP_SUCCESS else {
       throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -93,7 +93,9 @@ public class EndpointsRuleEngine {
 
   /// Get headers of the resolved endpoint
   /// - Returns: The headers of the resolved endpoint
-  public func getHeaders(rawValue: OpaquePointer) throws -> [String: [String]] {
+  public func getHeaders(rawValue: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>) throws
+    -> [String: [String]]
+  {
     var cHeaders: UnsafePointer<aws_hash_table>! = nil
     guard aws_endpoints_resolved_endpoint_get_headers(rawValue, &cHeaders) == AWS_OP_SUCCESS else {
       throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -118,7 +120,9 @@ public class EndpointsRuleEngine {
 
   /// Get the properties of the resolved endpoint
   /// - Returns: The properties of the resolved endpoint
-  func getProperties(rawValue: OpaquePointer) throws -> [String: EndpointProperty] {
+  func getProperties(rawValue: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>) throws
+    -> [String: EndpointProperty]
+  {
     var properties = aws_byte_cursor()
     guard aws_endpoints_resolved_endpoint_get_properties(rawValue, &properties) == AWS_OP_SUCCESS
     else {
@@ -133,7 +137,9 @@ public class EndpointsRuleEngine {
 
   /// Get the error of the resolved endpoint
   /// - Returns: The error message of the resolved endpoint
-  func getErrorMessage(rawValue: OpaquePointer) throws -> String {
+  func getErrorMessage(rawValue: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>) throws
+    -> String
+  {
     var error = aws_byte_cursor()
     guard aws_endpoints_resolved_endpoint_get_error(rawValue, &error) == AWS_OP_SUCCESS else {
       throw CommonRunTimeError.crtError(.makeFromLastError())
