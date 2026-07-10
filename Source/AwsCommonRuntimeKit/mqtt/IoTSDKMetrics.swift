@@ -51,7 +51,7 @@ class MetadataEntry: CStruct, @unchecked Sendable {
 /// This structure is used to pass metrics configuration from the SDK layer through the CRT to aws-c-mqtt.
 ///
 /// The metrics will be appended to the MQTT CONNECT packet's username field.
-public class IoTDeviceSDKMetrics: CStruct {
+public class AWSIoTMetrics: CStruct {
   /// The library name identifier for the SDK (e.g., "IoTDeviceSDK/Swift")
   /// This maps to the SDK attribute in the username field.
   public let libraryName: String
@@ -64,14 +64,14 @@ public class IoTDeviceSDKMetrics: CStruct {
 
   /// Creates a new IoTDeviceSDKMetrics instance with default library name
   public init() {
-    self.libraryName = IoTDeviceSDKMetrics.defaultLibraryName
+    self.libraryName = AWSIoTMetrics.defaultLibraryName
     self.metadata = [:]
   }
 
   /// Creates a new IoTDeviceSDKMetrics instance with a custom library name
   /// - Parameter libraryName: The library name to use for metrics (nil uses default)
   public init(libraryName: String?) {
-    self.libraryName = libraryName ?? IoTDeviceSDKMetrics.defaultLibraryName
+    self.libraryName = libraryName ?? AWSIoTMetrics.defaultLibraryName
     self.metadata = [:]
   }
 
@@ -252,7 +252,7 @@ let ioTSDKMetricsFeatureVersion: Int = 1
 /// This struct provides static methods to extract and encode metrics directly from client options.
 ///
 /// Note: This struct is package-private and not accessible to external libraries.
-struct IoTSDKMetricsEncoder {
+struct AWSIoTMetricsEncoder {
 
   /// Creates the final IoTDeviceSDKMetrics from MqttClientOptions.
   /// This function sets the metrics according to the following rules:
@@ -264,11 +264,11 @@ struct IoTSDKMetricsEncoder {
   ///
   /// - Parameter options: The MqttClientOptions to extract features from
   /// - Returns: The final IoTDeviceSDKMetrics with all metadata set
-  static func createMetrics(from options: MqttClientOptions) -> IoTDeviceSDKMetrics {
+  static func createMetrics(from options: MqttClientOptions) -> AWSIoTMetrics {
     // Determine the library name: use user-provided or default
     let libraryName = options.metrics?.libraryName
 
-    let resultMetrics = IoTDeviceSDKMetrics(libraryName: libraryName)
+    let resultMetrics = AWSIoTMetrics(libraryName: libraryName)
 
     // CRTVersion: not modifiable by user, automatically set
     resultMetrics.metadata["CRTVersion"] = CommonRuntimeKit.CRTVersion

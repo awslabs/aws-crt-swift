@@ -283,7 +283,7 @@ public class MqttClientOptions: CStructWithUserData {
 
   /// AWS IoT SDK Metrics configuration. If disableMetrics is false/not set and this is nil, default metrics will be used.
   /// Users can provide custom metrics to override the default behavior.
-  public let metrics: IoTDeviceSDKMetrics?
+  public let metrics: AWSIoTMetrics?
 
   public init(
     hostName: String,
@@ -312,7 +312,7 @@ public class MqttClientOptions: CStructWithUserData {
     onLifecycleEventConnectionFailureFn: OnLifecycleEventConnectionFailure? = nil,
     onLifecycleEventDisconnectionFn: OnLifecycleEventDisconnection? = nil,
     disableMetrics: Bool? = false,
-    metrics: IoTDeviceSDKMetrics? = nil
+    metrics: AWSIoTMetrics? = nil
   ) {
 
     self.hostName = hostName
@@ -425,8 +425,8 @@ public class MqttClientOptions: CStructWithUserData {
     userData: UnsafeMutableRawPointer?, _ body: (aws_mqtt5_client_options) -> Result
   ) -> Result {
 
-    let finalMetrics: IoTDeviceSDKMetrics? =
-      self.disableMetrics ? nil : IoTSDKMetricsEncoder.createMetrics(from: self)
+    let finalMetrics: AWSIoTMetrics? =
+      self.disableMetrics ? nil : AWSIoTMetricsEncoder.createMetrics(from: self)
 
     var raw_options = aws_mqtt5_client_options()
 
