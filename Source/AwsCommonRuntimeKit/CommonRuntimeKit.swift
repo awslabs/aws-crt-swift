@@ -10,6 +10,11 @@ public struct CommonRuntimeKit {
 
   /// The current version of the AWS Common Runtime Kit.
   public static let CRTVersion = "0.0.0"
+  // The underlying aws_*_library_init C calls use unguarded check-then-act flags
+  // (e.g. aws-c-io's s_io_library_initialized), assuming a single-threaded, call-once
+  // caller. Swift exposes `initialize()` as public API callable from multiple threads,
+  // which can race that flag and return before setup (e.g. TLS trust store) completes.
+  // This lock serializes calls; see https://github.com/awslabs/aws-crt-swift/issues/352.
   private static let lock = NSLock()
 
   /// Initializes the library.
