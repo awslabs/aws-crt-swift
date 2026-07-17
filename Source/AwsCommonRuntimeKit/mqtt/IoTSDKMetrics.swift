@@ -212,6 +212,20 @@ extension InboundTopicAliasBehaviorType {
   }
 }
 
+extension CertificateSource {
+  /// Converts to metrics value character for IoT SDK metrics feature ID "I".
+  /// Note: The following options are not used in this SDK but are reserved for other SDKs:
+  ///   - pkcs11: "B"
+  ///   - windowsCertStore: "C"
+  ///   - javaKeystore: "D"
+  internal var metricsValue: Character {
+    switch self {
+    case .certificateFiles: return "A"
+    case .pkcs12File: return "E"
+    }
+  }
+}
+
 extension TLSVersion {
   /// Converts to metrics value character.
   /// Returns nil for systemDefault to omit from encoded list.
@@ -372,8 +386,10 @@ struct IoTSDKMetricsEncoder {
       features.append("\(MetricsFeatureId.httpProxyType)/\(proxyType)")
     }
 
-    // I: certificate_source - Would need to be tracked from TLS context setup. This is set at a IoT SDK level,
-    // not directly available in MqttClientOptions
+    // I: certificate_source - automatically derived from TLSContext
+    if let certSource = options.tlsCtx?.certificateSource {
+      features.append("\(MetricsFeatureId.certificateSource)/\(certSource.metricsValue)")
+    }
 
     // J: tls_cipher_preference - CRT Swift current doesn't have cipher preference support, leave it out for now
 

@@ -525,6 +525,38 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
   }
 
   /*
+   * [ConnDC-UC4-1] Direct Connection with mutual TLS to a TLS 1.3-only host
+   */
+  func testMqtt5DirectConnectWithMutualTLS13() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    #if os(Linux) || os(macOS)
+      throw XCTSkip("TLS 1.3 is not supported on this platform (s2n requires CMake build)")
+    #endif
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_TLS13_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
    * [ConnDC-UC5] Direct Connection with HttpProxy options and TLS
    */
   func testMqtt5DirectConnectWithHttpProxy() async throws {
@@ -2316,6 +2348,113 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     XCTAssertEqual(
       redeliveryResult, .timedOut,
       "Broker should NOT re-drive the message after invokePublishAcknowledgement() was called")
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*
+  * [AutoPuback-UC1] Verify the client sends PUBACK automatically when acquirePublishAcknowledgement() is not called.
+  * Confirmed by the absence of broker re-delivery.
+  */
+  func testMqtt5AutoPubackNoDuplicate() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+    let topic = "test/MQTT5_AutoPuback_Swift_" + clientId
+    let payloadData = "Hello World".data(using: .utf8)!
+
+    // Expectation: first delivery received. A second delivery should NOT arrive.
+    let publishReceivedExpectation = XCTestExpectation(
+      description: "First publish delivery received")
+    let unexpectedRedeliveryExpectation = XCTestExpectation(
+      description: "Unexpected second publish delivery")
+
+    // Actor-protected state to track delivery count.
+    actor DeliveryState {
+      var deliveryCount: Int = 0
+      func incrementDeliveryCount() -> Int {
+        deliveryCount += 1
+        return deliveryCount
+      }
+    }
+    let deliveryState = DeliveryState()
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      // Do NOT call acquirePublishAcknowledgement(), let auto-PUBACK happen.
+
+      if let payloadString = publishData.publishPacket.payloadAsString() {
+        print(
+          "AutoPubackNoDuplicate Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)"
+            + " payload:'\(payloadString)'")
+      } else {
+        print(
+          "AutoPubackNoDuplicate Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)")
+      }
+
+      Task {
+        let count = await deliveryState.incrementDeliveryCount()
+        if count == 1 {
+          // First delivery: signal received.
+          publishReceivedExpectation.fulfill()
+        } else if count == 2 {
+          // Second delivery: broker re-sent, should NOT happen with auto-PUBACK.
+          unexpectedRedeliveryExpectation.fulfill()
+        }
+      }
+    }
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions)
+
+    let testContext = MqttTestContext(
+      contextName: "AutoPubackNoDuplicate",
+      onPublishReceived: onPublishReceived)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    // Subscribe to the topic with QoS 1
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
+    }
+
+    // Publish a QoS 1 message
+    let publishPacket = PublishPacket(
+      qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
+    let publishResult = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+    XCTAssertNotNil(publishResult.puback, "Expected puback for QoS 1 publish")
+
+    // Wait for the first delivery
+    await awaitExpectation([publishReceivedExpectation], 5)
+
+    // Wait 35 seconds and confirm the broker does NOT re-drive the message (auto-PUBACK was sent)
+    let redeliveryResult = await awaitExpectationResult([unexpectedRedeliveryExpectation], 35)
+    XCTAssertEqual(
+      redeliveryResult, .timedOut,
+      "Auto-PUBACK should have been sent (acquirePublishAcknowledgement not called),"
+        + " verified by absence of re-delivery")
 
     try await stopClient(client: client, testContext: testContext)
   }

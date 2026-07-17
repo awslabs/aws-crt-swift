@@ -177,9 +177,9 @@ public class CBORDecoder {
     self.rollupCollections = rollupCollections
   }
 
-  /// Returns true if there is any data left to decode.
+  /// Returns true if there is any data left to consume.
   public func hasNext() -> Bool {
-    aws_cbor_decoder_get_remaining_length(self.rawValue) != 0
+    aws_cbor_decoder_get_unconsumed_length(self.rawValue) != 0
   }
 
   /// Decodes and returns the next value. If there is no value, this function will throw an error.

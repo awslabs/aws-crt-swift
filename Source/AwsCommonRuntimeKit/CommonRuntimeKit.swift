@@ -9,7 +9,7 @@ import Foundation
 public struct CommonRuntimeKit {
 
   /// The current version of the AWS Common Runtime Kit.
-  public static let CRTVersion = "0.0.0"
+  public static let CRTVersion = "0.63.1"
   // The underlying aws_*_library_init C calls use unguarded check-then-act flags
   // (e.g. aws-c-io's s_io_library_initialized), assuming a single-threaded, call-once
   // caller. Swift exposes `initialize()` as public API callable from multiple threads,

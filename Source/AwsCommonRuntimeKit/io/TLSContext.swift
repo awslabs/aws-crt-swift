@@ -9,8 +9,12 @@ public class TLSContext {
   /// The minimum TLS version that was configured, if any. Used for metrics tracking.
   internal let minimumTLSVersion: TLSVersion?
 
+  /// The certificate source automatically determined from TLSContextOptions. Used for metrics tracking.
+  internal let certificateSource: CertificateSource?
+
   public init(options: TLSContextOptions, mode: TLSMode) throws {
     self.minimumTLSVersion = options.minimumTLSVersion
+    self.certificateSource = options.certificateSource
     guard
       let rawValue =
         (options.withCPointer { optionsPointer -> UnsafeMutablePointer<aws_tls_ctx>? in
