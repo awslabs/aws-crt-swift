@@ -15,7 +15,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
       port: 8883
     )
 
-    let encoded = IoTSDKMetricsEncoder.getEncodedFeatureList(from: options)
+    let encoded = AWSIoTMetricsEncoder.getEncodedFeatureList(from: options)
 
     // Should always include protocol version (F/5 for MQTT5) and socket implementation
     XCTAssertTrue(encoded.contains("F/5"))  // protocol_version = MQTT5
@@ -41,7 +41,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
       topicAliasingOptions: topicAliasing
     )
 
-    let encoded = IoTSDKMetricsEncoder.getEncodedFeatureList(from: options)
+    let encoded = AWSIoTMetricsEncoder.getEncodedFeatureList(from: options)
 
     // Verify each NON-DEFAULT feature is present with new ID/Value format
     XCTAssertTrue(encoded.contains("A/C"))  // retry_jitter_mode = DECORRELATED
@@ -67,7 +67,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
       tlsCtx: defaultTLSCtx
     )
     XCTAssertFalse(
-      IoTSDKMetricsEncoder.getEncodedFeatureList(from: optionsWithDefaultTLS).contains("I/"))
+      AWSIoTMetricsEncoder.getEncodedFeatureList(from: optionsWithDefaultTLS).contains("I/"))
 
     // For each CertificateSource type, set it on TLSContextOptions, create a TLSContext,
     // pass it to MqttClientOptions, and verify the correct I/X appears in the feature list.
@@ -89,7 +89,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
         port: 8883,
         tlsCtx: tlsCtx
       )
-      let encoded = IoTSDKMetricsEncoder.getEncodedFeatureList(from: mqttOptions)
+      let encoded = AWSIoTMetricsEncoder.getEncodedFeatureList(from: mqttOptions)
       XCTAssertTrue(
         encoded.contains(expectedFeature),
         "Feature list should contain \(expectedFeature) for certificateSource \(source), got: \(encoded)"
@@ -106,7 +106,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
       sessionBehavior: .clean
     )
 
-    let metrics = IoTSDKMetricsEncoder.createMetrics(from: options)
+    let metrics = AWSIoTMetricsEncoder.createMetrics(from: options)
 
     // Should have default library name
     XCTAssertEqual(metrics.libraryName, "IoTDeviceSDK/Swift")
@@ -122,7 +122,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
   }
 
   func testCreateMetricsWithUserFeaturesMerged() {
-    let customMetrics = IoTDeviceSDKMetrics(libraryName: "CustomSDK/Test")
+    let customMetrics = AWSIoTMetrics(libraryName: "CustomSDK/Test")
     customMetrics.metadata["IoTSDKMetricsVersion"] = "1"
     customMetrics.metadata["IoTSDKFeature"] = "L/A,M/B"  // Custom features
 
@@ -133,7 +133,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
       metrics: customMetrics
     )
 
-    let metrics = IoTSDKMetricsEncoder.createMetrics(from: options)
+    let metrics = AWSIoTMetricsEncoder.createMetrics(from: options)
 
     // Should use custom library name
     XCTAssertEqual(metrics.libraryName, "CustomSDK/Test")
@@ -153,7 +153,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
 
   func testCreateMetricsWithVersionMismatch() {
     // User provides features with wrong version - should only use CRT features
-    var customMetrics = IoTDeviceSDKMetrics(libraryName: "CustomSDK/Test")
+    var customMetrics = AWSIoTMetrics(libraryName: "CustomSDK/Test")
     customMetrics.metadata["IoTSDKMetricsVersion"] = "999"  // Wrong version
     customMetrics.metadata["IoTSDKFeature"] = "L/A,M/B"  // Custom features
 
@@ -164,7 +164,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
       metrics: customMetrics
     )
 
-    let metrics = IoTSDKMetricsEncoder.createMetrics(from: options)
+    let metrics = AWSIoTMetricsEncoder.createMetrics(from: options)
 
     // Should NOT contain user features due to version mismatch
     let featureList = metrics.metadata["IoTSDKFeature"]
@@ -180,7 +180,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
 
   func testCreateMetricsCRTVersionNotModifiable() {
     // User tries to set CRTVersion - should be overwritten
-    var customMetrics = IoTDeviceSDKMetrics(libraryName: "CustomSDK/Test")
+    var customMetrics = AWSIoTMetrics(libraryName: "CustomSDK/Test")
     customMetrics.metadata["CRTVersion"] = "user-version"
 
     let options = MqttClientOptions(
@@ -189,7 +189,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
       metrics: customMetrics
     )
 
-    let metrics = IoTSDKMetricsEncoder.createMetrics(from: options)
+    let metrics = AWSIoTMetricsEncoder.createMetrics(from: options)
 
     // CRTVersion should be the library's version, not user's
     XCTAssertEqual(metrics.metadata["CRTVersion"], CommonRuntimeKit.CRTVersion)
@@ -197,7 +197,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
 
   func testCreateMetricsPreservesOtherUserMetadata() {
     // User provides other metadata that should be preserved
-    var customMetrics = IoTDeviceSDKMetrics(libraryName: "CustomSDK/Test")
+    var customMetrics = AWSIoTMetrics(libraryName: "CustomSDK/Test")
     customMetrics.metadata["CustomKey1"] = "CustomValue1"
     customMetrics.metadata["CustomKey2"] = "CustomValue2"
 
@@ -207,7 +207,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
       metrics: customMetrics
     )
 
-    let metrics = IoTSDKMetricsEncoder.createMetrics(from: options)
+    let metrics = AWSIoTMetricsEncoder.createMetrics(from: options)
 
     // Custom metadata should be preserved
     XCTAssertEqual(metrics.metadata["CustomKey1"], "CustomValue1")
