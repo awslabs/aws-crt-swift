@@ -132,6 +132,8 @@ var awsCCalPlatformExcludes =
         .define("S2N_BUILD_RELEASE"),
         .define("_FORTIFY_SOURCE", to: "2"),
         .define("POSIX_C_SOURCE", to: "200809L"),
+        .define("S2N_MIN(a, b)", to: "(((a) < (b)) ? (a) : (b))"),
+        .define("S2N_MAX(a, b)", to: "(((a) > (b)) ? (a) : (b))"),
       ]
     ))
 #endif
