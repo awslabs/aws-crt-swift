@@ -2,6 +2,7 @@ import AwsCAuth
 import AwsCEventStream
 import AwsCMqtt
 import LibNative
+import Foundation
 
 /// Initializes the library.
 /// `CommonRuntimeKit.initialize` must be called before using any other functionality.
@@ -9,10 +10,25 @@ public struct CommonRuntimeKit {
 
   /// The current version of the AWS Common Runtime Kit.
   public static let CRTVersion = "0.63.1"
+  // The underlying aws_*_library_init C calls use unguarded check-then-act flags
+  // (e.g. aws-c-io's s_io_library_initialized), assuming a single-threaded, call-once
+  // caller. Swift exposes `initialize()` as public API callable from multiple threads,
+  // which can race that flag and return before setup (e.g. TLS trust store) completes.
+  // This lock serializes calls; see https://github.com/awslabs/aws-crt-swift/issues/352.
+  private static let lock = NSLock()
+  // Tracks whether the C libraries have been initialized, so a second call to
+  // `initialize()` is a no-op instead of re-running aws_*_library_init. Only
+  // read/written while holding `lock`.
+  private nonisolated(unsafe) var isInitialized = false
 
   /// Initializes the library.
   /// Must be called before using any other functionality.
   public static func initialize() {
+    lock.lock()
+    defer { lock.unlock() }
+    guard !isInitialized else { return }
+    isInitialized = true
+
     aws_auth_library_init(allocator.rawValue)
     aws_event_stream_library_init(allocator.rawValue)
     aws_mqtt_library_init(allocator.rawValue)
@@ -27,6 +43,11 @@ public struct CommonRuntimeKit {
    * Warning: It will hang if you are still holding references to any CRT objects such as HostResolver.
    */
   public static nonisolated func cleanUp() {
+    lock.lock()
+    defer { lock.unlock() }
+    guard isInitialized else { return }
+    isInitialized = false
+
     withUnsafePointer(to: s_crt_swift_error_list) { ptr in
       aws_unregister_error_info(ptr)
     }
