@@ -19,7 +19,7 @@ public struct CommonRuntimeKit {
   // Tracks whether the C libraries have been initialized, so a second call to
   // `initialize()` is a no-op instead of re-running aws_*_library_init. Only
   // read/written while holding `lock`.
-  private static var isInitialized = false
+  private nonisolated(unsafe) static var isInitialized = false
 
   /// Initializes the library.
   /// Must be called before using any other functionality.
