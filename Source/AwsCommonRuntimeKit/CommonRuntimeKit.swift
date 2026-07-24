@@ -19,7 +19,13 @@ public struct CommonRuntimeKit {
   // Tracks whether the C libraries have been initialized, so a second call to
   // `initialize()` is a no-op instead of re-running aws_*_library_init. Only
   // read/written while holding `lock`.
-  private nonisolated(unsafe) var isInitialized = false
+  // Swift 6 flags this as unsafe global mutable state; disable the check since access
+  // is always serialized by `lock`. Remove the #if once our minimum Swift version reaches 5.10.
+  #if swift(>=5.10)
+    private static nonisolated(unsafe) var isInitialized = false
+  #else
+    private static var isInitialized = false
+  #endif
 
   /// Initializes the library.
   /// Must be called before using any other functionality.
