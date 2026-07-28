@@ -37,5 +37,8 @@ class SocketOptionsTests: XCBaseTestCase {
 
     socketOptions.socketType = SocketType.stream
     XCTAssertEqual(socketOptions.socketType, SocketType.stream)
+
+    socketOptions.tcpNoDelay = TCPNoDelay.off
+    XCTAssertEqual(socketOptions.tcpNoDelay, TCPNoDelay.off)
   }
 }
