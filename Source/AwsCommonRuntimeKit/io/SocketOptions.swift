@@ -11,6 +11,10 @@ public struct SocketOptions: CStruct {
   public var keepaliveMaxFailedProbes: UInt16
   public var keepaliveTimeoutSec: UInt16
   public var keepAlive: Bool
+  /// TCP only. Controls the TCP_NODELAY option (Nagle's algorithm).
+  /// Defaults to `.on`, disabling Nagle's algorithm so small writes are sent immediately.
+  /// Ignored for UDP and AWS_SOCKET_LOCAL sockets.
+  public var tcpNoDelay: TCPNoDelay
 
   public init(
     socketType: SocketType = .stream,
@@ -19,7 +23,8 @@ public struct SocketOptions: CStruct {
     keepaliveIntervalSec: UInt16 = 0,
     keepaliveMaxFailedProbes: UInt16 = 0,
     keepaliveTimeoutSec: UInt16 = 0,
-    keepAlive: Bool = false
+    keepAlive: Bool = false,
+    tcpNoDelay: TCPNoDelay = .on
   ) {
     self.socketType = socketType
     self.socketDomain = socketDomain
@@ -28,6 +33,7 @@ public struct SocketOptions: CStruct {
     self.keepaliveMaxFailedProbes = keepaliveMaxFailedProbes
     self.keepaliveTimeoutSec = keepaliveTimeoutSec
     self.keepAlive = keepAlive
+    self.tcpNoDelay = tcpNoDelay
   }
 
   typealias RawType = aws_socket_options
@@ -40,6 +46,7 @@ public struct SocketOptions: CStruct {
     cSocketOptions.keep_alive_timeout_sec = keepaliveTimeoutSec
     cSocketOptions.keep_alive_max_failed_probes = keepaliveMaxFailedProbes
     cSocketOptions.keepalive = keepAlive
+    cSocketOptions.tcp_nodelay = tcpNoDelay.rawValue
     return body(cSocketOptions)
   }
 }
