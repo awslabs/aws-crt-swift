@@ -8,7 +8,7 @@ class XCodeTests(Builder.Action):
         commands =[
             'xcodebuild',
             '-scheme',
-            'aws-crt-swift-Package',
+            'aws-crt-swift',
             'test',
             '-destination',
             "platform={}".format(destination)

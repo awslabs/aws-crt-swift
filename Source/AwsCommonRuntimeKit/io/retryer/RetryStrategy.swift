@@ -8,134 +8,152 @@ import Foundation
 public typealias GenerateRandomFn = () -> UInt64
 
 public class RetryStrategy {
-    let rawValue: UnsafeMutablePointer<aws_retry_strategy>
+  let rawValue: UnsafeMutablePointer<aws_retry_strategy>
 
-    /// Creates an AWS Retryer implementing the correct retry strategy.
-    ///
-    /// - Parameters:
-    ///   - eventLoopGroup: Event loop group to use for scheduling tasks.
-    ///   - initialBucketCapacity: (Optional) Int = 500
-    ///   - maxRetries: (Optional) Max retries to allow.
-    ///   - backOffScaleFactor: (Optional) Scaling factor to add for the backoff. Default is 25ms and maximum is UInt32 ms.
-    ///   - jitterMode: (Optional) Jitter mode to use, see comments for aws_exponential_backoff_jitter_mode.
-    ///   - generateRandom: (Optional) By default this will be set to use aws_device_random. If you want something else, set it here.
-    ///   - shutdownCallback: (Optional) Shutdown callback to invoke when the resource is cleaned up.
-    /// - Returns: `CRTAWSRetryStrategy`
-    public init(eventLoopGroup: EventLoopGroup,
-                initialBucketCapacity: Int = 500,
-                maxRetries: Int = 10,
-                backOffScaleFactor: TimeInterval = 0.025,
-                jitterMode: ExponentialBackoffJitterMode = .default,
-                generateRandom: GenerateRandomFn? = nil,
-                shutdownCallback: ShutdownCallback? = nil) throws {
+  /// Creates an AWS Retryer implementing the correct retry strategy.
+  ///
+  /// - Parameters:
+  ///   - eventLoopGroup: Event loop group to use for scheduling tasks.
+  ///   - initialBucketCapacity: (Optional) Int = 500
+  ///   - maxRetries: (Optional) Max retries to allow.
+  ///   - backOffScaleFactor: (Optional) Scaling factor to add for the backoff. Default is 25ms and maximum is UInt32 ms.
+  ///   - jitterMode: (Optional) Jitter mode to use, see comments for aws_exponential_backoff_jitter_mode.
+  ///   - generateRandom: (Optional) By default this will be set to use aws_device_random. If you want something else, set it here.
+  ///   - shutdownCallback: (Optional) Shutdown callback to invoke when the resource is cleaned up.
+  /// - Returns: `CRTAWSRetryStrategy`
+  public init(
+    eventLoopGroup: EventLoopGroup,
+    initialBucketCapacity: Int = 500,
+    maxRetries: Int = 10,
+    backOffScaleFactor: TimeInterval = 0.025,
+    jitterMode: ExponentialBackoffJitterMode = .default,
+    generateRandom: GenerateRandomFn? = nil,
+    shutdownCallback: ShutdownCallback? = nil
+  ) throws {
 
-        var exponentialBackoffRetryOptions = aws_exponential_backoff_retry_options()
-        exponentialBackoffRetryOptions.el_group = eventLoopGroup.rawValue
-        exponentialBackoffRetryOptions.max_retries = maxRetries
-        exponentialBackoffRetryOptions.backoff_scale_factor_ms = UInt32(backOffScaleFactor.millisecond)
-        exponentialBackoffRetryOptions.jitter_mode = jitterMode.rawValue
+    var exponentialBackoffRetryOptions = aws_exponential_backoff_retry_options()
+    exponentialBackoffRetryOptions.el_group = eventLoopGroup.rawValue
+    exponentialBackoffRetryOptions.max_retries = maxRetries
+    exponentialBackoffRetryOptions.backoff_scale_factor_ms = UInt32(backOffScaleFactor.millisecond)
+    exponentialBackoffRetryOptions.jitter_mode = jitterMode.rawValue
 
-        let generateRandomBox = Box(generateRandom)
-        let shutdownCore = ShutdownCallbackCore(shutdownCallback, data: generateRandomBox)
-        if generateRandom != nil {
-            exponentialBackoffRetryOptions.generate_random_impl = onGenerateRandom
-            exponentialBackoffRetryOptions.generate_random_user_data = generateRandomBox.passUnretained()
-        }
-
-        let getRawValue: () -> UnsafeMutablePointer<aws_retry_strategy>? = {
-            withUnsafePointer(to: shutdownCore.getRetainedShutdownOptions(), { shutdownOptionsPointer in
-                exponentialBackoffRetryOptions.shutdown_options = shutdownOptionsPointer
-                var standardRetryOptions = aws_standard_retry_options()
-                standardRetryOptions.initial_bucket_capacity = initialBucketCapacity
-                standardRetryOptions.backoff_retry_options = exponentialBackoffRetryOptions
-                return aws_retry_strategy_new_standard(allocator.rawValue, &standardRetryOptions)
-            })
-        }
-
-        guard let rawValue = getRawValue() else {
-            shutdownCore.release()
-            throw CommonRunTimeError.crtError(.makeFromLastError())
-        }
-
-        self.rawValue = rawValue
+    let generateRandomBox = Box(generateRandom)
+    let shutdownCore = ShutdownCallbackCore(shutdownCallback, data: generateRandomBox)
+    if generateRandom != nil {
+      exponentialBackoffRetryOptions.generate_random_impl = onGenerateRandom
+      exponentialBackoffRetryOptions.generate_random_user_data = generateRandomBox.passUnretained()
     }
 
-    /// Attempts to acquire a retry token for use with retries. On success, on_acquired will be invoked when a token is
-    /// available, or an error will be returned if the timeout expires.
-    /// - Parameters:
-    ///   - partitionId: (Optional) Partition_id identifies operations that should be grouped together.
-    ///                  This allows for more sophisticated strategies such as AIMD and circuit breaker patterns.
-    ///                  Pass NULL to use the global partition.
-    /// - Returns: `RetryToken`
-    public func acquireToken(partitionId: String?) async throws -> RetryToken {
-        return try await withCheckedThrowingContinuation { continuation in
-
-            let continuationCore = ContinuationCore(continuation: continuation)
-            if withOptionalByteCursorPointerFromString(partitionId, { partitionIdCursorPointer in
-                aws_retry_strategy_acquire_retry_token(rawValue,
-                                                       partitionIdCursorPointer,
-                                                       onRetryTokenAcquired,
-                                                       continuationCore.passRetained(),
-                                                       0)
-            }) != AWS_OP_SUCCESS {
-                continuationCore.release()
-                continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
-            }
-        }
+    let getRawValue: () -> UnsafeMutablePointer<aws_retry_strategy>? = {
+      withUnsafePointer(
+        to: shutdownCore.getRetainedShutdownOptions(),
+        { shutdownOptionsPointer in
+          exponentialBackoffRetryOptions.shutdown_options = shutdownOptionsPointer
+          var standardRetryOptions = aws_standard_retry_options()
+          standardRetryOptions.initial_bucket_capacity = initialBucketCapacity
+          standardRetryOptions.backoff_retry_options = exponentialBackoffRetryOptions
+          return aws_retry_strategy_new_standard(allocator.rawValue, &standardRetryOptions)
+        })
     }
 
-    public func scheduleRetry(token: RetryToken, errorType: RetryError) async throws -> RetryToken {
-        try await withCheckedThrowingContinuation { continuation in
-            let continuationCore = ContinuationCore(continuation: continuation)
-            if aws_retry_strategy_schedule_retry(token.rawValue,
-                                                 errorType.rawValue,
-                                                 onRetryReady,
-                                                 continuationCore.passRetained()) != AWS_OP_SUCCESS {
-                continuationCore.release()
-                continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
-            }
-        }
+    guard let rawValue = getRawValue() else {
+      shutdownCore.release()
+      throw CommonRunTimeError.crtError(.makeFromLastError())
     }
 
-    /// Records a successful retry.You should always call it after a successful operation
-    /// or your system will never recover during an outage.
-    public func recordSuccess(token: RetryToken) {
-        aws_retry_token_record_success(token.rawValue)
-    }
+    self.rawValue = rawValue
+  }
 
-    deinit {
-        aws_retry_strategy_release(rawValue)
+  /// Attempts to acquire a retry token for use with retries. On success, on_acquired will be invoked when a token is
+  /// available, or an error will be returned if the timeout expires.
+  /// - Parameters:
+  ///   - partitionId: (Optional) Partition_id identifies operations that should be grouped together.
+  ///                  This allows for more sophisticated strategies such as AIMD and circuit breaker patterns.
+  ///                  Pass NULL to use the global partition.
+  /// - Returns: `RetryToken`
+  public func acquireToken(partitionId: String?) async throws -> RetryToken {
+    return try await withCheckedThrowingContinuation { continuation in
+
+      let continuationCore = ContinuationCore(continuation: continuation)
+      if withOptionalByteCursorPointerFromString(
+        partitionId,
+        { partitionIdCursorPointer in
+          aws_retry_strategy_acquire_retry_token(
+            rawValue,
+            partitionIdCursorPointer,
+            onRetryTokenAcquired,
+            continuationCore.passRetained(),
+            0)
+        }) != AWS_OP_SUCCESS
+      {
+        continuationCore.release()
+        continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
+      }
     }
+  }
+
+  public func scheduleRetry(token: RetryToken, errorType: RetryError) async throws -> RetryToken {
+    try await withCheckedThrowingContinuation { continuation in
+      let continuationCore = ContinuationCore(continuation: continuation)
+      if aws_retry_strategy_schedule_retry(
+        token.rawValue,
+        errorType.rawValue,
+        onRetryReady,
+        continuationCore.passRetained()) != AWS_OP_SUCCESS
+      {
+        continuationCore.release()
+        continuation.resume(throwing: CommonRunTimeError.crtError(.makeFromLastError()))
+      }
+    }
+  }
+
+  /// Records a successful retry.You should always call it after a successful operation
+  /// or your system will never recover during an outage.
+  public func recordSuccess(token: RetryToken) {
+    aws_retry_token_record_success(token.rawValue)
+  }
+
+  deinit {
+    aws_retry_strategy_release(rawValue)
+  }
 }
 
 private func onGenerateRandom(userData: UnsafeMutableRawPointer!) -> UInt64 {
-    Unmanaged<Box<GenerateRandomFn>>.fromOpaque(userData).takeUnretainedValue().contents()
+  Unmanaged<Box<GenerateRandomFn>>.fromOpaque(userData).takeUnretainedValue().contents()
 }
 
-private func onRetryReady(token: UnsafeMutablePointer<aws_retry_token>?,
-                          errorCode: Int32,
-                          userData: UnsafeMutableRawPointer!) {
-    let crtRetryStrategyCore = Unmanaged<ContinuationCore<RetryToken>>.fromOpaque(userData).takeRetainedValue()
-    if errorCode != AWS_OP_SUCCESS {
-        crtRetryStrategyCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
-        return
-    }
+private func onRetryReady(
+  token: UnsafeMutablePointer<aws_retry_token>?,
+  errorCode: Int32,
+  userData: UnsafeMutableRawPointer!
+) {
+  let crtRetryStrategyCore = Unmanaged<ContinuationCore<RetryToken>>.fromOpaque(userData)
+    .takeRetainedValue()
+  if errorCode != AWS_OP_SUCCESS {
+    crtRetryStrategyCore.continuation.resume(
+      throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+    return
+  }
 
-    // Success
-    aws_retry_token_acquire(token!)
-    crtRetryStrategyCore.continuation.resume(returning: RetryToken(rawValue: token!))
+  // Success
+  aws_retry_token_acquire(token!)
+  crtRetryStrategyCore.continuation.resume(returning: RetryToken(rawValue: token!))
 }
 
-private func onRetryTokenAcquired(retry_strategy: UnsafeMutablePointer<aws_retry_strategy>?,
-                                  errorCode: Int32,
-                                  token: UnsafeMutablePointer<aws_retry_token>?,
-                                  userData: UnsafeMutableRawPointer!) {
-    let crtRetryStrategyCore = Unmanaged<ContinuationCore<RetryToken>>.fromOpaque(userData).takeRetainedValue()
-    if errorCode != AWS_OP_SUCCESS {
-        crtRetryStrategyCore.continuation.resume(throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
-        return
-    }
+private func onRetryTokenAcquired(
+  retry_strategy: UnsafeMutablePointer<aws_retry_strategy>?,
+  errorCode: Int32,
+  token: UnsafeMutablePointer<aws_retry_token>?,
+  userData: UnsafeMutableRawPointer!
+) {
+  let crtRetryStrategyCore = Unmanaged<ContinuationCore<RetryToken>>.fromOpaque(userData)
+    .takeRetainedValue()
+  if errorCode != AWS_OP_SUCCESS {
+    crtRetryStrategyCore.continuation.resume(
+      throwing: CommonRunTimeError.crtError(CRTError(code: errorCode)))
+    return
+  }
 
-    // Success
-    crtRetryStrategyCore.continuation.resume(returning: RetryToken(rawValue: token!))
+  // Success
+  crtRetryStrategyCore.continuation.resume(returning: RetryToken(rawValue: token!))
 }

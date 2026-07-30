@@ -1,1991 +1,2937 @@
 //  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //  SPDX-License-Identifier: Apache-2.0.
 
-import XCTest
-import Foundation
 import AwsCMqtt
+import Foundation
+import XCTest
+
 @testable import AwsCommonRuntimeKit
 
 enum MqttTestError: Error {
-    case timeout
-    case connectionFail
-    case disconnectFail
-    case stopFail
+  case timeout
+  case connectionFail
+  case disconnectFail
+  case stopFail
 }
 
 class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
-    
-    let credentialProviderShutdownWasCalled = XCTestExpectation(description: "Shutdown callback was called")
-    
-    // Provider
-    func credentialProviderShutdownCallback() -> ShutdownCallback {
-        return {
-            self.credentialProviderShutdownWasCalled.fulfill()
-        }
+
+  let credentialProviderShutdownWasCalled = XCTestExpectation(
+    description: "Shutdown callback was called")
+
+  // Provider
+  func credentialProviderShutdownCallback() -> ShutdownCallback {
+    return {
+      self.credentialProviderShutdownWasCalled.fulfill()
     }
-    
-    /// start client and check for connection success
-    func connectClient(client: Mqtt5Client, testContext: MqttTestContext) async throws{
-        try client.start()
-        await awaitExpectation([testContext.connectionSuccessExpectation], 5)
-        
-    }
-
-    /// stop client and check for discconnection and stopped lifecycle events
-    func disconnectClientCleanup(client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil) async throws -> Void {
-        try client.stop(disconnectPacket: disconnectPacket)
-        await awaitExpectation([testContext.disconnectionExpectation], 5)
-        await awaitExpectation([testContext.stoppedExpecation], 5)
-    }
-
-    /// stop client and check for stopped lifecycle event
-    func stopClient(client: Mqtt5Client, testContext: MqttTestContext) async throws -> Void {
-        try client.stop()
-        return await awaitExpectation([testContext.stoppedExpecation], 5)
-    }
-
-    func createClientId() -> String {
-        return "test-aws-crt-swift-unit-" + UUID().uuidString
-    }
-
-    class MqttTestContext : @unchecked Sendable{
-        public var contextName: String
-
-        public var onPublishReceived: OnPublishReceived?
-        public var onLifecycleEventStopped: OnLifecycleEventStopped?
-        public var onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect?
-        public var onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess?
-        public var onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
-        public var onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
-        public var onWebSocketHandshake: OnWebSocketHandshakeIntercept?
-
-        public let publishReceivedExpectation: XCTestExpectation
-        public let publishTargetReachedExpectation: XCTestExpectation
-        public let connectionSuccessExpectation: XCTestExpectation
-        public let connectionFailureExpectation: XCTestExpectation
-        public let disconnectionExpectation: XCTestExpectation
-        public let stoppedExpecation: XCTestExpectation
-
-        public var negotiatedSettings: NegotiatedSettings?
-        public var connackPacket: ConnackPacket?
-        public var publishPacket: PublishPacket?
-        public var lifecycleConnectionFailureData: LifecycleConnectionFailureData?
-        public var lifecycleDisconnectionData: LifecycleDisconnectData?
-        public var publishCount = 0
-        public var publishTarget = 1
-        
-        init(contextName: String = "",
-             publishTarget: Int = 1,
-             onPublishReceived: OnPublishReceived? = nil,
-             onLifecycleEventStopped: OnLifecycleEventStopped? = nil,
-             onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect? = nil,
-             onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess? = nil,
-             onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure? = nil,
-             onLifecycleEventDisconnection: OnLifecycleEventDisconnection? = nil) {
-
-            self.contextName = contextName
-
-            self.publishTarget = publishTarget
-            self.publishCount = 0
-
-            
-            self.publishReceivedExpectation = XCTestExpectation(description: "Expect publish received.")
-            self.publishTargetReachedExpectation = XCTestExpectation(description: "Expect publish target reached")
-            self.connectionSuccessExpectation = XCTestExpectation(description: "Expect connection Success")
-            self.connectionFailureExpectation = XCTestExpectation(description: "Expect connection Failure")
-            self.disconnectionExpectation = XCTestExpectation(description: "Expect disconnect")
-            self.stoppedExpecation = XCTestExpectation(description: "Expect stopped")
-
-            self.onPublishReceived = onPublishReceived
-            self.onLifecycleEventStopped = onLifecycleEventStopped
-            self.onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect
-            self.onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess
-            self.onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure
-            self.onLifecycleEventDisconnection = onLifecycleEventDisconnection
-
-            self.onPublishReceived = onPublishReceived ?? { publishData in
-                if let payloadString = publishData.publishPacket.payloadAsString() {
-                    print(contextName + " Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos) payload:\'\(payloadString)\'")
-                } else {
-                    print(contextName + " Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos)")
-                }
-                self.publishPacket = publishData.publishPacket
-                self.publishReceivedExpectation.fulfill()
-                self.publishCount += 1
-                if self.publishCount == self.publishTarget {
-                    self.publishTargetReachedExpectation.fulfill()
-                }
-            }
-
-            self.onLifecycleEventStopped = onLifecycleEventStopped ?? { _ in
-                print(contextName + " Mqtt5ClientTests: onLifecycleEventStopped")
-                self.stoppedExpecation.fulfill()
-            }
-            self.onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect ?? { _ in
-                print(contextName + " Mqtt5ClientTests: onLifecycleEventAttemptingConnect")
-            }
-            self.onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess ?? { successData in
-                print(contextName + " Mqtt5ClientTests: onLifecycleEventConnectionSuccess")
-                self.negotiatedSettings = successData.negotiatedSettings
-                self.connackPacket = successData.connackPacket
-                self.connectionSuccessExpectation.fulfill()
-            }
-            self.onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure ?? { failureData in
-                print(contextName + " Mqtt5ClientTests: onLifecycleEventConnectionFailure")
-                self.lifecycleConnectionFailureData = failureData
-                self.connectionFailureExpectation.fulfill()
-            }
-            self.onLifecycleEventDisconnection = onLifecycleEventDisconnection ?? { disconnectionData in
-                print(contextName + " Mqtt5ClientTests: onLifecycleEventDisconnection")
-                self.lifecycleDisconnectionData = disconnectionData
-                self.disconnectionExpectation.fulfill()
-            }
-         }
-
-        /// Setup a simple websocket transform function
-        /// - `isSuccess`: True, complete the handshake with success
-        ///             False, fail the handshake with error AWS_ERROR_UNSUPPORTED_OPERATION
-        func withWebsocketTransform(isSuccess: Bool){
-            self.onWebSocketHandshake = { httpRequest, completCallback in
-                completCallback(httpRequest, isSuccess ? AWS_OP_SUCCESS : Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
-            }
-        }
-        
-    }
-
-    func createClient(clientOptions: MqttClientOptions?, testContext: MqttTestContext) throws -> Mqtt5Client {
-
-        let clientOptionsWithCallbacks: MqttClientOptions
-
-        if let clientOptions {
-            clientOptionsWithCallbacks = MqttClientOptions(
-                hostName: clientOptions.hostName,
-                port: clientOptions.port,
-                bootstrap: clientOptions.bootstrap,
-                socketOptions: clientOptions.socketOptions,
-                tlsCtx: clientOptions.tlsCtx,
-                onWebsocketTransform: testContext.onWebSocketHandshake,
-                httpProxyOptions: clientOptions.httpProxyOptions,
-                connectOptions: clientOptions.connectOptions,
-                sessionBehavior: clientOptions.sessionBehavior,
-                extendedValidationAndFlowControlOptions: clientOptions.extendedValidationAndFlowControlOptions,
-                offlineQueueBehavior: clientOptions.offlineQueueBehavior,
-                retryJitterMode: clientOptions.retryJitterMode,
-                minReconnectDelay: clientOptions.minReconnectDelay,
-                maxReconnectDelay: clientOptions.maxReconnectDelay,
-                minConnectedTimeToResetReconnectDelay: clientOptions.minConnectedTimeToResetReconnectDelay,
-                pingTimeout: clientOptions.pingTimeout,
-                connackTimeout: clientOptions.connackTimeout,
-                ackTimeout: clientOptions.ackTimeout,
-                topicAliasingOptions: clientOptions.topicAliasingOptions,
-                onPublishReceivedFn: testContext.onPublishReceived,
-                onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
-                onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
-                onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
-                onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
-                onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
-        } else {
-            let elg = try EventLoopGroup()
-            let resolver = try HostResolver(eventLoopGroup: elg,
-                maxHosts: 8,
-                maxTTL: 30)
-            let clientBootstrap = try ClientBootstrap(
-                eventLoopGroup: elg,
-                hostResolver: resolver)
-            let socketOptions = SocketOptions()
-
-            clientOptionsWithCallbacks = MqttClientOptions(
-                hostName: "localhost",
-                port: 443,
-                bootstrap: clientBootstrap,
-                socketOptions: socketOptions,
-                onPublishReceivedFn: testContext.onPublishReceived,
-                onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
-                onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
-                onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
-                onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
-                onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
-        }
-
-        let mqtt5Client = try Mqtt5Client(clientOptions: clientOptionsWithCallbacks)
-        XCTAssertNotNil(mqtt5Client)
-        return mqtt5Client
-    }
-
-    func compareEnums<T: Equatable>(arrayOne: [T], arrayTwo: [T]) throws {
-        XCTAssertEqual(arrayOne.count, arrayTwo.count, "The arrays do not have the same number of elements")
-        for i in 0..<arrayOne.count {
-            XCTAssertEqual(arrayOne[i], arrayTwo[i], "The elements at index \(i) are not equal")
-        }
-    }
-
-    func withTimeout<T: Sendable >(client: Mqtt5Client, seconds: TimeInterval, operation: @escaping @Sendable () async throws -> T) async throws -> T {
-
-        let timeoutTask: @Sendable () async throws -> T = {
-            try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
-            throw MqttTestError.timeout
-        }
-
-        var result: T?
-
-        try await withThrowingTaskGroup(of: T.self) { group in
-            // Start the operation
-            group.addTask { try await operation() }
-            // Start the timeout
-            group.addTask { try await timeoutTask() }
-
-            do {
-                result = try await group.next()
-                group.cancelAll()
-            } catch {
-                // Close the client to complete all operations that may be timing out
-                client.close()
-                throw MqttTestError.timeout
-            }
-        }
-
-        return result!
-    }
-
-    let timeoutInterval = TimeInterval(5)
-
-    /*===============================================================
-                     CREATION TEST CASES
-    =================================================================*/
-    /*
-     * [New-UC1] Happy path. Minimal creation and cleanup
-     */
-    func testMqtt5ClientNewMinimal() throws {
-        let elg = try EventLoopGroup()
-        let resolver = try HostResolver(eventLoopGroup: elg,
-                maxHosts: 8,
-                maxTTL: 30)
-
-        let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                hostResolver: resolver)
-        XCTAssertNotNil(clientBootstrap)
-        let socketOptions = SocketOptions()
-        XCTAssertNotNil(socketOptions)
-        let clientOptions = MqttClientOptions(hostName: "localhost", port: 1883, bootstrap: clientBootstrap,
-                                   socketOptions: socketOptions);
-        XCTAssertNotNil(clientOptions)
-        let mqtt5client = try Mqtt5Client(clientOptions: clientOptions);
-        XCTAssertNotNil(mqtt5client)
-    }
-
-    /*
-     * [New-UC2] Maximum creation and cleanup
-     */
-    func testMqtt5ClientNewFull() throws {
-        let elg = try EventLoopGroup()
-        let resolver = try HostResolver(eventLoopGroup: elg,
-                maxHosts: 8,
-                maxTTL: 30)
-
-        let clientBootstrap = try ClientBootstrap(eventLoopGroup: elg,
-                hostResolver: resolver)
-        XCTAssertNotNil(clientBootstrap)
-        let socketOptions = SocketOptions()
-        XCTAssertNotNil(socketOptions)
-        let tlsOptions = TLSContextOptions()
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-        let will = PublishPacket(qos: QoS.atLeastOnce, topic: "test/Mqtt5_Binding_SWIFT/testMqtt5ClientNewFull",
-                                 payload: "will test".data(using: .utf8))
-
-        let uuid = UUID().uuidString
-        let connectOptions = MqttConnectOptions(
-                            keepAliveInterval: 30,
-                            clientId: "testMqtt5ClientNewFull_" + uuid,
-                            sessionExpiryInterval: 1000,
-                            requestResponseInformation: true,
-                            requestProblemInformation: true,
-                            receiveMaximum: 1000,
-                            maximumPacketSize: 1000,
-                            willDelayInterval: 1000,
-                            will: will,
-                            userProperties:   [UserProperty(name: "name1",value: "value1"),
-                                               UserProperty(name: "name2",value: "value2"),
-                                               UserProperty(name: "name3",value: "value3")])
-
-
-        let clientOptions = MqttClientOptions( hostName: "localhost",
-                                            port: 1883,
-                                            bootstrap: clientBootstrap,
-                                            socketOptions: socketOptions,
-                                            tlsCtx: tlsContext,
-                                            connectOptions: connectOptions,
-                                            sessionBehavior: ClientSessionBehaviorType.clean,
-                                            extendedValidationAndFlowControlOptions: ExtendedValidationAndFlowControlOptions.awsIotCoreDefaults,
-                                            offlineQueueBehavior: ClientOperationQueueBehaviorType.failAllOnDisconnect,
-                                            retryJitterMode: ExponentialBackoffJitterMode.full,
-                                            minReconnectDelay: 1000,
-                                            maxReconnectDelay: 1000,
-                                            minConnectedTimeToResetReconnectDelay: 1000,
-                                            pingTimeout: 10,
-                                            connackTimeout: 10,
-                                            ackTimeout: 60,
-                                            topicAliasingOptions: TopicAliasingOptions())
-        XCTAssertNotNil(clientOptions)
-        let context = MqttTestContext()
-        let mqtt5client = try createClient(clientOptions: clientOptions, testContext: context)
-        XCTAssertNotNil(mqtt5client)
-    }
-
-    /*===============================================================
-                     DIRECT CONNECT TEST CASES
-    =================================================================*/
-    /*
-     * [ConnDC-UC1] Happy path
-     */
-    func testMqtt5DirectConnectMinimum() async throws {
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!)
-
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-        try await disconnectClientCleanup(client:client, testContext: testContext)
-    }
-
-    /*
-     * [ConnDC-UC2] Direct Connection with Basic Authentication
-     */
-    func testMqtt5DirectConnectWithBasicAuth() async throws {
-
-        let inputUsername = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_USERNAME")
-        let inputPassword = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_PASSWORD")
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_PORT")
-
-        let connectOptions = MqttConnectOptions(
-            clientId: createClientId(),
-            username: inputUsername,
-            password: inputPassword.data(using: .utf8)
-        )
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!,
-            connectOptions: connectOptions)
-
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-        try await disconnectClientCleanup(client:client, testContext: testContext)
-    }
-
-    /*
-     * [ConnDC-UC3] Direct Connection with TLS
-     */
-    func testMqtt5DirectConnectWithTLS() async throws {
-
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
-
-        let tlsOptions = TLSContextOptions()
-        tlsOptions.setVerifyPeer(false)
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!,
-            tlsCtx: tlsContext)
-
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-        try await disconnectClientCleanup(client:client, testContext: testContext)
-    }
-
-    /*
-     * [ConnDC-UC4] Direct Connection with mutual TLS
-     */
-    func testMqtt5DirectConnectWithMutualTLS() async throws {
-        try skipIfPlatformDoesntSupportTLS()
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-        
-        let tlsOptions = try TLSContextOptions.makeMTLS(
-            certificatePath: inputCert,
-            privateKeyPath: inputKey
-        )
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-        
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext)
-        
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-        try await disconnectClientCleanup(client: client, testContext: testContext)
-
-    }
-
-    /*
-     * [ConnDC-UC5] Direct Connection with HttpProxy options and TLS
-     */
-    func testMqtt5DirectConnectWithHttpProxy() async throws {
-
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
-        let inputProxyHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_PROXY_HOST")
-        let inputProxyPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_PROXY_PORT")
-
-        let tlsOptions = TLSContextOptions()
-        tlsOptions.setVerifyPeer(false)
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-        let httpProxyOptions = HTTPProxyOptions(
-            hostName: inputProxyHost,
-            port: UInt32(inputProxyPort)!,
-            connectionType: HTTPProxyConnectionType.tunnel)
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!,
-            tlsCtx: tlsContext,
-            httpProxyOptions: httpProxyOptions)
-
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-        try await disconnectClientCleanup(client:client, testContext: testContext)
-    }
-
-    /*
-     * [ConnDC-UC6] Direct Connection with all options set
-     */
-    func testMqtt5DirectConnectMaximum() async throws {
-
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
-
-        let userProperties = [UserProperty(name: "name1", value: "value1"),
-                              UserProperty(name: "name2", value: "value2")]
-
-        let willPacket = PublishPacket(
-            qos: QoS.atLeastOnce,
-            topic: "TEST_TOPIC",
-            payload: "TEST_PAYLOAD".data(using: .utf8),
-            retain: false,
-            payloadFormatIndicator: PayloadFormatIndicator.utf8,
-            messageExpiryInterval: TimeInterval(10),
-            topicAlias: UInt16(1),
-            responseTopic: "TEST_RESPONSE_TOPIC",
-            correlationData: "TEST_CORRELATION_DATA".data(using: .utf8),
-            contentType: "TEST_CONTENT_TYPE",
-            userProperties: userProperties)
-
-        let connectOptions = MqttConnectOptions(
-            keepAliveInterval: TimeInterval(10),
-            clientId: createClientId(),
-            sessionExpiryInterval: TimeInterval(100),
-            requestResponseInformation: true,
-            requestProblemInformation: true,
-            receiveMaximum: 1000,
-            maximumPacketSize: 10000,
-            willDelayInterval: TimeInterval(1000),
-            will: willPacket,
-            userProperties: userProperties)
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!,
-            connectOptions: connectOptions,
-            sessionBehavior: ClientSessionBehaviorType.clean,
-            extendedValidationAndFlowControlOptions: ExtendedValidationAndFlowControlOptions.awsIotCoreDefaults,
-            offlineQueueBehavior: ClientOperationQueueBehaviorType.failAllOnDisconnect,
-            retryJitterMode: ExponentialBackoffJitterMode.decorrelated,
-            minReconnectDelay: TimeInterval(0.1),
-            maxReconnectDelay: TimeInterval(50),
-            minConnectedTimeToResetReconnectDelay: TimeInterval(1),
-            pingTimeout: TimeInterval(1),
-            connackTimeout: TimeInterval(1),
-            ackTimeout: TimeInterval(100))
-
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-        try await disconnectClientCleanup(client:client, testContext: testContext)
-    }
-
-    /*===============================================================
-                     WEBSOCKET CONNECT TEST CASES
-    =================================================================*/
-    /*
-     * [ConnWS-UC1] Happy path. Websocket connection with minimal configuration.
-     */
-    func testMqtt5WSConnectionMinimal() async throws
-    {
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_PORT")
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!)
-
-        let testContext = MqttTestContext()
-        testContext.withWebsocketTransform(isSuccess: true)
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-        try await disconnectClientCleanup(client:client, testContext: testContext)
-    }
-
-
-    /*
-     * [ConnWS-UC2]  websocket connection with basic authentication
-     */
-    func testMqtt5WSConnectWithBasicAuth() async throws {
-
-        let inputUsername = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_USERNAME")
-        let inputPassword = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_PASSWORD")
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_BASIC_AUTH_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_BASIC_AUTH_PORT")
-
-        let connectOptions = MqttConnectOptions(
-            clientId: createClientId(),
-            username: inputUsername,
-            password: inputPassword.data(using: .utf8)
-        )
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!,
-            connectOptions: connectOptions)
-
-        let testContext = MqttTestContext()
-        testContext.withWebsocketTransform(isSuccess: true)
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-        try await disconnectClientCleanup(client:client, testContext: testContext)
-    }
-
-
-    /*
-     * [ConnWS-UC3] websocket connection with TLS
-     */
-    func testMqtt5WSConnectWithTLS() async throws {
-        try skipIfPlatformDoesntSupportTLS()
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_TLS_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_TLS_PORT")
-
-        // XCode could only take terminal environment variable
-        let tlsOptions = TLSContextOptions.makeDefault()
-        tlsOptions.setVerifyPeer(false)
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!,
-            tlsCtx: tlsContext)
-
-        let testContext = MqttTestContext()
-        testContext.withWebsocketTransform(isSuccess: true)
-
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-        try await disconnectClientCleanup(client:client, testContext: testContext)
-    }
-
-    /*
-     * [ConnWS-UC4] websocket connection with TLS, using sigv4
-     */
-    func testMqtt5WSConnectWithStaticCredentialProvider() async throws {
-        do{
-            try skipIfPlatformDoesntSupportTLS()
-
-            let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-            let region = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
-
-            let tlsOptions = TLSContextOptions.makeDefault()
-            let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-            let elg = try EventLoopGroup()
-            let resolver = try HostResolver(eventLoopGroup: elg,
-                                            maxHosts: 8,
-                                            maxTTL: 30)
-            let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
-
-            // setup role credential
-            let accessKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_ACCESS_KEY")
-            let secret = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SECRET_ACCESS_KEY")
-            let sessionToken = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SESSION_TOKEN")
-
-            let provider = try CredentialsProvider(source: .static(accessKey: accessKey,
-                                                                    secret: secret,
-                                                                    sessionToken: sessionToken,shutdownCallback: credentialProviderShutdownCallback()))
-            let testContext = MqttTestContext()
-
-
-            let signingConfig = SigningConfig(algorithm: SigningAlgorithmType.signingV4,
-                                                signatureType: SignatureType.requestQueryParams,
-                                                service: "iotdevicegateway",
-                                                region: region,
-                                                credentialsProvider: provider,
-                                                omitSessionToken: true)
-
-            // We manually setup the websocket transform to avoid recursive reference between provider and test context
-            let onWebsocketTransform : OnWebSocketHandshakeIntercept = { httpRequest, completCallback in
-                Task {
-                    do {
-                        let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
-                        completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
-                    } catch CommonRunTimeError.crtError (let error) {
-                        completCallback(httpRequest, Int32(error.code))
-                    } catch {
-                        completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
-                    }
-                }
-            }
-
-            let clientOptions = MqttClientOptions(
-                hostName: inputHost,
-                port: UInt32(443),
-                bootstrap: bootstrap,
-                tlsCtx: tlsContext,
-                onWebsocketTransform:onWebsocketTransform,
-                connackTimeout: 10000,
-                onPublishReceivedFn: testContext.onPublishReceived,
-                onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
-                onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
-                onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
-                onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
-                onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
-
-            let client = try Mqtt5Client(clientOptions: clientOptions)
-            XCTAssertNotNil(client)
-
-            try await connectClient(client: client, testContext: testContext)
-            try await disconnectClientCleanup(client:client, testContext: testContext)
-            // Clean up the WebSocket handshake function to ensure the test context is properly released
-            testContext.onWebSocketHandshake=nil
-        }
-        catch{
-            // Fulfill the callback if the error
-            self.credentialProviderShutdownWasCalled.fulfill()
-        }
-        await awaitExpectation([credentialProviderShutdownWasCalled])
-    }
-
-    /*
-     * [ConnWS-UC5] Websocket connection with HttpProxy options
-     */
-    func testMqtt5WSConnectWithHttpProxy() async throws {
-        try skipIfPlatformDoesntSupportTLS()
-        try skipifmacOS()
-
-        let iotHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let region = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
-        let httpHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_PROXY_HOST")
-        let httpPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_PROXY_PORT")
-
-        let tlsOptions = TLSContextOptions.makeDefault()
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-
-        let elg = try EventLoopGroup()
-        let resolver = try HostResolver(eventLoopGroup: elg,
-                                        maxHosts: 8,
-                                        maxTTL: 30)
-        let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
-        let httpProxy = HTTPProxyOptions(hostName: httpHost, port: UInt32(httpPort)!, authType: .none, connectionType: HTTPProxyConnectionType.tunnel)
-        
-        let provider = try CredentialsProvider(source: .defaultChain(bootstrap: bootstrap,
-                                                                     fileBasedConfiguration: FileBasedConfiguration(),
-                                                                     tlsContext: tlsContext))
-        let testContext = MqttTestContext()
-
-
-        let signingConfig = SigningConfig(algorithm: SigningAlgorithmType.signingV4,
-                                          signatureType: SignatureType.requestQueryParams,
-                                          service: "iotdevicegateway",
-                                          region: region,
-                                          credentialsProvider: provider,
-
-                                          omitSessionToken: true)
-
-        // We manually setup the websocket transform to avoid recursive reference between provider and test context
-        let onWebsocketTransform : OnWebSocketHandshakeIntercept = { httpRequest, completCallback in
-            Task {
-                do {
-                    let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
-                    completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
-                } catch CommonRunTimeError.crtError (let error) {
-                    completCallback(httpRequest, Int32(error.code))
-                } catch {
-                    completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
-                }
-            }
-        }
-
-        let clientOptions = MqttClientOptions(
-            hostName: iotHost,
-            port: UInt32(443),
-            bootstrap: bootstrap,
-            tlsCtx: tlsContext,
-            onWebsocketTransform:onWebsocketTransform,
-            httpProxyOptions: httpProxy,
-            onPublishReceivedFn: testContext.onPublishReceived,
-            onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
-            onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
-            onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
-            onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
-            onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
-
-
-        let client = try Mqtt5Client(clientOptions: clientOptions)
-        XCTAssertNotNil(client)
-
-        try await connectClient(client: client, testContext: testContext)
-        try await disconnectClientCleanup(client:client, testContext: testContext)
-    }
-
-    func testMqtt5WSConnectFull() async throws {
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_PORT")
-
-        let userProperties = [UserProperty(name: "name1", value: "value1"),
-                              UserProperty(name: "name2", value: "value2")]
-
-        let willPacket = PublishPacket(
-            qos: QoS.atLeastOnce,
-            topic: "TEST_TOPIC",
-            payload: "TEST_PAYLOAD".data(using: .utf8),
-            retain: false,
-            payloadFormatIndicator: PayloadFormatIndicator.utf8,
-            messageExpiryInterval: TimeInterval(10),
-            topicAlias: UInt16(1),
-            responseTopic: "TEST_RESPONSE_TOPIC",
-            correlationData: "TEST_CORRELATION_DATA".data(using: .utf8),
-            contentType: "TEST_CONTENT_TYPE",
-            userProperties: userProperties)
-
-        let connectOptions = MqttConnectOptions(
-            keepAliveInterval: TimeInterval(10),
-            clientId: createClientId(),
-            sessionExpiryInterval: TimeInterval(100),
-            requestResponseInformation: true,
-            requestProblemInformation: true,
-            receiveMaximum: 1000,
-            maximumPacketSize: 10000,
-            willDelayInterval: TimeInterval(1000),
-            will: willPacket,
-            userProperties: userProperties)
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!,
-            connectOptions: connectOptions,
-            sessionBehavior: ClientSessionBehaviorType.clean,
-            extendedValidationAndFlowControlOptions: ExtendedValidationAndFlowControlOptions.awsIotCoreDefaults,
-            offlineQueueBehavior: ClientOperationQueueBehaviorType.failAllOnDisconnect,
-            retryJitterMode: ExponentialBackoffJitterMode.decorrelated,
-            minReconnectDelay: TimeInterval(0.1),
-            maxReconnectDelay: TimeInterval(50),
-            minConnectedTimeToResetReconnectDelay: TimeInterval(1),
-            pingTimeout: TimeInterval(1),
-            connackTimeout: TimeInterval(1),
-            ackTimeout: TimeInterval(100))
-
-        let testContext = MqttTestContext()
-        testContext.withWebsocketTransform(isSuccess: true)
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-        try await disconnectClientCleanup(client:client, testContext: testContext)
-    }
-    
-    func testMqttWebsocketWithCognitoCredentialProvider() async throws {
-        do{
-            let iotEndpoint = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-            let port = 443
-            let cognitoEndpoint = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_ENDPOINT")
-            let cognitoIdentity = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_COGNITO_IDENTITY")
-            let testContext = MqttTestContext(contextName: "WebsocketWithCognitoCredentialProvider")
-            let elg = try EventLoopGroup()
-            let resolver = try HostResolver(eventLoopGroup: elg, maxHosts: 16, maxTTL: 30)
-            let clientBootstrap = try ClientBootstrap(
-                eventLoopGroup: elg,
-                hostResolver: resolver)
-
-            let options = TLSContextOptions.makeDefault()
-            let tlscontext = try TLSContext(options: options, mode: .client)
-
-            let cognitoProvider = try CredentialsProvider(source: .cognito(bootstrap: clientBootstrap, tlsContext: tlscontext, endpoint: cognitoEndpoint, identity: cognitoIdentity, shutdownCallback: credentialProviderShutdownCallback()))
-
-            let connectOptions = MqttConnectOptions(
-                keepAliveInterval: TimeInterval(100),
-                clientId: createClientId())
-
-            let signingConfig = SigningConfig(algorithm: SigningAlgorithmType.signingV4,
-                                              signatureType: SignatureType.requestQueryParams,
-                                              service: "iotdevicegateway",
-                                              region: "us-east-1",
-                                              credentialsProvider: cognitoProvider,
-                                              omitSessionToken: true)
-
-            let onWebsocketTransform : OnWebSocketHandshakeIntercept = { httpRequest, completCallback in
-                Task {
-                    do {
-                        let returnedHttpRequest = try await Signer.signRequest(request: httpRequest, config:signingConfig)
-                        completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
-                        print("complete signing")
-                    } catch CommonRunTimeError.crtError (let error) {
-                        completCallback(httpRequest, Int32(error.code))
-                        print("signing failed with crterror")
-                    } catch {
-                        completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
-                        print("signing failed")
-                    }
-                }
-            }
-
-            let clientOptions = MqttClientOptions(
-                hostName: iotEndpoint,
-                port: UInt32(port),
-                bootstrap: clientBootstrap,
-                tlsCtx: tlscontext,
-                onWebsocketTransform:onWebsocketTransform,
-                connectOptions: connectOptions,
-                connackTimeout: 10000,
-                onPublishReceivedFn: testContext.onPublishReceived,
-                onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
-                onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
-                onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
-                onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
-                onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
-
-            let client = try Mqtt5Client(clientOptions: clientOptions)
-            XCTAssertNotNil(client)
-            try await connectClient(client: client, testContext: testContext)
-            try await disconnectClientCleanup(client: client, testContext: testContext)
-            // Clean up the WebSocket handshake function to ensure the test context is properly released
-            testContext.onWebSocketHandshake=nil
-        }
-        catch{
-            // Fulfill the shutdown callback if the test failed.
-            print("catch error and fulfill the shutdown callback")
-            self.credentialProviderShutdownWasCalled.fulfill()
-        }
-        await awaitExpectation([credentialProviderShutdownWasCalled], 15);
-    }
-
-
-    /*===============================================================
-                     NEGATIVE CONNECT TEST CASES
-    =================================================================*/
-
-    /*
-     * [ConnNegativeID-UC1] Client connect with invalid host name
-     */
-    func testMqtt5DirectConnectWithInvalidHost() async throws {
-
-        let clientOptions = MqttClientOptions(
-            hostName: "badhost",
-            port: UInt32(1883))
-
-        let testContext = MqttTestContext()
-
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try client.start()
-
-        await awaitExpectation([testContext.connectionFailureExpectation], 5)
-
-        if let failureData = testContext.lifecycleConnectionFailureData {
-            XCTAssertEqual(failureData.crtError.code, Int32(AWS_IO_DNS_INVALID_NAME.rawValue))
-        } else {
-            XCTFail("lifecycleConnectionFailureData Missing")
-            return
-        }
-
-        try await stopClient(client: client, testContext: testContext)
-    }
-
-    /*
-     * [ConnNegativeID-UC2] Client connect with invalid port for direct connection
-     */
-    func testMqtt5DirectConnectWithInvalidPort() async throws {
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(444))
-
-        let testContext = MqttTestContext()
-
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try client.start()
-
-        await awaitExpectation([testContext.connectionFailureExpectation], 5)
-
-        if let failureData = testContext.lifecycleConnectionFailureData {
-            if failureData.crtError.code != Int32(AWS_IO_SOCKET_CONNECTION_REFUSED.rawValue) &&
-               failureData.crtError.code != Int32(AWS_IO_SOCKET_TIMEOUT.rawValue) {
-                XCTFail("Did not fail with expected error code")
-                return
-            }
-        } else {
-            XCTFail("lifecycleConnectionFailureData Missing")
-            return
-        }
-
-        try await stopClient(client: client, testContext: testContext)
-    }
-
-    /*
-     * [ConnNegativeID-UC3] Client connect with invalid port for websocket connection
-     */
-    func testMqtt5WSInvalidPort() async throws {
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: 443)
-
-        let testContext = MqttTestContext()
-        testContext.withWebsocketTransform(isSuccess: true)
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-
-        try client.start()
-
-        await awaitExpectation([testContext.connectionFailureExpectation], 5)
-
-        if let failureData = testContext.lifecycleConnectionFailureData {
-            if failureData.crtError.code != Int32(AWS_IO_SOCKET_CONNECTION_REFUSED.rawValue) &&
-               failureData.crtError.code != Int32(AWS_IO_SOCKET_TIMEOUT.rawValue) {
-                XCTFail("Did not fail with expected error code")
-                return
-            }
-        } else {
-            XCTFail("lifecycleConnectionFailureData Missing")
-            return
-        }
-
-        try await stopClient(client: client, testContext: testContext)
-    }
-
-    /*
-     * [ConnNegativeID-UC4] Client connect with socket timeout
-     */
-    func testMqtt5DirectConnectWithSocketTimeout() async throws {
-        let clientOptions = MqttClientOptions(
-            hostName: "www.example.com",
-            port: UInt32(81))
-
-        let testContext = MqttTestContext()
-
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try client.start()
-
-        await awaitExpectation([testContext.connectionFailureExpectation], 5)
-
-        if let failureData = testContext.lifecycleConnectionFailureData {
-            XCTAssertEqual(failureData.crtError.code, Int32(AWS_IO_SOCKET_TIMEOUT.rawValue))
-        } else {
-            XCTFail("lifecycleConnectionFailureData Missing")
-            return
-        }
-
-        try await stopClient(client: client, testContext: testContext)
-    }
-
-    /*
-     * [ConnNegativeID-UC5] Client connect with incorrect basic authentication credentials
-     */
-    func testMqtt5DirectConnectWithIncorrectBasicAuthenticationCredentials() async throws {
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_PORT")
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!)
-
-        let testContext = MqttTestContext()
-
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try client.start()
-
-        await awaitExpectation([testContext.connectionFailureExpectation], 5)
-
-        if let failureData = testContext.lifecycleConnectionFailureData {
-            XCTAssertEqual(failureData.crtError.code, Int32(AWS_ERROR_MQTT5_CONNACK_CONNECTION_REFUSED.rawValue))
-        } else {
-            XCTFail("lifecycleConnectionFailureData Missing")
-            return
-        }
-
-        try await stopClient(client: client, testContext: testContext)
-    }
-
-    /*
-     * [ConnNegativeID-UC6] Client Websocket Handshake Failure test
-     */
-    func testMqtt5WSHandshakeFailure() async throws {
-
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_PORT")
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!)
-
-        let testContext = MqttTestContext()
-        testContext.withWebsocketTransform(isSuccess: false)
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try client.start()
-
-        await awaitExpectation([testContext.connectionFailureExpectation], 5)
-
-        if let failureData = testContext.lifecycleConnectionFailureData {
-            if failureData.crtError.code != Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue) {
-                XCTFail("Did not fail with expected error code")
-                return
-            }
-        } else {
-            XCTFail("lifecycleConnectionFailureData Missing")
-            return
-        }
-
-        try await stopClient(client: client, testContext: testContext)
-    }
-
-
-    /*
-    * [ConnNegativeID-UC7] Double Client ID Failure test
-    */
-    func testMqtt5MTLSConnectDoubleClientIdFailure() async throws {
-        try skipIfPlatformDoesntSupportTLS()
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-
-        let tlsOptions = try TLSContextOptions.makeMTLS(
-            certificatePath: inputCert,
-            privateKeyPath: inputKey
-        )
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-        let clientId = createClientId()
-
-        let connectOptions = MqttConnectOptions(clientId: clientId)
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext,
-            connectOptions: connectOptions,
-            minReconnectDelay: TimeInterval(5))
-
-        let testContext = MqttTestContext(contextName: "client1")
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-
-        // Create a second client with the same client id
-        let testContext2 = MqttTestContext(contextName: "client2")
-        let client2 = try createClient(clientOptions: clientOptions, testContext: testContext2)
-
-        // Connect with second client
-        try await connectClient(client: client2, testContext: testContext2)
-
-        await awaitExpectation([testContext.disconnectionExpectation], 5)
-
-        if let disconnectionData = testContext.lifecycleDisconnectionData {
-            print(disconnectionData.crtError)
-            if let disconnectionPacket = disconnectionData.disconnectPacket {
-                XCTAssertEqual(disconnectionPacket.reasonCode, DisconnectReasonCode.sessionTakenOver)
-            } else {
-                XCTFail("DisconnectPacket missing")
-                return
-            }
-        } else {
-            XCTFail("lifecycleDisconnectionData Missing")
-            return
-        }
-
-        try await stopClient(client: client, testContext: testContext)
-        try await disconnectClientCleanup(client: client2, testContext: testContext2)
-    }
-
-    /*===============================================================
-                     NEGATIVE DATA INPUT TESTS
-    =================================================================*/
-    /*
-    * [NewNegative-UC1] Negative Connect Packet Properties
-    */
-    func testMqtt5NegativeConnectPacket() throws {
-        do {
-            let connectOptions = MqttConnectOptions(keepAliveInterval: TimeInterval(-1))
-            let clientOptions = MqttClientOptions(hostName: "localhost",
-                                              port: UInt32(8883),
-                                              connectOptions: connectOptions)
-
-            let _ = try Mqtt5Client(clientOptions: clientOptions)
-            XCTFail("Negative keepAliveInterval didn't throw an error.")
-            return
-        } catch CommonRunTimeError.crtError(let crtError) {
-            print("expected keepAliveInterval error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
-       }
-
-        do {
-            let connectOptions = MqttConnectOptions(sessionExpiryInterval: TimeInterval(-1))
-            let clientOptions = MqttClientOptions(hostName: "localhost",
-                                              port: UInt32(8883),
-                                              connectOptions: connectOptions)
-            let _ = try Mqtt5Client(clientOptions: clientOptions)
-            XCTFail("Negative sessionExpiryInterval didn't throw an error.")
-            return
-        } catch CommonRunTimeError.crtError(let crtError) {
-            print("expected sessionExpirtyInterval error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
-       }
-
-        do {
-            let connectOptions = MqttConnectOptions(willDelayInterval: -1)
-            let clientOptions = MqttClientOptions(hostName: "localhost",
-                                              port: UInt32(8883),
-                                              connectOptions: connectOptions)
-            let _ = try Mqtt5Client(clientOptions: clientOptions)
-            XCTFail("Negative willDelayInterval didn't throw an error.")
-            return
-        } catch CommonRunTimeError.crtError(let crtError) {
-            print("expected willDelayInterval error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
-       }
-
-        do {
-            let clientOptions = MqttClientOptions(hostName: "localhost",
-                                              port: UInt32(8883),
-                                              minReconnectDelay: -1)
-            let _ = try Mqtt5Client(clientOptions: clientOptions)
-            XCTFail("Negative minReconnectDelay didn't throw an error.")
-            return
-        } catch CommonRunTimeError.crtError(let crtError) {
-            print("expected minReconnectDelay error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
-       }
-
-        do {
-            let clientOptions = MqttClientOptions(hostName: "localhost",
-                                              port: UInt32(8883),
-                                              maxReconnectDelay: -1)
-            let _ = try Mqtt5Client(clientOptions: clientOptions)
-            XCTFail("Negative maxReconnectDelay didn't throw an error.")
-            return
-        } catch CommonRunTimeError.crtError(let crtError) {
-            print("expected minReconnectDelay error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
-       }
-
-        do {
-            let clientOptions = MqttClientOptions(hostName: "localhost",
-                                              port: UInt32(8883),
-                                              minConnectedTimeToResetReconnectDelay: -1)
-            let _ = try Mqtt5Client(clientOptions: clientOptions)
-            XCTFail("Negative minConnectedTimeToResetReconnectDelay didn't throw an error.")
-            return
-        } catch CommonRunTimeError.crtError(let crtError) {
-            print("expected minConnectedTimeToResetReconnectDelay error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
-       }
-
-        do {
-            let clientOptions = MqttClientOptions(hostName: "localhost",
-                                              port: UInt32(8883),
-                                              pingTimeout: -1)
-            let _ = try Mqtt5Client(clientOptions: clientOptions)
-            XCTFail("Negative pingTimeout didn't throw an error.")
-            return
-        } catch CommonRunTimeError.crtError(let crtError) {
-            print("expected pingTimeout error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
-       }
-
-        do {
-            let clientOptions = MqttClientOptions(hostName: "localhost",
-                                              port: UInt32(8883),
-                                              connackTimeout: -1)
-            let _ = try Mqtt5Client(clientOptions: clientOptions)
-            XCTFail("Negative connackTimeout didn't throw an error.")
-            return
-        } catch CommonRunTimeError.crtError(let crtError) {
-            print("expected connackTimeout error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
-       }
-
-        do {
-            let clientOptions = MqttClientOptions(hostName: "localhost",
-                                              port: UInt32(8883),
-                                              ackTimeout: -1)
-            let _ = try Mqtt5Client(clientOptions: clientOptions)
-            XCTFail("Negative ackTimeout didn't throw an error.")
-            return
-        } catch CommonRunTimeError.crtError(let crtError) {
-            print("expected ackTimeout error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
-        }
-    }
-
-    /*
-    * [NewNegative-UC2] Negative Disconnect Packet Properties
-    */
-    func testMqtt5NegativeDisconnectPacket() async throws {
-        try skipIfPlatformDoesntSupportTLS()
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-
-        let tlsOptions = try TLSContextOptions.makeMTLS(
-            certificatePath: inputCert,
-            privateKeyPath: inputKey
-        )
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext)
-
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-
-        let disconnectPacket = DisconnectPacket(sessionExpiryInterval: -1)
-        do {
-            try client.stop(disconnectPacket: disconnectPacket)
-            XCTFail("Negative sessionExpiryInterval didn't throw an error.")
-            return
-        } catch CommonRunTimeError.crtError(let crtError) {
-            print("expected sessionExpiryInterval error: \(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
-        }
-    }
-
-    /*
-    * [NewNegative-UC3] Negative Publish Packet Properties
-    */
-    func testMqtt5NegativePublishPacket() async throws {
-        try skipIfPlatformDoesntSupportTLS()
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-
-        let tlsOptions = try TLSContextOptions.makeMTLS(
-            certificatePath: inputCert,
-            privateKeyPath: inputKey
-        )
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext)
-
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-
-        let publishPacket = PublishPacket(qos: .atMostOnce,
-                                          topic: "Test/Topic",
-                                          messageExpiryInterval: -1)
-
-        do {
-            let _ = try await client.publish(publishPacket: publishPacket)
-            XCTFail("Negative messageExpiryInterval didn't throw an error.")
-            return
-        } catch CommonRunTimeError.crtError(let crtError) {
-            print("expected messageExpiryInterval error:\(crtError)")
-            XCTAssertEqual( crtError.code , (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
-        }
-    }
-
-    /*
-    * [NewNegative-UC4] Negative Subscribe Packet Properties (Swift does not allow a negative subscriptionIdentifier)
-    */
-
-    /*===============================================================
-                         NEGOTIATED SETTINGS TESTS
-    =================================================================*/
-    /*
-    * [Negotiated-UC1] Happy path, minimal success test
-    */
-    func testMqtt5NegotiatedSettingsMinimalSettings() async throws {
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
-
-        let sessionExpirtyInterval = TimeInterval(600000)
-
-        let mqttConnectOptions = MqttConnectOptions(sessionExpiryInterval: sessionExpirtyInterval)
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!,
-            connectOptions: mqttConnectOptions)
-
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-
-        if let negotiatedSettings = testContext.negotiatedSettings {
-            XCTAssertEqual(negotiatedSettings.sessionExpiryInterval, sessionExpirtyInterval)
-        } else {
-            XCTFail("Missing negotiated settings")
-            return
-        }
-
-        try await disconnectClientCleanup(client: client, testContext: testContext)
-    }
-
-    /*
-    * [Negotiated-UC2] maximum success test
-    */
-    func testMqtt5NegotiatedSettingsMaximumSettings() async throws {
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
-
-        let sessionExpirtyInterval = TimeInterval(600000)
-        let clientId = createClientId()
-        let keepAliveInterval = TimeInterval(1000)
-
-        let mqttConnectOptions = MqttConnectOptions(
-            keepAliveInterval: keepAliveInterval,
-            clientId: clientId,
-            sessionExpiryInterval: sessionExpirtyInterval)
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!,
-            connectOptions: mqttConnectOptions)
-
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-
-        if let negotiatedSettings = testContext.negotiatedSettings {
-            XCTAssertEqual(negotiatedSettings.sessionExpiryInterval, sessionExpirtyInterval)
-            XCTAssertEqual(negotiatedSettings.clientId, clientId)
-            XCTAssertEqual(negotiatedSettings.serverKeepAlive, keepAliveInterval)
-            XCTAssertEqual(negotiatedSettings.maximumQos, QoS.atLeastOnce)
-        } else {
-            XCTFail("Missing negotiated settings")
-            return
-        }
-
-        try await disconnectClientCleanup(client: client, testContext: testContext)
-    }
-
-    /*
-    * [Negotiated-UC3] server settings limit test
-    */
-    func testMqtt5NegotiatedSettingsServerLimit() async throws {
-        try skipIfPlatformDoesntSupportTLS()
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-
-        let tlsOptions = try TLSContextOptions.makeMTLS(
-            certificatePath: inputCert,
-            privateKeyPath: inputKey
-        )
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-        let sessionExpiryInterval = TimeInterval(UInt32.max)
-        let keepAliveInterval = TimeInterval(UInt16.max)
-        let receiveMaximum = UInt16.max
-        let maximumPacketSize = UInt32.max
-
-        let mqttConnectOptions = MqttConnectOptions(
-            keepAliveInterval: keepAliveInterval,
-            sessionExpiryInterval: sessionExpiryInterval,
-            receiveMaximum: receiveMaximum,
-            maximumPacketSize: maximumPacketSize)
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext,
-            connectOptions: mqttConnectOptions)
-
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-
-        if let negotiatedSettings = testContext.negotiatedSettings {
-            XCTAssertNotEqual(sessionExpiryInterval, negotiatedSettings.sessionExpiryInterval)
-            XCTAssertNotEqual(receiveMaximum, negotiatedSettings.receiveMaximumFromServer)
-            XCTAssertNotEqual(maximumPacketSize, negotiatedSettings.maximumPacketSizeToServer)
-            XCTAssertNotEqual(keepAliveInterval, negotiatedSettings.serverKeepAlive)
-        } else {
-            XCTFail("Missing negotiated settings")
-            return
-        }
-
-        try await disconnectClientCleanup(client: client, testContext: testContext)
-    }
-
-    /*===============================================================
-                     OPERATION TESTS
-    =================================================================*/
-    /*
-    * [Op-UC1] Sub-Unsub happy path
-    */
-    func testMqtt5SubUnsub() async throws {
-            try skipIfPlatformDoesntSupportTLS()
-            let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-            let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-            let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-
-            let tlsOptions = try TLSContextOptions.makeMTLS(
-                certificatePath: inputCert,
-                privateKeyPath: inputKey
+  }
+
+  /// start client and check for connection success
+  func connectClient(client: Mqtt5Client, testContext: MqttTestContext) async throws {
+    try client.start()
+    await awaitExpectation([testContext.connectionSuccessExpectation], 5)
+
+  }
+
+  /// stop client and check for discconnection and stopped lifecycle events
+  func disconnectClientCleanup(
+    client: Mqtt5Client, testContext: MqttTestContext, disconnectPacket: DisconnectPacket? = nil
+  ) async throws -> Void {
+    try client.stop(disconnectPacket: disconnectPacket)
+    await awaitExpectation([testContext.disconnectionExpectation], 5)
+    await awaitExpectation([testContext.stoppedExpectation], 5)
+  }
+
+  /// stop client and check for stopped lifecycle event
+  func stopClient(client: Mqtt5Client, testContext: MqttTestContext) async throws -> Void {
+    try client.stop()
+    return await awaitExpectation([testContext.stoppedExpectation], 5)
+  }
+
+  func createClientId() -> String {
+    return "test-aws-crt-swift-unit-" + UUID().uuidString
+  }
+
+  class MqttTestContext: @unchecked Sendable {
+    public var contextName: String
+
+    public var onPublishReceived: OnPublishReceived?
+    public var onLifecycleEventStopped: OnLifecycleEventStopped?
+    public var onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect?
+    public var onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess?
+    public var onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure?
+    public var onLifecycleEventDisconnection: OnLifecycleEventDisconnection?
+    public var onWebSocketHandshake: OnWebSocketHandshakeIntercept?
+
+    public let publishReceivedExpectation: XCTestExpectation
+    public let publishTargetReachedExpectation: XCTestExpectation
+    public let connectionSuccessExpectation: XCTestExpectation
+    public let connectionFailureExpectation: XCTestExpectation
+    public let disconnectionExpectation: XCTestExpectation
+    public let stoppedExpectation: XCTestExpectation
+
+    public var negotiatedSettings: NegotiatedSettings?
+    public var connackPacket: ConnackPacket?
+    public var publishPacket: PublishPacket?
+    public var lifecycleConnectionFailureData: LifecycleConnectionFailureData?
+    public var lifecycleDisconnectionData: LifecycleDisconnectData?
+    public var publishCount = 0
+    public var publishTarget = 1
+
+    init(
+      contextName: String = "",
+      publishTarget: Int = 1,
+      onPublishReceived: OnPublishReceived? = nil,
+      onLifecycleEventStopped: OnLifecycleEventStopped? = nil,
+      onLifecycleEventAttemptingConnect: OnLifecycleEventAttemptingConnect? = nil,
+      onLifecycleEventConnectionSuccess: OnLifecycleEventConnectionSuccess? = nil,
+      onLifecycleEventConnectionFailure: OnLifecycleEventConnectionFailure? = nil,
+      onLifecycleEventDisconnection: OnLifecycleEventDisconnection? = nil
+    ) {
+
+      self.contextName = contextName
+
+      self.publishTarget = publishTarget
+      self.publishCount = 0
+
+      self.publishReceivedExpectation = XCTestExpectation(description: "Expect publish received.")
+      self.publishTargetReachedExpectation = XCTestExpectation(
+        description: "Expect publish target reached")
+      self.connectionSuccessExpectation = XCTestExpectation(
+        description: "Expect connection Success")
+      self.connectionFailureExpectation = XCTestExpectation(
+        description: "Expect connection Failure")
+      self.disconnectionExpectation = XCTestExpectation(description: "Expect disconnect")
+      self.stoppedExpectation = XCTestExpectation(description: "Expect stopped")
+
+      self.onPublishReceived = onPublishReceived
+      self.onLifecycleEventStopped = onLifecycleEventStopped
+      self.onLifecycleEventAttemptingConnect = onLifecycleEventAttemptingConnect
+      self.onLifecycleEventConnectionSuccess = onLifecycleEventConnectionSuccess
+      self.onLifecycleEventConnectionFailure = onLifecycleEventConnectionFailure
+      self.onLifecycleEventDisconnection = onLifecycleEventDisconnection
+
+      self.onPublishReceived =
+        onPublishReceived ?? { publishData in
+          if let payloadString = publishData.publishPacket.payloadAsString() {
+            print(
+              contextName
+                + " Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos) payload:\'\(payloadString)\'"
             )
-            let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-            let clientOptions = MqttClientOptions(
-                hostName: inputHost,
-                port: UInt32(8883),
-                tlsCtx: tlsContext)
-
-            let testContext = MqttTestContext()
-            let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-            try await connectClient(client: client, testContext: testContext)
-
-            let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
-            let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
-            let subackPacket: SubackPacket =
-                try await withTimeout(client: client, seconds: 2, operation: {
-                    try await client.subscribe(subscribePacket: subscribePacket)
-                })
-            print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
-
-            let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic, payload: "Hello World".data(using: .utf8))
-            let publishResult: PublishResult =
-                try await withTimeout(client: client, seconds: 2, operation: {
-                    try await client.publish(publishPacket: publishPacket)
-                })
-
-            if let puback = publishResult.puback {
-                print("PubackPacket received with result \(puback.reasonCode)")
-            } else {
-                XCTFail("PublishResult missing.")
-                return
-            }
-
-            await awaitExpectation([testContext.publishReceivedExpectation], 5)
-                
-            let unsubscribePacket = UnsubscribePacket(topicFilter: topic)
-            let unsubackPacket: UnsubackPacket =
-                try await withTimeout(client: client, seconds: 2, operation: {
-                    try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
-                })
-            print("UnsubackPacket received with result \(unsubackPacket.reasonCodes[0])")
-
-            try await disconnectClientCleanup(client: client, testContext: testContext)
+          } else {
+            print(
+              contextName
+                + " Mqtt5ClientTests: onPublishReceived. Topic:\'\(publishData.publishPacket.topic)\' QoS:\(publishData.publishPacket.qos)"
+            )
+          }
+          self.publishPacket = publishData.publishPacket
+          self.publishReceivedExpectation.fulfill()
+          self.publishCount += 1
+          if self.publishCount == self.publishTarget {
+            self.publishTargetReachedExpectation.fulfill()
+          }
         }
 
-    /*
-    * [Op-UC2] Will test
-    */
-    func testMqtt5WillTest() async throws {
-        try skipIfPlatformDoesntSupportTLS()
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-
-        let tlsOptions = try TLSContextOptions.makeMTLS(
-            certificatePath: inputCert,
-            privateKeyPath: inputKey
-        )
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-        let clientIDPublisher = createClientId() + "Publisher"
-        let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
-        let willPacket = PublishPacket(
-            qos: .atLeastOnce, topic: topic, payload: "TEST WILL".data(using: .utf8))
-
-        let connectOptionsPublisher = MqttConnectOptions(clientId: clientIDPublisher, will: willPacket)
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext,
-            connectOptions: connectOptionsPublisher)
-
-        let testContextPublisher = MqttTestContext(contextName: "Publisher")
-        let clientPublisher = try createClient(clientOptions: clientOptions, testContext: testContextPublisher)
-        try await connectClient(client: clientPublisher, testContext: testContextPublisher)
-
-        let clientIDSubscriber = createClientId() + "Subscriber"
-        let testContextSubscriber = MqttTestContext(contextName: "Subscriber")
-        let connectOptionsSubscriber = MqttConnectOptions(clientId: clientIDSubscriber)
-        let clientOptionsSubscriber = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext,
-            connectOptions: connectOptionsSubscriber)
-
-        let clientSubscriber = try createClient(clientOptions: clientOptionsSubscriber, testContext: testContextSubscriber)
-        try await connectClient(client: clientSubscriber, testContext: testContextSubscriber)
-
-        let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
-        let subackPacket: SubackPacket =
-            try await withTimeout(client: clientSubscriber, seconds: 2, operation: {
-                try await clientSubscriber.subscribe(subscribePacket: subscribePacket)
-            })
-        print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
-
-        let disconnectPacket = DisconnectPacket(reasonCode: .disconnectWithWillMessage)
-        try await disconnectClientCleanup(client: clientPublisher, testContext: testContextPublisher, disconnectPacket: disconnectPacket)
-
-        await awaitExpectation([testContextSubscriber.publishReceivedExpectation], 5)
-
-        try await disconnectClientCleanup(client:clientSubscriber, testContext: testContextSubscriber)
+      self.onLifecycleEventStopped =
+        onLifecycleEventStopped ?? { _ in
+          print(contextName + " Mqtt5ClientTests: onLifecycleEventStopped")
+          self.stoppedExpectation.fulfill()
+        }
+      self.onLifecycleEventAttemptingConnect =
+        onLifecycleEventAttemptingConnect ?? { _ in
+          print(contextName + " Mqtt5ClientTests: onLifecycleEventAttemptingConnect")
+        }
+      self.onLifecycleEventConnectionSuccess =
+        onLifecycleEventConnectionSuccess ?? { successData in
+          print(contextName + " Mqtt5ClientTests: onLifecycleEventConnectionSuccess")
+          self.negotiatedSettings = successData.negotiatedSettings
+          self.connackPacket = successData.connackPacket
+          self.connectionSuccessExpectation.fulfill()
+        }
+      self.onLifecycleEventConnectionFailure =
+        onLifecycleEventConnectionFailure ?? { failureData in
+          print(contextName + " Mqtt5ClientTests: onLifecycleEventConnectionFailure")
+          self.lifecycleConnectionFailureData = failureData
+          self.connectionFailureExpectation.fulfill()
+        }
+      self.onLifecycleEventDisconnection =
+        onLifecycleEventDisconnection ?? { disconnectionData in
+          print(contextName + " Mqtt5ClientTests: onLifecycleEventDisconnection")
+          self.lifecycleDisconnectionData = disconnectionData
+          self.disconnectionExpectation.fulfill()
+        }
     }
 
-    /*
-    * [Op-UC3] Binary Publish Test
-    */
-    func testMqtt5BinaryPublish() async throws {
-        try skipIfPlatformDoesntSupportTLS()
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-
-        let tlsOptions = try TLSContextOptions.makeMTLS(
-            certificatePath: inputCert,
-            privateKeyPath: inputKey
-        )
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext)
-
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
-
-        let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
-        let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
-
-        _ = try await withTimeout(client: client, seconds: 2, operation: {
-                try await client.subscribe(subscribePacket: subscribePacket)
-            })
-
-        let payloadData = Data((0..<256).map { _ in UInt8.random(in: 0...255) })
-        let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
-
-        let publishResult: PublishResult =
-            try await withTimeout(client: client, seconds: 2, operation: {
-                try await client.publish(publishPacket: publishPacket)
-            })
-
-        if publishResult.puback == nil {
-            XCTFail("Puback missing.")
-            return
-        }
-
-        await awaitExpectation([testContext.publishReceivedExpectation], 5)
-
-        let publishReceived = testContext.publishPacket!
-        XCTAssertEqual(publishReceived.payload, payloadData, "Binary data received as publish not equal to binary data used to generate publish")
-
-        try await disconnectClientCleanup(client: client, testContext: testContext)
+    /// Setup a simple websocket transform function
+    /// - `isSuccess`: True, complete the handshake with success
+    ///             False, fail the handshake with error AWS_ERROR_UNSUPPORTED_OPERATION
+    func withWebsocketTransform(isSuccess: Bool) {
+      self.onWebSocketHandshake = { httpRequest, completCallback in
+        completCallback(
+          httpRequest, isSuccess ? AWS_OP_SUCCESS : Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
+      }
     }
 
-    /*
-    * [Op-UC4] Multi-sub unsub
-    */
-    func testMqtt5MultiSubUnsub() async throws {
-            let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-            let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+  }
 
-            let clientOptions = MqttClientOptions(
-                hostName: inputHost,
-                port: UInt32(inputPort)!)
+  func createClient(clientOptions: MqttClientOptions?, testContext: MqttTestContext) throws
+    -> Mqtt5Client
+  {
 
-            let testContext = MqttTestContext()
-            let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-            try await connectClient(client: client, testContext: testContext)
+    let clientOptionsWithCallbacks: MqttClientOptions
 
-            let topic1 = "test/MQTT5_Binding_Swift_" + UUID().uuidString
-            let topic2 = "test/MQTT5_Binding_Swift_" + UUID().uuidString
-            let subscriptions = [Subscription(topicFilter: topic1, qos: QoS.atLeastOnce, noLocal: false),
-                                              Subscription(topicFilter: topic2, qos: QoS.atMostOnce, noLocal: false)]
-            let subscribePacket = SubscribePacket(subscriptions: subscriptions)
+    if let clientOptions {
+      clientOptionsWithCallbacks = MqttClientOptions(
+        hostName: clientOptions.hostName,
+        port: clientOptions.port,
+        bootstrap: clientOptions.bootstrap,
+        socketOptions: clientOptions.socketOptions,
+        tlsCtx: clientOptions.tlsCtx,
+        onWebsocketTransform: testContext.onWebSocketHandshake,
+        httpProxyOptions: clientOptions.httpProxyOptions,
+        connectOptions: clientOptions.connectOptions,
+        sessionBehavior: clientOptions.sessionBehavior,
+        extendedValidationAndFlowControlOptions: clientOptions
+          .extendedValidationAndFlowControlOptions,
+        offlineQueueBehavior: clientOptions.offlineQueueBehavior,
+        retryJitterMode: clientOptions.retryJitterMode,
+        minReconnectDelay: clientOptions.minReconnectDelay,
+        maxReconnectDelay: clientOptions.maxReconnectDelay,
+        minConnectedTimeToResetReconnectDelay: clientOptions.minConnectedTimeToResetReconnectDelay,
+        pingTimeout: clientOptions.pingTimeout,
+        connackTimeout: clientOptions.connackTimeout,
+        ackTimeout: clientOptions.ackTimeout,
+        topicAliasingOptions: clientOptions.topicAliasingOptions,
+        onPublishReceivedFn: testContext.onPublishReceived,
+        onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
+        onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
+        onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
+        onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
+        onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection,
+        disableMetrics: clientOptions.disableMetrics)
+    } else {
+      let elg = try EventLoopGroup()
+      let resolver = try HostResolver(
+        eventLoopGroup: elg,
+        maxHosts: 8,
+        maxTTL: 30)
+      let clientBootstrap = try ClientBootstrap(
+        eventLoopGroup: elg,
+        hostResolver: resolver)
+      let socketOptions = SocketOptions()
 
-            let subackPacket: SubackPacket =
-                try await withTimeout(client: client, seconds: 2, operation: {
-                    try await client.subscribe(subscribePacket: subscribePacket)
-                })
+      clientOptionsWithCallbacks = MqttClientOptions(
+        hostName: "localhost",
+        port: 443,
+        bootstrap: clientBootstrap,
+        socketOptions: socketOptions,
+        onPublishReceivedFn: testContext.onPublishReceived,
+        onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
+        onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
+        onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
+        onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
+        onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
+    }
 
-            let expectedSubacKEnums = [SubackReasonCode.grantedQos1, SubackReasonCode.grantedQos0]
-            try compareEnums(arrayOne: subackPacket.reasonCodes, arrayTwo: expectedSubacKEnums)
-            print("SubackPacket received with results")
-            for i in 0..<subackPacket.reasonCodes.count {
-                print("Index:\(i) result:\(subackPacket.reasonCodes[i])")
-            }
+    let mqtt5Client = try Mqtt5Client(clientOptions: clientOptionsWithCallbacks)
+    XCTAssertNotNil(mqtt5Client)
+    return mqtt5Client
+  }
 
-            let unsubscribeTopics = [topic1, topic2, "fake_topic1"]
-            let unsubscribePacket = UnsubscribePacket(topicFilters: unsubscribeTopics)
-            let unsubackPacket: UnsubackPacket =
-                try await withTimeout(client: client, seconds: 2, operation: {
-                    try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
-                })
+  func compareEnums<T: Equatable>(arrayOne: [T], arrayTwo: [T]) throws {
+    XCTAssertEqual(
+      arrayOne.count, arrayTwo.count, "The arrays do not have the same number of elements")
+    for i in 0..<arrayOne.count {
+      XCTAssertEqual(arrayOne[i], arrayTwo[i], "The elements at index \(i) are not equal")
+    }
+  }
 
-            print("UnsubackPacket received with results")
-            for i in 0..<unsubackPacket.reasonCodes.count {
-                print("Index:\(i) result:\(unsubackPacket.reasonCodes[i])")
-            }
+  func withTimeout<T: Sendable>(
+    client: Mqtt5Client, seconds: TimeInterval, operation: @escaping @Sendable () async throws -> T
+  ) async throws -> T {
 
-            try await disconnectClientCleanup(client: client, testContext: testContext)
+    let timeoutTask: @Sendable () async throws -> T = {
+      try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+      throw MqttTestError.timeout
+    }
+
+    var result: T?
+
+    try await withThrowingTaskGroup(of: T.self) { group in
+      // Start the operation
+      group.addTask { try await operation() }
+      // Start the timeout
+      group.addTask { try await timeoutTask() }
+
+      do {
+        result = try await group.next()
+        group.cancelAll()
+      } catch {
+        // Close the client to complete all operations that may be timing out
+        client.close()
+        throw MqttTestError.timeout
+      }
+    }
+
+    return result!
+  }
+
+  let timeoutInterval = TimeInterval(5)
+
+  /*===============================================================
+                   CREATION TEST CASES
+  =================================================================*/
+  /*
+   * [New-UC1] Happy path. Minimal creation and cleanup
+   */
+  func testMqtt5ClientNewMinimal() throws {
+    let elg = try EventLoopGroup()
+    let resolver = try HostResolver(
+      eventLoopGroup: elg,
+      maxHosts: 8,
+      maxTTL: 30)
+
+    let clientBootstrap = try ClientBootstrap(
+      eventLoopGroup: elg,
+      hostResolver: resolver)
+    XCTAssertNotNil(clientBootstrap)
+    let socketOptions = SocketOptions()
+    XCTAssertNotNil(socketOptions)
+    let clientOptions = MqttClientOptions(
+      hostName: "localhost", port: 1883, bootstrap: clientBootstrap,
+      socketOptions: socketOptions)
+    XCTAssertNotNil(clientOptions)
+    let mqtt5client = try Mqtt5Client(clientOptions: clientOptions)
+    XCTAssertNotNil(mqtt5client)
+  }
+
+  /*
+   * [New-UC2] Maximum creation and cleanup
+   */
+  func testMqtt5ClientNewFull() throws {
+    let elg = try EventLoopGroup()
+    let resolver = try HostResolver(
+      eventLoopGroup: elg,
+      maxHosts: 8,
+      maxTTL: 30)
+
+    let clientBootstrap = try ClientBootstrap(
+      eventLoopGroup: elg,
+      hostResolver: resolver)
+    XCTAssertNotNil(clientBootstrap)
+    let socketOptions = SocketOptions()
+    XCTAssertNotNil(socketOptions)
+    let tlsOptions = TLSContextOptions()
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+    let will = PublishPacket(
+      qos: QoS.atLeastOnce, topic: "test/Mqtt5_Binding_SWIFT/testMqtt5ClientNewFull",
+      payload: "will test".data(using: .utf8))
+
+    let uuid = UUID().uuidString
+    let connectOptions = MqttConnectOptions(
+      keepAliveInterval: 30,
+      clientId: "testMqtt5ClientNewFull_" + uuid,
+      sessionExpiryInterval: 1000,
+      requestResponseInformation: true,
+      requestProblemInformation: true,
+      receiveMaximum: 1000,
+      maximumPacketSize: 1000,
+      willDelayInterval: 1000,
+      will: will,
+      userProperties: [
+        UserProperty(name: "name1", value: "value1"),
+        UserProperty(name: "name2", value: "value2"),
+        UserProperty(name: "name3", value: "value3"),
+      ])
+
+    let clientOptions = MqttClientOptions(
+      hostName: "localhost",
+      port: 1883,
+      bootstrap: clientBootstrap,
+      socketOptions: socketOptions,
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions,
+      sessionBehavior: ClientSessionBehaviorType.clean,
+      extendedValidationAndFlowControlOptions: ExtendedValidationAndFlowControlOptions
+        .awsIotCoreDefaults,
+      offlineQueueBehavior: ClientOperationQueueBehaviorType.failAllOnDisconnect,
+      retryJitterMode: ExponentialBackoffJitterMode.full,
+      minReconnectDelay: 1000,
+      maxReconnectDelay: 1000,
+      minConnectedTimeToResetReconnectDelay: 1000,
+      pingTimeout: 10,
+      connackTimeout: 10,
+      ackTimeout: 60,
+      topicAliasingOptions: TopicAliasingOptions())
+    XCTAssertNotNil(clientOptions)
+    let context = MqttTestContext()
+    let mqtt5client = try createClient(clientOptions: clientOptions, testContext: context)
+    XCTAssertNotNil(mqtt5client)
+  }
+
+  /*===============================================================
+                   DIRECT CONNECT TEST CASES
+  =================================================================*/
+  /*
+   * [ConnDC-UC1] Happy path
+   */
+  func testMqtt5DirectConnectMinimum() async throws {
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
+   * [ConnDC-UC2] Direct Connection with Basic Authentication
+   */
+  func testMqtt5DirectConnectWithBasicAuth() async throws {
+
+    let inputUsername = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_USERNAME")
+    let inputPassword = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_PASSWORD")
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_PORT")
+
+    let connectOptions = MqttConnectOptions(
+      clientId: createClientId(),
+      username: inputUsername,
+      password: inputPassword.data(using: .utf8))
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!,
+      connectOptions: connectOptions,
+      disableMetrics: true)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
+   * [Metrics-UC2-B] Direct Connection with Basic Auth - Metrics Disabled (should succeed)
+   *
+   * When metrics are disabled, the username is not modified and basic authentication
+   * works correctly.
+   */
+  func testMqtt5DirectConnectBasicAuthMetricsEnabled() async throws {
+
+    let inputUsername = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_USERNAME")
+    let inputPassword = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_PASSWORD")
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_PORT")
+
+    let connectOptions = MqttConnectOptions(
+      clientId: createClientId(),
+      username: inputUsername,
+      password: inputPassword.data(using: .utf8))
+
+    // Metrics enabled (disableMetrics: false)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!,
+      connectOptions: connectOptions,
+      disableMetrics: false)
+
+    let testContext: Mqtt5ClientTests.MqttTestContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+
+    try client.start()
+    // The connection should fail with metrics in username
+    await awaitExpectation([testContext.connectionFailureExpectation], 5)
+
+    if let failureData = testContext.lifecycleConnectionFailureData {
+      XCTAssertEqual(
+        failureData.crtError.code, Int32(AWS_ERROR_MQTT5_CONNACK_CONNECTION_REFUSED.rawValue))
+    } else {
+      XCTFail("lifecycleConnectionFailureData Missing")
+      return
+    }
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*
+   * [ConnDC-UC3] Direct Connection with TLS
+   */
+  func testMqtt5DirectConnectWithTLS() async throws {
+
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+
+    let tlsOptions = TLSContextOptions()
+    tlsOptions.setVerifyPeer(false)
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!,
+      tlsCtx: tlsContext)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
+   * [ConnDC-UC4] Direct Connection with mutual TLS
+   */
+  func testMqtt5DirectConnectWithMutualTLS() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+
+  }
+
+  /*
+   * [ConnDC-UC4-1] Direct Connection with mutual TLS to a TLS 1.3-only host
+   */
+  func testMqtt5DirectConnectWithMutualTLS13() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    #if os(Linux) || os(macOS)
+      throw XCTSkip("TLS 1.3 is not supported on this platform (s2n requires CMake build)")
+    #endif
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_TLS13_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
+   * [ConnDC-UC5] Direct Connection with HttpProxy options and TLS
+   */
+  func testMqtt5DirectConnectWithHttpProxy() async throws {
+
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+    let inputProxyHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_PROXY_HOST")
+    let inputProxyPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_PROXY_PORT")
+
+    let tlsOptions = TLSContextOptions()
+    tlsOptions.setVerifyPeer(false)
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let httpProxyOptions = HTTPProxyOptions(
+      hostName: inputProxyHost,
+      port: UInt32(inputProxyPort)!,
+      connectionType: HTTPProxyConnectionType.tunnel)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!,
+      tlsCtx: tlsContext,
+      httpProxyOptions: httpProxyOptions)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
+   * [ConnDC-UC5-1] HttpProxy options failed with Apple Network Framework
+   */
+  func testMqtt5HttpProxyFailedOnApple() async throws {
+    #if !AWS_USE_SECITEM
+      throw XCTSkip("Http proxy config should only fail on Apple Network Framework")
+    #endif
+    let inputHost = "dummy_host"
+    let inputPort: UInt32 = 1
+    let inputProxyHost = "dummy_host"
+    let inputProxyPort: UInt32 = 1
+
+    let tlsOptions = TLSContextOptions()
+    tlsOptions.setVerifyPeer(false)
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let httpProxyOptions = HTTPProxyOptions(
+      hostName: inputProxyHost,
+      port: inputProxyPort,
+      connectionType: HTTPProxyConnectionType.tunnel)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: inputPort,
+      tlsCtx: tlsContext,
+      httpProxyOptions: httpProxyOptions)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+
+    try client.start()
+    await awaitExpectation([testContext.connectionFailureExpectation], 5)
+
+    if let failureData = testContext.lifecycleConnectionFailureData {
+      XCTAssertEqual(failureData.crtError.code, Int32(AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
+    } else {
+      XCTFail("lifecycleConnectionFailureData Missing")
+      return
+    }
+
+    try await stopClient(client: client, testContext: testContext)
+
+  }
+
+  /*
+   * [ConnDC-UC6] Direct Connection with all options set
+   */
+  func testMqtt5DirectConnectMaximum() async throws {
+
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+    let userProperties = [
+      UserProperty(name: "name1", value: "value1"),
+      UserProperty(name: "name2", value: "value2"),
+    ]
+
+    let willPacket = PublishPacket(
+      qos: QoS.atLeastOnce,
+      topic: "TEST_TOPIC",
+      payload: "TEST_PAYLOAD".data(using: .utf8),
+      retain: false,
+      payloadFormatIndicator: PayloadFormatIndicator.utf8,
+      messageExpiryInterval: TimeInterval(10),
+      topicAlias: UInt16(1),
+      responseTopic: "TEST_RESPONSE_TOPIC",
+      correlationData: "TEST_CORRELATION_DATA".data(using: .utf8),
+      contentType: "TEST_CONTENT_TYPE",
+      userProperties: userProperties)
+
+    let connectOptions = MqttConnectOptions(
+      keepAliveInterval: TimeInterval(10),
+      clientId: createClientId(),
+      sessionExpiryInterval: TimeInterval(100),
+      requestResponseInformation: true,
+      requestProblemInformation: true,
+      receiveMaximum: 1000,
+      maximumPacketSize: 10000,
+      willDelayInterval: TimeInterval(1000),
+      will: willPacket,
+      userProperties: userProperties)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!,
+      connectOptions: connectOptions,
+      sessionBehavior: ClientSessionBehaviorType.clean,
+      extendedValidationAndFlowControlOptions: ExtendedValidationAndFlowControlOptions
+        .awsIotCoreDefaults,
+      offlineQueueBehavior: ClientOperationQueueBehaviorType.failAllOnDisconnect,
+      retryJitterMode: ExponentialBackoffJitterMode.decorrelated,
+      minReconnectDelay: TimeInterval(0.1),
+      maxReconnectDelay: TimeInterval(50),
+      minConnectedTimeToResetReconnectDelay: TimeInterval(1),
+      pingTimeout: TimeInterval(1),
+      connackTimeout: TimeInterval(1),
+      ackTimeout: TimeInterval(100))
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*===============================================================
+                   WEBSOCKET CONNECT TEST CASES
+  =================================================================*/
+  /*
+   * [ConnWS-UC1] Happy path. Websocket connection with minimal configuration.
+   */
+  func testMqtt5WSConnectionMinimal() async throws {
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_PORT")
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!)
+
+    let testContext = MqttTestContext()
+    testContext.withWebsocketTransform(isSuccess: true)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
+   * [ConnWS-UC2]  websocket connection with basic authentication
+   */
+  func testMqtt5WSConnectWithBasicAuth() async throws {
+
+    let inputUsername = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_USERNAME")
+    let inputPassword = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_BASIC_AUTH_PASSWORD")
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_BASIC_AUTH_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_BASIC_AUTH_PORT")
+
+    let connectOptions = MqttConnectOptions(
+      clientId: createClientId(),
+      username: inputUsername,
+      password: inputPassword.data(using: .utf8)
+    )
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!,
+      connectOptions: connectOptions,
+      disableMetrics: true)
+
+    let testContext = MqttTestContext()
+    testContext.withWebsocketTransform(isSuccess: true)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
+   * [ConnWS-UC3] websocket connection with TLS
+   */
+  func testMqtt5WSConnectWithTLS() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_TLS_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_TLS_PORT")
+
+    // XCode could only take terminal environment variable
+    let tlsOptions = TLSContextOptions.makeDefault()
+    tlsOptions.setVerifyPeer(false)
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!,
+      tlsCtx: tlsContext)
+
+    let testContext = MqttTestContext()
+    testContext.withWebsocketTransform(isSuccess: true)
+
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
+   * [ConnWS-UC4] websocket connection with TLS, using sigv4
+   */
+  func testMqtt5WSConnectWithStaticCredentialProvider() async throws {
+    do {
+      try skipIfPlatformDoesntSupportTLS()
+
+      let inputHost = try getEnvironmentVarOrSkipTest(
+        environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+      let region = try getEnvironmentVarOrSkipTest(
+        environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
+
+      let tlsOptions = TLSContextOptions.makeDefault()
+      let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+      let elg = try EventLoopGroup()
+      let resolver = try HostResolver(
+        eventLoopGroup: elg,
+        maxHosts: 8,
+        maxTTL: 30)
+      let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
+
+      // setup role credential
+      let accessKey = try getEnvironmentVarOrSkipTest(
+        environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_ACCESS_KEY")
+      let secret = try getEnvironmentVarOrSkipTest(
+        environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SECRET_ACCESS_KEY")
+      let sessionToken = try getEnvironmentVarOrSkipTest(
+        environmentVarName: "AWS_TEST_MQTT5_ROLE_CREDENTIAL_SESSION_TOKEN")
+
+      let provider = try CredentialsProvider(
+        source: .static(
+          accessKey: accessKey,
+          secret: secret,
+          sessionToken: sessionToken, shutdownCallback: credentialProviderShutdownCallback()))
+      let testContext = MqttTestContext()
+
+      let signingConfig = SigningConfig(
+        algorithm: SigningAlgorithmType.signingV4,
+        signatureType: SignatureType.requestQueryParams,
+        service: "iotdevicegateway",
+        region: region,
+        credentialsProvider: provider,
+        omitSessionToken: true)
+
+      // We manually setup the websocket transform to avoid recursive reference between provider and test context
+      let onWebsocketTransform: OnWebSocketHandshakeIntercept = { httpRequest, completCallback in
+        Task {
+          do {
+            let returnedHttpRequest = try await Signer.signRequest(
+              request: httpRequest, config: signingConfig)
+            completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
+          } catch CommonRunTimeError.crtError(let error) {
+            completCallback(httpRequest, Int32(error.code))
+          } catch {
+            completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
+          }
         }
+      }
 
-    /*===============================================================
-                     ERROR OPERATION TESTS
-    =================================================================*/
-    /*
-    * [ErrorOp-UC1] Null Publish Test (Swift does not allow a nil PublishPacket)
-    * [ErrorOp-UC2] Null Subscribe Test (Swift does not allow a nil SubscribePacket)
-    * [ErrorOp-UC3] Null Unsubscribe Test (Swift does not allow a nil UnsubscribePacket)
-    */
+      let clientOptions = MqttClientOptions(
+        hostName: inputHost,
+        port: UInt32(443),
+        bootstrap: bootstrap,
+        tlsCtx: tlsContext,
+        onWebsocketTransform: onWebsocketTransform,
+        connackTimeout: 10000,
+        onPublishReceivedFn: testContext.onPublishReceived,
+        onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
+        onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
+        onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
+        onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
+        onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
 
-    /*
-    * [ErrorOp-UC4] Invalid Topic Publish
-    */
-    func testMqtt5InvalidPublishTopic() async throws {
+      let client = try Mqtt5Client(clientOptions: clientOptions)
+      XCTAssertNotNil(client)
 
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+      try await connectClient(client: client, testContext: testContext)
+      try await disconnectClientCleanup(client: client, testContext: testContext)
+      // Clean up the WebSocket handshake function to ensure the test context is properly released
+      testContext.onWebSocketHandshake = nil
+    } catch {
+      // Fulfill the callback if the error
+      self.credentialProviderShutdownWasCalled.fulfill()
+    }
+    await awaitExpectation([credentialProviderShutdownWasCalled])
+  }
 
-        let tlsOptions = TLSContextOptions()
-        tlsOptions.setVerifyPeer(false)
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+  /*
+   * [ConnWS-UC5] Websocket connection with HttpProxy options
+   */
+  func testMqtt5WSConnectWithHttpProxy() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    try skipifmacOS()
 
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!,
-            tlsCtx: tlsContext)
+    let iotHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let region = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_REGION")
+    let httpHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_PROXY_HOST")
+    let httpPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_PROXY_PORT")
 
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
+    let tlsOptions = TLSContextOptions.makeDefault()
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
 
-        let publishPacket = PublishPacket(qos: .atLeastOnce, topic: "")
+    let elg = try EventLoopGroup()
+    let resolver = try HostResolver(
+      eventLoopGroup: elg,
+      maxHosts: 8,
+      maxTTL: 30)
+    let bootstrap = try ClientBootstrap(eventLoopGroup: elg, hostResolver: resolver)
+    let httpProxy = HTTPProxyOptions(
+      hostName: httpHost, port: UInt32(httpPort)!, authType: .none,
+      connectionType: HTTPProxyConnectionType.tunnel)
+
+    let provider = try CredentialsProvider(
+      source: .defaultChain(
+        bootstrap: bootstrap,
+        fileBasedConfiguration: FileBasedConfiguration(),
+        tlsContext: tlsContext))
+    let testContext = MqttTestContext()
+
+    let signingConfig = SigningConfig(
+      algorithm: SigningAlgorithmType.signingV4,
+      signatureType: SignatureType.requestQueryParams,
+      service: "iotdevicegateway",
+      region: region,
+      credentialsProvider: provider,
+
+      omitSessionToken: true)
+
+    // We manually setup the websocket transform to avoid recursive reference between provider and test context
+    let onWebsocketTransform: OnWebSocketHandshakeIntercept = { httpRequest, completCallback in
+      Task {
         do {
-            _ = try await client.publish(publishPacket: publishPacket)
-        } catch CommonRunTimeError.crtError(let crtError) {
-            XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_PUBLISH_OPTIONS_VALIDATION.rawValue))
+          let returnedHttpRequest = try await Signer.signRequest(
+            request: httpRequest, config: signingConfig)
+          completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
+        } catch CommonRunTimeError.crtError(let error) {
+          completCallback(httpRequest, Int32(error.code))
+        } catch {
+          completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
         }
-
-        try await disconnectClientCleanup(client:client, testContext: testContext)
+      }
     }
 
-    /*
-    * [ErrorOp-UC5] Invalid Topic Subscribe
-    */
-    func testMqtt5InvalidSubscribeTopic() async throws {
+    let clientOptions = MqttClientOptions(
+      hostName: iotHost,
+      port: UInt32(443),
+      bootstrap: bootstrap,
+      tlsCtx: tlsContext,
+      onWebsocketTransform: onWebsocketTransform,
+      httpProxyOptions: httpProxy,
+      onPublishReceivedFn: testContext.onPublishReceived,
+      onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
+      onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
+      onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
+      onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
+      onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
 
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+    let client = try Mqtt5Client(clientOptions: clientOptions)
+    XCTAssertNotNil(client)
 
-        let tlsOptions = TLSContextOptions()
-        tlsOptions.setVerifyPeer(false)
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+    try await connectClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
 
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!,
-            tlsCtx: tlsContext)
+  func testMqtt5WSConnectFull() async throws {
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_PORT")
 
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
+    let userProperties = [
+      UserProperty(name: "name1", value: "value1"),
+      UserProperty(name: "name2", value: "value2"),
+    ]
 
-        let subscribePacket = SubscribePacket(topicFilter: "", qos: .atLeastOnce)
-        do {
-            _ = try await client.subscribe(subscribePacket: subscribePacket)
-        } catch CommonRunTimeError.crtError(let crtError) {
-            XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_SUBSCRIBE_OPTIONS_VALIDATION.rawValue))
+    let willPacket = PublishPacket(
+      qos: QoS.atLeastOnce,
+      topic: "TEST_TOPIC",
+      payload: "TEST_PAYLOAD".data(using: .utf8),
+      retain: false,
+      payloadFormatIndicator: PayloadFormatIndicator.utf8,
+      messageExpiryInterval: TimeInterval(10),
+      topicAlias: UInt16(1),
+      responseTopic: "TEST_RESPONSE_TOPIC",
+      correlationData: "TEST_CORRELATION_DATA".data(using: .utf8),
+      contentType: "TEST_CONTENT_TYPE",
+      userProperties: userProperties)
+
+    let connectOptions = MqttConnectOptions(
+      keepAliveInterval: TimeInterval(10),
+      clientId: createClientId(),
+      sessionExpiryInterval: TimeInterval(100),
+      requestResponseInformation: true,
+      requestProblemInformation: true,
+      receiveMaximum: 1000,
+      maximumPacketSize: 10000,
+      willDelayInterval: TimeInterval(1000),
+      will: willPacket,
+      userProperties: userProperties)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!,
+      connectOptions: connectOptions,
+      sessionBehavior: ClientSessionBehaviorType.clean,
+      extendedValidationAndFlowControlOptions: ExtendedValidationAndFlowControlOptions
+        .awsIotCoreDefaults,
+      offlineQueueBehavior: ClientOperationQueueBehaviorType.failAllOnDisconnect,
+      retryJitterMode: ExponentialBackoffJitterMode.decorrelated,
+      minReconnectDelay: TimeInterval(0.1),
+      maxReconnectDelay: TimeInterval(50),
+      minConnectedTimeToResetReconnectDelay: TimeInterval(1),
+      pingTimeout: TimeInterval(1),
+      connackTimeout: TimeInterval(1),
+      ackTimeout: TimeInterval(100))
+
+    let testContext = MqttTestContext()
+    testContext.withWebsocketTransform(isSuccess: true)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  func testMqttWebsocketWithCognitoCredentialProvider() async throws {
+    do {
+      let iotEndpoint = try getEnvironmentVarOrSkipTest(
+        environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+      let port = 443
+      let cognitoEndpoint = try getEnvironmentVarOrSkipTest(
+        environmentVarName: "AWS_TEST_MQTT5_COGNITO_ENDPOINT")
+      let cognitoIdentity = try getEnvironmentVarOrSkipTest(
+        environmentVarName: "AWS_TEST_MQTT5_COGNITO_IDENTITY")
+      let testContext = MqttTestContext(contextName: "WebsocketWithCognitoCredentialProvider")
+      let elg = try EventLoopGroup()
+      let resolver = try HostResolver(eventLoopGroup: elg, maxHosts: 16, maxTTL: 30)
+      let clientBootstrap = try ClientBootstrap(
+        eventLoopGroup: elg,
+        hostResolver: resolver)
+
+      let options = TLSContextOptions.makeDefault()
+      let tlscontext = try TLSContext(options: options, mode: .client)
+
+      let cognitoProvider = try CredentialsProvider(
+        source: .cognito(
+          bootstrap: clientBootstrap, tlsContext: tlscontext, endpoint: cognitoEndpoint,
+          identity: cognitoIdentity, shutdownCallback: credentialProviderShutdownCallback()))
+
+      let connectOptions = MqttConnectOptions(
+        keepAliveInterval: TimeInterval(100),
+        clientId: createClientId())
+
+      let signingConfig = SigningConfig(
+        algorithm: SigningAlgorithmType.signingV4,
+        signatureType: SignatureType.requestQueryParams,
+        service: "iotdevicegateway",
+        region: "us-east-1",
+        credentialsProvider: cognitoProvider,
+        omitSessionToken: true)
+
+      let onWebsocketTransform: OnWebSocketHandshakeIntercept = { httpRequest, completCallback in
+        Task {
+          do {
+            let returnedHttpRequest = try await Signer.signRequest(
+              request: httpRequest, config: signingConfig)
+            completCallback(returnedHttpRequest, AWS_OP_SUCCESS)
+            print("complete signing")
+          } catch CommonRunTimeError.crtError(let error) {
+            completCallback(httpRequest, Int32(error.code))
+            print("signing failed with crterror")
+          } catch {
+            completCallback(httpRequest, Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue))
+            print("signing failed")
+          }
         }
+      }
 
-        try await disconnectClientCleanup(client:client, testContext: testContext)
+      let clientOptions = MqttClientOptions(
+        hostName: iotEndpoint,
+        port: UInt32(port),
+        bootstrap: clientBootstrap,
+        tlsCtx: tlscontext,
+        onWebsocketTransform: onWebsocketTransform,
+        connectOptions: connectOptions,
+        connackTimeout: 10000,
+        onPublishReceivedFn: testContext.onPublishReceived,
+        onLifecycleEventStoppedFn: testContext.onLifecycleEventStopped,
+        onLifecycleEventAttemptingConnectFn: testContext.onLifecycleEventAttemptingConnect,
+        onLifecycleEventConnectionSuccessFn: testContext.onLifecycleEventConnectionSuccess,
+        onLifecycleEventConnectionFailureFn: testContext.onLifecycleEventConnectionFailure,
+        onLifecycleEventDisconnectionFn: testContext.onLifecycleEventDisconnection)
+
+      let client = try Mqtt5Client(clientOptions: clientOptions)
+      XCTAssertNotNil(client)
+      try await connectClient(client: client, testContext: testContext)
+      try await disconnectClientCleanup(client: client, testContext: testContext)
+      // Clean up the WebSocket handshake function to ensure the test context is properly released
+      testContext.onWebSocketHandshake = nil
+    } catch {
+      // Fulfill the shutdown callback if the test failed.
+      print("catch error and fulfill the shutdown callback")
+      self.credentialProviderShutdownWasCalled.fulfill()
+    }
+    await awaitExpectation([credentialProviderShutdownWasCalled], 15)
+  }
+
+  /*===============================================================
+                   NEGATIVE CONNECT TEST CASES
+  =================================================================*/
+
+  /*
+   * [ConnNegativeID-UC1] Client connect with invalid host name
+   */
+  func testMqtt5DirectConnectWithInvalidHost() async throws {
+
+    let clientOptions = MqttClientOptions(
+      hostName: "badhost",
+      port: UInt32(1883))
+
+    let testContext = MqttTestContext()
+
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try client.start()
+
+    await awaitExpectation([testContext.connectionFailureExpectation], 5)
+
+    if let failureData = testContext.lifecycleConnectionFailureData {
+      XCTAssertEqual(failureData.crtError.code, Int32(AWS_IO_DNS_INVALID_NAME.rawValue))
+    } else {
+      XCTFail("lifecycleConnectionFailureData Missing")
+      return
     }
 
-    /*
-    * [ErrorOp-UC6] Invalid Topic Unsubscribe
-    */
-    func testMqtt5InvalidUnsubscribeTopic() async throws {
+    try await stopClient(client: client, testContext: testContext)
+  }
 
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+  /*
+   * [ConnNegativeID-UC2] Client connect with invalid port for direct connection
+   */
+  func testMqtt5DirectConnectWithInvalidPort() async throws {
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
 
-        let tlsOptions = TLSContextOptions()
-        tlsOptions.setVerifyPeer(false)
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(444))
 
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!,
-            tlsCtx: tlsContext)
+    let testContext = MqttTestContext()
 
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try client.start()
 
-        let unsubscribePacket = UnsubscribePacket(topicFilter: "")
-        do {
-            _ = try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
-        } catch CommonRunTimeError.crtError(let crtError) {
-            XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_UNSUBSCRIBE_OPTIONS_VALIDATION.rawValue))
-        }
+    await awaitExpectation([testContext.connectionFailureExpectation], 5)
 
-        try await disconnectClientCleanup(client:client, testContext: testContext)
+    if let failureData = testContext.lifecycleConnectionFailureData {
+      if failureData.crtError.code != Int32(AWS_IO_SOCKET_CONNECTION_REFUSED.rawValue)
+        && failureData.crtError.code != Int32(AWS_IO_SOCKET_TIMEOUT.rawValue)
+      {
+        XCTFail("Did not fail with expected error code")
+        return
+      }
+    } else {
+      XCTFail("lifecycleConnectionFailureData Missing")
+      return
     }
 
-    /*===============================================================
-                     QOS1 TESTS
-    =================================================================*/
-    /*
-    * [QoS1-UC1] Happy Path
-    */
-    func testMqtt5QoS1HappyPath() async throws {
-        try skipIfPlatformDoesntSupportTLS()
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+    try await stopClient(client: client, testContext: testContext)
+  }
 
-        // Create and connect client1
-        let tlsOptions = try TLSContextOptions.makeMTLS(
-            certificatePath: inputCert,
-            privateKeyPath: inputKey
-        )
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-        tlsOptions.setVerifyPeer(false)
-        let connectOptions1 = MqttConnectOptions(clientId: createClientId())
-        let clientOptions1 = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext,
-            connectOptions: connectOptions1)
-        let testContext1 = MqttTestContext()
-        let client1 = try createClient(clientOptions: clientOptions1, testContext: testContext1)
-        try await connectClient(client: client1, testContext: testContext1)
+  /*
+   * [ConnNegativeID-UC3] Client connect with invalid port for websocket connection
+   */
+  func testMqtt5WSInvalidPort() async throws {
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
 
-        // Create and connect client2
-        let connectOptions2 = MqttConnectOptions(clientId: createClientId())
-        let clientOptions2 = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext,
-            connectOptions: connectOptions2)
-        let testContext2 = MqttTestContext(publishTarget: 10)
-        let client2 = try createClient(clientOptions: clientOptions2, testContext: testContext2)
-        try await connectClient(client: client2, testContext: testContext2)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: 443)
 
-        let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
-        let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    let testContext = MqttTestContext()
+    testContext.withWebsocketTransform(isSuccess: true)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
 
-        _ = try await withTimeout(client: client2, seconds: 2, operation: {
-                try await client2.subscribe(subscribePacket: subscribePacket)
-            })
+    try client.start()
 
-        // Send 10 publishes from client1
-        var i = 1
-        for _ in 1...10 {
-            let publishPacket = PublishPacket(qos: .atLeastOnce,
-                                              topic: topic,
-                                              payload: "Test Publish: \(i)".data(using: .utf8))
-            print("sending publish \(i)")
-            _ = try await client1.publish(publishPacket: publishPacket)
-            i += 1
-        }
+    await awaitExpectation([testContext.connectionFailureExpectation], 5)
 
-        // Wait for client2 to receive 10 publishes
-        await awaitExpectation([testContext2.publishTargetReachedExpectation], 5)
-
-
-        try await disconnectClientCleanup(client:client1, testContext: testContext1)
-        try await disconnectClientCleanup(client:client2, testContext: testContext2)
-
+    if let failureData = testContext.lifecycleConnectionFailureData {
+      if failureData.crtError.code != Int32(AWS_IO_SOCKET_CONNECTION_REFUSED.rawValue)
+        && failureData.crtError.code != Int32(AWS_IO_SOCKET_TIMEOUT.rawValue)
+      {
+        XCTFail("Did not fail with expected error code")
+        return
+      }
+    } else {
+      XCTFail("lifecycleConnectionFailureData Missing")
+      return
     }
 
-    /*===============================================================
-                     RETAIN TESTS
-    =================================================================*/
-    /*
-    * [Retain-UC1] Set and Clear
-    */
+    try await stopClient(client: client, testContext: testContext)
+  }
 
-    func testMqtt5Retain() async throws {
-        try skipIfPlatformDoesntSupportTLS()
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
-        let inputCert = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-        let inputKey = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+  /*
+   * [ConnNegativeID-UC4] Client connect with socket timeout
+   */
+  func testMqtt5DirectConnectWithSocketTimeout() async throws {
+    let clientOptions = MqttClientOptions(
+      hostName: "www.example.com",
+      port: UInt32(81))
 
-        // Create and connect client1
-        let tlsOptions = try TLSContextOptions.makeMTLS(
-            certificatePath: inputCert,
-            privateKeyPath: inputKey
-        )
-        let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-        tlsOptions.setVerifyPeer(false)
-        let connectOptions1 = MqttConnectOptions(clientId: createClientId())
-        let clientOptions1 = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext,
-            connectOptions: connectOptions1)
-        let testContext1 = MqttTestContext(contextName: "Client1")
-        let client1 = try createClient(clientOptions: clientOptions1, testContext: testContext1)
-        try await connectClient(client: client1, testContext: testContext1)
+    let testContext = MqttTestContext()
 
-        // Create client2
-        let connectOptions2 = MqttConnectOptions(clientId: createClientId())
-        let clientOptions2 = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext,
-            connectOptions: connectOptions2)
-        let testContext2 = MqttTestContext(contextName: "Client2")
-        let client2 = try createClient(clientOptions: clientOptions2, testContext: testContext2)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try client.start()
 
-        // Create client3
-        let connectOptions3 = MqttConnectOptions(clientId: createClientId())
-        let clientOptions3 = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(8883),
-            tlsCtx: tlsContext,
-            connectOptions: connectOptions3)
-        let testContext3 = MqttTestContext(contextName: "Client3")
-        let client3 = try createClient(clientOptions: clientOptions3, testContext: testContext3)
+    await awaitExpectation([testContext.connectionFailureExpectation], 5)
 
-        let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
-        let publishPacket = PublishPacket(qos: .atLeastOnce,
-                                          topic: topic,
-                                          payload: "Retained publish from client 1".data(using: .utf8),
-                                          retain: true)
-        let subscribePacket = SubscribePacket(topicFilter: topic,
-                                              qos: QoS.atLeastOnce,
-                                              noLocal: false)
-
-        // publish retained message from client1
-        let publishResult: PublishResult =
-            try await withTimeout(client: client1, seconds: 2, operation: {
-                try await client1.publish(publishPacket: publishPacket)
-            })
-
-        if let puback = publishResult.puback {
-            print("PubackPacket received with result \(puback.reasonCode)")
-        } else {
-            XCTFail("PublishResult missing.")
-            return
-        }
-
-        // connect client2 and subscribe to topic with retained client1 publish
-        try await connectClient(client: client2, testContext: testContext2)
-        _ = try await withTimeout(client: client2, seconds: 2, operation: {
-                try await client2.subscribe(subscribePacket: subscribePacket)
-            })
-
-        
-        await awaitExpectation([testContext2.publishReceivedExpectation], 10)
-
-        XCTAssertEqual(testContext2.publishPacket?.payloadAsString(), publishPacket.payloadAsString())
-
-        // Send an empty publish from client1 to clear the retained publish on the topic
-        let publishPacketEmpty = PublishPacket(qos: .atLeastOnce, topic: topic, retain: true)
-        // publish retained message from client1
-        let publishResult2: PublishResult =
-            try await withTimeout(client: client1, seconds: 2, operation: {
-                try await client1.publish(publishPacket: publishPacketEmpty)
-            })
-        if let puback2 = publishResult2.puback {
-            print("PubackPacket received with result \(puback2.reasonCode)")
-        } else {
-            XCTFail("PublishResult missing.")
-            return
-        }
-
-        // connect client3 and subscribe to topic to insure there is no client1 retained publish
-        try await connectClient(client: client3, testContext: testContext3)
-
-        _ = try await withTimeout(client: client3, seconds: 2, operation: {
-                try await client3.subscribe(subscribePacket: subscribePacket)
-            })
-
-        let waitResult = await awaitExpectationResult([testContext3.publishReceivedExpectation], 5)
-        if(waitResult == XCTWaiter.Result.timedOut){
-            print("no retained publish from client1")
-        }else{
-            XCTFail("Retained publish from client1 received when it should be cleared")
-            return
-        }
-        
-
-        try await disconnectClientCleanup(client:client1, testContext: testContext1)
-        try await disconnectClientCleanup(client:client2, testContext: testContext2)
-        try await disconnectClientCleanup(client:client3, testContext: testContext3)
+    if let failureData = testContext.lifecycleConnectionFailureData {
+      XCTAssertEqual(failureData.crtError.code, Int32(AWS_IO_SOCKET_TIMEOUT.rawValue))
+    } else {
+      XCTFail("lifecycleConnectionFailureData Missing")
+      return
     }
 
-    /*===============================================================
-                     BINDING CLEANUP TESTS
-    =================================================================*/
-    /*
-    * [BCT-UC1] Start Without Stop
-    */
-    func testStartWithoutStop() async throws {
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+    try await stopClient(client: client, testContext: testContext)
+  }
 
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!)
+  /*
+   * [ConnNegativeID-UC5] Client connect with incorrect basic authentication credentials
+   */
+  func testMqtt5DirectConnectWithIncorrectBasicAuthenticationCredentials() async throws {
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_BASIC_AUTH_PORT")
 
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        try await connectClient(client: client, testContext: testContext)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!)
+
+    let testContext = MqttTestContext()
+
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try client.start()
+
+    await awaitExpectation([testContext.connectionFailureExpectation], 5)
+
+    if let failureData = testContext.lifecycleConnectionFailureData {
+      XCTAssertEqual(
+        failureData.crtError.code, Int32(AWS_ERROR_MQTT5_CONNACK_CONNECTION_REFUSED.rawValue))
+    } else {
+      XCTFail("lifecycleConnectionFailureData Missing")
+      return
     }
 
-    /*
-    * [BCT-UC2] Offline Operations
-    */
-    func testOfflineOperations() async throws {
-        let inputHost = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
-        let inputPort = try getEnvironmentVarOrSkipTest(environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+    try await stopClient(client: client, testContext: testContext)
+  }
 
-        let clientOptions = MqttClientOptions(
-            hostName: inputHost,
-            port: UInt32(inputPort)!)
+  /*
+   * [ConnNegativeID-UC6] Client Websocket Handshake Failure test
+   */
+  func testMqtt5WSHandshakeFailure() async throws {
 
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_WS_MQTT_PORT")
 
-        let testContext = MqttTestContext()
-        let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-        // offline operation would never complete. Use close to force quit.
-        defer { client.close() }
-        try await connectClient(client: client, testContext: testContext)
-        try await stopClient(client: client, testContext: testContext)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!)
 
-        let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
-        let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic)
+    let testContext = MqttTestContext()
+    testContext.withWebsocketTransform(isSuccess: false)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try client.start()
 
-        do{
-            // An offline publish would not get the puback back as the operation could never get an ack back
-            // the operation should timeout
-            let _ = try await withTimeout(client: client, seconds: 2, operation: {
-                try await client.publish(publishPacket: publishPacket)
-            })
-        }catch (let error)  {
-            if(error as! MqttTestError != MqttTestError.timeout) {
-                XCTFail("Offline publish failed with \(error)")
-            }
+    await awaitExpectation([testContext.connectionFailureExpectation], 5)
+
+    if let failureData = testContext.lifecycleConnectionFailureData {
+      if failureData.crtError.code != Int32(AWS_ERROR_UNSUPPORTED_OPERATION.rawValue) {
+        XCTFail("Did not fail with expected error code")
+        return
+      }
+    } else {
+      XCTFail("lifecycleConnectionFailureData Missing")
+      return
+    }
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*
+  * [ConnNegativeID-UC7] Double Client ID Failure test
+  */
+  func testMqtt5MTLSConnectDoubleClientIdFailure() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions,
+      minReconnectDelay: TimeInterval(5))
+
+    let testContext = MqttTestContext(contextName: "client1")
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    // Create a second client with the same client id
+    let testContext2 = MqttTestContext(contextName: "client2")
+    let client2 = try createClient(clientOptions: clientOptions, testContext: testContext2)
+
+    // Connect with second client
+    try await connectClient(client: client2, testContext: testContext2)
+
+    await awaitExpectation([testContext.disconnectionExpectation], 5)
+
+    if let disconnectionData = testContext.lifecycleDisconnectionData {
+      print(disconnectionData.crtError)
+      if let disconnectionPacket = disconnectionData.disconnectPacket {
+        XCTAssertEqual(disconnectionPacket.reasonCode, DisconnectReasonCode.sessionTakenOver)
+      } else {
+        XCTFail("DisconnectPacket missing")
+        return
+      }
+    } else {
+      XCTFail("lifecycleDisconnectionData Missing")
+      return
+    }
+
+    try await stopClient(client: client, testContext: testContext)
+    try await disconnectClientCleanup(client: client2, testContext: testContext2)
+  }
+
+  /*===============================================================
+                   NEGATIVE DATA INPUT TESTS
+  =================================================================*/
+  /*
+  * [NewNegative-UC1] Negative Connect Packet Properties
+  */
+  func testMqtt5NegativeConnectPacket() throws {
+    do {
+      let connectOptions = MqttConnectOptions(keepAliveInterval: TimeInterval(-1))
+      let clientOptions = MqttClientOptions(
+        hostName: "localhost",
+        port: UInt32(8883),
+        connectOptions: connectOptions)
+
+      let _ = try Mqtt5Client(clientOptions: clientOptions)
+      XCTFail("Negative keepAliveInterval didn't throw an error.")
+      return
+    } catch CommonRunTimeError.crtError(let crtError) {
+      print("expected keepAliveInterval error: \(crtError)")
+      XCTAssertEqual(crtError.code, (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+    }
+
+    do {
+      let connectOptions = MqttConnectOptions(sessionExpiryInterval: TimeInterval(-1))
+      let clientOptions = MqttClientOptions(
+        hostName: "localhost",
+        port: UInt32(8883),
+        connectOptions: connectOptions)
+      let _ = try Mqtt5Client(clientOptions: clientOptions)
+      XCTFail("Negative sessionExpiryInterval didn't throw an error.")
+      return
+    } catch CommonRunTimeError.crtError(let crtError) {
+      print("expected sessionExpirtyInterval error: \(crtError)")
+      XCTAssertEqual(crtError.code, (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+    }
+
+    do {
+      let connectOptions = MqttConnectOptions(willDelayInterval: -1)
+      let clientOptions = MqttClientOptions(
+        hostName: "localhost",
+        port: UInt32(8883),
+        connectOptions: connectOptions)
+      let _ = try Mqtt5Client(clientOptions: clientOptions)
+      XCTFail("Negative willDelayInterval didn't throw an error.")
+      return
+    } catch CommonRunTimeError.crtError(let crtError) {
+      print("expected willDelayInterval error: \(crtError)")
+      XCTAssertEqual(crtError.code, (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+    }
+
+    do {
+      let clientOptions = MqttClientOptions(
+        hostName: "localhost",
+        port: UInt32(8883),
+        minReconnectDelay: -1)
+      let _ = try Mqtt5Client(clientOptions: clientOptions)
+      XCTFail("Negative minReconnectDelay didn't throw an error.")
+      return
+    } catch CommonRunTimeError.crtError(let crtError) {
+      print("expected minReconnectDelay error: \(crtError)")
+      XCTAssertEqual(crtError.code, (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+    }
+
+    do {
+      let clientOptions = MqttClientOptions(
+        hostName: "localhost",
+        port: UInt32(8883),
+        maxReconnectDelay: -1)
+      let _ = try Mqtt5Client(clientOptions: clientOptions)
+      XCTFail("Negative maxReconnectDelay didn't throw an error.")
+      return
+    } catch CommonRunTimeError.crtError(let crtError) {
+      print("expected minReconnectDelay error: \(crtError)")
+      XCTAssertEqual(crtError.code, (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+    }
+
+    do {
+      let clientOptions = MqttClientOptions(
+        hostName: "localhost",
+        port: UInt32(8883),
+        minConnectedTimeToResetReconnectDelay: -1)
+      let _ = try Mqtt5Client(clientOptions: clientOptions)
+      XCTFail("Negative minConnectedTimeToResetReconnectDelay didn't throw an error.")
+      return
+    } catch CommonRunTimeError.crtError(let crtError) {
+      print("expected minConnectedTimeToResetReconnectDelay error: \(crtError)")
+      XCTAssertEqual(crtError.code, (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+    }
+
+    do {
+      let clientOptions = MqttClientOptions(
+        hostName: "localhost",
+        port: UInt32(8883),
+        pingTimeout: -1)
+      let _ = try Mqtt5Client(clientOptions: clientOptions)
+      XCTFail("Negative pingTimeout didn't throw an error.")
+      return
+    } catch CommonRunTimeError.crtError(let crtError) {
+      print("expected pingTimeout error: \(crtError)")
+      XCTAssertEqual(crtError.code, (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+    }
+
+    do {
+      let clientOptions = MqttClientOptions(
+        hostName: "localhost",
+        port: UInt32(8883),
+        connackTimeout: -1)
+      let _ = try Mqtt5Client(clientOptions: clientOptions)
+      XCTFail("Negative connackTimeout didn't throw an error.")
+      return
+    } catch CommonRunTimeError.crtError(let crtError) {
+      print("expected connackTimeout error: \(crtError)")
+      XCTAssertEqual(crtError.code, (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+    }
+
+    do {
+      let clientOptions = MqttClientOptions(
+        hostName: "localhost",
+        port: UInt32(8883),
+        ackTimeout: -1)
+      let _ = try Mqtt5Client(clientOptions: clientOptions)
+      XCTFail("Negative ackTimeout didn't throw an error.")
+      return
+    } catch CommonRunTimeError.crtError(let crtError) {
+      print("expected ackTimeout error: \(crtError)")
+      XCTAssertEqual(crtError.code, (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+    }
+  }
+
+  /*
+  * [NewNegative-UC2] Negative Disconnect Packet Properties
+  */
+  func testMqtt5NegativeDisconnectPacket() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    let disconnectPacket = DisconnectPacket(sessionExpiryInterval: -1)
+    do {
+      try client.stop(disconnectPacket: disconnectPacket)
+      XCTFail("Negative sessionExpiryInterval didn't throw an error.")
+      return
+    } catch CommonRunTimeError.crtError(let crtError) {
+      print("expected sessionExpiryInterval error: \(crtError)")
+      XCTAssertEqual(crtError.code, (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+    }
+  }
+
+  /*
+  * [NewNegative-UC3] Negative Publish Packet Properties
+  */
+  func testMqtt5NegativePublishPacket() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    let publishPacket = PublishPacket(
+      qos: .atMostOnce,
+      topic: "Test/Topic",
+      messageExpiryInterval: -1)
+
+    do {
+      let _ = try await client.publish(publishPacket: publishPacket)
+      XCTFail("Negative messageExpiryInterval didn't throw an error.")
+      return
+    } catch CommonRunTimeError.crtError(let crtError) {
+      print("expected messageExpiryInterval error:\(crtError)")
+      XCTAssertEqual(crtError.code, (Int32)(AWS_ERROR_INVALID_ARGUMENT.rawValue))
+    }
+  }
+
+  /*
+  * [NewNegative-UC4] Negative Subscribe Packet Properties (Swift does not allow a negative subscriptionIdentifier)
+  */
+
+  /*===============================================================
+                       NEGOTIATED SETTINGS TESTS
+  =================================================================*/
+  /*
+  * [Negotiated-UC1] Happy path, minimal success test
+  */
+  func testMqtt5NegotiatedSettingsMinimalSettings() async throws {
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+    let sessionExpirtyInterval = TimeInterval(600000)
+
+    let mqttConnectOptions = MqttConnectOptions(sessionExpiryInterval: sessionExpirtyInterval)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!,
+      connectOptions: mqttConnectOptions)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    if let negotiatedSettings = testContext.negotiatedSettings {
+      XCTAssertEqual(negotiatedSettings.sessionExpiryInterval, sessionExpirtyInterval)
+    } else {
+      XCTFail("Missing negotiated settings")
+      return
+    }
+
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
+  * [Negotiated-UC2] maximum success test
+  */
+  func testMqtt5NegotiatedSettingsMaximumSettings() async throws {
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+    let sessionExpirtyInterval = TimeInterval(600000)
+    let clientId = createClientId()
+    let keepAliveInterval = TimeInterval(1000)
+
+    let mqttConnectOptions = MqttConnectOptions(
+      keepAliveInterval: keepAliveInterval,
+      clientId: clientId,
+      sessionExpiryInterval: sessionExpirtyInterval)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!,
+      connectOptions: mqttConnectOptions)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    if let negotiatedSettings = testContext.negotiatedSettings {
+      XCTAssertEqual(negotiatedSettings.sessionExpiryInterval, sessionExpirtyInterval)
+      XCTAssertEqual(negotiatedSettings.clientId, clientId)
+      XCTAssertEqual(negotiatedSettings.serverKeepAlive, keepAliveInterval)
+      XCTAssertEqual(negotiatedSettings.maximumQos, QoS.atLeastOnce)
+    } else {
+      XCTFail("Missing negotiated settings")
+      return
+    }
+
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
+  * [Negotiated-UC3] server settings limit test
+  */
+  func testMqtt5NegotiatedSettingsServerLimit() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let sessionExpiryInterval = TimeInterval(UInt32.max)
+    let keepAliveInterval = TimeInterval(UInt16.max)
+    let receiveMaximum = UInt16.max
+    let maximumPacketSize = UInt32.max
+
+    let mqttConnectOptions = MqttConnectOptions(
+      keepAliveInterval: keepAliveInterval,
+      sessionExpiryInterval: sessionExpiryInterval,
+      receiveMaximum: receiveMaximum,
+      maximumPacketSize: maximumPacketSize)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: mqttConnectOptions)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    if let negotiatedSettings = testContext.negotiatedSettings {
+      XCTAssertNotEqual(sessionExpiryInterval, negotiatedSettings.sessionExpiryInterval)
+      XCTAssertNotEqual(receiveMaximum, negotiatedSettings.receiveMaximumFromServer)
+      XCTAssertNotEqual(maximumPacketSize, negotiatedSettings.maximumPacketSizeToServer)
+      XCTAssertNotEqual(keepAliveInterval, negotiatedSettings.serverKeepAlive)
+    } else {
+      XCTFail("Missing negotiated settings")
+      return
+    }
+
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*===============================================================
+                   OPERATION TESTS
+  =================================================================*/
+  /*
+  * [Op-UC1] Sub-Unsub happy path
+  */
+  func testMqtt5SubUnsub() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    let subackPacket: SubackPacket =
+      try await withTimeout(
+        client: client, seconds: 2,
+        operation: {
+          try await client.subscribe(subscribePacket: subscribePacket)
+        })
+    print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
+
+    let publishPacket = PublishPacket(
+      qos: QoS.atLeastOnce, topic: topic, payload: "Hello World".data(using: .utf8))
+    let publishResult: PublishResult =
+      try await withTimeout(
+        client: client, seconds: 2,
+        operation: {
+          try await client.publish(publishPacket: publishPacket)
+        })
+
+    if let puback = publishResult.puback {
+      print("PubackPacket received with result \(puback.reasonCode)")
+    } else {
+      XCTFail("PublishResult missing.")
+      return
+    }
+
+    await awaitExpectation([testContext.publishReceivedExpectation], 5)
+
+    let unsubscribePacket = UnsubscribePacket(topicFilter: topic)
+    let unsubackPacket: UnsubackPacket =
+      try await withTimeout(
+        client: client, seconds: 2,
+        operation: {
+          try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
+        })
+    print("UnsubackPacket received with result \(unsubackPacket.reasonCodes[0])")
+
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
+  * [Op-UC2] Will test
+  */
+  func testMqtt5WillTest() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientIDPublisher = createClientId() + "Publisher"
+    let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+    let willPacket = PublishPacket(
+      qos: .atLeastOnce, topic: topic, payload: "TEST WILL".data(using: .utf8))
+
+    let connectOptionsPublisher = MqttConnectOptions(clientId: clientIDPublisher, will: willPacket)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptionsPublisher)
+
+    let testContextPublisher = MqttTestContext(contextName: "Publisher")
+    let clientPublisher = try createClient(
+      clientOptions: clientOptions, testContext: testContextPublisher)
+    try await connectClient(client: clientPublisher, testContext: testContextPublisher)
+
+    let clientIDSubscriber = createClientId() + "Subscriber"
+    let testContextSubscriber = MqttTestContext(contextName: "Subscriber")
+    let connectOptionsSubscriber = MqttConnectOptions(clientId: clientIDSubscriber)
+    let clientOptionsSubscriber = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptionsSubscriber)
+
+    let clientSubscriber = try createClient(
+      clientOptions: clientOptionsSubscriber, testContext: testContextSubscriber)
+    try await connectClient(client: clientSubscriber, testContext: testContextSubscriber)
+
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    let subackPacket: SubackPacket =
+      try await withTimeout(
+        client: clientSubscriber, seconds: 2,
+        operation: {
+          try await clientSubscriber.subscribe(subscribePacket: subscribePacket)
+        })
+    print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
+
+    let disconnectPacket = DisconnectPacket(reasonCode: .disconnectWithWillMessage)
+    try await disconnectClientCleanup(
+      client: clientPublisher, testContext: testContextPublisher, disconnectPacket: disconnectPacket
+    )
+
+    await awaitExpectation([testContextSubscriber.publishReceivedExpectation], 5)
+
+    try await disconnectClientCleanup(client: clientSubscriber, testContext: testContextSubscriber)
+  }
+
+  /*
+  * [Op-UC3] Binary Publish Test
+  */
+  func testMqtt5BinaryPublish() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+
+    _ = try await withTimeout(
+      client: client, seconds: 2,
+      operation: {
+        try await client.subscribe(subscribePacket: subscribePacket)
+      })
+
+    let payloadData = Data((0..<256).map { _ in UInt8.random(in: 0...255) })
+    let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
+
+    let publishResult: PublishResult =
+      try await withTimeout(
+        client: client, seconds: 2,
+        operation: {
+          try await client.publish(publishPacket: publishPacket)
+        })
+
+    if publishResult.puback == nil {
+      XCTFail("Puback missing.")
+      return
+    }
+
+    await awaitExpectation([testContext.publishReceivedExpectation], 5)
+
+    let publishReceived = testContext.publishPacket!
+    XCTAssertEqual(
+      publishReceived.payload, payloadData,
+      "Binary data received as publish not equal to binary data used to generate publish")
+
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
+  * [Op-UC4] Multi-sub unsub
+  */
+  func testMqtt5MultiSubUnsub() async throws {
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    let topic1 = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+    let topic2 = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+    let subscriptions = [
+      Subscription(topicFilter: topic1, qos: QoS.atLeastOnce, noLocal: false),
+      Subscription(topicFilter: topic2, qos: QoS.atMostOnce, noLocal: false),
+    ]
+    let subscribePacket = SubscribePacket(subscriptions: subscriptions)
+
+    let subackPacket: SubackPacket =
+      try await withTimeout(
+        client: client, seconds: 2,
+        operation: {
+          try await client.subscribe(subscribePacket: subscribePacket)
+        })
+
+    let expectedSubacKEnums = [SubackReasonCode.grantedQos1, SubackReasonCode.grantedQos0]
+    try compareEnums(arrayOne: subackPacket.reasonCodes, arrayTwo: expectedSubacKEnums)
+    print("SubackPacket received with results")
+    for i in 0..<subackPacket.reasonCodes.count {
+      print("Index:\(i) result:\(subackPacket.reasonCodes[i])")
+    }
+
+    let unsubscribeTopics = [topic1, topic2, "fake_topic1"]
+    let unsubscribePacket = UnsubscribePacket(topicFilters: unsubscribeTopics)
+    let unsubackPacket: UnsubackPacket =
+      try await withTimeout(
+        client: client, seconds: 2,
+        operation: {
+          try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
+        })
+
+    print("UnsubackPacket received with results")
+    for i in 0..<unsubackPacket.reasonCodes.count {
+      print("Index:\(i) result:\(unsubackPacket.reasonCodes[i])")
+    }
+
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*===============================================================
+                   ERROR OPERATION TESTS
+  =================================================================*/
+  /*
+  * [ErrorOp-UC1] Null Publish Test (Swift does not allow a nil PublishPacket)
+  * [ErrorOp-UC2] Null Subscribe Test (Swift does not allow a nil SubscribePacket)
+  * [ErrorOp-UC3] Null Unsubscribe Test (Swift does not allow a nil UnsubscribePacket)
+  */
+
+  /*
+  * [ErrorOp-UC4] Invalid Topic Publish
+  */
+  func testMqtt5InvalidPublishTopic() async throws {
+
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+
+    let tlsOptions = TLSContextOptions()
+    tlsOptions.setVerifyPeer(false)
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!,
+      tlsCtx: tlsContext)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    let publishPacket = PublishPacket(qos: .atLeastOnce, topic: "")
+    do {
+      _ = try await client.publish(publishPacket: publishPacket)
+    } catch CommonRunTimeError.crtError(let crtError) {
+      XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_PUBLISH_OPTIONS_VALIDATION.rawValue))
+    }
+
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
+  * [ErrorOp-UC5] Invalid Topic Subscribe
+  */
+  func testMqtt5InvalidSubscribeTopic() async throws {
+
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+
+    let tlsOptions = TLSContextOptions()
+    tlsOptions.setVerifyPeer(false)
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!,
+      tlsCtx: tlsContext)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    let subscribePacket = SubscribePacket(topicFilter: "", qos: .atLeastOnce)
+    do {
+      _ = try await client.subscribe(subscribePacket: subscribePacket)
+    } catch CommonRunTimeError.crtError(let crtError) {
+      XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_SUBSCRIBE_OPTIONS_VALIDATION.rawValue))
+    }
+
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*
+  * [ErrorOp-UC6] Invalid Topic Unsubscribe
+  */
+  func testMqtt5InvalidUnsubscribeTopic() async throws {
+
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_TLS_PORT")
+
+    let tlsOptions = TLSContextOptions()
+    tlsOptions.setVerifyPeer(false)
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!,
+      tlsCtx: tlsContext)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    let unsubscribePacket = UnsubscribePacket(topicFilter: "")
+    do {
+      _ = try await client.unsubscribe(unsubscribePacket: unsubscribePacket)
+    } catch CommonRunTimeError.crtError(let crtError) {
+      XCTAssertEqual(crtError.code, Int32(AWS_ERROR_MQTT5_UNSUBSCRIBE_OPTIONS_VALIDATION.rawValue))
+    }
+
+    try await disconnectClientCleanup(client: client, testContext: testContext)
+  }
+
+  /*===============================================================
+                   QOS1 TESTS
+  =================================================================*/
+  /*
+  * [QoS1-UC1] Happy Path
+  */
+  func testMqtt5QoS1HappyPath() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    // Create and connect client1
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+    tlsOptions.setVerifyPeer(false)
+    let connectOptions1 = MqttConnectOptions(clientId: createClientId())
+    let clientOptions1 = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions1)
+    let testContext1 = MqttTestContext()
+    let client1 = try createClient(clientOptions: clientOptions1, testContext: testContext1)
+    try await connectClient(client: client1, testContext: testContext1)
+
+    // Create and connect client2
+    let connectOptions2 = MqttConnectOptions(clientId: createClientId())
+    let clientOptions2 = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions2)
+    let testContext2 = MqttTestContext(publishTarget: 10)
+    let client2 = try createClient(clientOptions: clientOptions2, testContext: testContext2)
+    try await connectClient(client: client2, testContext: testContext2)
+
+    let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+
+    _ = try await withTimeout(
+      client: client2, seconds: 2,
+      operation: {
+        try await client2.subscribe(subscribePacket: subscribePacket)
+      })
+
+    // Send 10 publishes from client1
+    var i = 1
+    for _ in 1...10 {
+      let publishPacket = PublishPacket(
+        qos: .atLeastOnce,
+        topic: topic,
+        payload: "Test Publish: \(i)".data(using: .utf8))
+      print("sending publish \(i)")
+      _ = try await client1.publish(publishPacket: publishPacket)
+      i += 1
+    }
+
+    // Wait for client2 to receive 10 publishes
+    await awaitExpectation([testContext2.publishTargetReachedExpectation], 5)
+
+    try await disconnectClientCleanup(client: client1, testContext: testContext1)
+    try await disconnectClientCleanup(client: client2, testContext: testContext2)
+
+  }
+
+  /*===============================================================
+                   MANUAL PUBACK TESTS
+  =================================================================*/
+  /*
+  * [ManualPuback-UC1] Hold PUBACK and verify broker re-delivers the message
+  */
+  func testMqtt5ManualPubackHold() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+    let topic = "test/MQTT5_ManualPuback_Swift_" + clientId
+    let payloadData = "Hello World".data(using: .utf8)!
+
+    // Expectations: first delivery and re-delivery (broker re-drives when PUBACK is not sent).
+    let publishReceivedExpectation = XCTestExpectation(
+      description: "First publish delivery received")
+    let publishReceivedTwiceExpectation = XCTestExpectation(
+      description: "Second publish delivery received (re-driven publish after held PUBACK)")
+
+    // Actor-protected state to hold the publishAcknowledgementHandle and count.
+    // The handle is acquired synchronously in the callback.
+    actor AcknowledgementState {
+      var handle: PublishAcknowledgementHandle? = nil
+      var deliveryCount: Int = 0
+      func set(_ h: PublishAcknowledgementHandle?) { handle = h }
+      func incrementDeliveryCount() -> Int {
+        deliveryCount += 1
+        return deliveryCount
+      }
+    }
+    let ackState = AcknowledgementState()
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      // Acquire the handle synchronously within the callback.
+      let h = publishData.acquirePublishAcknowledgement?()
+
+      if let payloadString = publishData.publishPacket.payloadAsString() {
+        print(
+          "ManualPubackHold Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)"
+            + " payload:'\(payloadString)'")
+      } else {
+        print(
+          "ManualPubackHold Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)")
+      }
+
+      Task {
+        let count = await ackState.incrementDeliveryCount()
+        if count == 1 {
+          // First delivery: store the handle (holding the PUBACK) and signal.
+          await ackState.set(h)
+          publishReceivedExpectation.fulfill()
+        } else if count == 2 {
+          // Second delivery: broker re-sent because no PUBACK was received.
+          publishReceivedTwiceExpectation.fulfill()
         }
-
+      }
     }
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions)
+
+    let testContext = MqttTestContext(
+      contextName: "ManualPubackHold",
+      onPublishReceived: onPublishReceived)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    // Subscribe to the topic with QoS 1
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
+    }
+
+    // Publish a QoS 1 message
+    let publishPacket = PublishPacket(
+      qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
+    let publishResult = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+    XCTAssertNotNil(publishResult.puback, "Expected puback for QoS 1 publish")
+
+    // Wait for the first delivery (PUBACK is held — not sent to broker)
+    await awaitExpectation([publishReceivedExpectation], 5)
+
+    // After the expectation is fulfilled, the handle should be set with the control.
+    let publishAcknowledgementHandle = await ackState.handle
+    XCTAssertNotNil(
+      publishAcknowledgementHandle,
+      "acquirePublishAcknowledgement() should have returned a handle on first delivery")
+
+    // Wait up to 35 seconds for the broker to re-drive the publish for unacknowledged QoS 1 publish
+    let redeliveryResult = await awaitExpectationResult([publishReceivedTwiceExpectation], 35)
+    XCTAssertEqual(
+      redeliveryResult, .completed,
+      "Broker should re-deliver the message when PUBACK is held")
+
+    // Release the held PUBACK now that re-delivery has been confirmed
+    if let handle = publishAcknowledgementHandle {
+      try client.invokePublishAcknowledgement(handle)
+    }
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*
+  * [ManualPuback-UC2] Acquire and immediately invoke PUBACK, verify no re-delivery
+  */
+  func testMqtt5ManualPubackInvoke() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+    let topic = "test/MQTT5_ManualPuback_Swift_" + clientId
+    let payloadData = "Hello World".data(using: .utf8)!
+
+    // Expectation: first delivery received. A second delivery should NOT arrive.
+    let publishReceivedExpectation = XCTestExpectation(
+      description: "First publish delivery received")
+    let unexpectedRedeliveryExpectation = XCTestExpectation(
+      description: "Unexpected second publish delivery")
+
+    // Actor-protected state to hold the publishAcknowledgementHandle and track delivery count.
+    // The handle is acquired synchronously in the callback.
+    actor AcknowledgementState {
+      var handle: PublishAcknowledgementHandle? = nil
+      var deliveryCount: Int = 0
+      func set(_ h: PublishAcknowledgementHandle?) { handle = h }
+      func incrementDeliveryCount() -> Int {
+        deliveryCount += 1
+        return deliveryCount
+      }
+    }
+    let ackState = AcknowledgementState()
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      // Acquire the handle synchronously within the callback.
+      let h = publishData.acquirePublishAcknowledgement?()
+
+      if let payloadString = publishData.publishPacket.payloadAsString() {
+        print(
+          "ManualPubackInvoke Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)"
+            + " payload:'\(payloadString)'")
+      } else {
+        print(
+          "ManualPubackInvoke Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)")
+      }
+
+      Task {
+        let count = await ackState.incrementDeliveryCount()
+        if count == 1 {
+          // First delivery: store the handle and signal.
+          await ackState.set(h)
+          publishReceivedExpectation.fulfill()
+        } else if count == 2 {
+          // Second delivery: broker re-sent — should NOT happen after invoking PUBACK.
+          unexpectedRedeliveryExpectation.fulfill()
+        }
+      }
+    }
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions)
+
+    let testContext = MqttTestContext(
+      contextName: "ManualPubackInvoke",
+      onPublishReceived: onPublishReceived)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    // Subscribe to the topic with QoS 1
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
+    }
+
+    // Publish a QoS 1 message
+    let publishPacket = PublishPacket(
+      qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
+    let publishResult = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+    XCTAssertNotNil(publishResult.puback, "Expected puback for QoS 1 publish")
+
+    // Wait for the first delivery
+    await awaitExpectation([publishReceivedExpectation], 5)
+    let publishAcknowledgementHandle = await ackState.handle
+    XCTAssertNotNil(
+      publishAcknowledgementHandle,
+      "acquirePublishAcknowledgement() should have returned a handle on first delivery")
+
+    // Immediately invoke the PUBACK
+    if let handle = publishAcknowledgementHandle {
+      try client.invokePublishAcknowledgement(handle)
+    }
+
+    // Wait 35 seconds and confirm the broker does NOT re-drive the message
+    let redeliveryResult = await awaitExpectationResult([unexpectedRedeliveryExpectation], 35)
+    XCTAssertEqual(
+      redeliveryResult, .timedOut,
+      "Broker should NOT re-drive the message after invokePublishAcknowledgement() was called")
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*
+  * [AutoPuback-UC1] Verify the client sends PUBACK automatically when acquirePublishAcknowledgement() is not called.
+  * Confirmed by the absence of broker re-delivery.
+  */
+  func testMqtt5AutoPubackNoDuplicate() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+    let topic = "test/MQTT5_AutoPuback_Swift_" + clientId
+    let payloadData = "Hello World".data(using: .utf8)!
+
+    // Expectation: first delivery received. A second delivery should NOT arrive.
+    let publishReceivedExpectation = XCTestExpectation(
+      description: "First publish delivery received")
+    let unexpectedRedeliveryExpectation = XCTestExpectation(
+      description: "Unexpected second publish delivery")
+
+    // Actor-protected state to track delivery count.
+    actor DeliveryState {
+      var deliveryCount: Int = 0
+      func incrementDeliveryCount() -> Int {
+        deliveryCount += 1
+        return deliveryCount
+      }
+    }
+    let deliveryState = DeliveryState()
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      // Do NOT call acquirePublishAcknowledgement(), let auto-PUBACK happen.
+
+      if let payloadString = publishData.publishPacket.payloadAsString() {
+        print(
+          "AutoPubackNoDuplicate Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)"
+            + " payload:'\(payloadString)'")
+      } else {
+        print(
+          "AutoPubackNoDuplicate Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)")
+      }
+
+      Task {
+        let count = await deliveryState.incrementDeliveryCount()
+        if count == 1 {
+          // First delivery: signal received.
+          publishReceivedExpectation.fulfill()
+        } else if count == 2 {
+          // Second delivery: broker re-sent, should NOT happen with auto-PUBACK.
+          unexpectedRedeliveryExpectation.fulfill()
+        }
+      }
+    }
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions)
+
+    let testContext = MqttTestContext(
+      contextName: "AutoPubackNoDuplicate",
+      onPublishReceived: onPublishReceived)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    // Subscribe to the topic with QoS 1
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
+    }
+
+    // Publish a QoS 1 message
+    let publishPacket = PublishPacket(
+      qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
+    let publishResult = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+    XCTAssertNotNil(publishResult.puback, "Expected puback for QoS 1 publish")
+
+    // Wait for the first delivery
+    await awaitExpectation([publishReceivedExpectation], 5)
+
+    // Wait 35 seconds and confirm the broker does NOT re-drive the message (auto-PUBACK was sent)
+    let redeliveryResult = await awaitExpectationResult([unexpectedRedeliveryExpectation], 35)
+    XCTAssertEqual(
+      redeliveryResult, .timedOut,
+      "Auto-PUBACK should have been sent (acquirePublishAcknowledgement not called),"
+        + " verified by absence of re-delivery")
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*
+  * [ManualPuback-UC3] Calling acquirePublishAcknowledgement() twice on the same QoS 1 PUBLISH returns nil
+  */
+  func testMqtt5ManualPubackAcquireDoubleCallReturnsNil() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+    let topic = "test/MQTT5_ManualPuback_Swift_" + clientId
+    let payloadData = "Hello World".data(using: .utf8)!
+
+    // Expectation: callback completes with both acquire calls made.
+    let callbackDoneExpectation = XCTestExpectation(
+      description: "Publish callback completed both acquire calls")
+
+    // Actor-protected state to record the results of the two acquire calls.
+    actor DoubleCallResult {
+      var firstHandleNonNil: Bool = false
+      var secondHandleNil: Bool = false
+      func set(firstNonNil: Bool, secondNil: Bool) {
+        firstHandleNonNil = firstNonNil
+        secondHandleNil = secondNil
+      }
+    }
+    let result = DoubleCallResult()
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      // Both acquire calls must be made synchronously within the callback.
+      let firstHandle = publishData.acquirePublishAcknowledgement?()
+      let secondHandle = publishData.acquirePublishAcknowledgement?()
+
+      if let payloadString = publishData.publishPacket.payloadAsString() {
+        print(
+          "ManualPubackDoubleCall Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)"
+            + " payload:'\(payloadString)'")
+      }
+
+      Task {
+        await result.set(
+          firstNonNil: firstHandle != nil,
+          secondNil: secondHandle == nil)
+        callbackDoneExpectation.fulfill()
+      }
+    }
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions)
+
+    let testContext = MqttTestContext(
+      contextName: "ManualPubackDoubleCall",
+      onPublishReceived: onPublishReceived)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    // Subscribe to the topic with QoS 1
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
+    }
+
+    // Publish a QoS 1 message
+    let publishPacket = PublishPacket(
+      qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+
+    // Wait for the callback to complete both acquire calls
+    let callbackResult = await awaitExpectationResult([callbackDoneExpectation], 10)
+    XCTAssertEqual(callbackResult, .completed, "Timed out waiting for publish callback to complete")
+
+    let firstNonNil = await result.firstHandleNonNil
+    let secondNil = await result.secondHandleNil
+    XCTAssertTrue(
+      firstNonNil,
+      "First call to acquirePublishAcknowledgement() should return a non-nil handle")
+    XCTAssertTrue(
+      secondNil,
+      "Second call to acquirePublishAcknowledgement() on the same message should return nil")
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*
+  * [ManualPuback-UC4] Calling acquirePublishAcknowledgement() after the callback returns also returns nil
+  */
+  func testMqtt5ManualPubackAcquirePostCallbackReturnsNil() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+    let topic = "test/MQTT5_ManualPuback_Swift_" + clientId
+    let payloadData = "Hello World".data(using: .utf8)!
+
+    // Expectation: callback has returned.
+    let callbackDoneExpectation = XCTestExpectation(
+      description: "Publish callback has returned")
+
+    // Save the acquirePublishAcknowledgement closure so we can call it after the callback returns.
+    // The closure is saved synchronously in the callback body.
+    actor SavedAcquireFn {
+      var fn: (@Sendable () -> PublishAcknowledgementHandle?)? = nil
+      func set(_ value: (@Sendable () -> PublishAcknowledgementHandle?)?) { fn = value }
+    }
+    let savedAcquireFn = SavedAcquireFn()
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      // Save the closure synchronously but do NOT call it.
+      // The closure itself becomes invalid once the callback returns.
+      let acquireFn = publishData.acquirePublishAcknowledgement
+
+      if let payloadString = publishData.publishPacket.payloadAsString() {
+        print(
+          "ManualPubackPostCallback Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)"
+            + " payload:'\(payloadString)'")
+      }
+
+      Task {
+        await savedAcquireFn.set(acquireFn)
+        callbackDoneExpectation.fulfill()
+        // Callback has now returned, acquirePublishAcknowledgement should return nil if called
+      }
+    }
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions)
+
+    let testContext = MqttTestContext(
+      contextName: "ManualPubackPostCallback",
+      onPublishReceived: onPublishReceived)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    // Subscribe to the topic with QoS 1
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
+    }
+
+    // Publish a QoS 1 message
+    let publishPacket = PublishPacket(
+      qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+
+    // Wait for the callback to complete
+    let callbackResult = await awaitExpectationResult([callbackDoneExpectation], 10)
+    XCTAssertEqual(callbackResult, .completed, "Timed out waiting for publish callback to complete")
+
+    // Give the callback Task a moment to fully return before calling acquirePublishAcknowledgement
+    try await Task.sleep(nanoseconds: 100_000_000)  // 100ms
+
+    // Now call acquirePublishAcknowledgement() after the callback has returned
+    let acquireFn = await savedAcquireFn.fn
+    XCTAssertNotNil(acquireFn, "acquirePublishAcknowledgement closure should have been saved")
+    let lateHandle = acquireFn?()
+    XCTAssertNil(
+      lateHandle,
+      "acquirePublishAcknowledgement() should return nil after the callback has returned")
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*
+  * [ManualPuback-UC5] acquirePublishAcknowledgement is nil for QoS 0 messages
+  */
+  func testMqtt5ManualPubackQoS0AcquireIsNil() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+    let clientId = createClientId()
+    let topic = "test/MQTT5_ManualPuback_Swift_" + clientId
+    let payloadData = "Hello World".data(using: .utf8)!
+
+    // Expectation: callback completes.
+    let callbackDoneExpectation = XCTestExpectation(
+      description: "Publish callback completed")
+
+    // Actor-protected state to record whether acquirePublishAcknowledgement was nil.
+    actor AcquireResult {
+      var acquirePropertyWasNil: Bool = false
+      func set(_ value: Bool) { acquirePropertyWasNil = value }
+    }
+    let acquireResult = AcquireResult()
+
+    let onPublishReceived: OnPublishReceived = { publishData in
+      // For QoS 0, acquirePublishAcknowledgement should be nil.
+      let isNil = publishData.acquirePublishAcknowledgement == nil
+
+      if let payloadString = publishData.publishPacket.payloadAsString() {
+        print(
+          "ManualPubackQoS0 Mqtt5ClientTests: onPublishReceived."
+            + " Topic:'\(publishData.publishPacket.topic)'"
+            + " QoS:\(publishData.publishPacket.qos)"
+            + " payload:'\(payloadString)'")
+      }
+
+      Task {
+        await acquireResult.set(isNil)
+        callbackDoneExpectation.fulfill()
+      }
+    }
+
+    let connectOptions = MqttConnectOptions(clientId: clientId)
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions)
+
+    let testContext = MqttTestContext(
+      contextName: "ManualPubackQoS0",
+      onPublishReceived: onPublishReceived)
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+
+    // Subscribe with QoS 1 (so the broker delivers at QoS 0 downgraded from our sub)
+    let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.subscribe(subscribePacket: subscribePacket)
+    }
+
+    // Publish at QoS 0 — there is no PUBACK involved
+    let publishPacket = PublishPacket(
+      qos: QoS.atMostOnce, topic: topic, payload: payloadData)
+    _ = try await withTimeout(client: client, seconds: 5) {
+      try await client.publish(publishPacket: publishPacket)
+    }
+
+    // Wait for the callback to complete (with timeout to prevent hanging)
+    let callbackResult = await awaitExpectationResult([callbackDoneExpectation], 10)
+    XCTAssertEqual(callbackResult, .completed, "Timed out waiting for publish callback to complete")
+
+    let wasNil = await acquireResult.acquirePropertyWasNil
+    XCTAssertTrue(
+      wasNil,
+      "acquirePublishAcknowledgement should be nil for QoS 0 messages")
+
+    try await stopClient(client: client, testContext: testContext)
+  }
+
+  /*===============================================================
+                   RETAIN TESTS
+  =================================================================*/
+  /*
+  * [Retain-UC1] Set and Clear
+  */
+
+  func testMqtt5Retain() async throws {
+    try skipIfPlatformDoesntSupportTLS()
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_HOST")
+    let inputCert = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+    let inputKey = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+    // Create and connect client1
+    let tlsOptions = try TLSContextOptions.makeMTLS(
+      certificatePath: inputCert,
+      privateKeyPath: inputKey
+    )
+    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+    tlsOptions.setVerifyPeer(false)
+    let connectOptions1 = MqttConnectOptions(clientId: createClientId())
+    let clientOptions1 = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions1)
+    let testContext1 = MqttTestContext(contextName: "Client1")
+    let client1 = try createClient(clientOptions: clientOptions1, testContext: testContext1)
+    try await connectClient(client: client1, testContext: testContext1)
+
+    // Create client2
+    let connectOptions2 = MqttConnectOptions(clientId: createClientId())
+    let clientOptions2 = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions2)
+    let testContext2 = MqttTestContext(contextName: "Client2")
+    let client2 = try createClient(clientOptions: clientOptions2, testContext: testContext2)
+
+    // Create client3
+    let connectOptions3 = MqttConnectOptions(clientId: createClientId())
+    let clientOptions3 = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(8883),
+      tlsCtx: tlsContext,
+      connectOptions: connectOptions3)
+    let testContext3 = MqttTestContext(contextName: "Client3")
+    let client3 = try createClient(clientOptions: clientOptions3, testContext: testContext3)
+
+    let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+    let publishPacket = PublishPacket(
+      qos: .atLeastOnce,
+      topic: topic,
+      payload: "Retained publish from client 1".data(using: .utf8),
+      retain: true)
+    let subscribePacket = SubscribePacket(
+      topicFilter: topic,
+      qos: QoS.atLeastOnce,
+      noLocal: false)
+
+    // publish retained message from client1
+    let publishResult: PublishResult =
+      try await withTimeout(
+        client: client1, seconds: 2,
+        operation: {
+          try await client1.publish(publishPacket: publishPacket)
+        })
+
+    if let puback = publishResult.puback {
+      print("PubackPacket received with result \(puback.reasonCode)")
+    } else {
+      XCTFail("PublishResult missing.")
+      return
+    }
+
+    // connect client2 and subscribe to topic with retained client1 publish
+    try await connectClient(client: client2, testContext: testContext2)
+    _ = try await withTimeout(
+      client: client2, seconds: 2,
+      operation: {
+        try await client2.subscribe(subscribePacket: subscribePacket)
+      })
+
+    await awaitExpectation([testContext2.publishReceivedExpectation], 10)
+
+    XCTAssertEqual(testContext2.publishPacket?.payloadAsString(), publishPacket.payloadAsString())
+
+    // Send an empty publish from client1 to clear the retained publish on the topic
+    let publishPacketEmpty = PublishPacket(qos: .atLeastOnce, topic: topic, retain: true)
+    // publish retained message from client1
+    let publishResult2: PublishResult =
+      try await withTimeout(
+        client: client1, seconds: 2,
+        operation: {
+          try await client1.publish(publishPacket: publishPacketEmpty)
+        })
+    if let puback2 = publishResult2.puback {
+      print("PubackPacket received with result \(puback2.reasonCode)")
+    } else {
+      XCTFail("PublishResult missing.")
+      return
+    }
+
+    // connect client3 and subscribe to topic to insure there is no client1 retained publish
+    try await connectClient(client: client3, testContext: testContext3)
+
+    _ = try await withTimeout(
+      client: client3, seconds: 2,
+      operation: {
+        try await client3.subscribe(subscribePacket: subscribePacket)
+      })
+
+    let waitResult = await awaitExpectationResult([testContext3.publishReceivedExpectation], 5)
+    if waitResult == XCTWaiter.Result.timedOut {
+      print("no retained publish from client1")
+    } else {
+      XCTFail("Retained publish from client1 received when it should be cleared")
+      return
+    }
+
+    try await disconnectClientCleanup(client: client1, testContext: testContext1)
+    try await disconnectClientCleanup(client: client2, testContext: testContext2)
+    try await disconnectClientCleanup(client: client3, testContext: testContext3)
+  }
+
+  /*===============================================================
+                   BINDING CLEANUP TESTS
+  =================================================================*/
+  /*
+  * [BCT-UC1] Start Without Stop
+  */
+  func testStartWithoutStop() async throws {
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    try await connectClient(client: client, testContext: testContext)
+  }
+
+  /*
+  * [BCT-UC2] Offline Operations
+  */
+  func testOfflineOperations() async throws {
+    let inputHost = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_HOST")
+    let inputPort = try getEnvironmentVarOrSkipTest(
+      environmentVarName: "AWS_TEST_MQTT5_DIRECT_MQTT_PORT")
+
+    let clientOptions = MqttClientOptions(
+      hostName: inputHost,
+      port: UInt32(inputPort)!)
+
+    let testContext = MqttTestContext()
+    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+    // offline operation would never complete. Use close to force quit.
+    defer { client.close() }
+    try await connectClient(client: client, testContext: testContext)
+    try await stopClient(client: client, testContext: testContext)
+
+    let topic = "test/MQTT5_Binding_Swift_" + UUID().uuidString
+    let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic)
+
+    do {
+      // An offline publish would not get the puback back as the operation could never get an ack back
+      // the operation should timeout
+      let _ = try await withTimeout(
+        client: client, seconds: 2,
+        operation: {
+          try await client.publish(publishPacket: publishPacket)
+        })
+    } catch (let error) {
+      if error as! MqttTestError != MqttTestError.timeout {
+        XCTFail("Offline publish failed with \(error)")
+      }
+    }
+
+  }
 }

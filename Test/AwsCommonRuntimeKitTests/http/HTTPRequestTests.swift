@@ -2,37 +2,38 @@
 //  SPDX-License-Identifier: Apache-2.0.
 import XCTest
 import AwsCCommon
+
 @testable import AwsCommonRuntimeKit
 
 class HTTPRequestTests: XCBaseTestCase {
 
-    func testCreateHttpRequest() throws {
-        let httpRequest = try HTTPRequest(method: "PUT", path: "testPath")
-        XCTAssertEqual(httpRequest.method, "PUT")
-        XCTAssertEqual(httpRequest.path, "testPath")
+  func testCreateHttpRequest() throws {
+    let httpRequest = try HTTPRequest(method: "PUT", path: "testPath")
+    XCTAssertEqual(httpRequest.method, "PUT")
+    XCTAssertEqual(httpRequest.path, "testPath")
 
-        httpRequest.method = "DELETE"
-        httpRequest.path = "updatedPath"
+    httpRequest.method = "DELETE"
+    httpRequest.path = "updatedPath"
 
-        XCTAssertEqual(httpRequest.method, "DELETE")
-        XCTAssertEqual(httpRequest.path, "updatedPath")
-    }
+    XCTAssertEqual(httpRequest.method, "DELETE")
+    XCTAssertEqual(httpRequest.path, "updatedPath")
+  }
 
-    func testEmptyMethodAndPath() throws {
-        let httpRequest = try HTTPRequest(method: "", path: "path")
-        XCTAssertEqual(httpRequest.method, "")
-        XCTAssertEqual(httpRequest.path, "path")
+  func testEmptyMethodAndPath() throws {
+    let httpRequest = try HTTPRequest(method: "", path: "path")
+    XCTAssertEqual(httpRequest.method, "")
+    XCTAssertEqual(httpRequest.path, "path")
 
-        httpRequest.method = "DELETE"
-        httpRequest.path = ""
+    httpRequest.method = "DELETE"
+    httpRequest.path = ""
 
-        XCTAssertEqual(httpRequest.method, "DELETE")
-        XCTAssertEqual(httpRequest.path, "")
-    }
+    XCTAssertEqual(httpRequest.method, "DELETE")
+    XCTAssertEqual(httpRequest.path, "")
+  }
 
-    func testCreateHttpRequestWithHeaders() throws {
-        let httpRequest = try HTTPRequest(headers: [HTTPHeader(name: "Name", value: "Value")])
-        XCTAssertEqual(httpRequest.headerCount, 1)
-    }
+  func testCreateHttpRequestWithHeaders() throws {
+    let httpRequest = try HTTPRequest(headers: [HTTPHeader(name: "Name", value: "Value")])
+    XCTAssertEqual(httpRequest.headerCount, 1)
+  }
 
 }
