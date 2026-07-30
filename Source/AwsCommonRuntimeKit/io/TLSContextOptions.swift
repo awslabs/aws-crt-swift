@@ -37,7 +37,7 @@ public class TLSContextOptions: CStruct {
   /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key. These are in memory
   /// buffers. These buffers must be in the PEM format.
   ///
-  /// NOTE: This is unsupported on iOS, tvOS, watchOS.
+  /// NOTE: This is unsupported on watchOS.
   ///
   /// - Parameters:
   ///     - certificateData: Certificate contents in memory.
@@ -56,7 +56,7 @@ public class TLSContextOptions: CStruct {
   /// Initializes TLSContextOptions for mutual TLS (mTLS), with client certificate and private key. These are paths to a
   /// file on disk. These files must be in the PEM format.
   ///
-  /// NOTE: This is unsupported on iOS, tvOS, watchOS.
+  /// NOTE: This is unsupported on watchOS.
   ///
   /// - Parameters:
   ///     - certificatePath: Path to certificate file.
