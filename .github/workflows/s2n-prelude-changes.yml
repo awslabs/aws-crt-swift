@@ -19,7 +19,7 @@ jobs:
     - name: Check s2n_prelude.h
       run: |
         TMPFILE=$(mktemp)
-          echo "116f1525acbc94c91b0ee2ea2af9fdef aws-common-runtime/s2n/utils/s2n_prelude.h" > $TMPFILE
+          echo "dcb9a19abdfebe053e67b016dbbf2de9 aws-common-runtime/s2n/utils/s2n_prelude.h" > $TMPFILE
         md5sum --check $TMPFILE
 
     # No further steps if successful

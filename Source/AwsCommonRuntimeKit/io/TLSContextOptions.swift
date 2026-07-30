@@ -8,6 +8,12 @@ import struct Foundation.Data
 public class TLSContextOptions: CStruct {
   private var rawValue: UnsafeMutablePointer<aws_tls_ctx_options>
 
+  /// track minimum tls version set by user
+  internal var minimumTLSVersion: TLSVersion?
+
+  /// The certificate source automatically determined from the creation method. Used for metrics tracking.
+  internal var certificateSource: CertificateSource?
+
   public static func makeDefault() -> TLSContextOptions {
     TLSContextOptions()
   }
@@ -68,6 +74,7 @@ public class TLSContextOptions: CStruct {
 
   init() {
     self.rawValue = allocator.allocate(capacity: 1)
+    self.certificateSource = nil
     aws_tls_ctx_options_init_default_client(rawValue, allocator.rawValue)
   }
 
@@ -76,6 +83,7 @@ public class TLSContextOptions: CStruct {
     password: String
   ) throws {
     self.rawValue = allocator.allocate(capacity: 1)
+    self.certificateSource = .pkcs12File
     guard
       password.withByteCursorPointer({ passwordCursorPointer in
         return aws_tls_ctx_options_init_client_mtls_pkcs12_from_path(
@@ -94,6 +102,7 @@ public class TLSContextOptions: CStruct {
     privateKeyData: Data
   ) throws {
     self.rawValue = allocator.allocate(capacity: 1)
+    self.certificateSource = .certificateFiles
     guard
       certificateData.withAWSByteCursorPointer({ certificateByteCursor in
         return privateKeyData.withAWSByteCursorPointer { privatekeyByteCursor in
@@ -111,6 +120,7 @@ public class TLSContextOptions: CStruct {
 
   init(certificatePath: String, privateKeyPath: String) throws {
     self.rawValue = allocator.allocate(capacity: 1)
+    self.certificateSource = .certificateFiles
     guard
       aws_tls_ctx_options_init_client_mtls_from_path(
         self.rawValue,
@@ -175,6 +185,7 @@ public class TLSContextOptions: CStruct {
   }
 
   public func setMinimumTLSVersion(_ tlsVersion: TLSVersion) {
+    self.minimumTLSVersion = tlsVersion
     aws_tls_ctx_options_set_minimum_tls_version(
       rawValue, aws_tls_versions(rawValue: tlsVersion.rawValue))
   }
@@ -214,4 +225,15 @@ public enum TLSVersion: UInt32 {
   case TLSv1_2 = 3
   case TLSv1_3 = 4
   case systemDefault = 128
+}
+
+// MARK: - Certificate Source (Package-Private)
+
+/// The source of the TLS certificate used for authentication.
+
+enum CertificateSource {
+  /// Certificate and private key loaded from PEM files
+  case certificateFiles
+  /// Certificate loaded from a PKCS#12 (.p12) file
+  case pkcs12File
 }
