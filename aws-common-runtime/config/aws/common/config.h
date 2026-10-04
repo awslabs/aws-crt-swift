@@ -21,6 +21,9 @@
 
 #define AWS_UNSTABLE_TESTING_API 1
 #define AWS_AFFINITY_METHOD 0
-#define AWS_HAVE_EXECINFO 1
+/* Bionic only ships <execinfo.h> from API 33, so Android builds fall back to no backtraces */
+#if !defined(__ANDROID__)
+#    define AWS_HAVE_EXECINFO 1
+#endif
 
 #endif
