@@ -504,7 +504,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     try streamingOperation!.open()
     await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
     // eventual consistency if this is an op
-    try await Task.sleep(nanoseconds: 100_000_000)
+    try await Task.sleep(nanoseconds: 500_000_000)
     let _ = try await mqtt5Client.publish(
       publishPacket: PublishPacket(
         qos: QoS.atLeastOnce,
@@ -558,7 +558,7 @@ class Mqtt5RRClientTests: XCBaseTestCase {
     try streamingOperation!.open()
     await awaitExpectation([testContext.subscriptionStatusSuccessExpectation], 60)
     // eventual consistency if this is an op
-    try await Task.sleep(nanoseconds: 100_000_000)
+    try await Task.sleep(nanoseconds: 500_000_000)
     let _ = try await mqtt5Client.publish(
       publishPacket: PublishPacket(
         qos: QoS.atLeastOnce,
