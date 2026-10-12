@@ -2099,9 +2099,10 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       client: client2, seconds: 2,
       operation: {
         try await client2.subscribe(subscribePacket: subscribePacket)
-        // subscribe eventual consistency
-        try await Task.sleep(nanoseconds: 500_000_000)
       })
+
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
 
     // Send 10 publishes from client1
     var i = 1
@@ -2214,9 +2215,10 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
     _ = try await withTimeout(client: client, seconds: 5) {
       try await client.subscribe(subscribePacket: subscribePacket)
-      // subscribe eventual consistency
-      try await Task.sleep(nanoseconds: 500_000_000)
     }
+
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
 
     // Publish a QoS 1 message
     let publishPacket = PublishPacket(
@@ -2337,9 +2339,10 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
     _ = try await withTimeout(client: client, seconds: 5) {
       try await client.subscribe(subscribePacket: subscribePacket)
-      // subscribe eventual consistency
-      try await Task.sleep(nanoseconds: 500_000_000)
     }
+
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
 
     // Publish a QoS 1 message
     let publishPacket = PublishPacket(
@@ -2454,9 +2457,9 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
     _ = try await withTimeout(client: client, seconds: 5) {
       try await client.subscribe(subscribePacket: subscribePacket)
-      // subscribe eventual consistency
-      try await Task.sleep(nanoseconds: 500_000_000)
     }
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
 
     // Publish a QoS 1 message
     let publishPacket = PublishPacket(
@@ -2554,9 +2557,10 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
     _ = try await withTimeout(client: client, seconds: 5) {
       try await client.subscribe(subscribePacket: subscribePacket)
-      // subscribe eventual consistency
-      try await Task.sleep(nanoseconds: 500_000_000)
     }
+
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
 
     // Publish a QoS 1 message
     let publishPacket = PublishPacket(
@@ -2652,9 +2656,10 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
     _ = try await withTimeout(client: client, seconds: 5) {
       try await client.subscribe(subscribePacket: subscribePacket)
-      // subscribe eventual consistency
-      try await Task.sleep(nanoseconds: 500_000_000)
     }
+
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
 
     // Publish a QoS 1 message
     let publishPacket = PublishPacket(
@@ -2749,9 +2754,9 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     let subscribePacket = SubscribePacket(topicFilter: topic, qos: QoS.atLeastOnce, noLocal: false)
     _ = try await withTimeout(client: client, seconds: 5) {
       try await client.subscribe(subscribePacket: subscribePacket)
-      // subscribe eventual consistency
-      try await Task.sleep(nanoseconds: 500_000_000)
     }
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
 
     // Publish at QoS 0 — there is no PUBACK involved
     let publishPacket = PublishPacket(
