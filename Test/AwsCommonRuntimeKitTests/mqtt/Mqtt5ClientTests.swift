@@ -1712,11 +1712,12 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
         client: client, seconds: 2,
         operation: {
           try await client.subscribe(subscribePacket: subscribePacket)
-          // subscribe eventual consistency
-          try await Task.sleep(nanoseconds: 500_000_000)
         })
     print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
-
+      
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
+      
     let publishPacket = PublishPacket(
       qos: QoS.atLeastOnce, topic: topic, payload: "Hello World".data(using: .utf8))
     let publishResult: PublishResult =
@@ -1851,9 +1852,10 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       client: client, seconds: 2,
       operation: {
         try await client.subscribe(subscribePacket: subscribePacket)
-        // subscribe eventual consistency
-        try await Task.sleep(nanoseconds: 500_000_000)
       })
+    
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
 
     let payloadData = Data((0..<256).map { _ in UInt8.random(in: 0...255) })
     let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
