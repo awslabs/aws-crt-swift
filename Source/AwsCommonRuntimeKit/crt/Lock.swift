@@ -1,7 +1,12 @@
 import Foundation
 
 class ReadWriteLock {
-  private var rwlock = pthread_rwlock_t()
+  #if os(FreeBSD)
+    // FreeBSD's pthread lock is an opaque pointer initialized by pthread_rwlock_init.
+    private var rwlock: pthread_rwlock_t? = nil
+  #else
+    private var rwlock = pthread_rwlock_t()
+  #endif
 
   init() {
     pthread_rwlock_init(&rwlock, nil)
