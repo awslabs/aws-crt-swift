@@ -25,6 +25,32 @@ To format the code:
 swift format --in-place --recursive .
 ```
 
+### FreeBSD
+
+FreeBSD builds use kqueue for I/O, OpenSSL for cryptography, and s2n-tls for TLS.
+Validated on FreeBSD 16.0-CURRENT (amd64) with Swift 6.4.
+Use a Swift toolchain built for FreeBSD that includes Swift Package Manager,
+Foundation, Dispatch, and XCTest. Put its `bin` directory on `PATH`.
+
+Initialize the bundled C libraries before building a source checkout:
+
+```sh
+git submodule update --init --recursive
+swift build
+swift test --filter 'EventLoopGroupTests|BootstrapTests|HostResolverTests|TLSContextTests|ChecksumsTests|HashTests|StreamTests'
+```
+
+The build needs OpenSSL headers and `libcrypto`, plus FreeBSD's `libexecinfo`.
+The base system OpenSSL can be used. To use an OpenSSL installation from ports,
+install `pkgconf` and set `PKG_CONFIG_PATH` to the directory containing its
+`libcrypto.pc` file before building.
+
+SwiftPM consumers can depend on the `AwsCommonRuntimeKit` library product as
+usual; the FreeBSD configuration does not require unsafe compiler flags.
+TLS 1.3 has the same limitation as the Linux SwiftPM build: the bundled s2n
+configuration does not enable it. Tests requiring AWS credentials, certificates,
+or local mock servers need the environment described below.
+
 ## Testing
 
 Running Localhost tests:
@@ -32,7 +58,7 @@ Localhost tests are run using mock servers from aws-c-http. Use the following in
 Tests that use localhost within swift: HTTPTests, HTTP2ClientConnectionTests
 
 ```sh
-cd aws-common-runtime/aws-c-http/tests/mockserver
+cd aws-common-runtime/aws-c-http/tests/mock_server
 # install dependencies
 python -m pip install h11 h2 trio
 # for http/1.1 server

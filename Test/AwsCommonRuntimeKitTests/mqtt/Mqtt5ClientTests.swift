@@ -529,7 +529,7 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
    */
   func testMqtt5DirectConnectWithMutualTLS13() async throws {
     try skipIfPlatformDoesntSupportTLS()
-    #if os(Linux) || os(macOS)
+    #if os(Linux) || os(macOS) || os(FreeBSD)
       throw XCTSkip("TLS 1.3 is not supported on this platform (s2n requires CMake build)")
     #endif
     let inputHost = try getEnvironmentVarOrSkipTest(
