@@ -13,17 +13,21 @@ protocol EndpointsEngine {
     -> UnsafeMutablePointer<aws_endpoints_resolved_endpoint>
 
   /// Get the URL of the resolved endpoint
+  /// - Returns: The URL of the resolved endpoint
   func url(from rawValue: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>) throws -> String
 
   /// Get headers of the resolved endpoint
+  /// - Returns: The headers of the resolved endpoint
   func headers(from rawValue: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>) throws
     -> [String: [String]]
 
   /// Get the properties of the resolved endpoint
+  /// - Returns: The properties of the resolved endpoint
   func properties(from rawValue: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>) throws
     -> [String: EndpointProperty]
 
   /// Get the error message of the resolved endpoint
+  /// - Returns: The error message of the resolved endpoint
   func errorMessage(from rawValue: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>) throws
     -> String
 }
