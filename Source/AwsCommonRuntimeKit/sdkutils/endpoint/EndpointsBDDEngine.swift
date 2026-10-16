@@ -8,7 +8,6 @@ import Foundation
 public class EndpointsBDDEngine: EndpointsEngine {
 
   let rawValue: UnsafeMutablePointer<aws_endpoints_bdd_engine>
-  /// The C engine references this memory directly, so it must outlive rawValue.
   private var bytecodeBuffer: aws_byte_buf
 
   /// Initialize a new BDD engine
