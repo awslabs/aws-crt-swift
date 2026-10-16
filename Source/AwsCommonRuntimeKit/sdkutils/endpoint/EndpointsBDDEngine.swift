@@ -5,7 +5,7 @@ import AwsCSdkUtils
 import Foundation
 
 /// BDD engine for resolving endpoints from compiled BDD bytecode
-public class EndpointsBDDEngine {
+public class EndpointsBDDEngine: EndpointsEngine {
 
   let rawValue: UnsafeMutablePointer<aws_endpoints_bdd_engine>
   /// The C engine references this memory directly, so it must outlive rawValue.
@@ -61,6 +61,12 @@ public class EndpointsBDDEngine {
   /// - Parameter context: The request context to use for endpoint resolution
   /// - Returns: The resolved endpoint
   public func resolve(context: EndpointsRequestContext) throws -> ResolvedEndpoint {
+    try resolveEndpoint(context: context)
+  }
+
+  func resolveCRTEndpoint(context: EndpointsRequestContext) throws
+    -> UnsafeMutablePointer<aws_endpoints_resolved_endpoint>
+  {
     var resolvedEndpoint: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>! = nil
     guard
       aws_endpoints_bdd_engine_resolve(rawValue, context.rawValue, &resolvedEndpoint)
@@ -68,10 +74,7 @@ public class EndpointsBDDEngine {
     else {
       throw CommonRunTimeError.crtError(.makeFromLastError())
     }
-    defer {
-      aws_endpoints_resolved_endpoint_release(resolvedEndpoint)
-    }
-    return try ResolvedEndpoint(rawValue: resolvedEndpoint)
+    return resolvedEndpoint
   }
 
   deinit {
