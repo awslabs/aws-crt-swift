@@ -5,7 +5,7 @@ import AwsCSdkUtils
 import Foundation
 
 /// Rule engine for matching endpoint rules
-public class EndpointsRuleEngine {
+public class EndpointsRuleEngine: EndpointsEngine {
 
   let rawValue: OpaquePointer
 
@@ -53,6 +53,12 @@ public class EndpointsRuleEngine {
   /// - Parameter context: The request context to use for endpoint resolution
   /// - Returns: The resolved endpoint
   public func resolve(context: EndpointsRequestContext) throws -> ResolvedEndpoint {
+    try resolveEndpoint(context: context)
+  }
+
+  func resolveCRTEndpoint(context: EndpointsRequestContext) throws
+    -> UnsafeMutablePointer<aws_endpoints_resolved_endpoint>
+  {
     var resolvedEndpoint: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>! = nil
     guard
       aws_endpoints_rule_engine_resolve(rawValue, context.rawValue, &resolvedEndpoint)
@@ -60,35 +66,7 @@ public class EndpointsRuleEngine {
     else {
       throw CommonRunTimeError.crtError(.makeFromLastError())
     }
-    defer {
-      aws_endpoints_resolved_endpoint_release(resolvedEndpoint)
-    }
-
-    let type = aws_endpoints_resolved_endpoint_get_type(resolvedEndpoint)
-
-    if type == AWS_ENDPOINTS_RESOLVED_ENDPOINT {
-      return ResolvedEndpoint.endpoint(
-        url: try getURL(rawValue: resolvedEndpoint),
-        headers: try getHeaders(rawValue: resolvedEndpoint),
-        properties: try getProperties(rawValue: resolvedEndpoint))
-    } else {
-      return ResolvedEndpoint.error(message: try getErrorMessage(rawValue: resolvedEndpoint))
-    }
-
-  }
-
-  /// Get the URL of the resolved endpoint
-  /// - Returns: The URL of the resolved endpoint
-  func getURL(rawValue: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>) throws -> String {
-    var url = aws_byte_cursor()
-    guard aws_endpoints_resolved_endpoint_get_url(rawValue, &url) == AWS_OP_SUCCESS else {
-      throw CommonRunTimeError.crtError(.makeFromLastError())
-    }
-    guard url.len > 0 else {
-      fatalError("Url length can not be zero")
-    }
-
-    return url.toString()
+    return resolvedEndpoint
   }
 
   /// Get headers of the resolved endpoint
@@ -96,55 +74,7 @@ public class EndpointsRuleEngine {
   public func getHeaders(rawValue: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>) throws
     -> [String: [String]]
   {
-    var cHeaders: UnsafePointer<aws_hash_table>! = nil
-    guard aws_endpoints_resolved_endpoint_get_headers(rawValue, &cHeaders) == AWS_OP_SUCCESS else {
-      throw CommonRunTimeError.crtError(.makeFromLastError())
-    }
-
-    var headers: [String: [String]] = [:]
-
-    var iter = aws_hash_iter_begin(cHeaders)
-    while !aws_hash_iter_done(&iter) {
-      // Get the key
-      let keyPtr = iter.element.key.bindMemory(to: aws_string.self, capacity: 1)
-      let key = String(awsString: keyPtr)!
-
-      // Get the value
-      let arrayPtr = iter.element.value.bindMemory(to: aws_array_list.self, capacity: 1)
-      headers[key] = arrayPtr.pointee.awsStringListToStringArray()
-      aws_hash_iter_next(&iter)
-    }
-
-    return headers
-  }
-
-  /// Get the properties of the resolved endpoint
-  /// - Returns: The properties of the resolved endpoint
-  func getProperties(rawValue: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>) throws
-    -> [String: EndpointProperty]
-  {
-    var properties = aws_byte_cursor()
-    guard aws_endpoints_resolved_endpoint_get_properties(rawValue, &properties) == AWS_OP_SUCCESS
-    else {
-      throw CommonRunTimeError.crtError(.makeFromLastError())
-    }
-    guard properties.len > 0 else {
-      return [String: EndpointProperty]()
-    }
-    let data = Data(bytes: properties.ptr, count: properties.len)
-    return try JSONDecoder().decode([String: EndpointProperty].self, from: data)
-  }
-
-  /// Get the error of the resolved endpoint
-  /// - Returns: The error message of the resolved endpoint
-  func getErrorMessage(rawValue: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>) throws
-    -> String
-  {
-    var error = aws_byte_cursor()
-    guard aws_endpoints_resolved_endpoint_get_error(rawValue, &error) == AWS_OP_SUCCESS else {
-      throw CommonRunTimeError.crtError(.makeFromLastError())
-    }
-    return error.toString()
+    try headers(from: rawValue)
   }
 
   deinit {
