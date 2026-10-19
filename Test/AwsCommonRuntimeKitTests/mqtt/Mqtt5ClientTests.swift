@@ -531,29 +531,30 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     try skipIfPlatformDoesntSupportTLS()
     #if os(Linux) || os(macOS)
       throw XCTSkip("TLS 1.3 is not supported on this platform (s2n requires CMake build)")
+    #else
+      let inputHost = try getEnvironmentVarOrSkipTest(
+        environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_TLS13_HOST")
+      let inputCert = try getEnvironmentVarOrSkipTest(
+        environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+      let inputKey = try getEnvironmentVarOrSkipTest(
+        environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+      let tlsOptions = try TLSContextOptions.makeMTLS(
+        certificatePath: inputCert,
+        privateKeyPath: inputKey
+      )
+      let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+      let clientOptions = MqttClientOptions(
+        hostName: inputHost,
+        port: UInt32(8883),
+        tlsCtx: tlsContext)
+
+      let testContext = MqttTestContext()
+      let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+      try await connectClient(client: client, testContext: testContext)
+      try await disconnectClientCleanup(client: client, testContext: testContext)
     #endif
-    let inputHost = try getEnvironmentVarOrSkipTest(
-      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_TLS13_HOST")
-    let inputCert = try getEnvironmentVarOrSkipTest(
-      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-    let inputKey = try getEnvironmentVarOrSkipTest(
-      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-
-    let tlsOptions = try TLSContextOptions.makeMTLS(
-      certificatePath: inputCert,
-      privateKeyPath: inputKey
-    )
-    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-    let clientOptions = MqttClientOptions(
-      hostName: inputHost,
-      port: UInt32(8883),
-      tlsCtx: tlsContext)
-
-    let testContext = MqttTestContext()
-    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-    try await connectClient(client: client, testContext: testContext)
-    try await disconnectClientCleanup(client: client, testContext: testContext)
   }
 
   /*
@@ -597,42 +598,42 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
   func testMqtt5HttpProxyFailedOnApple() async throws {
     #if !AWS_USE_SECITEM
       throw XCTSkip("Http proxy config should only fail on Apple Network Framework")
+    #else
+      let inputHost = "dummy_host"
+      let inputPort: UInt32 = 1
+      let inputProxyHost = "dummy_host"
+      let inputProxyPort: UInt32 = 1
+
+      let tlsOptions = TLSContextOptions()
+      tlsOptions.setVerifyPeer(false)
+      let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+      let httpProxyOptions = HTTPProxyOptions(
+        hostName: inputProxyHost,
+        port: inputProxyPort,
+        connectionType: HTTPProxyConnectionType.tunnel)
+
+      let clientOptions = MqttClientOptions(
+        hostName: inputHost,
+        port: inputPort,
+        tlsCtx: tlsContext,
+        httpProxyOptions: httpProxyOptions)
+
+      let testContext = MqttTestContext()
+      let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+
+      try client.start()
+      await awaitExpectation([testContext.connectionFailureExpectation], 5)
+
+      if let failureData = testContext.lifecycleConnectionFailureData {
+        XCTAssertEqual(failureData.crtError.code, Int32(AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
+      } else {
+        XCTFail("lifecycleConnectionFailureData Missing")
+        return
+      }
+
+      try await stopClient(client: client, testContext: testContext)
     #endif
-    let inputHost = "dummy_host"
-    let inputPort: UInt32 = 1
-    let inputProxyHost = "dummy_host"
-    let inputProxyPort: UInt32 = 1
-
-    let tlsOptions = TLSContextOptions()
-    tlsOptions.setVerifyPeer(false)
-    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-    let httpProxyOptions = HTTPProxyOptions(
-      hostName: inputProxyHost,
-      port: inputProxyPort,
-      connectionType: HTTPProxyConnectionType.tunnel)
-
-    let clientOptions = MqttClientOptions(
-      hostName: inputHost,
-      port: inputPort,
-      tlsCtx: tlsContext,
-      httpProxyOptions: httpProxyOptions)
-
-    let testContext = MqttTestContext()
-    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-
-    try client.start()
-    await awaitExpectation([testContext.connectionFailureExpectation], 5)
-
-    if let failureData = testContext.lifecycleConnectionFailureData {
-      XCTAssertEqual(failureData.crtError.code, Int32(AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
-    } else {
-      XCTFail("lifecycleConnectionFailureData Missing")
-      return
-    }
-
-    try await stopClient(client: client, testContext: testContext)
-
   }
 
   /*
@@ -1848,6 +1849,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
         try await client.subscribe(subscribePacket: subscribePacket)
       })
 
+    try await Task.sleep(nanoseconds: UInt64(500_000_000))  // .5 seconds
+
     let payloadData = Data((0..<256).map { _ in UInt8.random(in: 0...255) })
     let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
 
@@ -2201,6 +2204,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     _ = try await withTimeout(client: client, seconds: 5) {
       try await client.subscribe(subscribePacket: subscribePacket)
     }
+
+    try await Task.sleep(nanoseconds: UInt64(500_000_000))  // .5 seconds
 
     // Publish a QoS 1 message
     let publishPacket = PublishPacket(
