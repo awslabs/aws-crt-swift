@@ -153,7 +153,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
 
   func testCreateMetricsWithVersionMismatch() {
     // User provides features with wrong version - should only use CRT features
-    var customMetrics = AWSIoTMetrics(libraryName: "CustomSDK/Test")
+    let customMetrics = AWSIoTMetrics(libraryName: "CustomSDK/Test")
     customMetrics.metadata["IoTSDKMetricsVersion"] = "999"  // Wrong version
     customMetrics.metadata["IoTSDKFeature"] = "L/A,M/B"  // Custom features
 
@@ -180,7 +180,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
 
   func testCreateMetricsCRTVersionNotModifiable() {
     // User tries to set CRTVersion - should be overwritten
-    var customMetrics = AWSIoTMetrics(libraryName: "CustomSDK/Test")
+    let customMetrics = AWSIoTMetrics(libraryName: "CustomSDK/Test")
     customMetrics.metadata["CRTVersion"] = "user-version"
 
     let options = MqttClientOptions(
@@ -197,7 +197,7 @@ class IoTSDKMetricsTests: XCBaseTestCase {
 
   func testCreateMetricsPreservesOtherUserMetadata() {
     // User provides other metadata that should be preserved
-    var customMetrics = AWSIoTMetrics(libraryName: "CustomSDK/Test")
+    let customMetrics = AWSIoTMetrics(libraryName: "CustomSDK/Test")
     customMetrics.metadata["CustomKey1"] = "CustomValue1"
     customMetrics.metadata["CustomKey2"] = "CustomValue2"
 
