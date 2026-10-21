@@ -9,20 +9,27 @@ import XCTest
 
 class EndpointsBDDEngineTests: XCBaseTestCase {
 
-  func makeEngine() throws -> EndpointsBDDEngine {
-    let bytecodeURL = Bundle.module.url(forResource: "endpoint-bdd-encoded", withExtension: "bin")!
+  /// Resolves `context` with a BDD engine whose bytecode stays alive for the engine's lifetime
+  func resolve(
+    _ context: EndpointsRequestContext, bytecodeResource: String = "endpoint-bdd-encoded"
+  ) throws -> ResolvedEndpoint {
+    let bytecodeURL = Bundle.module.url(forResource: bytecodeResource, withExtension: "bin")!
     let partitionsPath = Bundle.module.path(
       forResource: "endpoint-engine-partitions", ofType: "json")!
-    return try EndpointsBDDEngine(
-      partitions: try String(contentsOfFile: partitionsPath, encoding: .utf8),
-      bytecode: try Data(contentsOf: bytecodeURL))
+    let partitions = try String(contentsOfFile: partitionsPath, encoding: .utf8)
+    let bytecode = try Data(contentsOf: bytecodeURL)
+    // The engine reads the bytecode in place, so keep it alive while the engine is in use
+    return try withExtendedLifetime(bytecode) {
+      let engine = try EndpointsBDDEngine(partitions: partitions, bytecode: bytecode)
+      return try engine.resolve(context: context)
+    }
   }
 
   func testResolveVirtualHost() throws {
     let context = try EndpointsRequestContext()
     try context.add(name: "Region", value: "us-west-2")
     try context.add(name: "Bucket", value: "bucket-name")
-    guard case .endpoint(let url, _, _) = try makeEngine().resolve(context: context) else {
+    guard case .endpoint(let url, _, _) = try resolve(context) else {
       XCTFail("Endpoint resolved to an error")
       return
     }
@@ -34,7 +41,7 @@ class EndpointsBDDEngineTests: XCBaseTestCase {
     try context.add(name: "Region", value: "us-west-2")
     try context.add(name: "ForcePathStyle", value: true)
     try context.add(name: "Bucket", value: "bucket-name")
-    guard case .endpoint(let url, _, _) = try makeEngine().resolve(context: context) else {
+    guard case .endpoint(let url, _, _) = try resolve(context) else {
       XCTFail("Endpoint resolved to an error")
       return
     }
@@ -46,7 +53,7 @@ class EndpointsBDDEngineTests: XCBaseTestCase {
     try context.add(name: "Region", value: "us-west-2")
     try context.add(name: "Bucket", value: "bucket-name")
     guard
-      case .endpoint(_, let headers, let properties) = try makeEngine().resolve(context: context)
+      case .endpoint(_, let headers, let properties) = try resolve(context)
     else {
       XCTFail("Endpoint resolved to an error")
       return
@@ -66,17 +73,11 @@ class EndpointsBDDEngineTests: XCBaseTestCase {
   }
 
   func testResolveHeaders() throws {
-    let bytecodeURL = Bundle.module.url(
-      forResource: "endpoint-engine-headers", withExtension: "bin")!
-    let partitionsPath = Bundle.module.path(
-      forResource: "endpoint-engine-partitions", ofType: "json")!
-    let engine = try EndpointsBDDEngine(
-      partitions: try String(contentsOfFile: partitionsPath, encoding: .utf8),
-      bytecode: try Data(contentsOf: bytecodeURL))
     let context = try EndpointsRequestContext()
     try context.add(name: "Region", value: "us-west-2")
     guard
-      case .endpoint(let url, let headers, let properties) = try engine.resolve(context: context)
+      case .endpoint(let url, let headers, let properties) = try resolve(
+        context, bytecodeResource: "endpoint-engine-headers")
     else {
       XCTFail("Endpoint resolved to an error")
       return
@@ -105,7 +106,7 @@ class EndpointsBDDEngineTests: XCBaseTestCase {
     try context.add(name: "Bucket", value: "bucket-name")
     try context.add(name: "Accelerate", value: true)
     try context.add(name: "UseFIPS", value: true)
-    guard case .error(let message) = try makeEngine().resolve(context: context) else {
+    guard case .error(let message) = try resolve(context) else {
       XCTFail("Endpoint resolved to an endpoint")
       return
     }

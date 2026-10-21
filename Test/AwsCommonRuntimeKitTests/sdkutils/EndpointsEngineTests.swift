@@ -29,21 +29,25 @@ class EndpointsEngineTests: XCBaseTestCase {
     let partitions = try fixtureString("endpoint-engine-partitions", "json")
     let ruleEngine = try EndpointsRuleEngine(
       partitions: partitions, ruleSet: try fixtureString("endpoint-engine-model", "json"))
-    let bddEngine = try EndpointsBDDEngine(
-      partitions: partitions, bytecode: try fixtureData("endpoint-engine-model", "bin"))
+    let bytecode = try fixtureData("endpoint-engine-model", "bin")
 
-    let engines: [(name: String, resolve: (EndpointsRequestContext) throws -> ResolvedEndpoint)] = [
-      ("rule", ruleEngine.resolve),
-      ("bdd", bddEngine.resolve),
-    ]
-    for engine in engines {
-      let context = try EndpointsRequestContext()
-      try buildContext(context)
-      guard case .endpoint(let url, _, _) = try engine.resolve(context) else {
-        XCTFail("\(engine.name) engine resolved to an error")
-        continue
+    // The BDD engine reads the bytecode in place, so keep it alive while the engine is in use
+    try withExtendedLifetime(bytecode) {
+      let bddEngine = try EndpointsBDDEngine(partitions: partitions, bytecode: bytecode)
+      let engines: [(name: String, resolve: (EndpointsRequestContext) throws -> ResolvedEndpoint)] =
+        [
+          ("rule", ruleEngine.resolve),
+          ("bdd", bddEngine.resolve),
+        ]
+      for engine in engines {
+        let context = try EndpointsRequestContext()
+        try buildContext(context)
+        guard case .endpoint(let url, _, _) = try engine.resolve(context) else {
+          XCTFail("\(engine.name) engine resolved to an error")
+          continue
+        }
+        XCTAssertEqual(expectedURL, url, "\(engine.name) engine")
       }
-      XCTAssertEqual(expectedURL, url, "\(engine.name) engine")
     }
   }
 

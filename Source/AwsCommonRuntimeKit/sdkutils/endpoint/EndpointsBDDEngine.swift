@@ -5,27 +5,17 @@ import AwsCSdkUtils
 import Foundation
 
 /// BDD engine for resolving endpoints from compiled BDD bytecode
-public class EndpointsBDDEngine: EndpointsEngine {
+public class EndpointsBDDEngine {
 
-  let rawValue: UnsafeMutablePointer<aws_endpoints_bdd_engine>
-  private var bytecodeBuffer: aws_byte_buf
+  let rawValue: OpaquePointer
 
   /// Initialize a new BDD engine
+  ///
   /// - Parameters:
   ///   - partitions: JSON string containing partition data
   ///   - bytecode: Compiled BDD bytecode
   public init(partitions: String, bytecode: Data) throws {
-    var bytecodeBuffer = aws_byte_buf()
-    guard
-      bytecode.withAWSByteCursorPointer({ bytecodeCursor in
-        aws_byte_buf_init_copy_from_cursor(
-          &bytecodeBuffer, allocator.rawValue, bytecodeCursor.pointee)
-      }) == AWS_OP_SUCCESS
-    else {
-      throw CommonRunTimeError.crtError(.makeFromLastError())
-    }
-
-    let getRawValue: () throws -> UnsafeMutablePointer<aws_endpoints_bdd_engine> = {
+    let getRawValue: () throws -> OpaquePointer = {
       guard
         let partitions =
           (partitions.withByteCursor { partitionsCursor in
@@ -39,45 +29,39 @@ public class EndpointsBDDEngine: EndpointsEngine {
       }
 
       guard
-        let rawValue = aws_endpoints_bdd_engine_new_from_bytecode(
-          allocator.rawValue, aws_byte_cursor_from_buf(&bytecodeBuffer), partitions)
+        let rawValue =
+          (bytecode.withByteCursor { bytecodeCursor in
+            aws_endpoints_bdd_engine_new_from_bytecode(
+              allocator.rawValue, bytecodeCursor, partitions)
+          })
       else {
         throw CommonRunTimeError.crtError(.makeFromLastError())
       }
-      return rawValue
+      return OpaquePointer(rawValue)
     }
 
-    do {
-      self.rawValue = try getRawValue()
-    } catch {
-      aws_byte_buf_clean_up(&bytecodeBuffer)
-      throw error
-    }
-    self.bytecodeBuffer = bytecodeBuffer
+    self.rawValue = try getRawValue()
   }
 
   /// Resolve an endpoint from the BDD engine using the provided request context
   /// - Parameter context: The request context to use for endpoint resolution
   /// - Returns: The resolved endpoint
   public func resolve(context: EndpointsRequestContext) throws -> ResolvedEndpoint {
-    try resolveEndpoint(context: context)
-  }
-
-  func resolveCRTEndpoint(context: EndpointsRequestContext) throws
-    -> UnsafeMutablePointer<aws_endpoints_resolved_endpoint>
-  {
     var resolvedEndpoint: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>! = nil
     guard
-      aws_endpoints_bdd_engine_resolve(rawValue, context.rawValue, &resolvedEndpoint)
+      aws_endpoints_bdd_engine_resolve(
+        UnsafeMutablePointer(rawValue), context.rawValue, &resolvedEndpoint)
         == AWS_OP_SUCCESS
     else {
       throw CommonRunTimeError.crtError(.makeFromLastError())
     }
-    return resolvedEndpoint
+    defer {
+      aws_endpoints_resolved_endpoint_release(resolvedEndpoint)
+    }
+    return try ResolvedEndpoint(crtEndpoint: resolvedEndpoint)
   }
 
   deinit {
-    aws_endpoints_bdd_engine_release(rawValue)
-    aws_byte_buf_clean_up(&bytecodeBuffer)
+    aws_endpoints_bdd_engine_release(UnsafeMutablePointer(rawValue))
   }
 }

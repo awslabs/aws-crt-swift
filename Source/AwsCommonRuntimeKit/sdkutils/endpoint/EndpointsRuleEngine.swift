@@ -5,7 +5,7 @@ import AwsCSdkUtils
 import Foundation
 
 /// Rule engine for matching endpoint rules
-public class EndpointsRuleEngine: EndpointsEngine {
+public class EndpointsRuleEngine {
 
   let rawValue: OpaquePointer
 
@@ -53,12 +53,6 @@ public class EndpointsRuleEngine: EndpointsEngine {
   /// - Parameter context: The request context to use for endpoint resolution
   /// - Returns: The resolved endpoint
   public func resolve(context: EndpointsRequestContext) throws -> ResolvedEndpoint {
-    try resolveEndpoint(context: context)
-  }
-
-  func resolveCRTEndpoint(context: EndpointsRequestContext) throws
-    -> UnsafeMutablePointer<aws_endpoints_resolved_endpoint>
-  {
     var resolvedEndpoint: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>! = nil
     guard
       aws_endpoints_rule_engine_resolve(rawValue, context.rawValue, &resolvedEndpoint)
@@ -66,7 +60,10 @@ public class EndpointsRuleEngine: EndpointsEngine {
     else {
       throw CommonRunTimeError.crtError(.makeFromLastError())
     }
-    return resolvedEndpoint
+    defer {
+      aws_endpoints_resolved_endpoint_release(resolvedEndpoint)
+    }
+    return try ResolvedEndpoint(crtEndpoint: resolvedEndpoint)
   }
 
   /// Get headers of the resolved endpoint
@@ -74,7 +71,7 @@ public class EndpointsRuleEngine: EndpointsEngine {
   public func getHeaders(rawValue: UnsafeMutablePointer<aws_endpoints_resolved_endpoint>) throws
     -> [String: [String]]
   {
-    try headers(from: rawValue)
+    try CRTResolvedEndpointReader(rawValue: rawValue).headers()
   }
 
   deinit {

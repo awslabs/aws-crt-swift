@@ -60,6 +60,14 @@ extension String {
 
 extension Data {
 
+  func withByteCursor<Result>(
+    _ body: (aws_byte_cursor) -> Result
+  ) -> Result {
+    return self.withUnsafeBytes { rawBufferPointer in
+      return body(aws_byte_cursor_from_array(rawBufferPointer.baseAddress, self.count))
+    }
+  }
+
   func withAWSByteBufPointer<Result>(_ body: (UnsafeMutablePointer<aws_byte_buf>) -> Result)
     -> Result
   {
