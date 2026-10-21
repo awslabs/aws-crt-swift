@@ -10,7 +10,6 @@ public class EndpointsBDDEngine {
   let rawValue: OpaquePointer
 
   /// Initialize a new BDD engine
-  ///
   /// - Parameters:
   ///   - partitions: JSON string containing partition data
   ///   - bytecode: Compiled BDD bytecode
