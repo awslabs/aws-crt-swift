@@ -531,29 +531,30 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     try skipIfPlatformDoesntSupportTLS()
     #if os(Linux) || os(macOS)
       throw XCTSkip("TLS 1.3 is not supported on this platform (s2n requires CMake build)")
+    #else
+      let inputHost = try getEnvironmentVarOrSkipTest(
+        environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_TLS13_HOST")
+      let inputCert = try getEnvironmentVarOrSkipTest(
+        environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
+      let inputKey = try getEnvironmentVarOrSkipTest(
+        environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
+
+      let tlsOptions = try TLSContextOptions.makeMTLS(
+        certificatePath: inputCert,
+        privateKeyPath: inputKey
+      )
+      let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+      let clientOptions = MqttClientOptions(
+        hostName: inputHost,
+        port: UInt32(8883),
+        tlsCtx: tlsContext)
+
+      let testContext = MqttTestContext()
+      let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+      try await connectClient(client: client, testContext: testContext)
+      try await disconnectClientCleanup(client: client, testContext: testContext)
     #endif
-    let inputHost = try getEnvironmentVarOrSkipTest(
-      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_TLS13_HOST")
-    let inputCert = try getEnvironmentVarOrSkipTest(
-      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_CERT")
-    let inputKey = try getEnvironmentVarOrSkipTest(
-      environmentVarName: "AWS_TEST_MQTT5_IOT_CORE_RSA_KEY")
-
-    let tlsOptions = try TLSContextOptions.makeMTLS(
-      certificatePath: inputCert,
-      privateKeyPath: inputKey
-    )
-    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-    let clientOptions = MqttClientOptions(
-      hostName: inputHost,
-      port: UInt32(8883),
-      tlsCtx: tlsContext)
-
-    let testContext = MqttTestContext()
-    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-    try await connectClient(client: client, testContext: testContext)
-    try await disconnectClientCleanup(client: client, testContext: testContext)
   }
 
   /*
@@ -597,42 +598,42 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
   func testMqtt5HttpProxyFailedOnApple() async throws {
     #if !AWS_USE_SECITEM
       throw XCTSkip("Http proxy config should only fail on Apple Network Framework")
+    #else
+      let inputHost = "dummy_host"
+      let inputPort: UInt32 = 1
+      let inputProxyHost = "dummy_host"
+      let inputProxyPort: UInt32 = 1
+
+      let tlsOptions = TLSContextOptions()
+      tlsOptions.setVerifyPeer(false)
+      let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
+
+      let httpProxyOptions = HTTPProxyOptions(
+        hostName: inputProxyHost,
+        port: inputProxyPort,
+        connectionType: HTTPProxyConnectionType.tunnel)
+
+      let clientOptions = MqttClientOptions(
+        hostName: inputHost,
+        port: inputPort,
+        tlsCtx: tlsContext,
+        httpProxyOptions: httpProxyOptions)
+
+      let testContext = MqttTestContext()
+      let client = try createClient(clientOptions: clientOptions, testContext: testContext)
+
+      try client.start()
+      await awaitExpectation([testContext.connectionFailureExpectation], 5)
+
+      if let failureData = testContext.lifecycleConnectionFailureData {
+        XCTAssertEqual(failureData.crtError.code, Int32(AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
+      } else {
+        XCTFail("lifecycleConnectionFailureData Missing")
+        return
+      }
+
+      try await stopClient(client: client, testContext: testContext)
     #endif
-    let inputHost = "dummy_host"
-    let inputPort: UInt32 = 1
-    let inputProxyHost = "dummy_host"
-    let inputProxyPort: UInt32 = 1
-
-    let tlsOptions = TLSContextOptions()
-    tlsOptions.setVerifyPeer(false)
-    let tlsContext = try TLSContext(options: tlsOptions, mode: .client)
-
-    let httpProxyOptions = HTTPProxyOptions(
-      hostName: inputProxyHost,
-      port: inputProxyPort,
-      connectionType: HTTPProxyConnectionType.tunnel)
-
-    let clientOptions = MqttClientOptions(
-      hostName: inputHost,
-      port: inputPort,
-      tlsCtx: tlsContext,
-      httpProxyOptions: httpProxyOptions)
-
-    let testContext = MqttTestContext()
-    let client = try createClient(clientOptions: clientOptions, testContext: testContext)
-
-    try client.start()
-    await awaitExpectation([testContext.connectionFailureExpectation], 5)
-
-    if let failureData = testContext.lifecycleConnectionFailureData {
-      XCTAssertEqual(failureData.crtError.code, Int32(AWS_ERROR_PLATFORM_NOT_SUPPORTED.rawValue))
-    } else {
-      XCTFail("lifecycleConnectionFailureData Missing")
-      return
-    }
-
-    try await stopClient(client: client, testContext: testContext)
-
   }
 
   /*
@@ -1715,6 +1716,9 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
         })
     print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
 
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
+
     let publishPacket = PublishPacket(
       qos: QoS.atLeastOnce, topic: topic, payload: "Hello World".data(using: .utf8))
     let publishResult: PublishResult =
@@ -1802,6 +1806,9 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
         })
     print("SubackPacket received with result \(subackPacket.reasonCodes[0])")
 
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
+
     let disconnectPacket = DisconnectPacket(reasonCode: .disconnectWithWillMessage)
     try await disconnectClientCleanup(
       client: clientPublisher, testContext: testContextPublisher, disconnectPacket: disconnectPacket
@@ -1847,6 +1854,9 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       operation: {
         try await client.subscribe(subscribePacket: subscribePacket)
       })
+
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
 
     let payloadData = Data((0..<256).map { _ in UInt8.random(in: 0...255) })
     let publishPacket = PublishPacket(qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
@@ -1911,6 +1921,9 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     for i in 0..<subackPacket.reasonCodes.count {
       print("Index:\(i) result:\(subackPacket.reasonCodes[i])")
     }
+
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
 
     let unsubscribeTopics = [topic1, topic2, "fake_topic1"]
     let unsubscribePacket = UnsubscribePacket(topicFilters: unsubscribeTopics)
@@ -2089,6 +2102,9 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
         try await client2.subscribe(subscribePacket: subscribePacket)
       })
 
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
+
     // Send 10 publishes from client1
     var i = 1
     for _ in 1...10 {
@@ -2201,6 +2217,9 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     _ = try await withTimeout(client: client, seconds: 5) {
       try await client.subscribe(subscribePacket: subscribePacket)
     }
+
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
 
     // Publish a QoS 1 message
     let publishPacket = PublishPacket(
@@ -2323,6 +2342,9 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       try await client.subscribe(subscribePacket: subscribePacket)
     }
 
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
+
     // Publish a QoS 1 message
     let publishPacket = PublishPacket(
       qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
@@ -2437,6 +2459,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     _ = try await withTimeout(client: client, seconds: 5) {
       try await client.subscribe(subscribePacket: subscribePacket)
     }
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
 
     // Publish a QoS 1 message
     let publishPacket = PublishPacket(
@@ -2536,6 +2560,9 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       try await client.subscribe(subscribePacket: subscribePacket)
     }
 
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
+
     // Publish a QoS 1 message
     let publishPacket = PublishPacket(
       qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
@@ -2632,6 +2659,9 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       try await client.subscribe(subscribePacket: subscribePacket)
     }
 
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
+
     // Publish a QoS 1 message
     let publishPacket = PublishPacket(
       qos: QoS.atLeastOnce, topic: topic, payload: payloadData)
@@ -2726,6 +2756,8 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
     _ = try await withTimeout(client: client, seconds: 5) {
       try await client.subscribe(subscribePacket: subscribePacket)
     }
+    // subscribe eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
 
     // Publish at QoS 0 — there is no PUBACK involved
     let publishPacket = PublishPacket(
@@ -2825,6 +2857,9 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       return
     }
 
+    // eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
+
     // connect client2 and subscribe to topic with retained client1 publish
     try await connectClient(client: client2, testContext: testContext2)
     _ = try await withTimeout(
@@ -2852,6 +2887,9 @@ class Mqtt5ClientTests: XCBaseTestCase, @unchecked Sendable {
       XCTFail("PublishResult missing.")
       return
     }
+
+    // eventual consistency
+    try await Task.sleep(nanoseconds: 500_000_000)
 
     // connect client3 and subscribe to topic to insure there is no client1 retained publish
     try await connectClient(client: client3, testContext: testContext3)
