@@ -55,6 +55,11 @@ awsCCommonPlatformExcludes.append("source/arch/arm")
 #else
   awsCCommonPlatformExcludes.append("source/platform_fallback_stubs/file_direct_io.c")
 #endif
+// FreeBSD provides backtrace() in libexecinfo rather than libc.
+var linkerSettingsCommon: [LinkerSetting] = []
+#if os(FreeBSD)
+  linkerSettingsCommon.append(.linkedLibrary("execinfo"))
+#endif
 let cSettingsCommon: [CSetting] = [
   .headerSearchPath("source/external/libcbor"),
   .define("DEBUG_BUILD", .when(configuration: .debug)),
@@ -64,7 +69,7 @@ let cSettingsCommon: [CSetting] = [
 /// aws-c-cal
 //////////////////////////////////////////////////////////////////////
 var calDependencies: [Target.Dependency] = ["AwsCCommon"]
-#if os(Linux)
+#if os(Linux) || os(FreeBSD)
   packageTargets.append(
     .systemLibrary(
       name: "LibCrypto",
@@ -91,7 +96,7 @@ var awsCCalPlatformExcludes =
   awsCCalPlatformExcludes.append("source/darwin")
   awsCCalPlatformExcludes.append("source/unix")
   awsCCalPlatformExcludes.append("source/shared/lccrypto_common.c")
-#elseif os(Linux)
+#elseif os(Linux) || os(FreeBSD)
   awsCCalPlatformExcludes.append("source/windows")
   awsCCalPlatformExcludes.append("source/darwin")
 #else  // macOS, iOS, watchOS, tvOS
@@ -103,7 +108,7 @@ var awsCCalPlatformExcludes =
 //////////////////////////////////////////////////////////////////////
 /// s2n-tls
 //////////////////////////////////////////////////////////////////////
-#if os(Linux)
+#if os(Linux) || os(FreeBSD)
   let s2nExcludes = [
     "bin", "codebuild", "coverage", "docker-images",
     "docs", "lib",
@@ -150,7 +155,7 @@ var awsCIoPlatformExcludes =
 var cSettingsIO = cSettings
 var cSettingsHttp = cSettings
 
-#if os(Linux)
+#if os(Linux) || os(FreeBSD)
   ioDependencies.append("S2N_TLS")
   cSettingsIO.append(.define("USE_S2N"))
 #endif
@@ -168,6 +173,12 @@ var cSettingsHttp = cSettings
   awsCIoPlatformExcludes.append("source/darwin")
   cSettingsIO.append(.define("AWS_ENABLE_EPOLL"))
   swiftTestSettings.append(.define("AWS_ENABLE_EPOLL"))
+#elseif os(FreeBSD)
+  awsCIoPlatformExcludes.append("source/windows")
+  awsCIoPlatformExcludes.append("source/linux")
+  awsCIoPlatformExcludes.append("source/darwin")
+  cSettingsIO.append(.define("AWS_ENABLE_KQUEUE"))
+  swiftTestSettings.append(.define("AWS_ENABLE_KQUEUE"))
 #else  // macOS, iOS, watchOS, tvOS
   awsCIoPlatformExcludes.append("source/windows")
   awsCIoPlatformExcludes.append("source/linux")
@@ -270,7 +281,8 @@ packageTargets.append(contentsOf: [
     dependencies: ["AwsCPlatformConfig"],
     path: "aws-common-runtime/aws-c-common",
     exclude: awsCCommonPlatformExcludes,
-    cSettings: cSettingsCommon
+    cSettings: cSettingsCommon,
+    linkerSettings: linkerSettingsCommon
   ),
   .target(
     name: "AwsCSdkUtils",

@@ -12,7 +12,7 @@ class TLSContextTests: XCBaseTestCase {
     _ = TLSConnectionOptions(context: context)
   }
 
-  #if os(macOS) || os(Linux)
+  #if os(macOS) || os(Linux) || os(FreeBSD)
     func testCreateTlsContextWithFilePath() throws {
 
       let certPath = try getEnvironmentVarOrSkipTest(
@@ -28,7 +28,7 @@ class TLSContextTests: XCBaseTestCase {
     }
   #endif
 
-  #if os(macOS) || os(Linux)
+  #if os(macOS) || os(Linux) || os(FreeBSD)
     func testCreateTlsContextWithData() throws {
 
       let certPath = try getEnvironmentVarOrSkipTest(
