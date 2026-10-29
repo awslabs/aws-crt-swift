@@ -118,13 +118,9 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          if git diff --quiet; then
-            echo "CRTVersion already $VERSION, nothing to commit"
-          else
-            git add "$VERSION_FILE"
-            git commit -m "chore: update CRTVersion to $VERSION"
-            git push origin main
-          fi
+          git add "$VERSION_FILE"
+          git commit -m "chore: update CRTVersion to $VERSION"
+          git push origin main
 
       - name: Tag the version commit
         env:
