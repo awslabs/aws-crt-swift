@@ -22,6 +22,11 @@ on:
         description: 'The title of the release'
         required: true
         type: string
+      dry_run:
+        description: 'Dry run: compute the version and commit locally, but do not push, tag, or release'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   id-token: write   # Required for OIDC authentication with AWS
@@ -31,6 +36,7 @@ env:
   AWS_REGION: us-east-1
   GH_TOKEN: ${{ secrets.BOT_PAT }}
   VERSION_FILE: Source/AwsCommonRuntimeKit/CommonRuntimeKit.swift
+  DEPLOY_KEY_SECRET_ID: github-deploy-key/${{ github.repository }}
 
 jobs:
   release:
@@ -45,8 +51,7 @@ jobs:
       - name: Retrieve deploy key and setup SSH
         run: |
           # Retrieve the private key from Secrets Manager
-          DEPLOY_KEY=$(aws secretsmanager get-secret-value --secret-id aws-crt-bot/deploy-key/privatekey --query SecretString --output text)
-
+          DEPLOY_KEY=$(aws secretsmanager get-secret-value --secret-id "$DEPLOY_KEY_SECRET_ID" --query SecretString --output text | jq -r '.private_key')
           # Set up SSH configuration
           mkdir -p ~/.ssh
           echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
@@ -114,15 +119,19 @@ jobs:
             exit 1
           fi
 
-      - name: Commit and push to main
+      - name: Commit CRTVersion
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           git add "$VERSION_FILE"
           git commit -m "chore: update CRTVersion to $VERSION"
-          git push origin main
+
+      - name: Push to main
+        if: ${{ !inputs.dry_run }}
+        run: git push origin main
 
       - name: Tag the version commit
+        if: ${{ !inputs.dry_run }}
         env:
           TAG_NAME: ${{ steps.version.outputs.tag }}
         run: |
@@ -130,6 +139,7 @@ jobs:
           git push origin "refs/tags/$TAG_NAME"
 
       - name: Create GitHub release
+        if: ${{ !inputs.dry_run }}
         env:
           TAG_NAME: ${{ steps.version.outputs.tag }}
           PREV_TAG: ${{ steps.version.outputs.prev_tag }}
@@ -141,3 +151,13 @@ jobs:
             --generate-notes \
             --notes-start-tag "$PREV_TAG" \
             --verify-tag
+
+      - name: Dry run summary
+        if: ${{ inputs.dry_run }}
+        env:
+          TAG_NAME: ${{ steps.version.outputs.tag }}
+          PREV_TAG: ${{ steps.version.outputs.prev_tag }}
+          RELEASE_TITLE: ${{ inputs.release_title }}
+        run: |
+          git show --stat HEAD
+          echo "Dry run: skipped push to main, tag $TAG_NAME, and release '$RELEASE_TITLE' (notes since $PREV_TAG)"
