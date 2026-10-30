@@ -153,6 +153,7 @@ jobs:
       matrix:
         # This matrix runs tests on iOS and tvOS on oldest & newest supported Xcodes.
         # Copied from https://github.com/awslabs/aws-sdk-swift/blob/main/.github/workflows/integration-test.yml
+        # Reference link for version mapping: https://github.com/actions/runner-images/tree/main/images/macos
         runner:
           - macos-latest
           - macos-15
