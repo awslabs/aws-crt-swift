@@ -157,12 +157,12 @@ jobs:
           - macos-latest
           - macos-15
         xcode:
-          - Xcode_15.2
+          - Xcode_26.6
           - Xcode_16.4
         target:
-          [{ os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15'},
+          [{ os: ios, destination: 'iOS Simulator,OS=26.5,name=iPhone 17'},
            { os: ios, destination: 'iOS Simulator,OS=18.5,name=iPhone 16'},
-           { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)'},
+           { os: tvos, destination: 'tvOS Simulator,OS=26.5,name=Apple TV 4K (3rd generation) (at 1080p)'},
            { os: tvos, destination: 'tvOS Simulator,OS=18.5,name=Apple TV 4K (3rd generation) (at 1080p)'}]
         exclude:
           # Don't run old macOS with new Xcode
@@ -170,17 +170,17 @@ jobs:
             xcode: Xcode_16.4
           # Don't run new macOS with old Xcode
           - runner: macos-15
-            xcode: Xcode_15.2
+            xcode: Xcode_26.6 #Xcode_26.6
           # Don't run old simulators with new Xcode
-          - target: { os: tvos, destination: 'tvOS Simulator,OS=17.2,name=Apple TV 4K (3rd generation) (at 1080p)' }
+          - target: { os: tvos, destination: 'tvOS Simulator,OS=26.5,name=Apple TV 4K (3rd generation) (at 1080p)' }
             xcode: Xcode_16.4
-          - target: { os: ios, destination: 'iOS Simulator,OS=17.2,name=iPhone 15' }
+          - target: { os: ios, destination: 'iOS Simulator,OS=26.5,name=iPhone 17' }
             xcode: Xcode_16.4
           # Don't run new simulators with old Xcode
           - target: { os: tvos, destination: 'tvOS Simulator,OS=18.5,name=Apple TV 4K (3rd generation) (at 1080p)' }
-            xcode: Xcode_15.2
+            xcode: Xcode_26.6
           - target: { os: ios, destination: 'iOS Simulator,OS=18.5,name=iPhone 16' }
-            xcode: Xcode_15.2
+            xcode: Xcode_26.6
     steps:
     - uses: aws-actions/configure-aws-credentials@v4
       with:
