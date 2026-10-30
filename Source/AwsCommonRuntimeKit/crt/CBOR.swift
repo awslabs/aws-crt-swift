@@ -35,6 +35,15 @@ public enum CBORType: Equatable {
   case date(_ value: Date)
   /// Bool type
   case bool(_ value: Bool)
+  /// Arbitrary-precision integer.
+  ///
+  /// Values in the range [-2^64, 2^64 - 1] are encoded as `uint`/`int` and decoded as such. Only values
+  /// outside that range are encoded as a bignum (tags 2 and 3, RFC8949 section 3.4.3), and decoded as
+  /// this type. Use `CBORDecoder.popNextBigInteger()` to read any integer as a `BigInteger`.
+  case bigInteger(_ value: BigInteger)
+  /// Arbitrary-precision decimal, encoded as a decimal fraction (tag 4, RFC8949 section 3.4.4).
+  /// The scale is preserved. Values with tag 4 are decoded as this type.
+  case bigDecimal(_ value: BigDecimal)
   /// Null type
   case null
   /// Undefined type
@@ -102,6 +111,10 @@ public class CBOREncoder {
     case .date(let date):
       aws_cbor_encoder_write_tag(self.rawValue, UInt64(AWS_CBOR_TAG_EPOCH_TIME))
       aws_cbor_encoder_write_float(self.rawValue, date.timeIntervalSince1970)
+    case .bigInteger(let value):
+      aws_cbor_encoder_write_big_integer(self.rawValue, value.rawValue)
+    case .bigDecimal(let value):
+      aws_cbor_encoder_write_big_decimal(self.rawValue, value.rawValue)
     case .tag(let tag):
       aws_cbor_encoder_write_tag(self.rawValue, tag)
     case .array_start(let count):
@@ -344,6 +357,10 @@ public class CBORDecoder {
   }
 
   private func decodeTag() throws -> CBORType {
+    if let big = try decodeBigNumber() {
+      return big
+    }
+
     var out_value: UInt64 = 0
     guard aws_cbor_decoder_pop_next_tag_val(self.rawValue, &out_value) == AWS_OP_SUCCESS else {
       throw CommonRunTimeError.crtError(.makeFromLastError())
@@ -363,6 +380,60 @@ public class CBORDecoder {
     default:
       throw CommonRunTimeError.crtError(CRTError(code: AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue))
     }
+  }
+
+  /// Tries to decode the next tagged item as a bignum (tags 2 and 3) or a decimal fraction (tag 4).
+  ///
+  /// Returns `nil`, with the decoder unmoved, if the next item is not one of those. Any other failure
+  /// is thrown.
+  private func decodeBigNumber() throws -> CBORType? {
+    var bigInteger: OpaquePointer? = nil
+    if aws_cbor_decoder_pop_next_big_integer_val(self.rawValue, &bigInteger) == AWS_OP_SUCCESS,
+      let bigInteger
+    {
+      return .bigInteger(BigInteger(rawValue: bigInteger))
+    }
+    try throwUnlessUnexpectedType()
+
+    var bigDecimal: OpaquePointer? = nil
+    if aws_cbor_decoder_pop_next_big_decimal_val(self.rawValue, &bigDecimal) == AWS_OP_SUCCESS,
+      let bigDecimal
+    {
+      return .bigDecimal(BigDecimal(rawValue: bigDecimal))
+    }
+    try throwUnlessUnexpectedType()
+
+    return nil
+  }
+
+  private func throwUnlessUnexpectedType() throws {
+    guard aws_last_error() == AWS_ERROR_CBOR_UNEXPECTED_TYPE.rawValue else {
+      throw CommonRunTimeError.crtError(.makeFromLastError())
+    }
+  }
+
+  /// Decodes the next item as an integer of any size: `uint`, `int`, or a bignum.
+  /// - Throws: `CommonRunTimeError.crtError`. The decoder is unmoved if the next item is not an integer.
+  public func popNextBigInteger() throws -> BigInteger {
+    var bigInteger: OpaquePointer? = nil
+    guard aws_cbor_decoder_pop_next_big_integer_val(self.rawValue, &bigInteger) == AWS_OP_SUCCESS,
+      let bigInteger
+    else {
+      throw CommonRunTimeError.crtError(.makeFromLastError())
+    }
+    return BigInteger(rawValue: bigInteger)
+  }
+
+  /// Decodes the next item as a decimal fraction (tag 4).
+  /// - Throws: `CommonRunTimeError.crtError`. The decoder is unmoved if the next item is not a decimal fraction.
+  public func popNextBigDecimal() throws -> BigDecimal {
+    var bigDecimal: OpaquePointer? = nil
+    guard aws_cbor_decoder_pop_next_big_decimal_val(self.rawValue, &bigDecimal) == AWS_OP_SUCCESS,
+      let bigDecimal
+    else {
+      throw CommonRunTimeError.crtError(.makeFromLastError())
+    }
+    return BigDecimal(rawValue: bigDecimal)
   }
 
   private func decodeDefiniteArrayStart() throws -> CBORType {

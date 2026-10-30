@@ -282,4 +282,93 @@ class CBORTests: XCBaseTestCase {
       XCTAssertTrue(error is CommonRunTimeError)
     }
   }
+
+  func testBigIntegerRoundTrip() throws {
+    // Values that fit in 64 bits come back as plain integers. Larger ones come back as bignums.
+    let cases: [(String, CBORType?)] = [
+      ("0", .uint(0)),
+      ("-1", .int(-1)),
+      ("18446744073709551615", .uint(UInt64.max)),
+      ("-9223372036854775808", .int(Int64.min)),
+      ("18446744073709551616", nil),
+      ("-18446744073709551617", nil),
+      ("123456789012345678901234567890123456789012345678901234567890", nil),
+    ]
+
+    let encoder = try CBOREncoder()
+    for (input, _) in cases {
+      encoder.encode(.bigInteger(try BigInteger(input)))
+    }
+
+    let decoder = try CBORDecoder(data: encoder.getEncoded())
+    for (input, plain) in cases {
+      let decoded = try decoder.popNext()
+      if let plain {
+        XCTAssertEqual(decoded, plain)
+      } else {
+        XCTAssertEqual(decoded, .bigInteger(try BigInteger(input)))
+      }
+    }
+    XCTAssertFalse(decoder.hasNext())
+  }
+
+  func testPopNextBigIntegerReadsAnyInteger() throws {
+    let encoder = try CBOREncoder()
+    encoder.encode(.uint(42))
+    encoder.encode(.int(-42))
+    encoder.encode(.bigInteger(try BigInteger("-18446744073709551617")))
+
+    let decoder = try CBORDecoder(data: encoder.getEncoded())
+    XCTAssertEqual(try decoder.popNextBigInteger().toString(), "42")
+    XCTAssertEqual(try decoder.popNextBigInteger().toString(), "-42")
+    XCTAssertEqual(try decoder.popNextBigInteger().toString(), "-18446744073709551617")
+  }
+
+  func testBigDecimalRoundTrip() throws {
+    let inputs = ["150e-2", "1e3", "-12345678901234567890123456789e-40", "0e0"]
+
+    let encoder = try CBOREncoder()
+    for input in inputs {
+      encoder.encode(.bigDecimal(try BigDecimal(input)))
+    }
+
+    let decoder = try CBORDecoder(data: encoder.getEncoded())
+    for input in inputs {
+      XCTAssertEqual(try decoder.popNext(), .bigDecimal(try BigDecimal(input)))
+    }
+    XCTAssertFalse(decoder.hasNext())
+  }
+
+  func testBigDecimalInsideCollections() throws {
+    let encoder = try CBOREncoder()
+    encoder.encode(
+      .map([
+        "price": .bigDecimal(try BigDecimal("19.99")),
+        "ids": .array([.bigInteger(try BigInteger("18446744073709551616")), .uint(1)]),
+      ]))
+
+    let decoder = try CBORDecoder(data: encoder.getEncoded())
+    XCTAssertEqual(
+      try decoder.popNext(),
+      .map([
+        "price": .bigDecimal(try BigDecimal("19.99")),
+        "ids": .array([.bigInteger(try BigInteger("18446744073709551616")), .uint(1)]),
+      ]))
+  }
+
+  func testMalformedBigTagsStayTags() throws {
+    // A tag 2 or 4 whose content isn't a bignum or decimal fraction is still returned as a plain tag,
+    // followed by its content, as it was before big numbers were supported.
+    let encoder = try CBOREncoder()
+    encoder.encode(.tag(2))
+    encoder.encode(.text("x"))
+    encoder.encode(.tag(4))
+    encoder.encode(.uint(7))
+
+    let decoder = try CBORDecoder(data: encoder.getEncoded())
+    XCTAssertEqual(try decoder.popNext(), .tag(2))
+    XCTAssertEqual(try decoder.popNext(), .text("x"))
+    XCTAssertEqual(try decoder.popNext(), .tag(4))
+    XCTAssertEqual(try decoder.popNext(), .uint(7))
+  }
 }
