@@ -71,8 +71,8 @@ jobs:
       matrix:
         # This matrix runs tests on Mac, on oldest & newest supported Xcodes
         runner:
-          - macos-14
-          - macos-14-large #x64
+          - macos-latest
+          - macos-latest-large #x64
           - macos-15
           - macos-15-large # x64
     steps:
@@ -98,8 +98,8 @@ jobs:
       matrix:
         # This matrix runs tests on Mac, on oldest & newest supported Xcodes
         runner:
-          - macos-14
-          - macos-14-large #x64
+          - macos-latest
+          - macos-latest-large #x64
           - macos-15
           - macos-15-large # x64
     steps:
@@ -154,7 +154,7 @@ jobs:
         # This matrix runs tests on iOS and tvOS on oldest & newest supported Xcodes.
         # Copied from https://github.com/awslabs/aws-sdk-swift/blob/main/.github/workflows/integration-test.yml
         runner:
-          - macos-14
+          - macos-latest
           - macos-15
         xcode:
           - Xcode_15.2
@@ -166,7 +166,7 @@ jobs:
            { os: tvos, destination: 'tvOS Simulator,OS=18.5,name=Apple TV 4K (3rd generation) (at 1080p)'}]
         exclude:
           # Don't run old macOS with new Xcode
-          - runner: macos-14
+          - runner: macos-latest
             xcode: Xcode_16.4
           # Don't run new macOS with old Xcode
           - runner: macos-15
@@ -227,7 +227,7 @@ jobs:
 
 
   localhost-test-macos:
-    runs-on: macos-14 # latest
+    runs-on: macos-15 # latest
     steps:
     - uses: aws-actions/configure-aws-credentials@v4
       with:
