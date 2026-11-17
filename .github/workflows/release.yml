@@ -30,11 +30,11 @@ on:
 
 permissions:
   id-token: write   # Required for OIDC authentication with AWS
-  contents: read    # Required to checkout repository
+  contents: write   # Required to checkout and create the release
 
 env:
   AWS_REGION: us-east-1
-  GH_TOKEN: ${{ secrets.BOT_PAT }}
+  GH_TOKEN: ${{github.token}}
   VERSION_FILE: Source/AwsCommonRuntimeKit/CommonRuntimeKit.swift
   DEPLOY_KEY_SECRET_ID: github-deploy-key/${{ github.repository }}
 
