@@ -5,10 +5,10 @@ import AwsCEventStream
 import Foundation
 
 public struct EventStreamHeader {
-  /// max header name length is 127 bytes (Int8.max)
+
   public static let maxNameLength = AWS_EVENT_STREAM_HEADER_NAME_LEN_MAX
 
-  public static let maxValueLength = Int16.max
+  public static let maxValueLength = AWS_EVENT_STREAM_HEADER_VALUE_LEN_MAX
 
   /// name.count can not be greater than EventStreamHeader.maxNameLength
   public var name: String
